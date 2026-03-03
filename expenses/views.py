@@ -181,7 +181,13 @@ class RecurringTransactionMixin:
 
 def process_user_recurring_transactions(user):
     today = date.today()
-    recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True)
+    profile = user.profile
+    recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True).order_by('created_at')
+    
+    # Enforce Tier Limits for processing
+    if not profile.is_pro:
+        limit = 3 if profile.is_plus else 0
+        recurring_txs = recurring_txs[:limit]
     
     new_expenses = []
     new_incomes = []
@@ -2001,7 +2007,18 @@ class RecurringTransactionListView(LoginRequiredMixin, ListView):
         context['selected_categories'] = self.request.GET.getlist('category')
         
         # Split into Active and Cancelled
+        # We sort active subs by creation date to determine which ones are locked
         active_subs = [t for t in all_transactions if t.is_active]
+        active_subs.sort(key=lambda x: x.created_at or x.id) # Fallback to ID if created_at is null
+        
+        profile = self.request.user.profile
+        limit = float('inf')
+        if not profile.is_pro:
+            limit = 3 if profile.is_plus else 0
+            
+        for i, sub in enumerate(active_subs):
+            sub.is_locked = i >= limit
+            
         cancelled_subs = [t for t in all_transactions if not t.is_active]
         
         # Calculate Totals (Monthly & Yearly)
@@ -3029,20 +3046,30 @@ class SavingsGoalListView(LoginRequiredMixin, ListView):
         context['total_saved'] = round(total_saved, 2)
         
         # Free users get 1 goal, Plus gets 3, Pro gets unlimited
-        context['can_create_goal'] = True
         goal_count = goals.count()
         profile = self.request.user.profile
-        if profile.is_pro:
-            context['can_create_goal'] = True
-        elif profile.is_plus:
-            if goal_count >= 3:
-                context['can_create_goal'] = False
-            # Nudge context
+        
+        limit = float('inf')
+        if not profile.is_pro:
+            limit = 3 if profile.is_plus else 1
+            
+        context['can_create_goal'] = goal_count < limit
+        
+        # Mark goals beyond limit as locked (by creation order)
+        # Convert to list to avoid evaluating queryset multiple times and to add transient attribute
+        goals_list = list(goals.order_by('created_at'))
+        for i, goal in enumerate(goals_list):
+            goal.is_locked = i >= limit
+            
+        context['goals'] = goals_list
+        
+        # Nudge context
+        if not profile.is_pro:
             context['nudge_current'] = goal_count
-            context['nudge_limit'] = 3
+            context['nudge_limit'] = 3 if profile.is_plus else 1
             context['nudge_feature_name'] = 'savings goals'
-            context['nudge_upgrade_tier'] = 'PRO'
-            context['nudge_at_limit'] = goal_count >= 3
+            context['nudge_upgrade_tier'] = 'PRO' if profile.is_plus else 'PLUS'
+            context['nudge_at_limit'] = goal_count >= context['nudge_limit']
             context['show_nudge'] = goal_count >= 2  # 60% of 3
         else:
             if goal_count >= 1:
@@ -3125,8 +3152,18 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         contributions = goal.contributions.all().order_by('-date', '-created_at')
         form = GoalContributionForm()
         
+        # Check if goal is locked
+        profile = request.user.profile
+        is_locked = False
+        if not profile.is_pro:
+            limit = 3 if profile.is_plus else 1
+            goals_ids = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at').values_list('id', flat=True))
+            if goal.id in goals_ids and goals_ids.index(goal.id) >= limit:
+                 is_locked = True
+        
         context = {
             'goal': goal,
+            'is_locked': is_locked,
             'contributions': contributions,
             'form': form
         }
@@ -3135,6 +3172,15 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
     def post(self, request, pk):
         goal = get_object_or_404(SavingsGoal, pk=pk, user=request.user)
         
+        # Check if goal is locked due to subscription limits
+        profile = request.user.profile
+        if not profile.is_pro:
+            limit = 3 if profile.is_plus else 1
+            goals_ids = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at').values_list('id', flat=True))
+            if goal.id in goals_ids and goals_ids.index(goal.id) >= limit:
+                 messages.error(request, _("This savings goal is locked because it exceeds your plan's limit. Upgrade to unlock it!"))
+                 return redirect('goal-detail', pk=goal.pk)
+
         # Handle JS fetch to clear confetti
         if request.content_type == 'application/json':
             try:

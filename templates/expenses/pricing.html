@@ -46,7 +46,7 @@
                     <li class="mb-2 text-muted"><i class="bi bi-dash-circle me-2"></i>{% trans "Recurring Transactions" %}</li>
                     <li class="mb-2 text-muted"><i class="bi bi-dash-circle me-2"></i>{% trans "Year in Review" %}</li>
                 </ul>
-                {% if user.profile.tier == 'FREE' %}
+                {% if user.profile.active_tier == 'FREE' %}
                     <button type="button" class="w-100 btn btn-lg btn-outline-primary mt-auto rounded-pill fw-bold" disabled>{% trans "Current Plan" %}</button>
                 {% else %}
                     <a href="#" class="w-100 btn btn-lg btn-outline-secondary mt-auto rounded-pill fw-bold disabled">{% trans "Included" %}</a>
@@ -82,7 +82,7 @@
                     <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{% trans "Export to CSV/Excel" %}</li>
                     <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{% trans "Year in Review" %}</li>
                 </ul>
-                {% if user.profile.tier == 'PLUS' and user.profile.is_plus %}
+                {% if user.profile.active_tier == 'PLUS' %}
                      <button type="button" class="w-100 btn btn-lg btn-outline-primary mt-auto rounded-pill fw-bold" disabled>{% trans "Current Plan" %}</button>
                 {% elif user.profile.is_pro %}
                      <button type="button" class="w-100 btn btn-lg btn-outline-primary mt-auto rounded-pill fw-bold" disabled>{% trans "Included" %}</button>

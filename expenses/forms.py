@@ -29,7 +29,14 @@ class ExpenseForm(forms.ModelForm):
         # If user is provided, populate category choices
         if user:
             self.fields['currency'].initial = user.profile.currency
-            categories = Category.objects.filter(user=user).order_by('name')
+            categories = Category.objects.filter(user=user).order_by('id')
+            
+            # Enforce Tier Limits
+            profile = user.profile
+            if not profile.is_pro:
+                limit = 10 if profile.is_plus else 5
+                categories = categories[:limit]
+            
             # Create choices list: [(name, name), ...]
             choices = [(cat.name, cat.name) for cat in categories]
             self.fields['category'].widget = forms.Select(choices=choices, attrs={'class': 'form-select django-multi-select'})
@@ -92,7 +99,14 @@ class RecurringTransactionForm(forms.ModelForm):
         
         # Category field as Select for Expenses
         if user:
-            categories = Category.objects.filter(user=user).order_by('name')
+            categories = Category.objects.filter(user=user).order_by('id')
+            
+            # Enforce Tier Limits
+            profile = user.profile
+            if not profile.is_pro:
+                limit = 10 if profile.is_plus else 5
+                categories = categories[:limit]
+
             category_choices = [('', '---------')] + [(cat.name, cat.name) for cat in categories]
             self.fields['category'].widget = forms.Select(choices=category_choices, attrs={'class': 'form-select'})
         else:

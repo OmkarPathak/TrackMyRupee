@@ -124,25 +124,39 @@
             <div class="card border-0 shadow-sm border-top border-4 border-{{ goal.color }} mb-4">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-3"><i class="bi bi-wallet2 me-2 text-{{ goal.color }}"></i>{% trans "Deposit Funds" %}</h5>
-                    <form method="post" action="{% url 'goal-detail' goal.pk %}">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">{% trans "Amount" %}</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-muted border-end-0">{{ goal.currency }}</span>
-                                {{ form.amount }}
+                    
+                    {% if is_locked %}
+                        <div class="p-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded-4 text-center">
+                            <div class="mb-3 d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-25 rounded-circle" style="width: 50px; height: 50px;">
+                                <i class="bi bi-lock-fill fs-3 text-warning"></i>
                             </div>
-                            {{ form.amount.errors }}
+                            <h6 class="fw-bold mb-2">{% trans "Goal Locked" %}</h6>
+                            <p class="small text-muted mb-3">{% trans "This goal exceeds your current plan's limit. Upgrade to resume adding funds." %}</p>
+                            <a href="{% url 'pricing' %}" class="btn btn-warning w-100 fw-bold shadow-sm py-2">
+                                <i class="bi bi-arrow-up-circle-fill me-1"></i> {% trans "Upgrade Now" %}
+                            </a>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label text-muted small fw-bold">{% trans "Date" %}</label>
-                            {{ form.date }}
-                            {{ form.date.errors }}
-                        </div>
-                        <button type="submit" class="btn btn-{{ goal.color }} w-100 fw-bold shadow-sm py-2">
-                            <i class="bi bi-plus-circle-fill me-1"></i> {% trans "Add to Savings" %}
-                        </button>
-                    </form>
+                    {% else %}
+                        <form method="post" action="{% url 'goal-detail' goal.pk %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">{% trans "Amount" %}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0">{{ goal.currency }}</span>
+                                    {{ form.amount }}
+                                </div>
+                                {{ form.amount.errors }}
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold">{% trans "Date" %}</label>
+                                {{ form.date }}
+                                {{ form.date.errors }}
+                            </div>
+                            <button type="submit" class="btn btn-{{ goal.color }} w-100 fw-bold shadow-sm py-2">
+                                <i class="bi bi-plus-circle-fill me-1"></i> {% trans "Add to Savings" %}
+                            </button>
+                        </form>
+                    {% endif %}
                 </div>
             </div>
             {% else %}

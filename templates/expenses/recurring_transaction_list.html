@@ -156,19 +156,25 @@
                                         <div class="text-muted small d-flex align-items-center flex-wrap gap-2">
                                             <span><i class="bi bi-calendar-event me-1"></i>{{ sub.get_frequency_display }}</span>
                                             
-                                            <!-- Urgency Text/Pill -->
-                                            {% if sub.annotated_days_until <= 3 and sub.transaction_type == 'EXPENSE' %}
-                                                <span class="badge bg-danger text-white rounded-pill shadow-sm">
-                                                    {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} day{% endblocktrans %}
-                                                </span>
-                                            {% elif sub.annotated_days_until <= 7 and sub.transaction_type == 'EXPENSE' %}
-                                                <span class="text-warning fw-bold">
-                                                    {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} day{% endblocktrans %}
+                                            {% if sub.is_locked %}
+                                                <span class="badge bg-warning text-dark rounded-pill shadow-sm">
+                                                    <i class="bi bi-lock-fill me-1"></i> {% trans "Locked (Plan Limit)" %}
                                                 </span>
                                             {% else %}
-                                                <span class="text-muted">
-                                                    {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} days{% endblocktrans %}
-                                                </span>
+                                                <!-- Urgency Text/Pill -->
+                                                {% if sub.annotated_days_until <= 3 and sub.transaction_type == 'EXPENSE' %}
+                                                    <span class="badge bg-danger text-white rounded-pill shadow-sm">
+                                                        {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} day{% endblocktrans %}
+                                                    </span>
+                                                {% elif sub.annotated_days_until <= 7 and sub.transaction_type == 'EXPENSE' %}
+                                                    <span class="text-warning fw-bold">
+                                                        {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} day{% endblocktrans %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">
+                                                        {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} days{% endblocktrans %}
+                                                    </span>
+                                                {% endif %}
                                             {% endif %}
                                         </div>
                                     </div>

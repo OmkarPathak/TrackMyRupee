@@ -266,6 +266,34 @@ class UserProfile(models.Model):
         return False
 
     @property
+    def active_tier(self):
+        """Returns the actual active tier string (respecting subscription expiry)."""
+        if self.is_pro:
+            return 'PRO'
+        if self.is_plus:
+            return 'PLUS'
+        return 'FREE'
+
+    @property
+    def active_tier_display(self):
+        """Returns the actual active tier display name (respecting subscription expiry)."""
+        tier = self.active_tier
+        return dict(self.TIER_CHOICES).get(tier, 'Free')
+
+    @property
+    def subscription_expired(self):
+        """Check if the user was on a paid tier but it has now expired."""
+        if self.tier in ['PRO', 'PLUS'] and self.active_tier == 'FREE':
+            if self.subscription_end_date and self.subscription_end_date < timezone.now():
+                return True
+        return False
+
+    @property
+    def last_tier_display(self):
+        """Returns the display name of the tier the user was on before expiry."""
+        return dict(self.TIER_CHOICES).get(self.tier, 'Pro')
+
+    @property
     def can_start_trial(self):
         """Check if user is eligible to start a free 7-day Pro trial."""
         return self.tier == 'FREE' and not self.has_used_trial

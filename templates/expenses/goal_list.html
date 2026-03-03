@@ -97,9 +97,20 @@
 
                     <!-- Actions Layout -->
                     <div class="d-flex justify-content-between align-items-center">
+                        {% if goal.is_locked %}
+                        <div class="d-flex flex-column gap-1">
+                            <span class="badge bg-warning text-dark rounded-pill px-2 py-1 small shadow-sm mb-2" style="width: fit-content;">
+                                <i class="bi bi-lock-fill me-1"></i> {% trans "Locked (Plan Limit)" %}
+                            </span>
+                            <a href="{% url 'pricing' %}" class="btn btn-outline-primary btn-sm px-3 fw-bold rounded-3 shadow-sm">
+                                <i class="bi bi-arrow-up-circle me-1"></i>{% trans "Upgrade" %}
+                            </a>
+                        </div>
+                        {% else %}
                         <a href="{% url 'goal-detail' goal.pk %}" class="btn btn-{{ goal.color }} btn-sm px-3 fw-bold rounded-3 shadow-sm" onclick="window.showLoader()">
                             <i class="bi bi-plus-circle me-1"></i>{% trans "Add Funds" %}
                         </a>
+                        {% endif %}
                         <div class="d-flex gap-2">
                             <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-light btn-sm rounded-3 text-secondary border icon-btn" onclick="window.showLoader()" title="{% trans 'Edit' %}">
                                 <i class="bi bi-pencil"></i>
