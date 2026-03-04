@@ -25,35 +25,35 @@
 
             <small class="text-muted text-uppercase fw-bold px-3 mb-2" style="font-size: 0.75rem;">{% trans "Tools" %}</small>
             
-            <a href="{% url 'income-list' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if 'income' in request.resolver_match.url_name %}active{% endif %}"  onclick="showLoader()">
+            <a href="{% url 'income-list' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if 'income' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-wallet2 me-2"></i> {% trans "Income" %}
             </a>
-            <a href="{% url 'budget' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'budget' %}active{% endif %}"  onclick="showLoader()">
+            <a href="{% url 'budget' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'budget' %}active{% endif %}">
                 <i class="bi bi-pie-chart me-2"></i> {% trans "Budget" %}
             </a>
-            <a href="{% url 'category-list' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if 'category' in request.resolver_match.url_name %}active{% endif %}"  onclick="showLoader()">
+            <a href="{% url 'category-list' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-tags me-2"></i> {% trans "Categories" %}
             </a>
-            <a href="{% url 'upload' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'upload' %}active{% endif %}"  onclick="showLoader()">
+            <a href="{% url 'upload' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'upload' %}active{% endif %}">
                 <i class="bi bi-cloud-arrow-up me-2"></i> {% trans "Upload Data" %}
             </a>
 
             <div class="my-3"></div>
             <small class="text-muted text-uppercase fw-bold px-3 mb-2" style="font-size: 0.75rem;">{% trans "Account" %}</small>
 
-            <a href="{% url 'currency-settings' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'currency-settings' %}active{% endif %}"  onclick="showLoader()">
+            <a href="{% url 'currency-settings' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'currency-settings' %}active{% endif %}">
                 <i class="bi bi-coin me-2"></i> {% trans "Currency" %}
             </a>
-            <a href="{% url 'language-settings' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'language-settings' %}active{% endif %}"  onclick="showLoader()">
+            <a href="{% url 'language-settings' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'language-settings' %}active{% endif %}">
                 <i class="bi bi-translate me-2"></i> {% trans "Language" %}
             </a>
-            <a href="{% url 'profile-settings' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'profile-settings' %}active{% endif %}"  onclick="showLoader()">
+            <a href="{% url 'profile-settings' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'profile-settings' %}active{% endif %}">
                 <i class="bi bi-person-badge me-2"></i> {% trans "Profile" %}
             </a>
-            <a href="{% url 'account-delete' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 text-danger fw-bold"  onclick="showLoader()">
+            <a href="{% url 'account-delete' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 text-danger fw-bold">
                 <i class="bi bi-person-x me-2"></i> {% trans "Delete" %}
             </a>
-            <a href="{% url 'home' %}?tour=true" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 text-info fw-bold"  onclick="showLoader()">
+            <a href="{% url 'home' %}?tour=true" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 text-info fw-bold">
                  <i class="bi bi-question-circle me-2"></i> {% trans "Tutorial" %}
             </a>
         </div>

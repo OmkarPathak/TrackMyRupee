@@ -112,7 +112,7 @@
                         </a>
                         {% endif %}
                         <div class="d-flex gap-2">
-                            <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-light btn-sm rounded-3 text-secondary border icon-btn" onclick="window.showLoader()" title="{% trans 'Edit' %}">
+                            <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-light btn-sm rounded-3 text-secondary border icon-btn" title="{% trans 'Edit' %}">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <button type="button" class="btn btn-outline-danger btn-sm rounded-3 icon-btn" 
@@ -136,7 +136,7 @@
             <h4 class="fw-bold">{% trans "No Savings Goals Yet" %}</h4>
             <p class="text-muted mb-4">{% trans "Set up a goal to track your savings for a vacation, emergency fund, or a new gadget." %}</p>
             {% if can_create_goal %}
-            <a href="{% url 'goal-create' %}" class="btn btn-primary shadow" onclick="window.showLoader()">{% trans "Create Your First Goal" %}</a>
+            <a href="{% url 'goal-create' %}" class="btn btn-primary shadow">{% trans "Create Your First Goal" %}</a>
             {% else %}
             <a href="{% url 'pricing' %}" class="btn btn-warning shadow">{% trans "Upgrade to Create More Goals" %}</a>
             {% endif %}

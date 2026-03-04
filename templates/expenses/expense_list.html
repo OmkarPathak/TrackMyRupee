@@ -320,11 +320,11 @@
             <!-- Action Buttons (Unified Alignment & Spacing) -->
             <div class="col-12 col-md-auto flex-grow-1 flex-lg-grow-0 mt-3 mt-md-0">
                 <div class="d-flex flex-wrap flex-md-nowrap gap-2 align-items-end">
-                    <button type="submit" class="btn btn-primary btn-sm flex-fill flex-md-grow-0" onclick="showLoader()">
+                    <button type="submit" class="btn btn-primary btn-sm flex-fill flex-md-grow-0">
                         <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
                     </button>
                     
-                    <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary btn-sm flex-fill flex-md-grow-0" onclick="showLoader()">
+                    <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary btn-sm flex-fill flex-md-grow-0">
                         <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
                     </a>
 
@@ -667,7 +667,7 @@
                             </td>
                             <td class="text-end pe-4 text-nowrap">
                                 <div class="hstack gap-3 justify-content-end">
-                                    <a href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="Edit" onclick="setButtonLoading(this, '')">
+                                    <a href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="Edit">
                                         <i class="bi bi-pencil-square text-primary"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
@@ -751,7 +751,7 @@
                                             <div class="flex-grow-1">
                                                 <div class="d-flex align-items-start gap-1">
                                                     <h6 class="mb-1 fw-bold text-body-emphasis description-clamp flex-grow-1" style="font-size: 1.05rem; letter-spacing: -0.01em;">{{ expense.description }}</h6>
-                                                    <button type="button" class="btn expand-desc-btn z-3 position-relative d-md-none" onclick="toggleDescription(this, event)" title="{% trans 'Show more' %}">
+                                                    <button type="button" class="btn expand-desc-btn no-loader z-3 position-relative d-md-none" onclick="toggleDescription(this, event)" title="{% trans 'Show more' %}">
                                                         <i class="bi bi-chevron-down" style="font-size: 0.75rem;"></i>
                                                     </button>
                                                 </div>

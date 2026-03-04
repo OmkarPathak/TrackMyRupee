@@ -1,6 +1,6 @@
 {% load static i18n %}
 <!-- Unified Navbar -->
-<nav class="navbar navbar-expand-lg sticky-top {% if is_landing %}navbar-landing{% else %}bg-body-tertiary border-bottom{% endif %}">
+<nav class="navbar navbar-expand-lg sticky-top {% if user.is_authenticated %}d-none d-lg-flex{% endif %} {% if is_landing %}navbar-landing{% else %}bg-body-tertiary border-bottom{% endif %}">
     <div class="container">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'landing' %}{% endif %}">
             <img src="{% static 'img/logo.svg' %}" alt="TMR" width="32" height="32" class="d-inline-block align-text-top rounded-3">
@@ -12,7 +12,7 @@
         {% endif %}
 
         {% if user.is_authenticated %}
-            <!-- Mobile Notification Bell -->
+            <!-- Mobile Notification Bell (Kept for landing if needed, but will be hidden by d-none on nav) -->
             <div class="d-lg-none ms-auto me-3 dropdown">
                 <a class="nav-link dropdown-toggle no-arrow p-0 d-flex align-items-center justify-content-center position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 38px; height: 38px;">
                     <i class="bi bi-bell fs-4"></i>
@@ -58,7 +58,7 @@
             </div>
         {% endif %}
 
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler border-0 shadow-none d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -110,9 +110,9 @@
                             <span class="text-gradient-primary">{% trans "Add" %}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><a class="dropdown-item py-2" href="{% url 'expense-create' %}?next={{ request.path }}" onclick="window.showLoader()"><i class="bi bi-dash-circle text-danger me-2"></i> {% trans "Add Expense" %}</a></li>
-                            <li><a class="dropdown-item py-2" href="{% url 'recurring-create' %}?next={{ request.path }}" onclick="window.showLoader()"><i class="bi bi-arrow-repeat text-primary me-2"></i> {% trans "Add Subscription" %}</a></li>
-                            <li><a class="dropdown-item py-2" href="{% url 'income-create' %}?next={{ request.path }}" onclick="window.showLoader()"><i class="bi bi-plus-circle text-success me-2"></i> {% trans "Add Income" %}</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'expense-create' %}?next={{ request.path }}"><i class="bi bi-dash-circle text-danger me-2"></i> {% trans "Add Expense" %}</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'recurring-create' %}?next={{ request.path }}"><i class="bi bi-arrow-repeat text-primary me-2"></i> {% trans "Add Subscription" %}</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'income-create' %}?next={{ request.path }}"><i class="bi bi-plus-circle text-success me-2"></i> {% trans "Add Income" %}</a></li>
                         </ul>
                     </li>
 
@@ -276,3 +276,115 @@
         </div>
     </div>
 </nav>
+
+{% if user.is_authenticated %}
+<!-- Mobile Bottom Navigation -->
+<div class="mobile-bottom-nav d-lg-none">
+    <a href="{% url 'home' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+        <i class="bi bi-house-door{% if request.resolver_match.url_name == 'home' %}-fill{% endif %}"></i>
+        <span>{% trans "Dashboard" %}</span>
+    </a>
+    <a href="{% url 'expense-list' %}" class="mobile-nav-item {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-credit-card{% if 'expense' in request.resolver_match.url_name %}-fill{% endif %}"></i>
+        <span>{% trans "Expenses" %}</span>
+    </a>
+    
+    <!-- Floating Action Button -->
+    <a id="global-fab" href="#" class="mobile-fab" data-bs-toggle="offcanvas" data-bs-target="#addActionsSheet" aria-controls="addActionsSheet">
+        <div class="fab-icon">
+            <i class="bi bi-plus-lg"></i>
+        </div>
+    </a>
+
+    <a href="{% url 'calendar' %}" class="mobile-nav-item {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-calendar3{% if 'calendar' in request.resolver_match.url_name %}-fill{% endif %}"></i>
+        <span>{% trans "Calendar" %}</span>
+    </a>
+    <button class="mobile-nav-item mobile-nav-item-more" type="button" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet" aria-controls="moreMenuSheet">
+        <i class="bi bi-grid"></i>
+        <span>{% trans "More" %}</span>
+    </button>
+</div>
+
+<!-- Mobile Add Actions Bottom Sheet -->
+<div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-lg-none" tabindex="-1" id="addActionsSheet" aria-labelledby="addActionsSheetLabel">
+    <div class="offcanvas-header border-bottom py-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-plus-circle-fill fs-4 text-primary"></i>
+            <h5 class="offcanvas-title fw-bold mb-0" id="addActionsSheetLabel">{% trans "Add New" %}</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="list-group list-group-flush pb-1 mt-2">
+            <a href="{% url 'expense-create' %}?next={{ request.path }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-dash-circle text-danger"></i>
+                <span>{% trans "Add Expense" %}</span>
+            </a>
+            <a href="{% url 'recurring-create' %}?next={{ request.path }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-arrow-repeat text-primary"></i>
+                <span>{% trans "Add Subscription" %}</span>
+            </a>
+            <a href="{% url 'income-create' %}?next={{ request.path }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-plus-circle text-success"></i>
+                <span>{% trans "Add Income" %}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile More Bottom Sheet -->
+<div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-lg-none" tabindex="-1" id="moreMenuSheet" aria-labelledby="moreMenuSheetLabel">
+    <div class="offcanvas-header border-bottom py-3">
+        <div class="d-flex align-items-center gap-2">
+            <img src="{% static 'img/logo.svg' %}" alt="TMR" width="28" height="28" class="rounded-2">
+            <h5 class="offcanvas-title fw-bold mb-0" id="moreMenuSheetLabel">TrackMyRupee</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="list-group list-group-flush pb-1 mt-2">
+            <!-- Notifications Item -->
+            <a href="{% url 'notification-list' %}" class="list-group-item list-group-item-action justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-bell-fill text-warning"></i>
+                    <span>{% trans "Notifications" %}</span>
+                </div>
+                {% if has_unread_notifications %}
+                    <span class="badge rounded-pill bg-danger border border-light">
+                        {{ unread_notifications_count }}
+                    </span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'recurring-list' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-arrow-repeat text-primary"></i>
+                <span>{% trans "Subscriptions" %}</span>
+            </a>
+            <a href="{% url 'goal-list' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-bullseye text-success"></i>
+                <span>{% trans "Savings Goals" %}</span>
+            </a>
+            <a href="{% url 'analytics' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-graph-up-arrow text-info"></i>
+                <span>{% trans "Analytics" %}</span>
+            </a>
+            <a href="{% url 'settings-home' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-gear text-secondary"></i>
+                <span>{% trans "Settings" %}</span>
+            </a>
+            <button class="list-group-item list-group-item-action theme-toggle-btn">
+                <i class="bi bi-moon-stars-fill theme-icon-active text-primary"></i>
+                <span>{% trans "Change Theme" %}</span>
+            </button>
+            <form action="{% url 'account_logout' %}" method="post" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="list-group-item list-group-item-action text-danger w-100 text-start">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>{% trans "Logout" %}</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}

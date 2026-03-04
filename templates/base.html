@@ -799,26 +799,124 @@
         </div>
     </div>
 
-    <!-- Global Loader Logic -->
     <script>
-        window.showLoader = function () {
-            const loader = document.getElementById('page-loader');
-            if (loader) {
+        (function() {
+            let loaderTimeout = null;
+
+            window.showLoader = function () {
+                const loader = document.getElementById('page-loader');
+                if (!loader) return;
+                
+                // Idempotent show: remove d-none first, then add d-flex
                 loader.classList.remove('d-none');
                 loader.classList.add('d-flex');
-            }
-        };
+                
+                // Reset safety timeout (10s) to automatically hide if navigation fails
+                clearTimeout(loaderTimeout);
+                loaderTimeout = setTimeout(window.hideLoader, 10000);
+            };
 
-        window.hideLoader = function () {
-            const loader = document.getElementById('page-loader');
-            if (loader) {
+            window.hideLoader = function () {
+                const loader = document.getElementById('page-loader');
+                if (!loader) return;
+                
+                // Idempotent hide
                 loader.classList.remove('d-flex');
                 loader.classList.add('d-none');
-            }
-        };
+                
+                if (loaderTimeout) {
+                    clearTimeout(loaderTimeout);
+                    loaderTimeout = null;
+                }
+            };
 
-        // 1. Handle Programmatic Form Submits
-        (function () {
+            // 1. Unified Event Handler for Loader Trigger
+            const handleTrigger = function (e) {
+                // Ignore right clicks or clicks with modifiers
+                if (e.type === 'click' && (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return;
+
+                // Find closest element that explicitly looks like it will navigate.
+                const navigationKeywords = ['window.location', 'location.href', 'location.assign', 'location.replace', 'history.back()', 'history.forward()', 'history.go('];
+                const selector = 'a, [onclick*="' + navigationKeywords.join('"], [onclick*="') + '"]';
+                const clickable = e.target.closest(selector);
+                
+                if (!clickable) return;
+
+                let shouldShow = false;
+
+                if (clickable.tagName === 'A') {
+                    const link = clickable;
+                    const href = link.getAttribute('href') || '';
+                    
+                    // Basic exclusions
+                    if (!href || href === '#' || href.startsWith('#')) return;
+                    if (link.target === '_blank') return;
+                    if (link.hasAttribute('download') || link.classList.contains('no-loader')) return;
+                    if (link.hasAttribute('data-bs-toggle') || link.hasAttribute('data-bs-dismiss')) return;
+                    if (href.startsWith('mailto:') || href.startsWith('tel:')) return;
+
+                    // Handle javascript: links
+                    if (href.startsWith('javascript:')) {
+                        if (href.includes('history.back()') || href.includes('location.href')) shouldShow = true;
+                    } else {
+                        // Likely a standard navigation
+                        try {
+                            const url = new URL(link.href, window.location.origin);
+                            const isSamePage = (url.origin === window.location.origin) &&
+                                             (url.pathname === window.location.pathname) &&
+                                             (url.search === window.location.search);
+                            // Avoid showing for same-page hash links
+                            if (!(isSamePage && url.hash)) shouldShow = true;
+                        } catch (err) { 
+                            shouldShow = true; 
+                        }
+                    }
+                } else {
+                    // Handle buttons or other elements with onclick navigations
+                    if (clickable.classList.contains('no-loader')) return;
+                    if (clickable.hasAttribute('data-bs-toggle') || clickable.hasAttribute('data-bs-dismiss')) return;
+                    if (clickable.tagName === 'BUTTON' && clickable.type === 'submit') return; // Handled by submit listener
+                    
+                    shouldShow = true;
+                }
+
+                if (shouldShow) {
+                    window.showLoader();
+                    // Tag the event so the bubbling listener knows we intended to show it
+                    e._loaderTriggered = true;
+                }
+            };
+
+            // Capture-phase listener (Trigger immediately)
+            document.addEventListener('click', handleTrigger, true);
+
+            // 2. Bubbling-phase Click Listener (Cancellation check)
+            // If any handler called e.preventDefault(), hide the loader we just showed,
+            // UNLESS it's a mobile navbar link which often has complex event handling.
+            document.addEventListener('click', function (e) {
+                if (e.defaultPrevented) {
+                    const isMobile = window.innerWidth < 992;
+                    const isNavbarLink = e.target.closest('.nav-link, .mobile-nav-item, .list-group-item');
+                    
+                    if (isMobile && isNavbarLink) {
+                        // Keep loader visible for navbar links on mobile even if defaultPrevented
+                        return;
+                    }
+                    window.hideLoader();
+                }
+            }, false);
+
+            // 3. Form Submit Listener
+            document.addEventListener('submit', function (e) {
+                if (!e.defaultPrevented) {
+                    const form = e.target;
+                    if (!form.classList.contains('no-loader') && form.target !== '_blank') {
+                        window.showLoader();
+                    }
+                }
+            });
+
+            // 4. Programmatic Form Submit Interception
             const originalSubmit = HTMLFormElement.prototype.submit;
             HTMLFormElement.prototype.submit = function () {
                 if (!this.classList.contains('no-loader') && this.target !== '_blank') {
@@ -826,65 +924,11 @@
                 }
                 originalSubmit.apply(this, arguments);
             };
+
+            // 5. Robust Navigation Fallbacks & Cleanup
+            window.addEventListener('pageshow', () => window.hideLoader());
+            window.addEventListener('popstate', () => window.hideLoader());
         })();
-
-        // 2. Handle Standard Form Submits
-        document.addEventListener('submit', function (e) {
-            if (!e.defaultPrevented) {
-                const form = e.target;
-                if (!form.classList.contains('no-loader') && form.target !== '_blank') {
-                    window.showLoader();
-                }
-            }
-        });
-
-        // 3. Handle Link Clicks
-        document.addEventListener('click', function (e) {
-            const link = e.target.closest('a');
-
-            if (!link || !link.href) return;
-
-            // Ignore modifiers and new tabs
-            if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || link.target === '_blank') return;
-
-            // Ignore download links
-            if (link.hasAttribute('download')) return;
-
-            // Ignore explicit no-loader
-            if (link.classList.contains('no-loader')) return;
-
-            // Ignore UI Toggles (Bootstrap, etc)
-            if (link.hasAttribute('data-bs-toggle') || link.hasAttribute('data-bs-dismiss')) return;
-
-            // Ignore standard protocols that don't unload page
-            const href = link.getAttribute('href') || '';
-            if (href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-
-            // Robust Hash Check
-            if (!href || href === '#' || href.startsWith('#')) return;
-
-            // Check if it's a full URL processing to the same page with a hash
-            try {
-                const url = new URL(link.href, window.location.origin);
-                const isSamePage = (url.origin === window.location.origin) &&
-                                 (url.pathname === window.location.pathname) &&
-                                 (url.search === window.location.search);
-
-                if (isSamePage && url.hash) return;
-            } catch (err) {}
-
-            // Small delay to allow other handlers (like preventDefault) to run
-            setTimeout(() => {
-                if (!e.defaultPrevented) {
-                    window.showLoader();
-                }
-            }, 0);
-        });
-
-        // Hide on Back Button (bfcache)
-        window.addEventListener('pageshow', function (event) {
-            hideLoader();
-        });
     </script>
 
     <!-- Bootstrap JS -->
@@ -938,30 +982,6 @@
             });
         })()
     </script>
-    {% if user.is_authenticated %}
-    <!-- Floating Action Button (Mobile Only) -->
-    <div class="position-fixed bottom-0 end-0 p-4 d-md-none" style="z-index: 1050;">
-        <div class="dropdown">
-            <button id="global-fab"
-                class="btn btn-primary btn-lg rounded-circle shadow-lg d-flex align-items-center justify-content-center"
-                style="width: 60px; height: 60px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-plus-lg fs-2"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mb-2">
-                <li>
-                    <a class="dropdown-item py-2 d-flex align-items-center" href="{% url 'expense-create' %}" onclick="window.showLoader()">
-                        <i class="bi bi-dash-circle text-primary me-2" onclick="window.showLoader()"></i> {% trans "Add Expense" %}
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item py-2 d-flex align-items-center" href="{% url 'income-create' %}" onclick="window.showLoader()">
-                        <i class="bi bi-plus-circle text-success me-2" onclick="window.showLoader()"></i> {% trans "Add Income" %}
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Django Messages Toast Container -->
     {% if messages %}

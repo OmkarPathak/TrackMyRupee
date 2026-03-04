@@ -753,9 +753,13 @@ a:hover {
   padding-top: calc(env(safe-area-inset-top, 44px) + 0.5rem) !important;
 }
 
-/* Ensure the body has bottom padding for the home indicator */
+/* Ensure the body and main content respect safe areas */
 .is-mobile-app body {
   padding-bottom: calc(env(safe-area-inset-bottom) + 1rem) !important;
+}
+
+.is-mobile-app main {
+  padding-top: calc(env(safe-area-inset-top, 20px) + 1.5rem) !important;
 }
 
 /* Adjust sticky top position if needed - though native overlay usually handles this */
@@ -1120,4 +1124,161 @@ a:hover {
   .form-select {
     font-size: 16px !important; /* Force 16px to prevent auto-zoom on mobile focus */
   }
+  
+  body {
+    padding-bottom: 75px; /* Space for bottom nav */
+  }
+}
+
+/* --- Mobile Bottom Navigation --- */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(70px + env(safe-area-inset-bottom, 0px));
+  background: rgba(var(--bs-body-bg-rgb), 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--bs-border-color-translucent);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1100 !important; /* Always on top */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -8px 25px rgba(0,0,0,0.1);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--bs-secondary);
+  text-decoration: none;
+  flex: 1;
+  height: 100%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.mobile-nav-item i {
+  font-size: 1.35rem;
+  height: 24px; /* Fixed height for consistent alignment */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0;
+  transition: transform 0.2s ease;
+}
+
+.mobile-nav-item span {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.mobile-nav-item.active {
+  color: var(--color-success); /* Match desktop active color */
+}
+
+.mobile-nav-item.active i {
+  transform: translateY(-2px);
+  color: inherit;
+}
+
+/* --- Floating Action Button (FAB) --- */
+.mobile-fab {
+  position: relative;
+  top: -20px;
+  width: 65px;
+  height: 65px;
+  z-index: 1060;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab-icon {
+  width: 58px;
+  height: 58px;
+  background: var(--primary-gradient); /* Match theme primary gradient */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--bs-body-bg);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fab-icon i {
+  font-size: 1.8rem;
+}
+
+.mobile-fab:active .fab-icon {
+  transform: scale(0.9) translateY(4px);
+  box-shadow: 0 4px 8px rgba(0, 245, 160, 0.2);
+}
+
+[data-bs-theme="dark"] .mobile-bottom-nav {
+  background: rgba(33, 37, 41, 0.9);
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .fab-icon {
+  border-color: #212529;
+}
+
+/* --- Mobile Bottom Sheet (Offcanvas) --- */
+.mobile-bottom-sheet {
+  height: auto !important;
+  max-height: calc(85vh - (70px + env(safe-area-inset-bottom, 0px)));
+  margin-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); /* Dynamic offset for bottom nav */
+  padding-left: env(safe-area-inset-left, 0px) !important;
+  padding-right: env(safe-area-inset-right, 0px) !important;
+  border-top-left-radius: 32px !important;
+  border-top-right-radius: 32px !important;
+  background: rgba(var(--bs-body-bg-rgb), 0.98) !important;
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-top: 1px solid rgba(var(--bs-border-color-rgb), 0.1) !important;
+  box-shadow: 0 -20px 50px rgba(0,0,0,0.1);
+  z-index: 1080 !important;
+}
+
+.mobile-bottom-sheet .offcanvas-header {
+  padding: 1.5rem 1.75rem 1rem;
+}
+
+.mobile-bottom-sheet .list-group-item {
+  background: transparent;
+  padding: 0.6rem 1.75rem;
+  border: none !important; /* Remove loud horizontal lines */
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 1rem;
+  display: flex !important;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mobile-bottom-sheet .list-group-item:active {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  transform: scale(0.98);
+}
+
+.mobile-bottom-sheet .list-group-item i {
+  font-size: 1.4rem;
+  width: 28px;
+  text-align: center;
+}
+
+[data-bs-theme="dark"] .mobile-bottom-sheet {
+  background: rgba(30, 34, 38, 0.98) !important;
+  box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
 }
