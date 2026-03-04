@@ -42,9 +42,15 @@
                 <a href="{% url 'recurring-manage' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center">
                     <i class="bi bi-table me-2"></i> {% trans "Manage" %}
                 </a>
-                <a href="{% url 'recurring-create' %}" class="btn btn-sm btn-primary d-flex align-items-center shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center">
-                    <i class="bi bi-plus-lg me-2"></i> <span>{% trans "Add" %} <span class="d-none d-md-inline">{% trans "Subscription" %}</span></span>
-                </a>
+                {% if is_limit_reached %}
+                    <button type="button" class="btn btn-sm btn-primary d-flex align-items-center shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center" data-bs-toggle="modal" data-bs-target="#limitReachedModal">
+                        <i class="bi bi-plus-lg me-2"></i> <span>{% trans "Add" %} <span class="d-none d-md-inline">{% trans "Subscription" %}</span></span>
+                    </button>
+                {% else %}
+                    <a href="{% url 'recurring-create' %}" class="btn btn-sm btn-primary d-flex align-items-center shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center">
+                        <i class="bi bi-plus-lg me-2"></i> <span>{% trans "Add" %} <span class="d-none d-md-inline">{% trans "Subscription" %}</span></span>
+                    </a>
+                {% endif %}
                 <button class="btn btn-sm btn-outline-secondary d-md-none shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters">
                     <i class="bi bi-funnel"></i>
                 </button>
@@ -220,9 +226,15 @@
                         </div>
                         <h4 class="fw-bold">{% trans "No active subscriptions" %}</h4>
                         <p class="text-muted mb-4 col-md-6 mx-auto">{% trans "Most people forget at least one renewal every year. Add yours now so we can remind you before you pay." %}</p>
-                        <a href="{% url 'recurring-create' %}" class="btn btn-primary px-4 py-2 rounded-pill fw-medium">
-                            <i class="bi bi-plus-lg me-2"></i>{% trans "Add your first subscription" %}
-                        </a>
+                        {% if is_limit_reached %}
+                            <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-medium" data-bs-toggle="modal" data-bs-target="#limitReachedModal">
+                                <i class="bi bi-plus-lg me-2"></i>{% trans "Add your first subscription" %}
+                            </button>
+                        {% else %}
+                            <a href="{% url 'recurring-create' %}" class="btn btn-primary px-4 py-2 rounded-pill fw-medium">
+                                <i class="bi bi-plus-lg me-2"></i>{% trans "Add your first subscription" %}
+                            </a>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>
@@ -318,5 +330,34 @@
      The previous implementation used a data-url attribute. Let's revert to a direct link for Delete 
      to be consistent with the standalone delete page I just made.
 -->
+
+<!-- Limit Reached Modal -->
+<div class="modal fade" id="limitReachedModal" tabindex="-1" aria-labelledby="limitReachedModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+            <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="bi bi-shield-lock-fill fs-1"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-3">{% trans "Subscription Limit Reached" %}</h3>
+                <p class="text-muted mb-4">
+                    {% blocktrans with limit=current_limit|floatformat:0 %}
+                    You have reached the free limit of <strong>{{ limit }}</strong> subscriptions for your current plan. Upgrade to unlock more slots and keep your finances on track.
+                    {% endblocktrans %}
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'pricing' %}" class="btn btn-primary btn-lg rounded-pill fw-bold">
+                        {% trans "Upgrade Now" %}
+                    </a>
+                    <button type="button" class="btn btn-link link-secondary text-decoration-none py-2" data-bs-dismiss="modal">
+                        {% trans "I'll do it later" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

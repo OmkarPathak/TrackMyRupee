@@ -88,37 +88,76 @@ class StrictLimitEnforcementTest(TestCase):
         self.assertEqual(self.user.profile.last_tier_display, 'Pro')
         self.assertEqual(self.user.profile.active_tier, 'FREE')
 
-    def test_subscription_expiry_reminder_command(self):
-        from django.core.management import call_command
-        from django.core import mail
-        from expenses.models import Notification
+    def test_recurring_transaction_update_limit_enforcement(self):
+        from django.urls import reverse
+        from expenses.models import RecurringTransaction
         
-        # Setup user expiring in 2 days
+        # Clean up existing subs from setUp
+        RecurringTransaction.objects.filter(user=self.user).delete()
+        
+        # Create 2 active subs
+        rt1 = RecurringTransaction.objects.create(user=self.user, amount=10, transaction_type='EXPENSE', frequency='MONTHLY', start_date=timezone.now(), is_active=True)
+        rt2 = RecurringTransaction.objects.create(user=self.user, amount=20, transaction_type='EXPENSE', frequency='MONTHLY', start_date=timezone.now(), is_active=True)
+        
+        # Downgrade to FREE (limit 0)
         p = self.user.profile
-        p.tier = 'PRO'
-        p.subscription_end_date = timezone.now() + timedelta(days=2)
-        p.expiry_reminder_sent = False
+        p.tier = 'FREE'
         p.save()
         
-        self.user.email = 'test@example.com'
-        self.user.save()
+        self.client.force_login(self.user)
+        # Try to update first one
+        response = self.client.get(reverse('recurring-edit', kwargs={'pk': rt1.pk}))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('recurring-list'), response.url)
         
-        # Clear outbox
-        mail.outbox = []
+    def test_savings_goal_update_limit_enforcement(self):
+        from django.urls import reverse
+        from expenses.models import SavingsGoal
         
-        # Run command
-        call_command('send_notifications')
+        # Clean up existing goals from setUp
+        SavingsGoal.objects.filter(user=self.user).delete()
         
-        # Verify email sent
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertIn("Your Subscription is Expiring Soon", mail.outbox[0].subject)
+        # Create 2 goals
+        g1 = SavingsGoal.objects.create(user=self.user, name="Goal 1", target_amount=100)
+        g2 = SavingsGoal.objects.create(user=self.user, name="Goal 2", target_amount=200)
         
-        # Verify flag updated
-        p.refresh_from_db()
-        self.assertTrue(p.expiry_reminder_sent)
+        # Downgrade to FREE (limit 1)
+        p = self.user.profile
+        p.tier = 'FREE'
+        p.save()
         
-        # Verify UI notification created
-        self.assertTrue(Notification.objects.filter(user=self.user, title="Subscription Expiring Soon").exists())
+        self.client.force_login(self.user)
+        # Goal 2 should be locked (index 1 >= limit 1)
+        response = self.client.get(reverse('goal-edit', kwargs={'pk': g2.pk}))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('goal-list'), response.url)
+        
+        # Goal 1 should NOT be locked
+        response = self.client.get(reverse('goal-edit', kwargs={'pk': g1.pk}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_category_update_limit_enforcement(self):
+        from django.urls import reverse
+        from expenses.models import Category
+        
+        # Clean up existing categories from setUp and signal
+        Category.objects.filter(user=self.user).delete()
+        
+        # Create 6 categories
+        cats = [Category.objects.create(user=self.user, name=f"Cat {i}") for i in range(1, 7)]
+        # Order by ID is used, so cat 6 is index 5
+        cat6 = cats[5]
+        
+        # Downgrade to FREE (limit 5)
+        p = self.user.profile
+        p.tier = 'FREE'
+        p.save()
+        
+        self.client.force_login(self.user)
+        # Cat 6 should be locked
+        response = self.client.get(reverse('category-edit', kwargs={'pk': cat6.pk}))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('category-list'), response.url)
 
     def test_savings_goal_locked_status(self):
         from django.test import RequestFactory

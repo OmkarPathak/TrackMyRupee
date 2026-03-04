@@ -17,12 +17,18 @@
         <div>
             {% if nudge_at_limit %}
             <p class="mb-0 fw-bold small">
-                {% blocktrans with current=nudge_current limit=nudge_limit feature=nudge_feature_name %}
-                You've reached your limit of {{ limit }} {{ feature }}.
-                {% endblocktrans %}
+                {% if nudge_limit == 0 %}
+                    {% blocktrans with feature=nudge_feature_name|title %}
+                    {{ feature }} are a premium feature.
+                    {% endblocktrans %}
+                {% else %}
+                    {% blocktrans with current=nudge_current limit=nudge_limit feature=nudge_feature_name %}
+                    You've reached your limit of {{ limit }} {{ feature }}.
+                    {% endblocktrans %}
+                {% endif %}
             </p>
             <p class="mb-0 text-muted" style="font-size: 0.8rem;">
-                {% blocktrans with tier=nudge_upgrade_tier %}Upgrade to {{ tier }} to unlock more.{% endblocktrans %}
+                {% blocktrans with tier=nudge_upgrade_tier %}Upgrade to {{ tier }} to unlock.{% endblocktrans %}
             </p>
             {% else %}
             <p class="mb-0 fw-bold small">

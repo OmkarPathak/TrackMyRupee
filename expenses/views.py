@@ -1530,6 +1530,22 @@ class CategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
     template_name = 'expenses/category_form.html'
     success_url = reverse_lazy('category-list')
 
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        profile = request.user.profile
+        if not profile.is_pro:
+            limit = 10 if profile.is_plus else 5
+            # We use the same ordering as in ExpenseForm for consistency
+            categories = list(Category.objects.filter(user=request.user).order_by('id'))
+            try:
+                index = categories.index(obj)
+                if index >= limit:
+                    messages.error(request, _("This category is locked due to your current plan limits. Upgrade to edit."))
+                    return redirect('category-list')
+            except ValueError:
+                pass
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')
         if next_url:
@@ -2130,25 +2146,29 @@ class RecurringTransactionListView(LoginRequiredMixin, ListView):
         
         # Nudge context for upgrade banner (use is_plus/is_pro to respect subscription expiry)
         profile = self.request.user.profile
+        active_count = RecurringTransaction.objects.filter(user=self.request.user, is_active=True).count()
+        limit = float('inf')
         if not profile.is_pro:
-            active_count = RecurringTransaction.objects.filter(user=self.request.user, is_active=True).count()
+            limit = 3 if profile.is_plus else 0
+            
             if profile.is_plus:
-                limit = 3
                 upgrade_tier = 'PRO'
             else:
-                limit = 0
                 upgrade_tier = 'PLUS'
             context['nudge_current'] = active_count
-            context['nudge_limit'] = limit if limit > 0 else 1
+            context['nudge_limit'] = limit
             context['nudge_feature_name'] = 'recurring transactions'
             context['nudge_upgrade_tier'] = upgrade_tier
-            context['nudge_at_limit'] = active_count >= (limit if limit > 0 else 1)
+            context['nudge_at_limit'] = active_count >= limit
             # Free users: always show nudge (they have 0 limit)
             # Plus users: show when >= 60% of 3 = 2+
             if limit == 0:
                 context['show_nudge'] = True
             else:
                 context['show_nudge'] = active_count >= max(1, int(limit * 0.6))
+        
+        context['is_limit_reached'] = active_count >= limit
+        context['current_limit'] = limit
         
         return context
 
@@ -2161,6 +2181,19 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
     form_class = RecurringTransactionForm
     template_name = 'expenses/recurring_transaction_form.html'
     success_url = reverse_lazy('recurring-list')
+
+    def dispatch(self, request, *args, **kwargs):
+        # Prevent access if limit reached
+        profile = request.user.profile
+        active_count = RecurringTransaction.objects.filter(user=request.user, is_active=True).count()
+        limit = float('inf')
+        if not profile.is_pro:
+            limit = 3 if profile.is_plus else 0
+            
+        if active_count >= limit:
+            messages.error(request, _("Subscription limit reached for your plan. Please upgrade to add more."))
+            return redirect('recurring-list')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -2211,6 +2244,24 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UpdateView):
     form_class = RecurringTransactionForm
     template_name = 'expenses/recurring_transaction_form.html'
     success_url = reverse_lazy('recurring-list')
+
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        profile = request.user.profile
+        if not profile.is_pro:
+            limit = 3 if profile.is_plus else 0
+            # Same ordering as in RecurringTransactionListView
+            active_subs = list(RecurringTransaction.objects.filter(user=request.user, is_active=True).order_by('created_at', 'id'))
+            try:
+                index = active_subs.index(obj)
+                if index >= limit:
+                    messages.error(request, _("This subscription is locked due to your current plan limits. Upgrade to edit."))
+                    return redirect('recurring-list')
+            except ValueError:
+                # If sub is not active, we still check among all recurring transactions?
+                # Usually "locked" applies to active ones that stopped being processed.
+                pass
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')
@@ -3057,30 +3108,23 @@ class SavingsGoalListView(LoginRequiredMixin, ListView):
         
         # Mark goals beyond limit as locked (by creation order)
         # Convert to list to avoid evaluating queryset multiple times and to add transient attribute
-        goals_list = list(goals.order_by('created_at'))
+        goals_list = list(goals.order_by('created_at', 'id'))
         for i, goal in enumerate(goals_list):
             goal.is_locked = i >= limit
             
         context['goals'] = goals_list
         
-        # Nudge context
         if not profile.is_pro:
             context['nudge_current'] = goal_count
             context['nudge_limit'] = 3 if profile.is_plus else 1
             context['nudge_feature_name'] = 'savings goals'
             context['nudge_upgrade_tier'] = 'PRO' if profile.is_plus else 'PLUS'
             context['nudge_at_limit'] = goal_count >= context['nudge_limit']
-            context['show_nudge'] = goal_count >= 2  # 60% of 3
+            # show nudge when at 60% of limit
+            limit_val = 3 if profile.is_plus else 1
+            context['show_nudge'] = goal_count >= max(1, int(limit_val * 0.6))
         else:
-            if goal_count >= 1:
-                context['can_create_goal'] = False
-            # Nudge context
-            context['nudge_current'] = goal_count
-            context['nudge_limit'] = 1
-            context['nudge_feature_name'] = 'savings goals'
-            context['nudge_upgrade_tier'] = 'PLUS'
-            context['nudge_at_limit'] = goal_count >= 1
-            context['show_nudge'] = goal_count >= 1  # any usage on free
+            context['show_nudge'] = False
                 
         return context
 
@@ -3120,6 +3164,22 @@ class SavingsGoalUpdateView(LoginRequiredMixin, UpdateView):
     form_class = SavingsGoalForm
     template_name = 'expenses/goal_form.html'
     success_url = reverse_lazy('goal-list')
+
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        profile = request.user.profile
+        if not profile.is_pro:
+            limit = 3 if profile.is_plus else 1
+            # Same ordering as in SavingsGoalListView
+            goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
+            try:
+                index = goals.index(obj)
+                if index >= limit:
+                    messages.error(request, _("This savings goal is locked due to your current plan limits. Upgrade to edit."))
+                    return redirect('goal-list')
+            except ValueError:
+                pass
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return SavingsGoal.objects.filter(user=self.request.user)

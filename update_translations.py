@@ -7,64 +7,85 @@ def update_po_file(filepath, translations, complex_replacements=None):
         return
 
     with open(filepath, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+        content = f.read()
 
+    # 1. Handle simple translations loop
+    # We do this line by line to handle fuzzy flag removal for simple strings
+    lines = content.splitlines(keepends=True)
     new_lines = []
     i = 0
     while i < len(lines):
         line = lines[i]
-        
-        # Check if this is a msgid we want to translate
-        match = re.match(r'^msgid "(.*)"$', line)
+        match = re.match(r'^msgid "(.*)"\s*$', line)
         if match:
             msgid = match.group(1)
             if msgid in translations:
-                # We found a target msgid. 
-                # Backtrack to remove #, fuzzy if it exists
-                # We also remove #| lines which are previous msgid hints
+                # Remove fuzzy flag/hints
                 while new_lines and (new_lines[-1].strip().startswith("#, fuzzy") or new_lines[-1].strip().startswith("#|")):
                     new_lines.pop()
-                
-                # Add the msgid
                 new_lines.append(line)
-                
-                # Find the msgstr (it should be the next line)
                 i += 1
                 if i < len(lines) and lines[i].startswith('msgstr "'):
                     new_lines.append(f'msgstr "{translations[msgid]}"\n')
+                    i += 1
+                    # Skip potentially multi-line previous msgstr
+                    while i < len(lines) and lines[i].startswith('"'):
+                        i += 1
                 else:
-                    # Handle case where msgstr is weirdly placed
                     new_lines.append(f'msgstr "{translations[msgid]}"\n')
-                
-                i += 1
+                    i += 1
                 continue
-        
         new_lines.append(line)
         i += 1
-
-    content = "".join(new_lines)
     
-    # Complex replacements (exact match for multi-line msgid)
+    content = "".join(new_lines)
+
+    # 2. Handle complex multi-line replacements
     if complex_replacements:
         for msgid_block, msgstr in complex_replacements.items():
-             # Remove fuzzy flag for complex blocks too
-             # This is a bit harder with simple replace, but complex blocks are usually not fuzzy in this project
-             if msgid_block in content:
-                 # Check if the line before msgid_block is fuzzy
-                 # (This is a bit crude but should work for this specific use case)
-                 pattern = r'#,\s*fuzzy\n' + re.escape(msgid_block)
-                 content = re.sub(pattern, msgid_block, content)
-                 
-                 pattern_with_hint = r'#,\s*fuzzy\n#\|.*?\n' + re.escape(msgid_block)
-                 content = re.sub(pattern_with_hint, msgid_block, content, flags=re.DOTALL)
+            if msgid_block not in content:
+                continue
+            
+            # Find all occurrences (though usually only one)
+            # For each occurrence, find it in content
+            # We use a simpler strategy: find the index and look up for fuzzy
+            
+            start_idx = 0
+            while True:
+                idx = content.find(msgid_block, start_idx)
+                if idx == -1:
+                    break
+                
+                # Check for fuzzy/hints before this index
+                prefix = content[:idx]
+                prefix_lines = prefix.splitlines(keepends=True)
+                
+                removed_lines = 0
+                while prefix_lines and (prefix_lines[-1].strip().startswith("#, fuzzy") or prefix_lines[-1].strip().startswith("#|")):
+                    prefix_lines.pop()
+                    removed_lines += 1
+                
+                if removed_lines > 0:
+                    prefix = "".join(prefix_lines)
+                    content = prefix + content[idx:]
+                    # Adjust index after removal
+                    idx = len(prefix)
 
-                 pattern_simple = msgid_block + r'\nmsgstr ""'
-                 replacement = msgid_block + f'\nmsgstr "{msgstr}"'
-                 content = content.replace(pattern_simple, replacement)
-                 
-                 # Also handle non-empty msgstr for complex blocks
-                 pattern_overwrite = msgid_block + r'\nmsgstr ".*?"'
-                 content = re.sub(pattern_overwrite, msgid_block + f'\nmsgstr "{msgstr}"', content)
+                # Now replace msgstr
+                # The msgstr block starts after msgid_block
+                after_id = idx + len(msgid_block)
+                # Find the msgstr line
+                msgstr_start = content.find('\nmsgstr "', after_id)
+                if msgstr_start != -1 and msgstr_start < after_id + 10: # Safety check
+                    # Find end of msgstr block (next empty line or comment)
+                    # For simplicity, we match msgstr "..." and any following "..." lines
+                    msgstr_regex = r'\nmsgstr "(?:[^"\\]|\\.)*"(?:\n"(?:[^"\\]|\\.)*")*'
+                    match = re.search(msgstr_regex, content[msgstr_start:])
+                    if match:
+                        full_match = match.group(0)
+                        content = content[:msgstr_start] + f'\nmsgstr "{msgstr}"' + content[msgstr_start + len(full_match):]
+                
+                start_idx = idx + 1 # Move forward
 
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(content)
@@ -137,6 +158,52 @@ COMMON_HI = {
     "Select...": "चुनें...",
     "- Selected": "- चयनित",
     "All Selected": "सभी चयनित",
+    "Edit Selected": "चयनित संपादित करें",
+    "Dashboard": "डैशबोर्ड",
+    "Savings Goals": "बचत लक्ष्य",
+    "Add": "जोड़ें",
+    "Total Income": "कुल आय",
+    "Total Expenses": "कुल खर्च",
+    "Income vs Expenses": "आय बनाम खर्च",
+    "Balance": "शेष",
+    "All Time": "कुल समय",
+    "Custom Range": "कस्टम रेंज",
+    "Previous Month": "पिछला महीना",
+    "Next Month": "अगला महीना",
+    "How it works": "यह कैसे काम करता है",
+    "Budget vs Spent": "बजट बनाम खर्च",
+    "Payment Method Distribution": "भुगतान विधि वितरण",
+    "Recent Transactions": "हाल के लेनदेन",
+    "Top Categories": "शीर्ष श्रेणियां",
+    "Category Distribution": "श्रेणी वितरण",
+    "Keep saving to see this!": "इसे देखने के लिए बचत जारी रखें!",
+    "YTD Average": "YTD औसत",
+    "Start tracking to see your spending trends!": "अपने खर्च के रुझान देखने के लिए ट्रैकिंग शुरू करें!",
+    "No payment data available": "कोई भुगतान डेटा उपलब्ध नहीं",
+    "No recent transactions": "कोई हालिया लेनदेन नहीं",
+    "No categories to display": "प्रदर्शित करने के लिए कोई श्रेणी नहीं",
+    "(Stacked by Category)": "(श्रेणी द्वारा स्टैक किया गया)",
+    "Years...": "वर्ष...",
+    "Months...": "महिने...",
+    "Categories...": "श्रेणियां...",
+    "From": "से",
+    "To": "तक",
+    "View Now": "अभी देखें",
+    "See your financial year wrapped and discover your top spending habits.": "अपना वित्तीय वर्ष रैप्ड देखें और अपनी शीर्ष खर्च करने की आदतों को खोजें।",
+    "No limit set": "कोई सीमा निर्धारित नहीं",
+    "January": "जनवरी",
+    "February": "फरवरी",
+    "March": "मार्च",
+    "April": "अप्रैल",
+    "May": "मई",
+    "June": "जून",
+    "July": "जुलाई",
+    "August": "अगस्त",
+    "September": "सितंबर",
+    "October": "अक्टूबर",
+    "November": "नवंबर",
+    "December": "दिसंबर",
+    "Your %(year_in_review_year)s in Review is Ready ✨": "आपका %(year_in_review_year)s इन रिव्यू तैयार है ✨",
     "Support TrackMyRupee": "TrackMyRupee का समर्थन करें",
     "Calendar": "कैलेंडर",
     "Notifications": "सूचनाएं",
@@ -164,6 +231,7 @@ COMMON_HI = {
     "To": "तक",
     "Keep saving to see this!": "यह देखने के लिए बचत करते रहें!",
     "Based on your YTD average": "आपके YTD औसत पर आधारित",
+    "Projection": "प्रक्षेपण",
     "Expenses": "खर्च",
     "Year End": "वर्ष का अंत",
     "No Budgets Set": "कोई बजट सेट नहीं",
@@ -303,6 +371,41 @@ COMMON_HI = {
     "Swiss Franc (CHF)": "स्विस फ्रैंक (CHF)",
     "Chinese Yuan (元)": "चीनी युआन (元)",
     "South Korean Won (₩)": "दक्षिण कोरियाई वोन (₩)",
+    "Export": "निर्यात",
+    "Apply": "लागू करें",
+    "Reset": "रीसेट",
+    "Total Amount": "कुल राशि",
+    "Delete Selected": "चयनित हटाएं",
+    "Tracking every penny is the first step to financial freedom.": "हर पैसे को ट्रैक करना वित्तीय स्वतंत्रता की दिशा में पहला कदम है।",
+    "Year": "वर्ष",
+    "Month": "महीना",
+    "Table View": "तालिका दृश्य",
+    "Table View": "तालिका दृश्य",
+    "Card View": "कार्ड दृश्य",
+    "Toggle Filters": "फ़िल्टर टॉगल करें",
+    "Years...": "वर्ष...",
+    "Months...": "महीने...",
+    "Categories...": "श्रेणियाँ...",
+    "Total Records": "कुल रिकॉर्ड",
+    "Items Selected": "चयनित आइटम",
+    "Page": "पृष्ठ",
+    "of": "का",
+    "Confirm Bulk Delete": "थोक विलोपन की पुष्टि करें",
+    "Are you sure you want to delete the selected expenses? This action cannot be undone.": "क्या आप वाकई चयनित खर्चों को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
+    "Deleting...": "हटाया जा रहा है...",
+    "Bulk Edit Expenses": "खर्चों का थोक संपादन",
+    "Select the fields you want to update for all selected records. Leave blank to keep existing values.": "उन फ़ील्ड्स को चुनें जिन्हें आप सभी चयनित रिकॉर्ड्स के लिए अपडेट करना चाहते हैं। मौजूदा मान रखने के लिए खाली छोड़ दें।",
+    "Keep existing": "मौजूदा रखें",
+    "Updating...": "अपडेट किया जा रहा है...",
+    "Show more": "अधिक दिखाएं",
+    "No Expenses Found": "कोई खर्च नहीं मिला",
+    "We couldn't find any expenses matching your filters.": "हमें आपके फ़िल्टर से मेल खाने वाला कोई भी खर्च नहीं मिला।",
+    "You haven't added any expenses yet. Start tracking your spending!": "आपने अभी तक कोई खर्च नहीं जोड़ा है। अपना खर्च ट्रैक करना शुरू करें!",
+    "You haven't added any expenses yet.": "आपने अभी तक कोई खर्च नहीं जोड़ा है।",
+    "Clear Filters": "फ़िल्टर साफ़ करें",
+    "Previous": "पिछला",
+    "Next": "अगला",
+    "items": "आइटम",
 }
 
 COMMON_MR = {
@@ -373,6 +476,52 @@ COMMON_MR = {
     "Select...": "निवडा...",
     "- Selected": "- निवडलेले",
     "All Selected": "सर्व निवडलेले",
+    "Edit Selected": "निवडलेले संपादित करा",
+    "Dashboard": "डॅशबोर्ड",
+    "Savings Goals": "बचत उद्दिष्टे",
+    "Add": "जोडा",
+    "Total Income": "एकूण उत्पन्न",
+    "Total Expenses": "एकूण खर्च",
+    "Income vs Expenses": "उत्पन्न विरुद्ध खर्च",
+    "Balance": "शिल्लक",
+    "All Time": "सर्व वेळ",
+    "Custom Range": "सानुकूल कालावधी",
+    "Previous Month": "मागील महिना",
+    "Next Month": "पुढील महिना",
+    "How it works": "हे कसे कार्य करते",
+    "Budget vs Spent": "बजेट विरुद्ध खर्च",
+    "Payment Method Distribution": "देय पद्धत वितरण",
+    "Recent Transactions": "अलीकडील व्यवहार",
+    "Top Categories": "शीर्ष श्रेणी",
+    "Category Distribution": "श्रेणी वितरण",
+    "Keep saving to see this!": "हे पाहण्यासाठी बचत करत रहा!",
+    "YTD Average": "या वर्षाची सरासरी",
+    "Start tracking to see your spending trends!": "तुमचे खर्चाचे ट्रेंड पाहण्यासाठी ट्रॅकिंग सुरू करा!",
+    "No payment data available": "देय डेटा उपलब्ध नाही",
+    "No recent transactions": "अलीकडील कोणतेही व्यवहार नाहीत",
+    "No categories to display": "प्रदर्शित करण्यासाठी कोणतीही श्रेणी नाही",
+    "(Stacked by Category)": "(श्रेणीनुसार स्टॅक केलेले)",
+    "Years...": "वर्षे...",
+    "Months...": "महिने...",
+    "Categories...": "श्रेणी...",
+    "From": "पासून",
+    "To": "पर्यंत",
+    "View Now": "आता पहा",
+    "See your financial year wrapped and discover your top spending habits.": "तुमचे आर्थिक वर्ष सारांश पहा आणि तुमच्या मुख्य खर्चाच्या सवयी शोधा.",
+    "No limit set": "मर्यादा सेट केलेली नाही",
+    "January": "जानेवारी",
+    "February": "फेब्रुवारी",
+    "March": "मार्च",
+    "April": "एप्रिल",
+    "May": "मे",
+    "June": "जून",
+    "July": "जुलै",
+    "August": "ऑगस्ट",
+    "September": "सप्टेंबर",
+    "October": "ऑक्टोबर",
+    "November": "नोव्हेंबर",
+    "December": "डिसेंबर",
+    "Your %(year_in_review_year)s in Review is Ready ✨": "तुमचा %(year_in_review_year)s रिव्ह्यू तयार आहे ✨",
     "Support TrackMyRupee": "TrackMyRupee ला पाठिंबा द्या",
     "If TrackMyRupee helped you understand your money better, consider supporting its development.": "जवळजवळ सर्वच आर्थिक व्यवहार TrackMyRupee मुळे सुलभ झाले आहेत. त्याच्या विकासाला पाठिंबा देण्याचा विचार करा.",
     "Donate Now": "आता दान करा",
@@ -395,6 +544,7 @@ COMMON_MR = {
     "To": "पर्यंत",
     "Keep saving to see this!": "हे पाहण्यासाठी बचत करत राहा!",
     "Based on your YTD average": "तुमच्या YTD सरासरीवर आधारित",
+    "Projection": "अंदाज",
     "Expenses": "खर्च",
     "Year End": "वर्ष अखेर",
     "No Budgets Set": "कोणतेही बजेट सेट नाही",
@@ -483,6 +633,41 @@ COMMON_MR = {
     "🔥 This is your %(streak)s month in a row staying under budget.": "🔥 सलग हा तुमचा %(streak)s वा महिना आहे जेव्हा तुम्ही बजेटमध्ये आहात।",
     "🔥 I've stayed under budget for %(streak)s months in a row! via TrackMyRupee": "🔥 मी सलग %(streak)s महिने बजेटमध्ये राहिलो आहे! TrackMyRupee द्वारे",
     "In the Green": "बचतमध्ये",
+    "Export": "निर्यात",
+    "Apply": "लागू करा",
+    "Reset": "रीसेट",
+    "Total Amount": "एकूण रक्कम",
+    "Delete Selected": "निवडलेले हटवा",
+    "Tracking every penny is the first step to financial freedom.": "प्रत्येक पैशाचा मागोवा घेणे ही आर्थिक स्वातंत्र्याची पहिली पायरी आहे.",
+    "Year": "वर्ष",
+    "Month": "महिना",
+    "Table View": "तालिका दृश्य",
+    "Table View": "तालिका दृश्य",
+    "Card View": "कार्ड दृश्य",
+    "Toggle Filters": "फिल्टर टॉगल करा",
+    "Years...": "वर्षे...",
+    "Months...": "महिने...",
+    "Categories...": "श्रेणी...",
+    "Total Records": "एकूण रेकॉर्ड",
+    "Items Selected": "निवडलेले घटक",
+    "Page": "पृष्ठ",
+    "of": "पैकी",
+    "Confirm Bulk Delete": "मोठ्या प्रमाणात हटवण्याची पुष्टी करा",
+    "Are you sure you want to delete the selected expenses? This action cannot be undone.": "तुम्हाला खात्री आहे की तुम्ही निवडलेले खर्च हटवू इच्छिता? ही क्रिया पूर्ववत केली जाऊ शकत नाही.",
+    "Deleting...": "हटवत आहे...",
+    "Bulk Edit Expenses": "खर्चांचे एकत्रित संपादन",
+    "Select the fields you want to update for all selected records. Leave blank to keep existing values.": "तुम्ही सर्व निवडलेल्या रेकॉर्डसाठी अपडेट करू इच्छित असलेले फील्ड निवडा. विद्यमान मूल्ये ठेवण्यासाठी रिक्त सोडा.",
+    "Keep existing": "विद्यमान ठेवा",
+    "Updating...": "अपडेट करत आहे...",
+    "Show more": "अधिक दर्शवा",
+    "No Expenses Found": "कोणतेही खर्च सापडले नाहीत",
+    "We couldn't find any expenses matching your filters.": "आम्हाला तुमच्या फिल्टरशी जुळणारे कोणतेही खर्च सापडले नाहीत.",
+    "You haven't added any expenses yet. Start tracking your spending!": "तुम्ही अद्याप कोणतेही खर्च जोडलेले नाहीत. तुमचा खर्च ट्रॅक करण्यास सुरुवात करा!",
+    "You haven't added any expenses yet.": "तुम्ही अद्याप कोणतेही खर्च जोडलेले नाहीत.",
+    "Clear Filters": "फिल्टर साफ करा",
+    "Previous": "मागील",
+    "Next": "पुढील",
+    "items": "घटक",
     "You've saved %(savings)s so far. Keep it up!": "तुम्ही आतापर्यंत %(savings)s वाचवले आहेत. असेच चालू ठेवा!",
     "Fresh Start": "नवीन सुरुवात",
     "Small steps today lead to big results tomorrow. Let's track some expenses!": "आजची छोटी पावले उद्या मोठे परिणाम आणतात. चला काही खर्च ट्रॅक करूया!",
@@ -538,12 +723,16 @@ COMMON_MR = {
 
 COMPLEX_FOOTER_MSGID = 'msgid ""\n"Turn financial chaos into clarity. TrackMyRupee gives you a precision "\n"dashboard to visualize your spending, spot trends, and master your monthly "\n"budget."'
 
+COMPLEX_EXPENSE_MSGID = 'msgid ""\n"<span class=\\"fw-bold text-body-emphasis\\">%(currency_symbol)s%(expense)s</"\n"span> of %(currency_symbol)s%(income)s used"'
+
 if __name__ == "__main__":
     COMPLEX_HI = {
-        COMPLEX_FOOTER_MSGID: "वित्तीय अराजकता को स्पष्टता में बदलें। TrackMyRupee आपको अपने खर्च की कल्पना करने, रुझानों को पहचानने और अपने मासिक बजट में महारत हासिल करने के लिए एक सटीक डैशबोर्ड देता है।"
+        COMPLEX_FOOTER_MSGID: "वित्तीय अराजकता को स्पष्टता में बदलें। TrackMyRupee आपको अपने खर्च की कल्पना करने, रुझानों को पहचानने और अपने मासिक बजट में महारत हासिल करने के लिए एक सटीक डैशबोर्ड देता है।",
+        COMPLEX_EXPENSE_MSGID: '<span class=\\"fw-bold text-body-emphasis\\">%(currency_symbol)s%(expense)s</span> %(currency_symbol)s%(income)s में से उपयोग किया गया'
     }
     COMPLEX_MR = {
-        COMPLEX_FOOTER_MSGID: "आर्थिक गोंधळाला स्पष्टतेमध्ये बदला. TrackMyRupee तुम्हाला तुमचे खर्च पाहण्यासाठी, कल ओळखण्यासाठी आणि तुमच्या मासिक बजेटवर प्रभुत्व मिळवण्यासाठी एक अचूक डॅशबोर्ड देते।"
+        COMPLEX_FOOTER_MSGID: "आर्थिक गोंधळाला स्पष्टतेमध्ये बदला. TrackMyRupee तुम्हाला तुमचे खर्च पाहण्यासाठी, कल ओळखण्यासाठी आणि तुमच्या मासिक बजेटवर प्रभुत्व मिळवण्यासाठी एक अचूक डॅशबोर्ड देते।",
+        COMPLEX_EXPENSE_MSGID: '<span class=\\"fw-bold text-body-emphasis\\">%(currency_symbol)s%(expense)s</span> %(currency_symbol)s%(income)s पैकी वापरले'
     }
 
     update_po_file('locale/hi/LC_MESSAGES/django.po', COMMON_HI, COMPLEX_HI)

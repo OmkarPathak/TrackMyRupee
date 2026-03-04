@@ -76,7 +76,7 @@
         {% endif %}
 
         {% if user.profile.subscription_expired %}
-        <div class="card border-0 shadow-sm rounded-4 mb-4 fade-in" style="background: linear-gradient(135deg, rgba(5, 117, 230, 0.05) 0%, rgba(33, 158, 188, 0.05) 100%); border: 1px solid rgba(5, 117, 230, 0.1) !important;">
+        <div class="card border-0 shadow-sm rounded-4 mb-4 fade-in {% if request.resolver_match.url_name == 'settings-home' %}d-none d-md-block{% endif %}" style="background: linear-gradient(135deg, rgba(5, 117, 230, 0.05) 0%, rgba(33, 158, 188, 0.05) 100%); border: 1px solid rgba(5, 117, 230, 0.1) !important;">
             <div class="card-body p-3">
                 <div class="d-flex">
                     <div class="me-3">

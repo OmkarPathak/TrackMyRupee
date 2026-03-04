@@ -209,10 +209,10 @@
             <div class="d-flex align-items-center gap-2">
                 <!-- View Toggle -->
                 <div class="d-flex gap-1 me-1">
-                    <button class="view-toggle-btn active" id="mobileTableToggle" title="Table View">
+                    <button class="view-toggle-btn active" id="mobileTableToggle" title="{% trans 'Table View' %}">
                         <i class="bi bi-list-ul"></i>
                     </button>
-                    <button class="view-toggle-btn" id="mobileGridToggle" title="Card View">
+                    <button class="view-toggle-btn" id="mobileGridToggle" title="{% trans 'Card View' %}">
                         <i class="bi bi-grid-fill" style="font-size: 0.85rem;"></i>
                     </button>
                 </div>
@@ -234,10 +234,10 @@
             <div class="d-flex align-items-center gap-2">
                 <!-- View Toggle -->
                 <div class="d-flex gap-1">
-                    <button class="view-toggle-btn active" id="desktopTableToggle" title="Table View">
+                    <button class="view-toggle-btn active" id="desktopTableToggle" title="{% trans 'Table View' %}">
                         <i class="bi bi-list-ul"></i>
                     </button>
-                    <button class="view-toggle-btn" id="desktopGridToggle" title="Card View">
+                    <button class="view-toggle-btn" id="desktopGridToggle" title="{% trans 'Card View' %}">
                         <i class="bi bi-grid-fill" style="font-size: 0.85rem;"></i>
                     </button>
                 </div>
@@ -286,7 +286,7 @@
             <!-- Year & Month -->
             <div class="col-6 col-md-auto filter-w-year">
                 <label for="year-select" class="form-label small text-muted">{% trans "Year" %}</label>
-                <select name="year" id="year-select" class="form-control django-multi-select" multiple placeholder="Years...">
+                <select name="year" id="year-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Years...' %}">
                     {% for dt in years %}
                         <option value="{{ dt }}" {% if dt|stringformat:"s" in selected_years %}selected{% endif %}>
                             {{ dt|translate_digits }}
@@ -296,7 +296,7 @@
             </div>
             <div class="col-6 col-md-auto filter-w-month">
                 <label for="month-select" class="form-label small text-muted">{% trans "Month" %}</label>
-                <select name="month" id="month-select" class="form-control django-multi-select" multiple placeholder="Months...">
+                <select name="month" id="month-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Months...' %}">
                     {% for num, name in months_list %}
                         <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>
                             {{ name }}
@@ -308,7 +308,7 @@
             <!-- Category -->
             <div class="col-12 col-md-auto filter-w-category">
                 <label for="category-select" class="form-label small text-muted">{% trans "Category" %}</label>
-                <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="Categories...">
+                <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
                     {% for cat in categories %}
                         <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>
                             {{ cat }}

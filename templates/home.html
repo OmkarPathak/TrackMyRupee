@@ -107,7 +107,7 @@
     <div class="d-flex d-md-none justify-content-between align-items-center w-100">
         <div class="d-flex align-items-center gap-2">
             {% if prev_month_url %}
-                <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="Previous Month">
+                <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="{% trans 'Previous Month' %}">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             {% endif %}
@@ -121,13 +121,13 @@
                 {% endif %}
             </h1>
             {% if next_month_url %}
-                <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="Next Month">
+                <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="{% trans 'Next Month' %}">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             {% endif %}
         </div>
         <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="modal" data-bs-target="#savingsMethodModal" title="How it works">
+            <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="modal" data-bs-target="#savingsMethodModal" title="{% trans 'How it works' %}">
                 <i class="bi bi-info-circle fs-5"></i>
             </button>
             <button class="btn btn-link text-decoration-none text-muted p-0 border-0 fs-6" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardFilters" aria-expanded="false" aria-controls="dashboardFilters">
@@ -139,7 +139,7 @@
     <!-- Desktop Header -->
     <div class="d-none d-md-flex align-items-center gap-2">
         {% if prev_month_url %}
-            <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="Previous Month">
+            <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="{% trans 'Previous Month' %}">
                 <i class="bi bi-chevron-left"></i>
             </a>
         {% endif %}
@@ -150,13 +150,13 @@
             {% elif selected_month %}
                 {{ selected_month }}
             {% else %}
-                Dashboard
+                {% trans "Dashboard" %}
             {% endif %}
         </h1>
 
 
         {% if next_month_url %}
-            <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="Next Month">
+            <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="{% trans 'Next Month' %}">
                 <i class="bi bi-chevron-right"></i>
             </a>
         {% endif %}
@@ -164,7 +164,7 @@
     </div>
     
     <div class="d-none d-md-flex align-items-center gap-2">
-        <button class="btn btn-sm btn-link text-muted p-0 me-2" data-bs-toggle="modal" data-bs-target="#savingsMethodModal" title="How it works">
+        <button class="btn btn-sm btn-link text-muted p-0 me-2" data-bs-toggle="modal" data-bs-target="#savingsMethodModal" title="{% trans 'How it works' %}">
             <i class="bi bi-info-circle fs-5"></i>
         </button>
         
@@ -181,21 +181,21 @@
             </div>
 
             <div style="min-width: 120px;">
-                <select name="year" id="year-select" class="form-control form-control-sm django-multi-select" multiple placeholder="Years...">
+                <select name="year" id="year-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Years...' %}">
                     {% for y in years %}
                         <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div style="min-width: 150px;">
-                <select name="month" id="month-select" class="form-control form-control-sm django-multi-select" multiple placeholder="Months...">
+                <select name="month" id="month-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Months...' %}">
                     {% for num, name in months_list %}
                         <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div style="min-width: 150px;">
-                 <select name="category" id="category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="Categories...">
+                 <select name="category" id="category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
                     {% for c in all_categories %}
                         <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
                     {% endfor %}
@@ -220,30 +220,30 @@
     <form method="get" class="mb-4 d-flex gap-2 align-items-center bg-body-tertiary p-2 rounded shadow-sm flex-wrap">
         <!-- Date Range -->
         <div class="input-group input-group-sm" style="width: auto;">
-            <span class="input-group-text bg-body-tertiary">From</span>
+            <span class="input-group-text bg-body-tertiary">{% trans "From" %}</span>
             <input type="date" name="start_date" class="form-control" value="{{ start_date|default:'' }}">
         </div>
         <div class="input-group input-group-sm" style="width: auto;">
-            <span class="input-group-text bg-body-tertiary">To</span>
+            <span class="input-group-text bg-body-tertiary">{% trans "To" %}</span>
             <input type="date" name="end_date" class="form-control" value="{{ end_date|default:'' }}">
         </div>
 
         <div style="min-width: 120px;">
-            <select name="year" class="form-control form-control-sm django-multi-select" multiple placeholder="Years...">
+            <select name="year" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Years...' %}">
                 {% for y in years %}
                     <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y }}</option>
                 {% endfor %}
             </select>
         </div>
         <div style="min-width: 150px;">
-            <select name="month" class="form-control form-control-sm django-multi-select" multiple placeholder="Months...">
+            <select name="month" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Months...' %}">
                 {% for num, name in months_list %}
                     <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div style="min-width: 150px;">
-            <select name="category" class="form-control form-control-sm django-multi-select" multiple placeholder="Categories...">
+            <select name="category" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
                 {% for c in all_categories %}
                     <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
                 {% endfor %}
@@ -252,10 +252,10 @@
         <!-- Apply & Reset -->
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary btn-sm" onclick="showLoader()">
-                <i class="bi bi-filter me-1"></i> Apply
+                <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
             </button>
             <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm" onclick="showLoader()">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
             </a>
         </div>
     </form>
@@ -349,11 +349,11 @@
                 <i class="bi bi-stars fs-5"></i>
             </div>
             <div>
-                <h6 class="alert-heading fw-bold mb-0 text-primary" style="font-family: 'Clash Display', sans-serif;">Your {{ year_in_review_year }} in Review is Ready ✨</h6>
-                <p class="mb-0 small text-muted" style="opacity: 0.85;">See your financial year wrapped and discover your top spending habits.</p>
+                <h6 class="alert-heading fw-bold mb-0 text-primary" style="font-family: 'Clash Display', sans-serif;">{% blocktrans %}Your {{ year_in_review_year }} in Review is Ready ✨{% endblocktrans %}</h6>
+                <p class="mb-0 small text-muted" style="opacity: 0.85;">{% trans "See your financial year wrapped and discover your top spending habits." %}</p>
             </div>
         </div>
-        <a href="{% url 'year_in_review' year_in_review_year %}" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold text-nowrap flex-shrink-0 shadow-sm mt-2 mt-sm-0 me-sm-4">View Now</a>
+        <a href="{% url 'year_in_review' year_in_review_year %}" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold text-nowrap flex-shrink-0 shadow-sm mt-2 mt-sm-0 me-sm-4">{% trans "View Now" %}</a>
     </div>
 </div>
 
@@ -510,13 +510,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <small class="text-muted">
                     {% if start_date %}
-                        Custom Range
+                        {% trans "Custom Range" %}
                     {% elif selected_month and selected_year %}
                         {% blocktrans with month=selected_month year=selected_year %}For {{ month }} {{ year }}{% endblocktrans %}
                     {% elif selected_year %}
                         {% blocktrans with year=selected_year %}For {{ year }}{% endblocktrans %}
                     {% else %}
-                        All Time
+                        {% trans "All Time" %}
                     {% endif %}
                 </small>
             </div>
@@ -581,8 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="ms-5">
                     <h3 class="fw-bold mb-1">{% trans "Expenses" %}</h3>
                     <p class="text-muted mb-0 h6">
-                        <span class="fw-bold text-body-emphasis">{{ currency_symbol }}{{ total_expenses|floatformat:0|translate_digits }}</span> 
-                        {% blocktrans with expense=total_expenses|floatformat:0|translate_digits income=total_income|floatformat:0|translate_digits %}of {{ currency_symbol }}{{ income }} used{% endblocktrans %}
+                        {% blocktrans with expense=total_expenses|floatformat:0|translate_digits income=total_income|floatformat:0|translate_digits %}<span class="fw-bold text-body-emphasis">{{ currency_symbol }}{{ expense }}</span> of {{ currency_symbol }}{{ income }} used{% endblocktrans %}
                     </p>
                 </div>
             </div>
@@ -830,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="progress-bar progress-gradient-info" 
                                      role="progressbar" 
                                      style="width: 100%; opacity: 0.5;" 
-                                     title="No limit set"></div>
+                                     title="{% trans 'No limit set' %}"></div>
                             </div>
                             {% endif %}
                         </div>
