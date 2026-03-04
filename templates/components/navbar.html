@@ -343,6 +343,23 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body p-0">
+        <!-- User Profile Header -->
+        <div class="px-4 py-4 border-bottom bg-body-tertiary">
+            <div class="d-flex align-items-center gap-3">
+                <div class="profile-avatar rounded-circle bg-primary-subtle text-primary fw-bold border d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; font-size: 1.1rem;">
+                    {% if user.first_name and user.last_name %}
+                        {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                    {% else %}
+                        {{ user.username|slice:":2"|upper }}
+                    {% endif %}
+                </div>
+                <div class="overflow-hidden">
+                    <h6 class="mb-0 fw-bold text-truncate">{{ user.get_full_name|default:user.username }}</h6>
+                    <small class="text-muted text-truncate d-block">{{ user.email }}</small>
+                </div>
+            </div>
+        </div>
+
         <div class="list-group list-group-flush pb-1 mt-2">
             <!-- Notifications Item -->
             <a href="{% url 'notification-list' %}" class="list-group-item list-group-item-action justify-content-between">
