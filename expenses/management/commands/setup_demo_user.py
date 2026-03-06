@@ -34,7 +34,11 @@ class Command(BaseCommand):
         
         cat_objs = {}
         for c in categories_data:
-            cat = Category.objects.create(user=user, name=c['name'], limit=c['limit'], icon=c['icon'])
+            cat, created = Category.objects.update_or_create(
+                user=user, 
+                name=c['name'], 
+                defaults={'limit': c['limit'], 'icon': c['icon']}
+            )
             cat_objs[c['name']] = cat
 
         self.stdout.write(self.style.SUCCESS('Created Categories'))
@@ -57,17 +61,17 @@ class Command(BaseCommand):
         # 4. Expenses (The Story)
         
         # Rent (Fixed)
-        Expense.objects.create(user=user, category=cat_objs['🏠 Rent'].name, amount=15000, date=today, description='Monthly Rent')
+        Expense.objects.create(user=user, category=cat_objs['Rent'].name, amount=15000, date=today, description='Monthly Rent')
 
         # Dining Out (The Breach)
         # Budget is 3000. Let's spend 3500 across a few entries.
-        Expense.objects.create(user=user, category=cat_objs['🍔 Dining Out'].name, amount=1200, date=today, description='Weekend Dinner')
-        Expense.objects.create(user=user, category=cat_objs['🍔 Dining Out'].name, amount=800, date=today - timedelta(days=2), description='Lunch with flow')
-        Expense.objects.create(user=user, category=cat_objs['🍔 Dining Out'].name, amount=1600, date=today - timedelta(days=5), description='Treat for friends') # Breaches here
+        Expense.objects.create(user=user, category=cat_objs['Dining Out'].name, amount=1200, date=today, description='Weekend Dinner')
+        Expense.objects.create(user=user, category=cat_objs['Dining Out'].name, amount=800, date=today - timedelta(days=2), description='Lunch with flow')
+        Expense.objects.create(user=user, category=cat_objs['Dining Out'].name, amount=1600, date=today - timedelta(days=5), description='Treat for friends') # Breaches here
 
         # Groceries (Safe)
-        Expense.objects.create(user=user, category=cat_objs['🥦 Groceries'].name, amount=2000, date=today - timedelta(days=1), description='Weekly stocking')
-        Expense.objects.create(user=user, category=cat_objs['🥦 Groceries'].name, amount=1500, date=today - timedelta(days=8), description='Fruits & Veggies')
+        Expense.objects.create(user=user, category=cat_objs['Groceries'].name, amount=2000, date=today - timedelta(days=1), description='Weekly stocking')
+        Expense.objects.create(user=user, category=cat_objs['Groceries'].name, amount=1500, date=today - timedelta(days=8), description='Fruits & Veggies')
 
         self.stdout.write(self.style.SUCCESS('Created Expenses (Story Scenarios)'))
 
@@ -79,7 +83,7 @@ class Command(BaseCommand):
             transaction_type='EXPENSE',
             amount=649,
             description='Netflix Premium',
-            category=cat_objs['🎬 Entertainment'].name,
+            category=cat_objs['Entertainment'].name,
             frequency='MONTHLY',
             start_date=today - timedelta(days=28), 
             last_processed_date=today - timedelta(days=28),
@@ -91,7 +95,7 @@ class Command(BaseCommand):
             transaction_type='EXPENSE',
             amount=15000,
             description='Monthly Rent',
-            category=cat_objs['🏠 Rent'].name,
+            category=cat_objs['Rent'].name,
             frequency='MONTHLY',
             start_date=today,
             last_processed_date=today,
@@ -103,7 +107,7 @@ class Command(BaseCommand):
             transaction_type='EXPENSE',
             amount=1499,
             description='Amazon Prime',
-            category=cat_objs['🎬 Entertainment'].name,
+            category=cat_objs['Entertainment'].name,
             frequency='YEARLY',
             start_date=today - timedelta(days=100),
             last_processed_date=today - timedelta(days=100),
@@ -115,7 +119,7 @@ class Command(BaseCommand):
             transaction_type='EXPENSE',
             amount=2000,
             description='Gold\'s Gym',
-            category=cat_objs['💊 Health'].name,
+            category=cat_objs['Health'].name,
             frequency='MONTHLY',
             start_date=today - timedelta(days=200),
             last_processed_date=today - timedelta(days=60),
@@ -128,7 +132,7 @@ class Command(BaseCommand):
             transaction_type='EXPENSE',
             amount=1200,
             description='Fiber Internet',
-            category=cat_objs['🏠 Rent'].name, # Using Rent category loosely or logic
+            category=cat_objs['Rent'].name, # Using Rent category loosely or logic
             frequency='MONTHLY',
             start_date=today - timedelta(days=15),
             last_processed_date=today - timedelta(days=15),
