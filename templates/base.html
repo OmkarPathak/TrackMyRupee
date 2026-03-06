@@ -597,7 +597,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="mt-auto bg-body-tertiary border-top pt-5 pb-3 {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'expense-list' or request.resolver_match.url_name == 'calendar' or request.resolver_match.url_name == 'calendar-month' or 'recurring' in request.resolver_match.url_name or request.resolver_match.url_name == 'notification-list' or request.resolver_match.url_name == 'analytics' or 'goal' in request.resolver_match.url_name or 'settings' in request.resolver_match.url_name or 'profile' in request.resolver_match.url_name or 'currency' in request.resolver_match.url_name or 'language' in request.resolver_match.url_name %}d-none d-lg-block{% endif %}">
+    <footer class="mt-auto bg-body-tertiary border-top pt-5 pb-3 d-none d-lg-block">
         <div class="container">
             <div class="row g-4 justify-content-between">
                 <!-- Brand & Description -->

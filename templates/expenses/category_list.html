@@ -140,24 +140,18 @@
                     <form id="editCategoryForm" method="post">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.path }}">
-                        
-                         <div class="mb-3">
-                            <label for="edit_name" class="form-label text-muted small text-uppercase">{% trans "Name" %}</label>
-                            <input type="text" class="form-control" id="edit_name" name="name" required>
-                        </div>
 
                         <div class="mb-3">
                             <label class="form-label text-muted small text-uppercase">{% trans "Icon" %}</label>
                             <div class="dropdown w-100">
                                 <button class="form-select multiselect-btn text-start w-100 d-flex align-items-center justify-content-between p-2" 
-                                        type="button" id="modalIconPickerBtn" data-bs-toggle="dropdown" aria-expanded="false" 
-                                        style="background-color: #023047; color: white; border-color: #023047;">
+                                        type="button" id="modalIconPickerBtn" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
                                     <div class="d-flex align-items-center gap-2">
                                         <i id="modal_selected_icon_display" class="bi bi-tag fs-5"></i>
                                         <span id="modal_selected_icon_label" class="ms-1">{% trans "General Tag" %}</span>
                                     </div>
                                 </button>
-                                <div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 300px; max-width: 100%; border-radius: 12px;">
+                                <div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 300px; max-width: 100%; border-radius: 12px; z-index: 1200;">
                                     <div class="position-sticky top-0 bg-body pt-1 pb-2 z-2">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
@@ -179,10 +173,21 @@
                                 <input type="hidden" name="icon" id="edit_icon_hidden" value="bi-tag">
                             </div>
                         </div>
+
+                        <div class="mb-3">
+                            <label for="edit_name" class="form-label text-muted small text-uppercase">{% trans "Name" %}</label>
+                            <input type="text" class="form-control" id="edit_name" name="name" required>
+                        </div>
+
                         <style>
                             #modalIconPickerBtn::after {
                                 margin-left: auto;
                                 vertical-align: middle;
+                            }
+                            #modalIconPickerBtn:focus, #modalIconPickerBtn:active, #modalIconPickerBtn.show {
+                                box-shadow: none !important;
+                                outline: none !important;
+                                border-color: #023047 !important;
                             }
                             [data-bs-theme="dark"] #modalIconPickerBtn {
                                 background-color: var(--bs-tertiary-bg) !important;

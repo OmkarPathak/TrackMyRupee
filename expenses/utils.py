@@ -170,4 +170,11 @@ BOOTSTRAP_ICONS = [
     ('bi-credit-card', 'Credit/Debt'),
     ('bi-cash-stack', 'Cash'),
     ('bi-cup-hot', 'Coffee/Cafe'),
+    ('bi-tsunami', 'Insurance'),
+    ('bi-capsule', 'Medicines'),
+    ('bi-fuel-pump', 'Fuel'),
+    ('bi-gem', 'Jewellery'),
+    ('bi-basket', 'Vegetables'),
+    ('bi-upc-scan', 'Groceries'),
+    ('bi-handbag', 'Clothing'),
 ]

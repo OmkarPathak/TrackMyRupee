@@ -13,7 +13,7 @@ from django.urls import reverse_lazy, reverse
 from django.views import generic
 from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView, View
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Sum, Q, Avg
+from django.db.models import Sum, Q, Avg, Count
 from django.http import JsonResponse, HttpResponse
 import json
 from django.utils import timezone
@@ -1333,7 +1333,16 @@ class ExpenseCreateView(LoginRequiredMixin, generic.TemplateView):
         initial_data = [{'date': datetime.now().date(), 'currency': request.user.profile.currency} for _ in range(1)]
         formset = ExpenseFormSet(queryset=Expense.objects.none(), initial=initial_data, form_kwargs={'user': request.user})
         next_url = request.GET.get('next', '')
-        return render(request, self.template_name, {'formset': formset, 'next_url': next_url})
+        
+        # Get top 5 frequent categories for this user
+        frequent_categories = Expense.objects.filter(user=request.user).values('category').annotate(count=Count('category')).order_by('-count')[:5]
+        frequent_category_names = [item['category'] for item in frequent_categories]
+
+        return render(request, self.template_name, {
+            'formset': formset, 
+            'next_url': next_url,
+            'frequent_categories': frequent_category_names
+        })
 
     def post(self, request, *args, **kwargs):
         ExpenseFormSet = modelformset_factory(Expense, form=ExpenseForm, extra=1, can_delete=True)
@@ -1374,6 +1383,11 @@ class ExpenseUpdateView(LoginRequiredMixin, generic.UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['next_url'] = self.request.POST.get('next') or self.request.GET.get('next') or ''
+        
+        # Get top 5 frequent categories for this user
+        frequent_categories = Expense.objects.filter(user=self.request.user).values('category').annotate(count=Count('category')).order_by('-count')[:5]
+        context['frequent_categories'] = [item['category'] for item in frequent_categories]
+        
         return context
 
     def form_valid(self, form):

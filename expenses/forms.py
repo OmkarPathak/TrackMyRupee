@@ -29,6 +29,7 @@ class ExpenseForm(forms.ModelForm):
         # If user is provided, populate category choices
         if user:
             self.fields['currency'].initial = user.profile.currency
+            self.fields['payment_method'].initial = 'Credit Card'
             categories = Category.objects.filter(user=user).order_by('id')
             
             # Enforce Tier Limits

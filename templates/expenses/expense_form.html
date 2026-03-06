@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n expense_extras %}
 
 {% block content %}
 <div class="row">
@@ -35,49 +35,65 @@
                             <div class="form-card form-row">
                                 {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
                                 
-                                <!-- Row 1: Date, Amount, Currency -->
+                                <!-- Row 1: Date & Currency -->
                                 <div class="row g-2 mb-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-6 col-6">
                                         <label class="form-label">{% trans "Date" %}</label>
                                         <input type="date" name="{{ form.date.html_name }}" class="form-control" 
                                             value="{{ form.date.value|date:'Y-m-d'|default:form.date.value }}" required id="{{ form.date.id_for_label }}">
                                         {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>{% endif %}
                                     </div>
-                                    <div class="col-md-4 col-6">
-                                        <label class="form-label">{% trans "Amount" %}</label>
-                                        <input type="number" name="{{ form.amount.html_name }}" class="form-control" 
-                                            value="{{ form.amount.value|default:'' }}" required id="{{ form.amount.id_for_label }}" step="0.01" placeholder="0.00">
-                                        {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="col-md-4 col-6">
+                                    <div class="col-md-6 col-6">
                                         <label class="form-label">{% trans "Currency" %}</label>
                                         {{ form.currency }}
                                         {% if form.currency.errors %}<div class="text-danger small mt-1">{{ form.currency.errors.0 }}</div>{% endif %}
                                     </div>
                                 </div>
 
-                                <!-- Row 2: Description, Category, Payment Method -->
+                                <!-- Row 2: Amount & Category -->
                                 <div class="row g-2 mb-3">
-                                    <div class="col-md-4">
-                                        <label class="form-label">{% trans "Description" %}</label>
-                                        <input type="text" name="{{ form.description.html_name }}" class="form-control" 
-                                            value="{{ form.description.value|default:'' }}" id="{{ form.description.id_for_label }}" placeholder="{% trans 'What did you spend on?' %}">
-                                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                                    <div class="col-md-6 col-6">
+                                        <label class="form-label">{% trans "Amount" %}</label>
+                                        <input type="number" name="{{ form.amount.html_name }}" class="form-control" 
+                                            value="{{ form.amount.value|default:'' }}" required id="{{ form.amount.id_for_label }}" step="0.01" placeholder="0.00">
+                                        {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6 col-6">
                                         <label class="form-label">{% trans "Category" %}</label>
                                         {{ form.category }}
                                         {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
                                     </div>
-                                    <div class="col-md-4 d-none d-md-block">
-                                        <label class="form-label">{% trans "Payment Method" %}</label>
-                                        {{ form.payment_method }}
-                                    </div>
                                 </div>
 
-                                <!-- Row 3: Payment Method (Mobile Only) -->
-                                <div class="d-md-none mb-2">
+                                <!-- Row 3: Frequent Categories (Mobile Only) -->
+                                {% if frequent_categories %}
+                                <div class="d-md-none mb-3">
+                                    <label class="form-label mb-1" style="font-size: 0.75rem;">{% trans "Frequent Categories" %}</label>
+                                    <div class="payment-method-selector frequent-categories-selector" data-target-id="{{ form.category.id_for_label }}">
+                                        {% for cat in frequent_categories %}
+                                        <div class="payment-method-item category-item" data-value="{{ cat }}">
+                                            <div class="icon-wrapper"><i class="bi {% category_icon cat request.user %}"></i></div>
+                                            <div class="label">{{ cat }}</div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Row 4: Description -->
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "Description" %}</label>
+                                    <input type="text" name="{{ form.description.html_name }}" class="form-control" 
+                                        value="{{ form.description.value|default:'' }}" id="{{ form.description.id_for_label }}" placeholder="{% trans 'What did you spend on?' %}">
+                                    {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <!-- Row 5: Payment Method -->
+                                <div class="mb-2">
                                     <label class="form-label mb-1">{% trans "Payment Method" %}</label>
+                                    <div class="d-none d-md-block mb-2">
+                                        {{ form.payment_method }}
+                                    </div>
                                     <div class="payment-method-selector" data-target-id="{{ form.payment_method.id_for_label }}">
                                         <div class="payment-method-item" data-value="Cash">
                                             <div class="icon-wrapper"><i class="bi bi-cash-stack"></i></div>
@@ -142,73 +158,89 @@
                         <div class="form-card form-row mb-4">
                             {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
                             
-                            <!-- Row 1: Date, Amount, Currency -->
-                            <div class="row g-2 mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">{% trans "Date" %}</label>
-                                    <input type="date" name="{{ form.date.name }}" class="form-control" 
-                                        value="{{ form.date.value|date:'Y-m-d'|default:form.date.value }}" required id="{{ form.date.id_for_label }}">
-                                    {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>{% endif %}
+                                <!-- Row 1: Date & Currency -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6 col-6">
+                                        <label class="form-label">{% trans "Date" %}</label>
+                                        <input type="date" name="{{ form.date.name }}" class="form-control" 
+                                            value="{{ form.date.value|date:'Y-m-d'|default:form.date.value }}" required id="{{ form.date.id_for_label }}">
+                                        {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6 col-6">
+                                        <label class="form-label">{% trans "Currency" %}</label>
+                                        {{ form.currency }}
+                                        {% if form.currency.errors %}<div class="text-danger small mt-1">{{ form.currency.errors.0 }}</div>{% endif %}
+                                    </div>
                                 </div>
-                                <div class="col-md-4 col-6">
-                                    <label class="form-label">{% trans "Amount" %}</label>
-                                    <input type="number" name="{{ form.amount.name }}" class="form-control" 
-                                        value="{{ form.amount.value|default:'' }}" required id="{{ form.amount.id_for_label }}" step="0.01" placeholder="0.00">
-                                    {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
-                                </div>
-                                <div class="col-md-4 col-6">
-                                    <label class="form-label">{% trans "Currency" %}</label>
-                                    {{ form.currency }}
-                                    {% if form.currency.errors %}<div class="text-danger small mt-1">{{ form.currency.errors.0 }}</div>{% endif %}
-                                </div>
-                            </div>
 
-                            <!-- Row 2: Description, Category, Payment Method -->
-                            <div class="row g-2 mb-3">
-                                <div class="col-md-4">
+                                <!-- Row 2: Amount & Category -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6 col-6">
+                                        <label class="form-label">{% trans "Amount" %}</label>
+                                        <input type="number" name="{{ form.amount.name }}" class="form-control" 
+                                            value="{{ form.amount.value|default:'' }}" required id="{{ form.amount.id_for_label }}" step="0.01" placeholder="0.00">
+                                        {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6 col-6">
+                                        <label class="form-label">{% trans "Category" %}</label>
+                                        {{ form.category }}
+                                        {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Row 3: Frequent Categories (Mobile Only) -->
+                                {% if frequent_categories %}
+                                <div class="d-md-none mb-3">
+                                    <label class="form-label mb-1" style="font-size: 0.75rem;">{% trans "Frequent Categories" %}</label>
+                                    <div class="payment-method-selector frequent-categories-selector" data-target-id="{{ form.category.id_for_label }}">
+                                        {% for cat in frequent_categories %}
+                                        <div class="payment-method-item category-item" data-value="{{ cat }}">
+                                            <div class="icon-wrapper"><i class="bi {% category_icon cat request.user %}"></i></div>
+                                            <div class="label">{{ cat }}</div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Row 4: Description -->
+                                <div class="mb-3">
                                     <label class="form-label">{% trans "Description" %}</label>
                                     <input type="text" name="{{ form.description.name }}" class="form-control" 
                                         value="{{ form.description.value|default:'' }}" id="{{ form.description.id_for_label }}" placeholder="{% trans 'What did you spend on?' %}">
                                     {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">{% trans "Category" %}</label>
-                                    {{ form.category }}
-                                    {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
-                                </div>
-                                <div class="col-md-4 d-none d-md-block">
-                                    <label class="form-label">{% trans "Payment Method" %}</label>
-                                    {{ form.payment_method }}
-                                </div>
-                            </div>
 
-                            <!-- Row 3: Payment Method (Mobile Only) -->
-                            <div class="d-md-none mb-2">
-                                <label class="form-label">{% trans "Payment Method" %}</label>
-                                <div class="payment-method-selector" data-target-id="{{ form.payment_method.id_for_label }}">
-                                    <div class="payment-method-item" data-value="Cash">
-                                        <div class="icon-wrapper"><i class="bi bi-cash-stack"></i></div>
-                                        <div class="label">{% trans "Cash" %}</div>
+                                <!-- Row 5: Payment Method -->
+                                <div class="mb-2">
+                                    <label class="form-label mb-1">{% trans "Payment Method" %}</label>
+                                    <div class="d-none d-md-block mb-2">
+                                        {{ form.payment_method }}
                                     </div>
-                                    <div class="payment-method-item" data-value="Credit Card">
-                                        <div class="icon-wrapper"><i class="bi bi-credit-card"></i></div>
-                                        <div class="label">{% trans "Credit Card" %}</div>
+                                    <div class="payment-method-selector" data-target-id="{{ form.payment_method.id_for_label }}">
+                                        <div class="payment-method-item" data-value="Cash">
+                                            <div class="icon-wrapper"><i class="bi bi-cash-stack"></i></div>
+                                            <div class="label">{% trans "Cash" %}</div>
+                                        </div>
+                                        <div class="payment-method-item" data-value="Credit Card">
+                                            <div class="icon-wrapper"><i class="bi bi-credit-card"></i></div>
+                                            <div class="label">{% trans "Credit Card" %}</div>
+                                        </div>
+                                        <div class="payment-method-item" data-value="Debit Card">
+                                            <div class="icon-wrapper"><i class="bi bi-card-checklist"></i></div>
+                                            <div class="label">{% trans "Debit Card" %}</div>
+                                        </div>
+                                        <div class="payment-method-item" data-value="UPI">
+                                            <div class="icon-wrapper"><i class="bi bi-qr-code-scan"></i></div>
+                                            <div class="label">{% trans "UPI" %}</div>
+                                        </div>
+                                        <div class="payment-method-item" data-value="NetBanking">
+                                            <div class="icon-wrapper"><i class="bi bi-bank"></i></div>
+                                            <div class="label">{% trans "NetBanking" %}</div>
+                                        </div>
                                     </div>
-                                    <div class="payment-method-item" data-value="Debit Card">
-                                        <div class="icon-wrapper"><i class="bi bi-card-checklist"></i></div>
-                                        <div class="label">{% trans "Debit Card" %}</div>
-                                    </div>
-                                    <div class="payment-method-item" data-value="UPI">
-                                        <div class="icon-wrapper"><i class="bi bi-qr-code-scan"></i></div>
-                                        <div class="label">{% trans "UPI" %}</div>
-                                    </div>
-                                    <div class="payment-method-item" data-value="NetBanking">
-                                        <div class="icon-wrapper"><i class="bi bi-bank"></i></div>
-                                        <div class="label">{% trans "NetBanking" %}</div>
-                                    </div>
+                                    {% if form.payment_method.errors %}<div class="text-danger small mt-1">{{ form.payment_method.errors.0 }}</div>{% endif %}
                                 </div>
-                                {% if form.payment_method.errors %}<div class="text-danger small mt-1">{{ form.payment_method.errors.0 }}</div>{% endif %}
-                            </div>
                         </div>
 
                         <div class="mt-4 mb-5 pb-5">
@@ -331,9 +363,9 @@
 
                 updateRemoveButtonsVisibility();
 
-                // Re-initialize Payment Method Selector for the new row
-                if (typeof initPaymentMethodSelector === 'function') {
-                    initPaymentMethodSelector(newForm);
+                // Re-initialize Visual Selectors for the new row
+                if (typeof initVisualSelectors === 'function') {
+                    initVisualSelectors(newForm);
                 }
 
                 // Re-init multiselect for the new row
@@ -699,60 +731,64 @@
 </script>
 
 <script>
-    // Payment Method Visual Selector Logic
-    function initPaymentMethodSelector(container = document) {
+    // Generic Selector Logic for Payment Methods and Frequent Categories
+    function initVisualSelectors(container = document) {
+        // Handle Payment Methods and Frequent Categories
         const selectors = container.querySelectorAll('.payment-method-selector');
-        
         selectors.forEach(selector => {
             const targetId = selector.dataset.targetId;
-            const targetSelect = document.getElementById(targetId);
+            let targetSelect = document.getElementById(targetId);
+            
+            // Fallback: If targetId is not found, look for nearest select (useful for cloned rows)
+            if (!targetSelect && targetId) {
+                const parentRow = selector.closest('.form-row');
+                if (parentRow) {
+                    targetSelect = parentRow.querySelector(`[id="${targetId}"]`) || 
+                                   parentRow.querySelector(`[name$="${targetId.split('-').pop()}"]`);
+                }
+            }
+
             const items = selector.querySelectorAll('.payment-method-item');
             
-            // Set initial active state
             if (targetSelect) {
-                const currentValue = targetSelect.value;
-                items.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.value === currentValue) {
-                        item.classList.add('active');
-                    }
-                });
-
-                // Bidirectional Sync: Update icons when dropdown changes (desktop sync)
-                targetSelect.addEventListener('change', function() {
-                    const newVal = this.value;
+                const updateActive = () => {
+                    const currentVal = targetSelect.value;
                     items.forEach(item => {
-                        item.classList.toggle('active', item.dataset.value === newVal);
+                        const itemVal = item.dataset.value;
+                        if (itemVal === currentVal) {
+                            item.classList.add('active');
+                        } else {
+                            item.classList.remove('active');
+                        }
+                    });
+                };
+                
+                // Initial update
+                updateActive();
+                
+                // Listen for changes on the underlying select
+                targetSelect.addEventListener('change', updateActive);
+
+                items.forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const val = this.dataset.value;
+                        targetSelect.value = val;
+                        // Trigger change event manually to update UI
+                        targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        
+                        // Handle bootstrap-multiselect if present
+                        if ($(targetSelect).hasClass('django-multi-select')) {
+                            $(targetSelect).multiselect('select', val);
+                        }
                     });
                 });
             }
-            
-            items.forEach(item => {
-                // Remove existing listeners if re-initializing (for Bulk Add "Add Row")
-                const newItem = item.cloneNode(true);
-                item.parentNode.replaceChild(newItem, item);
-                
-                newItem.addEventListener('click', function() {
-                    const value = this.dataset.value;
-                    
-                    // Update visual state
-                    const sibs = newItem.parentNode.querySelectorAll('.payment-method-item');
-                    sibs.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Update hidden/visible select
-                    if (targetSelect) {
-                        targetSelect.value = value;
-                        // Avoid infinite loop: only dispatch if value actually changed
-                        targetSelect.dispatchEvent(new Event('change'));
-                    }
-                });
-            });
         });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        initPaymentMethodSelector();
+        initVisualSelectors();
     });
 </script>
 

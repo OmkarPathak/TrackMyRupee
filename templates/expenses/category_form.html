@@ -19,11 +19,9 @@
                         <label class="form-label text-muted">{{ field.label }}</label>
                         {% if field.name == 'icon' %}
                             <div class="mb-3">
-                                <label class="form-label text-muted">{% trans "Select Icon" %}</label>
                                 <div class="dropdown w-100">
                                     <button class="form-select multiselect-btn text-start w-100 d-flex align-items-center justify-content-between p-2" 
-                                            type="button" id="iconPickerBtn" data-bs-toggle="dropdown" aria-expanded="false" 
-                                            style="background-color: #023047; color: white; border-color: #023047;">
+                                            type="button" id="iconPickerBtn" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
                                         <div class="d-flex align-items-center gap-2">
                                             <i id="selected_icon_display" class="bi {{ field.value|default:'bi-tag' }} fs-5"></i>
                                             <span id="selected_icon_label" class="ms-1">
@@ -37,7 +35,7 @@
                                             </span>
                                         </div>
                                     </button>
-                                    <div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 300px; max-width: 100%; border-radius: 12px;">
+                                    <div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 300px; max-width: 100%; border-radius: 12px; z-index: 1200;">
                                         <div class="position-sticky top-0 bg-body pt-1 pb-2 z-2">
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
@@ -63,6 +61,10 @@
                                 #iconPickerBtn::after {
                                     margin-left: auto;
                                     vertical-align: middle;
+                                }
+                                #iconPickerBtn:focus, #iconPickerBtn:active, #iconPickerBtn.show {
+                                    box-shadow: none !important;
+                                    outline: none !important;
                                 }
                                 [data-bs-theme="dark"] #iconPickerBtn {
                                     background-color: var(--bs-tertiary-bg) !important;
@@ -146,19 +148,19 @@
                     </div>
                     {% endfor %}
 
-                    <div class="d-flex justify-content-start gap-2 mt-4">
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <input type="hidden" name="next" value="{{ next_url }}">
+                        <a href="{{ next_url|default:'/category/list/' }}" class="btn btn-outline-secondary px-4">{% trans "Cancel" %}</a>
+
                         {% if reached_limit %}
                             <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#comparePlansModal">
                                 <i class="bi bi-rocket-takeoff-fill me-1"></i> {% trans "Unlock More" %}
                             </button>
                         {% else %}
                             <button type="submit" class="btn btn-primary px-4">
-                                <i class="bi bi-check-lg me-1"></i> {% trans "Save Category" %}
+                                <i class="bi bi-check-lg me-1"></i> {% trans "Save" %}
                             </button>
                         {% endif %}
-                        
-                        <input type="hidden" name="next" value="{{ next_url }}">
-                        <a href="{{ next_url|default:'/category/list/' }}" class="btn btn-outline-secondary px-4">{% trans "Cancel" %}</a>
                     </div>
                 </form>
             </div>
