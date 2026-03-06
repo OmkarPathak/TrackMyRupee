@@ -28,7 +28,8 @@
                 <table class="table table-hover table-striped mb-0 text-start align-middle">
                     <thead>
                         <tr>
-                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th class="ps-4" style="width: 40px;"></th>
+                            <th>{% trans "Name" %}</th>
                             <th class="text-end">{% trans "Monthly Limit" %}</th>
                             <th class="text-end pe-4">{% trans "Actions" %}</th>
                         </tr>
@@ -36,7 +37,10 @@
                     <tbody>
                         {% for category in categories %}
                         <tr>
-                            <td class="ps-4">{{ category.name }}</td>
+                            <td class="ps-4">
+                                <i class="bi {{ category.icon }} fs-5"></i>
+                            </td>
+                            <td>{{ category.name }}</td>
                              <td class="text-end">{% if category.limit %}{{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
                             <td class="text-end pe-4 text-nowrap">
                                 <div class="hstack gap-3 justify-content-end">
@@ -44,6 +48,7 @@
                                             data-bs-toggle="modal" data-bs-target="#editCategoryModal"
                                             data-url="{% url 'category-edit' category.pk %}"
                                             data-name="{{ category.name }}"
+                                            data-icon="{{ category.icon }}"
                                             data-limit="{{ category.limit|default_if_none:'' }}"
                                             title="{% trans 'Edit' %}">
                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
@@ -136,10 +141,67 @@
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.path }}">
                         
-                        <div class="mb-3">
+                         <div class="mb-3">
                             <label for="edit_name" class="form-label text-muted small text-uppercase">{% trans "Name" %}</label>
                             <input type="text" class="form-control" id="edit_name" name="name" required>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase">{% trans "Icon" %}</label>
+                            <div class="dropdown w-100">
+                                <button class="form-select multiselect-btn text-start w-100 d-flex align-items-center justify-content-between p-2" 
+                                        type="button" id="modalIconPickerBtn" data-bs-toggle="dropdown" aria-expanded="false" 
+                                        style="background-color: #023047; color: white; border-color: #023047;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i id="modal_selected_icon_display" class="bi bi-tag fs-5"></i>
+                                        <span id="modal_selected_icon_label" class="ms-1">{% trans "General Tag" %}</span>
+                                    </div>
+                                </button>
+                                <div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 300px; max-width: 100%; border-radius: 12px;">
+                                    <div class="position-sticky top-0 bg-body pt-1 pb-2 z-2">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                                            <input type="text" id="modalIconSearchInput" class="form-control border-start-0 ps-0" placeholder="{% trans 'Search icons...' %}">
+                                        </div>
+                                    </div>
+                                    <div class="modal-icon-grid d-flex flex-wrap gap-2 overflow-auto py-2" style="max-height: 250px;">
+                                        {% for val, label in bootstrap_icons %}
+                                            <div class="modal-icon-item position-relative p-2 border rounded cursor-pointer" 
+                                                 data-value="{{ val }}" 
+                                                 data-label="{{ label }}"
+                                                 title="{{ label }}"
+                                                 style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                                                <i class="bi {{ val }} fs-5"></i>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <input type="hidden" name="icon" id="edit_icon_hidden" value="bi-tag">
+                            </div>
+                        </div>
+                        <style>
+                            #modalIconPickerBtn::after {
+                                margin-left: auto;
+                                vertical-align: middle;
+                            }
+                            [data-bs-theme="dark"] #modalIconPickerBtn {
+                                background-color: var(--bs-tertiary-bg) !important;
+                                border-color: var(--bs-border-color) !important;
+                                color: var(--bs-body-color) !important;
+                            }
+                            .modal-icon-item:hover {
+                                background-color: var(--bs-tertiary-bg);
+                                border-color: var(--bs-primary) !important;
+                                color: var(--bs-primary);
+                                transform: scale(1.1);
+                            }
+                            .modal-icon-item.active {
+                                background-color: var(--bs-primary-subtle);
+                                border-color: var(--bs-primary) !important;
+                                color: var(--bs-primary);
+                            }
+                            .cursor-pointer { cursor: pointer; }
+                        </style>
                         
                         <div class="mb-4">
                             <label for="edit_limit" class="form-label text-muted small text-uppercase">{% trans "Monthly Limit (Optional)" %}</label>
@@ -160,22 +222,78 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var editModal = document.getElementById('editCategoryModal');
+            const editModal = document.getElementById('editCategoryModal');
+            const iconMappings = {
+                {% for val, label in bootstrap_icons %}
+                    "{{ val }}": "{{ label }}",
+                {% endfor %}
+            };
+
             if (editModal) {
+                const hiddenInput = editModal.querySelector('#edit_icon_hidden');
+                const displayIcon = editModal.querySelector('#modal_selected_icon_display');
+                const displayLabel = editModal.querySelector('#modal_selected_icon_label');
+                const dropdownItems = editModal.querySelectorAll('.modal-icon-item');
+                const searchInput = editModal.querySelector('#modalIconSearchInput');
+
                 editModal.addEventListener('show.bs.modal', function(event) {
-                    var button = event.relatedTarget;
-                    var url = button.getAttribute('data-url');
-                    var name = button.getAttribute('data-name');
-                    var limit = button.getAttribute('data-limit');
+                    const button = event.relatedTarget;
+                    const url = button.getAttribute('data-url');
+                    const name = button.getAttribute('data-name');
+                    const icon = button.getAttribute('data-icon') || 'bi-tag';
+                    const limit = button.getAttribute('data-limit');
                     
-                    var form = editModal.querySelector('#editCategoryForm');
-                    var nameInput = editModal.querySelector('#edit_name');
-                    var limitInput = editModal.querySelector('#edit_limit');
+                    const form = editModal.querySelector('#editCategoryForm');
+                    const nameInput = editModal.querySelector('#edit_name');
+                    const limitInput = editModal.querySelector('#edit_limit');
                     
                     form.action = url;
                     nameInput.value = name;
                     limitInput.value = limit || '';
+                    
+                    // Update Icon Picker State
+                    hiddenInput.value = icon;
+                    displayIcon.className = 'bi ' + icon + ' fs-5';
+                    displayLabel.textContent = iconMappings[icon] || '{% trans "General Tag" %}';
+                    
+                    dropdownItems.forEach(i => {
+                        if (i.dataset.value === icon) i.classList.add('active');
+                        else i.classList.remove('active');
+                    });
                 });
+
+                // Icon selection click handler
+                dropdownItems.forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const val = this.dataset.value;
+                        const label = this.dataset.label;
+                        
+                        hiddenInput.value = val;
+                        displayIcon.className = 'bi ' + val + ' fs-5';
+                        displayLabel.textContent = label;
+                        
+                        dropdownItems.forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+
+                // Search handler
+                searchInput.addEventListener('input', function() {
+                    const term = this.value.toLowerCase();
+                    dropdownItems.forEach(item => {
+                        const label = item.dataset.label.toLowerCase();
+                        const val = item.dataset.value.toLowerCase();
+                        if (label.includes(term) || val.includes(term)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Prevent closing on search click
+                searchInput.addEventListener('click', (e) => e.stopPropagation());
             }
         });
     </script>

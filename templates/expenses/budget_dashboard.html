@@ -83,8 +83,11 @@
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <a href="{% url 'expense-list' %}?category={{ data.category.name|urlencode }}&month={{ current_month }}&year={{ current_year }}" class="d-flex align-items-center gap-1 text-decoration-none text-body category-link stretched-link" title="{% trans 'View Expenses' %}">
-                                        <h5 class="h6 fw-bold mb-0">{{ data.category.name }}</h5>
+                                    <a href="{% url 'expense-list' %}?category={{ data.category.name|urlencode }}&month={{ current_month }}&year={{ current_year }}" class="d-flex align-items-center gap-2 text-decoration-none text-body category-link stretched-link" title="{% trans 'View Expenses' %}">
+                                        <h5 class="h6 fw-bold mb-0 d-flex align-items-center gap-2">
+                                            <i class="bi {{ data.category.icon }}"></i>
+                                            {{ data.category.name }}
+                                        </h5>
                                         <i class="bi bi-box-arrow-up-right small text-muted opacity-0 link-arrow" style="font-size: 0.75rem;"></i>
                                     </a>
                                     <a href="{% url 'category-edit' data.category.pk %}?next={{ request.path }}" class="text-secondary small text-decoration-none ms-1 position-relative z-3" title="{% trans 'Edit Limit' %}" style="font-size: 0.9rem;">

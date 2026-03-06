@@ -44,3 +44,18 @@ def payment_bg(method):
         'netbanking': '#e0f7fa',
     }
     return bgs.get(method.strip().lower(), '#f5f5f5')
+ 
+ 
+@register.simple_tag
+def category_icon(category_name, user):
+    """Returns the bootstrap icon class for a category name and user."""
+    from expenses.models import Category
+    try:
+        # Avoid database lookup for every row if possible? 
+        # For simplicity now, let's do it. For performance, we should ideally use a context processor or pass a map.
+        category = Category.objects.filter(user=user, name=category_name).first()
+        if category:
+            return category.icon
+    except Exception:
+         pass
+    return 'bi-tag'

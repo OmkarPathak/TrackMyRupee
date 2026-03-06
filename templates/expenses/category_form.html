@@ -17,13 +17,129 @@
                     {% for field in form %}
                     <div class="mb-3">
                         <label class="form-label text-muted">{{ field.label }}</label>
-                        <input type="{% if field.name == 'limit' %}number{% else %}{{ field.field.widget.input_type }}{% endif %}" 
-                               name="{{ field.name }}" 
-                               class="form-control" 
-                               {% if field.value %}value="{{ field.value }}"{% endif %} 
-                               {% if field.name == 'limit' %}step="0.01" placeholder="{% trans 'Optional monthly limit' %}"{% endif %}
-                               {% if field.field.required %}required{% endif %}
-                               {% if reached_limit %}disabled{% endif %}>
+                        {% if field.name == 'icon' %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">{% trans "Select Icon" %}</label>
+                                <div class="dropdown w-100">
+                                    <button class="form-select multiselect-btn text-start w-100 d-flex align-items-center justify-content-between p-2" 
+                                            type="button" id="iconPickerBtn" data-bs-toggle="dropdown" aria-expanded="false" 
+                                            style="background-color: #023047; color: white; border-color: #023047;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i id="selected_icon_display" class="bi {{ field.value|default:'bi-tag' }} fs-5"></i>
+                                            <span id="selected_icon_label" class="ms-1">
+                                                {% if field.value %}
+                                                    {% for val, label in bootstrap_icons %}
+                                                        {% if val == field.value %}{{ label }}{% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    {% trans "General Tag" %}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </button>
+                                    <div class="dropdown-menu p-3 shadow-lg border-0" style="min-width: 300px; max-width: 100%; border-radius: 12px;">
+                                        <div class="position-sticky top-0 bg-body pt-1 pb-2 z-2">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                                                <input type="text" id="iconSearchInput" class="form-control border-start-0 ps-0" placeholder="{% trans 'Search icons...' %}">
+                                            </div>
+                                        </div>
+                                        <div class="icon-grid d-flex flex-wrap gap-2 overflow-auto py-2" style="max-height: 250px;">
+                                            {% for val, label in bootstrap_icons %}
+                                                <div class="icon-item position-relative p-2 border rounded cursor-pointer" 
+                                                     data-value="{{ val }}" 
+                                                     data-label="{{ label }}"
+                                                     title="{{ label }}"
+                                                     style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                                                    <i class="bi {{ val }} fs-5"></i>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="{{ field.name }}" id="id_icon" value="{{ field.value|default:'bi-tag' }}">
+                                </div>
+                            </div>
+                            <style>
+                                #iconPickerBtn::after {
+                                    margin-left: auto;
+                                    vertical-align: middle;
+                                }
+                                [data-bs-theme="dark"] #iconPickerBtn {
+                                    background-color: var(--bs-tertiary-bg) !important;
+                                    border-color: var(--bs-border-color) !important;
+                                    color: var(--bs-body-color) !important;
+                                }
+                                .icon-item:hover {
+                                    background-color: var(--bs-tertiary-bg);
+                                    border-color: var(--bs-primary) !important;
+                                    color: var(--bs-primary);
+                                    transform: scale(1.1);
+                                }
+                                .icon-item.active {
+                                    background-color: var(--bs-primary-subtle);
+                                    border-color: var(--bs-primary) !important;
+                                    color: var(--bs-primary);
+                                }
+                                .cursor-pointer { cursor: pointer; }
+                            </style>
+                            <script>
+                                (function() {
+                                    const dropdownItems = document.querySelectorAll('.icon-item');
+                                    const searchInput = document.getElementById('iconSearchInput');
+                                    const hiddenInput = document.getElementById('id_icon');
+                                    const displayIcon = document.getElementById('selected_icon_display');
+                                    const displayLabel = document.getElementById('selected_icon_label');
+                                    
+                                    // Initial active state
+                                    const initialVal = hiddenInput.value;
+                                    dropdownItems.forEach(item => {
+                                        if (item.dataset.value === initialVal) item.classList.add('active');
+                                    });
+
+                                    dropdownItems.forEach(item => {
+                                        item.addEventListener('click', function(e) {
+                                            e.preventDefault();
+                                            const val = this.dataset.value;
+                                            const label = this.dataset.label;
+                                            
+                                            hiddenInput.value = val;
+                                            displayIcon.className = 'bi ' + val + ' fs-5';
+                                            displayLabel.textContent = label;
+                                            
+                                            dropdownItems.forEach(i => i.classList.remove('active'));
+                                            this.classList.add('active');
+                                            
+                                            // Close dropdown (optional, bootstrap might handle it)
+                                            // bootstrap.Dropdown.getInstance(document.getElementById('iconPickerBtn')).hide();
+                                        });
+                                    });
+
+                                    searchInput.addEventListener('input', function() {
+                                        const term = this.value.toLowerCase();
+                                        dropdownItems.forEach(item => {
+                                            const label = item.dataset.label.toLowerCase();
+                                            const val = item.dataset.value.toLowerCase();
+                                            if (label.includes(term) || val.includes(term)) {
+                                                item.style.display = 'flex';
+                                            } else {
+                                                item.style.display = 'none';
+                                            }
+                                        });
+                                    });
+
+                                    // Prevent dropdown from closing when interacting with search
+                                    searchInput.addEventListener('click', (e) => e.stopPropagation());
+                                })();
+                            </script>
+                        {% else %}
+                            <input type="{% if field.name == 'limit' %}number{% else %}{{ field.field.widget.input_type }}{% endif %}" 
+                                   name="{{ field.name }}" 
+                                   class="form-control" 
+                                   {% if field.value %}value="{{ field.value }}"{% endif %} 
+                                   {% if field.name == 'limit' %}step="0.01" placeholder="{% trans 'Optional monthly limit' %}"{% endif %}
+                                   {% if field.field.required %}required{% endif %}
+                                   {% if reached_limit %}disabled{% endif %}>
+                        {% endif %}
                         {% if field.errors %}
                         <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
                         {% endif %}

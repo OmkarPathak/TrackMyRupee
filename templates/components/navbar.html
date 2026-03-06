@@ -391,22 +391,13 @@
                 <span>{% trans "Settings" %}</span>
             </a>
             
-            <!-- About & Support Trigger -->
-            <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" type="button" data-bs-toggle="offcanvas" data-bs-target="#aboutSupportSheet">
+            <!-- Support & Legal Trigger -->
+            <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" type="button" data-bs-toggle="offcanvas" data-bs-target="#supportLegalSheet">
                 <div class="d-flex align-items-center gap-3">
                     <i class="bi bi-info-circle text-primary"></i>
-                    <span>{% trans "About & Support" %}</span>
+                    <span>{% trans "Support & Legal" %}</span>
                 </div>
-                <i class="bi bi-chevron-right small text-muted"></i>
-            </button>
-
-            <!-- Legal Trigger -->
-            <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" type="button" data-bs-toggle="offcanvas" data-bs-target="#legalSheet">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-shield-lock text-muted"></i>
-                    <span>{% trans "Legal" %}</span>
-                </div>
-                <i class="bi bi-chevron-right small text-muted"></i>
+                <i class="bi bi-chevron-right text-muted" style="font-size: 0.7rem;"></i>
             </button>
 
             <button class="list-group-item list-group-item-action theme-toggle-btn">
@@ -425,48 +416,31 @@
     </div>
 </div>
 
-<!-- Mobile About & Support Bottom Sheet -->
-<div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-lg-none" tabindex="-1" id="aboutSupportSheet" aria-labelledby="aboutSupportSheetLabel">
+<!-- Mobile Support & Legal Bottom Sheet -->
+<div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-lg-none" tabindex="-1" id="supportLegalSheet" aria-labelledby="supportLegalSheetLabel">
     <div class="offcanvas-header border-bottom py-3">
         <div class="d-flex align-items-center gap-2">
             <button type="button" class="btn btn-link p-0 text-decoration-none me-2" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet">
                 <i class="bi bi-arrow-left fs-4"></i>
             </button>
-            <h5 class="offcanvas-title fw-bold mb-0" id="aboutSupportSheetLabel">{% trans "About & Support" %}</h5>
+            <h5 class="offcanvas-title fw-bold mb-0" id="supportLegalSheetLabel">{% trans "Support & Legal" %}</h5>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body p-0">
-        <div class="list-group list-group-flush pb-1 mt-2">
+        <div class="list-group list-group-flush pb-4 mt-2">
             <a href="{% url 'about' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-info-circle text-primary"></i>
+                <i class="bi bi-info-circle"></i>
                 <span>{% trans "About" %}</span>
             </a>
             <a href="{% url 'contact' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-envelope text-success"></i>
+                <i class="bi bi-envelope"></i>
                 <span>{% trans "Contact Us" %}</span>
             </a>
             <a href="{% url 'blog_list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-journal-text text-info"></i>
+                <i class="bi bi-journal-text"></i>
                 <span>{% trans "Blog" %}</span>
             </a>
-        </div>
-    </div>
-</div>
-
-<!-- Mobile Legal Bottom Sheet -->
-<div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-lg-none" tabindex="-1" id="legalSheet" aria-labelledby="legalSheetLabel">
-    <div class="offcanvas-header border-bottom py-3">
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-link p-0 text-decoration-none me-2" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet">
-                <i class="bi bi-arrow-left fs-4"></i>
-            </button>
-            <h5 class="offcanvas-title fw-bold mb-0" id="legalSheetLabel">{% trans "Legal" %}</h5>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body p-0">
-        <div class="list-group list-group-flush pb-3 mt-2">
             <a href="{% url 'privacy-policy' %}" class="list-group-item list-group-item-action">
                 <i class="bi bi-shield-lock text-muted"></i>
                 <span>{% trans "Privacy Policy" %}</span>

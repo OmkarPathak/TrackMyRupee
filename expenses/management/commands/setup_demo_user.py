@@ -24,17 +24,17 @@ class Command(BaseCommand):
 
         # 2. Categories & Budgets
         categories_data = [
-            {'name': '🏠 Rent', 'limit': 15000},
-            {'name': '🥦 Groceries', 'limit': 6000},
-            {'name': '🍔 Dining Out', 'limit': 3000}, # Intentionally low to breach
-            {'name': '🚗 Transport', 'limit': 4000},
-            {'name': '🎬 Entertainment', 'limit': 2000},
-            {'name': '💊 Health', 'limit': 5000},
+            {'name': 'Rent', 'limit': 15000, 'icon': 'bi-house'},
+            {'name': 'Groceries', 'limit': 6000, 'icon': 'bi-cart3'},
+            {'name': 'Dining Out', 'limit': 3000, 'icon': 'bi-egg-fried'}, 
+            {'name': 'Transport', 'limit': 4000, 'icon': 'bi-car-front'},
+            {'name': 'Entertainment', 'limit': 2000, 'icon': 'bi-film'},
+            {'name': 'Health', 'limit': 5000, 'icon': 'bi-suit-heart'},
         ]
         
         cat_objs = {}
         for c in categories_data:
-            cat = Category.objects.create(user=user, name=c['name'], limit=c['limit'])
+            cat = Category.objects.create(user=user, name=c['name'], limit=c['limit'], icon=c['icon'])
             cat_objs[c['name']] = cat
 
         self.stdout.write(self.style.SUCCESS('Created Categories'))

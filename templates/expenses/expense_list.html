@@ -240,6 +240,34 @@
     [data-bs-theme="dark"] .pay-debit-card { background-color: rgba(106, 27, 154, 0.15); color: #ba68c8; }
     [data-bs-theme="dark"] .pay-upi { background-color: rgba(230, 81, 0, 0.15); color: #ffb74d; }
     [data-bs-theme="dark"] .pay-netbanking { background-color: rgba(0, 131, 143, 0.15); color: #4dd0e1; }
+
+    /* Category Icon Alignment */
+    .category-icon-container {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        color: var(--bs-secondary-color);
+        border-radius: 12px;
+        background-color: transparent;
+    }
+    .expense-card:hover .category-icon-container {
+        background-color: var(--bs-tertiary-bg);
+        transform: scale(1.08);
+        color: var(--bs-primary);
+    }
+    
+    @media (max-width: 576px) {
+        .category-icon-container {
+            width: 38px;
+            height: 38px;
+            font-size: 1.15rem;
+        }
+    }
 </style>
 <div class="fade-in">
     <!-- Mobile Header -->
@@ -351,7 +379,7 @@
                 <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
                     {% for cat in categories %}
                         <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>
-                            {{ cat }}
+                            <i class="bi {% category_icon cat user %}"></i> {{ cat }}
                         </option>
                     {% endfor %}
                 </select>
@@ -730,7 +758,10 @@
                             <td class="text-nowrap">{{ expense.date|date:"d M Y"|translate_digits }}</td>
                             <td>{{ expense.description }}</td>
                             <td>
-                                <span class="badge bg-secondary opacity-75">{{ expense.category }}</span>
+                                <span class="badge bg-secondary opacity-75 d-inline-flex align-items-center gap-1">
+                                    <i class="bi {% category_icon expense.category user %}"></i>
+                                    {{ expense.category }}
+                                </span>
                             </td>
                             <td>{{ expense.payment_method }}</td>
                             <td class="fw-bold">
@@ -813,22 +844,45 @@
                     <div class="col-12 col-md-6 col-lg-4">
                         <div class="card expense-card h-100 shadow-sm border-0 position-relative">
                             <div class="card-body px-3 py-3">
-                                <!-- Row 1: Checkbox + Description + Amount + Menu -->
-                                <div class="d-flex align-items-center">
-                                    <div class="form-check mb-0 z-2 position-relative me-2 flex-shrink-0">
-                                        <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 16px; height: 16px; cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <!-- Left: Checkbox -->
+                                    <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
+                                        <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
                                     </div>
-                                    <div class="flex-grow-1 text-truncate fw-semibold text-body-emphasis" style="font-size: 0.93rem;">{{ expense.description }}</div>
-                                    <div class="flex-shrink-0 fw-bold text-body-emphasis ms-3 text-end" style="font-size: 1.02rem;">
-                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
-                                        {% if expense.currency != user.profile.currency %}
-                                        <div class="text-muted fw-normal" style="font-size: 0.72rem;">
-                                            ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
+
+                                    <!-- Left-Mid: Category Icon (Vertically Centered) -->
+                                    <div class="category-icon-container" title="{{ expense.category }}">
+                                        <i class="bi {% category_icon expense.category user %}"></i>
+                                    </div>
+
+                                    <!-- Middle: Info -->
+                                    <div class="flex-grow-1 min-width-0 px-1">
+                                        <div class="fw-semibold text-body-emphasis text-truncate mb-0" style="font-size: 0.95rem;">
+                                            {{ expense.description|truncatechars:22 }}
                                         </div>
-                                        {% endif %}
+                                        <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                            <span>{{ expense.date|date:"d M, Y"|translate_digits }}</span>
+                                            <span class="opacity-50 mx-1">|</span>
+                                            <span class="text-truncate" title="{{ expense.category }}">{{ expense.category|truncatechars:18 }}</span>
+                                        </div>
                                     </div>
+
+                                    <!-- Right: Amount + Payment Badge -->
+                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1 ms-1">
+                                        <div class="fw-bold text-body-emphasis" style="font-size: 1.05rem; line-height: 1.2;">
+                                            {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                            {% if expense.currency != user.profile.currency %}
+                                            <div class="text-muted fw-normal" style="font-size: 0.7rem;">
+                                                ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
+                                    </div>
+
+                                    <!-- Far Right: Menu -->
                                     <div class="dropdown flex-shrink-0 position-relative ms-1" style="z-index: 10;">
-                                        <button class="btn btn-link text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                        <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
                                             <i class="bi bi-three-dots-vertical text-muted opacity-50"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
@@ -849,16 +903,6 @@
                                             </li>
                                         </ul>
                                     </div>
-                                </div>
-                                
-                                <!-- Row 2: Date • Category (left) + Payment (right) -->
-                                <div class="d-flex justify-content-between align-items-center" style="font-size: 0.75rem; margin-top: 2px; padding-left: 26px;">
-                                    <div class="text-body-secondary text-truncate me-2">
-                                        {{ expense.date|date:"d M, Y"|translate_digits }}
-                                        <span class="opacity-50 mx-1">•</span>
-                                        {{ expense.category|truncatechars:20 }}
-                                    </div>
-                                    <span class="flex-shrink-0 payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
                                 </div>
                             </div>
                         </div>
@@ -907,22 +951,43 @@
                         {% for expense in group.list %}
                         <div class="card expense-card shadow-sm border-0 position-relative mb-3">
                             <div class="card-body px-3 py-3">
-                                <!-- Line 1: Checkbox + Description + Amount + Menu -->
-                                <div class="d-flex align-items-center">
-                                    <div class="form-check mb-0 z-2 position-relative me-2 flex-shrink-0">
-                                        <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 16px; height: 16px; cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <!-- Left: Checkbox -->
+                                    <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
+                                        <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
                                     </div>
-                                    <div class="flex-grow-1 text-truncate fw-semibold text-body-emphasis" style="font-size: 0.93rem;">{{ expense.description }}</div>
-                                    <div class="flex-shrink-0 fw-bold text-body-emphasis ms-3 text-end" style="font-size: 1.02rem;">
-                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
-                                        {% if expense.currency != user.profile.currency %}
-                                        <div class="text-body-secondary fw-normal" style="font-size: 0.72rem;">
-                                            ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
+
+                                    <!-- Left-Mid: Category Icon (Vertically Centered) -->
+                                    <div class="category-icon-container" title="{{ expense.category }}">
+                                        <i class="bi {% category_icon expense.category user %}"></i>
+                                    </div>
+
+                                    <!-- Middle: Info -->
+                                    <div class="flex-grow-1 min-width-0 px-1">
+                                        <div class="fw-semibold text-body-emphasis text-truncate mb-0" style="font-size: 0.93rem;">
+                                            {{ expense.description| truncatechars:22 }}
                                         </div>
-                                        {% endif %}
+                                        <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                            <span class="text-truncate">{{ expense.category|truncatechars:18 }}</span>
+                                        </div>
                                     </div>
+
+                                    <!-- Right: Amount + Payment Badge -->
+                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1 ms-1">
+                                        <div class="fw-bold text-body-emphasis" style="font-size: 1.02rem; line-height: 1.2;">
+                                            {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                            {% if expense.currency != user.profile.currency %}
+                                            <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">
+                                                ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
+                                    </div>
+
+                                    <!-- Far Right: Menu -->
                                     <div class="dropdown flex-shrink-0 position-relative ms-1" style="z-index: 10;">
-                                        <button class="btn btn-link text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                        <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
                                             <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
@@ -943,11 +1008,6 @@
                                             </li>
                                         </ul>
                                     </div>
-                                </div>
-                                <!-- Line 2: Category (left) • Payment badge (right) -->
-                                <div class="d-flex justify-content-between align-items-center" style="font-size: 0.75rem; margin-top: 1px;">
-                                    <span class="text-body-secondary">{{ expense.category|truncatechars:20 }}</span>
-                                    <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
                                 </div>
                             </div>
                         </div>

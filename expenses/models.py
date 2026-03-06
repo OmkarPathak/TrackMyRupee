@@ -76,6 +76,7 @@ class Expense(models.Model):
 class Category(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, verbose_name=_('Category Name'))
+    icon = models.CharField(max_length=50, default='bi-tag', verbose_name=_('Icon'))
     limit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_('Monthly Limit'))
 
     def save(self, *args, **kwargs):

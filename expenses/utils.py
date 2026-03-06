@@ -143,3 +143,31 @@ def generate_year_in_review_data(user, year):
         data['biggest_expense'] = None
 
     return data
+
+
+BOOTSTRAP_ICONS = [
+    ('bi-tag', 'Tag (General)'),
+    ('bi-egg-fried', 'Food'),
+    ('bi-cart3', 'Groceries'),
+    ('bi-car-front', 'Transport'),
+    ('bi-receipt', 'Bills'),
+    ('bi-arrow-repeat', 'Subscriptions'),
+    ('bi-piggy-bank', 'Savings'),
+    ('bi-film', 'Entertainment'),
+    ('bi-house', 'Rent/Home'),
+    ('bi-lightning', 'Electricity'),
+    ('bi-droplet', 'Water'),
+    ('bi-phone', 'Phone/Internet'),
+    ('bi-suit-heart', 'Health'),
+    ('bi-gift', 'Gifts'),
+    ('bi-briefcase', 'Work/Business'),
+    ('bi-mortarboard', 'Education'),
+    ('bi-airplane', 'Travel'),
+    ('bi-controller', 'Gaming'),
+    ('bi-music-note', 'Music'),
+    ('bi-shop', 'Shopping'),
+    ('bi-tools', 'Maintenance'),
+    ('bi-credit-card', 'Credit/Debt'),
+    ('bi-cash-stack', 'Cash'),
+    ('bi-cup-hot', 'Coffee/Cafe'),
+]

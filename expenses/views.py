@@ -23,9 +23,9 @@ import calendar
 from decimal import Decimal
 
 from .models import Expense, Category, Income, RecurringTransaction, UserProfile, SubscriptionPlan, Notification, CURRENCY_CHOICES, SavingsGoal, GoalContribution
-from .utils import get_exchange_rate, generate_year_in_review_data
+from .utils import get_exchange_rate, generate_year_in_review_data, BOOTSTRAP_ICONS
 from finance_tracker.ai_utils import predict_category_ai
-from .forms import ExpenseForm, IncomeForm, RecurringTransactionForm, ProfileUpdateForm, CustomSignupForm, ContactForm, LanguageUpdateForm, SavingsGoalForm, GoalContributionForm
+from .forms import ExpenseForm, IncomeForm, RecurringTransactionForm, ProfileUpdateForm, CustomSignupForm, ContactForm, LanguageUpdateForm, SavingsGoalForm, GoalContributionForm, CategoryForm
 from allauth.socialaccount.models import SocialAccount
 import openpyxl
 import requests
@@ -1475,23 +1475,27 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
             else:
                 limit = 5
                 upgrade_tier = 'PLUS'
+            context['reached_limit'] = total_categories >= limit
+            context['current_count'] = total_categories
+            context['limit'] = limit
             context['nudge_current'] = total_categories
             context['nudge_limit'] = limit
             context['nudge_feature_name'] = 'categories'
             context['nudge_upgrade_tier'] = upgrade_tier
             context['nudge_at_limit'] = total_categories >= limit
-            context['show_nudge'] = total_categories >= max(1, int(limit * 0.6))
         
+        context['bootstrap_icons'] = BOOTSTRAP_ICONS
         return context
 
 class CategoryCreateView(LoginRequiredMixin, generic.CreateView):
     model = Category
-    fields = ['name', 'limit']
+    form_class = CategoryForm
     template_name = 'expenses/category_form.html'
     success_url = reverse_lazy('category-list')
-
+ 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['bootstrap_icons'] = BOOTSTRAP_ICONS
         # Check Limits
         current_count = Category.objects.filter(user=self.request.user).count()
         limit = 5 # Free
@@ -1526,9 +1530,15 @@ class CategoryCreateView(LoginRequiredMixin, generic.CreateView):
 
 class CategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = Category
-    fields = ['name', 'limit']
+    form_class = CategoryForm
     template_name = 'expenses/category_form.html'
     success_url = reverse_lazy('category-list')
+ 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['bootstrap_icons'] = BOOTSTRAP_ICONS
+        context['next_url'] = self.request.POST.get('next') or self.request.GET.get('next') or ''
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()

@@ -23,9 +23,18 @@ def save_user_profile(sender, instance, **kwargs):
 @receiver(post_save, sender=User)
 def create_default_categories(sender, instance, created, **kwargs):
     if created:
-        default_categories = ['Food', 'Travel', 'Shopping', 'Bills', 'Entertainment', 'Others']
-        for category_name in default_categories:
-            Category.objects.get_or_create(user=instance, name=category_name)
+        default_categories = [
+            ('Food', 'bi-cup-hot'),
+            ('Groceries', 'bi-cart3'),
+            ('Transport', 'bi-car-front'),
+            ('Bills', 'bi-receipt'),
+            ('Subscriptions', 'bi-arrow-repeat'),
+            ('Savings', 'bi-piggy-bank'),
+            ('Entertainment', 'bi-film'),
+            ('Others', 'bi-tag'),
+        ]
+        for name, icon in default_categories:
+            Category.objects.get_or_create(user=instance, name=name, defaults={'icon': icon})
 
 @receiver(post_save, sender=User)
 def send_welcome_email(sender, instance, created, **kwargs):

@@ -274,4 +274,17 @@ class GoalContributionForm(forms.ModelForm):
         if amount is not None and amount <= 0:
             raise forms.ValidationError(_("Contribution amount must be greater than zero."))
         return amount
+ 
+ 
+class CategoryForm(forms.ModelForm):
+    from .utils import BOOTSTRAP_ICONS
+    icon = forms.ChoiceField(choices=BOOTSTRAP_ICONS, widget=forms.Select(attrs={'class': 'form-select'}))
+ 
+    class Meta:
+        model = Category
+        fields = ['name', 'icon', 'limit']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Category Name')}),
+            'limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+        }
 
