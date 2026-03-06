@@ -6,7 +6,7 @@ crispy-bootstrap5==2025.6
 cryptography==46.0.3
 dj-database-url==3.0.1
 Django==4.2.27
-django-allauth==65.13.1
+django-allauth==65.14.1
 django-crispy-forms==2.5
 et_xmlfile==2.0.0
 gunicorn==23.0.0
