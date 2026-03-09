@@ -1006,12 +1006,12 @@ def home_view(request):
     show_year_in_review = False
     year_in_review_year = None
     if has_any_data:
-        # Show last year's review in Jan/Feb
-        if now.month <= 2:
-            year_in_review_year = now.year - 1
+        # Show last year's review from Jan to Oct
         # Show this year's review in Nov/Dec
-        elif now.month >= 11:
+        if now.month >= 11:
             year_in_review_year = now.year
+        else:
+            year_in_review_year = now.year - 1
             
         if year_in_review_year:
             show_year_in_review = Expense.objects.filter(user=request.user, date__year=year_in_review_year).exists()
@@ -2460,10 +2460,11 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         year_in_review_year = None
         
         if has_any_data:
-            if now.month <= 2:
-                year_in_review_year = now.year - 1
-            elif now.month >= 11:
+            # Logic: Show previous until Oct, then current
+            if now.month >= 11:
                 year_in_review_year = now.year
+            else:
+                year_in_review_year = now.year - 1
                 
             if year_in_review_year:
                 show_year_in_review = Expense.objects.filter(user=self.request.user, date__year=year_in_review_year).exists()

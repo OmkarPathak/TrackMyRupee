@@ -109,10 +109,13 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         year_in_review_year = None
         
         if has_any_data:
-            if now.month <= 2:
-                year_in_review_year = now.year - 1
-            elif now.month >= 11:
+            # Logic: 
+            # 1. From Nov 1st to Dec 31st, show CURRENT year's review (as it's coming to an end)
+            # 2. From Jan 1st to Oct 31st, show PREVIOUS year's review
+            if now.month >= 11:
                 year_in_review_year = now.year
+            else:
+                year_in_review_year = now.year - 1
                 
             if year_in_review_year:
                 show_year_in_review = Expense.objects.filter(user=self.request.user, date__year=year_in_review_year).exists()
