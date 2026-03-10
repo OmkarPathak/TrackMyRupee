@@ -79,6 +79,12 @@
             }
         })();
     </script>
+    <style>
+        /* PWA / Mobile Notch Safe Area Fixes */
+        .is-mobile-app .toast-container {
+            padding-top: calc(1rem + env(safe-area-inset-top, 0px)) !important;
+        }
+    </style>
     <title>{% block title %}TrackMyRupee - Know Exactly Where Every Rupee Goes{% endblock %}</title>
     <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 
