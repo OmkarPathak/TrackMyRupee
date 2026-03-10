@@ -300,9 +300,16 @@
         <i class="bi bi-calendar3{% if 'calendar' in request.resolver_match.url_name %}-fill{% endif %}"></i>
         <span>{% trans "Calendar" %}</span>
     </a>
-    <button class="mobile-nav-item mobile-nav-item-more" type="button" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet" aria-controls="moreMenuSheet">
+    <button class="mobile-nav-item mobile-nav-item-more position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet" aria-controls="moreMenuSheet">
         <i class="bi bi-grid"></i>
         <span>{% trans "More" %}</span>
+        {% if has_unread_notifications %}
+            <span class="position-absolute badge rounded-circle bg-danger border border-white" 
+                  id="notification-badge-more"
+                  style="top: 6px; right: 20%; width: 18px; height: 18px; font-size: 0.65rem; line-height: 18px; padding: 0; text-align: center;">
+                {{ unread_notifications_count }}
+            </span>
+        {% endif %}
     </button>
 </div>
 
