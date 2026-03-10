@@ -41,6 +41,11 @@ def home_view(request):
     # Base QuerySet
     expenses = Expense.objects.filter(user=request.user).order_by('-date')
     
+    # Logic for EOM projection
+    now = datetime.now()
+    num_days_in_month = calendar.monthrange(now.year, now.month)[1]
+    days_passed = now.day
+    
     # Filter Logic
     selected_years = request.GET.getlist('year')
     selected_months = request.GET.getlist('month')
@@ -127,10 +132,22 @@ def home_view(request):
     category_data.sort(key=lambda x: x['total'], reverse=True)
 
     # Compute limits and usage per category for chart display
-    # Compute limits and usage per category for chart display
     category_limits = []
     # Optimization: Pre-fetch all categories for the user to avoid N+1 queries in the loop
     user_categories = {c.name: c for c in Category.objects.filter(user=request.user)}
+
+    # Check for current month view early
+    selected_years = request.GET.getlist('year')
+    selected_months = request.GET.getlist('month')
+    # Default to current month/year ONLY on initial land (no params)
+    if not request.GET and not (selected_years or selected_months):
+        eff_years = [str(now.year)]
+        eff_months = [str(now.month)]
+    else:
+        eff_years = [y for y in selected_years if y]
+        eff_months = [m for m in selected_months if m]
+
+    is_current_month_view = (len(eff_months) == 1 and str(now.month) in eff_months and str(now.year) in eff_years)
 
     for item in category_data:
         cat_name = item['category']
@@ -139,11 +156,21 @@ def home_view(request):
         limit = float(cat_obj.limit) if (cat_obj and cat_obj.limit) else None
         
         used_percent = round((item['total'] / limit * 100), 1) if limit else None
+        
+        # Calculate projection
+        projected_total = None
+        projected_percent = None
+        if limit and days_passed > 0 and is_current_month_view:
+            projected_total = (item['total'] / days_passed) * num_days_in_month
+            projected_percent = round((projected_total / limit * 100), 1)
+
         category_limits.append({
             'name': cat_name,
             'total': item['total'],
             'limit': limit,
             'used_percent': used_percent,
+            'projected_total': projected_total,
+            'projected_percent': projected_percent,
         })
     
     categories = [item['category'] for item in category_data]
@@ -446,6 +473,17 @@ def home_view(request):
                         'message': _("You're pacing %(pct_higher)s%% higher than usual. Slow down to stay on track!") % {'pct_higher': pct_higher},
                         'allow_share': False
                     })
+
+        # 0.6 Predictive Spending Speed Warning
+        for cat in category_limits:
+            if cat['limit'] and cat['projected_percent'] and cat['projected_percent'] > 100 and (cat['used_percent'] or 0) <= 100:
+                insights.append({
+                    'type': 'warning',
+                    'icon': 'speedometer',
+                    'title': _('Spending Speed Alert'),
+                    'message': _("Trends show you might overspend on %(category)s soon. Take care!") % {'category': cat['name']},
+                    'allow_share': False
+                })
         
     # --- "Where Did My Salary Go?" Data ---
     salary_breakdown = None
@@ -533,7 +571,7 @@ def home_view(request):
             'savings': savings,
             'savings_rate': round(savings_rate, 1),
             'daily_burn': round(daily_burn, 0),
-            'top_categories': top_5_categories,
+            'top_categories': category_limits[:3],
             'viral_insight': viral_insight,
             'relatable_metric': relatable_metric,
             'month_name': display_month if display_month else (calendar.month_name[now.month] if (selected_months and len(selected_months) == 1) else ""),

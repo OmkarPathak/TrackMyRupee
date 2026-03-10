@@ -334,12 +334,21 @@
                                             <!-- Desktop View: Row-based List -->
                                             <div class="d-none d-md-flex flex-column gap-2 mb-4">
                                                 {% for cat in salary_breakdown.top_categories %}
-                                                <div class="d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
                                                     <div class="d-flex align-items-center gap-2">
                                                         <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 24px; height: 24px;">
-                                                            <i class="bi {% category_icon cat.category user %} text-primary opacity-75" style="font-size: 1rem;"></i>
+                                                            <i class="bi {% category_icon cat.name user %} text-primary opacity-75" style="font-size: 1rem;"></i>
                                                         </div>
-                                                        <span class="fw-semibold small text-body opacity-75">{{ cat.category }}</span>
+                                                        <div class="d-flex flex-column">
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="fw-semibold small text-body">{{ cat.name }}</span>
+                                                            </div>
+                                                            {% if cat.projected_total and cat.projected_percent > 100 and cat.used_percent <= 100 %}
+                                                                <small class="text-muted" style="font-size: 0.65rem; margin-top: -2px;">
+                                                                    {% blocktrans with total=cat.projected_total|humanize_currency:currency_symbol|translate_digits %}Est. {{ currency_symbol }}{{ total }} total{% endblocktrans %}
+                                                                </small>
+                                                            {% endif %}
+                                                        </div>
                                                     </div>
                                                     <span class="fw-bold small">{{ currency_symbol }}{{ cat.total|humanize_currency:currency_symbol|translate_digits }}</span>
                                                 </div>
@@ -349,12 +358,22 @@
                                             <!-- Mobile View: Card-based Grid -->
                                             <div class="d-flex d-md-none flex-wrap gap-3 justify-content-center px-2 px-md-0">
                                                 {% for cat in salary_breakdown.top_categories %}
-                                                <div class="d-flex flex-column align-items-center text-center" style="width: 80px;">
-                                                    <div class="bg-primary bg-opacity-10 rounded-3 mb-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                                                        <i class="bi {% category_icon cat.category user %} text-primary opacity-75" style="font-size: 1.2rem;"></i>
+                                                <div class="d-flex flex-column align-items-center text-center" style="width: 85px;">
+                                                    <div class="bg-primary bg-opacity-10 rounded-3 mb-2 d-flex align-items-center justify-content-center position-relative" style="width: 42px; height: 42px;">
+                                                        <i class="bi {% category_icon cat.name user %} text-primary opacity-75" style="font-size: 1.2rem;"></i>
+                                                        {% if cat.projected_percent and cat.projected_percent > 100 and cat.used_percent <= 100 %}
+                                                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-warning border border-light rounded-circle" title="{% trans "Pacing to overspend" %}">
+                                                                <span class="visually-hidden">{% trans "Warning" %}</span>
+                                                            </span>
+                                                        {% endif %}
                                                     </div>
-                                                    <span class="fw-semibold text-body opacity-75 text-truncate w-100 mb-1" style="font-size: 0.7rem; line-height: 1.1;">{{ cat.category }}</span>
+                                                    <span class="fw-semibold text-body text-truncate w-100 mb-1" style="font-size: 0.7rem; line-height: 1.1;">{{ cat.name }}</span>
                                                     <span class="fw-bold small text-primary" style="font-size: 0.8rem;">{{ currency_symbol }}{{ cat.total|humanize_currency:currency_symbol|translate_digits }}</span>
+                                                    {% if cat.projected_total and cat.projected_percent > 100 and cat.used_percent <= 100 %}
+                                                        <small class="text-muted fw-bold mt-1" style="font-size: 0.6rem; transform: scale(0.9); white-space: nowrap;">
+                                                            {% blocktrans with total=cat.projected_total|humanize_currency:currency_symbol|translate_digits %}Est. {{ currency_symbol }}{{ total }}{% endblocktrans %}
+                                                        </small>
+                                                    {% endif %}
                                                 </div>
                                                 {% endfor %}
                                             </div>
