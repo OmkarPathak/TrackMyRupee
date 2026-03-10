@@ -136,18 +136,7 @@ def home_view(request):
     # Optimization: Pre-fetch all categories for the user to avoid N+1 queries in the loop
     user_categories = {c.name: c for c in Category.objects.filter(user=request.user)}
 
-    # Check for current month view early
-    selected_years = request.GET.getlist('year')
-    selected_months = request.GET.getlist('month')
-    # Default to current month/year ONLY on initial land (no params)
-    if not request.GET and not (selected_years or selected_months):
-        eff_years = [str(now.year)]
-        eff_months = [str(now.month)]
-    else:
-        eff_years = [y for y in selected_years if y]
-        eff_months = [m for m in selected_months if m]
-
-    is_current_month_view = (len(eff_months) == 1 and str(now.month) in eff_months and str(now.year) in eff_years)
+    is_current_month_view = (len(selected_months) == 1 and str(now.month) in selected_months and str(now.year) in selected_years)
 
     for item in category_data:
         cat_name = item['category']
@@ -432,11 +421,6 @@ def home_view(request):
 
     # 0. Anomaly Detection (Spending Spike)
     # Only if viewing current month (or default view)
-    is_current_month_view = False
-    now = datetime.now()
-    if not request.GET or (len(selected_months) == 1 and str(now.month) in selected_months and str(now.year) in selected_years):
-         is_current_month_view = True
-    
     if is_current_month_view and total_expenses > 0:
         # Calculate last 3 months average
         last_3_months_total = 0

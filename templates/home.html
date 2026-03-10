@@ -174,45 +174,51 @@
             <i class="bi bi-info-circle fs-5"></i>
         </button>
         
-        <!-- Desktop Filter Form (Original, Unwrapped) -->
-        <form method="get" class="d-flex gap-2 align-items-center bg-body-tertiary p-2 rounded shadow-sm flex-wrap" id="filter-form" style="position: relative; z-index: 1040;">
-            <!-- Date Range -->
-            <div class="input-group input-group-sm" style="width: auto;">
-                <span class="input-group-text bg-body-tertiary">{% trans "From" %}</span>
-                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
-            </div>
-            <div class="input-group input-group-sm" style="width: auto;">
-                <span class="input-group-text bg-body-tertiary">{% trans "To" %}</span>
-                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date|default:'' }}">
+        <!-- Desktop Filter Form (Realigned) -->
+        <form method="get" class="d-flex flex-wrap align-items-center gap-2 bg-body-tertiary p-2 rounded shadow-sm" id="filter-form" style="position: relative; z-index: 1040;">
+            <!-- Date Range Group -->
+            <div class="d-flex gap-2">
+                <div class="input-group input-group-sm" style="width: auto;">
+                    <span class="input-group-text bg-body-tertiary border-end-0">{% trans "From" %}</span>
+                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
+                </div>
+                <div class="input-group input-group-sm" style="width: auto;">
+                    <span class="input-group-text bg-body-tertiary border-end-0">{% trans "To" %}</span>
+                    <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date|default:'' }}">
+                </div>
             </div>
 
-            <div style="min-width: 120px;">
-                <select name="year" id="year-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Years...' %}">
-                    {% for y in years %}
-                        <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y }}</option>
-                    {% endfor %}
-                </select>
+            <!-- Select Groups -->
+            <div class="d-flex flex-wrap gap-2">
+                <div style="min-width: 110px;">
+                    <select name="year" id="year-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Years' %}">
+                        {% for y in years %}
+                            <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="min-width: 140px;">
+                    <select name="month" id="month-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Months' %}">
+                        {% for num, name in months_list %}
+                            <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="min-width: 150px;">
+                     <select name="category" id="category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories' %}">
+                        {% for c in all_categories %}
+                            <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            <div style="min-width: 150px;">
-                <select name="month" id="month-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Months...' %}">
-                    {% for num, name in months_list %}
-                        <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div style="min-width: 150px;">
-                 <select name="category" id="category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
-                    {% for c in all_categories %}
-                        <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <!-- Apply & Reset -->
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-sm" onclick="showLoader()">
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 ms-md-auto">
+                <button type="submit" class="btn btn-primary btn-sm d-flex align-items-center" onclick="showLoader()">
                     <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
                 </button>
-                <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm" onclick="showLoader()">
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center" onclick="showLoader()">
                     <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
                 </a>
             </div>
@@ -221,47 +227,57 @@
 </div>
 
 
-<!-- Mobile Filter Form (Moved Outside for Smooth Collapse) -->
+<!-- Mobile Filter Form (Realigned) -->
 <div class="collapse d-md-none w-100" id="dashboardFilters" style="position: relative; z-index: 1050;">
-    <form method="get" class="mb-4 d-flex gap-2 align-items-center bg-body-tertiary p-2 rounded shadow-sm flex-wrap">
-        <!-- Date Range -->
-        <div class="input-group input-group-sm" style="width: auto;">
-            <span class="input-group-text bg-body-tertiary">{% trans "From" %}</span>
-            <input type="date" name="start_date" class="form-control" value="{{ start_date|default:'' }}">
-        </div>
-        <div class="input-group input-group-sm" style="width: auto;">
-            <span class="input-group-text bg-body-tertiary">{% trans "To" %}</span>
-            <input type="date" name="end_date" class="form-control" value="{{ end_date|default:'' }}">
+    <form method="get" class="mb-4 d-flex flex-column gap-3 bg-body-tertiary p-3 rounded shadow-sm">
+        <!-- Date Range Group -->
+        <div class="row g-2">
+            <div class="col-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-body-tertiary border-end-0">{% trans "From" %}</span>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date|default:'' }}">
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-body-tertiary border-end-0">{% trans "To" %}</span>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date|default:'' }}">
+                </div>
+            </div>
         </div>
 
-        <div style="min-width: 120px;">
-            <select name="year" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Years...' %}">
-                {% for y in years %}
-                    <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y }}</option>
-                {% endfor %}
-            </select>
+        <!-- Selects Grid -->
+        <div class="row g-2">
+            <div class="col-6">
+                <select name="year" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Years' %}">
+                    {% for y in years %}
+                        <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6">
+                <select name="month" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Months' %}">
+                    {% for num, name in months_list %}
+                        <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <select name="category" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories' %}">
+                    {% for c in all_categories %}
+                        <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
-        <div style="min-width: 150px;">
-            <select name="month" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Months...' %}">
-                {% for num, name in months_list %}
-                    <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div style="min-width: 150px;">
-            <select name="category" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
-                {% for c in all_categories %}
-                    <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <!-- Apply & Reset -->
+
+        <!-- Action Buttons -->
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary btn-sm" onclick="showLoader()">
-                <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
+            <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center flex-grow-1" onclick="showLoader()">
+                <i class="bi bi-filter me-1"></i> {% trans "Apply Filters" %}
             </button>
-            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm" onclick="showLoader()">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" onclick="showLoader()">
+                <i class="bi bi-arrow-counterclockwise"></i>
             </a>
         </div>
     </form>
@@ -607,16 +623,59 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endif %}
 
+<!-- Quick Links (Mobile Only) -->
+<div class="d-md-none mb-4 fade-in">
+    <div class="d-flex justify-content-between align-items-center px-1">
+        <a href="{% url 'category-list' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
+            <div class="bg-body-secondary border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
+                <i class="bi bi-tag fs-5 text-primary"></i>
+            </div>
+            <span class="text-body-secondary" style="font-size: 0.65rem; font-weight: 600;">{% trans "Categories" %}</span>
+        </a>
+        <a href="{% url 'budget' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
+            <div class="bg-body-secondary border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
+                <i class="bi bi-speedometer2 fs-5 text-warning"></i>
+            </div>
+            <span class="text-body-secondary" style="font-size: 0.65rem; font-weight: 600;">{% trans "Budget" %}</span>
+        </a>
+        <a href="{% url 'goal-list' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
+            <div class="bg-body-secondary border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
+                <i class="bi bi-bullseye fs-5 text-success"></i>
+            </div>
+            <span class="text-body-secondary" style="font-size: 0.65rem; font-weight: 600;">{% trans "Goals" %}</span>
+        </a>
+        <a href="{% url 'settings-home' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
+            <div class="bg-body-secondary border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
+                <i class="bi bi-gear fs-5 text-secondary"></i>
+            </div>
+            <span class="text-body-secondary" style="font-size: 0.65rem; font-weight: 600;">{% trans "Settings" %}</span>
+        </a>
+        {% if user.profile.is_pro %}
+        <a href="{% url 'analytics' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
+            <div class="bg-body-secondary border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
+                <i class="bi bi-graph-up-arrow fs-5 text-info"></i>
+            </div>
+            <span class="text-body-secondary" style="font-size: 0.65rem; font-weight: 600;">{% trans "Analytics" %}</span>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .min-w-fit { min-width: fit-content; flex-shrink: 0; }
+</style>
+
 <!-- Summary Cards Row -->
 <div class="row g-4 mb-4">
     <!-- Total Income -->
     <div class="col-6 col-md-3" id="tour-income-card">
         <a href="{% url 'income-list' %}" class="text-decoration-none">
             <div class="card shadow-lg border-0 h-100 hover-lift fade-in" style="animation-delay: 0.0s">
-                <div class="position-absolute top-0 end-0 p-3 opacity-25">
-                    <i class="bi bi-box-arrow-up-right"></i>
+                <div class="position-absolute top-0 end-0 p-2 mt-1 me-2 opacity-25">
+                    <i class="bi bi-box-arrow-up-right" style="font-size: 0.75rem;"></i>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3">
                     <div class="mb-2">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
                             <style>
@@ -629,9 +688,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <path d="M12 16V8M9 11l3-3 3 3" class="anim-arrow"/>
                         </svg>
                     </div>
-                    <h5 class="card-title opacity-75 text-body mb-2">{% trans "Total Income" %}</h5>
+                    <h5 class="card-title opacity-75 text-body mb-1" style="font-size: 0.95rem;">{% trans "Total Income" %}</h5>
                     <div class="d-flex flex-wrap align-items-center mb-0 gap-2">
-                        <h2 class="display-6 fw-bold mb-0 text-body">{{ currency_symbol }}{{ total_income|humanize_currency:currency_symbol|translate_digits }}</h2>
+                        <h2 class="h4 fw-bold mb-0 text-body">{{ currency_symbol }}{{ total_income|humanize_currency:currency_symbol|translate_digits }}</h2>
                         {% if prev_month_data.income_pct is not None %}
                             <span class="badge rounded-pill {% if prev_month_data.income_pct >= 0 %}bg-success{% else %}bg-danger{% endif %}" style="font-size: 0.75rem;" title="vs last month">
                                 <i class="bi bi-arrow-{% if prev_month_data.income_pct >= 0 %}up{% else %}down{% endif %}"></i>
@@ -639,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </span>
                         {% endif %}
                     </div>
-                    <small class="text-muted">
+                    <small class="text-muted" style="font-size: 0.80rem;">
                         {% if start_date %}
                             Custom Range
                         {% elif selected_month and selected_year %}
@@ -658,10 +717,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-6 col-md-3" id="tour-expenses-card">
         <a href="{% url 'expense-list' %}" class="text-decoration-none">
             <div class="card shadow-lg border-0 h-100 hover-lift fade-in" style="animation-delay: 0.1s">
-                <div class="position-absolute top-0 end-0 p-3 opacity-25">
-                    <i class="bi bi-box-arrow-up-right"></i>
+                <div class="position-absolute top-0 end-0 p-2 opacity-25 mt-1 me-2 ">
+                    <i class="bi bi-box-arrow-up-right" style="font-size: 0.75rem;"></i>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3">
                     <div class="mb-2">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
                             <style>
@@ -676,9 +735,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <path d="M14 6h4M16 4v4" class="anim-fly" stroke-width="1.5" stroke="currentColor"/>
                         </svg>
                     </div>
-                    <h5 class="card-title opacity-75 text-body mb-2">{% trans "Total Expenses" %}</h5>
+                    <h5 class="card-title opacity-75 text-body mb-1" style="font-size: 0.95rem;">{% trans "Total Expenses" %}</h5>
                     <div class="d-flex flex-wrap align-items-center mb-0 gap-2">
-                        <h2 class="display-6 fw-bold mb-0 text-body">{{ currency_symbol }}{{ total_expenses|humanize_currency:currency_symbol|translate_digits }}</h2>
+                        <h2 class="h4 fw-bold mb-0 text-body">{{ currency_symbol }}{{ total_expenses|humanize_currency:currency_symbol|translate_digits }}</h2>
                         {% if prev_month_data.expense_pct is not None %}
                             <span class="badge rounded-pill {% if prev_month_data.expense_pct > 0 %}bg-danger{% else %}bg-success{% endif %}" style="font-size: 0.75rem;" title="vs last month">
                                 <i class="bi bi-arrow-{% if prev_month_data.expense_pct > 0 %}up{% else %}down{% endif %}"></i>
@@ -686,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </span>
                         {% endif %}
                     </div>
-                    <small class="text-muted">
+                    <small class="text-muted" style="font-size: 0.80rem;">
                         {% if start_date %}
                             Custom Range
                         {% elif selected_month and selected_year %}
@@ -705,7 +764,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Savings -->
     <div class="col-6 col-md-3">
         <div class="card shadow-lg border-0 h-100 hover-lift fade-in" style="animation-delay: 0.2s">
-            <div class="card-body">
+            <div class="card-body p-3">
                 <div class="mb-2">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
                         <style>
@@ -719,9 +778,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <path d="M12 2v6" class="anim-coin-drop" stroke-width="3" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <h5 class="card-title opacity-75 mb-2">{% trans "Balance" %}</h5>
+                <h5 class="card-title opacity-75 mb-1" style="font-size: 0.95rem;">{% trans "Balance" %}</h5>
                 <div class="d-flex flex-wrap align-items-center mb-0 gap-2">
-                    <h2 class="display-6 fw-bold mb-0">{{ currency_symbol }}{{ savings|humanize_currency:currency_symbol|translate_digits }}</h2>
+                    <h2 class="h4 fw-bold mb-0">{{ currency_symbol }}{{ savings|humanize_currency:currency_symbol|translate_digits }}</h2>
                     {% if prev_month_data.savings_pct is not None %}
                         <span class="badge rounded-pill {% if prev_month_data.savings_pct >= 0 %}bg-success{% else %}bg-danger{% endif %}" style="font-size: 0.75rem;" title="vs last month">
                             <i class="bi bi-arrow-{% if prev_month_data.savings_pct >= 0 %}up{% else %}down{% endif %}"></i>
@@ -729,7 +788,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </span>
                     {% endif %}
                 </div>
-                <small class="text-muted">
+                <small class="text-muted" style="font-size: 0.80rem;">
                     {% if start_date %}
                         {% trans "Custom Range" %}
                     {% elif selected_month and selected_year %}
@@ -747,7 +806,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Projected Savings (Replaces Top Category) -->
     <div class="col-6 col-md-3">
         <div class="card shadow-lg border-0 h-100 hover-lift fade-in" style="animation-delay: 0.3s">
-            <div class="card-body">
+            <div class="card-body p-3">
                 <div class="mb-2">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
                         <style>
@@ -762,10 +821,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <path d="M14 6h4v4" class="anim-dot"/>
                     </svg>
                 </div>
-                <h5 class="card-title opacity-75 mb-2">{% trans "Projection" %}</h5>
+                <h5 class="card-title opacity-75 mb-1" style="font-size: 0.95rem;">{% trans "Projection" %}</h5>
                 <div class="d-flex flex-wrap align-items-center mb-0 gap-2">
                     {% if projected_savings > 0 %}
-                        <h2 class="display-6 fw-bold mb-0">{{ currency_symbol }}{{ projected_savings|humanize_currency:currency_symbol|translate_digits }}</h2>
+                        <h2 class="h4 fw-bold mb-0">{{ currency_symbol }}{{ projected_savings|humanize_currency:currency_symbol|translate_digits }}</h2>
                         <span class="badge rounded-pill bg-success bg-opacity-10 text-success" style="font-size: 0.75rem;" title="Estimated by year end based on current avg">
                             {% trans "Savings" %}
                         </span>
@@ -774,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <small class="text-muted">{% trans "Keep saving to see this!" %}</small>
                     {% endif %}
                 </div>
-                <small class="text-muted">
+                <small class="text-muted" style="font-size: 0.80rem;">
                     {% trans "YTD Average" %}
                 </small>
             </div>
