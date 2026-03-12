@@ -396,6 +396,125 @@
         .is-mobile-app .hero-section {
             padding-top: calc(80px + env(safe-area-inset-top, 0px)) !important;
         }
+
+        /* Outcome-Based & Story Sections */
+        .outcome-icon-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .pulse-small {
+            animation: pulse-small 2s infinite;
+        }
+
+        @keyframes pulse-small {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        .story-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: var(--surface-color);
+        }
+
+        .story-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .progress {
+            background-color: rgba(128, 128, 128, 0.1);
+            border-radius: 10px;
+        }
+
+        .progress-bar {
+            border-radius: 10px;
+        }
+
+        .outcome-icon-box i {
+            font-size: 2.5rem;
+        }
+
+        /* Before vs After Section */
+        .comparison-card {
+            border-radius: 24px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+
+        .before-card {
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            background: rgba(220, 53, 69, 0.02);
+        }
+
+        .after-card {
+            border: 2px solid #0575e6;
+            background: var(--surface-color);
+            box-shadow: 0 20px 40px rgba(5, 117, 230, 0.1);
+        }
+
+        .comparison-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .comparison-list li {
+            padding: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* --- New Aesthetic Backgrounds --- */
+        .hero-section {
+            background: radial-gradient(circle at 10% 20%, rgba(5, 117, 230, 0.05) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(0, 242, 96, 0.05) 0%, transparent 40%);
+            border-bottom: 1px solid rgba(var(--bs-primary-rgb), 0.05);
+        }
+
+        .privacy-gradient-bg {
+            background: linear-gradient(to bottom, var(--bs-tertiary-bg), var(--bs-body-bg)) !important;
+            border-top: 1px solid rgba(var(--bs-primary-rgb), 0.05);
+            border-bottom: 1px solid rgba(var(--bs-primary-rgb), 0.05);
+        }
+
+        .grid-pattern-bg {
+            background-color: var(--bs-body-bg);
+            background-image: radial-gradient(rgba(var(--bs-primary-rgb), 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .blue-tint-bg {
+            background-color: rgba(5, 117, 230, 0.02) !important;
+            border-top: 1px solid rgba(var(--bs-primary-rgb), 0.05);
+            border-bottom: 1px solid rgba(var(--bs-primary-rgb), 0.05);
+        }
+
+        .white-section-bg {
+            background-color: var(--bs-body-bg);
+        }
+
+        .final-cta-bg {
+            background: radial-gradient(circle at 50% 100%, rgba(5, 117, 230, 0.08) 0%, var(--bs-body-bg) 100%);
+            border-top: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .final-cta-bg .text-gradient {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
 
@@ -413,25 +532,37 @@
                 <div class="col-lg-6" data-aos="fade-right" data-aos-duration="1000">
                     <div class="stats-badge">
                         <i class="bi bi-stars text-warning"></i>
-                        <span>Stop Guessing. Start Growing.</span>
+                        <span>{% trans "Join 500+ Finance Enthusiasts" %}</span>
                     </div>
                     <h1 class="display-3 fw-bold mb-4">
-                        Know Where Every Rupee Goes &<br>
-                        <span class="text-gradient">Predict Where It Will Be.</span>
+                        {% trans "Stop wondering where your" %}<br>
+                        <span class="text-gradient">{% trans "salary disappeared." %}</span>
                     </h1>
                     <p class="lead text-muted mb-5 pe-lg-5">
-                        Master your finances with clarity. Track spending, spot trends, and <strong>forecast your cashflow</strong> months in advance—all in one dashboard.
+                        {% blocktrans %}TrackMyRupee turns your transactions into a clear financial story — showing where your money went, what you're saving, and what your future finances look like.{% endblocktrans %}
                     </p>
+                    <div class="social-proof-bar mb-5 d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start align-items-center opacity-75">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-people-fill text-primary"></i>
+                            <span class="small fw-bold">{% trans "Trusted by 500+ users" %}</span>
+                        </div>
+                        <div class="vr d-none d-sm-block"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-currency-rupee text-success"></i>
+                            <span class="small fw-bold">{% trans "₹1Cr+ tracked" %}</span>
+                        </div>
+                        <div class="vr d-none d-sm-block"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-info"></i>
+                            <span class="small fw-bold">{% trans "100% Privacy-First" %}</span>
+                        </div>
+                    </div>
                     <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
-                        <a href="{% url 'signup' %}" class="cta-button text-decoration-none">Start Your Journey</a>
+                        <a href="{% url 'signup' %}" class="cta-button text-decoration-none">{% trans "See My Financial Story" %} →</a>
                         <a href="{% url 'demo_login' %}"
                             class="btn btn-theme-adaptive rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center justify-content-center">
-                            <i class="bi bi-rocket-takeoff me-2"></i> Try Demo
+                            <i class="bi bi-rocket-takeoff me-2"></i> {% trans "Try Demo" %}
                         </a>
-                        <a href="#features"
-                            class="btn btn-theme-adaptive rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center justify-content-center">Explore
-                            Features</a>
-
                     </div>
                 </div>
                 <div class="col-lg-6 mt-5 mt-lg-0" data-aos="zoom-in" data-aos-duration="1200">
@@ -444,146 +575,362 @@
         </div>
     </section>
 
-    <!-- Core Features Grid -->
-    <section id="features" class="py-5">
-        <div class="container py-5">
-            <div class="text-center mb-5" data-aos="fade-up">
-                <h2 class="display-4 fw-bold">Everything You Need to <span class="text-gradient">Master Your Money</span></h2>
-                <p class="text-muted fs-5">Powerful tools designed for financial clarity and growth.</p>
+    <!-- About the Maker (Moved up for trust) -->
+    <section class="py-5 privacy-gradient-bg">
+        <div class="container py-4">
+            <div class="row justify-content-center align-items-center">
+                <div class="col-lg-8 text-center" data-aos="fade-up">
+                    <div class="mb-4 text-center">
+                        <img src="https://github.com/OmkarPathak.png" alt="Omkar Pathak"
+                            class="rounded-circle mb-3 border border-3 border-primary border-opacity-25" width="60"
+                            height="60" loading="lazy" decoding="async">
+                    </div>
+                    <div class="d-flex flex-column align-items-center mb-4">
+                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2 mb-2 fw-bold">
+                            <i class="bi bi-shield-check me-1"></i> {% trans "Built by an Indie Developer" %}
+                        </span>
+                        <div class="small text-muted fw-medium">
+                            <i class="bi bi-graph-up me-1"></i> {% trans "Used by professionals tracking ₹10L+ yearly spending" %}
+                        </div>
+                    </div>
+                    <h2 class="display-5 fw-bold mb-4">{% trans "Built by an Indie Developer" %}</h2>
+                    <p class="lead text-muted mb-4">
+                        {% trans "Most finance apps make money by selling your data. TrackMyRupee is different." %}
+                    </p>
+                    <div class="row g-4 mb-5 text-start justify-content-center">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-body rounded-4 shadow-sm border-start border-4 border-danger h-100">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-x-circle-fill text-danger"></i>
+                                    <span class="fw-bold">{% trans "No bank connections" %}</span>
+                                </div>
+                                <p class="small text-muted mb-0">{% trans "Your login credentials stay with you." %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-body rounded-4 shadow-sm border-start border-4 border-danger h-100">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-x-circle-fill text-danger"></i>
+                                    <span class="fw-bold">{% trans "No SMS scraping" %}</span>
+                                </div>
+                                <p class="small text-muted mb-0">{% trans "We don't read your private messages." %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-body rounded-4 shadow-sm border-start border-4 border-danger h-100">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-x-circle-fill text-danger"></i>
+                                    <span class="fw-bold">{% trans "No selling your data" %}</span>
+                                </div>
+                                <p class="small text-muted mb-0">{% trans "Your financial behavior is not for sale." %}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="lead text-muted mb-0">
+                        {% blocktrans %}Just a simple dashboard to understand your money. Privacy is not a feature; it's our foundation.{% endblocktrans %}
+                    </p>
+                </div>
             </div>
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card h-100 border-0 bg-body-tertiary rounded-4 p-4 text-center">
-                        <div class="feature-icon-box mx-auto mb-3">
-                            <i class="bi bi-pie-chart-fill"></i>
+        </div>
+    </section>
+
+    <!-- Relatable Story Section (The Problem) -->
+    <section class="py-5 grid-pattern-bg position-relative overflow-hidden">
+        <div class="container py-5">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6" data-aos="fade-up">
+                    <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3 py-2 mb-3 fw-bold">
+                        <i class="bi bi-question-circle me-1"></i> {% trans "The Disappearing Salary Mystery" %}
+                    </span>
+                    <h2 class="display-4 fw-bold mb-4">{% trans "End of the month." %}<br><span class="text-danger">{% trans "Salary is gone." %}</span></h2>
+                    <p class="lead text-muted mb-4">
+                        {% blocktrans %}You didn't buy anything big. Yet somehow ₹20,000 vanished.{% endblocktrans %}
+                    </p>
+                    <div class="story-pain-points mb-5">
+                        <div class="d-flex align-items-center gap-3 mb-3 p-3 bg-body rounded-4 shadow-sm border-start border-4 border-danger border-opacity-50">
+                            <div class="rounded-circle bg-danger bg-opacity-10 p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-cup-hot text-danger"></i>
+                            </div>
+                            <span class="fw-medium">{% trans "Was it food?" %}</span>
                         </div>
-                        <h4 class="fw-bold mb-3">Deep Analytics</h4>
-                        <p class="text-muted mb-0">Granular category breakdowns and spending trend analysis at your fingertips.</p>
+                        <div class="d-flex align-items-center gap-3 mb-3 p-3 bg-body rounded-4 shadow-sm border-start border-4 border-primary border-opacity-50">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-play-circle text-primary"></i>
+                            </div>
+                            <span class="fw-medium">{% trans "Subscriptions?" %}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 p-3 bg-body rounded-4 shadow-sm border-start border-4 border-success border-opacity-50">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-phone text-success"></i>
+                            </div>
+                            <span class="fw-medium">{% trans "Random UPI payments?" %}</span>
+                        </div>
                     </div>
+                    <p class="fs-5 text-muted mb-0">
+                        {% blocktrans %}Most finance apps show charts. They don't tell the story. <strong>TrackMyRupee turns your transactions into a clear financial story.</strong>{% endblocktrans %}
+                    </p>
                 </div>
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card h-100 border-0 bg-body-tertiary rounded-4 p-4 text-center">
-                        <div class="feature-icon-box mx-auto mb-3">
-                            <i class="bi bi-calendar-heart-fill"></i>
+                <div class="col-lg-6 text-center" data-aos="zoom-in-up">
+                    <div class="disappearing-money-viz px-4">
+                        <!-- Custom CSS-based SVG Animation for "Disappearing Money" -->
+                        <svg viewBox="0 0 400 300" class="w-100 h-auto" style="max-width: 450px;">
+                            <defs>
+                                <linearGradient id="moneyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#00f260;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#0575e6;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Wallet -->
+                            <path d="M100,200 L300,200 L310,240 L90,240 Z" fill="var(--surface-color)" stroke="var(--border-color)" stroke-width="2" />
+                            <rect x="120" y="160" width="160" height="40" rx="4" fill="var(--surface-color)" stroke="var(--border-color)" stroke-width="2" />
+                            
+                            <!-- Floating Money Particles -->
+                            <g class="money-particle" style="animation: floatUp 3s infinite ease-in-out;">
+                                <rect x="150" y="140" width="30" height="15" rx="2" fill="url(#moneyGradient)" />
+                                <text x="165" y="151" font-size="8" text-anchor="middle" fill="white" font-weight="bold">₹</text>
+                            </g>
+                            <g class="money-particle" style="animation: floatUp 4s infinite ease-in-out; animation-delay: 1s;">
+                                <rect x="210" y="120" width="30" height="15" rx="2" fill="url(#moneyGradient)" />
+                                <text x="225" y="131" font-size="8" text-anchor="middle" fill="white" font-weight="bold">₹</text>
+                            </g>
+                            <g class="money-particle" style="animation: floatUp 2.5s infinite ease-in-out; animation-delay: 0.5s;">
+                                <rect x="180" y="90" width="30" height="15" rx="2" fill="url(#moneyGradient)" />
+                                <text x="195" y="101" font-size="8" text-anchor="middle" fill="white" font-weight="bold">₹</text>
+                            </g>
+                        </svg>
+                        <style>
+                            @keyframes floatUp {
+                                0% { transform: translateY(50px); opacity: 0; }
+                                20% { opacity: 1; }
+                                100% { transform: translateY(-150px); opacity: 0; }
+                            }
+                        </style>
+                        <div class="mt-4 p-4 bg-body rounded-4 shadow border text-center">
+                            <span class="h1 fw-bold text-danger mb-0">₹0.00</span>
+                            <div class="text-muted small text-uppercase">{% trans "Remaining Balance" %}</div>
                         </div>
-                        <h4 class="fw-bold mb-3">Financial Flow</h4>
-                        <p class="text-muted mb-0">Visualize your income and expenses mapped across a signature calendar view.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card h-100 border-0 bg-body-tertiary rounded-4 p-4 text-center">
-                        <div class="feature-icon-box mx-auto mb-3" style="background: linear-gradient(135deg, #ff4d6d 0%, #ff8c42 100%);">
-                            <i class="bi bi-credit-card-2-front-fill"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Bill Tracking</h4>
-                        <p class="text-muted mb-0">Consolidate subscriptions and get timely renewal alerts to never miss a due date.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="card h-100 border-0 bg-body-tertiary rounded-4 p-4 text-center">
-                        <div class="feature-icon-box mx-auto mb-3">
-                            <i class="bi bi-list-task"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Smart Management</h4>
-                        <p class="text-muted mb-0">Advanced filtering, fast search, and bulk export capabilities for total organization.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
-                    <div class="card h-100 border-0 bg-body-tertiary rounded-4 p-4 text-center">
-                        <div class="feature-icon-box mx-auto mb-3" style="background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);">
-                            <i class="bi bi-currency-exchange"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Multi-Currency Support</h4>
-                        <p class="text-muted mb-0">Manage finances across different currencies with automatic, real-time conversion rates.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="600">
-                    <div class="card h-100 border-0 bg-body-tertiary rounded-4 p-4 text-center">
-                        <div class="feature-icon-box mx-auto mb-3" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);">
-                            <i class="bi bi-translate"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Truly Local</h4>
-                        <p class="text-muted mb-0">Experience the dashboard in your preferred language from English, Hindi, or Marathi.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <!-- Financial Foresight Section (New) -->
-    <section class="py-5 overflow-hidden">
+
+    <!-- Dashboard Story Section (Magic Reveal) -->
+    <section class="py-5 blue-tint-bg overflow-hidden">
         <div class="container py-5">
-            <div class="row align-items-center">
-                <div class="col-lg-6 order-lg-2 mb-5 mb-lg-0" data-aos="fade-left">
-                    <div class="position-relative">
-                        <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-body-tertiary">
-                             <div class="card-header bg-transparent border-bottom py-3 d-flex justify-content-between align-items-center">
-                                <span class="fw-bold small text-uppercase text-muted">{% trans "Cashflow Forecast" %}</span>
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">+₹24,500 {% trans "Projected" %}</span>
-                            </div>
-                            <div class="card-body p-4 position-relative" style="height: 300px;">
-                                <!-- CSS-only Mock Chart -->
-                                <div class="d-flex align-items-end justify-content-between h-100 px-2 gap-2">
-                                    <div class="w-100 bg-primary bg-opacity-10 rounded-top" style="height: 40%;"></div>
-                                    <div class="w-100 bg-primary bg-opacity-25 rounded-top" style="height: 55%;"></div>
-                                    <div class="w-100 bg-primary bg-opacity-50 rounded-top" style="height: 45%;"></div>
-                                    <div class="w-100 bg-primary bg-opacity-75 rounded-top" style="height: 65%;"></div>
-                                    <div class="w-100 bg-primary rounded-top" style="height: 80%;"></div>
-                                    <div class="w-100 bg-success rounded-top position-relative" style="height: 90%;">
-                                        <div class="position-absolute top-0 start-50 translate-middle-x mt-2 text-white small fw-bold">✓</div>
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6 order-lg-2" data-aos="fade-left">
+                    <div class="story-card p-4 p-md-5 bg-body rounded-4 shadow-lg border border-primary border-opacity-25 position-relative">
+                        <div class="position-absolute top-0 end-0 m-4">
+                            <span class="badge bg-primary rounded-pill">{% trans "Real Example" %}</span>
+                        </div>
+                        <h3 class="fw-bold mb-4">{% trans "Your Financial Story" %}</h3>
+                        
+                        <div class="story-metrics mb-5">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="p-3 bg-body-tertiary rounded-3">
+                                        <div class="small text-muted mb-1">{% trans "Income" %}</div>
+                                        <div class="h4 fw-bold mb-0">₹2,01,000</div>
                                     </div>
                                 </div>
-                                <!-- Trend Line (SVG) -->
-                                <svg class="position-absolute top-0 start-0 w-100 h-100" style="pointer-events: none;">
-                                    <path d="M 20 200 Q 150 180 250 120 T 480 80" fill="none" stroke="#00f260" stroke-width="3" stroke-linecap="round" stroke-dasharray="1000" style="opacity: 0.8;"></path>
-                                </svg>
+                                <div class="col-6">
+                                    <div class="p-3 bg-body-tertiary rounded-3">
+                                        <div class="small text-muted mb-1">{% trans "Lifestyle" %}</div>
+                                        <div class="h4 fw-bold mb-0 text-danger">₹43,470</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-body-tertiary rounded-3">
+                                        <div class="small text-muted mb-1">{% trans "Investments" %}</div>
+                                        <div class="h4 fw-bold mb-0 text-success">₹45,000</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-primary bg-opacity-75 text-white rounded-3 shadow">
+                                        <div class="small opacity-75 mb-1">{% trans "Savings Rate" %}</div>
+                                        <div class="h4 fw-bold mb-0">78%</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                         <!-- Floating Badge -->
-                         <div class="position-absolute bottom-0 start-0 mb-4 bg-white dark-shadow p-3 rounded-4 shadow-lg border border-light d-flex align-items-center gap-3 floating-ui" style="background: var(--surface-color); transform: translateX(20px);">
-                            <div class="icon-shape-sm bg-danger bg-opacity-10 text-danger rounded-circle p-2">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                            </div>
-                            <div>
-                                <small class="d-block text-muted fw-bold" style="font-size: 0.7rem;">{% trans "ALERT" %}</small>
-                                <span class="fw-bold text-danger">{% trans "High Expenses in July" %}</span>
+
+                        <div class="p-4 bg-success bg-opacity-10 rounded-4 border border-success border-opacity-25">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi bi-lightning-charge-fill text-success fs-3"></i>
+                                <div>
+                                    <p class="mb-0 fw-bold text-success">
+                                        {% trans "If you maintain this pace, you could save ₹9,00,000 this year." %}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6 order-lg-1" data-aos="fade-right">
-                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-3 py-2 mb-3 fw-bold">
-                        <i class="bi bi-graph-up-arrow me-1"></i> {% trans "Financial Foresight" %}
+                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 mb-3 fw-bold">
+                        <i class="bi bi-magic me-1"></i> {% trans "Your Financial Superpower" %}
                     </span>
-                    <h2 class="display-4 fw-bold mb-4">Stop Reacting. <br><span class="text-gradient">Start Predicting.</span></h2>
+                    <h2 class="display-4 fw-bold mb-4">{% trans "Your Financial Story," %}<br><span class="text-gradient">{% trans "Instantly." %}</span></h2>
                     <p class="lead text-muted mb-4">
-                        Most apps tell you where your money went. <strong>TrackMyRupee tells you where it's going.</strong>
+                        {% blocktrans %}We don't just show you numbers. We tell you what those numbers mean for your future.{% endblocktrans %}
                     </p>
-                    <ul class="list-unstyled mb-5">
-                        <li class="mb-3 d-flex align-items-start">
-                            <i class="bi bi-check-circle-fill text-success fs-5 me-3 mt-1"></i>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="bi bi-check-circle-fill text-primary mt-1"></i>
                             <div>
-                                <h5 class="fw-bold mb-1">{% trans "6-Month Cashflow Forecasts" %}</h5>
-                                <p class="text-muted mb-0">See exactly how your savings will grow based on your recurring habits.</p>
+                                <h6 class="fw-bold mb-1">{% trans "Lifestyle vs Investments" %}</h6>
+                                <p class="small text-muted">{% trans "Instantly see if your spending matches your priorities." %}</p>
                             </div>
-                        </li>
-                        <li class="mb-3 d-flex align-items-start">
-                            <i class="bi bi-check-circle-fill text-success fs-5 me-3 mt-1"></i>
+                        </div>
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="bi bi-check-circle-fill text-primary mt-1"></i>
                             <div>
-                                <h5 class="fw-bold mb-1">{% trans "Spike Detection" %}</h5>
-                                <p class="text-muted mb-0">Get alerted about that annual insurance payment <i>before</i> it drains your account.</p>
+                                <h6 class="fw-bold mb-1">{% trans "Wealth Insights" %}</h6>
+                                <p class="small text-muted">{% trans "Proactive analysis of your saving habits and growth opportunities." %}</p>
                             </div>
-                        </li>
-                         <li class="d-flex align-items-start">
-                            <i class="bi bi-check-circle-fill text-success fs-5 me-3 mt-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Outcome-Based Sections -->
+    <section id="outcomes" class="py-5">
+        <div class="container py-5">
+            <div class="row g-4 text-center">
+                <!-- Outcome 1: See Where Your Salary Actually Goes -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="h-100 p-4 rounded-4 border bg-body-tertiary shadow-sm d-flex flex-column align-items-center">
+                        <div class="outcome-icon-box mb-4 bg-primary bg-opacity-10 text-primary mx-auto">
+                            <i class="bi bi-pie-chart-fill fs-3"></i>
+                        </div>
+                        <h3 class="h4 fw-bold mb-3">{% trans "See where your salary" %} <span class="text-gradient">{% trans "actually goes" %}</span></h3>
+                        <p class="text-muted mb-4 small">{% trans "Instantly visualize lifestyle spending, investments, and savings." %}</p>
+                        <div class="mt-auto w-100 p-3 bg-body rounded-3 border border-opacity-10">
+                            <div class="mb-2">
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 21%;"></div>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 45%;"></div>
+                                </div>
+                            </div>
                             <div>
-                                <h5 class="fw-bold mb-1">{% trans "Smart Trends" %}</h5>
-                                <p class="text-muted mb-0">Understand your Balance Rate and improve your financial health score.</p>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 34%;"></div>
+                                </div>
                             </div>
-                        </li>
-                    </ul>
-                    <a href="{% url 'signup' %}" class="btn btn-outline-primary rounded-pill px-4 py-3 fw-bold">
-                        {% trans "Get Pro Insights" %} <i class="bi bi-arrow-right ms-2"></i>
-                    </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outcome 2: Catch Expensive Habits Early -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="h-100 p-4 rounded-4 border bg-body-tertiary shadow-sm d-flex flex-column align-items-center">
+                        <div class="outcome-icon-box mb-4 bg-warning bg-opacity-10 text-warning mx-auto">
+                            <i class="bi bi-lightning-charge-fill fs-3"></i>
+                        </div>
+                        <h3 class="h4 fw-bold mb-3">{% trans "Catch expensive" %} <span class="text-gradient">{% trans "habits early" %}</span></h3>
+                        <p class="text-muted mb-4 small">{% trans "Spot categories where spending is quietly growing." %}</p>
+                        <div class="mt-auto w-100 p-3 bg-body rounded-3 border border-opacity-10 text-start position-relative overflow-hidden">
+                            <div class="badge bg-danger position-absolute top-0 end-0 m-2 pulse-small" style="font-size: 0.6rem;">{% trans "Alert" %}</div>
+                            <h6 class="fw-bold mb-1 small">{% trans "Food & Dining" %}</h6>
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span class="fw-bold text-danger small">+42%</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">{% trans "vs last month" %}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outcome 3: Predict Your Financial Future -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="h-100 p-4 rounded-4 border bg-body-tertiary shadow-sm d-flex flex-column align-items-center">
+                        <div class="outcome-icon-box mb-4 bg-success bg-opacity-10 text-success mx-auto">
+                            <i class="bi bi-graph-up-arrow fs-3"></i>
+                        </div>
+                        <h3 class="h4 fw-bold mb-3">{% trans "Predict your" %} <span class="text-gradient">{% trans "financial future" %}</span></h3>
+                        <p class="text-muted mb-4 small">{% trans "See how much you could save if your current habits continue." %}</p>
+                        <div class="mt-auto w-100 p-3 bg-body rounded-3 border border-opacity-10">
+                             <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="text-center">
+                                    <div class="fw-bold small">₹1.2L</div>
+                                </div>
+                                <i class="bi bi-arrow-right small text-muted"></i>
+                                <div class="text-center">
+                                    <div class="fw-bold text-success small">₹4.8L</div>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Before vs After Section -->
+    <section class="py-5 white-section-bg">
+        <div class="container py-5">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="display-4 fw-bold">{% trans "The" %} <span class="text-gradient">{% trans "Transformation" %}</span></h2>
+                <p class="lead text-muted">{% trans "How TrackMyRupee changes your financial life." %}</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-5" data-aos="fade-right">
+                    <div class="comparison-card before-card p-4 p-md-5">
+                        <h3 class="fw-bold mb-4 text-danger">{% trans "Before TrackMyRupee" %}</h3>
+                        <ul class="comparison-list">
+                            <li class="text-muted">
+                                <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                                <span>{% trans "Salary disappears every month" %}</span>
+                            </li>
+                            <li class="text-muted">
+                                <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                                <span>{% trans "Excel sheets everywhere" %}</span>
+                            </li>
+                            <li class="text-muted">
+                                <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                                <span>{% trans "No idea where money goes" %}</span>
+                            </li>
+                            <li class="text-muted">
+                                <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                                <span>{% trans "No clear savings insight" %}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-1 d-flex align-items-center justify-content-center py-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="bi bi-arrow-right-short fs-1 text-primary d-none d-lg-block"></i>
+                        <i class="bi bi-arrow-down-short fs-1 text-primary d-lg-none"></i>
+                    </div>
+                </div>
+                <div class="col-lg-5" data-aos="fade-left">
+                    <div class="comparison-card after-card p-4 p-md-5">
+                        <h3 class="fw-bold mb-4 text-primary">{% trans "After TrackMyRupee" %}</h3>
+                        <ul class="comparison-list">
+                            <li>
+                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                <span class="fw-bold">{% trans "See where your salary actually goes" %}</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                <span class="fw-bold">{% trans "Catch expensive habits early" %}</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                <span class="fw-bold">{% trans "Track investments & wealth growth" %}</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                <span class="fw-bold">{% trans "Understand your financial future" %}</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -634,9 +981,12 @@
                     <span class="stats-badge mb-3 text-primary border-primary">
                         <i class="bi bi-stars"></i> Simple, Transparent Pricing
                     </span>
-                    <h2 class="display-4 fw-bold mb-3">Choose the plan that fits <span class="text-gradient">your
-                            goals</span></h2>
-                    <p class="lead text-muted">Start for free, upgrade when you need more power. No hidden fees.</p>
+                    <h2 class="display-4 fw-bold mb-3">{% trans "Less than" %} <span class="text-gradient">{% trans "₹2/day" %}</span> {% trans "to understand your money." %}</h2>
+                    <p class="lead text-muted mb-4">{% trans "Start for free, upgrade when you need more power. Your financial clarity is worth the coffee change." %}</p>
+                    <div class="d-flex flex-column flex-md-row justify-content-center gap-4 text-muted small fw-medium">
+                        <span><i class="bi bi-check2 text-success me-1"></i>{% trans "Simple pricing. No hidden charges." %}</span>
+                        <span><i class="bi bi-check2 text-success me-1"></i>{% trans "Start free. Upgrade when you love it." %}</span>
+                    </div>
                 </div>
             </div>
 
@@ -821,41 +1171,26 @@
     </section>
 
     <!-- About the Maker -->
-    <section class="py-5 bg-body-tertiary border-top border-bottom border-secondary border-opacity-10">
-        <div class="container py-4">
-            <div class="row justify-content-center align-items-center">
-                <div class="col-lg-8 text-center" data-aos="fade-up">
-                    <div class="mb-4">
-                        <img src="https://github.com/OmkarPathak.png" alt="Omkar Pathak"
-                            class="rounded-circle mb-3 border border-3 border-primary border-opacity-25" width="80"
-                            height="80" loading="lazy" decoding="async">
-                    </div>
-                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2 mb-3 fw-bold">
-                        <i class="bi bi-code-slash me-1"></i> Built by an Indie Developer
-                    </span>
-                    <h2 class="fw-bold mb-4">No investors. No data selling. <span class="text-gradient">Just
-                            code.</span></h2>
-                    <p class="lead text-muted mb-4">
-                        Hi, I'm Omkar. I built TrackMyRupee because I was tired of finance apps that felt cluttered or
-                        treated my data like a product.
-                    </p>
-                    <p class="text-muted mb-0">
-                        This is a self-funded project driven by passion, not profit margins. When you email support,
-                        you're talking to the person who wrote the code.
-                        My promise is simple: <strong>Your financial data belongs to you.</strong>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Final CTA -->
-    <section class="final-cta text-center">
+    <section class="final-cta final-cta-bg text-center py-5">
         <div class="container" data-aos="zoom-out-up">
-            <h2 class="display-3 fw-bold mb-4">Ready to <span class="text-gradient">Change Your Life?</span></h2>
-            <p class="lead text-muted mb-5 mx-auto" style="max-width: 600px;">
-                Join the platform designed for people who take their financial future seriously. Start tracking today.
-            </p>
+            <h2 class="display-3 fw-bold mb-4">{% trans "Ready to" %} <span class="text-gradient">{% trans "Master Your Financial Story?" %}</span></h2>
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-6">
+                    <div class="p-4 bg-body rounded-4 shadow-sm border border-primary border-opacity-10 position-relative">
+                        <p class="fs-5 italic mb-3 opacity-75">
+                            "{% trans "Finally a finance tracker that doesn't read my SMS. My data stays mine." %}"
+                        </p>
+                        <div class="fw-bold text-primary">— {% trans "Early User" %}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="lead text-muted mb-5 mx-auto fs-4" style="max-width: 700px;">
+                <p class="mb-2">{% trans "Most people never truly understand their money." %}</p>
+                <p class="fw-bold text-gradient mb-4">{% trans "TrackMyRupee makes it obvious." %}</p>
+                <p class="fs-5">{% trans "Start tracking today. Understand your financial story tomorrow." %}</p>
+            </div>
             <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
                 <a href="{% url 'signup' %}" class="cta-button py-3 px-5 fs-5">Create Your Free Account</a>
                 <a href="{% url 'demo_login' %}"
