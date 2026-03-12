@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static i18n %}
-{% load currency_filters digit_filters %}
+{% load currency_filters digit_filters humanize %}
 
 {% block title %}{% trans "Analytics" %} - TrackMyRupee{% endblock %}
 
@@ -150,7 +150,7 @@
                     </div>
                 </div>
                 <h3 class="fw-bold mb-0">
-                    {{ user.profile.currency }}{{ total_income_ytd|floatformat:0|translate_digits }}
+                    {{ user.profile.currency }}{{ total_income_ytd|compact_amount:user.profile.currency|translate_digits }}
                 </h3>
             </div>
         </div>
@@ -168,7 +168,7 @@
                     </div>
                 </div>
                 <h3 class="fw-bold mb-0">
-                    {{ user.profile.currency }}{{ total_expense_ytd|floatformat:0|translate_digits }}
+                    {{ user.profile.currency }}{{ total_expense_ytd|compact_amount:user.profile.currency|translate_digits }}
                 </h3>
             </div>
         </div>

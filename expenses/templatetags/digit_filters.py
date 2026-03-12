@@ -27,9 +27,11 @@ def compact_amount(value, currency=''):
     except (ValueError, TypeError):
         return value
 
-    # Only abbreviate if the number is 100,000 or greater (more than 5 digits)
+    from django.contrib.humanize.templatetags.humanize import intcomma
+
+    # Only abbreviate if the number is >= 100,000
     if num < 100000:
-        return value
+        return intcomma(f"{num:,.0f}")
 
     # Currency-aware formatting
     if str(currency).upper() in ['INR', '₹']:
@@ -44,7 +46,7 @@ def compact_amount(value, currency=''):
             return f"{num / 1000000000:.1f}B".replace('.0B', 'B')
         elif num >= 1000000:  # 1 Million
             return f"{num / 1000000:.1f}M".replace('.0M', 'M')
-        elif num >= 1000:    # 1 Thousand (only if >= 100k as per user rule)
+        elif num >= 1000:    # 1 Thousand
             return f"{num / 1000:.0f}k"
     
-    return value
+    return intcomma(f"{num:,.0f}")

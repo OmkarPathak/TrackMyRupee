@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters %}
+{% load i18n digit_filters humanize %}
 
 {% block content %}
 <div class="fade-in">
@@ -11,7 +11,7 @@
         <div class="col-md-6 text-md-end">
             <div class="bg-body-tertiary p-3 rounded d-inline-block text-start shadow-sm border">
                 <p class="text-muted small mb-1">{% trans "Total Saved" %}</p>
-                <h4 class="mb-0 fw-bold text-success">{{ user.profile.currency }}{{ total_saved|translate_digits }}</h4>
+                <h4 class="mb-0 fw-bold text-success">{{ user.profile.currency }}{{ total_saved|compact_amount:user.profile.currency|translate_digits }}</h4>
             </div>
         </div>
     </div>
@@ -81,8 +81,8 @@
                         </div>
                         <div class="text-end">
                             <span class="text-secondary small d-block mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Saved" %}</span>
-                            <span class="fw-bold text-dark">{{ goal.currency }}{{ goal.current_amount|translate_digits }}</span> 
-                            <span class="text-muted small">/ {{ goal.target_amount|translate_digits }}</span>
+                            <span class="fw-bold text-dark">{{ goal.currency }}{{ goal.current_amount|compact_amount:goal.currency|translate_digits }}</span> 
+                            <span class="text-muted small">/ {{ goal.target_amount|compact_amount:goal.currency|translate_digits }}</span>
                         </div>
                     </div>
 

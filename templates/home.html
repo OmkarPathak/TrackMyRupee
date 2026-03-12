@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load currency_filters i18n digit_filters expense_extras %}
+{% load currency_filters i18n digit_filters expense_extras humanize %}
 
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
             <div class="card-body p-4 d-flex flex-column justify-content-center text-center">
                 <div class="mb-4">
-                    <h2 class="fw-black mb-1 p-0 text-body-emphasis">{{ currency_symbol }}{{ salary_breakdown.spending_pace.daily_spending_pace|floatformat:0|translate_digits }} <span class="fs-6 fw-normal text-muted">/ {% trans "day" %}</span></h2>
+                    <h2 class="fw-black mb-1 p-0 text-body-emphasis">{{ currency_symbol }}{{ salary_breakdown.spending_pace.daily_spending_pace|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 fw-normal text-muted">/ {% trans "day" %}</span></h2>
                     <small class="text-muted text-uppercase fw-bold opacity-75" style="letter-spacing: 0.5px; font-size: 0.7rem;">{% trans "Daily Spend" %}</small>
                 </div>
 
@@ -879,7 +879,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="rounded-circle bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-1 mt-1 pb-1 flex-shrink-0" style="width: 28px; height: 28px;">
                                 <i class="bi {{ insight.icon }}" style="font-size: 0.95rem;"></i>
                             </div>
-                            <p class="mb-0 text-body-emphasis lh-sm mt-1" style="font-size: 0.95rem; font-weight: 600;">{{ insight.text|safe }}</p>
+                            <p class="mb-0 lh-sm mt-1" style="font-size: 0.95rem;">{{ insight.text|safe }}</p>
                         </div>
                         {% endfor %}
                     </div>
@@ -958,9 +958,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <!-- Middle: Amount & Progress -->
                         <div class="d-flex flex-column align-items-end flex-grow-1">
                             <div class="d-flex justify-content-between w-100 mb-1 small">
-                                <span class="fw-bold">{{ currency_symbol }}{{ item.total|floatformat:0|translate_digits }}</span>
+                                <span class="fw-bold">{{ currency_symbol }}{{ item.total|compact_amount:currency_symbol|translate_digits }}</span>
                                 {% if item.limit %}
-                                    <span class="text-muted">{{ currency_symbol }}{{ item.limit|floatformat:0|translate_digits }}</span>
+                                    <span class="text-muted">{{ currency_symbol }}{{ item.limit|compact_amount:currency_symbol|translate_digits }}</span>
                                 {% endif %}
                             </div>
                             
@@ -1056,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         
                         <div class="text-end flex-shrink-0 me-2">
-                            <span class="d-block fw-bold fs-6">{{ currency_symbol }}{{ expense.base_amount|translate_digits }}</span>
+                            <span class="d-block fw-bold fs-6">{{ currency_symbol }}{{ expense.base_amount|compact_amount:currency_symbol|translate_digits }}</span>
                             {% if expense.currency != currency_symbol %}
                             <small class="text-muted d-block" style="font-size: 0.7rem;">
                                 ({{ expense.currency }}{{ expense.amount|translate_digits }})
@@ -1109,15 +1109,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="row g-2 text-center mb-4">
                         <div class="col-4 border-end">
                             <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Income" %}</p>
-                            <span class="text-success fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.INCOME.total|floatformat:0|translate_digits }}</span>
+                            <span class="text-success fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.INCOME.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
                         <div class="col-4 border-end">
                             <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Expenses" %}</p>
-                            <span class="text-danger fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.EXPENSE.total|floatformat:0|translate_digits }}</span>
+                            <span class="text-danger fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.EXPENSE.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
                         <div class="col-4">
                             <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Invest" %}</p>
-                            <span class="text-info fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.INVESTMENT.total|floatformat:0|translate_digits }}</span>
+                            <span class="text-info fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.INVESTMENT.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
                     </div>
                     
@@ -1128,7 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="text-end">
                             <h4 class="fw-bold mb-0 {% if recurring_net_balance > 0 %}text-success{% elif recurring_net_balance == 0 %}text-muted{% else %}text-danger{% endif %}" style="letter-spacing: -0.5px;">
-                                {% if recurring_net_balance > 0 %}+{% endif %}{{ currency_symbol }}{{ recurring_net_balance|floatformat:0|translate_digits }}
+                                {% if recurring_net_balance > 0 %}+{% endif %}{{ currency_symbol }}{{ recurring_net_balance|compact_amount:currency_symbol|translate_digits }}
                             </h4>
                         </div>
                     </div>
@@ -1163,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                     <div class="text-end">
                                         <span class="fw-bold" style="font-size: 1rem; color: {% if item.type == 'INCOME' %}#10b981{% elif item.type == 'INVESTMENT' %}#0ea5e9{% else %}#ef4444{% endif %};">
-                                            {% if item.type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ item.amount|floatformat:0|translate_digits }}
+                                            {% if item.type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ item.amount|compact_amount:currency_symbol|translate_digits }}
                                         </span>
                                     </div>
                                 </a>
@@ -1177,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="mt-auto p-3 border-top bg-transparent bg-opacity-25 rounded-bottom-4">
                         <div class="d-flex bg-transparent align-items-center text-info" style="font-size: 0.85rem; font-weight: 600;">
                             <span class="me-2">📈</span>
-                            {{ currency_symbol }}{{ recurring_groups.INVESTMENT.total|floatformat:0|translate_digits }} {% trans "committed to future monthly" %}
+                            {{ currency_symbol }}{{ recurring_groups.INVESTMENT.total|compact_amount:currency_symbol|translate_digits }} {% trans "committed to future monthly" %}
                         </div>
                     </div>
                     {% endif %}

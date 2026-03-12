@@ -13,7 +13,6 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 from django.core.management import call_command
 from django.utils.translation import gettext as _
-
 from ..models import Expense, Category, Income, UserProfile, SubscriptionPlan, CURRENCY_CHOICES
 from ..forms import CustomSignupForm, LanguageUpdateForm, ProfileUpdateForm
 from .mixins import RecurringTransactionMixin

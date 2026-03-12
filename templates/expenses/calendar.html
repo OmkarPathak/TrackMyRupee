@@ -38,11 +38,11 @@
     </div>
     
     <!-- Legend & Net Savings -->
-    <div class="px-3 py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 border-bottom">
+    <div class="py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 border-bottom">
         <div class="h5 mb-0">
             {% blocktrans with month=month_name %}{{ month }} net savings:{% endblocktrans %} 
             <span class="{% if month_net_savings >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
-                {{ currency_symbol }}{{ month_net_savings|floatformat:2|translate_digits }}
+                {{ currency_symbol }}{{ month_net_savings|compact_amount:currency_symbol|translate_digits }}
             </span>
         </div>
         <div class="d-flex gap-3 small">
@@ -82,7 +82,7 @@
                          data-bs-html="true"
                          data-bs-custom-class="custom-popover"
                          data-bs-title="<b>{{ day_data.day|translate_digits }} {{ month_name }}</b>"
-                         data-bs-content="{% if day_data.income > 0 %}<div class='text-success mb-1'>{% trans 'Income' %}: <b>{{ currency_symbol }}{{ day_data.income|floatformat:0|translate_digits }}</b></div>{% endif %}{% if day_data.expense > 0 %}<div class='text-danger mb-1'>{% trans 'Expense' %}: <b>{{ currency_symbol }}{{ day_data.expense|floatformat:0|translate_digits }}</b></div>{% endif %}{% if day_data.income == 0 and day_data.expense == 0 %}<div class='text-muted mb-1'>{% trans 'No activity' %}</div>{% endif %}<a href='{% url 'expense-list' %}?start_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}&end_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}' class='btn btn-sm btn-outline-secondary w-100 mt-2'>{% trans 'View Details' %}</a>">
+                         data-bs-content="{% if day_data.income > 0 %}<div class='text-success mb-1'>{% trans 'Income' %}: <b>{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.income_count|translate_digits }})</small></div>{% endif %}{% if day_data.expense > 0 %}<div class='text-danger mb-1'>{% trans 'Expense' %}: <b>{{ currency_symbol }}{{ day_data.expense|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.expense_count|translate_digits }})</small></div>{% endif %}{% if day_data.total_count > 0 %}<div class='border-top mt-2 pt-1 border-secondary border-opacity-10 small'><b>{{ day_data.total_count|translate_digits }}</b> {% trans 'total transactions' %}</div>{% endif %}{% if day_data.income == 0 and day_data.expense == 0 %}<div class='text-muted mb-1'>{% trans 'No activity' %}</div>{% endif %}<a href='{% url 'expense-list' %}?start_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}&end_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}' class='btn btn-sm btn-outline-secondary w-100 mt-2'>{% trans 'View Details' %}</a>">
                         
                         <!-- Date Number & Link -->
                         <div class="d-flex justify-content-between w-100 px-1 mb-1 mb-md-2">
@@ -95,28 +95,37 @@
                             </a>
                         </div>
 
-                        <!-- Desktop Financials (Text Badges) -->
-                        <div class="d-none d-md-flex flex-column gap-1">
-                            {% if day_data.income > 0 %}
-                            <div class="badge text-bg-success text-start w-100 fw-normal text-truncate">
-                                + {{ currency_symbol }}{{ day_data.income|floatformat:0|translate_digits }}
+                        <!-- Desktop Financials (Informative Layout) -->
+                        <div class="d-none d-md-flex flex-column gap-1 mt-auto w-100">
+                            {% if day_data.expense > 0 %}
+                            <div class="d-flex justify-content-between align-items-center mb-0 px-1">
+                                <span class="text-danger fw-bold" style="font-size: 0.85rem;">{{ currency_symbol }}{{ day_data.expense|compact_amount:currency_symbol|translate_digits }}</span>
+                                <span class="text-muted small-xs opacity-75">{{ day_data.expense_count|translate_digits }} trans.</span>
                             </div>
                             {% endif %}
                             
-                            {% if day_data.expense > 0 %}
-                            <div class="badge text-bg-danger text-start w-100 fw-normal text-truncate">
-                                - {{ currency_symbol }}{{ day_data.expense|floatformat:0|translate_digits }}
+                            {% if day_data.income > 0 %}
+                            <div class="d-flex justify-content-between align-items-center px-1">
+                                <span class="text-success fw-bold" style="font-size: 0.85rem;">{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</span>
+                                <span class="text-muted small-xs opacity-75">{{ day_data.income_count|translate_digits }} trans.</span>
                             </div>
                             {% endif %}
                         </div>
 
-                        <!-- Mobile Financials (Dots) -->
-                        <div class="d-flex d-md-none gap-1 mt-1">
-                            {% if day_data.income > 0 %}
-                                <div class="rounded-circle bg-success" style="width: 6px; height: 6px;"></div>
-                            {% endif %}
-                            {% if day_data.expense > 0 %}
-                                <div class="rounded-circle bg-danger" style="width: 6px; height: 6px;"></div>
+                        <!-- Mobile Financials (Graceful Badge) -->
+                        <div class="d-flex d-md-none flex-column align-items-center mt-auto w-100">
+                            {% if day_data.total_count > 0 %}
+                                <div class="badge rounded-pill bg-light border text-dark fw-bold px-2 py-1 mb-1" style="font-size: 0.65rem;">
+                                    {{ day_data.total_count|translate_digits }}
+                                </div>
+                                <div class="d-flex gap-1">
+                                    {% if day_data.income > 0 %}
+                                        <div class="rounded-circle bg-success" style="width: 5px; height: 5px;"></div>
+                                    {% endif %}
+                                    {% if day_data.expense > 0 %}
+                                        <div class="rounded-circle bg-danger" style="width: 5px; height: 5px;"></div>
+                                    {% endif %}
+                                </div>
                             {% endif %}
                         </div>
 
@@ -145,6 +154,18 @@
     /* Ensure the grid borders align nicely */
     .d-grid > div:last-child {
         border-right: none !important;
+    }
+
+    .small-xs {
+        font-size: 0.7rem;
+    }
+
+    .day-cell {
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .day-cell:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.03);
     }
     
     /* Mobile optimization */

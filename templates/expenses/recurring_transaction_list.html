@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters %}
+{% load i18n digit_filters humanize %}
 
 {% block content %}
 <style>
@@ -97,13 +97,13 @@
                     <div class="col-6 col-md-6 border-end border-secondary border-opacity-10">
                         <div class="d-flex flex-column">
                             <span class="text-uppercase text-muted summary-text-muted fw-bold small mb-1">{% trans "Total Monthly Cost" %}</span>
-                            <span class="h2 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_monthly_cost|floatformat:0|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "mo" %}</span></span>
+                            <span class="h2 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_monthly_cost|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "mo" %}</span></span>
                         </div>
                     </div>
                     <div class="col-6 col-md-6 ps-3 ps-md-4">
                         <div class="d-flex flex-column">
                             <span class="text-uppercase text-muted summary-text-muted fw-bold small mb-1">{% trans "Yearly Projection" %}</span>
-                            <span class="h3 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_yearly_cost|floatformat:0|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "yr" %}</span></span>
+                            <span class="h3 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_yearly_cost|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "yr" %}</span></span>
                         </div>
                         {% if renewals_count > 0 %}
                         <div class="mt-2 d-none d-md-block">
@@ -188,10 +188,10 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <!-- Larger Amount -->
                                     <h4 class="fw-bold mb-0">
-                                        {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
+                                        {{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                         {% if sub.currency != user.profile.currency %}
                                         <div class="text-muted small fw-normal text-end" style="font-size: 0.75rem;">
-                                            ({{ sub.currency }}{{ sub.amount|floatformat:0|translate_digits }})
+                                            ({{ sub.currency }}{{ sub.amount|compact_amount:sub.currency|translate_digits }})
                                         </div>
                                         {% endif %}
                                     </h4>

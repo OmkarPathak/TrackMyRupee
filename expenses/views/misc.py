@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView, View
 from django.utils.translation import gettext as _
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from django.contrib import messages
 from django.core.cache import cache
 from datetime import date, datetime
@@ -62,14 +62,20 @@ class CalendarView(LoginRequiredMixin, TemplateView):
             income_filters &= (Q(source__icontains=search_query) | Q(description__icontains=search_query))
 
         # Get Expense and Income Data for the month
-        expenses = Expense.objects.filter(expense_filters).values('date').annotate(total=Sum('base_amount'))
+        expenses = Expense.objects.filter(expense_filters).values('date').annotate(
+            total=Sum('base_amount'),
+            count=Count('id')
+        )
         
-        incomes = Income.objects.filter(income_filters).values('date').annotate(total=Sum('base_amount'))
+        incomes = Income.objects.filter(income_filters).values('date').annotate(
+            total=Sum('base_amount'),
+            count=Count('id')
+        )
         
         # Map data for easy lookup by day
         # Keys are integers (day of month)
-        expense_map = {e['date'].day: e['total'] for e in expenses}
-        income_map = {i['date'].day: i['total'] for i in incomes}
+        expense_map = {e['date'].day: {'total': e['total'], 'count': e['count']} for e in expenses}
+        income_map = {i['date'].day: {'total': i['total'], 'count': i['count']} for i in incomes}
         
         # Build Calendar Grid
         cal = calendar.Calendar(firstweekday=6) # Start on Sunday
@@ -83,10 +89,15 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                 if day == 0:
                     week_data.append(None) # Empty slot
                 else:
+                    expense_info = expense_map.get(day, {'total': 0, 'count': 0})
+                    income_info = income_map.get(day, {'total': 0, 'count': 0})
                     week_data.append({
                         'day': day,
-                        'income': income_map.get(day, 0),
-                        'expense': expense_map.get(day, 0),
+                        'income': income_info['total'],
+                        'income_count': income_info['count'],
+                        'expense': expense_info['total'],
+                        'expense_count': expense_info['count'],
+                        'total_count': income_info['count'] + expense_info['count']
                     })
             calendar_data.append(week_data)
         

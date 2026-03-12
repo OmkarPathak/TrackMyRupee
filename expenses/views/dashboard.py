@@ -18,6 +18,7 @@ from django.contrib import messages
 from ..models import Expense, Income, Category, UserProfile, RecurringTransaction
 from ..utils import get_exchange_rate, generate_year_in_review_data
 from .mixins import process_user_recurring_transactions
+from ..templatetags.digit_filters import compact_amount
 
 @login_required
 def home_view(request):
@@ -37,6 +38,9 @@ def home_view(request):
 
     # Process recurring transactions
     process_user_recurring_transactions(request.user)
+    
+    # Global currency symbol for insights/metrics
+    currency_symbol = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
 
     # Base QuerySet - Split into Operating Expenses and Wealth Growth
     investment_categories = Category.objects.filter(user=request.user, is_investment=True).values_list('name', flat=True)
@@ -545,6 +549,22 @@ def home_view(request):
             top_cat = top_5_categories[0]['category']
             top_amount = top_5_categories[0]['total']
             
+            # Calculate Percentage of total lifestyle expenses
+            top_cat_pct = round((float(top_amount) / float(total_expenses) * 100)) if total_expenses > 0 else 0
+            potential_savings = float(top_amount) * 0.20
+            
+            # POWER INSIGHT: Granular and Actionable
+            power_insight = format_html(
+                _("You spent <b>{pct}%</b> of your expenses on <b>{cat}</b> this month. If you reduce it by 20%, you could save <b>{sym}{savings}</b>."),
+                pct=top_cat_pct,
+                cat=_(top_cat),
+                sym=currency_symbol,
+                savings=compact_amount(potential_savings, currency_symbol)
+            )
+            
+            # Update viral insight with this more powerful one
+            # viral_insight = power_insight  # Moving this to smart_bullet_insights
+            
             # Calculate 3-month average for this specific top category
             cat_3_month_total = 0
             cat_months_counted = 0
@@ -656,13 +676,12 @@ def home_view(request):
     
     # Check savings rate for "Softener" context
     savings_rate_alert = (savings / total_income * 100) if total_income > 0 else 0
-    currency_symbol = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
     
     if over_budget_cats:
         if len(over_budget_cats) == 1:
             cat = over_budget_cats[0]
             exceeded = float(cat['total']) - float(cat['limit'])
-            exceeded_str = "{:,.0f}".format(exceeded)
+            exceeded_str = compact_amount(exceeded, currency_symbol)
             
             if savings_rate_alert >= 20:
                 msg = format_html(_("Even strong months have leaks. {cat_name} exceeded by {currency}{exceeded}."), cat_name=format_html("<b>{}</b>", cat['name']), currency=currency_symbol, exceeded=exceeded_str)
@@ -672,7 +691,7 @@ def home_view(request):
             cat_details = []
             for cat in over_budget_cats:
                 exceeded = float(cat['total']) - float(cat['limit'])
-                exceeded_str = "{:,.0f}".format(exceeded)
+                exceeded_str = compact_amount(exceeded, currency_symbol)
                 cat_details.append(format_html("<b>{}</b>: {}{}", cat['name'], currency_symbol, exceeded_str))
             
             cats_str = mark_safe(", ".join(cat_details))
@@ -890,7 +909,7 @@ def home_view(request):
             'type': 'warning',
             'icon': 'calendar-event-fill',
             'title': _('Upcoming Payment'),
-            'message': format_html(_("Your recurring payment for <b>{}</b> is due {}. ({})"), payment.description, when, f"{payment.amount}"),
+            'message': format_html(_("Your recurring payment for <b>{}</b> is due {}. ({})"), payment.description, when, f"{currency_symbol}{compact_amount(payment.amount, currency_symbol)}"),
             'allow_share': False
         })
         
@@ -908,10 +927,10 @@ def home_view(request):
     future_growth_pct = round((float(total_wealth_contribution) / float(total_income) * 100)) if total_income > 0 else 0
     lifestyle_pct = round((float(total_expenses) / float(total_income) * 100)) if total_income > 0 else 0
     
-    income_bold = mark_safe(f"<b>{currency_symbol}{total_income:,.0f}</b>")
-    lifestyle_bold = mark_safe(f"<b>{currency_symbol}{total_expenses:,.0f}</b>")
-    invest_bold = mark_safe(f"<b>{currency_symbol}{total_investments:,.0f}</b>")
-    future_total_bold = mark_safe(f"<b>{currency_symbol}{total_wealth_contribution:,.0f}</b>")
+    income_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_income, currency_symbol)}</b>")
+    lifestyle_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_expenses, currency_symbol)}</b>")
+    invest_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_investments, currency_symbol)}</b>")
+    future_total_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_wealth_contribution, currency_symbol)}</b>")
     
     # Narrative Structure
     monthly_story = format_html(
@@ -932,7 +951,7 @@ def home_view(request):
         )
     
     if projected_savings > 0:
-        proj_bold = mark_safe(f"<b>{currency_symbol}{int(projected_savings):,.0f}</b>")
+        proj_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(projected_savings, currency_symbol)}</b>")
         monthly_story += format_html(
             _(" At this pace, you could save {proj} by year's end."),
             proj=proj_bold
@@ -956,6 +975,26 @@ def home_view(request):
 
     # --- Smart Insights Bullets (New Card) ---
     smart_bullet_insights = []
+    
+    # 0. Power AI Insight (Top Priority)
+    if total_income > 0 and total_expenses > 0 and top_5_categories:
+        top_cat = top_5_categories[0]['category']
+        top_amount = top_5_categories[0]['total']
+        top_cat_pct = round((float(top_amount) / float(total_expenses) * 100)) if total_expenses > 0 else 0
+        potential_savings = float(top_amount) * 0.20
+        
+        power_insight_text = format_html(
+            _("You spent <b>{pct}%</b> of your expenses on <b>{cat}</b>. Reduce by 20% to save <span class='text-success fw-bold'>{sym}{savings}</span>."),
+            pct=top_cat_pct,
+            cat=_(top_cat),
+            sym=currency_symbol,
+                savings=compact_amount(potential_savings, currency_symbol)
+        )
+        smart_bullet_insights.append({
+            'text': power_insight_text,
+            'icon': 'bi-robot',
+            'theme': 'primary'
+        })
     
     # 1. Highest Spending Category
     if top_category:

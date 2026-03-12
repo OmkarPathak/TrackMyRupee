@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters expense_extras %}
+{% load i18n digit_filters expense_extras humanize %}
 
 {% block content %}
 <style>
@@ -526,7 +526,7 @@
                     </div>
                     <div>
                         <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Total Amount" %}</small>
-                        <span class="fw-bold fs-6 mb-0 text-success">₹{{ filtered_amount|floatformat:2|translate_digits }}</span>
+                        <span class="fw-bold fs-6 mb-0 text-success">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span>
                     </div>
                 </div>
             </div>
@@ -957,7 +957,7 @@
 
                                     <!-- Right: Amount + Payment Badge -->
                                     <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1 ms-1">
-                                        <div class="fw-bold text-body-emphasis" style="font-size: 1.05rem; line-height: 1.2;">
+                                        <div class="fw-bold text-body-emphasis" style="font-size: 1.1rem; line-height: 1.2; letter-spacing: 0.02rem;">
                                             {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
                                             {% if expense.currency != user.profile.currency %}
                                             <div class="text-muted fw-normal" style="font-size: 0.7rem;">
