@@ -252,9 +252,9 @@
                     </li>
                     <li class="nav-item mt-3 mt-lg-0">
                         {% if is_landing %}
-                            <a href="{% url 'signup' %}" class="cta-button btn-sm py-2 px-4 shadow-sm text-decoration-none d-block w-100 d-lg-inline-block w-lg-auto text-center" style="font-size: 0.9rem;">{% trans "Join Now" %}</a>
+                            <a href="{% url 'account_signup' %}" class="cta-button btn-sm py-2 px-4 shadow-sm text-decoration-none d-block w-100 d-lg-inline-block w-lg-auto text-center" style="font-size: 0.9rem;">{% trans "Join Now" %}</a>
                         {% else %}
-                            <a href="{% url 'signup' %}" class="btn btn-primary d-block w-100 d-lg-inline-block w-lg-auto"><i class="bi bi-person-plus me-1"></i> Sign Up</a>
+                            <a href="{% url 'account_signup' %}" class="btn btn-primary d-block w-100 d-lg-inline-block w-lg-auto"><i class="bi bi-person-plus me-1"></i> Sign Up</a>
                         {% endif %}
                     </li>
                     <!-- Theme Toggle for Guests -->

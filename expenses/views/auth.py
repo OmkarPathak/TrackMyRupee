@@ -18,15 +18,6 @@ from ..models import Expense, Category, Income, UserProfile, SubscriptionPlan, C
 from ..forms import CustomSignupForm, LanguageUpdateForm, ProfileUpdateForm
 from .mixins import RecurringTransactionMixin
 
-# Custom signup view to log user in immediately
-class SignUpView(generic.CreateView):
-    form_class = None # Imported from forms in __init__.py or set here if needed
-    success_url = reverse_lazy('onboarding')
-    template_name = 'registration/signup.html'
-    
-    def get_form_class(self):
-        from ..forms import CustomSignupForm
-        return CustomSignupForm
 
 class OnboardingView(LoginRequiredMixin, TemplateView):
     template_name = 'onboarding.html'
@@ -186,7 +177,7 @@ def demo_signup(request):
     Logs out the demo user and redirects to the signup page.
     """
     logout(request)
-    return redirect('signup')
+    return redirect('account_signup')
 
 class PricingView(TemplateView):
     template_name = 'expenses/pricing.html'
