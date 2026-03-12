@@ -1,33 +1,70 @@
-{% extends "account/base.html" %}
-{% load i18n %}
-{% load socialaccount %}
+{% extends "account/auth_base.html" %}
+{% load i18n socialaccount static %}
 
-{% block account_content %}
-<div class="text-center mb-4">
-    <h2 class="fw-bold mb-2">{% trans "Create Account" %}</h2>
-    <p class="text-muted small">Start tracking your expenses today</p>
+{% block title %}{% trans "Create Account" %} - TrackMyRupee{% endblock %}
+
+{% block marketing_headline %}{% trans "Join 500+ people master their money." %}{% endblock %}
+
+{% block auth_content %}
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">{% trans "Create Account" %}</h2>
+    <p class="text-muted small">
+        {% trans "Already have an account?" %} <a href="{{ login_url }}" class="text-decoration-none fw-medium">{% trans "Log In." %}</a>
+    </p>
 </div>
 
-<form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+<form class="signup needs-validation" id="signup_form" method="post" action="{% url 'account_signup' %}" novalidate>
     {% csrf_token %}
     
     {% if form.non_field_errors %}
-    <div class="alert alert-danger mb-4">
+    <div class="alert alert-danger rounded-4 mb-4">
         {% for error in form.non_field_errors %}
-        <div class="small">{{ error }}</div>
+        <div class="d-flex align-items-center gap-2 small">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span>{{ error }}</span>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
 
     {% for field in form %}
     <div class="mb-3">
-        <label class="form-label text-muted small fw-bold">{{ field.label }}</label>
-        {{ field }}
+        <label for="{{ field.id_for_label }}" class="form-label small fw-bold text-muted text-uppercase tracking-wider">
+            {{ field.label }}
+        </label>
+        <div class="position-relative">
+            <span class="position-absolute grow-0 top-50 start-0 translate-middle-y ps-3 text-muted opacity-50">
+                {% if field.name == 'username' or field.name == 'login' or field.name == 'email' %}
+                <i class="bi bi-person"></i>
+                {% elif 'password' in field.name %}
+                <i class="bi bi-lock"></i>
+                {% else %}
+                <i class="bi bi-input-cursor"></i>
+                {% endif %}
+            </span>
+            <input type="{{ field.field.widget.input_type }}" 
+                   name="{{ field.name }}"
+                   id="{{ field.id_for_label }}"
+                   placeholder="{{ field.label }}"
+                   class="form-control form-control-xl ps-5 {% if field.errors %}is-invalid{% endif %}"
+                   {% if field.value %}value="{{ field.value }}"{% endif %}
+                   {% if field.field.required %}required{% endif %}>
+            
+            {% if 'password' in field.name %}
+            <button type="button" class="btn position-absolute top-50 end-0 translate-middle-y pe-3 text-muted small border-0" onclick="togglePassword(this)">
+                <i class="bi bi-eye"></i> {% trans "Show" %}
+            </button>
+            {% endif %}
+        </div>
         {% if field.help_text %}
-        <div class="form-text small opacity-75">{{ field.help_text|safe }}</div>
+        <div class="form-text mt-1 small opacity-75">
+            {{ field.help_text|safe }}
+        </div>
         {% endif %}
         {% if field.errors %}
-        <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+        <div class="invalid-feedback d-block mt-1">
+            {{ field.errors.0 }}
+        </div>
         {% endif %}
     </div>
     {% endfor %}
@@ -36,48 +73,36 @@
     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
     {% endif %}
 
-    <div class="d-grid mt-4">
-        <button class="btn btn-primary btn-lg py-3 fw-bold" type="submit">{% trans "Sign Up" %}</button>
+    <button class="btn btn-primary btn-xl w-100 mb-3 shadow-sm" type="submit">
+        {% trans "Sign Up" %}
+    </button>
+
+    <div class="position-relative my-4">
+        <hr class="text-muted opacity-25">
+        <span class="position-absolute top-50 start-50 translate-middle px-3 text-muted small" style="background: var(--bs-body-bg);">{% trans "or" %}</span>
     </div>
 
-    <div class="position-relative my-4 text-center">
-        <hr class="text-muted">
-        <span class="position-absolute top-50 start-50 translate-middle divider-text text-muted small">OR</span>
-    </div>
-
-    <a href="{% provider_login_url 'google' %}" class="btn btn-outline-secondary w-100 btn-lg py-2 d-flex align-items-center justify-content-center mb-4">
-        <i class="bi bi-google me-2 text-primary"></i> Join with Google
+    <a href="{% provider_login_url 'google' %}" class="social-btn w-100 border text-decoration-none">
+        <i class="bi bi-google me-2 text-primary"></i>
+        {% trans "Join with Google" %}
     </a>
-
-    <div class="text-center">
-        <p class="text-muted small mb-0">
-            {% blocktrans %}Already have an account? <a href="{{ login_url }}" class="text-decoration-none fw-bold">Sign In</a>{% endblocktrans %}
-        </p>
-    </div>
 </form>
 
-<style>
-    /* Ensure Allauth rendered inputs look premium */
-    input[type="text"],
-    input[type="email"],
-    input[type="password"] {
-        display: block;
-        width: 100%;
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-        font-weight: 400;
-        line-height: 1.5;
-        color: var(--bs-body-color);
-        background-color: var(--bs-body-bg);
-        background-clip: padding-box;
-        border: 1px solid var(--bs-border-color);
-        border-radius: 0.5rem;
-        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+<script>
+    function togglePassword(btn) {
+        const input = btn.parentElement.querySelector('input');
+        const icon = btn.querySelector('i');
+        const text = btn.lastChild;
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+            text.textContent = ' {% trans "Hide" %}';
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+            text.textContent = ' {% trans "Show" %}';
+        }
     }
-    input:focus {
-        border-color: var(--color-primary);
-        outline: 0;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
-    }
-</style>
+</script>
 {% endblock %}

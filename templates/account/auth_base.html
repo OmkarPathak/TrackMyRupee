@@ -1,0 +1,201 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}TrackMyRupee{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=1.9">
+    
+    <script>
+        // Immediate Theme Detection
+        (function() {
+            const getStoredTheme = () => localStorage.getItem('theme');
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme();
+                if (storedTheme) return storedTheme;
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            };
+            const theme = getPreferredTheme();
+            document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme);
+        })();
+    </script>
+
+    <style>
+        body {
+            background-color: #023047; /* Set dark background as the ultimate fallback */
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        .auth-container {
+            min-height: 100vh;
+        }
+
+        .auth-marketing-side {
+            background-color: #023047;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 3rem; /* Reduced from 4rem */
+            position: relative;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .auth-marketing-side::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -20%;
+            width: 60%;
+            height: 60%;
+            background: rgba(var(--bs-primary-rgb), 0.1);
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+
+        .auth-form-side {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 3rem; /* Adjusted vertical padding */
+            background-color: var(--bs-body-bg);
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .auth-logo {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+        }
+
+        .marketing-headline {
+            font-family: 'Clash Display', sans-serif;
+            font-size: 3rem; /* Reduced from 3.5rem */
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+
+        .marketing-subheadline {
+            font-size: 1.25rem;
+            opacity: 0.8;
+            max-width: 450px;
+        }
+
+        .social-btn {
+            border: 1px solid var(--bs-border-color);
+            background: var(--bs-body-bg);
+            color: var(--bs-body-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .social-btn:hover {
+            background: var(--bs-tertiary-bg);
+            border-color: var(--bs-primary);
+        }
+
+        .form-control-xl {
+            padding: 1rem 1.25rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+        }
+
+        .btn-xl {
+            padding: 1rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 991.98px) {
+            .auth-marketing-side {
+                padding: 3rem 1.5rem; /* Reduced horizontal padding */
+                text-align: center;
+                align-items: center;
+                height: auto;
+                min-height: auto;
+            }
+            .marketing-headline {
+                font-size: 2.5rem;
+            }
+            .auth-form-side {
+                padding: 3rem 1.5rem;
+                height: auto; /* Override 100vh */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0 auth-container">
+        <div class="row g-0">
+            <!-- Left Side: Marketing (Order 2 on mobile, 1 on desktop) -->
+            <div class="col-lg-6 auth-marketing-side order-2 order-lg-1">
+                <a href="/" class="text-decoration-none">
+                    <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" class="auth-logo shadow-lg">
+                </a>
+                <h1 class="marketing-headline">
+                    {% block marketing_headline %}{% trans "Never worry about money again." %}{% endblock %}
+                </h1>
+                <p class="marketing-subheadline">
+                    {% block marketing_subheadline %}
+                    {% trans "Turn your transactions into a clear financial story. Track exactly where every rupee goes." %}
+                    {% endblock %}
+                </p>
+                
+                <!-- Social Proof Sparkle -->
+                <div class="mt-5 d-flex align-items-center gap-3 opacity-75">
+                    <span class="small fw-medium">{% trans "Trusted by 500+ professionals" %}</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Form (Order 1 on mobile, 2 on desktop) -->
+            <div class="col-lg-6 auth-form-side order-1 order-lg-2 position-relative">
+                <div class="position-absolute top-0 start-0 p-4 d-none d-lg-block">
+                    <a href="/" class="text-decoration-none text-muted small fw-medium d-flex align-items-center gap-2 back-link">
+                        <i class="bi bi-arrow-left"></i> {% trans "Back to Site" %}
+                    </a>
+                </div>
+                <!-- Mobile Back Button -->
+                <div class="w-100 d-lg-none mb-4">
+                    <a href="/" class="text-decoration-none text-muted small fw-medium d-flex align-items-center gap-2">
+                        <i class="bi bi-arrow-left"></i> {% trans "Back to Site" %}
+                    </a>
+                </div>
+                <div class="auth-card">
+                    {% block auth_content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

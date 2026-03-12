@@ -1,20 +1,28 @@
-{% extends "account/base.html" %}
-{% load i18n %}
-{% load socialaccount %}
+{% extends "account/auth_base.html" %}
+{% load i18n socialaccount static %}
 
-{% block account_content %}
-<div class="text-center mb-4">
-    <h2 class="fw-bold mb-2">{% trans "Welcome Back" %}</h2>
-    <p class="text-muted small">Sign in to manage your finances</p>
+{% block title %}{% trans "Login" %} - TrackMyRupee{% endblock %}
+
+{% block marketing_headline %}{% trans "Stop wondering where your salary disappeared." %}{% endblock %}
+
+{% block auth_content %}
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">{% trans "Welcome Back" %}</h2>
+    <p class="text-muted small">
+        {% trans "New to TrackMyRupee?" %} <a href="{{ signup_url }}" class="text-decoration-none fw-medium">{% trans "Sign up today." %}</a>
+    </p>
 </div>
 
-<form class="login" method="POST" action="{% url 'account_login' %}">
+<form class="login needs-validation" method="POST" action="{% url 'account_login' %}" novalidate>
     {% csrf_token %}
     
     {% if form.non_field_errors %}
-    <div class="alert alert-danger mb-4">
+    <div class="alert alert-danger rounded-4 mb-4">
         {% for error in form.non_field_errors %}
-        <div class="small">{{ error }}</div>
+        <div class="d-flex align-items-center gap-2 small">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span>{{ error }}</span>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
@@ -22,14 +30,35 @@
     {% for field in form %}
     {% if field.name != 'remember' %}
     <div class="mb-3">
-        <label class="form-label text-muted small fw-bold">{{ field.label }}</label>
-        <input type="{{ field.field.widget.input_type }}" 
-               name="{{ field.name }}"
-               class="form-control form-control-lg {% if field.errors %}is-invalid{% endif %}"
-               {% if field.value %}value="{{ field.value }}"{% endif %}
-               {% if field.field.required %}required{% endif %}>
+        <label for="{{ field.id_for_label }}" class="form-label small fw-bold text-muted text-uppercase tracking-wider">
+            {{ field.label }}
+        </label>
+        <div class="position-relative">
+            <span class="position-absolute grow-0 top-50 start-0 translate-middle-y ps-3 text-muted opacity-50">
+                {% if field.name == 'username' or field.name == 'login' or field.name == 'email' %}
+                <i class="bi bi-person"></i>
+                {% elif 'password' in field.name %}
+                <i class="bi bi-lock"></i>
+                {% else %}
+                <i class="bi bi-input-cursor"></i>
+                {% endif %}
+            </span>
+            <input type="{{ field.field.widget.input_type }}" 
+                   name="{{ field.name }}"
+                   id="{{ field.id_for_label }}"
+                   placeholder="{{ field.label }}"
+                   class="form-control form-control-xl ps-5 {% if field.errors %}is-invalid{% endif %}"
+                   {% if field.value %}value="{{ field.value }}"{% endif %}
+                   {% if field.field.required %}required{% endif %}>
+            
+            {% if 'password' in field.name %}
+            <button type="button" class="btn position-absolute top-50 end-0 translate-middle-y pe-3 text-muted small border-0" onclick="togglePassword(this)">
+                <i class="bi bi-eye"></i> {% trans "Show" %}
+            </button>
+            {% endif %}
+        </div>
         {% if field.errors %}
-        <div class="invalid-feedback">
+        <div class="invalid-feedback d-block mt-1">
             {{ field.errors.0 }}
         </div>
         {% endif %}
@@ -37,37 +66,52 @@
     {% endif %}
     {% endfor %}
 
-    <div class="mb-3 d-flex align-items-center">
-        <input type="checkbox" name="remember" id="id_remember" class="form-check-input me-2" checked>
-        <label for="id_remember" class="form-check-label text-muted small">Remember Me</label>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="form-check">
+            <input type="checkbox" name="remember" id="id_remember" class="form-check-input" checked>
+            <label for="id_remember" class="form-check-label small text-muted">{% trans "Remember Me" %}</label>
+        </div>
+        <a class="small text-decoration-none fw-medium" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
     </div>
 
     {% if redirect_field_value %}
     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
     {% endif %}
 
-    <div class="d-grid mt-4">
-        <button class="primaryAction btn btn-primary btn-lg py-3 fw-bold" type="submit">{% trans "Sign In" %}</button>
-    </div>
+    <button class="primaryAction btn btn-primary btn-xl w-100 mb-3 shadow-sm" type="submit">
+        {% trans "Sign In" %}
+    </button>
 
-    <a href="{% url 'demo_login' %}" class="btn btn-info text-white w-100 btn-lg py-2 mt-3 d-flex align-items-center justify-content-center fw-bold shadow-sm hover-lift">
-        <i class="bi bi-rocket-takeoff-fill me-2"></i> Try Demo Mode
+    <a href="{% url 'demo_login' %}" class="btn btn-info text-white btn-xl w-100 mb-4 d-flex align-items-center justify-content-center shadow-sm">
+        <i class="bi bi-rocket-takeoff-fill me-2"></i> {% trans "Try Demo Mode" %}
     </a>
 
-    <div class="position-relative my-4 text-center">
-        <hr class="text-muted">
-        <span class="position-absolute top-50 start-50 translate-middle divider-text text-muted small">OR</span>
+    <div class="position-relative my-4">
+        <hr class="text-muted opacity-25">
+        <span class="position-absolute top-50 start-50 translate-middle px-3 text-muted small" style="background: var(--bs-body-bg);">{% trans "or" %}</span>
     </div>
 
-    <a href="{% provider_login_url 'google' %}" class="btn btn-outline-secondary w-100 btn-lg py-2 d-flex align-items-center justify-content-center mb-4">
-        <i class="bi bi-google me-2 text-primary"></i> Continue with Google
+    <a href="{% provider_login_url 'google' %}" class="social-btn w-100 border text-decoration-none">
+        <i class="bi bi-google me-2 text-primary"></i>
+        {% trans "Continue with Google" %}
     </a>
-
-    <div class="text-center">
-        <p class="text-muted small mb-0">
-            {% blocktrans %}Don't have an account? <a href="{{ signup_url }}" class="text-decoration-none fw-bold">Sign Up</a>{% endblocktrans %}
-        </p>
-        <a class="button secondaryAction text-decoration-none small text-muted mt-2 d-inline-block" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-    </div>
 </form>
+
+<script>
+    function togglePassword(btn) {
+        const input = btn.parentElement.querySelector('input');
+        const icon = btn.querySelector('i');
+        const text = btn.lastChild;
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+            text.textContent = ' {% trans "Hide" %}';
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+            text.textContent = ' {% trans "Show" %}';
+        }
+    }
+</script>
 {% endblock %}
