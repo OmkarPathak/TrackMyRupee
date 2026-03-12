@@ -20,22 +20,19 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
     def get_queryset(self):
         queryset = Income.objects.filter(user=self.request.user).order_by('-date')
         
-        # Default dates (Current Year)
-        today = timezone.localdate()
-        default_start = today.replace(month=1, day=1)
-        default_end = today.replace(month=12, day=31)
-
         # Date Filter
         date_from = self.request.GET.get('date_from')
         date_to = self.request.GET.get('date_to')
+        selected_years = self.request.GET.getlist('year')
+        selected_months = self.request.GET.getlist('month')
         source = self.request.GET.get('source')
 
-        # Check if we have ANY filter params. If not, apply default dates.
-        if not date_from and not date_to and not source:
-             self.date_from = default_start.isoformat()
-             self.date_to = default_end.isoformat()
-             queryset = queryset.filter(date__gte=default_start, date__lte=default_end)
-        else:
+        # Remove empty strings from lists
+        selected_years = [y for y in selected_years if y]
+        selected_months = [m for m in selected_months if m]
+
+        # Date Range Logic (Precedence)
+        if date_from or date_to:
             if date_from:
                 queryset = queryset.filter(date__gte=date_from)
                 self.date_from = date_from
@@ -47,6 +44,20 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
                 self.date_to = date_to
             else:
                 self.date_to = ''
+        else:
+            # If no explicit date range, check for year/month filters
+            # If neither exist, default to current month/year for consistency with dashboard
+            if not selected_years and not selected_months and not source:
+                 selected_years = [str(timezone.now().year)]
+                 selected_months = [str(timezone.now().month)]
+            
+            if selected_years:
+                queryset = queryset.filter(date__year__in=selected_years)
+            if selected_months:
+                queryset = queryset.filter(date__month__in=selected_months)
+            
+            self.date_from = ''
+            self.date_to = ''
 
         # Source Filter
         if source:

@@ -38,8 +38,14 @@ def home_view(request):
     # Process recurring transactions
     process_user_recurring_transactions(request.user)
 
-    # Base QuerySet
-    expenses = Expense.objects.filter(user=request.user).order_by('-date')
+    # Base QuerySet - Split into Operating Expenses and Wealth Growth
+    investment_categories = Category.objects.filter(user=request.user, is_investment=True).values_list('name', flat=True)
+    
+    # Operating Expenses (Normal Spending)
+    expenses = Expense.objects.filter(user=request.user).exclude(category__in=investment_categories).order_by('-date')
+    
+    # Wealth Growth (Investments)
+    investments = Expense.objects.filter(user=request.user, category__in=investment_categories).order_by('-date')
     
     # Logic for EOM projection
     now = datetime.now()
@@ -101,8 +107,18 @@ def home_view(request):
             incomes = incomes.filter(date__year__in=selected_years)
         if selected_months:
             incomes = incomes.filter(date__month__in=selected_months)
+            investments = investments.filter(date__month__in=selected_months)
+        if selected_years:
+            investments = investments.filter(date__year__in=selected_years)
+
+    if start_date or end_date:
+        if start_date:
+            investments = investments.filter(date__gte=start_date)
+        if end_date:
+            investments = investments.filter(date__lte=end_date)
     
     total_income = incomes.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+    total_investments = investments.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
     all_dates = Expense.objects.filter(user=request.user).dates('date', 'year', order='DESC')
     years = sorted(list(set([d.year for d in all_dates] + [datetime.now().year])), reverse=True)
     all_categories = Expense.objects.filter(user=request.user).values_list('category', flat=True).distinct().order_by('category')
@@ -1062,6 +1078,7 @@ def home_view(request):
         'salary_breakdown': salary_breakdown,
         'hero_metrics': hero_metrics,
         'smart_bullet_insights': smart_bullet_insights,
+        'total_investments': total_investments,
         'trend_labels': trend_labels,
         'trend_iso_dates': trend_iso_dates,
         'selected_categories': selected_categories,

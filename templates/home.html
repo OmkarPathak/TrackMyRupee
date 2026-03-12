@@ -746,17 +746,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <!-- Stats Row -->
                 <div class="row g-0 py-3 border-top border-bottom">
-                    <a href="{% url 'income-list' %}" class="col-4 border-end px-2 text-decoration-none transition-all">
-                        <small class="text-muted text-uppercase fw-bold d-flex justify-content-center align-items-center mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Income" %} <i class="bi bi-arrow-up-right ms-1 opacity-50" style="font-size: 0.55rem; transform: translateY(1px);"></i></small>
-                        <h4 class="fw-bold mb-0 text-body">{{ currency_symbol }}{{ hero_metrics.income|humanize_currency:currency_symbol|translate_digits }}</h4>
+                    <a href="{% url 'income-list' %}?{% url_replace %}" class="col-4 border-end px-2 text-decoration-none transition-all">
+                        <small class="text-muted text-uppercase fw-bold d-flex justify-content-center align-items-center mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Total Income" %} <i class="bi bi-arrow-up-right ms-1 opacity-50" style="font-size: 0.55rem; transform: translateY(1px);"></i></small>
+                        <h4 class="fw-bold mb-0 text-body text-truncate">{{ currency_symbol }}{{ total_income|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</h4>
                     </a>
-                    <a href="{% url 'expense-list' %}" class="col-4 border-end px-2 text-decoration-none transition-all">
-                        <small class="text-muted text-uppercase fw-bold d-flex justify-content-center align-items-center mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Spent" %} <i class="bi bi-arrow-up-right ms-1 opacity-50" style="font-size: 0.55rem; transform: translateY(1px);"></i></small>
-                        <h4 class="fw-bold mb-0 text-body">{{ currency_symbol }}{{ hero_metrics.spent|humanize_currency:currency_symbol|translate_digits }}</h4>
+                    <a href="{% url 'expense-list' %}?{% url_replace is_investment='false' %}" class="col-4 border-end px-2 text-decoration-none transition-all">
+                        <small class="text-muted text-uppercase fw-bold d-flex justify-content-center align-items-center mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Operating Spent" %} <i class="bi bi-arrow-up-right ms-1 opacity-50" style="font-size: 0.55rem; transform: translateY(1px);"></i></small>
+                        <h4 class="fw-bold mb-0 text-body text-truncate">{{ currency_symbol }}{{ hero_metrics.spent|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</h4>
                     </a>
-                    <a href="{% url 'goal-list' %}" class="col-4 px-2 text-decoration-none transition-all">
-                        <small class="text-muted text-uppercase fw-bold d-flex justify-content-center align-items-center mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Saved" %} <i class="bi bi-arrow-up-right ms-1 opacity-50" style="font-size: 0.55rem; transform: translateY(1px);"></i></small>
-                        <h4 class="fw-bold mb-0 text-success">{{ currency_symbol }}{{ hero_metrics.saved|humanize_currency:currency_symbol|translate_digits }}</h4>
+                    <a href="{% url 'expense-list' %}?{% url_replace is_investment='true' %}" class="col-4 px-2 text-decoration-none transition-all">
+                        <small class="text-muted text-uppercase fw-bold d-flex justify-content-center align-items-center mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Wealth Growth" %} <i class="bi bi-arrow-up-right ms-1 opacity-50" style="font-size: 0.55rem; transform: translateY(1px);"></i></small>
+                        <h4 class="fw-bold mb-0 text-info text-truncate">{{ currency_symbol }}{{ total_investments|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</h4>
                     </a>
                 </div>
 

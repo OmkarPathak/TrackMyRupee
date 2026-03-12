@@ -16,7 +16,9 @@
                     
                     {% for field in form %}
                     <div class="mb-3">
-                        <label class="form-label text-muted">{{ field.label }}</label>
+                        {% if field.field.widget.input_type != 'checkbox' %}
+                            <label class="form-label text-muted">{{ field.label }}</label>
+                        {% endif %}
                         {% if field.name == 'icon' %}
                             <div class="mb-3">
                                 <div class="dropdown w-100">
@@ -133,9 +135,17 @@
                                     searchInput.addEventListener('click', (e) => e.stopPropagation());
                                 })();
                             </script>
+                        {% elif field.field.widget.input_type == 'checkbox' %}
+                            <div class="form-check form-switch pt-1">
+                                <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-check-input" {% if field.value %}checked{% endif %} {% if reached_limit %}disabled{% endif %}>
+                                <label class="form-check-label text-muted small text-uppercase ms-2" for="{{ field.id_for_label }}">
+                                    {{ field.label }}
+                                </label>
+                            </div>
                         {% else %}
                             <input type="{% if field.name == 'limit' %}number{% else %}{{ field.field.widget.input_type }}{% endif %}" 
                                    name="{{ field.name }}" 
+                                   id="{{ field.id_for_label }}"
                                    class="form-control" 
                                    {% if field.value %}value="{{ field.value }}"{% endif %} 
                                    {% if field.name == 'limit' %}step="0.01" placeholder="{% trans 'Optional monthly limit' %}"{% endif %}

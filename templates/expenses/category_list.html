@@ -50,6 +50,7 @@
                                             data-name="{{ category.name }}"
                                             data-icon="{{ category.icon }}"
                                             data-limit="{{ category.limit|default_if_none:'' }}"
+                                            data-is-investment="{% if category.is_investment %}true{% else %}false{% endif %}"
                                             title="{% trans 'Edit' %}">
                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
                                     </button>
@@ -208,11 +209,20 @@
                             .cursor-pointer { cursor: pointer; }
                         </style>
                         
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="edit_limit" class="form-label text-muted small text-uppercase">{% trans "Monthly Limit (Optional)" %}</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent border-end-0 text-muted">{{ currency_symbol }}</span>
                                 <input type="number" class="form-control border-start-0 ps-0" id="edit_limit" name="limit" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch pt-1">
+                                <input class="form-check-input mt-1" type="checkbox" id="edit_is_investment" name="is_investment">
+                                <label class="form-check-label fw-bold text-muted small text-uppercase ms-2" for="edit_is_investment">
+                                    {% trans "Treat as Investment / Exclude from Expenses" %}
+                                </label>
                             </div>
                         </div>
                         
@@ -247,14 +257,17 @@
                     const name = button.getAttribute('data-name');
                     const icon = button.getAttribute('data-icon') || 'bi-tag';
                     const limit = button.getAttribute('data-limit');
+                    const isInvestment = button.getAttribute('data-is-investment') === 'true';
                     
                     const form = editModal.querySelector('#editCategoryForm');
                     const nameInput = editModal.querySelector('#edit_name');
                     const limitInput = editModal.querySelector('#edit_limit');
+                    const isInvestmentInput = editModal.querySelector('#edit_is_investment');
                     
                     form.action = url;
                     nameInput.value = name;
                     limitInput.value = limit || '';
+                    isInvestmentInput.checked = isInvestment;
                     
                     // Update Icon Picker State
                     hiddenInput.value = icon;

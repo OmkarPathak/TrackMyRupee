@@ -283,9 +283,10 @@ class CategoryForm(forms.ModelForm):
  
     class Meta:
         model = Category
-        fields = ['name', 'icon', 'limit']
+        fields = ['name', 'icon', 'limit', 'is_investment']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Category Name')}),
             'limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'is_investment': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

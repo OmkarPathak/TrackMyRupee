@@ -79,6 +79,16 @@ class ExpenseListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
         if payment_method:
             queryset = queryset.filter(payment_method=payment_method)
 
+        # Filter by Investment Status
+        is_investment = self.request.GET.get('is_investment')
+        if is_investment:
+            is_inv_bool = is_investment.lower() == 'true'
+            investment_categories = Category.objects.filter(user=self.request.user, is_investment=True).values_list('name', flat=True)
+            if is_inv_bool:
+                queryset = queryset.filter(category__in=investment_categories)
+            else:
+                queryset = queryset.exclude(category__in=investment_categories)
+
         if search_query:
             queryset = queryset.filter(description__icontains=search_query)
             

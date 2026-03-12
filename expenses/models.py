@@ -78,6 +78,7 @@ class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name=_('Category Name'))
     icon = models.CharField(max_length=50, default='bi-tag', verbose_name=_('Icon'))
     limit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_('Monthly Limit'))
+    is_investment = models.BooleanField(default=False, verbose_name=_('Treat as Investment / Exclude from Expenses.'))
 
     def save(self, *args, **kwargs):
         if self.name:
