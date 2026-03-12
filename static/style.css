@@ -761,16 +761,25 @@ a:hover {
   padding-top: calc(env(safe-area-inset-top, 44px) + 0.5rem) !important;
 }
 
+.is-mobile-app .navbar-brand {
+    padding-top: 0.5rem;
+}
+
 /* Ensure the body and main content respect safe areas */
 .is-mobile-app body {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem) !important;
+  padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px) + 1rem) !important;
 }
 
 .is-mobile-app main {
-  padding-top: calc(env(safe-area-inset-top, 20px) + 0.75rem) !important;
+  padding-top: calc(env(safe-area-inset-top, 44px) + 0.5rem) !important; /* The navbar already has safe-area-inset-top */
 }
 
-/* Adjust sticky top position if needed - though native overlay usually handles this */
+/* Specific fix for authenticated users where the top navbar is hidden on mobile */
+.is-mobile-app.is-authenticated main {
+    padding-top: calc(env(safe-area-inset-top, 20px) + 0.75rem) !important;
+}
+
+/* Adjust sticky top position if needed */
 .is-mobile-app .navbar.sticky-top {
   top: 0;
 }

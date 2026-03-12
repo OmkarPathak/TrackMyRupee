@@ -481,7 +481,7 @@
 
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated{% endif %}">
     {% if request.user.username == 'demo' %}
     <div class="alert alert-warning text-center fw-bold m-0 rounded-0 py-2 small shadow-sm position-relative z-3 d-flex justify-content-center align-items-center gap-2"
         role="alert">

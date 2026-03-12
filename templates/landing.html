@@ -383,6 +383,19 @@
                 transform: translate(-50%, -5px);
             }
         }
+
+        /* PWA / Mobile Notch Safe Area Fixes */
+        .is-mobile-app .navbar {
+            padding-top: env(safe-area-inset-top, 0px) !important;
+        }
+
+        .is-mobile-app body {
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+        }
+
+        .is-mobile-app .hero-section {
+            padding-top: calc(80px + env(safe-area-inset-top, 0px)) !important;
+        }
     </style>
 </head>
 
