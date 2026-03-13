@@ -27,9 +27,9 @@ class OnboardingViewTest(TestCase):
         self.assertIn(reverse('onboarding'), response.url)
 
     def test_onboarding_redirection_existing_user(self):
-        """Users with BOTH income and expenses should be redirected away."""
-        Income.objects.create(user=self.user, date=date.today(), amount=1000, source='Tests', currency='₹')
-        Expense.objects.create(user=self.user, date=date.today(), amount=100, category='Food', description='Tests', currency='₹')
+        """Users who have seen tutorial should be redirected away."""
+        self.user.profile.has_seen_tutorial = True
+        self.user.profile.save()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('home'))
@@ -49,12 +49,18 @@ class OnboardingViewTest(TestCase):
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(Income.objects.filter(user=self.user).count(), 1)
         
-        # Now we test idempotency. The view should NOT redirect yet because has_expense is False.
+        # Now we test idempotency.
         data['amount'] = 6000
         response2 = self.client.post(self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(Income.objects.filter(user=self.user).count(), 1)
         self.assertEqual(Income.objects.first().amount, 6000)
+
+    def test_onboarding_step_expense(self):
+        data = {'step': 'expense', 'amount': 50, 'description': 'Coffee', 'category': 'Miscellaneous'}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Expense.objects.filter(user=self.user).count(), 1)
 
     def test_onboarding_step_budget(self):
         # Clear any system-generated categories for this user to ensure isolation
@@ -73,12 +79,13 @@ class OnboardingViewTest(TestCase):
         food = Category.objects.get(user=self.user, name='Food')
         self.assertEqual(food.limit, 500)
 
-    def test_onboarding_step_expense_completion(self):
-        data = {'step': 'expense', 'amount': 50, 'description': 'Coffee', 'category': 'Miscellaneous'}
+    def test_onboarding_step_setup_completion(self):
+        data = {'step': 'setup', 'currency': '$', 'language': 'en'}
         response = self.client.post(self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Expense.objects.filter(user=self.user).count(), 1)
         self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.currency, '$')
+        self.assertEqual(self.user.profile.language, 'en')
         self.assertTrue(self.user.profile.has_seen_tutorial)
 
     def test_onboarding_skip(self):

@@ -25,12 +25,8 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
 
-        if request.user.profile.has_seen_tutorial:
-            return redirect('home')
-        
-        has_income = Income.objects.filter(user=request.user).exists()
-        has_expense = Expense.objects.filter(user=request.user).exists()
-        if has_income and has_expense:
+        # Only redirect for GET requests to the onboarding page itself
+        if request.method == 'GET' and request.user.profile.has_seen_tutorial:
             return redirect('home')
             
         return super().dispatch(request, *args, **kwargs)
@@ -50,6 +46,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                 profile = request.user.profile
                 profile.currency = data.get('currency', profile.currency)
                 profile.language = data.get('language', profile.language)
+                profile.has_seen_tutorial = True
                 profile.save()
                 return JsonResponse({'success': True})
             
@@ -108,9 +105,6 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                         amount=Decimal(data.get('amount', 0)),
                         currency=request.user.profile.currency
                     )
-                profile = request.user.profile
-                profile.has_seen_tutorial = True
-                profile.save()
                 return JsonResponse({'success': True})
 
             elif step == 'skip':

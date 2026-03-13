@@ -5,55 +5,23 @@
 <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="col-md-8 col-lg-6">
         <div class="card border-0 shadow-lg rounded-4 overflow-hidden fade-in">
-            <!-- Progress Bar -->
-            <div class="progress rounded-0" style="height: 6px;">
-                <div id="onboarding-progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 25%; transition: width 0.5s ease;"></div>
+            <!-- Progress Header -->
+            <div class="px-5 pt-4 d-flex justify-content-between align-items-center">
+                <span id="step-text" class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 fw-bold">Step 1 of 4</span>
+                <div class="progress rounded-pill flex-grow-1 ms-3" style="height: 8px;">
+                    <div id="onboarding-progress" class="progress-bar progress-bar-striped progress-bar-animated rounded-pill" role="progressbar" style="width: 25%; transition: width 0.5s ease;"></div>
+                </div>
             </div>
 
             <div class="card-body p-5">
-                <!-- Step 1: Preferences -->
+                <!-- Step 1: Initial Income -->
                 <div id="step-1" class="onboarding-step">
-                    <div class="text-center mb-4">
-                        <div class="icon-shape icon-shape-lg bg-primary bg-opacity-10 text-primary rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-gear-fill fs-1"></i>
-                        </div>
-                        <h2 class="fw-bold">{% trans "Personalize Your Experience" %}</h2>
-                        <p class="text-muted">{% trans "Choose how you'd like to use TrackMyRupee." %}</p>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Preferred Language" %}</label>
-                        <select id="onboarding-language" class="form-select form-select-lg">
-                            {% for code, name in language_choices %}
-                                <option value="{{ code }}" {% if user.profile.language == code %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Primary Currency" %}</label>
-                        <select id="onboarding-currency" class="form-select form-select-lg">
-                            {% for code, name in currency_choices %}
-                                <option value="{{ code }}" {% if user.profile.currency == code %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="d-grid">
-                        <button onclick="saveStep('setup', 1)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
-                            {% trans "Continue" %} <i class="bi bi-arrow-right ms-2"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Step 2: Initial Income -->
-                <div id="step-2" class="onboarding-step d-none">
                     <div class="text-center mb-4">
                         <div class="icon-shape icon-shape-lg bg-success bg-opacity-10 text-success rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
                             <i class="bi bi-wallet2 fs-1"></i>
                         </div>
-                        <h2 class="fw-bold">{% trans "Record Your First Income" %}</h2>
-                        <p class="text-muted">{% trans "What's the source of your funds? (e.g. Salary, Freelance)" %}</p>
+                        <h2 class="fw-bold">{% trans "Let's add your income" %}</h2>
+                        <p class="text-muted">{% trans "Start by adding your primary income. This helps TrackMyRupee calculate your savings rate." %}</p>
                     </div>
 
                     <div class="mb-3">
@@ -69,12 +37,96 @@
                         <input type="text" id="onboarding-income-source" class="form-control form-control-lg" placeholder="{% trans 'e.g. Monthly Salary' %}" value="{% trans 'Monthly Salary' %}">
                     </div>
 
+                    <div class="d-grid">
+                        <button onclick="saveStep('income', 1)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
+                            {% trans "Continue" %} <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: First Expense -->
+                <div id="step-2" class="onboarding-step d-none">
+                    <div class="text-center mb-4">
+                        <div class="icon-shape icon-shape-lg bg-danger bg-opacity-10 text-danger rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-cart-plus-fill fs-1"></i>
+                        </div>
+                        <h2 class="fw-bold">{% trans "Track your first expense" %}</h2>
+                        <p class="text-muted">{% trans "Track something you bought recently to see your dashboard come alive." %}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Amount" %}</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-transparent border-end-0 text-muted currency-label">{{ user.profile.currency }}</span>
+                            <input type="number" id="onboarding-expense-amount" class="form-control border-start-0 ps-0" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="mt-3 d-flex gap-2">
+                            <button onclick="setExpenseAmount(100)" class="btn btn-sm btn-outline-secondary rounded-pill px-3">₹100</button>
+                            <button onclick="setExpenseAmount(500)" class="btn btn-sm btn-outline-secondary rounded-pill px-3">₹500</button>
+                            <button onclick="setExpenseAmount(1000)" class="btn btn-sm btn-outline-secondary rounded-pill px-3">₹1000</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Category" %}</label>
+                        <select id="onboarding-expense-category" class="form-select form-select-lg">
+                            <option value="Food">{% trans "Food" %}</option>
+                            <option value="Shopping">{% trans "Shopping" %}</option>
+                            <option value="Groceries">{% trans "Groceries" %}</option>
+                            <option value="Miscellaneous" selected>{% trans "Miscellaneous" %}</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Description" %}</label>
+                        <input type="text" id="onboarding-expense-description" class="form-control form-control-lg" placeholder="{% trans 'e.g. Lunch with friends' %}">
+                    </div>
+
                     <div class="d-flex gap-2">
                         <button onclick="showStep(1)" class="btn btn-outline-secondary btn-lg rounded-pill fw-bold py-3 px-4 shadow-sm">
                             <i class="bi bi-arrow-left"></i>
                         </button>
-                        <button onclick="saveStep('income', 2)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 flex-grow-1 shadow-sm">
+                        <button onclick="saveStep('expense', 2)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 flex-grow-1 shadow-sm">
                             {% trans "Continue" %} <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2.5: Insight Screen -->
+                <div id="step-2-5" class="onboarding-step d-none text-center">
+                    <div class="mb-4">
+                        <div class="mb-3">
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">{% trans "Success!" %}</span>
+                        </div>
+                        <h2 class="fw-bold">{% trans "Nice! Here's your financial story so far" %}</h2>
+                        <p class="text-muted">{% trans "You're already getting better at managing your money." %}</p>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="p-3 bg-body-tertiary rounded-4 border border-white border-opacity-10 h-100">
+                                <p class="small text-muted mb-1 text-uppercase fw-bold">{% trans "Income" %}</p>
+                                <h3 class="fw-bold mb-0 text-success"><span class="currency-label">{{ user.profile.currency }}</span><span id="insight-income">0</span></h3>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-body-tertiary rounded-4 border border-white border-opacity-10 h-100">
+                                <p class="small text-muted mb-1 text-uppercase fw-bold">{% trans "Spent" %}</p>
+                                <h3 class="fw-bold mb-0 text-danger"><span class="currency-label">{{ user.profile.currency }}</span><span id="insight-spent">0</span></h3>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center">
+                            <div class="p-4 bg-primary bg-opacity-10 rounded-4 border border-primary border-opacity-10">
+                                <p class="small text-muted mb-1 text-uppercase fw-bold">{% trans "Savings Rate" %}</p>
+                                <h2 class="fw-bold mb-0 text-primary"><span id="insight-savings-rate">0</span>%</h2>
+                                <p class="small text-muted mt-2 mb-0">{% trans "A great start towards your goals!" %}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button onclick="showStep(3)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
+                            {% trans "Continue" %} → {% trans "Set budgets" %}
                         </button>
                     </div>
                 </div>
@@ -85,8 +137,11 @@
                         <div class="icon-shape icon-shape-lg bg-info bg-opacity-10 text-info rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
                             <i class="bi bi-pie-chart-fill fs-1"></i>
                         </div>
-                        <h2 class="fw-bold">{% trans "Set Your Budgets" %}</h2>
-                        <p class="text-muted">{% trans "How much do you plan to spend in these categories?" %}</p>
+                        <h2 class="fw-bold">{% trans "Plan your monthly spending" %}</h2>
+                        <p class="text-muted">{% trans "Set monthly limits (optional)" %}</p>
+                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 small">
+                            <i class="bi bi-lightbulb me-1"></i> {% trans "Suggested based on typical spending" %}
+                        </span>
                     </div>
 
                     <div id="budget-list" class="mb-4">
@@ -144,56 +199,83 @@
                     </div>
                 </div>
 
-                <!-- Step 4: First Expense -->
+                <!-- Step 4: Preferences -->
                 <div id="step-4" class="onboarding-step d-none">
                     <div class="text-center mb-4">
-                        <div class="icon-shape icon-shape-lg bg-danger bg-opacity-10 text-danger rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-cart-plus-fill fs-1"></i>
+                        <div class="icon-shape icon-shape-lg bg-primary bg-opacity-10 text-primary rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-gear-fill fs-1"></i>
                         </div>
-                        <h2 class="fw-bold">{% trans "Add Your First Expense" %}</h2>
-                        <p class="text-muted">{% trans "Track something you bought recently to see your dashboard in action!" %}</p>
+                        <h2 class="fw-bold">{% trans "Customize your experience" %}</h2>
+                        <p class="text-muted">{% trans "Choose how you'd like to use TrackMyRupee." %}</p>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Amount" %}</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted currency-label">{{ user.profile.currency }}</span>
-                            <input type="number" id="onboarding-expense-amount" class="form-control border-start-0 ps-0" placeholder="0.00" step="0.01">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Category" %}</label>
-                        <select id="onboarding-expense-category" class="form-select form-select-lg">
-                            <option value="Food">{% trans "Food" %}</option>
-                            <option value="Shopping">{% trans "Shopping" %}</option>
-                            <option value="Groceries">{% trans "Groceries" %}</option>
-                            <option value="Miscellaneous" selected>{% trans "Miscellaneous" %}</option>
+                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Preferred Language" %}</label>
+                        <select id="onboarding-language" class="form-select form-select-lg">
+                            {% for code, name in language_choices %}
+                                <option value="{{ code }}" {% if user.profile.language == code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Description" %}</label>
-                        <input type="text" id="onboarding-expense-description" class="form-control form-control-lg" placeholder="{% trans 'e.g. Lunch with friends' %}">
+                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Primary Currency" %}</label>
+                        <select id="onboarding-currency" class="form-select form-select-lg">
+                            {% for code, name in currency_choices %}
+                                <option value="{{ code }}" {% if user.profile.currency == code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div class="d-flex gap-2">
                         <button onclick="showStep(3)" class="btn btn-outline-secondary btn-lg rounded-pill fw-bold py-3 px-4 shadow-sm">
                             <i class="bi bi-arrow-left"></i>
                         </button>
-                        <button onclick="saveStep('expense', 4)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 flex-grow-1 shadow-sm">
+                        <button onclick="saveStep('setup', 4)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 flex-grow-1 shadow-sm">
                             {% trans "Complete Setup" %} <i class="bi bi-check-lg ms-2"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Step Indicators -->
-                <div class="mt-5 d-flex justify-content-center gap-2">
-                    <span class="step-indicator rounded-pill active" style="width: 20px; height: 8px; background-color: var(--bs-primary); opacity: 1;"></span>
-                    <span class="step-indicator rounded-pill" style="width: 20px; height: 8px; background-color: var(--bs-primary); opacity: 0.2;"></span>
-                    <span class="step-indicator rounded-pill" style="width: 20px; height: 8px; background-color: var(--bs-primary); opacity: 0.2;"></span>
-                    <span class="step-indicator rounded-pill" style="width: 20px; height: 8px; background-color: var(--bs-primary); opacity: 0.2;"></span>
+                <!-- Step 5: Final Financial Story -->
+                <div id="step-5" class="onboarding-step d-none text-center">
+                    <div class="mb-4">
+                        <div class="icon-shape icon-shape-lg bg-primary bg-opacity-10 text-primary rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-stars fs-1"></i>
+                        </div>
+                        <h2 class="fw-bold">{% trans "Your Financial Story" %}</h2>
+                        <p class="text-muted">{% trans "Here's what your month looks like so far." %}</p>
+                    </div>
+
+                    <div class="card bg-body-tertiary border-0 rounded-4 overflow-hidden mb-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                <span class="text-muted">{% trans "Income" %}</span>
+                                <span class="fw-bold text-success"><span class="currency-label">{{ user.profile.currency }}</span><span id="story-income">0</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                <span class="text-muted">{% trans "Spent" %}</span>
+                                <span class="fw-bold text-danger"><span class="currency-label">{{ user.profile.currency }}</span><span id="story-spent">0</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                <span class="text-muted">{% trans "Remaining" %}</span>
+                                <span class="fw-bold text-primary"><span class="currency-label">{{ user.profile.currency }}</span><span id="story-remaining">0</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">{% trans "Top Category" %}</span>
+                                <span class="fw-bold" id="story-top-category">Food</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <a href="{% url 'home' %}?onboarded=true" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
+                            {% trans "Go to Dashboard" %} <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                    </div>
                 </div>
+
+                <!-- Step Indicators removed in favor of Step X of 4 text and progress bar -->
 
                 <div class="text-center mt-3">
                     <button onclick="skipOnboarding()" class="btn btn-link text-muted text-decoration-none small">{% trans "Skip for now" %}</button>
@@ -204,6 +286,10 @@
 </div>
 
 <script>
+    function setExpenseAmount(amount) {
+        document.getElementById('onboarding-expense-amount').value = amount;
+    }
+
     async function saveStep(step, currentStepNum) {
         let payload = { step: step };
         
@@ -242,10 +328,16 @@
             const data = await res.json();
             
             if (data.success) {
-                if (currentStepNum < 4) {
+                if (step === 'expense') {
+                    // Show insight screen
+                    updateInsightScreen();
+                    showStep('2-5');
+                } else if (step === 'setup') {
+                    // Show final story
+                    updateStoryScreen();
+                    showStep(5);
+                } else if (currentStepNum < 4) {
                     showStep(currentStepNum + 1);
-                } else {
-                    window.location.href = "{% url 'home' %}?onboarded=true";
                 }
             } else {
                 alert('Error: ' + data.error);
@@ -256,19 +348,47 @@
         }
     }
 
+    function updateInsightScreen() {
+        const income = parseFloat(document.getElementById('onboarding-income-amount').value) || 0;
+        const spent = parseFloat(document.getElementById('onboarding-expense-amount').value) || 0;
+        const savingsRate = income > 0 ? Math.round(((income - spent) / income) * 100) : 0;
+
+        document.getElementById('insight-income').innerText = income.toLocaleString();
+        document.getElementById('insight-spent').innerText = spent.toLocaleString();
+        document.getElementById('insight-savings-rate').innerText = savingsRate;
+    }
+
+    function updateStoryScreen() {
+        const income = parseFloat(document.getElementById('onboarding-income-amount').value) || 0;
+        const spent = parseFloat(document.getElementById('onboarding-expense-amount').value) || 0;
+        const remaining = income - spent;
+        const topCategory = document.getElementById('onboarding-expense-category').value;
+
+        document.getElementById('story-income').innerText = income.toLocaleString();
+        document.getElementById('story-spent').innerText = spent.toLocaleString();
+        document.getElementById('story-remaining').innerText = remaining.toLocaleString();
+        document.getElementById('story-top-category').innerText = topCategory;
+    }
+
     function showStep(stepNum) {
         document.querySelectorAll('.onboarding-step').forEach(el => el.classList.add('d-none'));
-        document.getElementById('step-' + stepNum).classList.remove('d-none');
+        const stepEl = document.getElementById('step-' + stepNum);
+        if (stepEl) stepEl.classList.remove('d-none');
         
-        // Update Progress
-        document.getElementById('onboarding-progress').style.width = (stepNum * 25) + '%';
-        
-        // Update Indicators
-        const indicators = document.querySelectorAll('.step-indicator');
-        indicators.forEach((el, idx) => {
-            if (idx < stepNum) el.style.opacity = 1;
-            else el.style.opacity = 0.2;
-        });
+        // Update Progress UI
+        if (typeof stepNum === 'number') {
+            const progress = (stepNum / 4) * 100;
+            document.getElementById('onboarding-progress').style.width = Math.min(progress, 100) + '%';
+            document.getElementById('step-text').innerText = `Step ${stepNum} of 4`;
+            
+            // Hide progress header on final step
+            if (stepNum > 4) {
+                document.querySelector('.progress-bar').parentElement.parentElement.classList.add('d-none');
+            }
+        } else if (stepNum === '2-5') {
+            // Keep at step 2 progress
+            document.getElementById('onboarding-progress').style.width = '50%';
+        }
     }
 
     async function skipOnboarding() {
@@ -293,7 +413,10 @@
 
 <style>
     body {
-        background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.05) 0%, rgba(var(--bs-secondary-rgb), 0.05) 100%);
+        background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.08) 0%, rgba(var(--bs-secondary-rgb), 0.08) 100%);
+    }
+    .bg-primary-soft {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
     }
     .hover-scale:hover {
         transform: scale(1.02);
