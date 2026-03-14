@@ -373,9 +373,14 @@
                         {{ user.username|slice:":2"|upper }}
                     {% endif %}
                 </div>
-                <div class="overflow-hidden">
+                <div class="overflow-hidden flex-grow-1">
                     <h6 class="mb-0 fw-bold text-truncate">{{ user.get_full_name|default:user.username }}</h6>
                     <small class="text-muted text-truncate d-block">{{ user.email }}</small>
+                </div>
+                <div class="ms-auto">
+                    <span class="badge rounded-pill {% if user.profile.active_tier == 'PRO' %}bg-success{% elif user.profile.active_tier == 'PLUS' %}bg-primary{% else %}bg-secondary{% endif %} bg-opacity-10 {% if user.profile.active_tier == 'PRO' %}text-success border-success{% elif user.profile.active_tier == 'PLUS' %}text-primary border-primary{% else %}text-secondary border-secondary{% endif %} border px-2 py-1 fw-bold" style="font-size: 0.65rem;">
+                        {{ user.profile.active_tier_display|upper }}
+                    </span>
                 </div>
             </div>
         </div>
