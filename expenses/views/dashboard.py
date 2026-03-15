@@ -332,9 +332,13 @@ def home_view(request):
                 prev_month = sel_month - 1
                 prev_year = sel_year
 
-            prev_expenses = Expense.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+            # Split previous expenses into Operating and Investments for consistency
+            prev_expenses_all = Expense.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month)
+            prev_expenses_op = prev_expenses_all.exclude(category__in=investment_categories).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+            prev_investments = prev_expenses_all.filter(category__in=investment_categories).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+
             prev_income = Income.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-            prev_savings = prev_income - prev_expenses
+            prev_savings = prev_income - prev_expenses_op
 
             def calc_pct(current, previous):
                 if previous == 0:
@@ -343,14 +347,19 @@ def home_view(request):
 
             prev_month_data = {
                 'income': prev_income,
-                'expense': prev_expenses,
+                'expense': prev_expenses_op,
+                'investments': prev_investments,
                 'savings': prev_savings,
                 'income_pct': calc_pct(total_income, prev_income),
-                'expense_pct': calc_pct(total_expenses, prev_expenses),
+                'expense_pct': calc_pct(total_expenses, prev_expenses_op),
+                'investments_pct': calc_pct(total_investments, prev_investments),
                 'savings_pct': calc_pct(savings, prev_savings),
-                'savings_rate': (prev_savings / prev_income * 100) if prev_income > 0 else 0
+                'savings_rate': (prev_savings / prev_income * 100) if prev_income > 0 else 0,
+                'income_diff_amount': total_income - prev_income,
+                'expense_diff_amount': total_expenses - prev_expenses_op,
+                'investments_diff_amount': total_investments - prev_investments,
             }
-            # Add absolute values for template display
+            # Add absolute versions for percentages for template display
             for key in list(prev_month_data.keys()):
                 val = prev_month_data[key]
                 if val is not None and key.endswith('_pct'):

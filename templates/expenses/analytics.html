@@ -478,6 +478,13 @@
         Chart.defaults.color = isDark ? '#adb5bd' : '#6c757d';
         const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
 
+        const compactAmount = (val) => {
+            if (val >= 10000000) return (val / 10000000).toFixed(1) + 'Cr';
+            if (val >= 100000) return (val / 100000).toFixed(1) + 'L';
+            if (val >= 1000) return (val / 1000).toFixed(1) + 'k';
+            return val;
+        };
+
 
         // --- Custom Plugin to Draw Values on Charts ---
         const drawValuesPlugin = {
@@ -520,61 +527,125 @@
                 });
                 ctx.restore();
             }
-        };
-
-        // 1. Balance Chart (Line/Bar Combo)
+        };        // 1. Balance Chart (Triple Line)
         const ctxBalance = document.getElementById('balanceChart').getContext('2d');
+        
+        // Define gradients for premium look
+        const gradientInc = ctxBalance.createLinearGradient(0, 0, 0, 400);
+        gradientInc.addColorStop(0, 'rgba(0, 114, 255, 0.4)');
+        gradientInc.addColorStop(1, 'rgba(0, 114, 255, 0.0)');
+
+        const gradientExp = ctxBalance.createLinearGradient(0, 0, 0, 400);
+        gradientExp.addColorStop(0, 'rgba(124, 58, 237, 0.4)');
+        gradientExp.addColorStop(1, 'rgba(124, 58, 237, 0.0)');
+
         new Chart(ctxBalance, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: labels,
                 datasets: [
                     {
                         label: '{% trans "Income" %}',
                         data: incomeData,
-                        backgroundColor: 'rgba(0, 114, 255, 0.8)',
                         borderColor: '#0072ff',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                        order: 2,
-                        barPercentage: 0.8,
-                        categoryPercentage: 0.9
+                        backgroundColor: gradientInc,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y'
                     },
                     {
                         label: '{% trans "Expense" %}',
                         data: expenseData,
-                        backgroundColor: 'rgba(167, 139, 250, 0.8)',
                         borderColor: '#7c3aed',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                        order: 3,
-                        barPercentage: 0.8,
-                        categoryPercentage: 0.9
+                        backgroundColor: gradientExp,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y'
                     },
                     {
-                        type: 'line',
-                        label: '{% trans "Net Balance" %}',
-                        data: incomeData.map((inc, i) => inc - expenseData[i]),
+                        label: '{% trans "Savings Rate (%)" %}',
+                        data: rateData,
                         borderColor: '#38f9d7',
-                        borderWidth: 2,
+                        borderWidth: 3,
+                        borderDash: [5, 5],
+                        pointRadius: 4,
+                        pointBackgroundColor: '#38f9d7',
                         tension: 0.4,
-                        pointRadius: 3,
                         fill: false,
-                        order: 1
+                        yAxisID: 'y1'
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { mode: 'index', intersect: false }
+                    legend: { 
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                        titleColor: isDark ? '#f8f9fa' : '#1e293b',
+                        bodyColor: isDark ? '#CBD5E1' : '#475569',
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        boxPadding: 6,
+                        usePointStyle: true,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.datasetIndex === 2) {
+                                    label += translateDigits(context.parsed.y) + '%';
+                                } else {
+                                    label += '{{ user.profile.currency }}' + translateDigits(context.parsed.y.toLocaleString());
+                                }
+                                return label;
+                            }
+                        }
+                    }
                 },
                 scales: {
                     y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
                         beginAtZero: true,
-                         grid: { color: gridColor }
+                        grid: { color: gridColor },
+                        ticks: {
+                            callback: function(value) {
+                                return '{{ user.profile.currency }}' + translateDigits(compactAmount(value));
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { drawOnChartArea: false },
+                        ticks: {
+                            callback: function(value) {
+                                return translateDigits(value) + '%';
+                            }
+                        }
                     },
                     x: {
                          grid: { display: false }
@@ -582,6 +653,7 @@
                 }
             }
         });
+;
 
         // 2. Spending Donut
         const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
