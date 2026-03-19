@@ -16,10 +16,7 @@
     ────────────────────────────────────────────────────── */
 
     /* Unified card header title size */
-    #full-report-view .card-header .fw-bold,
-    #full-report-view .card-header h6 {
-        font-size: 0.85rem;
-    }
+    /* Unified card header title size - Standardized to use default body size */
 
     .icon-shape {
         display: inline-flex;
@@ -295,9 +292,6 @@
         white-space: nowrap;
     }
 
-    /* Over-budget urgency */
-    .daily-over-budget-card {
-    }
     @keyframes dailyOverPulse {
         0%, 100% { box-shadow: 0 0 0 0 rgba(var(--bs-danger-rgb), 0.4); }
         50% { box-shadow: 0 0 0 8px rgba(var(--bs-danger-rgb), 0); }
@@ -510,13 +504,13 @@
             <div class="accordion-body p-3 p-md-4">
             {% if has_any_budget or total_income > 0 %}
             <div class="card shadow-lg border-0 mb-4 fade-in" id="tour-money-flow-card" style="animation-delay: 0.2s;">
-                <div class="card-header bg-transparent border-bottom py-2 px-4">
-                    <h6 class="mb-0 fw-bold text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px; font-size: 0.9rem;">
+                <div class="card-header bg-transparent border-bottom py-2 px-4 fw-bold">
+                    <div class="text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px; font-size: 0.9rem;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-primary flex-shrink-0">
                             <path d="M21.21 15.89A10 10 0 1 1 8 2.83" class="anim-pie" fill="currentColor" fill-opacity="0.3"/>
                             <path d="M22 12A10 10 0 0 0 12 2v10z"/>
                         </svg> {% trans "Where Did My Salary Go?" %}
-                    </h6>
+                    </div>
                 </div>
                 <div class="card-body p-3 p-md-4">
                     {% if category_data or hero_metrics.saved > 0 %}
@@ -568,13 +562,13 @@
                 <!-- SMART INSIGHTS (Layer 3) -->
                 <div class="col-12 col-md-6">
                     <div class="card shadow-lg border-0 h-100 fade-in" id="tour-smart-insights-card" style="animation-delay: 0.3s;">
-                        <div class="card-header bg-transparent border-bottom py-3">
-                            <h6 class="mb-0 fw-bold text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px;">
+                        <div class="card-header bg-transparent border-bottom py-3 fw-bold">
+                            <div class="text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-primary flex-shrink-0">
                                     <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" class="anim-trend"/>
                                     <polyline points="16 7 22 7 22 13" class="anim-trend"/>
                                 </svg> {% trans "Money Flow Analysis" %}
-                            </h6>
+                            </div>
                         </div>
                         <div class="card-body p-4">
                             {% if smart_insights or salary_breakdown.viral_insight or salary_breakdown.relatable_metric %}
@@ -632,13 +626,13 @@
                 <!-- ACTIONABLE ALERTS (Layer 4) -->
                 <div class="col-12 col-md-6">
                     <div class="card shadow-lg border-0 h-100 fade-in" id="tour-actionable-alerts-card" style="animation-delay: 0.4s;">
-                        <div class="card-header bg-transparent border-bottom py-3">
-                            <h6 class="mb-0 fw-bold text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px;">
+                        <div class="card-header bg-transparent border-bottom py-3 fw-bold">
+                            <div class="text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-danger animate-pulse-light flex-shrink-0">
                                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                                 </svg> {% trans "Actionable Alerts" %}
-                            </h6>
+                            </div>
                         </div>
                         <div class="card-body p-4">
                             {% if actionable_alerts %}
@@ -916,21 +910,21 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-12 col-lg-6">
         <div class="card shadow-lg border-0 rounded-4 overflow-hidden h-100">
             <!-- Header: Month + Health Badge -->
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center px-4 py-3">
-                <h6 class="mb-0 fw-bold text-muted d-inline-flex align-items-center" style="line-height: 1;">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center px-4 py-3 fw-bold">
+                <div class="d-inline-flex align-items-center" style="line-height: 1;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted flex-shrink-0" style="vertical-align: middle;">
                         <rect x="2" y="6" width="20" height="12" rx="2" opacity="0.2"/>
                         <rect x="2" y="6" width="20" height="12" rx="2"/>
                         <path d="M22 10H18a2 2 0 0 0 0 4h4"/>
                         <circle cx="18" cy="12" r="1" fill="currentColor" class="anim-wallet-coin"/>
                     </svg>
-                    Total Net Worth - 
+                    {% trans "Total Net Worth" %} – 
                     {% if selected_month and selected_year %}
                         {{ selected_month }} {{ selected_year|translate_digits }}
                     {% else %}
                         {% trans "Dashboard" %}
                     {% endif %}
-                </h6>
+                </div>
                 <div class="d-flex align-items-center gap-2">
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.8rem;">
@@ -1035,13 +1029,13 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Financial Health Card -->
     <div class="col-12 col-lg-6">
         <div class="card shadow-lg border-0 rounded-4 h-100 overflow-hidden transition-all">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center px-4">
-                <h6 class="mb-0 fw-bold text-muted d-inline-flex align-items-center" style="line-height: 1;">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center px-4 fw-bold">
+                <div class="d-inline-flex align-items-center" style="line-height: 1;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted flex-shrink-0" style="vertical-align: middle;">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2" class="anim-heartbeat"/>
                     </svg>
                     {% trans "Financial Health" %} – {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
-                </h6>
+                </div>
                 {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
                     {% if hero_metrics.status == 'excellent' %}
                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 border border-success border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-star-fill me-1"></i> {% trans "Excellent" %}</span>
@@ -1170,15 +1164,15 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Spending Pace Card -->
     <div class="col-12 col-lg-4">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold d-inline-flex align-items-center">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold">
+                <div class="d-inline-flex align-items-center">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
                         <path d="M12 2a10 10 0 0 1 10 10"/>
                         <circle cx="12" cy="12" r="10" opacity="0.2"/>
                         <path d="M12 12l3-3" class="anim-speedometer"/>
                     </svg>
                     {% trans "Spending Pace" %}
-                </span>
+                </div>
                 {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
                     {% if salary_breakdown.spending_pace.status == 'on_track' %}
                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small border border-success border-opacity-10">{% trans "On Track" %}</span>
@@ -1287,15 +1281,15 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Income vs Expenses Breakdown Card -->
     <div class="col-12 col-lg-4">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold d-inline-flex align-items-center">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold">
+                <div class="d-inline-flex align-items-center">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
                         <rect x="2" y="3" width="20" height="14" rx="2" ry="2" opacity="0.2"/>
                         <line x1="7" y1="21" x2="17" y2="21"/>
                         <line x1="12" y1="17" x2="12" y2="21"/>
                     </svg>
                     {% trans "Asset Allocation" %}
-                </span>
+                </div>
             </div>
             {% if asset_allocation %}
             <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
@@ -1355,8 +1349,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- NEW: Smart Insights Card -->
     <div class="col-lg-4">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                 <span class="fw-bold d-inline-flex align-items-center">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold">
+                 <div class="d-inline-flex align-items-center">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
                         <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/>
                         <path d="M9 18h6"/>
@@ -1364,8 +1358,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <path d="M12 2v2" class="anim-twinkle" fill="currentColor"/>
                         <path d="M12 6v2" class="anim-twinkle" fill="currentColor"/>
                     </svg> 
-                    {% trans "Smart Insights" %} - {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
-                 </span>
+                    {% trans "Smart Insights" %} – {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
+                 </div>
             </div>
             <div class="card-body p-4 d-flex flex-column justify-content-center">
                 {% if smart_bullet_insights %}
@@ -1406,7 +1400,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-md-6">
         <div class="card shadow-lg border-0 h-100 rounded-4">
             <div class="card-header bg-transparent border-bottom fw-bold d-flex justify-content-between">
-                <span class="d-inline-flex align-items-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><polyline points="4 18 8 12 14 16 20 6" class="anim-trend"/></svg> {{ trend_title }}</span>
+                <div class="d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><polyline points="4 18 8 12 14 16 20 6" class="anim-trend"/></svg> 
+                    {{ trend_title }}
+                </div>
             </div>
             <div class="card-body">
                 {% if trend_labels %}
@@ -1431,8 +1428,11 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Category Summary List -->
     <div class="col-md-6">
         <div class="card shadow-lg border-0 h-100 rounded-4">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold mb-0 d-inline-flex align-items-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" class="anim-tag"/><line x1="7" y1="7" x2="7.01" y2="7" class="anim-tag"/></svg> {% trans "Top Categories" %}</span>
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold">
+                <div class="mb-0 d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-1 text-muted flex-shrink-0"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" class="anim-tag"/><line x1="7" y1="7" x2="7.01" y2="7" class="anim-tag"/></svg> 
+                    {% trans "Top Categories" %}
+                </div>
                 <a href="{% url 'category-list' %}" class="btn btn-sm text-decoration-none opacity-25"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body p-0">
@@ -1504,8 +1504,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-md-6">
         <div class="card shadow-lg border-0 h-100 rounded-4">
             <div class="card-header bg-transparent border-bottom fw-bold d-flex align-items-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><circle cx="12" cy="12" r="10" class="anim-donut" stroke-dasharray="15 8 8 8"/></svg>
-                {% trans "Category Distribution" %}
+                <div class="d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-1 text-muted flex-shrink-0"><circle cx="12" cy="12" r="10" class="anim-donut" stroke-dasharray="15 8 8 8"/></svg>
+                    {% trans "Category Distribution" %}
+                </div>
             </div>
             <div class="card-body">
                 {% if categories %}
@@ -1530,8 +1532,11 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Recent Transactions Table -->
     <div class="col-md-6">
         <div class="card shadow-lg border-0 h-100 rounded-4">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold d-inline-flex align-items-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14" class="anim-clk"/></svg> {% trans "Recent Activity" %}</span>
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold">
+                <div class="d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-1 text-muted flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14" class="anim-clk"/></svg> 
+                    {% trans "Recent Activity" %}
+                </div>
                 <a href="{% url 'expense-list' %}" class="btn btn-sm text-decoration-none opacity-25" title="{% trans 'View All' %}"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body p-0">
@@ -1607,13 +1612,13 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Upcoming Recurring Transactions Card -->
     <div class="col-lg-6" id="tour-recurring-card">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold d-inline-flex align-items-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold">
+                <div class="d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-1 text-muted flex-shrink-0">
                         <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" class="anim-rotate"/>
                     </svg> 
                     {% trans "Recurring Commitments" %}
-                </span>
+                </div>
                 <a href="{% url 'recurring-list' %}" class="btn btn-sm text-decoration-none opacity-25"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body bg-transparent p-0 d-flex flex-column h-100">
@@ -1640,7 +1645,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-10">
                         <div>
-                            <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.75rem; letter-spacing: 0.5px;">{% trans "Recurring Net Commitment" %}</span>
+                            <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.85rem; letter-spacing: 0.3px;">{% trans "Recurring Net Commitment" %}</span>
                             <small class="text-muted opacity-50" style="font-size: 0.75rem;">{% trans "Based on recurring transactions" %}</small>
                         </div>
                         <div class="text-end">
@@ -1663,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- 2. Simplified Item List -->
                 {% if recurring_groups.INCOME.items or recurring_groups.EXPENSE.items or recurring_groups.INVESTMENT.items or recurring_groups.TRANSFER.items %}
                     <div class="px-3 py-2 bg-transparent bg-opacity-10 border-bottom">
-                        <small class="text-muted bg-transparent fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">
+                        <small class="text-muted bg-transparent fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                             {% trans "Recurring Items" %}
                         </small>
                     </div>
@@ -1674,7 +1679,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <a href="{% url 'recurring-edit' item.id %}" class="list-group-item list-group-item-action bg-transparent border-0 d-flex align-items-center py-2 px-3 hover-bg-light transition-all text-decoration-none text-inherit">
                                     <div class="d-flex flex-column flex-grow-1 min-w-0">
                                         <h6 class="mb-0 text-truncate fw-bold text-inherit" style="font-size: 0.85rem;">{{ item.description }}</h6>
-                                        <small class="text-muted opacity-75" style="font-size: 0.75rem; font-weight: 400;">
+                                        <small class="text-muted opacity-75" style="font-size: 0.85rem; font-weight: 400;">
                                             {{ item.date|date:"d M"|translate_digits }} · {% if item.type == 'TRANSFER' %}{{ item.from_account }} → {{ item.to_account }}{% else %}{{ item.category }}{% endif %}
                                         </small>
                                     </div>
@@ -1750,14 +1755,14 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-12">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
             <div class="card-header bg-transparent border-bottom fw-bold d-flex justify-content-between align-items-center">
-                <span class="d-inline-flex align-items-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0">
+                <div class="d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-1 text-muted flex-shrink-0">
                         <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M18.5 9.5l-3 3-2.5-4.5-3 6.5-4-4" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M19 12v7" stroke-dasharray="2 2" stroke-linecap="round"/>
                     </svg>
                     {% trans "Expense Projection" %}
-                </span>
+                </div>
                 <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 small border border-info border-opacity-10 d-inline-flex align-items-center" style="font-size: 0.7rem;">
                     <i class="bi bi-info-circle me-1"></i> {% trans "Based on last 6 months" %}
                 </span>

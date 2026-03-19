@@ -126,6 +126,9 @@ body {
   /* Override Bootstrap primary (default blue → Forest Green) */
   --bs-primary: #2d6a4f;
   --bs-primary-rgb: 45, 106, 79;
+  --bs-primary-bg-subtle: rgba(45, 106, 79, 0.1);
+  --bs-primary-border-subtle: rgba(45, 106, 79, 0.2);
+  --bs-primary-text-emphasis: #1e4d38;
 
   /* Override Bootstrap danger (default red → Warm Red) */
   --bs-danger: #c0392b;
@@ -405,6 +408,23 @@ a:hover {
 }
 .text-warning {
   color: var(--color-warning) !important;
+}
+ 
+/* Override Bootstrap Dropdown Active State */
+.dropdown-item.active, 
+.dropdown-item:active {
+    background-color: var(--bs-primary) !important;
+    color: #fff !important;
+}
+
+.dropdown-item:focus{
+    background-color: var(--bs-primary-bg-subtle);
+    color: #fff !important;
+}
+
+.dropdown-item:hover {
+    background-color: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary-text-emphasis);
 }
 
 /* Accent Text Utility */

@@ -3,78 +3,75 @@
 
 {% block content %}
 <div class="row justify-content-center fade-in">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm border-0 border-top border-primary border-4 mt-4">
-            <div class="card-header bg-transparent border-0 pt-4 px-4 text-center">
-                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-arrow-left-right fs-2"></i>
+    <div class="col-md-6 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-header fw-bold py-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h4 class="card-title mb-0 h5">
+                        <i class="bi bi-arrow-left-right me-2"></i>{% if form.instance.pk %}{% trans "Edit Transfer" %}{% else %}{% trans "Internal Transfer" %}{% endif %}
+                    </h4>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal">
+                        <i class="bi bi-plus-lg me-1"></i>{% trans "Add New Account" %}
+                    </button>
                 </div>
-                <h2 class="h4 fw-bold mb-0">{% trans "Internal Transfer" %}</h2>
-                <p class="text-muted mb-2">{% trans "Move money between your accounts" %}</p>
-                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal">
-                    <i class="bi bi-plus-lg me-1"></i>{% trans "Add New Account" %}
-                </button>
             </div>
             <div class="card-body p-4">
                 <form method="post">
                     {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Date" %}</label>
-                        {{ form.date }}
-                        {% if form.date.errors %}
-                            <div class="text-danger small mt-1">{{ form.date.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Amount" %}</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-currency-exchange"></i></span>
-                            {{ form.amount }}
-                        </div>
-                        {% if form.amount.errors %}
-                            <div class="text-danger small mt-1">{{ form.amount.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "From Account" %}</label>
-                            {{ form.from_account }}
-                            {% if form.from_account.errors %}
-                                <div class="text-danger small mt-1">{{ form.from_account.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "To Account" %}</label>
-                            {{ form.to_account }}
-                            {% if form.to_account.errors %}
-                                <div class="text-danger small mt-1">{{ form.to_account.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Description (Optional)" %}</label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                            <div class="text-danger small mt-1">{{ form.description.errors }}</div>
-                        {% endif %}
-                    </div>
-
                     {% if form.non_field_errors %}
-                        <div class="alert alert-danger mb-4">
+                        <div class="alert alert-danger mb-3">
                             {{ form.non_field_errors }}
                         </div>
                     {% endif %}
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{% url 'home' %}" class="btn btn-outline-secondary px-4 py-2">
-                            {% trans "Cancel" %}
-                        </a>
-                        <button type="submit" class="btn btn-primary fw-bold px-4 py-2">
-                            <i class="bi bi-arrow-left-right me-2"></i>{% trans "Execute Transfer" %}
+                    <div class="row g-3">
+                        <!-- Row 1: Amount and Date -->
+                        <div class="col-6 mb-3">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.amount.label }}</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}
+                                <div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label for="{{ form.date.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.date.label }}</label>
+                            {{ form.date }}
+                            {% if form.date.errors %}
+                                <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Row 2: From Account and To Account -->
+                        <div class="col-6 mb-3">
+                            <label for="{{ form.from_account.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.from_account.label }}</label>
+                            {{ form.from_account }}
+                            {% if form.from_account.errors %}
+                                <div class="text-danger small mt-1">{{ form.from_account.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label for="{{ form.to_account.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.to_account.label }}</label>
+                            {{ form.to_account }}
+                            {% if form.to_account.errors %}
+                                <div class="text-danger small mt-1">{{ form.to_account.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Row 3: Description -->
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-arrow-left-right me-1"></i> {% trans "Execute Transfer" %}
                         </button>
                     </div>
                 </form>

@@ -164,8 +164,8 @@
 
     <!-- Today's Transactions -->
     <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in" style="animation-delay: 0.2s;">
-        <div class="card-header bg-body-primary border-bottom d-flex justify-content-between align-items-center px-4 py-3">
-            <h6 class="fw-bold mb-0">{% trans "Today" %}</h6>
+        <div class="card-header bg-body-primary border-bottom d-flex justify-content-between align-items-center px-4 py-3 fw-bold">
+            <div class="mb-0">{% trans "Today" %}</div>
             {% if daily_mode.transaction_count > 0 %}
             <a href="{% url 'expense-list' %}?start_date={{ daily_mode.today|date:'Y-m-d' }}&end_date={{ daily_mode.today|date:'Y-m-d' }}" class="text-muted" style="font-size: 1.2rem;" title="{% trans 'View all' %}">
                 <i class="bi bi-arrow-right"></i>
