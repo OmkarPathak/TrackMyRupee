@@ -1358,6 +1358,114 @@ def home_view(request):
         'proj_historical': proj_historical,
         'proj_forecast': proj_forecast,
     }
+
+    # --- DAILY MODE DATA ---
+    today = date.today()
+    today_expenses = Expense.objects.filter(user=request.user, date=today).order_by('-created_at')
+    today_spent = today_expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+
+    # Daily budget allowance: total_monthly_budget / days_in_month
+    days_in_current_month = calendar.monthrange(today.year, today.month)[1]
+    daily_budget_allowed = Decimal(str(total_monthly_budget)) / days_in_current_month if total_monthly_budget > 0 else Decimal('0.00')
+    daily_left = daily_budget_allowed - today_spent
+    daily_used_pct = round(float(today_spent) / float(daily_budget_allowed) * 100, 1) if daily_budget_allowed > 0 else 0
+
+    # Budget status for today
+    if daily_budget_allowed > 0:
+        if today_spent <= daily_budget_allowed * Decimal('0.8'):
+            daily_budget_status = 'within'
+        elif today_spent <= daily_budget_allowed:
+            daily_budget_status = 'near'
+        else:
+            daily_budget_status = 'over'
+    else:
+        daily_budget_status = 'no_budget'
+
+    # Today's top spending category
+    today_cat_data = today_expenses.values('category').annotate(
+        total=Sum('base_amount')
+    ).order_by('-total')
+
+    daily_top_category = None
+    daily_top_category_pct = 0
+    if today_cat_data.exists() and float(today_spent) > 0:
+        top_cat_today = today_cat_data[0]
+        daily_top_category = top_cat_today['category']
+        daily_top_category_pct = round(float(top_cat_today['total']) / float(today_spent) * 100)
+
+    # Safe to spend today (remaining budget for the rest of the month / remaining days)
+    month_spent_so_far = Expense.objects.filter(
+        user=request.user, date__year=today.year, date__month=today.month
+    ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+    remaining_month_budget = Decimal(str(total_monthly_budget)) - month_spent_so_far
+    remaining_days = max(1, days_in_current_month - today.day + 1)
+    safe_to_spend = max(Decimal('0.00'), remaining_month_budget / remaining_days)
+
+    # Enrich today_expenses with category icons
+    today_expenses_list = []
+    for exp in today_expenses:
+        cat_obj = user_categories.get(exp.category.strip()) if exp.category else None
+        today_expenses_list.append({
+            'id': exp.id,
+            'description': exp.description,
+            'category': exp.category,
+            'amount': exp.base_amount,
+            'icon': cat_obj.icon if cat_obj else 'bi-tag',
+            'payment_method': exp.payment_method,
+            'date': exp.date,
+        })
+
+    # Daily insight
+    daily_insight = None
+    if daily_top_category and daily_top_category_pct >= 50:
+        daily_insight = {
+            'type': 'warning',
+            'message': _("You spent %(pct)s%% on %(category)s today") % {
+                'pct': daily_top_category_pct,
+                'category': daily_top_category,
+            },
+            'tip': _("Try to limit %(category)s spending") % {'category': daily_top_category.lower()},
+        }
+    elif daily_budget_status == 'over':
+        daily_insight = {
+            'type': 'danger',
+            'message': _("You've exceeded today's budget"),
+            'tip': _("Consider postponing non-essential purchases"),
+        }
+    elif daily_budget_status == 'within' and float(today_spent) > 0:
+        daily_insight = {
+            'type': 'success',
+            'message': _("You're within budget today"),
+            'tip': _("Great financial discipline! Keep it up"),
+        }
+
+    # Only show "safe to spend" when it's meaningful:
+    # - Must have budget
+    # - Must have remaining monthly budget (safe_to_spend > 0)
+    # - Should NOT show if user is already over their daily limit (contradictory)
+    show_safe_to_spend = (
+        total_monthly_budget > 0
+        and safe_to_spend > 0
+        and daily_budget_status != 'over'
+    )
+
+    context['daily_mode'] = {
+        'today': today,
+        'today_expenses': today_expenses_list,
+        'today_spent': today_spent,
+        'daily_budget_allowed': round(daily_budget_allowed, 0),
+        'daily_left': round(daily_left, 0),  # can be negative when over budget
+        'daily_used_pct': min(daily_used_pct, 100),
+        'daily_budget_status': daily_budget_status,
+        'daily_top_category': daily_top_category,
+        'daily_top_category_pct': daily_top_category_pct,
+        'safe_to_spend': round(safe_to_spend, 0),
+        'show_safe_to_spend': show_safe_to_spend,
+        'daily_insight': daily_insight,
+        'has_budget': total_monthly_budget > 0,
+        'transaction_count': today_expenses.count(),
+    }
+
     return render(request, 'home.html', context)
 
 @login_required

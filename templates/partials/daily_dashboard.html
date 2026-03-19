@@ -1,0 +1,198 @@
+{% load currency_filters i18n digit_filters humanize %}
+
+<div id="daily-mode-view" class="daily-mode-container" style="display: none;">
+
+    <!-- Budget Status Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in">
+        {% if daily_mode.has_budget %}
+            {% if daily_mode.daily_budget_status == 'within' %}
+            <div class="card-body p-4 bg-body-primary">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-success bg-opacity-10" style="width: 36px; height: 36px;">
+                        <i class="bi bi-hand-thumbs-up-fill text-success" style="font-size: 1.1rem;"></i>
+                    </div>
+                    <h5 class="mb-0 fw-bold text-success">{% trans "You're within budget" %}</h5>
+                </div>
+            {% elif daily_mode.daily_budget_status == 'near' %}
+            <div class="card-body p-4 bg-body-primary">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-warning bg-opacity-10" style="width: 36px; height: 36px;">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.1rem; color: #e07b39;"></i>
+                    </div>
+                    <h5 class="mb-0 fw-bold" style="color: #e07b39;">{% trans "Approaching daily limit" %}</h5>
+                </div>
+            {% elif daily_mode.daily_budget_status == 'over' %}
+            <div class="card-body p-4 bg-body-primary">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-danger bg-opacity-10" style="width: 36px; height: 36px;">
+                        <i class="bi bi-exclamation-octagon-fill text-danger" style="font-size: 1.1rem;"></i>
+                    </div>
+                    <h5 class="mb-0 fw-bold text-danger">{% trans "Over budget today" %}</h5>
+                </div>
+            {% else %}
+            <div class="card-body p-4 bg-body-primary">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-primary bg-opacity-10" style="width: 36px; height: 36px;">
+                        <i class="bi bi-bar-chart-fill text-primary" style="font-size: 1.1rem;"></i>
+                    </div>
+                    <h5 class="mb-0 fw-bold text-body">{% trans "Daily Overview" %}</h5>
+                </div>
+            {% endif %}
+
+                <!-- Daily Budget Allowed -->
+                <div class="d-flex justify-content-between align-items-baseline py-2 border-bottom" style="border-color: rgba(0,0,0,0.06) !important;">
+                    <span class="text-body-secondary" style="font-size: 0.9rem;">
+                        <span class="fw-bold text-body-emphasis" style="font-size: 1.75rem;">{{ currency_symbol }}{{ daily_mode.daily_budget_allowed|humanize_currency:currency_symbol|translate_digits }}</span>
+                        <span class="text-muted">/{% trans "day allowed" %}</span>
+                    </span>
+                </div>
+
+                <!-- Spent Today -->
+                <div class="d-flex justify-content-between align-items-baseline py-2 border-bottom" style="border-color: rgba(0,0,0,0.06) !important;">
+                    <div>
+                        <span class="fw-bold text-body-emphasis" style="font-size: 1.25rem;">{{ currency_symbol }}{{ daily_mode.today_spent|humanize_currency:currency_symbol|translate_digits }}</span>
+                        <span class="text-muted ms-1" style="font-size: 0.85rem;">{% trans "spent today" %}</span>
+                    </div>
+                </div>
+
+                <!-- Left Today -->
+                <div class="d-flex justify-content-between align-items-baseline py-2 mb-3">
+                    <div>
+                        {% if daily_mode.daily_budget_status == 'over' %}
+                            <span class="fw-bold text-danger" style="font-size: 1.25rem;">{{ currency_symbol }}{{ daily_mode.daily_left|floatformat:0|cut:"-"|humanize_currency:currency_symbol|translate_digits }}</span>
+                            <span class="text-danger ms-1" style="font-size: 0.85rem;">{% trans "over today" %}</span>
+                        {% else %}
+                            <span class="fw-bold text-success" style="font-size: 1.25rem;">{{ currency_symbol }}{{ daily_mode.daily_left|humanize_currency:currency_symbol|translate_digits }}</span>
+                            <span class="text-muted ms-1" style="font-size: 0.85rem;">{% trans "left today" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="position-relative mb-2" style="height: 12px;">
+                    <div class="rounded-pill w-100 h-100" style="background: var(--bs-primary-bg);"></div>
+                    <div class="position-absolute top-0 start-0 rounded-pill h-100 {% if daily_mode.daily_used_pct > 90 %}bg-danger{% elif daily_mode.daily_used_pct > 70 %}bg-warning{% else %}bg-success{% endif %}"
+                        style="width: {{ daily_mode.daily_used_pct }}%; transition: width 1.5s ease-in-out; z-index: 1;">
+                        {% if daily_mode.daily_used_pct > 30 %}
+                        <div class="d-flex align-items-center justify-content-end h-100 pe-2" style="min-width: fit-content;">
+                            <span style="font-size: 0.5rem; color: rgba(255,255,255,0.9);"></span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-end">
+                    <small class="fw-bold {% if daily_mode.daily_used_pct > 90 %}text-danger{% elif daily_mode.daily_used_pct > 70 %}{% else %}text-success{% endif %}" style="font-size: 0.8rem;{% if daily_mode.daily_used_pct > 70 and daily_mode.daily_used_pct <= 90 %} color: #e07b39;{% endif %}">
+                        {{ daily_mode.daily_used_pct|floatformat:0|translate_digits }}% {% trans "used" %}
+                    </small>
+                </div>
+            </div>
+        {% else %}
+            <!-- No Budget Set -->
+            <div class="card-body p-4 bg-body-primary text-center">
+                <div class="mb-3">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10" style="width: 48px; height: 48px;">
+                        <i class="bi bi-clipboard-data text-primary" style="font-size: 1.4rem;"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-2">{% trans "No budget set" %}</h5>
+                <p class="text-muted small mb-3">{% trans "Set a monthly budget to see daily allowances and spending pace." %}</p>
+                <a href="{% url 'budget' %}" class="btn btn-outline-primary btn-sm rounded-pill px-4">{% trans "Set Budget" %}</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Daily Insight Card -->
+    {% if daily_mode.daily_insight %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in" style="animation-delay: 0.1s;">
+        <div class="card-body p-3 px-4 bg-body-primary">
+            <div class="d-flex align-items-start gap-3">
+                {% if daily_mode.daily_insight.type == 'warning' %}
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-warning bg-opacity-10" style="width: 36px; height: 36px;">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 1rem; color: #e07b39;"></i>
+                    </div>
+                {% elif daily_mode.daily_insight.type == 'danger' %}
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-danger bg-opacity-10" style="width: 36px; height: 36px;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 1rem;"></i>
+                    </div>
+                {% else %}
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-success bg-opacity-10" style="width: 36px; height: 36px;">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1rem;"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h6 class="fw-bold mb-1 text-body">{{ daily_mode.daily_insight.message }}</h6>
+                    <p class="text-muted small mb-0"><i class="bi bi-arrow-right me-1"></i>{{ daily_mode.daily_insight.tip }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Today's Transactions -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in" style="animation-delay: 0.2s;">
+        <div class="card-header bg-body-primary border-bottom d-flex justify-content-between align-items-center px-4 py-3">
+            <h6 class="fw-bold mb-0">{% trans "Today" %}</h6>
+            {% if daily_mode.transaction_count > 0 %}
+            <a href="{% url 'expense-list' %}?start_date={{ daily_mode.today|date:'Y-m-d' }}&end_date={{ daily_mode.today|date:'Y-m-d' }}" class="text-muted" style="font-size: 1.2rem;" title="{% trans 'View all' %}">
+                <i class="bi bi-arrow-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body p-0">
+            {% if daily_mode.today_expenses %}
+                <div class="list-group list-group-flush">
+                    {% for exp in daily_mode.today_expenses %}
+                    <div class="list-group-item border-0 px-4 py-3 d-flex align-items-center gap-3 hover-bg-light">
+                        <!-- Category Icon -->
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" 
+                             style="width: 44px; height: 44px; background: var(--bs-primary-bg);">
+                            <i class="{{ exp.icon }} text-primary" style="font-size: 1.1rem;"></i>
+                        </div>
+                        <!-- Description & Category -->
+                        <div class="flex-grow-1 min-width-0">
+                            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.95rem;">
+                                {{ exp.description|truncatechars:30 }}
+                            </h6>
+                            <small class="text-muted">{{ exp.category }}</small>
+                        </div>
+                        <!-- Amount -->
+                        <div class="text-end flex-shrink-0">
+                            <span class="fw-bold text-body-emphasis" style="font-size: 1rem;">{{ currency_symbol }}{{ exp.amount|humanize_currency:currency_symbol|translate_digits }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="p-4 text-center">
+                    <div class="mb-2">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10" style="width: 48px; height: 48px;">
+                            <i class="bi bi-receipt text-primary opacity-50" style="font-size: 1.4rem;"></i>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-2">{% trans "No expenses recorded today" %}</p>
+                    <a href="{% url 'expense-create' %}?next={% url 'home' %}" class="btn btn-primary btn-sm rounded-pill px-3">
+                        <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Safe to Spend Tip -->
+    {% if daily_mode.show_safe_to_spend %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in" style="animation-delay: 0.3s;">
+        <div class="card-body px-4 py-3 bg-body-primary text-center">
+            <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+            <span class="text-success fw-bold ms-1">{% trans "You can still spend" %} {{ currency_symbol }}{{ daily_mode.safe_to_spend|humanize_currency:currency_symbol|translate_digits }} {% trans "safely today" %}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- View Full Report CTA -->
+    <div class="text-center mb-4 fade-in" style="animation-delay: 0.4s;">
+        <button type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold" onclick="switchToFullReport()">
+            {% trans "View Full Financial Report" %} <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+    </div>
+
+</div>

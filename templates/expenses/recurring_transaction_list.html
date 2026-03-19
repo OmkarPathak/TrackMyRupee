@@ -155,23 +155,23 @@
                 {% if active_subs %}
                     <div class="list-group shadow-sm rounded-3 border-0">
                         {% for sub in active_subs %}
-                            <div class="list-group-item list-group-item-action p-4 border-0 border-bottom d-flex justify-content-between align-items-center">
+                            <div class="list-group-item list-group-item-action px-3 py-2 border-0 border-bottom d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center">
                                     <!-- Icon with Urgency Logic -->
-                                    <div class="me-3 
+                                    <div class="me-2 
                                         {% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger
                                         {% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning
                                         {% else %}text-secondary{% endif %}">
                                         {% if sub.transaction_type == 'TRANSFER' %}
-                                            <i class="bi bi-arrow-left-right fs-3"></i>
+                                            <i class="bi bi-arrow-left-right fs-5"></i>
                                         {% else %}
-                                            <i class="bi bi-arrow-repeat fs-3"></i>
+                                            <i class="bi bi-arrow-repeat fs-5"></i>
                                         {% endif %}
                                     </div>
                                     <div>
-                                        <h5 class="mb-1 fw-bold">{{ sub.description }}</h5>
+                                        <h6 class="mb-0 fw-bold" style="font-size: 0.95rem;">{{ sub.description }}</h6>
                                         <div class="text-muted small d-flex align-items-center flex-wrap gap-2">
-                                            <span class="d-inline-flex align-items-center"><i class="bi bi-calendar-event me-1"></i>{{ sub.get_frequency_display }}</span>
+                                            <span class="d-inline-flex align-items-center">{{ sub.get_frequency_display }}</span>
                                             
                                             {% if sub.transaction_type == 'TRANSFER' %}
                                                 <span class="badge bg-info-subtle text-info rounded-pill d-inline-flex align-items-center">
@@ -202,19 +202,18 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center gap-3">
-                                    <!-- Larger Amount -->
-                                    <h4 class="fw-bold mb-0">
+                                <div class="d-flex align-items-center gap-2">
+                                    <h6 class="fw-bold mb-0 text-nowrap" style="font-size: 0.95rem;">
                                         {{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                         {% if sub.currency != user.profile.currency %}
-                                        <div class="text-muted small fw-normal text-end" style="font-size: 0.75rem;">
+                                        <div class="text-muted fw-normal text-end" style="font-size: 0.7rem;">
                                             ({{ sub.currency }}{{ sub.amount|compact_amount:sub.currency|translate_digits }})
                                         </div>
                                         {% endif %}
-                                    </h4>
+                                    </h6>
                                     <div class="dropdown">
                                         <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                                            <i class="bi bi-three-dots-vertical fs-6"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
                                             <li><a class="dropdown-item" href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}"><i class="bi bi-pencil me-2"></i>{% trans "Edit" %}</a></li>
@@ -260,13 +259,13 @@
                 {% if renewing_soon %}
                     <div class="list-group shadow-sm rounded-3 border-0">
                         {% for sub in renewing_soon %}
-                            <div class="list-group-item list-group-item-action p-4 border-0 border-bottom d-flex justify-content-between align-items-center">
+                            <div class="list-group-item list-group-item-action px-3 py-2 border-0 border-bottom d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center">
-                                    <div class="me-3 text-danger">
-                                        <i class="bi bi-exclamation-circle-fill fs-3"></i>
+                                    <div class="me-2 text-danger">
+                                        <i class="bi bi-exclamation-circle-fill fs-5"></i>
                                     </div>
                                     <div>
-                                        <h5 class="mb-1 fw-bold">{{ sub.description }}</h5>
+                                        <h6 class="mb-0 fw-bold" style="font-size: 0.95rem;">{{ sub.description }}</h6>
                                         <div class="text-muted small">
                                             <span class="badge bg-danger text-white me-2">{% trans "Renewing This Month" %}</span>
                                             <span>{{ sub.get_frequency_display }}</span>
@@ -274,15 +273,15 @@
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <h4 class="fw-bold mb-1">
+                                    <h6 class="fw-bold mb-1" style="font-size: 0.95rem;">
                                         {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
                                         {% if sub.currency != user.profile.currency %}
-                                        <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
+                                        <div class="text-muted fw-normal" style="font-size: 0.7rem;">
                                             ({{ sub.currency }}{{ sub.amount|floatformat:0|translate_digits }})
                                         </div>
                                         {% endif %}
-                                    </h4>
-                                     <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary mt-1 rounded-pill">{% trans "Manage" %}</a>
+                                    </h6>
+                                     <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary mt-1 rounded-pill" style="font-size: 0.8rem;">{% trans "Manage" %}</a>
                                 </div>
                             </div>
                         {% endfor %}
@@ -300,13 +299,13 @@
                 {% if cancelled_subs %}
                     <div class="list-group shadow-sm rounded-3 border-0 opacity-75">
                         {% for sub in cancelled_subs %}
-                            <div class="list-group-item list-group-item-action p-4 border-0 border-bottom d-flex justify-content-between align-items-center opacity-75">
+                            <div class="list-group-item list-group-item-action px-3 py-2 border-0 border-bottom d-flex justify-content-between align-items-center opacity-75">
                                 <div class="d-flex align-items-center">
-                                    <div class="me-3 text-secondary">
-                                        <i class="bi bi-x-circle fs-3"></i>
+                                    <div class="me-2 text-secondary">
+                                        <i class="bi bi-x-circle fs-5"></i>
                                     </div>
                                     <div>
-                                        <h5 class="mb-1 fw-bold text-decoration-line-through text-muted">{{ sub.description }}</h5>
+                                        <h6 class="mb-0 fw-bold text-decoration-line-through text-muted" style="font-size: 0.95rem;">{{ sub.description }}</h6>
                                         <div class="text-muted small">
                                             <span class="badge bg-secondary me-2">{% trans "Cancelled" %}</span>
                                             <span>{{ sub.get_frequency_display }}</span>
@@ -314,15 +313,15 @@
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <h5 class="fw-bold mb-1 text-muted">
+                                    <h6 class="fw-bold mb-1 text-muted" style="font-size: 0.95rem;">
                                         {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
                                         {% if sub.currency != user.profile.currency %}
-                                        <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
+                                        <div class="text-muted fw-normal" style="font-size: 0.7rem;">
                                             ({{ sub.currency }}{{ sub.amount|floatformat:0|translate_digits }})
                                         </div>
                                         {% endif %}
-                                    </h5>
-                                    <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-primary mt-1">{% trans "Reactivate" %}</a>
+                                    </h6>
+                                    <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-primary mt-1" style="font-size: 0.8rem;">{% trans "Reactivate" %}</a>
                                 </div>
                             </div>
                         {% endfor %}

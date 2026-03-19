@@ -146,6 +146,55 @@
     .anim-speedometer { animation: speedometer-wiggle 4s ease-in-out infinite; transform-origin: 12px 12px; }
 
 </style>
+
+<!-- Daily Mode / Full Report Toggle -->
+<div class="d-flex justify-content-center mb-4 fade-in">
+    <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm" role="group" id="dashboard-mode-toggle" style="border: 1px solid var(--bs-border-color-translucent);">
+        <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold daily-mode-btn active d-inline-flex align-items-center justify-content-center" id="btn-daily-mode" onclick="switchToDailyMode()" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
+            {% trans "Daily Mode" %}
+        </button>
+        <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold full-report-btn d-inline-flex align-items-center justify-content-center" id="btn-full-report" onclick="switchToFullReport()" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
+            {% trans "Full Report" %}
+        </button>
+    </div>
+</div>
+
+<style>
+    /* Dashboard Mode Toggle Styles */
+    #dashboard-mode-toggle .active {
+        background-color: var(--bs-primary) !important;
+        color: #fff !important;
+        box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb), 0.3);
+    }
+    #dashboard-mode-toggle .btn:not(.active) {
+        background: transparent;
+        color: var(--bs-body-color);
+        border: none;
+    }
+    #dashboard-mode-toggle .btn:not(.active):hover {
+        background: rgba(var(--bs-primary-rgb), 0.08);
+    }
+
+    /* Daily Mode responsive adjustments for desktop */
+    @media (min-width: 768px) {
+        .daily-mode-container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+    }
+    @media (min-width: 992px) {
+        .daily-mode-container {
+            max-width: 600px;
+        }
+    }
+</style>
+
+<!-- Include Daily Dashboard View -->
+{% include 'partials/daily_dashboard.html' %}
+
+<!-- Full Report View (Existing Dashboard) -->
+<div id="full-report-view" style="display: none;">
+
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3 fade-in" style="position: relative; z-index: 100;">
     <!-- Mobile Header (One Line) -->
     <div class="d-flex d-md-none justify-content-between align-items-center w-100">
@@ -709,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-12 col-lg-8">
         <div class="card shadow-lg border-0 rounded-4 overflow-hidden h-100">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center px-3">
-                <h6 class="mb-0 fw-bold text-uppercase text-muted" style="letter-spacing: 0.3px; font-size: 0.85rem;">
+                <h6 class="mb-0 fw-bold text-muted">
                     <i class="bi bi-wallet2 me-2 text-primary"></i> {% trans "Your Accounts & Net Worth" %}
                 </h6>
                 <div class="dropdown">
@@ -776,7 +825,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-12 col-lg-4">
         <div class="card shadow-lg border-0 rounded-4 h-100 overflow-hidden transition-all">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-2.5">
-                <h6 class="mb-0 fw-bold text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.3px; font-size: 0.85rem;">
+                <h6 class="mb-0 fw-bold text-muted d-inline-flex align-items-center">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2" class="anim-heartbeat"/>
                     </svg> 
@@ -1040,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {% if asset_allocation %}
             <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
                 <!-- SVG Donut Chart for Allocation -->
-                <div class="position-relative mb-3" style="width: 140px; height: 140px;">
+                <div class="position-relative mb-3" style="width: 170px; height: 170px;">
                     <svg viewBox="0 0 120 120" class="w-100 h-100" style="transform: rotate(-90deg);">
                         <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bs-tertiary-bg)" stroke-width="12"/>
                         {% for item in asset_allocation %}
@@ -1052,8 +1101,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% endfor %}
                     </svg>
                     <div class="position-absolute top-50 start-50 translate-middle text-center">
-                        <span class="fw-black text-body-emphasis" style="font-size: 1.1rem;">{{ asset_allocation.0.percent|translate_digits }}%</span>
-                        <span class="d-block text-muted" style="font-size: 0.6rem; margin-top: -2px;">{{ asset_allocation.0.type }}</span>
+                        <span class="fw-black text-body-emphasis" style="font-size: 1.4rem;">{{ asset_allocation.0.percent|translate_digits }}%</span>
+                        <span class="d-block text-muted" style="font-size: 0.75rem; margin-top: -2px;">{{ asset_allocation.0.type }}</span>
                     </div>
                 </div>
                 <!-- Legend -->
@@ -1062,9 +1111,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="text-center px-1">
                         <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
                             <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if item.type == 'Cash' %}#6b8f71{% elif item.type == 'Bank Account' %}#2d6a4f{% elif item.type == 'Credit Card' %}#c0392b{% elif item.type == 'Investment Account' %}#e07b39{% else %}#b5c4b1{% endif %};"></span>
-                            <span class="text-muted" style="font-size: 0.7rem;">{{ item.type }}</span>
+                            <span class="text-muted" style="font-size: 0.8rem;">{{ item.type }}</span>
                         </div>
-                        <div class="fw-bold" style="font-size: 0.75rem;">{{ item.percent|translate_digits }}%</div>
+                        <div class="fw-bold" style="font-size: 0.9rem;">{{ item.percent|translate_digits }}%</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -1276,7 +1325,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
-                    {% for item in recent_activity %}
+                    {% for item in recent_activity|slice:":5" %}
                     <div class="list-group-item bg-transparent border-0 d-flex align-items-center py-3 px-2 px-md-3 hover-bg-light position-relative">
                         <!-- Icon / Avatar -->
                         <div class="icon-shape icon-shape-md fw-bold fs-5 me-2 me-md-3 d-flex align-items-center justify-content-center flex-shrink-0 rounded-circle
@@ -2512,4 +2561,41 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: color 0.2s ease-in-out;
     }
 </style>
+
+</div><!-- END #full-report-view -->
+
+<script>
+// Dashboard Mode Toggle Logic
+function switchToDailyMode() {
+    document.getElementById('daily-mode-view').style.display = 'block';
+    document.getElementById('full-report-view').style.display = 'none';
+    document.getElementById('btn-daily-mode').classList.add('active');
+    document.getElementById('btn-full-report').classList.remove('active');
+    localStorage.setItem('tmr_dashboard_mode', 'daily');
+}
+
+function switchToFullReport() {
+    document.getElementById('daily-mode-view').style.display = 'none';
+    document.getElementById('full-report-view').style.display = 'block';
+    document.getElementById('btn-daily-mode').classList.remove('active');
+    document.getElementById('btn-full-report').classList.add('active');
+    localStorage.setItem('tmr_dashboard_mode', 'full');
+    
+    // Trigger Chart.js resize since canvases are now visible
+    if (window.dispatchEvent) {
+        window.dispatchEvent(new Event('resize'));
+    }
+}
+
+// Restore last-used mode on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedMode = localStorage.getItem('tmr_dashboard_mode');
+    if (savedMode === 'full') {
+        switchToFullReport();
+    } else {
+        switchToDailyMode();
+    }
+});
+</script>
+
 {% endblock %}
