@@ -11,8 +11,8 @@
             <div class="modal-body p-0">
 
                 <style>
-                    #guideTab .nav-link.active { color: #fff !important; }
-                    [data-bs-theme="dark"] #guideTab .nav-link.active { color: #fff !important; }
+                    #guideTab .nav-link.active { background-color: #2d6a4f !important; color: #fff !important; }
+                    [data-bs-theme="dark"] #guideTab .nav-link.active { background-color: #2d6a4f !important; color: #fff !important; }
                     #guideTab .nav-link:not(.active) { color: var(--bs-body-color); }
                     /* SVG text color fix for dark mode */
                     [data-bs-theme="dark"] .guide-svg text { fill: currentColor; }
@@ -768,12 +768,6 @@
                     </div>
 
                 </div><!-- /tab-content -->
-            </div>
-            <div class="modal-footer border-0 bg-body-tertiary justify-content-center">
-                <a href="{% url 'expense-create' %}" class="btn btn-primary rounded-pill px-4">
-                    <i class="bi bi-plus-lg me-2"></i> {% trans "Add Expense" %}
-                </a>
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">{% trans "Got it" %}</button>
             </div>
         </div>
     </div>

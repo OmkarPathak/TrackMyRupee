@@ -344,8 +344,8 @@
             {% if has_any_budget or total_income > 0 %}
             <div class="card shadow-lg border-0 mb-4 fade-in" id="tour-money-flow-card" style="animation-delay: 0.2s;">
                 <div class="card-header bg-transparent border-bottom py-2 px-4">
-                    <h6 class="mb-0 fw-bold text-uppercase text-muted" style="letter-spacing: 0.6px; font-size: 0.9rem;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-primary" style="vertical-align: -2px;">
+                    <h6 class="mb-0 fw-bold text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px; font-size: 0.9rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-primary flex-shrink-0">
                             <path d="M21.21 15.89A10 10 0 1 1 8 2.83" class="anim-pie" fill="currentColor" fill-opacity="0.3"/>
                             <path d="M22 12A10 10 0 0 0 12 2v10z"/>
                         </svg> {% trans "Where Did My Salary Go?" %}
@@ -402,8 +402,8 @@
                 <div class="col-12 col-md-6">
                     <div class="card shadow-lg border-0 h-100 fade-in" id="tour-smart-insights-card" style="animation-delay: 0.3s;">
                         <div class="card-header bg-transparent border-bottom py-3">
-                            <h6 class="mb-0 fw-bold text-uppercase text-muted" style="letter-spacing: 0.6px;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-primary" style="vertical-align: -2px;">
+                            <h6 class="mb-0 fw-bold text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-primary flex-shrink-0">
                                     <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" class="anim-trend"/>
                                     <polyline points="16 7 22 7 22 13" class="anim-trend"/>
                                 </svg> {% trans "Money Flow Analysis" %}
@@ -466,8 +466,8 @@
                 <div class="col-12 col-md-6">
                     <div class="card shadow-lg border-0 h-100 fade-in" id="tour-actionable-alerts-card" style="animation-delay: 0.4s;">
                         <div class="card-header bg-transparent border-bottom py-3">
-                            <h6 class="mb-0 fw-bold text-uppercase text-muted" style="letter-spacing: 0.6px;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-danger animate-pulse-light" style="vertical-align: -2px;">
+                            <h6 class="mb-0 fw-bold text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.6px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-danger animate-pulse-light flex-shrink-0">
                                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                                 </svg> {% trans "Actionable Alerts" %}
@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 pb-3 border-bottom">
                     <div class="text-center text-sm-start mb-2 mb-sm-0">
                         <p class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">{% trans "Total Net Worth" %}</p>
-                        <h1 class="display-5 fw-black text-primary mb-0" style="font-family: 'Instrument Serif', sans-serif;">
+                        <h1 class="text-primary mb-0" style="font-family: 'DM Sans', 'Inter', sans-serif;">
                             {{ currency_symbol }}{{ net_worth|humanize_currency:currency_symbol|translate_digits }}
                         </h1>
                     </div>
@@ -776,19 +776,19 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-12 col-lg-4">
         <div class="card shadow-lg border-0 rounded-4 h-100 overflow-hidden transition-all">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-2.5">
-                <h6 class="mb-0 fw-bold text-uppercase text-muted" style="letter-spacing: 0.3px; font-size: 0.85rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted" style="vertical-align: -2px;">
+                <h6 class="mb-0 fw-bold text-uppercase text-muted d-inline-flex align-items-center" style="letter-spacing: 0.3px; font-size: 0.85rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2" class="anim-heartbeat"/>
                     </svg> 
-                    {% trans "Financial Health" %} ({% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %})
+                    {% trans "Financial Health" %} - {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
                 </h6>
                 {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
                     {% if hero_metrics.status == 'excellent' %}
-                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 border border-success border-opacity-10"><i class="bi bi-star-fill me-1"></i> {% trans "Excellent" %}</span>
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 border border-success border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-star-fill me-1"></i> {% trans "Excellent" %}</span>
                     {% elif hero_metrics.status == 'good' %}
-                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 border border-primary border-opacity-10"><i class="bi bi-check-circle-fill me-1"></i> {% trans "Good" %}</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 border border-primary border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-check-circle-fill me-1"></i> {% trans "Good" %}</span>
                     {% else %}
-                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 border border-warning border-opacity-10"><i class="bi bi-exclamation-triangle-fill me-1"></i> {% trans "Needs Attention" %}</span>
+                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 border border-warning border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-exclamation-triangle-fill me-1"></i> {% trans "Needs Attention" %}</span>
                     {% endif %}
                 {% else %}
                     <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 border border-secondary border-opacity-10">{% trans "No Data" %}</span>
@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="card-body px-4 py-3 text-center">
                 <!-- Savings Rate Hero -->
                 <div class="mb-4 mt-2 px-3 text-center">
-                    <h1 class="fw-black mb-2 text-body-emphasis" style="font-family: 'Instrument Serif', sans-serif; font-size: 2rem; letter-spacing: -1px;">
+                    <h1 class="fw-black mb-2 text-body-emphasis" style="font-family: 'DM Sans', 'Inter', sans-serif; font-size: 2rem; letter-spacing: -1px;">
                         {{ hero_metrics.savings_rate|translate_digits }}<span class="fs-4 text-muted fw-bold">%</span>
                     </h1>
                     
@@ -911,8 +911,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-12 col-lg-4">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted" style="vertical-align: -2px;">
+                <span class="fw-bold d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
                         <path d="M12 2a10 10 0 0 1 10 10"/>
                         <circle cx="12" cy="12" r="10" opacity="0.2"/>
                         <path d="M12 12l3-3" class="anim-speedometer"/>
@@ -989,11 +989,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <small class="text-muted text-uppercase fw-bold" style="font-size: 0.6rem; letter-spacing: 0.5px;">{% trans "Projected" %}</small>
                         <div class="fw-bold text-body-emphasis" style="font-size: 1.1rem;">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_month_spend|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
                         {% if salary_breakdown.spending_pace.status == 'over_budget' %}
-                            <small class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ salary_breakdown.spending_pace.budget_multiplier|translate_digits }}× {% trans "over budget" %}</small>
+                            <small class="text-danger fw-bold d-inline-flex align-items-center"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ salary_breakdown.spending_pace.budget_multiplier|translate_digits }}× {% trans "over budget" %}</small>
                         {% elif salary_breakdown.spending_pace.status == 'near_limit' %}
-                            <small class="fw-bold" style="color: #e07b39;"><i class="bi bi-info-circle-fill me-1"></i>{% trans "Nearly at limit" %}</small>
+                            <small class="fw-bold d-inline-flex align-items-center" style="color: #e07b39;"><i class="bi bi-info-circle-fill me-1"></i>{% trans "Nearly at limit" %}</small>
                         {% else %}
-                            <small class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Within budget" %}</small>
+                            <small class="text-success fw-bold d-inline-flex align-items-center"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Within budget" %}</small>
                         {% endif %}
                     </div>
                 </div>
@@ -1002,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="bg-secondary bg-opacity-10 rounded-4 p-3 mb-2 text-center">
                     <small class="text-muted text-uppercase fw-bold d-block mb-1" style="letter-spacing: 0.5px; font-size: 0.65rem;">{% trans "Projected Monthly Spend" %}</small>
                     <h3 class="fw-black mb-1 text-body-emphasis lh-1">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_month_spend|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</h3>
-                    <a href="{% url 'budget' %}" class="text-primary small text-decoration-none fw-bold"><i class="bi bi-plus-circle me-1"></i>{% trans "Set a budget to track pace" %}</a>
+                    <a href="{% url 'budget' %}" class="text-primary small text-decoration-none fw-bold d-inline-flex align-items-center"><i class="bi bi-plus-circle me-1"></i>{% trans "Set a budget to track pace" %}</a>
                 </div>
                 {% endif %}
 
@@ -1028,8 +1028,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-12 col-lg-4">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted" style="vertical-align: -2px;">
+                <span class="fw-bold d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
                         <rect x="2" y="3" width="20" height="14" rx="2" ry="2" opacity="0.2"/>
                         <line x1="7" y1="21" x2="17" y2="21"/>
                         <line x1="12" y1="17" x2="12" y2="21"/>
@@ -1057,11 +1057,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <!-- Legend -->
-                <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+                <div class="d-flex flex-wrap justify-content-center gap-3 mb-3">
                     {% for item in asset_allocation %}
                     <div class="text-center px-1">
-                        <span class="rounded-circle d-inline-block me-2" style="width: 10px; height: 10px; background-color: {% if item.type == 'Cash' %}#6b8f71{% elif item.type == 'Bank Account' %}#2d6a4f{% elif item.type == 'Credit Card' %}#c0392b{% elif item.type == 'Investment Account' %}#e07b39{% else %}#b5c4b1{% endif %};"></span>
-                        <span class="text-muted" style="font-size: 0.7rem;">{{ item.type }}</span>
+                        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                            <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if item.type == 'Cash' %}#6b8f71{% elif item.type == 'Bank Account' %}#2d6a4f{% elif item.type == 'Credit Card' %}#c0392b{% elif item.type == 'Investment Account' %}#e07b39{% else %}#b5c4b1{% endif %};"></span>
+                            <span class="text-muted" style="font-size: 0.7rem;">{{ item.type }}</span>
+                        </div>
                         <div class="fw-bold" style="font-size: 0.75rem;">{{ item.percent|translate_digits }}%</div>
                     </div>
                     {% endfor %}
@@ -1094,15 +1096,15 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-lg-4">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                 <span class="fw-bold">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted" style="vertical-align: -2px;">
+                 <span class="fw-bold d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
                         <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/>
                         <path d="M9 18h6"/>
                         <path d="M10 22h4"/>
                         <path d="M12 2v2" class="anim-twinkle" fill="currentColor"/>
                         <path d="M12 6v2" class="anim-twinkle" fill="currentColor"/>
                     </svg> 
-                    {% trans "Smart Insights" %} ({% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %})
+                    {% trans "Smart Insights" %} - {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
                  </span>
             </div>
             <div class="card-body p-4 d-flex flex-column justify-content-center">
@@ -1144,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-md-6">
         <div class="card shadow-lg border-0 h-100 rounded-4">
             <div class="card-header bg-transparent border-bottom fw-bold d-flex justify-content-between">
-                <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted" style="vertical-align: -2px;"><polyline points="4 18 8 12 14 16 20 6" class="anim-trend"/></svg> {{ trend_title }}</span>
+                <span class="d-inline-flex align-items-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><polyline points="4 18 8 12 14 16 20 6" class="anim-trend"/></svg> {{ trend_title }}</span>
             </div>
             <div class="card-body">
                 {% if trend_labels %}
@@ -1170,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-md-6">
         <div class="card shadow-lg border-0 h-100 rounded-4">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold mb-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted" style="vertical-align: -2px;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" class="anim-tag"/><line x1="7" y1="7" x2="7.01" y2="7" class="anim-tag"/></svg> {% trans "Top Categories" %}</span>
+                <span class="fw-bold mb-0 d-inline-flex align-items-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" class="anim-tag"/><line x1="7" y1="7" x2="7.01" y2="7" class="anim-tag"/></svg> {% trans "Top Categories" %}</span>
                 <a href="{% url 'category-list' %}" class="btn btn-sm text-decoration-none opacity-25"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body p-0">
@@ -1241,8 +1243,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Category Chart -->
     <div class="col-md-6">
         <div class="card shadow-lg border-0 h-100 rounded-4">
-            <div class="card-header bg-transparent border-bottom fw-bold">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted" style="vertical-align: -2px;"><circle cx="12" cy="12" r="10" class="anim-donut" stroke-dasharray="15 8 8 8"/></svg>
+            <div class="card-header bg-transparent border-bottom fw-bold d-flex align-items-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><circle cx="12" cy="12" r="10" class="anim-donut" stroke-dasharray="15 8 8 8"/></svg>
                 {% trans "Category Distribution" %}
             </div>
             <div class="card-body">
@@ -1269,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-md-6">
         <div class="card shadow-lg border-0 h-100 rounded-4">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted" style="vertical-align: -2px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14" class="anim-clk"/></svg> {% trans "Recent Activity" %}</span>
+                <span class="fw-bold d-inline-flex align-items-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14" class="anim-clk"/></svg> {% trans "Recent Activity" %}</span>
                 <a href="{% url 'expense-list' %}" class="btn btn-sm text-decoration-none opacity-25" title="{% trans 'View All' %}"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body p-0">
@@ -1346,8 +1348,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-lg-6" id="tour-recurring-card">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
             <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <span class="fw-bold">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted" style="vertical-align: -2px;">
+                <span class="fw-bold d-inline-flex align-items-center">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0">
                         <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" class="anim-rotate"/>
                     </svg> 
                     {% trans "Recurring Commitments" %}
@@ -1449,8 +1451,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Payment Method Distribution -->
     <div class="col-lg-6">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
-            <div class="card-header bg-transparent border-bottom fw-bold">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted" style="vertical-align: -2px;"><rect x="2" y="5" width="20" height="14" rx="2" class="anim-card"/><line x1="2" y1="10" x2="22" y2="10" class="anim-card"/></svg>
+            <div class="card-header bg-transparent border-bottom fw-bold d-flex align-items-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0"><rect x="2" y="5" width="20" height="14" rx="2" class="anim-card"/><line x1="2" y1="10" x2="22" y2="10" class="anim-card"/></svg>
                 {% trans "Payment Method" %}
             </div>
             <div class="card-body d-flex flex-column justify-content-center h-100 p-4">
@@ -1484,15 +1486,15 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="col-12">
         <div class="card shadow-lg border-0 h-100 glass-card rounded-4">
             <div class="card-header bg-transparent border-bottom fw-bold d-flex justify-content-between align-items-center">
-                <span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted" style="vertical-align: -2px;">
+                <span class="d-inline-flex align-items-center">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-muted flex-shrink-0">
                         <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M18.5 9.5l-3 3-2.5-4.5-3 6.5-4-4" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M19 12v7" stroke-dasharray="2 2" stroke-linecap="round"/>
                     </svg>
                     {% trans "Expense Projection" %}
                 </span>
-                <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 small border border-info border-opacity-10" style="font-size: 0.65rem;">
+                <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 small border border-info border-opacity-10 d-inline-flex align-items-center" style="font-size: 0.65rem;">
                     <i class="bi bi-info-circle me-1"></i> {% trans "Based on last 6 months" %}
                 </span>
             </div>
