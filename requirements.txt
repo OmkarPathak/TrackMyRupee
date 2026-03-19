@@ -3,7 +3,7 @@ certifi==2026.1.4
 cffi==2.0.0
 charset-normalizer==3.4.4
 crispy-bootstrap5==2025.6
-cryptography==46.0.3
+cryptography==46.0.5
 dj-database-url==3.0.1
 Django==4.2.27
 django-allauth==65.13.1
