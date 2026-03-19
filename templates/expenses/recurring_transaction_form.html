@@ -63,11 +63,27 @@
                         <div class="text-danger small">{{ form.start_date.errors|first }}</div>
                     {% endif %}
                 </div>
-                <div class="col-6">
+                <div class="col-6" id="accountGroup">
                     <label class="form-label">{% trans "Account" %}</label>
                     {{ form.account }}
                     {% if form.account.errors %}
                         <div class="text-danger small">{{ form.account.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Transfer Account Fields -->
+                <div class="col-6" id="fromAccountGroup" style="display: none;">
+                    <label class="form-label">{% trans "From Account" %}</label>
+                    {{ form.from_account }}
+                    {% if form.from_account.errors %}
+                        <div class="text-danger small">{{ form.from_account.errors|first }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-6" id="toAccountGroup" style="display: none;">
+                    <label class="form-label">{% trans "To Account" %}</label>
+                    {{ form.to_account }}
+                    {% if form.to_account.errors %}
+                        <div class="text-danger small">{{ form.to_account.errors|first }}</div>
                     {% endif %}
                 </div>
 
@@ -152,20 +168,39 @@
         const categoryGroup = document.getElementById('categoryGroup');
         const sourceGroup = document.getElementById('sourceGroup');
         const paymentMethodGroup = document.getElementById('paymentMethodGroup');
+        const accountGroup = document.getElementById('accountGroup');
+        const fromAccountGroup = document.getElementById('fromAccountGroup');
+        const toAccountGroup = document.getElementById('toAccountGroup');
 
         if (typeSelect.value === 'EXPENSE') {
             categoryGroup.style.display = 'block';
             paymentMethodGroup.style.display = 'block';
             sourceGroup.style.display = 'none';
+            accountGroup.style.display = 'block';
+            fromAccountGroup.style.display = 'none';
+            toAccountGroup.style.display = 'none';
+        } else if (typeSelect.value === 'TRANSFER') {
+            categoryGroup.style.display = 'none';
+            paymentMethodGroup.style.display = 'none';
+            sourceGroup.style.display = 'none';
+            accountGroup.style.display = 'none';
+            fromAccountGroup.style.display = 'block';
+            toAccountGroup.style.display = 'block';
         } else {
             categoryGroup.style.display = 'none';
             paymentMethodGroup.style.display = 'none';
             sourceGroup.style.display = 'block';
+            accountGroup.style.display = 'block';
+            fromAccountGroup.style.display = 'none';
+            toAccountGroup.style.display = 'none';
         }
     }
 
-    // Run on load
-    document.addEventListener('DOMContentLoaded', toggleFields);
+    // Run on load and on type change
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleFields();
+        document.querySelector('[name="transaction_type"]').addEventListener('change', toggleFields);
+    });
 </script>
 
 <script>

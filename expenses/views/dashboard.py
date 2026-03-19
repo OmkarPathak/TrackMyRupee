@@ -1141,6 +1141,7 @@ def home_view(request):
         'INCOME': {'items': [], 'total': Decimal('0.00'), 'icon': '💰', 'label': _('Income')},
         'EXPENSE': {'items': [], 'total': Decimal('0.00'), 'icon': '💸', 'label': _('Expenses')},
         'INVESTMENT': {'items': [], 'total': Decimal('0.00'), 'icon': '📈', 'label': _('Investments')},
+        'TRANSFER': {'items': [], 'total': Decimal('0.00'), 'icon': '🔄', 'label': _('Transfers')},
     }
     
     total_recurring_commitment = Decimal('0.00')
@@ -1165,16 +1166,19 @@ def home_view(request):
                 'amount': rt.base_amount,
                 'date': due_date,
                 'type': rtype,
-                'category': rt.category or (rt.source if rt.transaction_type == 'INCOME' else _('Recurring')),
-                'frequency_label': rt.get_frequency_display()
+                'category': rt.category or (rt.source if rt.transaction_type == 'INCOME' else (_('Transfer') if rt.transaction_type == 'TRANSFER' else _('Recurring'))),
+                'frequency_label': rt.get_frequency_display(),
+                'from_account': getattr(rt.from_account, 'name', '') if rt.transaction_type == 'TRANSFER' else '',
+                'to_account': getattr(rt.to_account, 'name', '') if rt.transaction_type == 'TRANSFER' else '',
             }
             
             recurring_groups[rtype]['items'].append(item)
             recurring_groups[rtype]['total'] += rt.base_amount
             
+            # Transfers are neutral - they move money between accounts, not income/expense
             if rtype == 'INCOME':
                 total_recurring_commitment -= rt.base_amount
-            else:
+            elif rtype != 'TRANSFER':
                 total_recurring_commitment += rt.base_amount
 
     # Sorting items within groups by date

@@ -1360,17 +1360,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- 1. Top Summary Totals -->
                 <div class="p-4 border-bottom bg-transparent bg-opacity-10">
                     <div class="row g-2 text-center mb-4">
-                        <div class="col-4 border-end">
+                        <div class="col-3 border-end">
                             <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Income" %}</p>
                             <span class="text-success fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.INCOME.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
-                        <div class="col-4 border-end">
+                        <div class="col-3 border-end">
                             <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Expenses" %}</p>
                             <span class="text-danger fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.EXPENSE.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3 border-end">
                             <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Invest" %}</p>
                             <span class="text-info fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.INVESTMENT.total|compact_amount:currency_symbol|translate_digits }}</span>
+                        </div>
+                        <div class="col-3">
+                            <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Transfers" %}</p>
+                            <span class="text-secondary fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.TRANSFER.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
                     </div>
                     
@@ -1397,7 +1401,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <!-- 2. Simplified Item List -->
-                {% if recurring_groups.INCOME.items or recurring_groups.EXPENSE.items or recurring_groups.INVESTMENT.items %}
+                {% if recurring_groups.INCOME.items or recurring_groups.EXPENSE.items or recurring_groups.INVESTMENT.items or recurring_groups.TRANSFER.items %}
                     <div class="px-3 py-2 bg-transparent bg-opacity-10 border-bottom">
                         <small class="text-muted bg-transparent fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">
                             {% trans "Recurring Items" %}
@@ -1411,12 +1415,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="d-flex flex-column flex-grow-1 min-w-0">
                                         <h6 class="mb-0 text-truncate fw-bold text-inherit" style="font-size: 1rem;">{{ item.description }}</h6>
                                         <small class="text-muted opacity-75" style="font-size: 0.8rem; font-weight: 400;">
-                                            {{ item.date|date:"d M"|translate_digits }} · {{ item.category }}
+                                            {{ item.date|date:"d M"|translate_digits }} · {% if item.type == 'TRANSFER' %}{{ item.from_account }} → {{ item.to_account }}{% else %}{{ item.category }}{% endif %}
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="fw-bold" style="font-size: 1rem; color: {% if item.type == 'INCOME' %}#2d6a4f{% elif item.type == 'INVESTMENT' %}#8b6f47{% else %}#c0392b{% endif %};">
-                                            {% if item.type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ item.amount|compact_amount:currency_symbol|translate_digits }}
+                                        <span class="fw-bold" style="font-size: 1rem; color: {% if item.type == 'INCOME' %}#2d6a4f{% elif item.type == 'INVESTMENT' %}#8b6f47{% elif item.type == 'TRANSFER' %}#6c757d{% else %}#c0392b{% endif %};">
+                                            {% if item.type == 'INCOME' %}+{% elif item.type == 'TRANSFER' %}{% else %}-{% endif %}{{ currency_symbol }}{{ item.amount|compact_amount:currency_symbol|translate_digits }}
                                         </span>
                                     </div>
                                 </a>

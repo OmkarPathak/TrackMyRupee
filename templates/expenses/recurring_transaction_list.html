@@ -159,27 +159,37 @@
                                 <div class="d-flex align-items-center">
                                     <!-- Icon with Urgency Logic -->
                                     <div class="me-3 
-                                        {% if sub.annotated_days_until <= 3 and sub.transaction_type == 'EXPENSE' %}text-danger
-                                        {% elif sub.annotated_days_until <= 7 and sub.transaction_type == 'EXPENSE' %}text-warning
+                                        {% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger
+                                        {% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning
                                         {% else %}text-secondary{% endif %}">
-                                        <i class="bi bi-arrow-repeat fs-3"></i>
+                                        {% if sub.transaction_type == 'TRANSFER' %}
+                                            <i class="bi bi-arrow-left-right fs-3"></i>
+                                        {% else %}
+                                            <i class="bi bi-arrow-repeat fs-3"></i>
+                                        {% endif %}
                                     </div>
                                     <div>
                                         <h5 class="mb-1 fw-bold">{{ sub.description }}</h5>
                                         <div class="text-muted small d-flex align-items-center flex-wrap gap-2">
                                             <span class="d-inline-flex align-items-center"><i class="bi bi-calendar-event me-1"></i>{{ sub.get_frequency_display }}</span>
                                             
+                                            {% if sub.transaction_type == 'TRANSFER' %}
+                                                <span class="badge bg-info-subtle text-info rounded-pill d-inline-flex align-items-center">
+                                                    <i class="bi bi-arrow-left-right me-1 flex-shrink-0"></i> {{ sub.from_account.name }} → {{ sub.to_account.name }}
+                                                </span>
+                                            {% endif %}
+
                                             {% if sub.is_locked %}
                                                 <span class="badge bg-warning text-dark rounded-pill shadow-sm d-inline-flex align-items-center">
                                                     <i class="bi bi-lock-fill me-1"></i> {% trans "Locked (Plan Limit)" %}
                                                 </span>
                                             {% else %}
                                                 <!-- Urgency Text/Pill -->
-                                                {% if sub.annotated_days_until <= 3 and sub.transaction_type == 'EXPENSE' %}
+                                                {% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}
                                                     <span class="badge bg-danger text-white rounded-pill shadow-sm">
                                                         {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} day{% endblocktrans %}
                                                     </span>
-                                                {% elif sub.annotated_days_until <= 7 and sub.transaction_type == 'EXPENSE' %}
+                                                {% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}
                                                     <span class="text-warning fw-bold">
                                                         {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} day{% endblocktrans %}
                                                     </span>

@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 from django.utils import timezone
-from ..models import Expense, Income, RecurringTransaction, UserProfile
+from ..models import Expense, Income, Transfer, RecurringTransaction, UserProfile
 from ..utils import get_exchange_rate
 
 class RecurringTransactionMixin:
@@ -64,6 +64,21 @@ def process_user_recurring_transactions(user):
                 exists = Expense.objects.filter(user=user, date=current_date, amount=rt.amount, description=description, currency=rt.currency, category=category).exists()
                 if not exists:
                     new_expenses.append(Expense(user=user, date=current_date, amount=rt.amount, currency=rt.currency, category=category, description=description, payment_method=rt.payment_method, exchange_rate=exchange_rate, base_amount=base_amount))
+            elif rt.transaction_type == 'TRANSFER':
+                # Create actual Transfer records that update account balances
+                if rt.from_account and rt.to_account:
+                    exists = Transfer.objects.filter(
+                        user=user, date=current_date, amount=rt.amount,
+                        from_account=rt.from_account, to_account=rt.to_account,
+                        description=description
+                    ).exists()
+                    if not exists:
+                        # Transfer.save() handles atomic balance updates, so save individually
+                        Transfer(
+                            user=user, date=current_date, amount=rt.amount,
+                            from_account=rt.from_account, to_account=rt.to_account,
+                            description=description
+                        ).save()
             else:
                 source = rt.source or 'Other'
                 # Unique constraint for Income: user, date, amount, currency, source

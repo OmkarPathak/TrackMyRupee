@@ -18,7 +18,7 @@ class RecurringTransactionListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = RecurringTransaction.objects.filter(user=self.request.user)
         if self.filter_expenses_only:
-            queryset = queryset.filter(transaction_type='EXPENSE')
+            queryset = queryset.filter(transaction_type__in=['EXPENSE', 'TRANSFER'])
         queryset = queryset.order_by('-created_at')
         
         # Filter by Category
@@ -56,11 +56,13 @@ class RecurringTransactionListView(LoginRequiredMixin, ListView):
             
         cancelled_subs = [t for t in all_transactions if not t.is_active]
         
-        # Calculate Totals (Monthly & Yearly)
+        # Calculate Totals (Monthly & Yearly) - exclude transfers since they aren't costs
         total_monthly = 0
         total_yearly = 0
         
         for sub in active_subs:
+            if sub.transaction_type == 'TRANSFER':
+                continue
             amount = sub.base_amount
             if sub.frequency == 'DAILY':
                 total_monthly += amount * 30
@@ -143,7 +145,7 @@ class RecurringTransactionListView(LoginRequiredMixin, ListView):
             
             # Determine urgency
             is_renewing = False
-            if sub.transaction_type == 'EXPENSE':
+            if sub.transaction_type in ('EXPENSE', 'TRANSFER'):
                 if sub.annotated_days_until <= 30: # Show mostly anything coming up soon
                      is_renewing = True
             

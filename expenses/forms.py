@@ -102,7 +102,9 @@ class IncomeForm(forms.ModelForm):
 class RecurringTransactionForm(forms.ModelForm):
     class Meta:
         model = RecurringTransaction
-        fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source', 'frequency', 'start_date', 'description', 'is_active', 'payment_method']
+        fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
+                  'from_account', 'to_account',
+                  'frequency', 'start_date', 'description', 'is_active', 'payment_method']
         widgets = {
             'transaction_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleFields()'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -110,6 +112,8 @@ class RecurringTransactionForm(forms.ModelForm):
             'account': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Salary, Rent')}),
+            'from_account': forms.Select(attrs={'class': 'form-select'}),
+            'to_account': forms.Select(attrs={'class': 'form-select'}),
             'frequency': forms.Select(attrs={'class': 'form-select'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
@@ -122,9 +126,14 @@ class RecurringTransactionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if user:
             self.fields['currency'].initial = user.profile.currency
-            self.fields['account'].queryset = Account.objects.filter(user=user)
+            accounts_qs = Account.objects.filter(user=user)
+            self.fields['account'].queryset = accounts_qs
+            self.fields['from_account'].queryset = accounts_qs
+            self.fields['to_account'].queryset = accounts_qs
         else:
             self.fields['account'].queryset = Account.objects.none()
+            self.fields['from_account'].queryset = Account.objects.none()
+            self.fields['to_account'].queryset = Account.objects.none()
         
         # Category field as Select for Expenses
         if user:
@@ -146,6 +155,8 @@ class RecurringTransactionForm(forms.ModelForm):
         # Ensure fields are optional at form level since we handle them in clean()
         self.fields['category'].required = False
         self.fields['source'].required = False
+        self.fields['from_account'].required = False
+        self.fields['to_account'].required = False
 
     def clean(self):
         cleaned_data = super().clean()
@@ -156,9 +167,18 @@ class RecurringTransactionForm(forms.ModelForm):
         if transaction_type == 'EXPENSE' and not category:
             self.add_error('category', _('Category is required for expenses.'))
         
-
         if transaction_type == 'INCOME' and not source:
             self.add_error('source', _('Source is required for income.'))
+
+        if transaction_type == 'TRANSFER':
+            from_account = cleaned_data.get('from_account')
+            to_account = cleaned_data.get('to_account')
+            if not from_account:
+                self.add_error('from_account', _('From account is required for transfers.'))
+            if not to_account:
+                self.add_error('to_account', _('To account is required for transfers.'))
+            if from_account and to_account and from_account == to_account:
+                self.add_error('to_account', _('Source and destination accounts must be different.'))
 
         return cleaned_data
 

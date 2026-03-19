@@ -43,6 +43,8 @@
                             <td>
                                 {% if sub.transaction_type == 'EXPENSE' %}
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">{% trans "Expense" %}</span>
+                                {% elif sub.transaction_type == 'TRANSFER' %}
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill">{% trans "Transfer" %}</span>
                                 {% else %}
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">{% trans "Income" %}</span>
                                 {% endif %}
@@ -58,7 +60,7 @@
                             <td class="d-none d-md-table-cell">{{ sub.get_frequency_display }}</td>
                             <td>
                                 <div class="text-nowrap">{{ sub.annotated_next_date|date:"M d, Y"|translate_digits }}</div>
-                                {% if sub.annotated_days_until <= 30 and sub.transaction_type == 'EXPENSE' %}
+                                {% if sub.annotated_days_until <= 30 and sub.transaction_type != 'INCOME' %}
                                     <div class="small fw-bold {% if sub.annotated_days_until <= 3 %}text-danger{% elif sub.annotated_days_until <= 7 %}text-warning{% else %}text-muted{% endif %}">
                                         {% if sub.annotated_days_until == 0 %}{% trans "Today" %}{% elif sub.annotated_days_until == 1 %}{% trans "Tomorrow" %}{% else %}{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} days{% endblocktrans %}{% endif %}
                                     </div>
@@ -93,6 +95,8 @@
                             <td>
                                 {% if sub.transaction_type == 'EXPENSE' %}
                                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">{% trans "Expense" %}</span>
+                                {% elif sub.transaction_type == 'TRANSFER' %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">{% trans "Transfer" %}</span>
                                 {% else %}
                                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">{% trans "Income" %}</span>
                                 {% endif %}
