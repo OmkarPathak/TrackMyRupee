@@ -1,43 +1,31 @@
 name: Clean Requirements
 
 on:
-  workflow_dispatch:   # Manual trigger
-  push:                # Trigger on all branches
+  workflow_dispatch:
+  push:
     branches:
-      - '**'           # Double asterisk means all branches
+      - '**'
 
 jobs:
   clean-requirements:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'  # Change to your Python version
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install pipreqs pip-tools
+      - name: Install pip-tools
+        run: pip install --upgrade pip pip-tools
 
-    - name: Generate requirements.in from code
-      run: |
-        pipreqs . --force --ignore .venv,__pycache__ --savepath requirements.in
+      - name: Compile requirements
+        run: pip-compile --upgrade requirements.in --output-file requirements.txt
 
-    - name: Compile pinned requirements.txt
-      run: |
-        pip-compile --upgrade requirements.in --output-file requirements.txt
-
-    - name: Show cleaned requirements
-      run: cat requirements.txt
-
-    - name: Commit and push changes
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "chore: clean and pin requirements.txt"
-        branch: ${{ github.ref_name }}  # Commit back to the current branch
-        file_pattern: requirements.txt
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: clean and pin requirements.txt"
+          branch: ${{ github.ref_name }}
+          file_pattern: requirements.txt
