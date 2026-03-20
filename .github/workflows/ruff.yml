@@ -1,0 +1,29 @@
+name: Django Lint (Ruff)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install ruff
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Ruff (lint)
+        run: ruff check . --output-format=github
+
+      - name: Check formatting
+        run: ruff format --check .
