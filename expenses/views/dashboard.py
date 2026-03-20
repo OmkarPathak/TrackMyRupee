@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from django.contrib import messages
 
-from ..models import Expense, Income, Category, UserProfile, RecurringTransaction, Account, Transfer
+from ..models import Expense, Income, Category, UserProfile, RecurringTransaction, Account, Transfer, Notification
 from ..utils import get_exchange_rate, generate_year_in_review_data
 from .mixins import process_user_recurring_transactions
 from ..templatetags.digit_filters import compact_amount
@@ -1526,17 +1526,24 @@ def home_view(request):
             'is_unusual': is_unusual,
         })
 
-    # --- SMART CONTEXTUAL NUDGES (ROI Layer) ---
-    smart_nudges = []
+    # --- SMART CONTEXTUAL NUDGES ---
+    # Instead of showing on the dashboard, we add them to the notification system.
     
+    # helper for creating nudges
+    def add_nudge_alt(title, message):
+        Notification.objects.get_or_create(
+            user=request.user,
+            title=title,
+            is_read=False,
+            defaults={'message': message}
+        )
+
     # 1. Accounts Nudge: If only 1 account exists
     if Account.objects.filter(user=request.user).count() == 1:
-        smart_nudges.append({
-            'type': 'info',
-            'icon': 'wallet2',
-            'title': _('Smart Tip: Multiple Accounts'),
-            'message': _('Add separate accounts (like cash, bank, or UPI) to track your money more accurately across all sources.')
-        })
+        add_nudge_alt(
+            _('Smart Tip: Multiple Accounts'),
+            _('Add separate accounts (like cash, bank, or UPI) to track your money more accurately across all sources.')
+        )
     
     # 2. Expense Category Nudge: Check for "Miscellaneous" or "Other" usage
     misc_usage = Expense.objects.filter(
@@ -1544,15 +1551,12 @@ def home_view(request):
         category__in=['Miscellaneous', 'Other', 'Misc']
     ).count()
     if misc_usage >= 3:
-        smart_nudges.append({
-            'type': 'primary',
-            'icon': 'tag-fill',
-            'title': _('Organize Your Spend'),
-            'message': _('Categorizing helps you see exactly where your money goes. Try creating specific categories for better insights!')
-        })
+        add_nudge_alt(
+            _('Organize Your Spend'),
+            _('Categorizing helps you see exactly where your money goes. Try creating specific categories for better insights!')
+        )
     
     # 3. Potential Recurring Nudge: Looking for patterns
-    # (Same description + amount occurring 3 times in 90 days)
     three_months_ago = now - timedelta(days=90)
     repeating_expenses = Expense.objects.filter(
         user=request.user, 
@@ -1563,20 +1567,13 @@ def home_view(request):
     
     if repeating_expenses.exists():
         top_repeat = repeating_expenses.first()
-        smart_nudges.append({
-            'type': 'warning',
-            'icon': 'arrow-repeat',
-            'title': _('Automate Repeat Bills?'),
-            'message': format_html(
-                _('Looks like <b>{desc}</b> repeats monthly. Want to transition it to a recurring transaction?'),
+        add_nudge_alt(
+            _('Automate Repeat Bills?'),
+            format_html(
+                _('Looks like {desc} repeats monthly. Want to transition it to a recurring transaction?'),
                 desc=top_repeat['description']
             )
-        })
-
-    # Add to insights or separate list
-    for nudge in smart_nudges:
-        # We can add them to the alerts or a new section
-        pass
+        )
 
     # Existing insights (Layer 5/6)
     # Daily insight (enhanced for over-budget urgency and coaching)
@@ -1667,8 +1664,6 @@ def home_view(request):
         'month_transaction_count': month_transaction_count,
         'total_monthly_budget': round(Decimal(str(total_monthly_budget)), 0),
     }
-
-    context['smart_nudges'] = smart_nudges
     return render(request, 'home.html', context)
 
 @login_required

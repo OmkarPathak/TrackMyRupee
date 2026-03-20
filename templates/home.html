@@ -690,36 +690,6 @@
     </div>
 </div>
 
-<!-- SMART NUDGES (ROI Layer) -->
-{% if smart_nudges %}
-<div class="row g-3 mb-4 fade-in">
-    <div class="col-12 px-0">
-        <div class="d-flex align-items-center gap-2 mb-3 px-3">
-            <i class="bi bi-lightbulb-fill text-warning"></i>
-            <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">{% trans "Smart Recommendations" %}</span>
-        </div>
-        <div class="row row-cols-1 row-cols-md-3 g-3 mx-0">
-            {% for nudge in smart_nudges %}
-            <div class="col">
-                <div class="card h-100 border-0 shadow-sm rounded-4 bg-body-tertiary hover-bg-light transition-all border-start border-{{ nudge.type }} border-4">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="rounded-circle bg-{{ nudge.type }} bg-opacity-10 text-{{ nudge.type }} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
-                                <i class="bi bi-{{ nudge.icon }} fs-5"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">{{ nudge.title }}</h6>
-                                <p class="text-muted mb-0 small" style="line-height: 1.4; font-size: 0.8rem;">{{ nudge.message|safe }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-{% endif %}
 
 <!-- Hidden Shareable Card for Social Media -->
 <div id="capture-container" style="position: absolute; left: -9999px; top: -9999px;">
