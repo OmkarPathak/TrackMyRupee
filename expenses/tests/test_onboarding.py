@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from expenses.models import UserProfile, Income, Expense, Category
+from expenses.models import UserProfile, Income, Expense, Category, Account, RecurringTransaction
 from datetime import date
 import json
 
@@ -16,7 +16,6 @@ class OnboardingViewTest(TestCase):
         """Unauthenticated users should be redirected to login, not crash."""
         self.client.logout()
         response = self.client.get(self.url)
-        # LoginRequiredMixin redirects to /accounts/login/?next=/onboarding/
         self.assertEqual(response.status_code, 302)
         self.assertIn('/accounts/login/', response.url)
 
@@ -34,58 +33,53 @@ class OnboardingViewTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('home'))
 
-    def test_onboarding_step_setup(self):
-        data = {'step': 'setup', 'currency': '$', 'language': 'en'}
-        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
-        self.user.profile.refresh_from_db()
-        self.assertEqual(self.user.profile.currency, '$')
-        self.assertEqual(self.user.profile.language, 'en')
-
-    def test_onboarding_step_income_idempotency(self):
-        data = {'step': 'income', 'amount': 5000, 'source': 'Salary'}
-        # First call
-        response1 = self.client.post(self.url, json.dumps(data), content_type='application/json')
-        self.assertEqual(response1.status_code, 200)
-        self.assertEqual(Income.objects.filter(user=self.user).count(), 1)
-        
-        # Now we test idempotency.
-        data['amount'] = 6000
-        response2 = self.client.post(self.url, json.dumps(data), content_type='application/json')
-        self.assertEqual(response2.status_code, 200)
-        self.assertEqual(Income.objects.filter(user=self.user).count(), 1)
-        self.assertEqual(Income.objects.first().amount, 6000)
-
-    def test_onboarding_step_expense(self):
-        data = {'step': 'expense', 'amount': 50, 'description': 'Coffee', 'category': 'Miscellaneous'}
-        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(Expense.objects.filter(user=self.user).count(), 1)
-
-    def test_onboarding_step_budget(self):
-        # Clear any system-generated categories for this user to ensure isolation
-        Category.objects.filter(user=self.user).delete()
-        
+    def test_onboarding_step_accounts(self):
         data = {
-            'step': 'budget',
-            'categories': [
-                {'name': 'Food', 'limit': 500},
-                {'name': 'Rent', 'limit': 1500}
+            'step': 'accounts',
+            'accounts': [
+                {'name': 'SBI Savings Account', 'type': 'BANK', 'balance': 1000},
+                {'name': 'ICICI Coral Credit Card', 'type': 'CREDIT_CARD', 'balance': 0}
             ]
         }
         response = self.client.post(self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Category.objects.filter(user=self.user, name__in=['Food', 'Rent']).count(), 2)
-        food = Category.objects.get(user=self.user, name='Food')
-        self.assertEqual(food.limit, 500)
+        self.assertEqual(Account.objects.filter(user=self.user).count(), 2)
+        self.assertFalse(self.user.profile.has_seen_tutorial)
 
-    def test_onboarding_step_setup_completion(self):
-        data = {'step': 'setup', 'currency': '$', 'language': 'en'}
+    def test_onboarding_step_income(self):
+        # Need an account first
+        acc = Account.objects.create(user=self.user, name='SBI Savings Account', balance=0)
+        data = {'step': 'income', 'amount': 50000, 'source': 'Salary', 'account_id': acc.id}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Income.objects.filter(user=self.user).count(), 1)
+        self.assertEqual(Income.objects.get(user=self.user).amount, 50000)
+
+    def test_onboarding_step_expense(self):
+        # Need an account first
+        acc = Account.objects.create(user=self.user, name='Cash', balance=1000)
+        data = {'step': 'expense', 'amount': 1200, 'description': 'Big Bazaar', 'category': 'Groceries', 'account_id': acc.id}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Expense.objects.filter(user=self.user).count(), 1)
+
+    def test_onboarding_step_recurring(self):
+        data = {
+            'step': 'recurring',
+            'recurring': [
+                {'description': 'Rent', 'amount': 12000, 'category': 'Rent', 'frequency': 'MONTHLY', 'type': 'EXPENSE'},
+                {'description': 'Netflix', 'amount': 499, 'category': 'Subscriptions', 'frequency': 'MONTHLY', 'type': 'EXPENSE'}
+            ]
+        }
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(RecurringTransaction.objects.filter(user=self.user).count(), 2)
+
+    def test_onboarding_finish(self):
+        data = {'step': 'finish'}
         response = self.client.post(self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, 200)
         self.user.profile.refresh_from_db()
-        self.assertEqual(self.user.profile.currency, '$')
-        self.assertEqual(self.user.profile.language, 'en')
         self.assertTrue(self.user.profile.has_seen_tutorial)
 
     def test_onboarding_skip(self):

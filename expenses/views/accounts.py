@@ -11,6 +11,7 @@ from decimal import Decimal
 from ..models import Account, Transfer, Expense, Income
 from ..forms import AccountForm, TransferForm
 from ..utils import get_exchange_rate
+from .mixins import RecurringTransactionMixin
 
 class AccountListView(LoginRequiredMixin, ListView):
     model = Account
@@ -95,7 +96,7 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, _("Transfer completed successfully!"))
         return super().form_valid(form)
 
-class TransferListView(LoginRequiredMixin, ListView):
+class TransferListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = Transfer
     template_name = 'expenses/transfer_list.html'
     context_object_name = 'transfers'

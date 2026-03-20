@@ -21,7 +21,8 @@ def process_user_recurring_transactions(user):
     
     # Enforce Tier Limits for processing
     if not profile.is_pro:
-        limit = 3 if profile.is_plus else 0
+        # Free: 1, Plus: 3
+        limit = 3 if profile.is_plus else 1
         recurring_txs = recurring_txs[:limit]
 
     updates_needed = []

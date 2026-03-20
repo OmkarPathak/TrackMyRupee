@@ -35,6 +35,8 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['currency_choices'] = CURRENCY_CHOICES
         context['language_choices'] = UserProfile.LANGUAGE_CHOICES
+        context['current_year'] = date.today().year
+        context['current_month'] = date.today().month
         return context
 
     def post(self, request, *args, **kwargs):
@@ -46,7 +48,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                 profile = request.user.profile
                 profile.currency = data.get('currency', profile.currency)
                 profile.language = data.get('language', profile.language)
-                profile.has_seen_tutorial = True
+                # Don't set has_seen_tutorial here, move to final step or skip
                 profile.save()
                 return JsonResponse({'success': True})
             
@@ -137,6 +139,30 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                         currency=request.user.profile.currency,
                         account=account
                     )
+                return JsonResponse({'success': True})
+
+            elif step == 'recurring':
+                recurring_data = data.get('recurring', [])
+                for rec_data in recurring_data:
+                    from .dashboard import RecurringTransaction
+                    RecurringTransaction.objects.update_or_create(
+                        user=request.user,
+                        description=rec_data.get('description'),
+                        transaction_type=rec_data.get('type', 'EXPENSE'),
+                        defaults={
+                            'amount': Decimal(rec_data.get('amount', 0)),
+                            'frequency': rec_data.get('frequency', 'MONTHLY'),
+                            'start_date': rec_data.get('start_date', date.today()),
+                            'category': rec_data.get('category'),
+                            'currency': request.user.profile.currency
+                        }
+                    )
+                return JsonResponse({'success': True})
+
+            elif step == 'finish':
+                profile = request.user.profile
+                profile.has_seen_tutorial = True
+                profile.save()
                 return JsonResponse({'success': True})
 
             elif step == 'skip':

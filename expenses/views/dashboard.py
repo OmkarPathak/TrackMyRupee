@@ -1,5 +1,6 @@
 from datetime import datetime, date, timedelta
 import calendar
+import json
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -388,6 +389,9 @@ def home_view(request):
                     return None
                 return ((current - previous) / previous) * 100
 
+            prev_num_days = calendar.monthrange(prev_year, prev_month)[1]
+            prev_daily_burn = float(prev_expenses_op) / prev_num_days if prev_num_days > 0 else 0
+
             prev_month_data = {
                 'income': prev_income,
                 'expense': prev_expenses_op,
@@ -401,6 +405,7 @@ def home_view(request):
                 'income_diff_amount': total_income - prev_income,
                 'expense_diff_amount': total_expenses - prev_expenses_op,
                 'investments_diff_amount': total_investments - prev_investments,
+                'daily_burn': prev_daily_burn,
             }
             # Add absolute versions for percentages for template display
             for key in list(prev_month_data.keys()):
@@ -691,6 +696,11 @@ def home_view(request):
         spent_percent = round(float(total_expenses) / total_monthly_budget * 100, 1) if total_monthly_budget > 0 else 0
         ideal_percent = round(days_elapsed / num_days * 100, 1) if num_days > 0 else 0
 
+        # Daily burn comparison with last month
+        burn_diff_pct = None
+        if prev_month_data and prev_month_data.get('daily_burn', 0) > 0:
+            burn_diff_pct = ((daily_burn - prev_month_data['daily_burn']) / prev_month_data['daily_burn']) * 100
+
         spending_pace = {
             'daily_spending_pace': round(daily_burn, 0),
             'projected_month_spend': round(daily_burn * num_days, 0),
@@ -703,6 +713,8 @@ def home_view(request):
             'days_elapsed': days_elapsed,
             'num_days': num_days,
             'ideal_spent_so_far': round(ideal_spent_so_far, 0),
+            'burn_diff_pct': burn_diff_pct,
+            'burn_diff_pct_abs': abs(burn_diff_pct) if burn_diff_pct is not None else None,
         }
 
         short_insight = ""
@@ -890,9 +902,9 @@ def home_view(request):
                 'type': 'info', # Use Info for "Identity/Streak"
                 'icon': 'fire',
                 'title': _('On a Roll!'),
-                'message': _("🔥 This is your %(streak)s month in a row staying under budget.") % {'streak': streak},
+                'message': _("This is your %(streak)s month in a row staying under budget.") % {'streak': streak},
                 'allow_share': True,
-                'share_text': _("🔥 I've stayed under budget for %(streak)s months in a row! via TrackMyRupee") % {'streak': streak}
+                'share_text': _("I've stayed under budget for %(streak)s months in a row! via TrackMyRupee") % {'streak': streak}
             })
 
     # NEW: Wealth Projection
@@ -1141,7 +1153,7 @@ def home_view(request):
     if float(net_worth) >= 100000:
         if not any(c.get('icon') == 'bi-trophy' for c in smart_bullet_insights):
             smart_bullet_insights.insert(0, {
-                'text': format_html(_("Milestone Reached! 🎉 You crossed <span class='fw-bold'>{}</span> in net worth."), format_currency(100000)),
+                'text': format_html(_("Milestone Reached! You crossed <span class='fw-bold'>{}</span> in net worth."), format_currency(100000)),
                 'icon': 'bi-trophy',
                 'theme': 'warning'
             })
@@ -1151,7 +1163,7 @@ def home_view(request):
         if not any(c.get('icon') == 'bi-stars' for c in smart_bullet_insights):
             projected_annual = savings * 12
             smart_bullet_insights.insert(0, {
-                'text': format_html(_("🔥 You're saving more than usual this month! <br> Keep this up and you could hit <span class='fw-bold text-success'>{}</span> in savings this year."), format_currency(projected_annual)),
+                'text': format_html(_(" You're saving more than usual this month! <br> Keep this up and you could hit <span class='fw-bold text-success'>{}</span> in savings this year."), format_currency(projected_annual)),
                 'icon': 'bi-stars',
                 'theme': 'success'
             })
@@ -1514,6 +1526,59 @@ def home_view(request):
             'is_unusual': is_unusual,
         })
 
+    # --- SMART CONTEXTUAL NUDGES (ROI Layer) ---
+    smart_nudges = []
+    
+    # 1. Accounts Nudge: If only 1 account exists
+    if Account.objects.filter(user=request.user).count() == 1:
+        smart_nudges.append({
+            'type': 'info',
+            'icon': 'wallet2',
+            'title': _('Smart Tip: Multiple Accounts'),
+            'message': _('Add separate accounts (like cash, bank, or UPI) to track your money more accurately across all sources.')
+        })
+    
+    # 2. Expense Category Nudge: Check for "Miscellaneous" or "Other" usage
+    misc_usage = Expense.objects.filter(
+        user=request.user, 
+        category__in=['Miscellaneous', 'Other', 'Misc']
+    ).count()
+    if misc_usage >= 3:
+        smart_nudges.append({
+            'type': 'primary',
+            'icon': 'tag-fill',
+            'title': _('Organize Your Spend'),
+            'message': _('Categorizing helps you see exactly where your money goes. Try creating specific categories for better insights!')
+        })
+    
+    # 3. Potential Recurring Nudge: Looking for patterns
+    # (Same description + amount occurring 3 times in 90 days)
+    three_months_ago = now - timedelta(days=90)
+    repeating_expenses = Expense.objects.filter(
+        user=request.user, 
+        date__gte=three_months_ago
+    ).values('description', 'amount').annotate(
+        count=Count('id')
+    ).filter(count__gte=3).exclude(description__in=['', 'Miscellaneous', 'Other']).order_by('-count')
+    
+    if repeating_expenses.exists():
+        top_repeat = repeating_expenses.first()
+        smart_nudges.append({
+            'type': 'warning',
+            'icon': 'arrow-repeat',
+            'title': _('Automate Repeat Bills?'),
+            'message': format_html(
+                _('Looks like <b>{desc}</b> repeats monthly. Want to transition it to a recurring transaction?'),
+                desc=top_repeat['description']
+            )
+        })
+
+    # Add to insights or separate list
+    for nudge in smart_nudges:
+        # We can add them to the alerts or a new section
+        pass
+
+    # Existing insights (Layer 5/6)
     # Daily insight (enhanced for over-budget urgency and coaching)
     daily_insight = None
     # Build recovery tip for over-budget
@@ -1603,6 +1668,7 @@ def home_view(request):
         'total_monthly_budget': round(Decimal(str(total_monthly_budget)), 0),
     }
 
+    context['smart_nudges'] = smart_nudges
     return render(request, 'home.html', context)
 
 @login_required

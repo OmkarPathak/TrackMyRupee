@@ -751,18 +751,18 @@ a:hover {
   background-color: #6b8f71;
 } /* Sage Green */
 
-/* Semantic Progress Bar Colors - Flat solid */
+/* Semantic Progress Bar Colors - Premium Palette */
 .progress-gradient-success {
   background-color: #2d6a4f;
 }
 .progress-gradient-warning {
-  background-color: #e07b39;
+  background-color: #ee9b00;
 }
 .progress-gradient-danger {
-  background-color: #c0392b;
+  background-color: #ae2012;
 }
-.progress-gradient-info {
-  background-color: #8b6f47;
+.progress-gradient-teal {
+  background-color: #0a9396;
 }
 
 /* Fix for Multiselect Dropdown Visibility */

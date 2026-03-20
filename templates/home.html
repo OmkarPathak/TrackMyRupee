@@ -690,6 +690,37 @@
     </div>
 </div>
 
+<!-- SMART NUDGES (ROI Layer) -->
+{% if smart_nudges %}
+<div class="row g-3 mb-4 fade-in">
+    <div class="col-12 px-0">
+        <div class="d-flex align-items-center gap-2 mb-3 px-3">
+            <i class="bi bi-lightbulb-fill text-warning"></i>
+            <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">{% trans "Smart Recommendations" %}</span>
+        </div>
+        <div class="row row-cols-1 row-cols-md-3 g-3 mx-0">
+            {% for nudge in smart_nudges %}
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm rounded-4 bg-body-tertiary hover-bg-light transition-all border-start border-{{ nudge.type }} border-4">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle bg-{{ nudge.type }} bg-opacity-10 text-{{ nudge.type }} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                                <i class="bi bi-{{ nudge.icon }} fs-5"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">{{ nudge.title }}</h6>
+                                <p class="text-muted mb-0 small" style="line-height: 1.4; font-size: 0.8rem;">{{ nudge.message|safe }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Hidden Shareable Card for Social Media -->
 <div id="capture-container" style="position: absolute; left: -9999px; top: -9999px;">
     {% if salary_breakdown or total_income > 0 %}
@@ -1057,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {{ hero_metrics.savings_rate|translate_digits }}<span class="fs-4 text-muted fw-bold">%</span>
                     </h1>
                     
-                    <div class="mx-auto mb-3" style="max-width: 240px;">
+                    <div class="mx-auto mb-3" style="max-width: 300px;">
                         <div class="progress rounded-pill bg-secondary bg-opacity-10 mb-2" style="height: 10px;">
                             <div class="progress-bar rounded-pill {% if hero_metrics.savings_rate >= 20 %}bg-success{% elif hero_metrics.savings_rate > 0 %}bg-primary{% else %}bg-danger{% endif %}" 
                                  role="progressbar" 
@@ -1065,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                  aria-valuenow="{{ hero_metrics.savings_rate|floatformat:1 }}" aria-valuemin="0" aria-valuemax="100">
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between text-muted fw-bold px-1" style="font-size: 0.7rem;">
+                        <div class="d-flex justify-content-between text-muted fw-bold px-1" style="font-size: 0.9rem;">
                             <div class="d-flex flex-column align-items-start text-start">
                                 <span>{{ currency_symbol }}{{ hero_metrics.saved|humanize_currency:currency_symbol|translate_digits }} {% trans "saved" %}</span>
                                 {% if hero_metrics.savings_diff_pct %}
@@ -1224,6 +1255,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="text-center mb-3">
                     <h2 class="fw-black mb-0 p-0 text-body-emphasis" style="font-size: 1.5rem;">{{ currency_symbol }}{{ salary_breakdown.spending_pace.daily_spending_pace|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 fw-normal text-muted">/ {% trans "day" %}</span></h2>
                     <small class="text-muted text-uppercase fw-bold opacity-75" style="letter-spacing: 0.5px; font-size: 0.65rem;">{% trans "Your Burn Rate" %}</small>
+                    {% if salary_breakdown.spending_pace.burn_diff_pct is not None %}
+                    <div class="mt-2">
+                        <span class="badge {% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}bg-danger{% else %}bg-success{% endif %} bg-opacity-10 {% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}text-danger{% else %}text-success{% endif %} rounded-pill px-2 py-1" style="font-size: 0.75rem;">
+                            {% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ salary_breakdown.spending_pace.burn_diff_pct_abs|floatformat:0|translate_digits }}% {% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}{% trans "higher" %}{% else %}{% trans "lower" %}{% endif %} <span class="opacity-75 fw-normal">{% trans "than last month" %}</span>
+                        </span>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Visual Budget Meter -->
@@ -1330,13 +1368,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="fw-bold" style="font-size: 0.9rem;">{{ item.percent|translate_digits }}%</div>
                     </div>
                     {% endfor %}
-                </div>
-                <!-- Net Worth Link -->
-                <div class="bg-secondary bg-opacity-10 rounded-4 px-3 py-2 w-100">
-                    <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Net Worth" %}</small>
-                    <div class="fw-bold mb-0 text-primary" style="font-size: 1.1rem;">
-                        {{ currency_symbol }}{{ net_worth|humanize_currency:currency_symbol|translate_digits }}
-                    </div>
                 </div>
             </div>
             {% else %}
@@ -1898,6 +1929,25 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         let currentColors = getThemeColor();
+        const CHART_COLORS = {
+            green: '#2d6a4f',
+            amber: '#ee9b00',
+            red: '#ae2012',
+            teal: '#0a9396',
+            slate: '#006d77', // Replaced indigo with slate
+            emerald: '#52b788',
+            gold: '#ffb703',
+            blue: '#005f73',
+            mint: '#94d2bd',
+            crimson: '#9b2226'
+        };
+
+        const CATEGORY_PALETTE = [
+            CHART_COLORS.green, CHART_COLORS.amber, CHART_COLORS.teal, 
+            CHART_COLORS.indigo, CHART_COLORS.red, CHART_COLORS.emerald, 
+            CHART_COLORS.gold, CHART_COLORS.blue, CHART_COLORS.mint, 
+            CHART_COLORS.crimson
+        ];
         Chart.defaults.font.family = "'DM Sans', 'Inter', sans-serif";
         Chart.defaults.color = currentColors.text;
         
@@ -1906,15 +1956,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- Solid Color Helper ---
         const chartPalette = [
             '#2d6a4f', // Forest Green
-            '#e07b39', // Warm Amber
-            '#c0392b', // Warm Red
-            '#8b6f47', // Warm Brown
-            '#6b8f71', // Sage Green
-            '#b5651d', // Burnt Orange
-            '#7a5c58', // Dusty Rose
-            '#4a7c59', // Muted Jade
-            '#d4956a', // Sandy Peach
-            '#5c6b5e'  // Olive Gray
+            '#ee9b00', // Warm Amber
+            '#0a9396', // Pacific Teal
+            '#006d77', // Deep Turquoise
+            '#ae2012', // Crimson Red
+            '#52b788', // Emerald Green
+            '#ffb703', // Golden Sun
+            '#005f73', // Deep Sea Blue
+            '#94d2bd', // Minty Fresh
+            '#9b2226'  // Ruby Wine
         ];
 
         // --- 0. Income vs Expenses Chart (SVG Animation) ---

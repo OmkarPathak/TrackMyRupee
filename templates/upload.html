@@ -9,7 +9,7 @@
     <div>
         <p class="text-muted mb-4 small">
             {% blocktrans %}
-            Upload your Excel file to update your expense records. Each sheet corresponds to a month.
+            Upload your Excel or CSV file to update your expense records. For Excel, each sheet corresponds to a month.
             {% endblocktrans %}
         </p>
 
@@ -18,7 +18,7 @@
                 <i class="bi bi-info-circle me-2"></i>{% trans "Required Format" %}</h6>
             <p class="mb-2 small">
                 {% blocktrans %}
-                Your Excel file must contain the following columns (headers are Case-Sensitive):
+                Your file must contain the following columns (headers are Case-Sensitive):
                 {% endblocktrans %}
             </p>
             <ul class="small mb-3">
@@ -30,7 +30,7 @@
             <p class="mb-0 small text-muted">
                 <strong>{% trans "Note" %}:</strong>
                 {% blocktrans %}
-                The "Select Year" below will override the year in your excel dates to ensure consistency.
+                The "Select Year" below will override the year in your file dates to ensure consistency.
                 {% endblocktrans %}
             </p>
         </div>
@@ -49,9 +49,9 @@
             </div>
 
             <div class="mb-4">
-                <label for="formFile" class="form-label">{% trans "Excel File (.xlsx, .xls)" %}</label>
+                <label for="formFile" class="form-label">{% trans "Excel or CSV File (.xlsx, .xls, .csv)" %}</label>
                 <input class="form-control" type="file" id="formFile" name="file"
-                    accept=".xlsx, .xls" required>
+                    accept=".xlsx, .xls, .csv" required>
             </div>
 
             <button type="submit" class="btn btn-primary px-4">
@@ -60,7 +60,7 @@
         </form>
     </div>
     <div class="text-muted small py-3 mt-3">
-        {% trans "Supported formats: .xlsx, .xls" %}
+        {% trans "Supported formats: .xlsx, .xls, .csv" %}
     </div>
 </div>
 {% endblock %}

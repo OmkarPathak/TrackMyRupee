@@ -255,15 +255,7 @@ class Transfer(models.Model):
             super().delete(*args, **kwargs)
 
     def __str__(self):
-        return f"Transfer {self.amount} from {self.from_account.name} to {self.to_account.name} on {self.date}"
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['user', 'date']),
-        ]
-
-    def __str__(self):
-        return f"{self.date} - {self.source} - {self.amount}"
+        return f"{self.date} - Transfer {self.amount} from {self.from_account.name} to {self.to_account.name}"
 
 class RecurringTransaction(models.Model):
     FREQUENCY_CHOICES = [

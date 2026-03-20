@@ -428,22 +428,21 @@
 
     const CHART_COLORS = {
         green: '#2d6a4f',
-        amber: '#e07b39',
-        red: '#c0392b',
-        brown: '#8b6f47',
-        sage: '#6b8f71',
-        burntOrange: '#b5651d',
-        dustyRose: '#7a5c58',
-        teal: '#4a7c59',
-        softOrange: '#d4956a',
-        mutedGreen: '#5c6b5e'
+        amber: '#ee9b00',
+        red: '#ae2012',
+        teal: '#0a9396',
+        slate: '#006d77',
+        gold: '#ffb703',
+        blue: '#005f73',
+        mint: '#94d2bd',
+        crimson: '#9b2226'
     };
 
     const CATEGORY_PALETTE = [
-        CHART_COLORS.green, CHART_COLORS.amber, CHART_COLORS.red, 
-        CHART_COLORS.brown, CHART_COLORS.sage, CHART_COLORS.burntOrange, 
-        CHART_COLORS.dustyRose, CHART_COLORS.teal, CHART_COLORS.softOrange, 
-        CHART_COLORS.mutedGreen
+        CHART_COLORS.green, CHART_COLORS.amber, CHART_COLORS.teal, 
+        CHART_COLORS.slate, CHART_COLORS.red, CHART_COLORS.emerald, 
+        CHART_COLORS.gold, CHART_COLORS.blue, CHART_COLORS.mint, 
+        CHART_COLORS.crimson
     ];
 
     var options = {
@@ -501,22 +500,22 @@
 
         const CHART_COLORS = {
             green: '#2d6a4f',
-            amber: '#e07b39',
-            red: '#c0392b',
-            brown: '#8b6f47',
-            sage: '#6b8f71',
-            burntOrange: '#b5651d',
-            dustyRose: '#7a5c58',
-            teal: '#4a7c59',
-            softOrange: '#d4956a',
-            mutedGreen: '#5c6b5e'
+            amber: '#ee9b00',
+            red: '#ae2012',
+            teal: '#0a9396',
+            slate: '#006d77',
+            emerald: '#52b788',
+            gold: '#ffb703',
+            blue: '#005f73',
+            mint: '#94d2bd',
+            crimson: '#9b2226'
         };
 
         const CATEGORY_PALETTE = [
-            CHART_COLORS.green, CHART_COLORS.amber, CHART_COLORS.red, 
-            CHART_COLORS.brown, CHART_COLORS.sage, CHART_COLORS.burntOrange, 
-            CHART_COLORS.dustyRose, CHART_COLORS.teal, CHART_COLORS.softOrange, 
-            CHART_COLORS.mutedGreen
+            CHART_COLORS.green, CHART_COLORS.amber, CHART_COLORS.teal, 
+            CHART_COLORS.slate, CHART_COLORS.red, CHART_COLORS.emerald, 
+            CHART_COLORS.gold, CHART_COLORS.blue, CHART_COLORS.mint, 
+            CHART_COLORS.crimson
         ];
 
         const compactAmount = (val) => {
@@ -690,15 +689,7 @@
         // 2. Spending Donut
         const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
         // Generate nice colors (matching other charts)
-        const bgColors = [
-            '#2d6a4f', // Forest Green
-            '#e07b39', // Warm Amber
-            '#c0392b', // Warm Red
-            '#8b6f47', // Warm Brown
-            '#6b8f71', // Sage Green
-            '#b5651d', // Burnt Orange
-            '#7a5c58'  // Dusty Rose
-        ];
+        const bgColors = CATEGORY_PALETTE;
         
         // Enhance labels with values and percentages for the Legend
         const totalSpending = catData.reduce((acc, curr) => acc + curr, 0);
@@ -872,7 +863,7 @@
                 labels: recLabelsWithValues,
                 datasets: [{
                     data: recData,
-                    backgroundColor: [CHART_COLORS.brown, CHART_COLORS.green],
+                    backgroundColor: [CHART_COLORS.amber, CHART_COLORS.green],
                     borderWidth: 0
                 }]
             },

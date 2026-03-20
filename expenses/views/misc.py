@@ -13,6 +13,8 @@ import calendar
 from django.utils.formats import date_format
 import openpyxl
 import traceback
+import io
+import csv
 from ..models import Expense, Income, UserProfile, Category
 from ..forms import ContactForm
 
@@ -124,65 +126,80 @@ class CalendarView(LoginRequiredMixin, TemplateView):
 def upload_view(request):
     """
     Upload view with year selection enforcement.
-    Reads all sheets from the Excel workbook, concatenates the data,
-    and then processes it in a single pass.
+    Supports Excel (.xlsx, .xls) and CSV (.csv) files.
     """
     
     if request.method == 'POST' and request.FILES.get('file'):
-        excel_file = request.FILES['file']
+        uploaded_file = request.FILES['file']
         selected_year = int(request.POST.get('year'))
         created_count = 0
         skipped_count = 0
         
         try:
-            # Load workbook
-            wb = openpyxl.load_workbook(excel_file, data_only=True)
-            
-            # --- Phase 1: Concat all data rows from all sheets ---
+            # --- Phase 1: Concat all data rows ---
             all_data_rows = []
-            col_map = None  # We'll use the first valid header we find
             
-            for sheet_name in wb.sheetnames:
-                sheet = wb[sheet_name]
-                rows = list(sheet.iter_rows(values_only=True))
-                
-                if not rows:
-                    continue
+            if uploaded_file.name.endswith(('.xlsx', '.xls')):
+                wb = openpyxl.load_workbook(uploaded_file, data_only=True)
+                for sheet_name in wb.sheetnames:
+                    sheet = wb[sheet_name]
+                    rows = list(sheet.iter_rows(values_only=True))
+                    
+                    if not rows: continue
 
-                # Search for the header row index
-                header_row_index = -1
-                header_cols = []
-                
-                for i, row in enumerate(rows[:10]):
-                    if not row: continue
-                    row_values = [str(val).strip().title() if val is not None else "" for val in row]
-                    if 'Date' in row_values and 'Amount' in row_values and 'Description' in row_values:
-                        header_row_index = i
-                        header_cols = row_values
-                        break
-                
-                if header_row_index == -1:
-                    print(f"Skipping sheet {sheet_name}: Could not find header row.")
-                    continue
+                    header_row_index = -1
+                    header_cols = []
+                    for i, row in enumerate(rows[:10]):
+                        if not row: continue
+                        row_values = [str(val).strip().title() if val is not None else "" for val in row]
+                        if 'Date' in row_values and 'Amount' in row_values and 'Description' in row_values:
+                            header_row_index = i
+                            header_cols = row_values
+                            break
+                    
+                    if header_row_index == -1: continue
 
-                # Map column indices (use the first valid header, or re-map per sheet)
-                sheet_col_map = {col: idx for idx, col in enumerate(header_cols) if col}
-                required_columns = ['Date', 'Amount', 'Description', 'Category']
+                    sheet_col_map = {col: idx for idx, col in enumerate(header_cols) if col}
+                    required_columns = ['Date', 'Amount', 'Description', 'Category']
+                    if not all(col in sheet_col_map for col in required_columns): continue
+
+                    for row_data in rows[header_row_index + 1:]:
+                        if row_data and any(row_data):
+                            all_data_rows.append((row_data, sheet_col_map))
+
+            elif uploaded_file.name.endswith('.csv'):
+                try:
+                    decoded_file = uploaded_file.read().decode('utf-8')
+                except UnicodeDecodeError:
+                    uploaded_file.seek(0)
+                    decoded_file = uploaded_file.read().decode('latin-1')
                 
-                if not all(col in sheet_col_map for col in required_columns):
-                    print(f"Skipping sheet {sheet_name}: Missing required columns.")
-                    continue
+                io_string = io.StringIO(decoded_file)
+                reader = csv.reader(io_string)
+                rows = list(reader)
+                
+                if rows:
+                    header_row_index = -1
+                    header_cols = []
+                    for i, row in enumerate(rows[:10]):
+                        if not row: continue
+                        row_values = [str(val).strip().title() if val is not None else "" for val in row]
+                        if 'Date' in row_values and 'Amount' in row_values and 'Description' in row_values:
+                            header_row_index = i
+                            header_cols = row_values
+                            break
+                    
+                    if header_row_index != -1:
+                        sheet_col_map = {col: idx for idx, col in enumerate(header_cols) if col}
+                        required_columns = ['Date', 'Amount', 'Description', 'Category']
+                        if all(col in sheet_col_map for col in required_columns):
+                            for row_data in rows[header_row_index + 1:]:
+                                if row_data and any(row_data):
+                                    all_data_rows.append((row_data, sheet_col_map))
+            else:
+                messages.error(request, _("Unsupported file format. Please upload Excel or CSV."))
+                return redirect('upload')
 
-                # Use the first valid col_map, or update if columns shift per sheet
-                if col_map is None:
-                    col_map = sheet_col_map
-
-                # Collect data rows from this sheet
-                for row_data in rows[header_row_index + 1:]:
-                    if row_data and any(row_data):
-                        # Store row_data along with its sheet-specific col_map
-                        all_data_rows.append((row_data, sheet_col_map))
-            
             if not all_data_rows:
                 messages.info(request, _("No data found to import. Please check your file format."))
                 return redirect('expense-list')
@@ -192,7 +209,7 @@ def upload_view(request):
                 try:
                     # Parse date
                     date_val = row_data[row_col_map['Date']]
-                    if date_val is None:
+                    if date_val is None or str(date_val).strip() == "":
                         skipped_count += 1
                         continue
                         
@@ -224,7 +241,7 @@ def upload_view(request):
                     description = row_data[row_col_map['Description']]
                     category = row_data[row_col_map['Category']] if 'Category' in row_col_map else None
                     
-                    if amount is None or description is None:
+                    if amount is None or description is None or str(amount).strip() == "" or str(description).strip() == "":
                         skipped_count += 1
                         continue
                         
