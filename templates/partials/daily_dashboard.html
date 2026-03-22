@@ -230,10 +230,10 @@
                 <div class="p-4 text-center">
                     <div class="mb-2">
                         <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10" style="width: 48px; height: 48px;">
-                            <i class="bi bi-receipt text-primary opacity-50" style="font-size: 1.4rem;"></i>
+                            <i class="bi bi-stars text-primary opacity-75" style="font-size: 1.4rem;"></i>
                         </div>
                     </div>
-                    <p class="text-muted small mb-2">{% trans "No expenses recorded today" %}</p>
+                    <p class="text-muted small mb-2">{% trans "Fresh start." %} {{ currency_symbol }}{{ daily_mode.daily_left|humanize_currency:currency_symbol|translate_digits }} {% trans "to spend wisely today." %}</p>
                     <a href="{% url 'expense-create' %}?next={% url 'home' %}" class="btn btn-primary btn-sm rounded-pill px-3">
                         <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
                     </a>
@@ -247,18 +247,18 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in" style="animation-delay: 0.3s;">
         <div class="card-body px-4 py-3 bg-body-primary">
             <div class="d-flex align-items-center justify-content-center gap-2">
-                <i class="bi bi-lightbulb-fill text-warning flex-shrink-0"></i>
-                <span class="text-success fw-bold">{% trans "You can still spend" %} {{ currency_symbol }}{{ daily_mode.safe_to_spend|humanize_currency:currency_symbol|translate_digits }} {% trans "safely today" %}</span>
+                <i class="bi bi-hand-thumbs-up-fill text-success flex-shrink-0"></i>
+                <span class="text-success fw-bold">{% trans "Great pace!" %} {{ currency_symbol }}{{ daily_mode.remaining_month_budget|humanize_currency:currency_symbol|translate_digits }} {% trans "left for the month." %}</span>
                 <i class="bi bi-info-circle ms-1 cursor-pointer text-success" style="font-size: 0.8rem;" 
                    data-bs-toggle="tooltip" data-bs-placement="top" 
-                   title="{% trans 'Amount you can spend today without exceeding your monthly budget, considering fixed costs.' %}"></i>
+                   title="{% trans 'Amount remaining from your monthly budget to keep you on track.' %}"></i>
             </div>
         </div>
     </div>
     {% endif %}
 
-    <!-- View Full Report CTA -->
-    <div class="text-center mb-4 fade-in" style="animation-delay: 0.4s;">
+    <!-- View Full Report CTA (Desktop Only) -->
+    <div class="d-none d-md-block text-center mb-4 fade-in" style="animation-delay: 0.4s;">
         <button type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold" onclick="switchToFullReport()">
             {% trans "View Full Financial Report" %} <i class="bi bi-arrow-right ms-1"></i>
         </button>
@@ -272,9 +272,9 @@
         <!-- Today Summary Card -->
         <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in" style="animation-delay: 0.15s;">
             <div class="card-body p-4 bg-body-primary">
-                <h6 class="fw-bold mb-3 text-body-secondary text-uppercase d-flex align-items-center gap-1" style="font-size: 0.75rem; letter-spacing: 0.08em;">
-                    <i class="bi bi-calendar-day"></i><span>{% trans "Today's Summary" %}</span>
-                    <i class="bi bi-info-circle ms-1 cursor-pointer" style="font-size: 0.7rem; text-transform: none;" 
+                <h6 class="fw-bold mb-3 text-body-secondary d-flex align-items-center gap-1" style="font-size: 0.75rem; letter-spacing: 0.08em;">
+                    <i class="bi bi-calendar-day"></i><span>{% trans "Today's summary" %}</span>
+                    <i class="bi bi-info-circle ms-1 cursor-pointer" style="font-size: 0.7rem;" 
                        data-bs-toggle="tooltip" data-bs-placement="top" 
                        title="{% trans 'Real-time summary of expenses recorded today' %}"></i>
                 </h6>
@@ -301,8 +301,8 @@
         {% if daily_mode.today_category_split %}
         <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in" style="animation-delay: 0.25s;">
             <div class="card-body p-4 bg-body-primary">
-                <h6 class="fw-bold mb-3 text-body-secondary text-uppercase d-flex align-items-center gap-1" style="font-size: 0.75rem; letter-spacing: 0.08em;">
-                    <i class="bi bi-pie-chart"></i><span>{% trans "Category Split" %}</span>
+                <h6 class="fw-bold mb-3 text-body-secondary d-flex align-items-center gap-1" style="font-size: 0.75rem; letter-spacing: 0.08em;">
+                    <i class="bi bi-pie-chart"></i><span>{% trans "Category split" %}</span>
                 </h6>
                 {% for cat in daily_mode.today_category_split %}
                 <div class="d-flex align-items-center gap-2 {% if not forloop.last %}mb-3{% endif %}">
@@ -328,10 +328,10 @@
         {% endif %}
 
         <!-- Quick Stats -->
-        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in" style="animation-delay: 0.35s;">
+        <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden fade-in" style="animation-delay: 0.35s;">
             <div class="card-body p-4 bg-body-primary">
-                <h6 class="fw-bold mb-3 text-body-secondary text-uppercase d-flex align-items-center gap-1" style="font-size: 0.75rem; letter-spacing: 0.08em;">
-                    <i class="bi bi-speedometer2"></i><span>{% trans "Quick Stats" %}</span>
+                <h6 class="fw-bold mb-3 text-body-secondary d-flex align-items-center gap-1" style="font-size: 0.75rem; letter-spacing: 0.08em;">
+                    <i class="bi bi-speedometer2"></i><span>{% trans "Quick stats" %}</span>
                 </h6>
                 <div class="row g-3">
                     <div class="col-6">
@@ -382,6 +382,13 @@
                     {% endif %}
                 </div>
             </div>
+        </div>
+        
+        <!-- Bottom View CTA -->
+        <div class="text-center py-2 fade-in" style="animation-delay: 0.45s;">
+            <a href="javascript:void(0)" class="text-body-secondary small text-decoration-none hover-link-primary transition-all d-inline-flex align-items-center gap-1" onclick="switchToFullReport()">
+                {% trans "View your full financial story" %} <i class="bi bi-arrow-right" style="font-size: 0.75rem;"></i>
+            </a>
         </div>
 
     </div><!-- /daily-right-col -->
