@@ -857,38 +857,38 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 
 <!-- Quick Links (Mobile Only) -->
-<div class="d-md-none mb-4 fade-in">
+<div class="d-md-none mb-4 fade-in p-0">
     <div class="d-flex justify-content-between align-items-center px-1">
-        <a href="{% url 'category-list' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
-                <i class="bi bi-tag fs-5 text-primary"></i>
+        <a href="{% url 'goal-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
+            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
+                <i class="bi bi-flag fs-5 text-body-secondary"></i>
             </div>
-            <span class="text-body-secondary" style="font-size: 0.75rem;">{% trans "Categories" %}</span>
+            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Goals" %}</span>
         </a>
-        <a href="{% url 'budget' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
-                <i class="bi bi-speedometer2 fs-5 text-warning"></i>
+        <a href="{% url 'budget' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
+            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
+                <i class="bi bi-wallet2 fs-5 text-body-secondary"></i>
             </div>
-            <span class="text-body-secondary" style="font-size: 0.75rem;">{% trans "Budget" %}</span>
+            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Budgets" %}</span>
         </a>
-        <a href="{% url 'recurring-list' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
-                <i class="bi bi-arrow-repeat fs-5 text-success"></i>
+        <a href="{% url 'recurring-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
+            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
+                <i class="bi bi-arrow-repeat fs-5 text-body-secondary"></i>
             </div>
-            <span class="text-body-secondary" style="font-size: 0.75rem;">{% trans "Subscriptions" %}</span>
+            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Recurring" %}</span>
         </a>
-        <a href="{% url 'settings-home' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
-                <i class="bi bi-gear fs-5 text-secondary"></i>
+        <a href="{% url 'category-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
+            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
+                <i class="bi bi-tag fs-5 text-body-secondary"></i>
             </div>
-            <span class="text-body-secondary" style="font-size: 0.75rem;">{% trans "Settings" %}</span>
+            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Categories" %}</span>
         </a>
         {% if user.profile.is_pro %}
-        <a href="{% url 'analytics' %}" class="d-flex flex-column align-items-center text-decoration-none flex-grow-1">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 48px; height: 48px;">
-                <i class="bi bi-graph-up-arrow fs-5 text-info"></i>
+        <a href="{% url 'analytics' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
+            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
+                <i class="bi bi-graph-up fs-5 text-body-secondary"></i>
             </div>
-            <span class="text-body-secondary" style="font-size: 0.75rem;">{% trans "Analytics" %}</span>
+            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Analytics" %}</span>
         </a>
         {% endif %}
     </div>
