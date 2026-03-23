@@ -1,10 +1,20 @@
 from datetime import date, timedelta
 from decimal import Decimal
+
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
-from expenses.models import Account, Expense, UserProfile, Category, RecurringTransaction
+
+from expenses.models import (
+    Account,
+    Category,
+    Expense,
+    RecurringTransaction,
+    UserProfile,
+)
+from finance_tracker.plans import PLAN_DETAILS
+
 
 class TierLimitTest(TestCase):
     def setUp(self):
@@ -19,65 +29,77 @@ class TierLimitTest(TestCase):
         self.client.login(username="freetester", password="password")
 
     def test_account_limit_enforced_free(self):
-        """Free user should not be able to create more than 3 accounts."""
-        for i in range(3):
+        """Free user should not be able to create more than the configured account limit."""
+        limit = PLAN_DETAILS['FREE']['limits']['accounts']
+        for i in range(limit):
             Account.objects.create(user=self.user, name=f"Acc {i}", balance=100)
         
-        self.assertEqual(self.user.accounts.count(), 3)
+        self.assertEqual(self.user.accounts.count(), limit)
         
         response = self.client.post(reverse('account-create'), {
-            'name': '4th Account', 'account_type': 'BANK', 'balance': '100', 'currency': '₹'
+            'name': 'Limit Exceeded Account', 'account_type': 'BANK', 'balance': '100', 'currency': '₹'
         })
         
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('pricing'), response.url)
-        self.assertEqual(self.user.accounts.count(), 3)
+        self.assertEqual(self.user.accounts.count(), limit)
 
     def test_account_limit_enforced_plus(self):
-        """Plus user should not be able to create more than 5 accounts."""
+        """Plus user should not be able to create more than the configured account limit."""
         self.profile.tier = "PLUS"
         self.profile.subscription_end_date = timezone.now().date() + timedelta(days=30)
         self.profile.save()
 
-        for i in range(5):
+        limit = PLAN_DETAILS['PLUS']['limits']['accounts']
+        for i in range(limit):
             Account.objects.create(user=self.user, name=f"Acc {i}", balance=100)
         
-        self.assertEqual(self.user.accounts.count(), 5)
+        self.assertEqual(self.user.accounts.count(), limit)
         
         response = self.client.post(reverse('account-create'), {
-            'name': '6th Account', 'account_type': 'BANK', 'balance': '100', 'currency': '₹'
+            'name': 'Limit Exceeded Account', 'account_type': 'BANK', 'balance': '100', 'currency': '₹'
         })
         
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('pricing'), response.url)
-        self.assertEqual(self.user.accounts.count(), 5)
+        self.assertEqual(self.user.accounts.count(), limit)
 
     def test_category_limit_enforced_free(self):
-        """Free user should not be able to create more than 3 categories."""
+        """Free user should not be able to create more than the configured category limit."""
+        limit = PLAN_DETAILS['FREE']['limits']['budget_categories']
         # User starts with 3 default categories (Food, Shopping, Bills) via signals
-        self.assertEqual(Category.objects.filter(user=self.user).count(), 3)
+        current_count = Category.objects.filter(user=self.user).count()
         
-        response = self.client.post(reverse('category-create'), {'name': '4th Cat'})
+        # Add categories up to limit
+        for i in range(limit - current_count):
+            Category.objects.create(user=self.user, name=f"Cat {i}")
+
+        self.assertEqual(Category.objects.filter(user=self.user).count(), limit)
+        
+        response = self.client.post(reverse('category-create'), {'name': 'Limit Exceeded Cat'})
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('pricing'), response.url)
-        self.assertEqual(Category.objects.filter(user=self.user).count(), 3)
+        self.assertEqual(Category.objects.filter(user=self.user).count(), limit)
 
     def test_category_limit_enforced_plus(self):
-        """Plus user should be capped at 10 categories."""
+        """Plus user should be capped at the configured category limit."""
         self.profile.tier = "PLUS"
         self.profile.subscription_end_date = timezone.now().date() + timedelta(days=30)
         self.profile.save()
         
-        # Start with 3 defaults, add 7 more
-        for i in range(7):
-            Category.objects.create(user=self.user, name=f"Extra {i}")
+        limit = PLAN_DETAILS['PLUS']['limits']['budget_categories']
+        current_count = Category.objects.filter(user=self.user).count()
+
+        # Add categories up to limit
+        for i in range(limit - current_count):
+            Category.objects.create(user=self.user, name=f"Plus Extra {i}")
         
-        self.assertEqual(Category.objects.filter(user=self.user).count(), 10)
+        self.assertEqual(Category.objects.filter(user=self.user).count(), limit)
         
-        response = self.client.post(reverse('category-create'), {'name': '11th Cat'})
+        response = self.client.post(reverse('category-create'), {'name': 'Limit Exceeded Cat'})
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('pricing'), response.url)
-        self.assertEqual(Category.objects.filter(user=self.user).count(), 10)
+        self.assertEqual(Category.objects.filter(user=self.user).count(), limit)
 
     def test_recurring_limit_enforced_free(self):
         """Free user should not be able to create any recurring transactions."""
@@ -90,30 +112,32 @@ class TierLimitTest(TestCase):
         self.assertIn(reverse('pricing'), response.url)
 
     def test_recurring_limit_enforced_plus(self):
-        """Plus user should be capped at 3 recurring transactions."""
+        """Plus user should be capped at the configured recurring transaction limit."""
         self.profile.tier = "PLUS"
         self.profile.subscription_end_date = timezone.now().date() + timedelta(days=30)
         self.profile.save()
         acc = Account.objects.create(user=self.user, name="Main", balance=1000)
 
-        for i in range(3):
+        limit = PLAN_DETAILS['PLUS']['limits']['recurring_transactions']
+        for i in range(limit):
             RecurringTransaction.objects.create(
                 user=self.user, account=acc, description=f"Rec {i}", 
                 amount=100, category="Test", frequency="MONTHLY", start_date=date.today()
             )
         
         response = self.client.post(reverse('recurring-create'), {
-            'account': acc.id, 'description': '4th Rec', 'amount': '100',
+            'account': acc.id, 'description': 'Limit Exceeded Rec', 'amount': '100',
             'category': 'Test', 'frequency': 'MONTHLY', 'start_date': date.today()
         })
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('pricing'), response.url)
-        self.assertEqual(RecurringTransaction.objects.filter(user=self.user, is_active=True).count(), 3)
+        self.assertEqual(RecurringTransaction.objects.filter(user=self.user, is_active=True).count(), limit)
 
     def test_expense_monthly_limit_enforced(self):
-        """Free user should not be able to create more than 30 expenses in a month."""
+        """Free user should not be able to create more than the configured monthly expense limit."""
+        limit = PLAN_DETAILS['FREE']['limits']['expenses_per_month']
         today = date.today()
-        for i in range(30):
+        for i in range(limit):
             Expense.objects.create(
                 user=self.user, date=today, amount=Decimal("10.00"),
                 description=f"Expense {i}", category="Food"
@@ -122,13 +146,13 @@ class TierLimitTest(TestCase):
         data = {
             'form-TOTAL_FORMS': '1', 'form-INITIAL_FORMS': '0', 'form-MIN_NUM_FORMS': '0',
             'form-MAX_NUM_FORMS': '1000', 'form-0-date': today.strftime('%Y-%m-%d'),
-            'form-0-amount': '20.00', 'form-0-description': '31st Expense',
+            'form-0-amount': '20.00', 'form-0-description': 'Limit Exceeded Expense',
             'form-0-category': 'Food', 'form-0-currency': '₹', 'form-0-payment_method': 'Cash'
         }
         response = self.client.post(reverse('expense-create'), data)
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('pricing'), response.url)
-        self.assertEqual(Expense.objects.filter(user=self.user, date__year=today.year, date__month=today.month).count(), 30)
+        self.assertEqual(Expense.objects.filter(user=self.user, date__year=today.year, date__month=today.month).count(), limit)
 
     def test_net_worth_locked_for_free_user(self):
         """Dashboard should indicate net worth is locked for free users."""

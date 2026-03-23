@@ -21,9 +21,9 @@ def process_user_recurring_transactions(user):
     recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True).order_by('created_at')
     
     # Enforce Tier Limits for processing
-    if not profile.is_pro:
-        # Free: 0, Plus: 3
-        limit = 3 if profile.is_plus else 0
+    from finance_tracker.plans import get_limit
+    limit = get_limit(profile.active_tier, 'recurring_transactions')
+    if limit != -1:
         recurring_txs = recurring_txs[:limit]
 
     updates_needed = []

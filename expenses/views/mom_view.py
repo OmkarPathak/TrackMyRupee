@@ -1,13 +1,12 @@
 import calendar
+import json
 from datetime import date, timedelta
 from decimal import Decimal
-import json
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.shortcuts import render
 from django.utils import timezone
-from django.utils.translation import gettext as _
 
 from ..models import Account, Expense, Income, Transfer
 from ..utils import get_exchange_rate

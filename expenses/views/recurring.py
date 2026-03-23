@@ -167,11 +167,12 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
         # Nudge context for upgrade banner (use is_plus/is_pro to respect subscription expiry)
         profile = self.request.user.profile
         active_count = RecurringTransaction.objects.filter(user=self.request.user, is_active=True).count()
-        limit = float('inf')
-        if not profile.is_pro:
-            limit = 3 if profile.is_plus else 1
-            
-            if profile.is_plus:
+        
+        from finance_tracker.plans import get_limit
+        limit = get_limit(profile.active_tier, 'recurring_transactions')
+        
+        if limit != -1:
+            if profile.active_tier == 'PLUS':
                 upgrade_tier = 'PRO'
             else:
                 upgrade_tier = 'PLUS'
@@ -181,14 +182,14 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
             context['nudge_upgrade_tier'] = upgrade_tier
             context['nudge_at_limit'] = active_count >= limit
             # Free users: always show nudge (they have 0 limit)
-            # Plus users: show when >= 60% of 3 = 2+
+            # Plus users: show when >= 60% of limit
             if limit == 0:
                 context['show_nudge'] = True
             else:
                 context['show_nudge'] = active_count >= max(1, int(limit * 0.6))
         
         context['is_limit_reached'] = not profile.can_add_recurring()
-        context['current_limit'] = float('inf') if profile.is_pro else (3 if profile.is_plus else 0)
+        context['current_limit'] = float('inf') if limit == -1 else limit
         
         return context
 

@@ -30,13 +30,14 @@ class CategoryListView(LoginRequiredMixin, ListView):
         
         # Nudge context for upgrade banner
         profile = self.request.user.profile
-        if not profile.is_pro:
+        from finance_tracker.plans import get_limit
+        limit = get_limit(profile.active_tier, 'budget_categories')
+        
+        if limit != -1:
             total_categories = Category.objects.filter(user=self.request.user).count()
-            if profile.is_plus:
-                limit = 10
+            if profile.active_tier == 'PLUS':
                 upgrade_tier = 'PRO'
             else:
-                limit = 3
                 upgrade_tier = 'PLUS'
             context['reached_limit'] = total_categories >= limit
             context['current_count'] = total_categories
@@ -46,6 +47,8 @@ class CategoryListView(LoginRequiredMixin, ListView):
             context['nudge_feature_name'] = 'categories'
             context['nudge_upgrade_tier'] = upgrade_tier
             context['nudge_at_limit'] = total_categories >= limit
+        
+        context['reached_limit'] = not profile.can_add_category()
         
         from ..utils import BOOTSTRAP_ICONS
         context['bootstrap_icons'] = BOOTSTRAP_ICONS
@@ -62,8 +65,7 @@ def create_category_ajax(request):
                 return JsonResponse({'success': False, 'error': _('Name is required.')})
                 
             profile = request.user.profile
-            limit = float('inf') if profile.is_pro else (10 if profile.is_plus else 3)
-            if Category.objects.filter(user=request.user).count() >= limit:
+            if not profile.can_add_category():
                 return JsonResponse({'success': False, 'error': _('Category limit reached.')}, status=403)
 
             if Category.objects.filter(user=request.user, name__iexact=name).exists():
@@ -82,9 +84,7 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('category-list')
 
     def form_valid(self, form):
-        profile = self.request.user.profile
-        limit = float('inf') if profile.is_pro else (10 if profile.is_plus else 3)
-        if Category.objects.filter(user=self.request.user).count() >= limit:
+        if not self.request.user.profile.can_add_category():
             messages.error(self.request, _("Category limit reached. Please upgrade."))
             return redirect('pricing')
         form.instance.user = self.request.user
@@ -101,14 +101,11 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
         context['bootstrap_icons'] = BOOTSTRAP_ICONS
         # Check Limits
         current_count = Category.objects.filter(user=self.request.user).count()
-        limit = 3 # Free
-        if self.request.user.profile.is_plus:
-            limit = 10
-        if self.request.user.profile.is_pro:
-            limit = float('inf')
+        from finance_tracker.plans import get_limit
+        limit = get_limit(self.request.user.profile.active_tier, 'budget_categories')
 
-        context['reached_limit'] = current_count >= limit
-        context['category_limit'] = limit
+        context['reached_limit'] = not self.request.user.profile.can_add_category()
+        context['category_limit'] = limit if limit != -1 else _('Unlimited')
         return context
 
 class CategoryUpdateView(LoginRequiredMixin, UpdateView):
@@ -120,7 +117,9 @@ class CategoryUpdateView(LoginRequiredMixin, UpdateView):
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
         profile = request.user.profile
-        limit = float('inf') if profile.is_pro else (10 if profile.is_plus else 3)
+        from finance_tracker.plans import get_limit
+        limit = get_limit(profile.active_tier, 'budget_categories')
+        if limit == -1: return super().dispatch(request, *args, **kwargs)
         categories = list(Category.objects.filter(user=request.user).order_by('id'))
         if obj in categories and categories.index(obj) >= limit:
             messages.error(request, _("This category is locked."))

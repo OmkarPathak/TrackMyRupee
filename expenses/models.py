@@ -421,38 +421,53 @@ class UserProfile(models.Model):
         return self.is_plus or self.is_pro
 
     def can_add_account(self):
-        """Free users are capped at 3 accounts, Plus users at 5."""
-        count = self.user.accounts.count()
-        if self.active_tier == 'PLUS':
-            return count < 5
-        if self.active_tier == 'FREE':
-            return count < 3
-        return True # Pro: Unlimited
+        """Checks account limit based on tier."""
+        from finance_tracker.plans import get_limit
+        limit = get_limit(self.active_tier, 'accounts')
+        if limit == -1: return True
+        return self.user.accounts.count() < limit
 
     def can_add_expense(self):
-        """Free users are capped at 30 expenses per month."""
-        if self.active_tier == 'FREE':
-            now = timezone.now()
-            month_count = Expense.objects.filter(
-                user=self.user, 
-                date__year=now.year, 
-                date__month=now.month
-            ).count()
-            return month_count < 30
-        return True
+        """Checks monthly expense limit based on tier."""
+        from finance_tracker.plans import get_limit
+        limit = get_limit(self.active_tier, 'expenses_per_month')
+        if limit == -1: return True
+        
+        now = timezone.now()
+        month_count = Expense.objects.filter(
+            user=self.user, 
+            date__year=now.year, 
+            date__month=now.month
+        ).count()
+        return month_count < limit
 
     def can_add_recurring(self):
-        """Free users are capped at 0 recurring transactions."""
-        if self.active_tier == 'PLUS': # Plus: 3
-            return self.user.recurringtransaction_set.filter(is_active=True).count() < 3
-        if self.active_tier == 'FREE': # Free: 0
-            return False
-        return True # Pro: Unlimited
+        """Checks recurring transaction limit based on tier."""
+        from finance_tracker.plans import get_limit
+        limit = get_limit(self.active_tier, 'recurring_transactions')
+        if limit == -1: return True
+        return self.user.recurringtransaction_set.filter(is_active=True).count() < limit
+
+    def can_add_category(self):
+        """Checks category limit based on tier."""
+        from finance_tracker.plans import get_limit
+        limit = get_limit(self.active_tier, 'budget_categories')
+        if limit == -1: return True
+        return self.user.category_set.count() < limit
+
+    def can_add_goal(self):
+        """Checks savings goal limit based on tier."""
+        from finance_tracker.plans import get_limit
+        limit = get_limit(self.active_tier, 'savings_goals')
+        if limit == -1: return True
+        return self.user.savings_goals.count() < limit
 
     def is_recurring_locked(self, obj):
         """Check if a specific recurring transaction is locked based on tier limits."""
-        if self.is_pro: return False
-        limit = 3 if self.is_plus else 0
+        from finance_tracker.plans import get_limit
+        limit = get_limit(self.active_tier, 'recurring_transactions')
+        if limit == -1: return False
+        
         subs = list(self.user.recurringtransaction_set.all().order_by('created_at', 'id'))
         if obj in subs and subs.index(obj) >= limit:
             return True

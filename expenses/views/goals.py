@@ -24,10 +24,12 @@ class SavingsGoalListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         all_goals = list(self.get_queryset())
         profile = self.request.user.profile
-        limit = float('inf') if profile.is_pro else (3 if profile.is_plus else 1)
+        from finance_tracker.plans import get_limit
+        limit = get_limit(profile.active_tier, 'savings_goals')
+        if limit == -1: limit = len(all_goals) + 1 # Unused for infinity, but for safety
         for i, goal in enumerate(all_goals):
-            goal.is_locked = i >= limit
-        context.update({'goals': all_goals, 'total_saved': round(sum(g.current_amount for g in all_goals), 2), 'can_create_goal': len(all_goals) < limit})
+            goal.is_locked = limit != -1 and i >= limit
+        context.update({'goals': all_goals, 'total_saved': round(sum(g.current_amount for g in all_goals), 2), 'can_create_goal': profile.can_add_goal()})
         return context
 
 class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
@@ -36,12 +38,9 @@ class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
     template_name = 'expenses/goal_form.html'
     success_url = reverse_lazy('goal-list')
     def dispatch(self, request, *args, **kwargs):
-        profile = request.user.profile
-        if not profile.is_pro:
-            limit = 3 if profile.is_plus else 1
-            if SavingsGoal.objects.filter(user=request.user).count() >= limit:
-                messages.error(request, _("Goal limit reached."))
-                return redirect('goal-list')
+        if not request.user.profile.can_add_goal():
+            messages.error(request, _("Goal limit reached."))
+            return redirect('goal-list')
         return super().dispatch(request, *args, **kwargs)
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -57,8 +56,9 @@ class SavingsGoalUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('goal-list')
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object(); profile = request.user.profile
-        if not profile.is_pro:
-            limit = 3 if profile.is_plus else 1
+        from finance_tracker.plans import get_limit
+        limit = get_limit(profile.active_tier, 'savings_goals')
+        if limit != -1:
             goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
             if obj in goals and goals.index(obj) >= limit:
                 messages.error(request, _("This goal is locked."))
@@ -93,8 +93,9 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
     def get(self, request, pk):
         goal = get_object_or_404(SavingsGoal, pk=pk, user=request.user)
         profile = request.user.profile; is_locked = False
-        if not profile.is_pro:
-             limit = float('inf') if profile.is_pro else (3 if profile.is_plus else 1)
+        from finance_tracker.plans import get_limit
+        limit = get_limit(profile.active_tier, 'savings_goals')
+        if limit != -1:
              goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
              is_locked = (goal in goals and goals.index(goal) >= limit)
         return render(request, self.template_name, {'goal': goal, 'is_locked': is_locked, 'contributions': goal.contributions.all().order_by('-date'), 'form': GoalContributionForm()})
@@ -109,8 +110,9 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
                 pass
         # Lock check for POST contributions
         profile = request.user.profile
-        if not profile.is_pro:
-             limit = 3 if profile.is_plus else 1
+        from finance_tracker.plans import get_limit
+        limit = get_limit(profile.active_tier, 'savings_goals')
+        if limit != -1:
              goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
              if goal in goals and goals.index(goal) >= limit:
                  messages.error(request, _("This goal is locked."))

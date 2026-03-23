@@ -123,6 +123,7 @@ TEMPLATES = [
                 'expenses.context_processors.notifications',
                 'expenses.context_processors.webpush_vapid_key',
                 'finance_tracker.context_processors.google_analytics',
+                'finance_tracker.context_processors.plan_details',
             ],
         },
     },

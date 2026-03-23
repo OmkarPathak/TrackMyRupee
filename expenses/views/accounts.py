@@ -36,7 +36,9 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         if not self.request.user.profile.can_add_account():
-            messages.error(self.request, _("You have reached the limit of 3 accounts for the Free plan. Please upgrade to add more."))
+            from finance_tracker.plans import get_limit
+            limit = get_limit(self.request.user.profile.active_tier, 'accounts')
+            messages.error(self.request, _("You have reached the limit of %(limit)s accounts for your current plan. Please upgrade to add more.") % {'limit': limit})
             return redirect('pricing')
         form.instance.user = self.request.user
         messages.success(self.request, _("Account created successfully!"))

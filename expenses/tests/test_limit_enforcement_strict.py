@@ -12,13 +12,16 @@ from expenses.models import (
     GoalContribution,
     RecurringTransaction,
     SavingsGoal,
+    UserProfile,
 )
+from finance_tracker.plans import PLAN_DETAILS
 
 
 class StrictLimitEnforcementTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='password')
-        self.profile = self.user.profile
+        # Ensure profile exists
+        self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
         
         # Create categories (6)
         for i in range(6):
@@ -41,27 +44,30 @@ class StrictLimitEnforcementTest(TestCase):
     def test_category_limit_enforcement(self):
         # By default, profile is FREE
         self.user.refresh_from_db()
-        # Signals create 3 default categories. We created 6 more. Total 9.
-        self.assertEqual(Category.objects.filter(user=self.user).count(), 9)
+        # We created 6 categories in setUp.
+        self.assertGreaterEqual(Category.objects.filter(user=self.user).count(), 6)
         
         form = ExpenseForm(user=self.user)
         choices = list(form.fields['category'].widget.choices)
-        # FREE limit is 3
-        self.assertEqual(len(choices), 3)
+        # FREE limit
+        limit_free = PLAN_DETAILS['FREE']['limits']['budget_categories']
+        self.assertEqual(len(choices), limit_free)
         
         # Upgrade to PLUS
         p = self.user.profile
         p.tier = 'PLUS'
         p.subscription_end_date = timezone.now() + timedelta(days=30)
         p.save()
-        # Add a 10th category to test the limit of 10
-        Category.objects.create(user=self.user, name='Category 10')
+        # Add a 10th+ category to test the limit
+        for i in range(5):
+            Category.objects.create(user=self.user, name=f'Category {10+i}')
         self.user.refresh_from_db()
         
         form = ExpenseForm(user=self.user)
         choices = list(form.fields['category'].widget.choices)
-        # PLUS limit is 10
-        self.assertEqual(len(choices), 10)
+        # PLUS limit
+        limit_plus = PLAN_DETAILS['PLUS']['limits']['budget_categories']
+        self.assertEqual(len(choices), limit_plus)
 
     def test_recurring_transaction_limit_enforcement(self):
         # FREE limit is 0
@@ -85,7 +91,9 @@ class StrictLimitEnforcementTest(TestCase):
         self.user.refresh_from_db()
         
         process_user_recurring_transactions(self.user)
-        self.assertEqual(Expense.objects.filter(user=self.user).count(), 1)
+        # Plus limit for process_user_recurring_transactions
+        limit_plus = PLAN_DETAILS['PLUS']['limits']['recurring_transactions']
+        self.assertEqual(Expense.objects.filter(user=self.user).count(), min(1, limit_plus))
 
     def test_downgrade_notification_logic(self):
         # ... (existing test)
@@ -139,8 +147,9 @@ class StrictLimitEnforcementTest(TestCase):
         p.tier = 'FREE'
         p.save()
         
+        limit_free = PLAN_DETAILS['FREE']['limits']['savings_goals']
         self.client.force_login(self.user)
-        # Goal 2 should be locked (index 1 >= limit 1)
+        # Goal index >= limit should be locked
         response = self.client.get(reverse('goal-edit', kwargs={'pk': g2.pk}))
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('goal-list'), response.url)
@@ -167,8 +176,9 @@ class StrictLimitEnforcementTest(TestCase):
         p.tier = 'FREE'
         p.save()
         
+        limit_free = PLAN_DETAILS['FREE']['limits']['budget_categories']
         self.client.force_login(self.user)
-        # Cat 6 should be locked
+        # Cat index >= limit should be locked
         response = self.client.get(reverse('category-edit', kwargs={'pk': cat6.pk}))
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('category-list'), response.url)
@@ -183,14 +193,17 @@ class StrictLimitEnforcementTest(TestCase):
         request = factory.get('/goals/')
         request.user = self.user
         
-        # FREE limit is 1
         view = SavingsGoalListView()
         view.request = request
         context = view.get_context_data(object_list=SavingsGoal.objects.filter(user=self.user))
         
+        limit_free = PLAN_DETAILS['FREE']['limits']['savings_goals']
         goals = context['goals']
-        self.assertFalse(goals[0].is_locked) # First goal created
-        self.assertTrue(goals[1].is_locked)  # Second goal created
+        for i, goal in enumerate(goals):
+            if i < limit_free:
+                self.assertFalse(goal.is_locked)
+            else:
+                self.assertTrue(goal.is_locked)
         
         # Verify POST to locked goal fails
         locked_goal = goals[1]

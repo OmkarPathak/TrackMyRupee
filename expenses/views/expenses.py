@@ -179,7 +179,10 @@ class ExpenseCreateView(LoginRequiredMixin, View):
             instances = formset.save(commit=False)
             
             # Check monthly limit for FREE tier
-            if request.user.profile.active_tier == 'FREE':
+            from finance_tracker.plans import get_limit
+            limit = get_limit(request.user.profile.active_tier, 'expenses_per_month')
+            
+            if limit != -1:
                 now = datetime.now()
                 # Count expenses already in DB for this month
                 existing_count = Expense.objects.filter(
@@ -192,11 +195,11 @@ class ExpenseCreateView(LoginRequiredMixin, View):
                 # (Ignoring deletions for simplicity in limit enforcement)
                 new_count = len([
                     inst for inst in instances 
-                    if inst.date.year == now.year and inst.date.month == now.month and not inst.pk
+                    if inst.date and inst.date.year == now.year and inst.date.month == now.month and not inst.pk
                 ])
                 
-                if existing_count + new_count > 30:
-                    messages.error(request, _("You have reached the monthly limit of 30 expenses for the Free plan. Please upgrade to add more."))
+                if existing_count + new_count > limit:
+                    messages.error(request, _("You have reached the monthly limit of %(limit)s expenses for your current plan. Please upgrade to add more.") % {'limit': limit})
                     return redirect('pricing')
 
             try:
