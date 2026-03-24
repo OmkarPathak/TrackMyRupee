@@ -72,3 +72,19 @@ def trigger_lifecycle_emails(request):
         return JsonResponse({'success': True, 'message': 'Lifecycle emails triggered successfully'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@csrf_exempt
+def trigger_monthly_reports_view(request):
+    """
+    HTTP endpoint to trigger monthly financial reports via external cron service.
+    """
+    secret = request.GET.get('secret')
+    if not secret or secret != settings.CRON_SECRET:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    try:
+        call_command('send_monthly_report')
+        return JsonResponse({'success': True, 'message': 'Monthly reports triggered successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
