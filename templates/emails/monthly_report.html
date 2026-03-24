@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Monthly Financial Summary</title>
+    <style>
+        body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f7f6; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f4f7f6; padding: 20px 0; }
+        .container { width: 600px; max-width: 100%; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .header { background-color: #ffffff; padding: 30px 40px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+        .content { padding: 40px; }
+        .footer { background-color: #f8fcfb; padding: 30px 40px; text-align: center; font-size: 13px; color: #7f8c8d; border-top: 1px solid #e0edea; }
+        
+        .h1 { font-size: 24px; font-weight: 800; margin: 0; color: #1a1a1a; letter-spacing: -0.5px; }
+        .text-muted { color: #8898aa; font-size: 14px; }
+        
+        /* Metric Cards */
+        .metric-grid { margin-top: 30px; margin-bottom: 30px; }
+        .metric-card { background-color: #fcfdfd; border: 1px solid #edf2f6; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+        .metric-label { font-size: 12px; font-weight: 700; color: #8898aa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .metric-value { font-size: 22px; font-weight: 800; color: #1D9E75; }
+        .metric-trend { font-size: 13px; font-weight: 600; margin-top: 5px; }
+        .trend-up { color: #1D9E75; }
+        .trend-down { color: #E05C45; }
+        
+        /* Categories Table */
+        .category-item { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
+        .category-name { font-weight: 600; color: #2d3748; }
+        .category-amount { float: right; font-weight: 700; color: #1a1a1a; }
+        
+        /* AI Insight Block */
+        .ai-insight { background-color: #e9f7f2; border-radius: 12px; padding: 20px; border-left: 4px solid #1D9E75; margin-top: 40px; }
+        .ai-insight h3 { font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1D9E75; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ai-insight p { margin: 0; font-size: 14px; color: #2D3748; }
+        
+        .btn { display: inline-block; background-color: #1D9E75; color: #ffffff; padding: 14px 28px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 15px; margin-top: 30px; box-shadow: 0 4px 15px rgba(29, 158, 117, 0.2); }
+        .logo { font-size: 20px; font-weight: 800; color: #1D9E75; text-decoration: none; display: block; margin-bottom: 5px; }
+        
+        @media only screen and (max-width: 620px) {
+            .container { width: 100% !important; border-radius: 0 !important; }
+            .content { padding: 25px !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="header">
+                <a href="https://trackmyrupee.com" class="logo">TrackMyRupee</a>
+                <div class="h1">Greetings, {{ user.username }}!</div>
+                <div class="text-muted">Your Financial Report for {{ month_name }}</div>
+            </div>
+            
+            <div class="content">
+                <p style="margin: 0; font-size: 16px; color: #4a5568;">Great job tracking your finances. Here's how your money moved last month:</p>
+                
+                <div class="metric-grid">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td width="48%">
+                                <div class="metric-card">
+                                    <div class="metric-label">Savings Rate</div>
+                                    <div class="metric-value">{{ data.savings_rate }}%</div>
+                                    <div class="metric-trend {% if data.savings_rate >= 20 %}trend-up{% endif %}">
+                                        {% if data.savings_rate >= 20 %}Excellent Pace! 🚀{% elif data.savings_rate > 0 %}Healthy Progress{% else %}Goal: Positive rate{% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td width="4%">&nbsp;</td>
+                            <td width="48%">
+                                <div class="metric-card">
+                                    <div class="metric-label">Net Worth Growth</div>
+                                    <div class="metric-value">{{ data.nw_change_pct }}%</div>
+                                    <div class="metric-trend {% if data.nw_change >= 0 %}trend-up{% else %}trend-down{% endif %}">
+                                        {{ currency_symbol }}{{ data.nw_change|floatformat:0 }} {% if data.nw_change >= 0 %}increase{% else %}decrease{% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 15px;">Top Spending Categories</h2>
+                <div class="categories">
+                    {% for cat in data.top_categories %}
+                    <div class="category-item">
+                        <span class="category-name">{{ cat.category }}</span>
+                        <span class="category-amount">{{ currency_symbol }}{{ cat.total|floatformat:0 }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No expenses recorded for this month.</p>
+                    {% endfor %}
+                </div>
+                
+                {% if data.ai_insight %}
+                <div class="ai-insight">
+                    <h3>💡 Smart Insight</h3>
+                    <p>{{ data.ai_insight|safe }}</p>
+                </div>
+                {% endif %}
+                
+                <div style="text-align: center;">
+                    <a href="https://trackmyrupee.com/home" class="btn">View Full Dashboard</a>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p style="margin-bottom: 10px;">You are receiving this because you are a verified user of TrackMyRupee.<br>Keep tracking, keep growing!</p>
+                <div style="margin-top: 15px;">
+                    <a href="https://trackmyrupee.com/privacy-policy" style="color: #7f8c8d; text-decoration: underline;">Privacy Policy</a> &nbsp; | &nbsp; 
+                    <a href="https://trackmyrupee.com/accounts/settings" style="color: #7f8c8d; text-decoration: underline;">Email Settings</a>
+                </div>
+                <p style="margin-top: 20px; font-size: 11px;">&copy; 2026 TrackMyRupee. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
