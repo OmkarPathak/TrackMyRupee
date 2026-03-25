@@ -270,9 +270,9 @@
         /* HERO */
         .hero {
             width: 100%;
-            padding: 100px 0 80px;
+            padding: 120px 0 0;
             background: var(--tmr-surface-0);
-            overflow-x: hidden;
+            text-align: center;
         }
         /* No longer using custom grid for inner, using Bootstrap row/col */
         .hero-eyebrow {
@@ -734,6 +734,27 @@
         .is-mobile-app body {
             padding-bottom: env(safe-area-inset-bottom, 0px) !important;
         }
+
+        /* Hero Image Full Bleed on Mobile */
+        /* Hero Image Positioning */
+        .hero-visual-wrapper {
+            max-width: 1100px;
+            margin: 60px auto 0;
+            padding: 0 20px;
+        }
+        .hero-visual {
+            border-radius: 20px 20px 0 0;
+            overflow: hidden;
+            box-shadow: 0 40px 120px rgba(0,0,0,0.08);
+            border: 1px solid var(--tmr-surface-3);
+            border-bottom: none;
+            background: #ffffff;
+        }
+        @media (max-width: 991px) {
+            .hero { padding-top: 80px; }
+            .hero-visual-wrapper { margin-top: 40px; padding: 0 20px; }
+            .hero-visual { border-radius: 12px 12px 0 0; border: 1px solid var(--tmr-surface-3); border-bottom: none; }
+        }
     </style>
 </head>
 
@@ -775,60 +796,26 @@
 <!-- HERO -->
 <section class="hero">
     <div class="container">
-        <div class="row align-items-center g-5">
-            <!-- Hero Text -->
-            <div class="col-lg-6">
-                <h1 style="font-size: clamp(28px, 4.5vw, 42px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; color: var(--tmr-ink-900); margin-bottom: 24px;">
-                    {% trans "Know exactly where your money is going — and where it's headed." %}
+        <div class="row justify-content-center">
+            <div class="col-lg-10 text-center">
+                <h1 class="mb-4">
+                    {% trans "Know exactly where your money" %}<br class="d-none d-md-block">
+                    {% trans "is going and where it's headed." %}
                 </h1>
-                <p style="font-size: 19px; line-height: 1.6; color: var(--tmr-ink-600); max-width: 540px; margin-bottom: 40px;">
+                <p class="mx-auto mb-5" style="font-size: 19px; line-height: 1.6; color: var(--tmr-ink-600); max-width: 540px;">
                     {% trans "TrackMyRupee is personal finance distilled to the essentials. Quiet, simple, and completely yours." %}
                 </p>
-                <div class="d-flex flex-wrap gap-3 mb-5">
-                    <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start Free" %}</a>
-                    <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Try live demo" %}</a>
+                <div class="d-flex justify-content-center flex-wrap gap-3">
+                    <a href="{% url 'demo_login' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Try live demo" %}</a>
+                    <a href="{% url 'account_signup' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start for Free" %}</a>
                 </div>
             </div>
-
-            <!-- Hero Visual (The Financial Story Card) -->
-            <div class="col-lg-6">
-                <div class="hero-visual" style="border: 1px solid var(--tmr-ink-900); border-radius: 20px; padding: 0; background: white; box-shadow: 0 40px 120px rgba(0,0,0,0.15); position: relative; overflow: hidden; transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);">
-                    <!-- AI Narrative Header -->
-                    <div style="background: var(--tmr-ink-900); padding: 32px; color: white;">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--tmr-ink-400);">{% trans "AI Financial Story" %}</div>
-                            <div style="background: rgba(45, 178, 142, 0.2); color: #2db28e; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 99px;">{% trans "EXCELLENT ↑" %}</div>
-                        </div>
-                        <div style="font-size: 17px; line-height: 1.6; color: var(--tmr-ink-50); font-weight: 400; font-family: var(--serif);">
-                            "{% blocktrans %}Your net worth hit ₹11,90,000 this month. At a 22% savings rate, you're on track to hit your ₹50L goal in 14 months. Great work on reducing your lifestyle inflation by 8% vs last month.{% endblocktrans %}"
-                        </div>
-                    </div>
-                    <!-- Stats Preview -->
-                    <div style="padding: 32px; background: white;">
-                        <div class="row g-4">
-                            <div class="col-12">
-                                <div style="background: var(--tmr-surface-0); padding: 24px; border-radius: 16px; border: 1px solid var(--tmr-surface-3);">
-                                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tmr-ink-400); margin-bottom: 8px;">{% trans "TOTAL NET WORTH" %}</div>
-                                    <div style="font-size: 48px; font-weight: 800; color: var(--tmr-ink-900); letter-spacing: -0.05em;">₹11,90,000</div>
-                                    <div style="font-size: 14px; color: var(--tmr-teal-600); font-weight: 700; margin-top: 4px;">↑ ₹35,340 {% trans "this month" %}</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div style="background: var(--tmr-surface-1); padding: 16px; border-radius: 12px; border: 1px solid var(--tmr-surface-3);">
-                                    <div style="font-size: 10px; font-weight: 700; color: var(--tmr-ink-400); text-transform: uppercase; margin-bottom: 4px;">{% trans "Savings Rate" %}</div>
-                                    <div style="font-size: 24px; font-weight: 800; color: var(--tmr-ink-900);">22%</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div style="background: var(--tmr-surface-1); padding: 16px; border-radius: 12px; border: 1px solid var(--tmr-surface-3);">
-                                    <div style="font-size: 10px; font-weight: 700; color: var(--tmr-ink-400); text-transform: uppercase; margin-bottom: 4px;">{% trans "Lifestyle Spend" %}</div>
-                                    <div style="font-size: 24px; font-weight: 800; color: var(--tmr-ink-900);">₹49,660</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        </div>
+    </div>
+    
+    <div class="hero-visual-wrapper">
+        <div class="hero-visual">
+            <img src="{% static 'img/desktop.png' %}" alt="TrackMyRupee Dashboard" class="img-fluid w-100">
         </div>
     </div>
 </section>
@@ -1403,7 +1390,6 @@
 <!-- TESTIMONIALS -->
 <section class="landing-section" style="background: var(--tmr-surface-1); border-top: 1px solid var(--tmr-surface-3); border-bottom: 1px solid var(--tmr-surface-3);">
     <div class="container py-5">
-        <div class="section-tag mx-auto">{% trans "Wall of Proof" %}</div>
         <h2 class="section-title text-center">{% trans "Trusted by hundreds of real users" %}</h2>
         <div class="row g-4 mt-2">
             <div class="col-md-6 col-lg-4">
