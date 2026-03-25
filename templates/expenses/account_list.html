@@ -40,24 +40,26 @@
                     <tbody>
                         {% for account in accounts %}
                         <tr>
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="flex-shrink-0 bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
                                         {% if account.account_type == 'CASH' %}
-                                            <i class="bi bi-cash-stack"></i>
+                                            <i class="bi bi-cash-stack fs-5"></i>
                                         {% elif account.account_type == 'BANK' %}
-                                            <i class="bi bi-bank"></i>
-                                        {% elif account.account_type == 'INVESTMENT' %}
-                                            <i class="bi bi-graph-up-arrow"></i>
+                                            <i class="bi bi-bank fs-5"></i>
+                                        {% elif account.account_type == 'INVESTMENT' or account.account_type == 'FIXED_DEPOSIT' %}
+                                            <i class="bi bi-graph-up-arrow fs-5"></i>
+                                        {% elif account.account_type == 'CREDIT_CARD' %}
+                                            <i class="bi bi-credit-card fs-5"></i>
                                         {% else %}
-                                            <i class="bi bi-wallet2"></i>
+                                            <i class="bi bi-wallet2 fs-5"></i>
                                         {% endif %}
                                     </div>
-                                    <a href="{% url 'account-detail' account.pk %}" class="fw-bold text-decoration-none hover-link text-body">{{ account.name }}</a>
+                                    <a href="{% url 'account-detail' account.pk %}" class="fw-bold text-decoration-none hover-link text-body lh-sm">{{ account.name }}</a>
                                 </div>
                             </td>
-                            <td>
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary border">
+                            <td class="py-3">
+                                <span class="badge bg-light text-secondary border-0 rounded-pill px-3 py-2 fw-medium small">
                                     {{ account.get_account_type_display }}
                                 </span>
                             </td>
