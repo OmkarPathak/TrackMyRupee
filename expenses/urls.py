@@ -73,6 +73,8 @@ urlpatterns = [
     path('goals/<int:pk>/edit/', views.SavingsGoalUpdateView.as_view(), name='goal-edit'),
     path('goals/<int:pk>/delete/', views.SavingsGoalDeleteView.as_view(), name='goal-delete'),
     path('goals/<int:pk>/', views.SavingsGoalDetailView.as_view(), name='goal-detail'),
+    path('goals/contribution/<int:pk>/edit/', views.GoalContributionUpdateView.as_view(), name='goal-contribution-edit'),
+    path('goals/contribution/<int:pk>/delete/', views.GoalContributionDeleteView.as_view(), name='goal-contribution-delete'),
     
     # Static Pages
     path('privacy-policy/', TemplateView.as_view(template_name='privacy_policy.html'), name='privacy-policy'),

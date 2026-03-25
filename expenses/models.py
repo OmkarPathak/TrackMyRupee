@@ -601,6 +601,17 @@ class SavingsGoal(models.Model):
             self.is_completed = False
         super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            # Before deleting the goal, we must refund all contributions to their respective accounts
+            # Django's cascade delete does not call individual delete() methods on related objects,
+            # so we manually iterate to ensure account balances are restored.
+            for contribution in self.contributions.select_related('account').all():
+                if contribution.account:
+                    contribution.account.balance += contribution.amount
+                    contribution.account.save()
+            super().delete(*args, **kwargs)
+
     def __str__(self):
         return self.name
 

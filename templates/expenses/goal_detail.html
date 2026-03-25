@@ -182,9 +182,20 @@
                     <div class="streak-timeline">
                         {% for contrib in contributions %}
                         <div class="timeline-item">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <strong class="text-success">+{{ goal.currency }}{{ contrib.amount|translate_digits }}</strong>
-                                <small class="text-muted">{{ contrib.date|date:"b d, Y" }}</small>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted">{{ contrib.date|date:"b d, Y" }}</small>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots-vertical" style="font-size: 0.8rem;"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 small">
+                                            <li><a class="dropdown-item py-1 px-3" href="{% url 'goal-contribution-edit' contrib.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                            <li><a class="dropdown-item py-1 px-3 text-danger" href="{% url 'goal-contribution-delete' contrib.pk %}"><i class="bi bi-trash me-2"></i> {% trans "Delete" %}</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}

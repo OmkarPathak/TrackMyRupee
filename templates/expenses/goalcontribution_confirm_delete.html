@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters %}
+
+{% block content %}
+<div class="container fade-in py-5" style="max-width: 600px;">
+    <div class="card border-0 shadow-sm border-top border-4 border-danger">
+        <div class="card-body p-4 p-md-5 text-center">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                <i class="bi bi-trash fs-1"></i>
+            </div>
+            
+            <h2 class="fw-bold mb-3 text-danger">{% trans "Delete Contribution?" %}</h2>
+            <p class="text-muted mb-5 px-3">
+                {% trans "Are you sure you want to delete this contribution? The amount will be refunded back to your account balance and removed from the goal's progress." %}
+            </p>
+
+            <div class="bg-body-tertiary rounded-4 p-4 mb-5 text-start">
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                    <span class="text-muted small fw-bold text-uppercase">{% trans "Amount" %}</span>
+                    <span class="fw-bold fs-4 text-success">+{{ object.goal.currency }}{{ object.amount|translate_digits }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Goal" %}</span>
+                    <span class="fw-bold">{{ object.goal.name }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Account" %}</span>
+                    <span class="fw-bold">{{ object.account.name|default:"Cash" }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">{% trans "Date" %}</span>
+                    <span class="fw-bold">{{ object.date|date:"b d, Y" }}</span>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold py-3 shadow-sm">
+                        {% trans "Yes, Delete Forever" %}
+                    </button>
+                    <a href="javascript:history.back()" class="btn btn-link text-muted text-decoration-none py-2">
+                        {% trans "No, Keep It" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

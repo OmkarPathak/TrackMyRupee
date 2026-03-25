@@ -9,7 +9,7 @@ from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
 from ..forms import GoalContributionForm, SavingsGoalForm
-from ..models import SavingsGoal
+from ..models import GoalContribution, SavingsGoal
 
 
 class SavingsGoalListView(LoginRequiredMixin, ListView):
@@ -123,3 +123,36 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             request.session['trigger_confetti'] = True
             return redirect('goal-detail', pk=goal.pk)
         return render(request, self.template_name, {'goal': goal, 'form': form})
+
+class GoalContributionUpdateView(LoginRequiredMixin, UpdateView):
+    model = GoalContribution
+    form_class = GoalContributionForm
+    template_name = 'expenses/contribution_form.html'
+    
+    def get_queryset(self):
+        return GoalContribution.objects.filter(goal__user=self.request.user)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy('goal-detail', kwargs={'pk': self.object.goal.pk})
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Contribution updated successfully!"))
+        return super().form_valid(form)
+
+class GoalContributionDeleteView(LoginRequiredMixin, DeleteView):
+    model = GoalContribution
+    
+    def get_queryset(self):
+        return GoalContribution.objects.filter(goal__user=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy('goal-detail', kwargs={'pk': self.object.goal.pk})
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, _("Contribution deleted successfully!"))
+        return super().delete(request, *args, **kwargs)

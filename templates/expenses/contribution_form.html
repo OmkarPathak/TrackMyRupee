@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block content %}
+<div class="container fade-in py-4 max-w-md mx-auto" style="max-width: 600px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 fw-bold mb-0">
+            {% if object %}
+                {% trans "Edit Contribution" %}
+            {% else %}
+                {% trans "New Contribution" %}
+            {% endif %}
+        </h2>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
+        </a>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-md-5">
+            <form method="post" novalidate id="contributionForm">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="{{ form.account.id_for_label }}" class="form-label fw-bold">{{ form.account.label }}</label>
+                        {{ form.account }}
+                        {{ form.account.errors }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.amount.id_for_label }}" class="form-label fw-bold">{{ form.amount.label }}</label>
+                        {{ form.amount }}
+                        {{ form.amount.errors }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.date.id_for_label }}" class="form-label fw-bold">{{ form.date.label }}</label>
+                        {{ form.date }}
+                        {{ form.date.errors }}
+                    </div>
+                </div>
+
+                <div class="d-grid mt-5">
+                    <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                        {% if object %}
+                            <i class="bi bi-check2-circle me-1"></i> {% trans "Update Contribution" %}
+                        {% else %}
+                            <i class="bi bi-plus-circle me-1"></i> {% trans "Add Contribution" %}
+                        {% endif %}
+                    </button>
+                    {% if object %}
+                    <a href="{% url 'goal-contribution-delete' object.pk %}" class="btn btn-link text-danger mt-2 text-decoration-none">
+                        <i class="bi bi-trash"></i> {% trans "Delete Contribution" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

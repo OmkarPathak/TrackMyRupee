@@ -53,7 +53,8 @@
                         <th class="ps-4 border-0">{% trans "Date" %}</th>
                         <th class="border-0">{% trans "Description" %}</th>
                         <th class="border-0">{% trans "Type" %}</th>
-                        <th class="text-end pe-4 border-0">{% trans "Amount" %}</th>
+                        <th class="text-end border-0">{% trans "Amount" %}</th>
+                        <th class="text-end pe-4 border-0">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,7 +85,7 @@
                                 <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">{% trans "Savings" %}</span>
                             {% endif %}
                         </td>
-                        <td class="text-end pe-4">
+                        <td class="text-end">
                             <span class="fw-bold {% if item.transaction_type == 'INCOME' or item.transaction_type == 'TRANSFER_IN' %}text-success{% elif item.transaction_type == 'EXPENSE' or item.transaction_type == 'TRANSFER_OUT' or item.transaction_type == 'SAVINGS' %}text-danger{% endif %}">
                                 {% if item.transaction_type == 'INCOME' or item.transaction_type == 'TRANSFER_IN' %}+{% else %}-{% endif %}
                                 {{ item.display_currency }}{{ item.amount|humanize_currency:item.display_currency|translate_digits }}
@@ -94,6 +95,33 @@
                                     ≈ {{ currency_symbol }}{{ item.base_amount_display|humanize_currency:currency_symbol|translate_digits }}
                                 </div>
                             {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                                    {% if item.transaction_type == 'EXPENSE' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'expense-edit' item.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item py-2 px-3 text-danger" href="{% url 'expense-delete' item.pk %}"><i class="bi bi-trash me-2"></i> {% trans "Delete" %}</a></li>
+                                    {% elif item.transaction_type == 'INCOME' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'income-edit' item.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item py-2 px-3 text-danger" href="{% url 'income-delete' item.pk %}"><i class="bi bi-trash me-2"></i> {% trans "Delete" %}</a></li>
+                                    {% elif item.transaction_type == 'TRANSFER_OUT' or item.transaction_type == 'TRANSFER_IN' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'transfer-edit' item.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item py-2 px-3 text-danger" href="{% url 'transfer-delete' item.pk %}"><i class="bi bi-trash me-2"></i> {% trans "Delete" %}</a></li>
+                                    {% elif item.transaction_type == 'SAVINGS' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'goal-detail' item.goal.pk %}"><i class="bi bi-eye me-2"></i> {% trans "View Goal" %}</a></li>
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'goal-contribution-edit' item.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit Contribution" %}</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item py-2 px-3 text-danger" href="{% url 'goal-contribution-delete' item.pk %}"><i class="bi bi-trash me-2"></i> {% trans "Delete Contribution" %}</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
