@@ -750,6 +750,80 @@
             border-bottom: none;
             background: #ffffff;
         }
+
+        /* MAGIC DEMO SECTION */
+        .demo-card {
+            background: #ffffff;
+            border: 1px solid var(--tmr-surface-3);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            transition: transform 0.3s ease;
+        }
+        .demo-input {
+            font-size: 1rem;
+            border-radius: 12px;
+            background: var(--tmr-surface-1);
+            border: 1px solid transparent;
+            padding: 12px 16px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+            color: var(--tmr-ink-900);
+            font-weight: 500;
+        }
+        .demo-input:focus {
+            background: white;
+            border-color: var(--tmr-teal-400);
+            box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.1);
+            outline: none;
+        }
+        .result-panel {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--tmr-surface-3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+            height: 100%;
+            justify-content: center;
+        }
+        .result-amount {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--tmr-teal-400);
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+        .result-cat-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: var(--tmr-teal-50);
+            color: var(--tmr-teal-600);
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin: 0 auto;
+        }
+        .result-desc-label {
+            font-size: 0.7rem;
+            color: var(--tmr-ink-400);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 2px;
+        }
+        .result-desc-text {
+            font-size: 0.9rem;
+            color: var(--tmr-ink-900);
+            font-weight: 500;
+        }
+        .bg-teal-soft { background-color: rgba(29, 158, 117, 0.1); color: #1D9E75; }
+
         @media (max-width: 991px) {
             .hero { padding-top: 80px; }
             .hero-visual-wrapper { margin-top: 40px; padding: 0 20px; }
@@ -764,8 +838,8 @@
     <div class="container d-flex align-items-center justify-content-between py-3">
         <a class="nav-logo" href="/">TrackMyRupee</a>
         <ul class="nav-links d-none d-lg-flex list-unstyled mb-0 gap-4">
-            <li><a href="#features" class="text-decoration-none">{% trans "Features" %}</a></li>
             <li><a href="#networth" class="text-decoration-none">{% trans "Net Worth" %}</a></li>
+            <li><a href="#features" class="text-decoration-none">{% trans "Features" %}</a></li>
             <li><a href="#pricing" class="text-decoration-none">{% trans "Pricing" %}</a></li>
             <li><a href="{% url 'demo_login' %}" class="text-decoration-none">{% trans "Live Demo" %}</a></li>
             <li><a href="{% url 'account_login' %}" class="text-decoration-none">{% trans "Login" %}</a></li>
@@ -816,6 +890,55 @@
     <div class="hero-visual-wrapper">
         <div class="hero-visual">
             <img src="{% static 'img/desktop.png' %}" alt="TrackMyRupee Dashboard" class="img-fluid w-100">
+        </div>
+    </div>
+</section>
+
+<!-- MAGIC DEMO -->
+<section class="landing-section order-1">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <div class="section-tag">{% trans "Experience the Magic" %}</div>
+                <h2 class="section-title">{% trans "Just type. We'll handle the rest." %}</h2>
+                <p class="section-sub">{% blocktrans %}Forget navigating through complex menus. Spend <strong>less than 3 seconds</strong> typing what you bought, and TrackMyRupee automatically extracts the amount, categorizes it, and saves it. Try it right here.{% endblocktrans %}</p>
+                
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <span class="badge border suggestion-chip bg-light text-dark py-2 px-3" onclick="runDemo('tea at tapri 20')">tea at tapri 20</span>
+                    <span class="badge border suggestion-chip bg-light text-dark py-2 px-3" onclick="runDemo('500 swiggy dinner')">500 swiggy dinner</span>
+                    <span class="badge border suggestion-chip bg-light text-dark py-2 px-3" onclick="runDemo('₹450 uber to office')">₹450 uber to office</span>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="demo-card">
+                    <div class="row g-4">
+                        <div class="col-md-7">
+                            <label class="form-label small fw-700 text-muted text-uppercase mb-2" style="font-size: 0.65rem;">{% trans "What did you spend?" %}</label>
+                            <textarea id="demo-input" class="form-control demo-input w-100" rows="2" 
+                                placeholder="{% trans 'e.g. 500 for lunch with friends' %}" style="resize: none;"></textarea>
+                            <div class="mt-2 d-flex align-items-center gap-2 text-muted" style="font-size: 0.65rem;">
+                                <i class="bi bi-info-circle"></i>
+                                <span>{% trans "Parsed instantly in your browser" %}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="result-panel">
+                                <div>
+                                    <div class="result-amount" id="demo-res-amount">₹0</div>
+                                </div>
+                                <div class="result-cat-pill" id="demo-res-category-pill">
+                                    <i class="bi bi-tag-fill"></i>
+                                    <span id="demo-res-category">Other</span>
+                                </div>
+                                <div class="mt-2">
+                                    <div class="result-desc-label">{% trans "Description" %}</div>
+                                    <div class="result-desc-text text-truncate px-2" id="demo-res-desc">...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -1448,6 +1571,13 @@
             <div class="founder-name" style="font-size: 18px; font-weight: 700; color: white;">Omkar Pathak</div>
             <div style="color: white;">{% trans "Indie Developer · Pune, India" %}</div>
         </div>
+
+        <div class="mt-5 pt-4 border-top border-secondary mx-auto" style="max-width: 600px; border-color: rgba(255,255,255,0.1) !important;">
+            <p class="text-white mb-3" style="font-size: 0.9rem; opacity: 0.8;">{% trans "We respect your privacy above all else. If you'd rather not use our cloud, TrackMyRupee is fully open source—meaning you can host it yourself and stay 100% in control of your data." %}</p>
+            <a href="https://github.com/OmkarPathak/TrackMyRupee" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-4" style="font-size: 0.8rem; font-weight: 600;">
+                <i class="bi bi-github me-2"></i>{% trans "Source Code" %}
+            </a>
+        </div>
     </div>
 </section>
 
@@ -1554,6 +1684,61 @@
             el.textContent = label + ' — ₹' + price + suffix;
         });
     }
+
+    // MAGIC DEMO LOGIC
+    const demoInput = document.getElementById('demo-input');
+    const resAmount = document.getElementById('demo-res-amount');
+    const resCategory = document.getElementById('demo-res-category');
+    const resDesc = document.getElementById('demo-res-desc');
+
+    const demoMappings = {
+        'Food': ['lunch', 'dinner', 'swiggy', 'zomato', 'pizza', 'burger', 'coffee', 'tea', 'cafe', 'restaurant', 'food', 'starbucks', 'tapri'],
+        'Transport': ['uber', 'ola', 'taxi', 'cab', 'bus', 'train', 'metro', 'fuel', 'petrol', 'diesel', 'auto', 'rental', 'rapido', 'office'],
+        'Groceries': ['milk', 'vegetables', 'fruits', 'bigbasket', 'blinkit', 'zepto', 'groceries', 'market'],
+        'Bills': ['electricity', 'water', 'gas', 'bill', 'recharge', 'wifi', 'internet', 'phone', 'mobile', 'netflix', 'prime', 'spotify', 'subscription'],
+        'Shopping': ['amazon', 'flipkart', 'myntra', 'clothes', 'shoes', 'mall', 'electronics'],
+        'Health': ['doctor', 'hospital', 'medicine', 'pharmacy', 'gym', 'fitness']
+    };
+
+    function updateDemo(text) {
+        if (!text) {
+            resAmount.textContent = '₹0';
+            resCategory.textContent = 'Other';
+            resDesc.textContent = '...';
+            return;
+        }
+        
+        const cleanText = text.toLowerCase();
+        const amountMatch = cleanText.match(/(?:₹|rs\.?|\$)?\s*(\d+(?:\.\d+)?)\s*(k)?\b/i);
+        let amount = amountMatch ? amountMatch[1] : 0;
+        if (amountMatch && amountMatch[2]?.toLowerCase() === 'k') amount = parseFloat(amount) * 1000;
+        
+        let category = "Other";
+        for (const [cat, keywords] of Object.entries(demoMappings)) {
+            if (keywords.some(kw => cleanText.includes(kw))) {
+                category = cat;
+                break;
+            }
+        }
+        
+        let description = text.replace(/(?:₹|rs\.?|\$)?\s*(\d+(?:\.\d+)?)\s*(k)?\b/gi, '').trim();
+        if (!description && amount > 0) description = "Expense";
+        if (description) description = description.charAt(0).toUpperCase() + description.slice(1);
+
+        resAmount.textContent = '₹' + (amount || 0);
+        resCategory.textContent = category;
+        resDesc.textContent = description || '...';
+    }
+
+    if (demoInput) {
+        demoInput.addEventListener('input', (e) => updateDemo(e.target.value));
+    }
+
+    window.runDemo = function(text) {
+        demoInput.value = text;
+        updateDemo(text);
+        demoInput.focus();
+    };
 
     billingTrack.addEventListener('click', () => { isYearly = !isYearly; updateLpPricing(); });
     billingTrack.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isYearly = !isYearly; updateLpPricing(); } });
