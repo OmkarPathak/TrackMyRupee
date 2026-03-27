@@ -490,6 +490,12 @@ class UserProfile(models.Model):
         return get_limit(self.active_tier, 'ai_insights')
 
     @property
+    def net_worth_history_limit(self):
+        """Returns the number of months of net worth history allowed for the user's tier."""
+        from finance_tracker.plans import get_limit
+        return get_limit(self.active_tier, 'net_worth_history')
+
+    @property
     def active_tier_display(self):
         """Returns the actual active tier display name (respecting subscription expiry)."""
         tier = self.active_tier

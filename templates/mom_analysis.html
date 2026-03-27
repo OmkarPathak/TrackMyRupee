@@ -17,6 +17,34 @@
             </button>
         </div>
     </div>
+    
+    {% if is_history_limited %}
+    <!-- Subtle Upgrade Banner -->
+    <div class="row fade-in mb-4">
+        <div class="col-12">
+            <div class="alert bg-primary-subtle border-0 rounded-4 d-flex align-items-center justify-content-between p-3 px-md-4 shadow-sm mb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center p-2 d-none d-sm-flex" style="width: 40px; height: 40px;">
+                        <i class="bi bi-rocket-takeoff"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-primary-emphasis">
+                            {% trans "Viewing limited financial history" %}
+                        </h6>
+                        <p class="mb-0 small text-muted">
+                            {% blocktrans with limit=history_limit %}You're seeing the last {{ limit }} months. Upgrade to see your full financial journey and trends.{% endblocktrans %}
+                        </p>
+                    </div>
+                </div>
+                <div class="ms-3">
+                    <a href="{% url 'pricing' %}" class="btn btn-primary rounded-pill btn-sm px-4 fw-bold shadow-sm transition-all hover-lift">
+                        {% trans "Upgrade" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Financial Story Bento Grid -->
     <div class="row g-3 mb-4 fade-in">
@@ -178,7 +206,9 @@
                     </div>
                     <p class="text-muted mb-0" style="font-size: 0.75rem;">
                         {% if summary.exp_change < 0 %}
-                            {% trans "Expenses dropped by" %} {{ currency_symbol }}{{ summary.exp_change_abs|intcomma }} {% trans "from last month! Excellent!" %}
+                            {% blocktrans with amount=summary.exp_diff|floatformat:0|intcomma|translate_digits pct=summary.exp_change_abs|translate_digits %}Expenses dropped by {{ currency_symbol }}{{ amount }} ({{ pct }}%) from last month! Excellent!{% endblocktrans %}
+                        {% elif summary.exp_change > 0 %}
+                            {% blocktrans with amount=summary.exp_diff|floatformat:0|intcomma|translate_digits pct=summary.exp_change_abs|translate_digits %}Expenses increased by {{ currency_symbol }}{{ amount }} ({{ pct }}%) from last month.{% endblocktrans %}
                         {% else %}
                             {% trans "Monitor your spending to maintain your savings rate." %}
                         {% endif %}
@@ -326,8 +356,11 @@
                         tension: 0.4,
                         borderWidth: 3,
                         spanGaps: false,
-                        pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 0),
-                        pointHoverRadius: 8
+                        pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 4),
+                        pointHoverRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 10 : 6),
+                        pointBackgroundColor: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? '#1D9E75' : '#fff'),
+                        pointBorderColor: '#1D9E75',
+                        pointBorderWidth: 2
                     },
                     {
                         label: '{% trans "Expenses" %}',
@@ -338,8 +371,11 @@
                         tension: 0.4,
                         borderWidth: 3,
                         spanGaps: false,
-                        pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 0),
-                        pointHoverRadius: 8
+                        pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 4),
+                        pointHoverRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 10 : 6),
+                        pointBackgroundColor: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? '#E05C45' : '#fff'),
+                        pointBorderColor: '#E05C45',
+                        pointBorderWidth: 2
                     },
                     {
                         label: '{% trans "Investments" %}',
@@ -350,8 +386,11 @@
                         tension: 0.4,
                         borderWidth: 3,
                         spanGaps: false,
-                        pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 0),
-                        pointHoverRadius: 8
+                        pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 4),
+                        pointHoverRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 10 : 6),
+                        pointBackgroundColor: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? '#378ADD' : '#fff'),
+                        pointBorderColor: '#378ADD',
+                        pointBorderWidth: 2
                     }
                 ]
             },
@@ -372,8 +411,11 @@
                     tension: 0.4,
                     borderWidth: 3,
                     spanGaps: false,
-                    pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 0),
-                    pointHoverRadius: 8
+                    pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 4),
+                    pointHoverRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 10 : 6),
+                    pointBackgroundColor: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? '#5DCAA5' : '#fff'),
+                    pointBorderColor: '#5DCAA5',
+                    pointBorderWidth: 2
                 }]
             },
             options: chartOptions
@@ -393,8 +435,11 @@
                     tension: 0.4,
                     borderWidth: 3,
                     spanGaps: false,
-                    pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 0),
-                    pointHoverRadius: 8
+                    pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 8 : 4),
+                    pointHoverRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 10 : 6),
+                    pointBackgroundColor: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? '#E05C45' : '#fff'),
+                    pointBorderColor: '#E05C45',
+                    pointBorderWidth: 2
                 }]
             },
             options: chartOptions
@@ -467,6 +512,23 @@
             padding-bottom: 1rem;
             margin-bottom: 1rem;
         }
+    }
+
+    .bg-teal {
+        background-color: #1D9E75 !important;
+    }
+    .text-teal {
+        color: #1D9E75 !important;
+    }
+    .hover-opacity-100:hover {
+        opacity: 1 !important;
+    }
+    .z-1 { z-index: 1; }
+    .mt-n4 { margin-top: -1.5rem !important; }
+    .me-n4 { margin-right: -1.5rem !important; }
+    
+    .transition-all {
+        transition: all 0.3s ease;
     }
 </style>
 {% endblock %}

@@ -38,20 +38,38 @@
     </div>
     
     <!-- Legend & Net Savings -->
-    <div class="py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 border-bottom">
+    <div class="py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 border-bottom">
         <div class="h5 mb-0">
             {% blocktrans with month=month_name %}{{ month }} net savings:{% endblocktrans %} 
             <span class="{% if month_net_savings >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
                 {{ currency_symbol }}{{ month_net_savings|compact_amount:currency_symbol|translate_digits }}
             </span>
+            {% if total_monthly_investment > 0 %}
+            <span class="text-muted mx-2 opacity-25">|</span>
+            <span class="text-muted small">{% trans "Invested" %}:</span> <span class="text-primary fw-bold">{{ currency_symbol }}{{ total_monthly_investment|compact_amount:currency_symbol|translate_digits }}</span>
+            {% endif %}
         </div>
-        <div class="d-flex gap-3 small">
+        
+        <div class="d-flex flex-wrap justify-content-center gap-3 small">
             <div class="d-flex align-items-center gap-1">
                 <span class="d-inline-block rounded-circle bg-success" style="width: 10px; height: 10px;"></span> {% trans "Income" %}
             </div>
             <div class="d-flex align-items-center gap-1">
                 <span class="d-inline-block rounded-circle bg-danger" style="width: 10px; height: 10px;"></span> {% trans "Expense" %}
             </div>
+            <div class="d-flex align-items-center gap-1">
+                <span class="d-inline-block rounded-circle bg-primary" style="width: 10px; height: 10px;"></span> {% trans "Investments" %}
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 ms-sm-auto small text-muted heatmap-legend" title="{% trans 'Intensity based on total volume of Income + Expenses + Investments' %}" data-bs-toggle="tooltip">
+            <span>{% trans "Low Activity" %}</span>
+            <div class="heatmap-tile heatmap-0"></div>
+            <div class="heatmap-tile heatmap-1"></div>
+            <div class="heatmap-tile heatmap-2"></div>
+            <div class="heatmap-tile heatmap-3"></div>
+            <div class="heatmap-tile heatmap-4"></div>
+            <span>{% trans "High Activity" %}</span>
         </div>
     </div>
 
@@ -73,7 +91,7 @@
         <div class="d-grid" style="grid-template-columns: repeat(7, 1fr);">
             {% for day_data in week %}
                 {% if day_data %}
-                    <div class="border-end border-bottom p-2 day-cell d-flex flex-column align-items-center align-items-md-stretch" 
+                    <div class="border-end border-bottom p-2 day-cell heatmap-{{ day_data.intensity }} d-flex flex-column align-items-center align-items-md-stretch" 
                          style="min-height: 100px; position: relative; cursor: pointer;"
                          tabindex="0"
                          data-bs-toggle="popover"
@@ -82,7 +100,7 @@
                          data-bs-html="true"
                          data-bs-custom-class="custom-popover"
                          data-bs-title="<b>{{ day_data.day|translate_digits }} {{ month_name }}</b>"
-                         data-bs-content="{% if day_data.income > 0 %}<div class='text-success mb-1'>{% trans 'Income' %}: <b>{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.income_count|translate_digits }})</small></div>{% endif %}{% if day_data.expense > 0 %}<div class='text-danger mb-1'>{% trans 'Expense' %}: <b>{{ currency_symbol }}{{ day_data.expense|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.expense_count|translate_digits }})</small></div>{% endif %}{% if day_data.total_count > 0 %}<div class='border-top mt-2 pt-1 border-secondary border-opacity-10 small'><b>{{ day_data.total_count|translate_digits }}</b> {% trans 'total transactions' %}</div>{% endif %}{% if day_data.income == 0 and day_data.expense == 0 %}<div class='text-muted mb-1'>{% trans 'No activity' %}</div>{% endif %}<a href='{% url 'expense-list' %}?start_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}&end_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}' class='btn btn-sm btn-outline-secondary w-100 mt-2'>{% trans 'View Details' %}</a>">
+                         data-bs-content="{% if day_data.income > 0 %}<div class='text-success mb-1'>{% trans 'Income' %}: <b>{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.income_count|translate_digits }})</small></div>{% endif %}{% if day_data.expense > 0 %}<div class='text-danger mb-1'>{% trans 'Expense' %}: <b>{{ currency_symbol }}{{ day_data.expense|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.expense_count|translate_digits }})</small></div>{% endif %}{% if day_data.investment > 0 %}<div class='text-primary mb-1'>{% trans 'Investment' %}: <b>{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.investment_count|translate_digits }})</small></div>{% endif %}{% if day_data.total_count > 0 %}<div class='border-top mt-2 pt-1 border-secondary border-opacity-10 small'><b>{{ day_data.total_count|translate_digits }}</b> {% trans 'total transactions' %}</div>{% endif %}{% if day_data.income == 0 and day_data.expense == 0 and day_data.investment == 0 %}<div class='text-muted mb-1'>{% trans 'No activity' %}</div>{% endif %}<a href='{% url 'expense-list' %}?start_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}&end_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}' class='btn btn-sm btn-outline-secondary w-100 mt-2'>{% trans 'View Details' %}</a>">
                         
                         <!-- Date Number & Link -->
                         <div class="d-flex justify-content-between w-100 px-1 mb-1 mb-md-2">
@@ -110,6 +128,13 @@
                                 <span class="text-muted small-xs opacity-75">{{ day_data.income_count|translate_digits }} trans.</span>
                             </div>
                             {% endif %}
+
+                            {% if day_data.investment > 0 %}
+                            <div class="d-flex justify-content-between align-items-center px-1">
+                                <span class="text-primary fw-bold" style="font-size: 0.85rem;">{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</span>
+                                <span class="text-muted small-xs opacity-75">{{ day_data.investment_count|translate_digits }} trans.</span>
+                            </div>
+                            {% endif %}
                         </div>
 
                         <!-- Mobile Financials (Graceful Badge) -->
@@ -124,6 +149,9 @@
                                     {% endif %}
                                     {% if day_data.expense > 0 %}
                                         <div class="rounded-circle bg-danger" style="width: 5px; height: 5px;"></div>
+                                    {% endif %}
+                                    {% if day_data.investment > 0 %}
+                                        <div class="rounded-circle bg-primary" style="width: 5px; height: 5px;"></div>
                                     {% endif %}
                                 </div>
                             {% endif %}
@@ -147,6 +175,12 @@
         var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
             return new bootstrap.Popover(popoverTriggerEl)
         })
+
+        // Initialize Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
     });
 </script>
 
@@ -166,6 +200,29 @@
 
     .day-cell:hover {
         background-color: rgba(var(--bs-primary-rgb), 0.03);
+    }
+
+    /* Heatmap Intensities - Using the theme's teal color #1D9E75 (approx RGB: 29, 158, 117) */
+    .heatmap-tile {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .heatmap-0 { background-color: transparent; }
+    .heatmap-1 { background-color: rgba(29, 158, 117, 0.08); }
+    .heatmap-2 { background-color: rgba(29, 158, 117, 0.2); }
+    .heatmap-3 { background-color: rgba(29, 158, 117, 0.4); }
+    .heatmap-4 { background-color: rgba(29, 158, 117, 0.65); }
+    
+    [data-bs-theme="dark"] .heatmap-1 { background-color: rgba(29, 158, 117, 0.15); }
+    [data-bs-theme="dark"] .heatmap-2 { background-color: rgba(29, 158, 117, 0.3); }
+    [data-bs-theme="dark"] .heatmap-3 { background-color: rgba(29, 158, 117, 0.5); }
+    [data-bs-theme="dark"] .heatmap-4 { background-color: rgba(29, 158, 117, 0.8); }
+
+    .heatmap-4 .fw-bold, .heatmap-4 .text-muted {
+        color: inherit !important;
     }
     
     /* Mobile optimization */

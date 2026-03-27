@@ -20,11 +20,18 @@ def mom_analysis_view(request):
     user = request.user
     currency_symbol = user.profile.currency if hasattr(user, 'profile') else '₹'
     
-    # 1. Get last 6 months (including current)
+    # Get history limit
+    history_limit = user.profile.net_worth_history_limit
+    is_limited = (history_limit != -1)
+    
+    # If -1, we show up to 12 months as a reasonable visual default for "unlimited"
+    num_months = history_limit if is_limited else 12
+
+    # 1. Get last num_months months (including current)
     months_data = []
     curr_date = timezone.now().date()
     
-    for i in range(6):
+    for i in range(num_months):
         year = curr_date.year
         month = curr_date.month - i
         while month < 1:
@@ -62,38 +69,32 @@ def mom_analysis_view(request):
         exp = Expense.objects.filter(user=user, date__range=[start_date, end_date]).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
         return inc - exp
 
-    # We want Net Worth at the END of each of the 6 months.
-    # NW at end of month 5 (current) = current_net_worth
-    # NW at end of month 4 = current_net_worth - net_cashflow(month 5 start to today)
-    # NW at end of month 3 = (NW at end of month 4) - net_cashflow(month 4 start to month 4 end)
-    # ...
-    
+    # We want Net Worth at the END of each selected month.
     nw_data = []
     running_nw = current_net_worth
     
-    # Start with today
+    # NW at end of current month (today)
     nw_data.append(float(running_nw))
     
     # Current month start
     curr_month_start = date.today().replace(day=1)
     
-    # Month 5 (Current month) cashflow so far
-    running_nw -= get_net_cashflow(curr_month_start, date.today())
-    
-    # Now running_nw is NW at the START of current month (which is END of month 4)
-    nw_data.append(float(running_nw))
-    
-    # Months 4 to 1
-    temp_date = curr_month_start
-    for i in range(4):
-        p_end = temp_date - timedelta(days=1)
-        p_start = p_end.replace(day=1)
-        
-        running_nw -= get_net_cashflow(p_start, p_end)
+    if num_months > 1:
+        # Subtract current month's cashflow to get NW at end of previous month
+        running_nw -= get_net_cashflow(curr_month_start, date.today())
         nw_data.append(float(running_nw))
-        temp_date = p_start
         
-    nw_data.reverse() # [End M0, End M1, End M2, End M3, End M4, End M5]
+        # Subtract previous months' cashflows
+        temp_date = curr_month_start
+        for i in range(num_months - 2):
+            p_end = temp_date - timedelta(days=1)
+            p_start = p_end.replace(day=1)
+            
+            running_nw -= get_net_cashflow(p_start, p_end)
+            nw_data.append(float(running_nw))
+            temp_date = p_start
+        
+    nw_data.reverse() # Oldest to Newest
 
     # 3. Income, Expense, Savings for each month
     labels = []
@@ -195,6 +196,7 @@ def mom_analysis_view(request):
             'total_expenses': curr_expenses,
             'exp_change': round(exp_change, 1),
             'exp_change_abs': abs(round(exp_change, 1)),
+            'exp_diff': abs(curr_expenses - prev_expenses),
             'total_savings': curr_savings,
             'sav_change': round(sav_change, 1),
             'sav_change_abs': abs(round(sav_change, 1)),
@@ -207,7 +209,9 @@ def mom_analysis_view(request):
             'top_category': top_category,
             'burn_rate': burn_data[-1] if burn_data and burn_data[-1] is not None else 0,
             'prev_burn': burn_data[-2] if len(burn_data) > 1 and burn_data[-2] is not None else 0,
-        }
+        },
+        'is_history_limited': is_limited,
+        'history_limit': history_limit,
     }
     
     return render(request, 'mom_analysis.html', context)

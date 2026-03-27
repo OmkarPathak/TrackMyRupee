@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 from django.views.generic import TemplateView, View
 
 from ..forms import ContactForm
-from ..models import Category, Expense, Income
+from ..models import Category, Expense, Income, Transfer
 
 
 class CalendarView(LoginRequiredMixin, TemplateView):
@@ -75,11 +75,22 @@ class CalendarView(LoginRequiredMixin, TemplateView):
             total=Sum('base_amount'),
             count=Count('id')
         )
+
+        # Get investment data (Transfers to investment/FD accounts)
+        investment_filters = Q(user=self.request.user, date__year=year, date__month=month, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
+        if search_query:
+            investment_filters &= (Q(description__icontains=search_query) | Q(to_account__name__icontains=search_query))
+        
+        investments = Transfer.objects.filter(investment_filters).values('date').annotate(
+            total=Sum('converted_amount'),
+            count=Count('id')
+        )
         
         # Map data for easy lookup by day
         # Keys are integers (day of month)
         expense_map = {e['date'].day: {'total': e['total'], 'count': e['count']} for e in expenses}
         income_map = {i['date'].day: {'total': i['total'], 'count': i['count']} for i in incomes}
+        investment_map = {inv['date'].day: {'total': inv['total'], 'count': inv['count']} for inv in investments}
         
         # Build Calendar Grid
         cal = calendar.Calendar(firstweekday=6) # Start on Sunday
@@ -95,20 +106,46 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                 else:
                     expense_info = expense_map.get(day, {'total': 0, 'count': 0})
                     income_info = income_map.get(day, {'total': 0, 'count': 0})
+                    investment_info = investment_map.get(day, {'total': 0, 'count': 0})
+                    
+                    total_activity = float(income_info['total'] or 0) + float(expense_info['total'] or 0) + float(investment_info['total'] or 0)
+                    
                     week_data.append({
                         'day': day,
                         'income': income_info['total'],
                         'income_count': income_info['count'],
                         'expense': expense_info['total'],
                         'expense_count': expense_info['count'],
-                        'total_count': income_info['count'] + expense_info['count']
+                        'investment': investment_info['total'],
+                        'investment_count': investment_info['count'],
+                        'total_count': income_info['count'] + expense_info['count'] + investment_info['count'],
+                        'total_activity': total_activity
                     })
             calendar_data.append(week_data)
         
+        # Find max activity for heatmap normalization
+        all_activities = [d['total_activity'] for week in calendar_data for d in week if d]
+        max_activity = max(all_activities) if all_activities else 0
         
+        # Assign intensity (0-4)
+        for week in calendar_data:
+            for day_data in week:
+                if day_data:
+                    if max_activity > 0:
+                        ratio = day_data['total_activity'] / max_activity
+                        if ratio == 0: intensity = 0
+                        elif ratio <= 0.25: intensity = 1
+                        elif ratio <= 0.5: intensity = 2
+                        elif ratio <= 0.75: intensity = 3
+                        else: intensity = 4
+                    else:
+                        intensity = 0
+                    day_data['intensity'] = intensity
+
         # Calculate totals for the month to show net savings
         total_monthly_expense = sum(item['total'] for item in expenses) or 0
         total_monthly_income = sum(item['total'] for item in incomes) or 0
+        total_monthly_investment = sum(item['total'] for item in investments) or 0
         month_net_savings = total_monthly_income - total_monthly_expense
 
         context['calendar_data'] = calendar_data
@@ -116,6 +153,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
         context['current_month'] = month
         context['month_name'] = date_format(date(year, month, 1), 'F')
         context['month_net_savings'] = month_net_savings
+        context['total_monthly_investment'] = total_monthly_investment
         context['prev_year'] = prev_month_date.year
         context['prev_month'] = prev_month_date.month
         context['next_year'] = next_month_date.year
