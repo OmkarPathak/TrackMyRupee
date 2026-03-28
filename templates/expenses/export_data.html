@@ -5,7 +5,7 @@
 <div class="fade-in">
     <div class="py-3 mb-3">
         <h2 class="h4 mb-0 fw-bold">{% trans "Export Data" %}</h2>
-        <p class="text-muted mb-0 small">{% trans "Take your financial data with you in standard CSV format." %}</p>
+        <p class="text-muted mb-0 small pt-1">{% trans "Take your financial data with you in standard CSV format." %}</p>
     </div>
 
     {% if not can_export %}
@@ -101,12 +101,12 @@
         </div>
     {% else %}
         <!-- Export Form for Paid Users -->
-        <div class="card border-0 shadow-sm rounded-4 mb-4">
-            <div class="card-body bg-transparent p-4">
+        <div class="border-0 rounded-4 mb-4">
+            <div class="bg-transparent">
                 <form method="post" action="{% url 'export-data' %}" class="no-loader">
                     {% csrf_token %}
                     
-                    <h2 class="h4 mb-0 fw-bold pb-2">{% trans "Select Data to Export" %}</h2>
+                    <!-- <h2 class="h4 mb-0 fw-bold pb-2">{% trans "Select Data to Export" %}</h2> -->
                     
                     <div class="list-group list-group-flush border rounded-4 overflow-hidden mb-4">
                         <!-- Expenses -->
