@@ -32,7 +32,7 @@
         <div class="col-12 col-md-4">
             <div class="card shadow-sm border-0 rounded-4 p-4 text-center bg-primary bg-opacity-10">
                 <p class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 1px;">{% trans "Current Balance" %}</p>
-                <h2 class="fw-black text-primary mb-0" style="font-family: 'Instrument Serif', sans-serif;">
+                <h2 class="fw-black text-primary mb-0">
                     {{ account.currency }}{{ account.balance|humanize_currency:account.currency|translate_digits }}
                 </h2>
             </div>
