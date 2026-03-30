@@ -28,7 +28,7 @@ from ..models import (
     UserProfile,
 )
 from ..templatetags.digit_filters import compact_amount
-from ..utils import generate_year_in_review_data, get_exchange_rate
+from ..utils import format_indian_number, generate_year_in_review_data, get_exchange_rate
 from ..services import FinancialService
 from .mixins import process_user_recurring_transactions
 
@@ -64,6 +64,8 @@ def home_view(request):
     currency_symbol = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
     
     def format_currency(amount):
+        if str(currency_symbol).upper() in ['INR', '₹']:
+            return f"{currency_symbol}{format_indian_number(amount)}"
         return f"{currency_symbol}{int(amount):,}"
 
     # Helper: sum transfer amounts converted to user's base currency
@@ -1130,7 +1132,7 @@ def home_view(request):
             cat_obj = user_categories.get(cat['name'])
             icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
             smart_bullet_insights.append({
-                'text': format_html(_("<a href='{url}' class='text-decoration-none text-reset hover-link'>{cat}</a> category exceeded budget by <span class='text-danger fw-bold'>{sym}{amt}</span>"), url=cat_url, cat=cat['name'], sym=currency_symbol, amt=int(over_amt)),
+                'text': format_html(_("<a href='{url}' class='text-decoration-none text-reset hover-link'>{cat}</a> category exceeded budget by <span class='text-danger fw-bold'>{val}</span>"), url=cat_url, cat=cat['name'], val=format_currency(over_amt)),
                 'icon': icon_cls,
                 'theme': 'danger'
             })

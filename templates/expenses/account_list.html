@@ -64,7 +64,7 @@
                                 </span>
                             </td>
                             <td class="text-end fw-bold {% if account.balance < 0 %}text-danger{% else %}text-success{% endif %}">
-                                {{ account.currency }}{{ account.balance|floatformat:2|translate_digits }}
+                                {{ account.currency }}{{ account.balance|ind_comma:account.currency|translate_digits }}
                             </td>
                             <td class="text-end pe-4 text-nowrap">
                                 <div class="hstack gap-3 justify-content-end">
