@@ -1422,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             stroke-width="12"
                             stroke-dasharray="{{ item.arc_length|floatformat:2 }} 282.74"
                             stroke-dashoffset="-{{ item.offset_length|floatformat:2 }}"
-                            style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if item.type == 'Cash' %}#5DCAA5{% elif item.type == 'Bank Account' %}#1D9E75{% elif item.type == 'Credit Card' %}#E05C45{% elif item.type == 'Investment Account' %}#378ADD{% else %}#9E9D9A{% endif %};"/>
+                            style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %};"/>
                         {% endfor %}
                     </svg>
                     <div class="position-absolute top-50 start-50 translate-middle text-center">
@@ -1435,7 +1435,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {% for item in asset_allocation %}
                     <div class="text-center px-1">
                         <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
-                            <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if item.type == 'Cash' %}#5DCAA5{% elif item.type == 'Bank Account' %}#1D9E75{% elif item.type == 'Credit Card' %}#E05C45{% elif item.type == 'Investment Account' %}#378ADD{% else %}#9E9D9A{% endif %};"></span></span>
+                            <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %};"></span>
                             <span class="text-muted" style="font-size: 0.8rem;">{{ item.type }}</span>
                         </div>
                         <div class="fw-bold" style="font-size: 0.9rem;">{{ item.percent|translate_digits }}%</div>

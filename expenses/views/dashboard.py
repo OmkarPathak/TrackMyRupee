@@ -1185,10 +1185,18 @@ def home_view(request):
     # --- Financial Coach Moments ---
     # 1. Net Worth Milestone
     net_worth = Account.objects.filter(user=request.user).aggregate(Sum('balance'))['balance__sum'] or 0
-    if float(net_worth) >= 100000:
+    milestones = [100000, 500000, 1000000, 2500000, 5000000, 10000000]
+    applicable_milestone = None
+    for m in milestones:
+        if float(net_worth) >= m:
+            applicable_milestone = m
+        else:
+            break
+
+    if applicable_milestone:
         if not any(c.get('icon') == 'bi-trophy' for c in smart_bullet_insights):
             smart_bullet_insights.insert(0, {
-                'text': format_html(_("Milestone Reached! You crossed <span class='fw-bold'>{}</span> in net worth."), format_currency(100000)),
+                'text': format_html(_("Milestone Reached! You crossed <span class='fw-bold'>{}</span> in net worth."), format_currency(applicable_milestone)),
                 'icon': 'bi-trophy',
                 'theme': 'warning'
             })
@@ -1432,9 +1440,15 @@ def home_view(request):
     account_type_display = dict(Account.ACCOUNT_TYPES)
     cumulative_percent = 0
     circumference = 2 * 3.14159 * 45
+    
+    # Use sum of positive balances for allocation donut to avoid >100% or negative segments
+    total_assets = sum(float(v) for v in account_base_balances.values() if v > 0)
+    
     for account_type, total in sorted(type_totals.items(), key=lambda x: x[1], reverse=True):
-        percent = round((float(total) / float(net_worth) * 100), 1) if net_worth > 0 else 0
+        if total <= 0: continue # Skip liabilities in allocation donut
+        percent = round((float(total) / float(total_assets) * 100), 1) if total_assets > 0 else 0
         asset_allocation.append({
+            'type_key': account_type,
             'type': account_type_display.get(account_type, account_type),
             'total': float(total),
             'percent': percent,
