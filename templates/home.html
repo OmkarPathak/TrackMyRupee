@@ -1978,6 +1978,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+        const charts = window.charts = {}; // Make charts accessible globally for updates on visibility changes
         // Init Bootstrap tooltips
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
 
@@ -2054,7 +2055,9 @@ document.addEventListener('DOMContentLoaded', function() {
             easing: 'easeOutQuart'
         };
         
-        const charts = {};
+        // Initialize in window scope if not already done, though it's done at L1981
+        if (!window.charts) window.charts = {};
+        Object.assign(charts, window.charts); // Sync local reference with global if they differ (should be same)
 
         // --- Solid Color Helper ---
         const chartPalette = [
@@ -2398,15 +2401,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         chart.data.datasets.forEach((dataset, i) => {
                             const meta = chart.getDatasetMeta(i);
-                            if (meta.hidden) return;
+                            if (meta.hidden || !meta.data || !meta.data.length) return;
                             const bar = meta.data[0];
                             const val = dataset.data[0];
-                            if (val <= 0) return;
+                            if (val <= 0 || !bar) return;
                             
                             const total = totalWidth; 
                             const percentage = Math.round((val / total) * 100);
                             
-                            if (percentage >= 8) {
+                            if (percentage >= 8 && bar.x !== undefined) {
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 // Use dark text on light "Remaining" segment
@@ -2445,7 +2448,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 const x = bar.x - (bar.width / 2);
-                                ctx.fillText('{{ currency_symbol }}' + translateDigits(Math.round(val).toLocaleString()), x, bar.y);
+                                if (x !== undefined && bar.y !== undefined) {
+                                    ctx.fillText('{{ currency_symbol }}' + translateDigits(Math.round(val).toLocaleString()), x, bar.y);
+                                }
                             }
                         });
                         ctx.restore();
@@ -2602,6 +2607,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ctx.save();
                         const meta = chart.getDatasetMeta(0);
                         meta.data.forEach((bar, index) => {
+                            if (!bar || bar.y === undefined) return;
                             const item = withLimits[index];
                             const y = bar.y;
                             const x = left + width / 2;
@@ -2952,6 +2958,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const text = encodeURIComponent("{% trans 'I just analyzed where my salary went using TrackMyRupee! 🚀 Check out your financial story too: ' %}" + window.location.origin);
             window.open(`https://wa.me/?text=${text}`, '_blank');
         };
+
+        // --- Visibility / Accordion Fixes ---
+        // Ensure charts resize correctly when the hidden accordion is expanded
+        const insightsCollapse = document.getElementById('collapseInsights');
+        if (insightsCollapse) {
+            insightsCollapse.addEventListener('shown.bs.collapse', function () {
+                if (window.charts && window.charts.moneyFlow) {
+                    window.charts.moneyFlow.resize();
+                    window.charts.moneyFlow.update();
+                }
+                // Trigger global resize as safety for any other responsive elements
+                window.dispatchEvent(new Event('resize'));
+            });
+        }
     });
 </script>
 
@@ -2988,6 +3008,12 @@ function switchToFullReport() {
     // Trigger Chart.js resize since canvases are now visible
     if (window.dispatchEvent) {
         window.dispatchEvent(new Event('resize'));
+    }
+    
+    // Explicitly update moneyFlowChart if it exists
+    if (window.charts && window.charts.moneyFlow) {
+        window.charts.moneyFlow.resize();
+        window.charts.moneyFlow.update();
     }
 }
 
