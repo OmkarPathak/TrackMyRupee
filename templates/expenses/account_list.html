@@ -59,9 +59,9 @@
                                 </div>
                             </td>
                             <td class="py-3">
-                                <span class="badge bg-light text-secondary border-0 rounded-pill px-3 py-2 fw-medium small">
-                                    {{ account.get_account_type_display }}
-                                </span>
+                                <span class="badge badge-soft badge-soft-primary small">
+                                     {{ account.get_account_type_display }}
+                                 </span>
                             </td>
                             <td class="text-end fw-bold {% if account.balance < 0 %}text-danger{% else %}text-success{% endif %}">
                                 {{ account.currency }}{{ account.balance|ind_comma:account.currency|translate_digits }}
