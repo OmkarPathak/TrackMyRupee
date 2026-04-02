@@ -22,6 +22,8 @@ class AccountListView(LoginRequiredMixin, ListView):
     context_object_name = 'accounts'
 
     def get_queryset(self):
+        from .mixins import process_user_recurring_transactions
+        process_user_recurring_transactions(self.request.user)
         return Account.objects.filter(user=self.request.user).order_by('name')
 
 class AccountCreateView(LoginRequiredMixin, CreateView):
@@ -157,6 +159,10 @@ class TransferDeleteView(LoginRequiredMixin, DeleteView):
 class AccountDetailView(LoginRequiredMixin, View):
     template_name = 'expenses/account_detail.html'
     def get(self, request, pk):
+        from .mixins import process_user_recurring_transactions
+        if request.user.is_authenticated:
+            process_user_recurring_transactions(request.user)
+            
         account = get_object_or_404(Account, pk=pk, user=request.user)
         query = request.GET.get('q', '')
         

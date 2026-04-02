@@ -68,6 +68,7 @@ def process_user_recurring_transactions(user):
 
             elif rt.transaction_type == 'TRANSFER':
                 if rt.from_account and rt.to_account:
+                    # Transfers always use the from_account's currency as primary
                     exists = Transfer.objects.filter(
                         user=user, date=current_date, amount=rt.amount,
                         from_account=rt.from_account, to_account=rt.to_account,
@@ -75,13 +76,17 @@ def process_user_recurring_transactions(user):
                     ).exists()
                     if not exists:
                         try:
-                            Transfer(
+                            # Transfer model's save() handles balance and currency logic
+                            new_transfer = Transfer(
                                 user=user, date=current_date, amount=rt.amount,
                                 from_account=rt.from_account, to_account=rt.to_account,
                                 description=description
-                            ).save()
-                        except Exception:
-                            pass
+                            )
+                            new_transfer.save()
+                        except Exception as e:
+                            # If it fails (e.g. database error), don't update last_processed_date
+                            # so it can be retried on next page load
+                            break 
 
             else:
                 source = rt.source or 'Other'
