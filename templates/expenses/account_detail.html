@@ -41,7 +41,7 @@
     </div>
 
     <!-- Transaction Ledger -->
-    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+    <div class="card shadow-sm border-0 rounded-4">
         <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div class="d-flex align-items-center gap-2">
                 <h5 class="mb-0 fw-bold">{% trans "Transaction History" %}</h5>
@@ -124,8 +124,8 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots-vertical"></i>
+                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
+                                    <i class="bi bi-three-dots-vertical fs-6"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
                                     {% if item.transaction_type == 'EXPENSE' %}
