@@ -78,12 +78,16 @@ self.addEventListener('fetch', (event) => {
 
 // Push Notification Event
 self.addEventListener('push', function (event) {
+    console.log('[Service Worker] Push Received.');
+    
     if (event.data) {
         let payload;
         try {
             payload = event.data.json();
+            console.log('[Service Worker] Payload (JSON):', payload);
         } catch (e) {
             payload = { head: 'TrackMyRupee', body: event.data.text() };
+            console.log('[Service Worker] Payload (Text):', payload);
         }
         
         const title = payload.head || 'TrackMyRupee Notification';
@@ -101,7 +105,11 @@ self.addEventListener('push', function (event) {
         
         event.waitUntil(
             self.registration.showNotification(title, options)
+                .then(() => console.log('[Service Worker] Notification shown.'))
+                .catch(err => console.error('[Service Worker] Error showing notification:', err))
         );
+    } else {
+        console.warn('[Service Worker] Push event but no data');
     }
 });
 

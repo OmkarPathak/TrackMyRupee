@@ -153,84 +153,142 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const enablePushBtn = document.getElementById('enable-push-btn');
+            const pushBtns = document.querySelectorAll('.enable-push-btn');
+            const isPushSupported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
 
-            if (enablePushBtn) {
-                // Check if already subscribed
-                if (Notification.permission === 'granted') {
-                    enablePushBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1 text-success"></i> On';
-                    enablePushBtn.classList.remove('btn-outline-primary');
-                    enablePushBtn.classList.add('btn-light', 'text-success');
-                    enablePushBtn.disabled = true;
+            if (pushBtns.length > 0) {
+                if (!isPushSupported) {
+                    pushBtns.forEach(btn => {
+                        btn.classList.add('d-none'); // Hide if not supported
+                    });
+                    return;
                 }
 
-                enablePushBtn.addEventListener('click', function () {
-                    const btn = this;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                // Initial state check
+                if ("{{ is_webpush_subscribed }}" === "True") {
+                    if (Notification.permission === 'granted') {
+                        pushBtns.forEach(btn => updatePushBtnState(btn, 'on'));
+                    } else if (Notification.permission === 'default' || Notification.permission === 'denied') {
+                        // DB thinks we are subscribed, but browser says no.
+                        pushBtns.forEach(btn => {
+                            btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Fix Permission';
+                            btn.classList.replace('btn-outline-primary', 'btn-outline-warning');
+                        });
+                    }
+                }
 
-                    // Simple wrapper to engage user interaction for permission
-                    Notification.requestPermission().then(permission => {
-                        if (permission === 'granted') {
-                            // The actual subscription logic is complex to do manually without the django-webpush template tag helpers 
-                            // because it involves VAPID key conversion and fetch calls.
-                            // However, since we loaded 'webpush_notifications', we can trigger the native behavior or 
-                            // redirect the user to a page, OR we can implement the subscription manual logic here.
+                pushBtns.forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const currentBtn = this;
+                        const originalContent = currentBtn.innerHTML;
+                        const vapidPublicKey = "{{ vapid_public_key }}";
 
-                            // Let's use the provided 'webpush_button' logic but invoke it via JS if possible,
-                            // OR simply reload the page effectively if the template had the button.
-                            // But better: manual subscription logic below.
-                            subscribeUser();
-                        } else {
-                            btn.innerHTML = 'Denied';
+                        if (!vapidPublicKey) {
+                            alert("Push setup Error: VAPID_PUBLIC_KEY is not configured in the backend (.env). Please generate one using 'python manage.py webpush_generate_vapid_keys'.");
+                            return;
                         }
+
+                        currentBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                        currentBtn.disabled = true;
+
+                        if (Notification.permission === 'denied') {
+                            alert('Notifications are blocked. Please enable them in your browser settings.');
+                            currentBtn.innerHTML = originalContent;
+                            currentBtn.disabled = false;
+                            return;
+                        }
+
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                subscribeUser(currentBtn);
+                            } else {
+                                currentBtn.innerHTML = '<i class="bi bi-bell-slash me-1"></i> Blocked';
+                                currentBtn.classList.remove('btn-outline-primary');
+                                currentBtn.classList.add('btn-light', 'text-danger');
+                            }
+                        }).catch(err => {
+                            console.error('Permission request failed:', err);
+                            currentBtn.innerHTML = 'Error';
+                            currentBtn.disabled = false;
+                        });
                     });
                 });
             }
 
-            function subscribeUser() {
+            function updatePushBtnState(btn, state) {
+                if (state === 'on') {
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill me-1 text-success"></i> On';
+                    btn.classList.remove('btn-outline-primary');
+                    btn.classList.add('btn-light', 'text-success');
+                    btn.disabled = true;
+                }
+            }
+
+            function subscribeUser(btn) {
                 navigator.serviceWorker.ready.then(function (registration) {
                     const vapidPublicKey = "{{ vapid_public_key }}";
                     if (!vapidPublicKey) {
                         console.error("No VAPID Key found");
+                        btn.disabled = false;
+                        btn.innerHTML = 'Error';
                         return;
                     }
-                    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-
-                    registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: convertedVapidKey
-                    }).then(function (subscription) {
-                        // Send subscription to backend
-                        fetch("{% url 'save_webpush_info' %}", {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token }}',
-                            },
-                            body: JSON.stringify({
-                                status_type: 'subscribe',
-                                subscription: subscription.toJSON(),
-                                browser: navigator.userAgent
-                            }),
-                        }).then(response => {
-                            if (response.ok) {
-                                const btn = document.getElementById('enable-push-btn');
-                                if (btn) {
-                                    btn.innerHTML = '<i class="bi bi-check-circle-fill me-1 text-success"></i> Enabled';
-                                    btn.classList.remove('btn-outline-primary');
-                                    btn.classList.add('btn-light', 'text-success');
+                    
+                    try {
+                        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+                        registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: convertedVapidKey
+                        }).then(function (subscription) {
+                            // Send subscription to backend
+                            fetch("{% url 'save_webpush_info' %}", {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    status_type: 'subscribe',
+                                    subscription: subscription.toJSON(),
+                                    browser: navigator.userAgent.substring(0, 49), // Model limit
+                                    user_agent: navigator.userAgent,
+                                    group: "" // Use default group
+                                }),
+                            }).then(response => {
+                                if (response.status === 201 || response.status === 202 || response.ok) {
+                                    console.log('Push subscription saved successfully');
+                                    pushBtns.forEach(b => updatePushBtnState(b, 'on'));
+                                } else {
+                                    console.error('Server error saving subscription:', response.status);
+                                    throw new Error('Server responded with ' + response.status);
                                 }
+                            }).catch(err => {
+                                console.error('Failed to save subscription:', err);
+                                btn.disabled = false;
+                                btn.innerHTML = 'Retry';
+                            });
+                        }).catch(function (e) {
+                            console.error('Subscription failed', e);
+                            if (Notification.permission === 'granted' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                                alert('To enable notifications on iOS, please "Add to Home Screen" first.');
+                            } else {
+                                alert('Push subscription failed. Please ensure you are using a supported browser over HTTPS.');
                             }
+                            btn.disabled = false;
+                            btn.innerHTML = 'Failed';
                         });
-                    }).catch(function (e) {
-                        console.error('Subscription failed', e);
-                    });
+                    } catch (err) {
+                        console.error('VAPID key conversion failed:', err);
+                        btn.disabled = false;
+                        btn.innerHTML = 'Key Error';
+                    }
                 });
             }
 
             function urlBase64ToUint8Array(base64String) {
-                const padding = '='.repeat((4 - base64String.length % 4) % 4);
-                const base64 = (base64String + padding)
+                // Trim whitespace and remove accidental quotes
+                const cleanedStr = base64String.trim().replace(/^["']|["']$/g, '');
+                const padding = '='.repeat((4 - cleanedStr.length % 4) % 4);
+                const base64 = (cleanedStr + padding)
                     .replace(/\-/g, '+')
                     .replace(/_/g, '/');
 
@@ -556,6 +614,7 @@
                     <small class="text-muted">Add to Home Screen</small>
                 </div>
             </div>
+            <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">Enable</button>
             <button id="installAppBtn" class="btn btn-primary btn-sm rounded-pill px-3">Install</button>
             <button type="button" class="btn-close" onclick="dismissPWAInstall()"></button>
         </div>
