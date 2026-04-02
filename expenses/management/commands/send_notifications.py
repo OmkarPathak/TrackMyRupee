@@ -105,6 +105,7 @@ class Command(BaseCommand):
         profile = user.profile
         tier = profile.active_tier
         if not PLAN_DETAILS.get(tier, {}).get('limits', {}).get('email_notifications', False):
+            self.stdout.write(f"Skipping email for {user.username} ({tier.capitalize()} Tier)")
             return
 
         subject = notifications[0]['title'] if len(notifications) == 1 else "Your Daily Financial Digest"

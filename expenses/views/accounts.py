@@ -185,32 +185,41 @@ class AccountDetailView(LoginRequiredMixin, View):
         
         base_currency = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
         
-        # Calculate Net Total for Filtered Items (In Base Currency)
-        # Note: expenses and incomes already have `base_amount`. 
-        # For transfers, we'll calculate based on the current rates or what's stored.
-        exp_total = sum(e.base_amount for e in expenses)
-        inc_total = sum(i.base_amount for i in incomes)
-        
-        out_total = Decimal('0.00')
-        for t in transfers_from:
-            if t.from_account.currency != base_currency:
-                rate = get_exchange_rate(t.from_account.currency, base_currency)
-                out_total += (t.amount * rate).quantize(Decimal('0.01'))
+        # Calculate Net Total for Filtered Items (In Account's Currency)
+        # Handle expenses
+        exp_total = Decimal('0.00')
+        for e in expenses:
+            if e.currency != account.currency:
+                rate = get_exchange_rate(e.currency, account.currency)
+                exp_total += (e.amount * rate).quantize(Decimal('0.01'))
             else:
-                out_total += t.amount
+                exp_total += e.amount
+
+        # Handle incomes
+        inc_total = Decimal('0.00')
+        for i in incomes:
+            if i.currency != account.currency:
+                rate = get_exchange_rate(i.currency, account.currency)
+                inc_total += (i.amount * rate).quantize(Decimal('0.01'))
+            else:
+                inc_total += i.amount
+        
+        # Transfers are in the currency of the from_account
+        out_total = sum(t.amount for t in transfers_from) # transfers_from were from THIS account
                 
         in_total = Decimal('0.00')
         for t in transfers_to:
-            if t.to_account.currency != base_currency:
-                rate = get_exchange_rate(t.to_account.currency, base_currency)
+            if t.from_account.currency != account.currency:
+                rate = get_exchange_rate(t.from_account.currency, account.currency)
                 in_total += (t.amount * rate).quantize(Decimal('0.01'))
             else:
                 in_total += t.amount
         
+        # Goal contributions are in the goal's currency
         sav_total = Decimal('0.00')
         for c in contributions:
-            if account.currency != base_currency:
-                rate = get_exchange_rate(account.currency, base_currency)
+            if c.goal.currency != account.currency:
+                rate = get_exchange_rate(c.goal.currency, account.currency)
                 sav_total += (c.amount * rate).quantize(Decimal('0.01'))
             else:
                 sav_total += c.amount
@@ -222,35 +231,35 @@ class AccountDetailView(LoginRequiredMixin, View):
         for e in expenses:
             e.transaction_type = 'EXPENSE'
             e.display_currency = e.currency
-            e.base_amount_display = e.base_amount if e.currency != base_currency else None
+            # If the expense is in a different currency than the account, show the base currency equivalent (e.g. ₹ equivalent if looking at a USD account)
+            e.base_amount_display = e.base_amount if e.currency != account.currency else None
+            
         for i in incomes:
             i.transaction_type = 'INCOME'
             i.display_currency = i.currency
-            i.base_amount_display = i.base_amount if i.currency != base_currency else None
+            i.base_amount_display = i.base_amount if i.currency != account.currency else None
+
         for t in transfers_from:
             t.transaction_type = 'TRANSFER_OUT'
             t.display_amount = -t.amount
-            t.display_currency = t.to_account.currency
-            if t.to_account.currency != base_currency:
-                rate = get_exchange_rate(t.to_account.currency, base_currency)
-                t.base_amount_display = (t.amount * rate).quantize(Decimal('0.01'))
-            else:
-                t.base_amount_display = None
+            t.display_currency = account.currency # Always the current account's currency for simplicity
+            t.base_amount_display = None # Transfers from account are always in account's currency
+            
         for t in transfers_to:
             t.transaction_type = 'TRANSFER_IN'
             t.display_amount = t.amount
             t.display_currency = t.from_account.currency
-            if t.from_account.currency != base_currency:
-                rate = get_exchange_rate(t.from_account.currency, base_currency)
+            if t.from_account.currency != account.currency:
+                rate = get_exchange_rate(t.from_account.currency, account.currency)
                 t.base_amount_display = (t.amount * rate).quantize(Decimal('0.01'))
             else:
                 t.base_amount_display = None
 
         for c in contributions:
             c.transaction_type = 'SAVINGS'
-            c.display_currency = account.currency
-            if account.currency != base_currency:
-                rate = get_exchange_rate(account.currency, base_currency)
+            c.display_currency = c.goal.currency
+            if c.goal.currency != account.currency:
+                rate = get_exchange_rate(c.goal.currency, account.currency)
                 c.base_amount_display = (c.amount * rate).quantize(Decimal('0.01'))
             else:
                 c.base_amount_display = None
@@ -265,7 +274,8 @@ class AccountDetailView(LoginRequiredMixin, View):
         context = {
             'account': account,
             'ledger': ledger,
-            'currency_symbol': base_currency,
+            'currency_symbol': account.currency,
+            'base_currency_symbol': base_currency,
             'search_query': query,
             'filtered_net_total': filtered_net_total,
         }

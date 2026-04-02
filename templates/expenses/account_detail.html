@@ -118,7 +118,7 @@
                             </span>
                             {% if item.base_amount_display %}
                                 <div class="small text-muted">
-                                    ≈ {{ currency_symbol }}{{ item.base_amount_display|ind_comma:currency_symbol|translate_digits }}
+                                     ≈ {{ base_currency_symbol }}{{ item.base_amount_display|ind_comma:base_currency_symbol|translate_digits }}
                                 </div>
                             {% endif %}
                         </td>

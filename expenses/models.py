@@ -110,7 +110,13 @@ class Expense(models.Model):
             if self.pk:
                 old_instance = Expense.objects.get(pk=self.pk)
                 if old_instance.account:
-                    old_instance.account.balance += old_instance.amount
+                    # Convert old amount to account currency for reversal
+                    reversal_amount = old_instance.amount
+                    if old_instance.currency != old_instance.account.currency:
+                        rate = get_exchange_rate(old_instance.currency, old_instance.account.currency)
+                        reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
+                    
+                    old_instance.account.balance += reversal_amount
                     old_instance.account.save()
 
             if self.category:
@@ -130,13 +136,25 @@ class Expense(models.Model):
             # Apply new balance
             if self.account:
                 self.account.refresh_from_db()
-                self.account.balance -= self.amount
+                # Convert current amount to account currency
+                apply_amount = self.amount
+                if self.currency != self.account.currency:
+                    rate = get_exchange_rate(self.currency, self.account.currency)
+                    apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                
+                self.account.balance -= apply_amount
                 self.account.save()
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             if self.account:
-                self.account.balance += self.amount
+                # Convert to account currency for deletion reversal
+                apply_amount = self.amount
+                if self.currency != self.account.currency:
+                    rate = get_exchange_rate(self.currency, self.account.currency)
+                    apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                
+                self.account.balance += apply_amount
                 self.account.save()
             super().delete(*args, **kwargs)
 
@@ -203,7 +221,13 @@ class Income(models.Model):
             if self.pk:
                 old_instance = Income.objects.get(pk=self.pk)
                 if old_instance.account:
-                    old_instance.account.balance -= old_instance.amount
+                    # Convert to account currency for reversal
+                    reversal_amount = old_instance.amount
+                    if old_instance.currency != old_instance.account.currency:
+                        rate = get_exchange_rate(old_instance.currency, old_instance.account.currency)
+                        reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
+                    
+                    old_instance.account.balance -= reversal_amount
                     old_instance.account.save()
 
             if self.source:
@@ -223,13 +247,25 @@ class Income(models.Model):
             # Apply new balance
             if self.account:
                 self.account.refresh_from_db()
-                self.account.balance += self.amount
+                # Convert to account currency
+                apply_amount = self.amount
+                if self.currency != self.account.currency:
+                    rate = get_exchange_rate(self.currency, self.account.currency)
+                    apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                    
+                self.account.balance += apply_amount
                 self.account.save()
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             if self.account:
-                self.account.balance -= self.amount
+                # Convert to account currency for deletion reversal
+                apply_amount = self.amount
+                if self.currency != self.account.currency:
+                    rate = get_exchange_rate(self.currency, self.account.currency)
+                    apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                
+                self.account.balance -= apply_amount
                 self.account.save()
             super().delete(*args, **kwargs)
 
@@ -270,7 +306,14 @@ class Transfer(models.Model):
                 # Revert old
                 old_instance.from_account.balance += old_instance.amount
                 old_instance.from_account.save()
-                old_instance.to_account.balance -= old_instance.amount
+                
+                # Convert from_account's amount to to_account's currency for reversal
+                reversal_to_amount = old_instance.amount
+                if old_instance.from_account.currency != old_instance.to_account.currency:
+                    rate = get_exchange_rate(old_instance.from_account.currency, old_instance.to_account.currency)
+                    reversal_to_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
+                
+                old_instance.to_account.balance -= reversal_to_amount
                 old_instance.to_account.save()
 
             # Multi-currency normalization (Transfers use the currency of the from_account usually)
@@ -291,16 +334,30 @@ class Transfer(models.Model):
             self.from_account.refresh_from_db()
             self.to_account.refresh_from_db()
             
-            self.from_account.balance -= self.amount
+            self.from_account.balance -= self.amount # amount is in from_account currency
             self.from_account.save()
-            self.to_account.balance += self.amount
+            
+            # Convert to to_account currency
+            to_apply_amount = self.amount
+            if self.from_account.currency != self.to_account.currency:
+                rate = get_exchange_rate(self.from_account.currency, self.to_account.currency)
+                to_apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                
+            self.to_account.balance += to_apply_amount
             self.to_account.save()
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             self.from_account.balance += self.amount
             self.from_account.save()
-            self.to_account.balance -= self.amount
+            
+            # Convert for reversal
+            to_revert_amount = self.amount
+            if self.from_account.currency != self.to_account.currency:
+                rate = get_exchange_rate(self.from_account.currency, self.to_account.currency)
+                to_revert_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                
+            self.to_account.balance -= to_revert_amount
             self.to_account.save()
             super().delete(*args, **kwargs)
 
@@ -680,7 +737,13 @@ class GoalContribution(models.Model):
                 old_instance = GoalContribution.objects.get(pk=self.pk)
                 # Revert old balance and goal amount
                 if old_instance.account:
-                    old_instance.account.balance += old_instance.amount
+                    # Convert goal currency to account currency for reversal
+                    reversal_amount = old_instance.amount
+                    if old_instance.goal.currency != old_instance.account.currency:
+                        rate = get_exchange_rate(old_instance.goal.currency, old_instance.account.currency)
+                        reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
+                        
+                    old_instance.account.balance += reversal_amount
                     old_instance.account.save()
                 self.goal.current_amount -= old_instance.amount
             
@@ -689,7 +752,13 @@ class GoalContribution(models.Model):
             # Apply new balance and goal amount
             if self.account:
                 self.account.refresh_from_db()
-                self.account.balance -= self.amount
+                # Convert goal currency to account currency
+                apply_amount = self.amount
+                if self.goal.currency != self.account.currency:
+                    rate = get_exchange_rate(self.goal.currency, self.account.currency)
+                    apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                
+                self.account.balance -= apply_amount
                 self.account.save()
             
             self.goal.current_amount += self.amount
@@ -699,7 +768,13 @@ class GoalContribution(models.Model):
         with transaction.atomic():
             # Update account balance and goal's current amount when deleting a contribution
             if self.account:
-                self.account.balance += self.amount
+                # Convert for deletion reversal
+                apply_amount = self.amount
+                if self.goal.currency != self.account.currency:
+                    rate = get_exchange_rate(self.goal.currency, self.account.currency)
+                    apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                    
+                self.account.balance += apply_amount
                 self.account.save()
                 
             self.goal.current_amount -= self.amount

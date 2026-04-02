@@ -66,9 +66,9 @@ class SendNotificationsCommandTest(TestCase):
         call_command('send_notifications')
         
         self.assertEqual(len(mail.outbox), 1)
-        self.assertIn('Upcoming Payment', mail.outbox[0].subject)
-        # Plain text body only contains summary
-        self.assertIn('upcoming payments due', mail.outbox[0].body)
+        self.assertIn('Upcoming Expense', mail.outbox[0].subject)
+        # Plain text body contains consolidated alert text
+        self.assertIn('Upcoming Expense: Test Recurring', mail.outbox[0].body)
 
     def test_duplicate_notification_prevention(self):
         """Test that we don't send duplicate notifications on the same day"""
