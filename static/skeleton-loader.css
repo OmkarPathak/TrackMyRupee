@@ -1,0 +1,416 @@
+/* ============================================================
+   Skeleton Loader — CSS
+   Page-specific shimmer placeholders for navigation transitions
+   ============================================================ */
+
+/* --- Shimmer Animation --- */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes skeleton-progress {
+  0%   { width: 0; }
+  25%  { width: 40%; }
+  50%  { width: 70%; }
+  100% { width: 100%; }
+}
+
+/* --- Base Skeleton Block --- */
+.skeleton-block {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.06) 25%,
+    rgba(0, 0, 0, 0.03) 37%,
+    rgba(0, 0, 0, 0.06) 63%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 6px;
+}
+
+[data-bs-theme="dark"] .skeleton-block {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.03) 37%,
+    rgba(255, 255, 255, 0.06) 63%
+  );
+  background-size: 800px 100%;
+}
+
+/* --- Overlay Container --- */
+.skeleton-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20000;
+  background: rgba(var(--bs-body-bg-rgb, 250, 249, 246), 0.96);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 80px; /* Clear navbar */
+  opacity: 1 !important;
+  display: block !important;
+}
+
+/* --- Immediate Progress Bar --- */
+/* Detached from overlay to ensure absolute top-level visibility */
+#global-progress-bar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 0;
+  height: 4px !important;
+  background-color: #0d6efd !important;
+  background: var(--bs-primary, #0d6efd) !important;
+  z-index: 2147483647 !important; /* Maximum possible z-index */
+  box-shadow: 0 1px 10px rgba(13, 110, 253, 0.5) !important;
+  pointer-events: none;
+  display: none;
+  transition: width 0.3s cubic-bezier(0.1, 0.5, 0.5, 1);
+}
+
+#global-progress-bar.active {
+  display: block;
+  animation: skeleton-progress 3s cubic-bezier(0.1, 0.5, 0.5, 1) forwards;
+}
+
+[data-bs-theme="dark"] .skeleton-overlay {
+  background: rgba(17, 19, 21, 0.96);
+}
+
+.skeleton-overlay .skeleton-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0.5rem 0.75rem 2rem;
+}
+
+@media (min-width: 576px) {
+  .skeleton-overlay .skeleton-inner { padding: 0.5rem 1.5rem 2rem; }
+}
+
+@media (min-width: 1200px) {
+  .skeleton-overlay .skeleton-inner { padding: 1rem 0.75rem 2rem; }
+}
+
+/* --- Size Helpers --- */
+.sk-w-25  { width: 25%; }
+.sk-w-30  { width: 30%; }
+.sk-w-40  { width: 40%; }
+.sk-w-50  { width: 50%; }
+.sk-w-60  { width: 60%; }
+.sk-w-70  { width: 70%; }
+.sk-w-80  { width: 80%; }
+.sk-w-100 { width: 100%; }
+.sk-h-8   { height: 8px; }
+.sk-h-10  { height: 10px; }
+.sk-h-12  { height: 12px; }
+.sk-h-14  { height: 14px; }
+.sk-h-16  { height: 16px; }
+.sk-h-20  { height: 20px; }
+.sk-h-24  { height: 24px; }
+.sk-h-32  { height: 32px; }
+.sk-h-38  { height: 38px; }
+.sk-h-40  { height: 40px; }
+.sk-h-120 { height: 120px; }
+.sk-h-200 { height: 200px; }
+.sk-h-250 { height: 250px; }
+
+.sk-rounded-pill { border-radius: 50rem; }
+.sk-rounded-circle { border-radius: 50%; }
+
+/* --- Reusable Patterns --- */
+
+/* Page Header: Title bar + optional button */
+.sk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.sk-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Stats Row: Small stat boxes */
+.sk-stats-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.sk-stat-box {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 100px;
+  flex: 1;
+  max-width: 180px;
+}
+
+[data-bs-theme="dark"] .sk-stat-box {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.sk-stat-box .skeleton-block:first-child {
+  margin-bottom: 6px;
+}
+
+/* Card Container */
+.sk-card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+[data-bs-theme="dark"] .sk-card {
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(26, 29, 33, 0.5);
+}
+
+/* Table Skeleton */
+.sk-table {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+[data-bs-theme="dark"] .sk-table {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.sk-table-header {
+  display: flex;
+  gap: 1rem;
+  padding: 14px 20px;
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+[data-bs-theme="dark"] .sk-table-header {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.sk-table-row {
+  display: flex;
+  gap: 1rem;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+[data-bs-theme="dark"] .sk-table-row {
+  border-bottom-color: rgba(255, 255, 255, 0.03);
+}
+
+.sk-table-row:last-child {
+  border-bottom: none;
+}
+
+/* Filter Bar */
+.sk-filter-bar {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.01);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+[data-bs-theme="dark"] .sk-filter-bar {
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+/* Chart Placeholder */
+.sk-chart {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+[data-bs-theme="dark"] .sk-chart {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.sk-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Grid Layouts */
+.sk-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.sk-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.sk-grid-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .sk-grid-2 { grid-template-columns: 1fr 1fr; }
+  .sk-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .sk-grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+}
+
+/* Settings Sidebar Layout */
+.sk-settings-layout {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.sk-sidebar {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+  max-width: 250px;
+}
+
+@media (min-width: 768px) {
+  .sk-sidebar { display: flex; }
+}
+
+.sk-sidebar-item {
+  border-radius: 50rem;
+  padding: 10px 16px;
+}
+
+.sk-settings-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Calendar Grid */
+.sk-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+}
+
+.sk-calendar-cell {
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  min-height: 100px;
+  padding: 8px;
+}
+
+[data-bs-theme="dark"] .sk-calendar-cell {
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+@media (max-width: 768px) {
+  .sk-calendar-cell { min-height: 60px; padding: 4px; }
+}
+
+/* Calendar Weekday Header */
+.sk-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-bs-theme="dark"] .sk-calendar-weekdays {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+
+.sk-calendar-weekdays > div {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Form Fields */
+.sk-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.sk-form-group .sk-label {
+  margin-bottom: 6px;
+}
+
+/* Toggle Bar */
+.sk-toggle-bar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.sk-toggle-inner {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 50rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-bs-theme="dark"] .sk-toggle-inner {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* List Group Items */
+.sk-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+[data-bs-theme="dark"] .sk-list-item {
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+
+.sk-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Breadcrumb */
+.sk-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sk-breadcrumb-sep {
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 0.75rem;
+}
+
+[data-bs-theme="dark"] .sk-breadcrumb-sep {
+  color: rgba(255, 255, 255, 0.2);
+}

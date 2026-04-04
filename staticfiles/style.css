@@ -19,7 +19,7 @@ body {
 /* Global Card Refinements */
 .card {
   box-shadow: none !important;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 0.1px solid var(--bs-border-color-translucent) !important;
 }
 
 .glass-card {
@@ -196,6 +196,38 @@ body {
 [data-bs-theme="dark"] .pay-upi { background-color: rgba(212, 131, 26, 0.2); color: #F4B44E; }
 [data-bs-theme="dark"] .pay-netbanking { background-color: rgba(93, 202, 165, 0.25); color: #9FE1CB; }
 
+/* Dashboard Soft Badges */
+.badge-soft {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 50rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.badge-soft-primary {
+  background-color: rgba(29, 158, 117, 0.08);
+  color: #1D9E75;
+}
+
+[data-bs-theme="dark"] .badge-soft-primary {
+  background-color: rgba(29, 158, 117, 0.15);
+  color: #9FE1CB;
+}
+
+.badge-soft-secondary {
+  background-color: rgba(158, 157, 154, 0.1);
+  color: #9E9D9A;
+}
+
+[data-bs-theme="dark"] .badge-soft-secondary {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #adb5bd;
+}
+
 .form-check-input:focus {
   border-color: #1D9E75;
   box-shadow: 0 0 0 0.25rem rgba(29, 158, 117, 0.25);
@@ -248,6 +280,14 @@ body {
   --color-text: #faf9f6;
   --bg-color: #111315;
   --surface-color: #1a1d21;
+  
+  /* Semantic Colors for Dark Mode Contrast */
+  --color-success: #5DCAA5;
+  --color-danger: #F49C8C;
+  --color-warning: #F4B44E;
+  --bs-success-rgb: 93, 202, 165;
+  --bs-danger-rgb: 244, 156, 140;
+  --bs-warning-rgb: 244, 180, 78;
 }
 
 body {
@@ -701,8 +741,8 @@ a:hover {
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -738,7 +778,7 @@ a:hover {
 .blog-content h4,
 .blog-content h5,
 .blog-content h6 {
-  margin-top: 2.5rem;
+  margin-top: 1.5rem;
   margin-bottom: 1rem;
   font-weight: 700;
   line-height: 1.3;

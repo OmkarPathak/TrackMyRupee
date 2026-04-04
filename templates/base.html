@@ -319,6 +319,7 @@
 
     {% load static %}
     <link rel="stylesheet" href="{% static 'style.css' %}?v=1.9">
+    <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.4">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/css/bootstrap-multiselect.min.css">
     <style>
@@ -538,6 +539,8 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated{% endif %}">
+    <!-- Instant Progress Bar (Static) -->
+    <div id="global-progress-bar"></div>
     {% if request.user.username == 'demo' %}
     <div class="alert alert-primary text-center fw-bold m-0 rounded-0 py-2 small shadow-sm sticky-top d-flex justify-content-center align-items-center gap-2"
         role="alert" style="z-index: 1050; border: none; background: linear-gradient(90deg, #1D9E75, #1a4a35); color: white;">
@@ -877,14 +880,8 @@
     <!-- Block for Modals -->
     {% block modals %}{% endblock %}
 
-    <!-- Global Loader Overlay -->
-    <div id="page-loader"
-        class="position-fixed top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center"
-        style="background: rgba(var(--bs-body-bg-rgb), 0.8); z-index: 20000; backdrop-filter: blur(2px);">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
+    <!-- Skeleton Loader JS (must load before loader logic) -->
+    <script src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
 
     <script>
         // Start 7-Day Pro Trial
@@ -921,13 +918,11 @@
         (function() {
             let loaderTimeout = null;
 
-            window.showLoader = function () {
-                const loader = document.getElementById('page-loader');
-                if (!loader) return;
-                
-                // Idempotent show: remove d-none first, then add d-flex
-                loader.classList.remove('d-none');
-                loader.classList.add('d-flex');
+            window.showLoader = function (destinationUrl) {
+                // Show skeleton loader with page-specific layout
+                if (typeof window.showSkeletonLoader === 'function') {
+                    window.showSkeletonLoader(destinationUrl || null);
+                }
                 
                 // Reset safety timeout (10s) to automatically hide if navigation fails
                 clearTimeout(loaderTimeout);
@@ -935,12 +930,11 @@
             };
 
             window.hideLoader = function () {
-                const loader = document.getElementById('page-loader');
-                if (!loader) return;
-                
-                // Idempotent hide
-                loader.classList.remove('d-flex');
-                loader.classList.add('d-none');
+                document.documentElement.style.cursor = '';
+                // Hide skeleton loader
+                if (typeof window.hideSkeletonLoader === 'function') {
+                    window.hideSkeletonLoader();
+                }
                 
                 if (loaderTimeout) {
                     clearTimeout(loaderTimeout);
@@ -951,75 +945,62 @@
             // 1. Unified Event Handler for Loader Trigger
             const handleTrigger = function (e) {
                 // Ignore right clicks or clicks with modifiers
-                if (e.type === 'click' && (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return;
+                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
 
-                // Find closest element that explicitly looks like it will navigate.
-                const navigationKeywords = ['window.location', 'location.href', 'location.assign', 'location.replace', 'history.back()', 'history.forward()', 'history.go('];
-                const selector = 'a, [onclick*="' + navigationKeywords.join('"], [onclick*="') + '"]';
-                const clickable = e.target.closest(selector);
-                
+                // Find closest element
+                const clickable = e.target.closest('a, [onclick]');
                 if (!clickable) return;
 
                 let shouldShow = false;
+                let destinationUrl = null;
 
                 if (clickable.tagName === 'A') {
                     const link = clickable;
                     const href = link.getAttribute('href') || '';
-                    
-                    // Basic exclusions
                     if (!href || href === '#' || href.startsWith('#')) return;
-                    if (link.target === '_blank') return;
-                    if (link.hasAttribute('download') || link.classList.contains('no-loader')) return;
-                    if (link.hasAttribute('data-bs-toggle') || link.hasAttribute('data-bs-dismiss')) return;
-                    if (href.startsWith('mailto:') || href.startsWith('tel:')) return;
-
-                    // Handle javascript: links
-                    if (href.startsWith('javascript:')) {
-                        if (href.includes('history.back()') || href.includes('location.href')) shouldShow = true;
-                    } else {
-                        // Likely a standard navigation
-                        try {
-                            const url = new URL(link.href, window.location.origin);
-                            const isSamePage = (url.origin === window.location.origin) &&
-                                             (url.pathname === window.location.pathname) &&
-                                             (url.search === window.location.search);
-                            // Avoid showing for same-page hash links
-                            if (!(isSamePage && url.hash)) shouldShow = true;
-                        } catch (err) { 
-                            shouldShow = true; 
-                        }
-                    }
-                } else {
-                    // Handle buttons or other elements with onclick navigations
-                    if (clickable.classList.contains('no-loader')) return;
-                    if (clickable.hasAttribute('data-bs-toggle') || clickable.hasAttribute('data-bs-dismiss')) return;
-                    if (clickable.tagName === 'BUTTON' && clickable.type === 'submit') return; // Handled by submit listener
+                    if (link.target === '_blank' || link.hasAttribute('download') || link.classList.contains('no-loader')) return;
+                    if (href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
+                    if (link.hasAttribute('data-bs-toggle') && href === '#') return;
                     
                     shouldShow = true;
+                    destinationUrl = link.href;
+                } else if (clickable.hasAttribute('onclick')) {
+                    const onclick = clickable.getAttribute('onclick');
+                    if (onclick.includes('location.') || onclick.includes('history.')) {
+                        shouldShow = true;
+                    }
                 }
 
                 if (shouldShow) {
-                    window.showLoader();
-                    // Tag the event so the bubbling listener knows we intended to show it
-                    e._loaderTriggered = true;
+                    // INSTANT FEEDBACK
+                    const bar = document.getElementById('global-progress-bar');
+                    if (bar) {
+                        bar.style.width = '10%';
+                        bar.classList.add('active');
+                        // Force paint
+                        void document.documentElement.offsetWidth;
+                        bar.style.width = '30%';
+                    }
+                    document.documentElement.style.cursor = 'wait';
+                    
+                    // Full Skeleton (only on click to avoid multiple triggers on touch-scroll)
+                    if (e.type === 'click') {
+                        window.showLoader(destinationUrl);
+                        e._loaderTriggered = true;
+                    }
                 }
             };
 
-            // Capture-phase listener (Trigger immediately)
+            // Use pointerdown for the earliest possible feedback on touch/mouse
+            document.addEventListener('pointerdown', handleTrigger, true);
+            // Use click for the actual navigation commitment
             document.addEventListener('click', handleTrigger, true);
 
             // 2. Bubbling-phase Click Listener (Cancellation check)
             // If any handler called e.preventDefault(), hide the loader we just showed,
-            // UNLESS it's a mobile navbar link which often has complex event handling.
+            // UNLESS we already marked this as a valid navigation we want to show a loader for.
             document.addEventListener('click', function (e) {
-                if (e.defaultPrevented) {
-                    const isMobile = window.innerWidth < 992;
-                    const isNavbarLink = e.target.closest('.nav-link, .mobile-nav-item, .list-group-item');
-                    
-                    if (isMobile && isNavbarLink) {
-                        // Keep loader visible for navbar links on mobile even if defaultPrevented
-                        return;
-                    }
+                if (e.defaultPrevented && !e._loaderTriggered) {
                     window.hideLoader();
                 }
             }, false);
@@ -1029,7 +1010,9 @@
                 if (!e.defaultPrevented) {
                     const form = e.target;
                     if (!form.classList.contains('no-loader') && form.target !== '_blank') {
-                        window.showLoader();
+                        // For form submits, use form action URL or current page URL
+                        const formUrl = form.action || window.location.href;
+                        window.showLoader(formUrl);
                     }
                 }
             });
@@ -1038,7 +1021,8 @@
             const originalSubmit = HTMLFormElement.prototype.submit;
             HTMLFormElement.prototype.submit = function () {
                 if (!this.classList.contains('no-loader') && this.target !== '_blank') {
-                    window.showLoader();
+                    const formUrl = this.action || window.location.href;
+                    window.showLoader(formUrl);
                 }
                 originalSubmit.apply(this, arguments);
             };
