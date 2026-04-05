@@ -438,6 +438,15 @@
     </div>
     
     <div class="d-none d-md-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-link text-primary p-0 me-1" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#collapseInsights" 
+                aria-expanded="false" 
+                aria-controls="collapseInsights"
+                title="{% trans 'Financial Intelligence' %}">
+            <i class="bi bi-stars fs-5"></i>
+        </button>
         <button class="btn btn-sm btn-link text-muted p-0 me-2" data-bs-toggle="modal" data-bs-target="#savingsMethodModal" title="{% trans 'How it works' %}">
             <i class="bi bi-info-circle fs-5"></i>
         </button>
@@ -554,7 +563,7 @@
 <!-- FINANCIAL INTELLIGENCE HUB -->
 <div class="accordion mb-4" id="insightsAccordion">
     <div class="accordion-item border-0 rounded-4 overflow-hidden">
-        <h2 class="accordion-header d-none d-md-block" id="headingInsights">
+        <h2 class="accordion-header d-none" id="headingInsights">
             <button class="accordion-button collapsed px-4 py-2 fw-bold bg-transparent text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInsights" aria-expanded="false" aria-controls="collapseInsights" style="font-size: 1rem; box-shadow: none;">
                 <div class="d-flex align-items-center gap-3 w-100">
                     <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
