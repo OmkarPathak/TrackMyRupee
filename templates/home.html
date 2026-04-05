@@ -1155,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h1 class="fw-black mb-2 text-body-emphasis" style="font-family: 'DM Sans', 'Inter', sans-serif; font-size: 2rem; letter-spacing: -1px;">
                         {{ hero_metrics.savings_rate|translate_digits }}<span class="fs-4 text-muted fw-bold">%</span>
                     </h1>
-                    
+                    <p class="text-muted small text-uppercase mb-2" style="letter-spacing: 0.5px;">{% trans "Savings Rate" %}</p>
                     <div class="mx-auto mb-3" style="max-width: 300px;">
                         <div class="progress rounded-pill bg-secondary bg-opacity-10 mb-2 progress-animate" style="height: 10px;">
                             <div class="progress-bar rounded-pill {% if hero_metrics.savings_rate >= 20 %}bg-success{% elif hero_metrics.savings_rate > 0 %}bg-primary{% else %}bg-danger{% endif %}" 
@@ -1177,9 +1177,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>{{ currency_symbol }}{{ hero_metrics.income|humanize_currency:currency_symbol|translate_digits }} {% trans "income" %}</span>
                         </div>
                     </div>
-                    
                     <div class="mt-3 text-center">
-                        <p class="text-muted small fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">{% trans "Savings Rate" %}</p>
                         {% if hero_metrics.trend_text %}
                             <span class="badge {% if hero_metrics.trend_type == 'positive' %}bg-success{% elif hero_metrics.trend_type == 'negative' %}bg-danger{% else %}bg-secondary{% endif %} bg-opacity-10 {% if hero_metrics.trend_type == 'positive' %}text-success{% elif hero_metrics.trend_type == 'negative' %}text-danger{% else %}text-secondary{% endif %} rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
                                 {{ hero_metrics.trend_text }}
@@ -1190,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <!-- Stats Row -->
                 <div class="row g-0 py-3 border-top border-bottom">
-                    <a href="{% url 'income-list' %}?{% url_replace %}" class="col-4 border-end px-2 text-decoration-none transition-all">
+                    <a href="{% url 'income-list' %}?{% url_replace %}" class="col-6 border-end px-2 text-decoration-none transition-all">
                         <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;" 
                                data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total money received during the selected period.' %}">
                             {% trans "Total Income" %}
@@ -1206,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         {% endif %}
                     </a>
-                    <a href="{% url 'expense-list' %}?{% url_replace is_investment='false' %}" class="col-4 border-end px-2 text-decoration-none transition-all">
+                    <a href="{% url 'expense-list' %}?{% url_replace is_investment='false' %}" class="col-6 px-2 text-decoration-none transition-all">
                         <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;"
                                data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total daily living expenses, excluding investments and transfers.' %}">
                             {% trans "Operating Spent" %}
@@ -1219,23 +1217,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                     {% if prev_month_data.expense_pct > 0 %}↑{% elif prev_month_data.expense_pct < 0 %}↓{% endif %} {{ prev_month_data.expense_pct_abs|floatformat:0|translate_digits }}%
                                 </span>
                                 <span class="text-muted d-none d-md-inline">({% if prev_month_data.expense_diff_amount > 0 %}+{% endif %}{{ currency_symbol }}{{ prev_month_data.expense_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }})</span>
-                            </div>
-                        {% endif %}
-                    </a>
-                    <a href="{% url 'account-list' %}" class="col-4 px-2 text-decoration-none transition-all">
-                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;"
-                               data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total current balance across all your investment and high-yield savings accounts.' %}">
-                            {% trans "Wealth" %}
-                            <i class="bi bi-info-circle ms-1" style="font-size: 0.6rem; opacity: 0.6;"></i>
-                        </small>
-                        <div class="fw-bold mb-0 text-info text-truncate" style="font-size: 0.95rem;">{{ currency_symbol }}{{ investment_accounts_balance|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
-                        {% if prev_month_data.investments_pct %}
-                            <div class="mt-1 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.65rem;">
-                                <span class="{% if prev_month_data.investments_pct > 0 %}text-success{% elif prev_month_data.investments_pct < 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
-                                    {% if prev_month_data.investments_pct > 0 %}↑{% elif prev_month_data.investments_pct < 0 %}↓{% endif %} 
-                                    {{ prev_month_data.investments_pct_abs|floatformat:0|translate_digits }}%
-                                </span>
-                                <span class="text-muted d-none d-md-inline" style="font-size: 0.55rem; opacity: 0.8;">{% trans "invested vs last month" %}</span>
                             </div>
                         {% endif %}
                     </a>

@@ -479,6 +479,7 @@ def home_view(request):
         'spent': total_expenses,
         'saved': savings,
         'savings_rate': round(savings_rate_value, 1),
+        'savings_rate_diff': round(abs(rate_diff), 1) if prev_month_data and 'savings_rate' in prev_month_data else None,
         'status': hero_status,
         'trend_text': trend_text,
         'trend_type': trend_type,
