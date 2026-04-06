@@ -13,11 +13,13 @@ from django.db.models import Count, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.formats import date_format
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView, View
 
 from ..forms import ContactForm
-from ..models import Category, Expense, Income, Transfer
+from ..models import Category, Expense, Income, RecurringTransaction, Transfer
+from ..utils import get_exchange_rate
 
 
 class CalendarView(LoginRequiredMixin, TemplateView):
@@ -92,6 +94,34 @@ class CalendarView(LoginRequiredMixin, TemplateView):
         income_map = {i['date'].day: {'total': i['total'], 'count': i['count']} for i in incomes}
         investment_map = {inv['date'].day: {'total': inv['total'], 'count': inv['count']} for inv in investments}
         
+        # Get pending recurring transactions for the month
+        from collections import defaultdict
+        pending_recurring_map = defaultdict(list)
+        recurring_configs = RecurringTransaction.objects.filter(user=self.request.user, is_active=True)
+        
+        view_month_start = date(year, month, 1)
+        last_day = calendar.monthrange(year, month)[1]
+        view_month_end = date(year, month, last_day)
+        
+        for rt in recurring_configs:
+            check_date = rt.next_due_date
+            
+            # Project forward if the next due date is before the viewing month
+            while check_date < view_month_start:
+                check_date = rt.get_next_date(check_date, rt.frequency)
+            
+            # Collect all occurrences within the month
+            while check_date <= view_month_end:
+                # Only show if not yet processed
+                if check_date > (rt.last_processed_date or date(1900, 1, 1)):
+                    pending_recurring_map[check_date.day].append({
+                        'description': rt.description,
+                        'amount': float(rt.amount),
+                        'type': rt.transaction_type,
+                        'currency': rt.currency
+                    })
+                check_date = rt.get_next_date(check_date, rt.frequency)
+
         # Build Calendar Grid
         cal = calendar.Calendar(firstweekday=6) # Start on Sunday
         month_days = cal.monthdayscalendar(year, month)
@@ -119,7 +149,8 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                         'investment': investment_info['total'],
                         'investment_count': investment_info['count'],
                         'total_count': income_info['count'] + expense_info['count'] + investment_info['count'],
-                        'total_activity': total_activity
+                        'total_activity': total_activity,
+                        'pending_recurring': pending_recurring_map.get(day, [])
                     })
             calendar_data.append(week_data)
         
