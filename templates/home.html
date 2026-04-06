@@ -1166,7 +1166,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         <div class="collapse mt-2" id="mobileAccountsCollapse">
                             {% for account in accounts %}
-                                <a href="{% url 'account-detail' account.pk %}" class="account-item-premium text-decoration-none border-0 mb-1 rounded-3 bg-light bg-opacity-50">
+                                <a href="{% url 'account-detail' account.pk %}" class="account-item-premium text-decoration-none border-0 mb-1 rounded-3">
                                     <div class="account-status-bar 
                                         {% if account.account_type == 'CREDIT_CARD' %}bg-danger
                                         {% elif account.account_type == 'INVESTMENT' or account.account_type == 'FIXED_DEPOSIT' %}bg-primary
