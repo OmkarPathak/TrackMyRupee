@@ -3,24 +3,50 @@
 
 {% block settings_content %}
 <div class="fade-in">
-    <div class="pt-1 pb-3 mb-4">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-1">
+    <div class="pt-1 pb-3 mb-2">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
             <div class="d-flex align-items-center gap-2">
                 <h2 class="h4 mb-0 fw-bold">{% trans "Accounts" %}</h2>
-                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; min-width: 28px; line-height: 1;" data-bs-toggle="collapse" data-bs-target="#guideAccounts" aria-expanded="false" title="{% trans 'How it works' %}">
-                    <i class="bi bi-info-lg" style="font-size: 0.75rem;"></i>
+                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px; line-height: 1;" data-bs-toggle="collapse" data-bs-target="#guideAccounts" aria-expanded="false" title="{% trans 'How it works' %}">
+                    <i class="bi bi-info-lg" style="font-size: 0.7rem;"></i>
                 </button>
             </div>
-            <div class="d-flex gap-2 w-100 w-sm-auto justify-content-end">
-                <a href="{% url 'transfer-list' %}" class="btn btn-outline-primary btn-sm flex-grow-1 flex-sm-grow-0 text-center">
-                    <i class="bi bi-arrow-left-right me-1"></i> {% trans "Transfer History" %}
+            <div class="d-flex gap-2">
+                <a href="{% url 'transfer-list' %}" class="btn btn-outline-primary btn-sm px-2 px-sm-3 d-flex align-items-center shadow-sm" style="border-radius: 8px;">
+                    <i class="bi bi-arrow-left-right me-1"></i> <span class="small">{% trans "History" %}</span>
                 </a>
-                <a href="{% url 'account-create' %}" class="btn btn-primary btn-sm flex-grow-1 flex-sm-grow-0 text-center">
-                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Account" %}
+                <a href="{% url 'account-create' %}" class="btn btn-primary btn-sm px-2 px-sm-3 d-flex align-items-center shadow-sm" style="border-radius: 8px;">
+                    <i class="bi bi-plus-lg me-1"></i> <span class="small">{% trans "Add" %}</span>
                 </a>
             </div>
         </div>
         <p class="text-muted small mb-3">{% trans "Manage your wallets, bank accounts, and investment portfolios" %}</p>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="mb-4">
+        <form method="get" class="d-flex align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center">
+                <span class="fw-bold text-muted text-uppercase" style="letter-spacing: 1px; font-size: 0.75rem;">
+                    <i class="bi bi-filter-left me-1"></i>{% trans "Filter" %}
+                </span>
+            </div>
+            <div style="min-width: 180px;">
+                <select name="type" class="form-select" style="border-radius: 12px; cursor: pointer; transition: all 0.2s;" onchange="this.form.submit()">
+                    <option value="">{% trans "All" %}</option>
+                    {% for val, label in account_types %}
+                        <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if selected_type %}
+            <div class="d-flex align-items-center">
+                <a href="{% url 'account-list' %}" class="btn btn-sm border-0 text-decoration-none text-muted d-flex align-items-center px-2 py-1" style="border-radius: 10px; font-size: 0.85rem;">
+                    <i class="bi bi-x-circle me-1 text-danger"></i>{% trans "Clear" %}
+                </a>
+            </div>
+            {% endif %}
+        </form>
     </div>
 
     {% include 'partials/guide_accounts.html' %}

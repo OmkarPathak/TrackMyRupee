@@ -27,7 +27,19 @@ class AccountListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         from .mixins import process_user_recurring_transactions
         process_user_recurring_transactions(self.request.user)
-        return Account.objects.filter(user=self.request.user).order_by('name')
+        queryset = Account.objects.filter(user=self.request.user).order_by('name')
+        
+        account_type = self.request.GET.get('type')
+        if account_type:
+            queryset = queryset.filter(account_type=account_type)
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['account_types'] = Account.ACCOUNT_TYPES
+        context['selected_type'] = self.request.GET.get('type', '')
+        return context
 
 class AccountCreateView(LoginRequiredMixin, CreateView):
     model = Account
