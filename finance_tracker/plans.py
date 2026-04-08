@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 PLAN_DETAILS = {
     'FREE': {
         'name': _('Free'),
-        'tagline': _('Taste it, trust it'),
+        'tagline': _('Try it at your own pace'),
         'price_yearly': 0,
         'price_monthly': 0,
         'pricing_note': _('forever'),
@@ -50,7 +50,7 @@ PLAN_DETAILS = {
     },
     'PRO': {
         'name': _('Pro'),
-        'tagline': _('Full financial command'),
+        'tagline': _('Everything, unlimited'),
         'price_yearly': 999,
         'price_monthly': 99,
         'pricing_note': _('per year'),
