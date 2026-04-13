@@ -56,11 +56,11 @@
 
                     <!-- Header: Icon & Title -->
                     <div class="d-flex align-items-center mb-4">
-                        <div class="me-3 bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.5rem; border: 1px solid rgba(0,0,0,0.05);">
+                        <div class="me-3 bg-body-tertiary rounded-circle shadow-sm d-flex align-items-center justify-content-center border" style="width: 50px; height: 50px; font-size: 1.5rem;">
                             {{ goal.icon }}
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0 text-truncate text-dark" style="max-width: 200px;">{{ goal.name }}</h5>
+                            <h5 class="fw-bold mb-0 text-truncate" style="max-width: 200px;">{{ goal.name }}</h5>
                             <p class="text-secondary small mb-0 mt-1 d-flex align-items-center gap-1">
                                 {% if goal.target_date %}
                                     <i class="bi bi-calendar3"></i> {% trans "Target:" %} {{ goal.target_date|date:"M d, Y" }}
@@ -79,13 +79,13 @@
                         </div>
                         <div class="text-end">
                             <span class="text-secondary small d-block mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Saved" %}</span>
-                            <span class="fw-bold text-dark">{{ goal.currency }}{{ goal.current_amount|compact_amount:goal.currency|translate_digits }}</span> 
+                            <span class="fw-bold">{{ goal.currency }}{{ goal.current_amount|compact_amount:goal.currency|translate_digits }}</span> 
                             <span class="text-muted small">/ {{ goal.target_amount|compact_amount:goal.currency|translate_digits }}</span>
                         </div>
                     </div>
 
                     <!-- Slim Progress Bar -->
-                    <div class="progress mb-4 bg-light" style="height: 8px; border-radius: 8px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                    <div class="progress mb-4 bg-body-secondary" style="height: 8px; border-radius: 8px;">
                         <div class="progress-bar progress-bar-striped {% if not goal.is_completed %}progress-bar-animated{% endif %} bg-{{ goal.color }}" role="progressbar" 
                              style="width: {{ goal.progress_percentage }}%; border-radius: 8px;" aria-valuenow="{{ goal.progress_percentage|stringformat:'f'|translate_digits }}" aria-valuemin="0" aria-valuemax="100">
                         </div>
@@ -110,7 +110,7 @@
                         </a>
                         {% endif %}
                         <div class="d-flex gap-2">
-                            <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-light btn-sm rounded-3 text-secondary border icon-btn" title="{% trans 'Edit' %}">
+                            <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-outline-secondary btn-sm rounded-3 icon-btn" title="{% trans 'Edit' %}">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <button type="button" class="btn btn-outline-danger btn-sm rounded-3 icon-btn" 

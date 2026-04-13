@@ -98,7 +98,7 @@
         
         {% include 'components/upgrade_nudge.html' %}
 
-        <div class="card shadow-sm border-0 bg-white summary-card mb-4">
+        <div class="card shadow-sm border-0 bg-body-tertiary summary-card mb-4">
             <div class="card-body p-4">
                 <div class="row align-items-start align-items-md-center">
                     <div class="col-6 col-md-6 border-end border-secondary border-opacity-10">
@@ -135,7 +135,7 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link active px-4 rounded-pill text-nowrap d-flex align-items-center" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-selected="true">
                     {% trans "All" %}
-                    <span class="badge bg-white text-primary ms-2 rounded-pill opacity-75">{{ active_subs|length|translate_digits }}</span>
+                    <span class="badge bg-body text-primary ms-2 rounded-pill opacity-75">{{ active_subs|length|translate_digits }}</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
