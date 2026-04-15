@@ -1244,9 +1244,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="d-flex flex-column align-items-start text-start">
                                 <span>{{ currency_symbol }}{{ hero_metrics.saved|humanize_currency:currency_symbol|translate_digits }} {% trans "saved" %}</span>
                                 {% if hero_metrics.savings_diff_pct %}
-                                <span class="{% if hero_metrics.savings_diff_pct > 0 %}text-success{% else %}text-danger{% endif %} mt-1" style="font-size: 0.65rem;">
+                                <span class="{% if hero_metrics.savings_diff_pct > 0 %}text-success{% else %}text-danger{% endif %} mt-1 cursor-help" style="font-size: 0.65rem;"
+                                      data-bs-toggle="tooltip" 
+                                      title="{% trans 'The actual amount of currency saved compared to last month.' %}">
                                     {% if hero_metrics.savings_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ hero_metrics.savings_diff_pct_abs|translate_digits|floatformat:1 }}% 
-                                    {% trans "amount saved vs last month" %}
+                                    {% trans "total cash vs last month" %}
                                 </span>
                                 {% endif %}
                             </div>

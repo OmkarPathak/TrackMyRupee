@@ -465,13 +465,13 @@ def home_view(request):
     if prev_month_data and 'savings_rate' in prev_month_data:
         rate_diff = savings_rate_value - prev_month_data['savings_rate']
         if rate_diff > 0:
-            trend_text = f"Savings rate ↑ +{rate_diff:.1f}% vs last month"
+            trend_text = _("Savings efficiency ↑ +%(diff).1f%% vs last month") % {'diff': rate_diff}
             trend_type = 'positive'
         elif rate_diff < 0:
-            trend_text = f"Savings rate ↓ {rate_diff:.1f}% vs last month"
+            trend_text = _("Savings efficiency ↓ %(diff).1f%% vs last month") % {'diff': abs(rate_diff)}
             trend_type = 'negative'
         else:
-            trend_text = "Savings rate unchanged vs last month"
+            trend_text = _("Savings efficiency unchanged")
             trend_type = 'neutral'
 
     hero_metrics = {
