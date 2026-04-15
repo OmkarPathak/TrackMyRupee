@@ -190,6 +190,7 @@ class ProfileUpdateForm(forms.ModelForm):
     auth_email = forms.EmailField(required=True, label='Email Address')
     first_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    daily_reminder = forms.BooleanField(required=False, label=_('Daily Expense Reminder'), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
 
     class Meta:
         model = User
@@ -198,7 +199,7 @@ class ProfileUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['auth_email'].initial = self.instance.email
-        self.fields['auth_email'].initial = self.instance.email
+        self.fields['daily_reminder'].initial = self.instance.profile.daily_reminder
         self.fields['auth_email'].widget.attrs.update({'class': 'form-control'})
 
         # Check if user has social account
@@ -225,6 +226,9 @@ class ProfileUpdateForm(forms.ModelForm):
         user.email = self.cleaned_data['auth_email']
         if commit:
             user.save()
+            profile = user.profile
+            profile.daily_reminder = self.cleaned_data['daily_reminder']
+            profile.save()
         return user
 
 class LanguageUpdateForm(forms.ModelForm):

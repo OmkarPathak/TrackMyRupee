@@ -38,6 +38,19 @@
                 {% endif %}
                 <div class="form-text text-muted small">{% trans "This email will be used for logins and account recovery." %}</div>
             </div>
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div class="flex-grow-1">
+                        <label class="h6 mb-0 fw-bold d-block" for="{{ form.daily_reminder.id_for_label }}">
+                            {% trans "Daily Expense Reminder" %}
+                        </label>
+                        <div class="form-text text-muted small mt-1">{% trans "Send a PWA notification at 9 PM IST." %}</div>
+                    </div>
+                    <div class="form-check form-switch p-0 m-0 flex-shrink-0">
+                        {{ form.daily_reminder }}
+                    </div>
+                </div>
+            </div>
 
             {% if show_year_in_review %}
             <div class="mb-4 p-3 bg-body-secondary rounded border border-primary border-opacity-25 d-flex align-items-center justify-content-between">

@@ -104,3 +104,17 @@ def trigger_monthly_reports_view(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+@csrf_exempt
+def trigger_daily_reminders_view(request):
+    """
+    HTTP endpoint to trigger daily expense reminders via external cron service.
+    """
+    secret = request.GET.get('secret')
+    if not secret or secret != settings.CRON_SECRET:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    try:
+        call_command('send_daily_reminders')
+        return JsonResponse({'success': True, 'message': 'Daily reminders triggered successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

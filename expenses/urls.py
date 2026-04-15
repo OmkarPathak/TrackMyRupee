@@ -107,6 +107,7 @@ urlpatterns = [
     path('api/cron/send-notifications/', views.trigger_notifications, name='cron-send-notifications'),
     path('api/cron/send-lifecycle-emails/', views.trigger_lifecycle_emails, name='cron-send-lifecycle-emails'),
     path('api/cron/send-monthly-reports/', views.trigger_monthly_reports_view, name='cron-send-monthly-reports'),
+    path('api/cron/send-daily-reminders/', views.trigger_daily_reminders_view, name='cron-send-daily-reminders'),
 
     # Sentry Debug
     path('sentry-debug/', lambda request: 1 / 0),
