@@ -518,7 +518,10 @@ a:hover {
 .nav-link:hover,
 .nav-link.active {
   color: var(--color-success) !important;
-  font-weight: 500; /* Slightly heavier for active state */
+}
+
+.nav-link.active {
+  font-weight: 500; /* Heavier only for active state */
 }
 
 /* Pagination */

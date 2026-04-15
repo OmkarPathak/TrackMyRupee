@@ -1,5 +1,5 @@
 // Updated: 2026-03-25 10:45 (Force Refresh)
-const CACHE_NAME = 'finance-tracker-v19';
+const CACHE_NAME = 'finance-tracker-v20';
 const OFFLINE_URL = '/offline/';
 
 const ASSETS_TO_CACHE = [
