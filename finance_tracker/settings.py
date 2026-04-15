@@ -55,6 +55,9 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com,https://django-finance-tracker-fr1u.onrender.com').split(',')
 
+# Absolute URL for generating links in background tasks (emails, push)
+SITE_URL = os.environ.get('SITE_URL', 'https://trackmyrupee.com').rstrip('/')
+
 # Application definition
 
 INSTALLED_APPS = [

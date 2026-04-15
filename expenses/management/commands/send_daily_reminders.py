@@ -1,4 +1,7 @@
 
+import json
+from django.conf import settings
+from django.templatetags.static import static
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from webpush import send_user_notification
@@ -19,6 +22,11 @@ class Command(BaseCommand):
         
         sent_count = 0
         skipped_count = 0
+        
+        # Base URL for media assets
+        site_url = getattr(settings, 'SITE_URL', 'https://trackmyrupee.com').rstrip('/')
+        icon_path = static('img/pwa-icon-512.png')
+        absolute_icon_url = f"{site_url}{icon_path}"
         
         for profile in profiles:
             user = profile.user
@@ -42,15 +50,17 @@ class Command(BaseCommand):
                         link='/expenses/add/'
                     )
                 
-                # 2. Send Push Notification (Always send this to provide the "buzz")
-                payload = {
+                # 2. Send Push Notification
+                # Using absolute URLs and JSON stringification for max compatibility in production
+                payload = json.dumps({
                     "head": title,
                     "body": message,
-                    "icon": "/static/img/pwa-icon-512.png",
-                    "url": "/expenses/add/"
-                }
+                    "icon": absolute_icon_url,
+                    "url": f"{site_url}/expenses/add/"
+                })
                 
                 try:
+                    # django-webpush sends to ALL registered devices for this user
                     send_user_notification(user=user, payload=payload, ttl=3600)
                     sent_count += 1
                 except Exception as e:

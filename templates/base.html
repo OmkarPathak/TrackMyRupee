@@ -196,6 +196,10 @@
     {% endblock %}
 
     <script>
+        // Global WebPush Configuration
+        window.VAPID_PUBLIC_KEY = "{{ vapid_public_key }}";
+        window.IS_WEBPUSH_SUBSCRIBED = "{{ is_webpush_subscribed }}" === "True";
+
         document.addEventListener('DOMContentLoaded', function () {
             const pushBtns = document.querySelectorAll('.enable-push-btn');
             const isPushSupported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
@@ -209,7 +213,7 @@
                 }
 
                 // Initial state check
-                if ("{{ is_webpush_subscribed }}" === "True") {
+                if (window.IS_WEBPUSH_SUBSCRIBED) {
                     if (Notification.permission === 'granted') {
                         pushBtns.forEach(btn => updatePushBtnState(btn, 'on'));
                     } else if (Notification.permission === 'default' || Notification.permission === 'denied') {
@@ -225,7 +229,7 @@
                     btn.addEventListener('click', function () {
                         const currentBtn = this;
                         const originalContent = currentBtn.innerHTML;
-                        const vapidPublicKey = "{{ vapid_public_key }}";
+                        const vapidPublicKey = window.VAPID_PUBLIC_KEY;
 
                         if (!vapidPublicKey) {
                             alert("Push setup Error: VAPID_PUBLIC_KEY is not configured in the backend (.env). Please generate one using 'python manage.py webpush_generate_vapid_keys'.");
@@ -270,7 +274,7 @@
 
             function subscribeUser(btn) {
                 navigator.serviceWorker.ready.then(function (registration) {
-                    const vapidPublicKey = "{{ vapid_public_key }}";
+                    const vapidPublicKey = window.VAPID_PUBLIC_KEY;
                     if (!vapidPublicKey) {
                         console.error("No VAPID Key found");
                         btn.disabled = false;

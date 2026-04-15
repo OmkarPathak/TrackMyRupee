@@ -1,8 +1,10 @@
 
+import json
 from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
+from django.templatetags.static import static
 from django.core.mail import EmailMultiAlternatives
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
@@ -77,12 +79,16 @@ class Command(BaseCommand):
         )
         
         # 2. Send Push Notification (WebPush)
-        payload = {
+        site_url = getattr(settings, 'SITE_URL', 'https://trackmyrupee.com').rstrip('/')
+        icon_path = static('img/pwa-icon-512.png')
+        absolute_icon_url = f"{site_url}{icon_path}"
+        
+        payload = json.dumps({
             "head": title,
             "body": message,
-            "icon": "/static/img/pwa-icon-512.png", 
-            "url": link or "/notifications/"
-        }
+            "icon": absolute_icon_url, 
+            "url": f"{site_url}{link}" if link else f"{site_url}/notifications/"
+        })
         try:
             send_user_notification(user=user, payload=payload, ttl=1000)
         except Exception as e:
