@@ -162,6 +162,7 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
             'renewals_count': renewals_count,
             'total_monthly_cost': total_monthly,
             'total_yearly_cost': total_yearly,
+            'total_daily_cost': total_yearly / 365 if total_yearly else 0,
         })
         
         # Nudge context for upgrade banner (use is_plus/is_pro to respect subscription expiry)

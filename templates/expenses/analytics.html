@@ -547,12 +547,6 @@
             CHART_COLORS.coralLight
         ];
 
-        const compactAmount = (val) => {
-            if (val >= 10000000) return (val / 10000000).toFixed(1) + 'Cr';
-            if (val >= 100000) return (val / 100000).toFixed(1) + 'L';
-            if (val >= 1000) return (val / 1000).toFixed(1) + 'k';
-            return val;
-        };
 
 
         // --- Custom Plugin to Draw Values on Charts ---
@@ -674,7 +668,7 @@
                                 if (context.datasetIndex === 2) {
                                     label += translateDigits(context.parsed.y) + '%';
                                 } else {
-                                    label += '{{ user.profile.currency }}' + translateDigits(context.parsed.y.toLocaleString());
+                                     label += '{{ user.profile.currency }}' + window.compactAmount(context.parsed.y, '{{ user.profile.currency }}');
                                 }
                                 return label;
                             }
@@ -690,7 +684,7 @@
                         grid: { color: gridColor },
                         ticks: {
                             callback: function(value) {
-                                return '{{ user.profile.currency }}' + translateDigits(compactAmount(value));
+                                return '{{ user.profile.currency }}' + window.compactAmount(value, '{{ user.profile.currency }}');
                             }
                         }
                     },
@@ -905,7 +899,7 @@
         const recLabelsWithValues = recLabels.map((label, i) => {
             const val = recData[i];
             const percent = totalRec > 0 ? ((val / totalRec) * 100).toFixed(1) + '%' : '0%';
-            return `${label} ({{ user.profile.currency }}${translateDigits(val.toLocaleString())} | ${translateDigits(percent)})`;
+            return `${label} ({{ user.profile.currency }}${window.compactAmount(val, '{{ user.profile.currency }}')} | ${translateDigits(percent)})`;
         });
 
         new Chart(ctxRec, {
@@ -994,7 +988,7 @@
                                     let label = context.dataset.label || '';
                                     if (label) label += ': ';
                                     if (context.parsed.y !== null) {
-                                        label += '₹' + translateDigits(context.parsed.y.toLocaleString());
+                                        label += '{{ user.profile.currency }}' + window.compactAmount(context.parsed.y, '{{ user.profile.currency }}');
                                     }
                                     return label;
                                 }

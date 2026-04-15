@@ -98,35 +98,35 @@
         
         {% include 'components/upgrade_nudge.html' %}
 
-        <div class="card shadow-sm border-0 bg-body-tertiary summary-card mb-4">
-            <div class="card-body p-4">
-                <div class="row align-items-start align-items-md-center">
-                    <div class="col-6 col-md-6 border-end border-secondary border-opacity-10">
-                        <div class="d-flex flex-column">
-                            <span class="text-uppercase text-muted summary-text-muted fw-bold small mb-1">{% trans "Total Monthly Cost" %}</span>
-                            <span class="h2 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_monthly_cost|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "mo" %}</span></span>
+        <div class="card shadow-sm border-0 bg-body-primary summary-card mb-4 text-center text-md-start">
+            <div class="card-body p-3 p-md-4">
+                <div class="row g-0 align-items-center">
+                    <!-- Monthly Cost: Primary Metric -->
+                    <div class="col-12 col-md-4 border-md-end border-secondary border-opacity-10 pb-3 pb-md-0">
+                        <div class="d-flex flex-column align-items-center align-items-md-start">
+                            <span class="text-uppercase text-success fw-bold x-small mb-1" style="letter-spacing: 0.5px;">{% trans "Monthly Cost" %}</span>
+                            <span class="h4 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_monthly_cost|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "mo" %}</span></span>
                         </div>
                     </div>
-                    <div class="col-6 col-md-6 ps-3 ps-md-4">
-                        <div class="d-flex flex-column">
-                            <span class="text-uppercase text-muted summary-text-muted fw-bold small mb-1">{% trans "Yearly Projection" %}</span>
-                            <span class="h3 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_yearly_cost|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "yr" %}</span></span>
-                        </div>
-                        {% if renewals_count > 0 %}
-                        <div class="mt-2 d-none d-md-block">
-                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 border border-danger-subtle d-inline-flex align-items-center">
-                                <i class="bi bi-exclamation-circle-fill me-1"></i> {{ renewals_count|translate_digits }} {% trans "renewals due soon" %}
-                            </span>
-                        </div>
-                        {% endif %}
+
+                    <div class="col-12 d-md-none">
+                        <hr class="my-3 border-secondary border-opacity-10">
                     </div>
-                    {% if renewals_count > 0 %}
-                    <div class="col-12 mt-3 text-center d-md-none">
-                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 border border-danger-subtle d-inline-flex align-items-center">
-                            <i class="bi bi-exclamation-circle-fill me-1"></i> {{ renewals_count|translate_digits }} {% trans "renewals due soon" %}
-                        </span>
+                    
+                    <!-- Secondary Metrics: Daily & Yearly -->
+                    <div class="col-6 col-md-4 border-end border-secondary border-opacity-10 ps-md-4">
+                        <div class="d-flex flex-column align-items-center align-items-md-start">
+                            <span class="text-uppercase text-muted summary-text-muted fw-bold x-small mb-1">{% trans "Daily Cost" %}</span>
+                            <span class="h4 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_daily_cost|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "day" %}</span></span>
+                        </div>
                     </div>
-                    {% endif %}
+                    
+                    <div class="col-6 col-md-4 ps-3 ps-md-4">
+                        <div class="d-flex flex-column align-items-center align-items-md-start">
+                            <span class="text-uppercase text-muted fw-bold x-small mb-1">{% trans "Yearly" %}<span class="d-none d-md-inline"> {% trans "Projection" %}</span></span>
+                            <span class="h4 mb-0 fw-bold summary-text-muted text-nowrap">{{ currency_symbol }}{{ total_yearly_cost|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 text-muted summary-text-muted fw-normal">/ {% trans "yr" %}</span></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -171,8 +171,10 @@
                                 <!-- Content Column -->
                                 <div class="flex-grow-1 min-width-0">
                                     <!-- Top Row: Description & Amount -->
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0 fw-bold text-truncate pe-2" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description|truncatechars:25 }}</h6>
+                                    <div class="d-flex justify-content-between align-items-center gap-2 overflow-hidden w-100">
+                                        <div class="min-width-0 flex-grow-1">
+                                            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
+                                        </div>
                                         <div class="flex-shrink-0 text-end">
                                             <h6 class="fw-bold mb-0 text-nowrap" style="font-size: 1rem;">
                                                 {{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
@@ -245,20 +247,20 @@
                 {% if renewing_soon %}
                     <div class="list-group shadow-sm rounded-4 border-0">
                         {% for sub in renewing_soon %}
-                            <div class="list-group-item list-group-item-action px-4 py-3 border-0 border-bottom d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center" style="min-width: 0;">
-                                    <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-danger-subtle text-danger flex-shrink-0" style="width: 42px; height: 42px; flex-shrink: 0;">
+                            <div class="list-group-item list-group-item-action px-4 py-3 border-0 border-bottom d-flex justify-content-between align-items-center gap-2 overflow-hidden w-100">
+                                <div class="d-flex align-items-center min-width-0 flex-grow-1">
+                                    <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-danger-subtle text-danger flex-shrink-0" style="width: 42px; height: 42px;">
                                         <i class="bi bi-exclamation-circle-fill fs-5"></i>
                                     </div>
-                                    <div style="min-width: 0;">
-                                        <h6 class="mb-1 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description|truncatechars:25 }}</h6>
+                                    <div class="min-width-0 flex-grow-1">
+                                        <h6 class="mb-1 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
                                         <div class="text-muted small d-flex flex-column align-items-start flex-sm-row align-items-sm-center gap-1 gap-sm-2">
                                             <span class="badge bg-danger text-white">{% trans "Renewing This Month" %}</span>
-                                            <span>{{ sub.get_frequency_display }}</span>
+                                            <span class="text-nowrap">{{ sub.get_frequency_display }}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-end" style="flex-shrink: 0;">
+                                <div class="text-end flex-shrink-0">
                                     <h6 class="fw-bold mb-0" style="font-size: 1.05rem;">
                                         {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
                                     </h6>
@@ -285,20 +287,20 @@
                 {% if cancelled_subs %}
                     <div class="list-group shadow-sm rounded-4 border-0 opacity-75">
                         {% for sub in cancelled_subs %}
-                            <div class="list-group-item list-group-item-action px-4 py-3 border-0 border-bottom d-flex justify-content-between align-items-center opacity-75">
-                                <div class="d-flex align-items-center" style="min-width: 0;">
-                                    <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-body-secondary text-secondary flex-shrink-0" style="width: 42px; height: 42px; flex-shrink: 0;">
+                            <div class="list-group-item list-group-item-action px-4 py-3 border-0 border-bottom d-flex justify-content-between align-items-center gap-2 opacity-75 overflow-hidden w-100">
+                                <div class="d-flex align-items-center min-width-0 flex-grow-1">
+                                    <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-body-secondary text-secondary flex-shrink-0" style="width: 42px; height: 42px;">
                                         <i class="bi bi-x-circle fs-5"></i>
                                     </div>
-                                    <div style="min-width: 0;">
-                                        <h6 class="mb-1 fw-bold text-decoration-line-through text-muted text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description|truncatechars:30 }}</h6>
+                                    <div class="min-width-0 flex-grow-1">
+                                        <h6 class="mb-1 fw-bold text-decoration-line-through text-muted text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
                                         <div class="text-muted small d-flex flex-column align-items-start flex-sm-row align-items-sm-center gap-1 gap-sm-2">
                                             <span class="badge bg-secondary">{% trans "Cancelled" %}</span>
-                                            <span>{{ sub.get_frequency_display }}</span>
+                                            <span class="text-nowrap">{{ sub.get_frequency_display }}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-end" style="flex-shrink: 0;">
+                                <div class="text-end flex-shrink-0">
                                     <h6 class="fw-bold mb-0 text-muted" style="font-size: 1.05rem;">
                                         {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
                                     </h6>
