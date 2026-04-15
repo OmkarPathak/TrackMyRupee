@@ -2310,7 +2310,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             },
                             callbacks: {
                                 label: function(context) {
-                                    return '{{ currency_symbol }}' + translateDigits(context.parsed.y.toLocaleString());
+                                    return '{{ currency_symbol }}' + window.compactAmount(context.parsed.y, '{{ currency_symbol }}');
                                 }
                             }
                         }
@@ -2554,7 +2554,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': {{ currency_symbol }}' + translateDigits(context.parsed.x.toLocaleString());
+                                    return context.dataset.label + ': {{ currency_symbol }}' + window.compactAmount(context.parsed.x, '{{ currency_symbol }}');
                                 }
                             }
                         }
@@ -2628,19 +2628,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 ctx.font = '700 10px "DM Sans", sans-serif';
                                 ctx.fillText(dataset.label.toUpperCase(), x, y - 8);
                                 
-                                // 2. Amount (e.g., ₹43k)
-                                let displayVal = val;
-                                let suffix = '';
-                                if (val >= 1000) {
-                                    displayVal = Math.round(val / 1000);
-                                    suffix = 'k';
-                                } else {
-                                    displayVal = Math.round(val);
-                                }
-                                const amountText = '{{ currency_symbol }}' + translateDigits(displayVal.toLocaleString()) + suffix;
-                                
                                 ctx.font = '700 13px "DM Sans", sans-serif';
-                                ctx.fillText(amountText, x, y + 8);
+                                ctx.fillText('{{ currency_symbol }}' + window.compactAmount(val, '{{ currency_symbol }}'), x, y + 8);
                                 
                                 ctx.shadowBlur = 0;
                             } else if (percentage >= 4) {
@@ -3056,7 +3045,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                           label: function(context) {
                                               const value = context.parsed.y;
                                               if (value === null || value === undefined) return context.dataset.label;
-                                              return context.dataset.label + ': {{ currency_symbol }}' + translateDigits(value.toLocaleString());
+                                              return context.dataset.label + ': {{ currency_symbol }}' + window.compactAmount(value, '{{ currency_symbol }}');
                                           }
                                      }
                                  }
@@ -3070,7 +3059,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                      grid: { color: currentColors.grid },
                                      ticks: { 
                                          font: { size: 10 },
-                                         callback: (val) => translateDigits(val)
+                                         callback: (val) => window.compactAmount(val, '{{ currency_symbol }}')
                                      },
                                      beginAtZero: true
                                  }

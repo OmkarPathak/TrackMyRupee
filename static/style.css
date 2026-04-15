@@ -1601,6 +1601,14 @@ a:hover {
   padding: 1.5rem 1.75rem 1rem;
 }
 
+/* Utilities */
+.min-width-0 {
+  min-width: 0 !important;
+}
+.overflow-hidden {
+  overflow: hidden !important;
+}
+
 .mobile-bottom-sheet .list-group-item {
   background: transparent;
   padding: 0.6rem 1.75rem;
