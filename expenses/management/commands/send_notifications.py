@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.db.models import Sum
 from webpush import send_user_notification
+from webpush.models import PushInformation
 
 from expenses.models import Notification, RecurringTransaction, UserProfile, SavingsGoal, Expense, Category
 from finance_tracker.plans import PLAN_DETAILS
@@ -79,20 +80,21 @@ class Command(BaseCommand):
         )
         
         # 2. Send Push Notification (WebPush)
-        site_url = getattr(settings, 'SITE_URL', 'https://trackmyrupee.com').rstrip('/')
-        icon_path = static('img/pwa-icon-512.png')
-        absolute_icon_url = f"{site_url}{icon_path}"
-        
-        payload = json.dumps({
-            "head": title,
-            "body": message,
-            "icon": absolute_icon_url, 
-            "url": f"{site_url}{link}" if link else f"{site_url}/notifications/"
-        })
-        try:
-            send_user_notification(user=user, payload=payload, ttl=1000)
-        except Exception as e:
-            self.stdout.write(self.style.WARNING(f"Failed to send Push to {user}: {e}"))
+        if PushInformation.objects.filter(user=user).exists():
+            site_url = getattr(settings, 'SITE_URL', 'https://trackmyrupee.com').rstrip('/')
+            icon_path = static('img/pwa-icon-512.png')
+            absolute_icon_url = f"{site_url}{icon_path}"
+            
+            payload = {
+                "head": title,
+                "body": message,
+                "icon": absolute_icon_url, 
+                "url": f"{site_url}{link}" if link else f"{site_url}/notifications/"
+            }
+            try:
+                send_user_notification(user=user, payload=payload, ttl=1000)
+            except Exception as e:
+                self.stdout.write(self.style.WARNING(f"Failed to send Push to {user}: {e}"))
             
         # 3. Queue for Email Consolidation
         self.current_user_notifications.append({

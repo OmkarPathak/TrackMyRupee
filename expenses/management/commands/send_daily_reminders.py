@@ -6,6 +6,8 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from webpush import send_user_notification
 from expenses.models import UserProfile, Expense, Notification
+from webpush.models import PushInformation
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,10 +37,10 @@ class Command(BaseCommand):
             has_expense = Expense.objects.filter(user=user, date=today).exists()
             
             if not has_expense:
+                # 1. Internal UI Notification
                 title = "Expense Reminder 💸"
                 message = "Don't forget to add your expenses for today to keep your tracker up to date!"
                 
-                # Deduplication for UI: Only show ONE unread reminder in the app's notification center
                 ui_slug = "daily-expense-reminder"
                 if not Notification.objects.filter(user=user, slug=ui_slug, is_read=False).exists():
                     Notification.objects.create(
@@ -50,21 +52,21 @@ class Command(BaseCommand):
                         link='/expenses/add/'
                     )
                 
-                # 2. Send Push Notification
-                # Using absolute URLs and JSON stringification for max compatibility in production
-                payload = json.dumps({
-                    "head": title,
-                    "body": message,
-                    "icon": absolute_icon_url,
-                    "url": f"{site_url}/expenses/add/"
-                })
-                
-                try:
-                    # django-webpush sends to ALL registered devices for this user
-                    send_user_notification(user=user, payload=payload, ttl=3600)
-                    sent_count += 1
-                except Exception as e:
-                    self.stdout.write(self.style.WARNING(f"Failed to send Push to {user.username}: {e}"))
+                # 2. External Push Notification
+                # Only attempt and count if the user has at least one active subscription
+                if PushInformation.objects.filter(user=user).exists():
+                    payload = {
+                        "head": title,
+                        "body": message,
+                        "icon": absolute_icon_url,
+                        "url": f"{site_url}/expenses/add/"
+                    }
+                    
+                    try:
+                        send_user_notification(user=user, payload=payload, ttl=3600)
+                        sent_count += 1
+                    except Exception as e:
+                        self.stdout.write(self.style.WARNING(f"Failed to send Push to {user.username}: {e}"))
             else:
                 skipped_count += 1
                 
