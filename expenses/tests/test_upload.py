@@ -43,7 +43,7 @@ class UploadViewTest(TestCase):
 
     @patch('expenses.views.predict_category_ai')
     def test_excel_upload_robust_headers_success(self, mock_ai):
-        mock_ai.return_value = 'Food & Dining'
+        mock_ai.return_value = 'Food'
         # Non-standard headers: 'Txn Date', 'Details', 'Spent'
         data = [
             ['Txn Date', 'Details', 'Spent', 'Notes'],
@@ -64,7 +64,7 @@ class UploadViewTest(TestCase):
         self.assertEqual(results['created_count'], 2, f"Results: {results}")
         self.assertEqual(Expense.objects.count(), 2)
         # Category prioritization check (none in file, should use AI)
-        self.assertEqual(Expense.objects.first().category, 'Food & Dining')
+        self.assertEqual(Expense.objects.first().category, 'Food')
 
     @patch('expenses.views.predict_category_ai')
     def test_csv_upload_robust_headers_and_auto_categorize(self, mock_ai):
