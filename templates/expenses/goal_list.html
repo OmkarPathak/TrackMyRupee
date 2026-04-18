@@ -60,7 +60,14 @@
                             {{ goal.icon }}
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0 text-truncate" style="max-width: 200px;">{{ goal.name }}</h5>
+                            <h5 class="fw-bold mb-0 text-truncate d-flex align-items-center gap-1" style="max-width: 200px;">
+                                {{ goal.name }}
+                                {% if goal.user != request.user %}
+                                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info border-0 ms-1" style="font-size: 0.65rem;" title="{% trans 'Added by' %} {{ goal.user.username }}">
+                                        <i class="bi bi-people-fill me-1"></i>{{ goal.user.username|slice:":1"|upper }}
+                                    </span>
+                                {% endif %}
+                            </h5>
                             <p class="text-secondary small mb-0 mt-1 d-flex align-items-center gap-1">
                                 {% if goal.target_date %}
                                     <i class="bi bi-calendar3"></i> {% trans "Target:" %} {{ goal.target_date|date:"M d, Y" }}
@@ -105,21 +112,36 @@
                             </a>
                         </div>
                         {% else %}
-                        <a href="{% url 'goal-detail' goal.pk %}" class="btn btn-{{ goal.color }} btn-sm px-3 fw-bold rounded-3 shadow-sm" onclick="window.showLoader()">
-                            <i class="bi bi-plus-circle me-1"></i>{% trans "Add Funds" %}
-                        </a>
+                        {% if goal.user == request.user %}
+                            <a href="{% url 'goal-detail' goal.pk %}" class="btn btn-{{ goal.color }} btn-sm px-3 fw-bold rounded-3 shadow-sm" onclick="window.showLoader()">
+                                <i class="bi bi-plus-circle me-1"></i>{% trans "Add Funds" %}
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary btn-sm px-3 fw-bold rounded-3 shadow-sm disabled opacity-50" title="{% trans 'Only the owner can add funds' %}">
+                                <i class="bi bi-plus-circle me-1"></i>{% trans "Add Funds" %}
+                            </button>
+                        {% endif %}
                         {% endif %}
                         <div class="d-flex gap-2">
-                            <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-outline-secondary btn-sm rounded-3 icon-btn" title="{% trans 'Edit' %}">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <button type="button" class="btn btn-outline-danger btn-sm rounded-3 icon-btn" 
-                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                    data-url="{% url 'goal-delete' goal.pk %}"
-                                    data-message="{% blocktrans with name=goal.name %}Are you sure you want to delete the goal '{{ name }}'? The funds will not be affected, but the goal tracking will be removed.{% endblocktrans %}"
-                                    title="{% trans 'Delete' %}">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            {% if goal.user == request.user %}
+                                <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-outline-secondary btn-sm rounded-3 icon-btn" title="{% trans 'Edit' %}">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-3 icon-btn" 
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                        data-url="{% url 'goal-delete' goal.pk %}"
+                                        data-message="{% blocktrans with name=goal.name %}Are you sure you want to delete the goal '{{ name }}'? The funds will not be affected, but the goal tracking will be removed.{% endblocktrans %}"
+                                        title="{% trans 'Delete' %}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-secondary btn-sm rounded-3 icon-btn disabled opacity-25" title="{% trans 'Only the owner can edit this' %}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm rounded-3 icon-btn disabled opacity-25" title="{% trans 'Only the owner can delete this' %}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
 

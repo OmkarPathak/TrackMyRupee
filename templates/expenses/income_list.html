@@ -111,6 +111,11 @@
                         <td class="ps-4 text-nowrap">{{ income.date|date:"d M Y"|translate_digits }}</td>
                         <td>
                             <span class="badge bg-success opacity-75">{{ income.source }}</span>
+                            {% if income.user != request.user %}
+                                <span class="badge rounded-pill bg-info bg-opacity-10 text-info border-0 ms-1" style="font-size: 0.65rem;" title="{% trans 'Added by' %} {{ income.user.username }}">
+                                    <i class="bi bi-people-fill me-1"></i>{{ income.user.username|slice:":1"|upper }}
+                                </span>
+                            {% endif %}
                         </td>
                         <td>{{ income.description|default:"-"|truncatechars:30 }}</td>
                         <td class="fw-bold text-success">
@@ -123,6 +128,7 @@
                         </td>
                         <td class="text-end pe-4 text-nowrap">
                             <div class="hstack gap-3 justify-content-end">
+                                {% if income.user == request.user %}
                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" 
                                             data-bs-toggle="modal" data-bs-target="#editIncomeModal"
                                             data-url="{% url 'income-edit' income.pk %}"
@@ -137,12 +143,20 @@
                                             title="{% trans 'Edit' %}">
                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
                                     </button>
-                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
-                                        data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                        data-url="{% url 'income-delete' income.pk %}"
-                                        data-message="{% blocktrans with source=income.source %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
-                                    <i class="bi bi-trash text-danger fs-6"></i>
-                                </button>
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                            data-url="{% url 'income-delete' income.pk %}"
+                                            data-message="{% blocktrans with source=income.source %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
+                                        <i class="bi bi-trash text-danger fs-6"></i>
+                                    </button>
+                                {% else %}
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center disabled opacity-25" title="{% trans 'Only the owner can edit this' %}">
+                                        <i class="bi bi-pencil-square text-muted fs-6"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center disabled opacity-25" title="{% trans 'Only the owner can delete this' %}">
+                                        <i class="bi bi-trash text-muted fs-6"></i>
+                                    </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

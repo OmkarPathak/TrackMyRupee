@@ -173,7 +173,14 @@
                                     <!-- Top Row: Description & Amount -->
                                     <div class="d-flex justify-content-between align-items-center gap-2 overflow-hidden w-100">
                                         <div class="min-width-0 flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
+                                            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">
+                                                {{ sub.description }}
+                                                {% if sub.user != request.user %}
+                                                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info border-0 ms-1" style="font-size: 0.65rem;" title="{% trans 'Added by' %} {{ sub.user.username }}">
+                                                        <i class="bi bi-people-fill me-1"></i>{{ sub.user.username|slice:":1"|upper }}
+                                                    </span>
+                                                {% endif %}
+                                            </h6>
                                         </div>
                                         <div class="flex-shrink-0 text-end">
                                             <h6 class="fw-bold mb-0 text-nowrap" style="font-size: 1rem;">
@@ -204,6 +211,7 @@
                                             <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
                                                 <i class="bi bi-three-dots-vertical fs-6"></i>
                                             </button>
+                                            {% if sub.user == request.user %}
                                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
                                                 <li><a class="dropdown-item" href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}"><i class="bi bi-pencil me-2"></i>{% trans "Edit" %}</a></li>
                                                 <li>
@@ -215,6 +223,12 @@
                                                     </button>
                                                 </li>
                                             </ul>
+                                            {% else %}
+                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                                <li><span class="dropdown-item text-muted opacity-50 pe-none"><i class="bi bi-pencil me-2"></i>{% trans "Edit (Owner Only)" %}</span></li>
+                                                <li><span class="dropdown-item text-muted opacity-50 pe-none"><i class="bi bi-trash me-2"></i>{% trans "Delete (Owner Only)" %}</span></li>
+                                            </ul>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
