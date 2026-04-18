@@ -206,7 +206,19 @@
 </style>
 
 <!-- Daily Mode / Full Report Toggle -->
-<div class="d-flex justify-content-center mb-4 fade-in">
+<div class="d-flex flex-column align-items-center mb-4 gap-3 fade-in">
+    <!-- View Mode Toggle (Personal vs Family) -->
+    {% if request.user.profile.family %}
+    <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm" style="border: 1px solid var(--bs-border-color-translucent);">
+        <a href="?view_mode=personal" class="btn btn-sm rounded-pill px-4 py-1 fw-bold {% if view_mode == 'personal' %}active{% endif %}" style="min-width: 100px; transition: all 0.3s ease;">
+            <i class="bi bi-person-fill me-1"></i> {% trans "Personal" %}
+        </a>
+        <a href="?view_mode=family" class="btn btn-sm rounded-pill px-4 py-1 fw-bold {% if view_mode == 'family' %}active{% endif %}" style="min-width: 100px; transition: all 0.3s ease;">
+            <i class="bi bi-people-fill me-1"></i> {% trans "Family" %}
+        </a>
+    </div>
+    {% endif %}
+
     <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm" role="group" id="dashboard-mode-toggle" style="border: 1px solid var(--bs-border-color-translucent);">
         <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold daily-mode-btn active d-inline-flex align-items-center justify-content-center" id="btn-daily-mode" onclick="switchToDailyMode()" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
             {% trans "Daily Mode" %}

@@ -61,32 +61,30 @@ class CalendarView(LoginRequiredMixin, TemplateView):
         search_query = self.request.GET.get('search', '')
 
         # Base filters
-        expense_filters = Q(user=self.request.user, date__year=year, date__month=month)
-        income_filters = Q(user=self.request.user, date__year=year, date__month=month)
+        expense_qs = Expense.objects.for_user(self.request.user).filter(date__year=year, date__month=month)
+        income_qs = Income.objects.for_user(self.request.user).filter(date__year=year, date__month=month)
+        investment_qs = Transfer.objects.for_user(self.request.user).filter(
+            date__year=year, date__month=month, 
+            to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT']
+        )
         
         if search_query:
-            # Filter expenses by description or category
-            expense_filters &= (Q(description__icontains=search_query) | Q(category__icontains=search_query))
-            # Filter income by source or description
-            income_filters &= (Q(source__icontains=search_query) | Q(description__icontains=search_query))
+            expense_qs = expense_qs.filter(Q(description__icontains=search_query) | Q(category__icontains=search_query))
+            income_qs = income_qs.filter(Q(source__icontains=search_query) | Q(description__icontains=search_query))
+            investment_qs = investment_qs.filter(Q(description__icontains=search_query) | Q(to_account__name__icontains=search_query))
 
         # Get Expense and Income Data for the month
-        expenses = Expense.objects.filter(expense_filters).values('date').annotate(
+        expenses = expense_qs.values('date').annotate(
             total=Sum('base_amount'),
             count=Count('id')
         )
         
-        incomes = Income.objects.filter(income_filters).values('date').annotate(
+        incomes = income_qs.values('date').annotate(
             total=Sum('base_amount'),
             count=Count('id')
         )
 
-        # Get investment data (Transfers to investment/FD accounts)
-        investment_filters = Q(user=self.request.user, date__year=year, date__month=month, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
-        if search_query:
-            investment_filters &= (Q(description__icontains=search_query) | Q(to_account__name__icontains=search_query))
-        
-        investments = Transfer.objects.filter(investment_filters).values('date').annotate(
+        investments = investment_qs.values('date').annotate(
             total=Sum('converted_amount'),
             count=Count('id')
         )

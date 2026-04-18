@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Join Family" %} - TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="text-center mb-4">
+            <div class="display-1 text-primary mb-3 glow-text-subtle">
+                <i class="bi bi-envelope-paper"></i>
+            </div>
+            <h2 class="h3 font-outfit fw-bold">{% trans "You're Invited!" %}</h2>
+            <p class="text-secondary lead">{% trans "You have been invited to join a family." %}</p>
+        </div>
+
+        <div class="card bg-darker border-0 shadow-lg futuristic-card overflow-hidden">
+            <div class="position-absolute top-0 start-0 w-100 bg-gradient-primary h-2"></div>
+            
+            <div class="card-body p-4 p-md-5 text-center">
+                <div class="d-flex align-items-center justify-content-center mb-4">
+                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white me-3 shadow" style="width: 50px; height: 50px; font-size: 1.25rem;">
+                        {{ invite.family.owner.username.0|upper }}
+                    </div>
+                    <div class="text-start">
+                        <h4 class="mb-0 text-white">{{ invite.family.name }}</h4>
+                        <div class="small text-secondary">{% trans "Owned by" %} @{{ invite.family.owner.username }}</div>
+                    </div>
+                </div>
+
+                <p class="text-white-50 mb-4 px-3">
+                    {% trans "By joining this family, you will be able to share your accounts and expenses with other members of this household." %}
+                </p>
+
+                <form method="post" class="d-flex gap-3 justify-content-center">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="decline" class="btn btn-outline-secondary px-4 rounded-pill">
+                        {% trans "Decline" %}
+                    </button>
+                    <button type="submit" name="action" value="accept" class="btn btn-primary px-5 rounded-pill shadow-sm fw-bold">
+                        <i class="bi bi-check-circle me-2"></i>{% trans "Accept Invite" %}
+                    </button>
+                </form>
+
+            </div>
+            <div class="card-footer bg-dark border-top border-secondary text-center py-3">
+                <small class="text-secondary">
+                    <i class="bi bi-shield-check me-1"></i> {% trans "Your personal data remains private by default until you explicitly share it." %}
+                </small>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

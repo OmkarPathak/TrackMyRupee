@@ -83,6 +83,18 @@
                             {% endif %}
                         </div>
 
+                        {% if request.user.profile.family %}
+                        <!-- Share with Family Option -->
+                        <div class="col-12 mb-3">
+                            <div class="form-check form-switch mb-2">
+                                {{ form.is_shared }}
+                                <label class="form-check-label fw-bold small text-muted text-uppercase" for="{{ form.is_shared.id_for_label }}">
+                                    {% trans "Share with Family" %}
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <!-- Row 4: Recurring Option -->
                         {% if not form.instance.pk %}
                         <div class="col-12 mb-3">

@@ -284,6 +284,15 @@
                                                 </div>
                                             </div>
 
+                                            {% if request.user.profile.family %}
+                                                <div class="form-check form-switch mb-3 d-flex align-items-center gap-2">
+                                                    {{ form.is_shared }}
+                                                    <label class="form-check-label text-muted small mb-0" for="{{ form.is_shared.id_for_label }}">
+                                                        {% trans "Share with Family" %}
+                                                    </label>
+                                                </div>
+                                            {% endif %}
+
                                             <div class="mb-0">
                                                 <label class="form-label small text-muted mb-1">{% trans "Payment Method" %}</label>
                                                 <div class="d-none d-md-block mb-2">
@@ -407,6 +416,15 @@
                                                     {% if form.currency.errors %}<div class="text-danger small mt-1">{{ form.currency.errors.0 }}</div>{% endif %}
                                                 </div>
                                             </div>
+
+                                            {% if request.user.profile.family %}
+                                                <div class="form-check form-switch mb-3 d-flex align-items-center gap-2">
+                                                    {{ form.is_shared }}
+                                                    <label class="form-check-label text-muted small mb-0" for="{{ form.is_shared.id_for_label }}">
+                                                        {% trans "Share with Family" %}
+                                                    </label>
+                                                </div>
+                                            {% endif %}
 
                                             <div class="mb-0">
                                                 <label class="form-label small text-muted mb-1">{% trans "Payment Method" %}</label>

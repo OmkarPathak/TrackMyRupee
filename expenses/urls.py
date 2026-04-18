@@ -65,6 +65,9 @@ urlpatterns = [
     path('settings/profile/', views.ProfileUpdateView.as_view(), name='profile-settings'),
     path('settings/export/', views.DataExportView.as_view(), name='export-data'),
     path('settings/', views.SettingsHomeView.as_view(), name='settings-home'), # Settings Home
+    path('family/', views.family_settings, name='family-settings'),
+    path('family/invite/', views.family_invite, name='family-invite'),
+    path('family/join/<code>/', views.family_join, name='family-join'),
     path('account/delete/', views.UserDeleteView.as_view(), name='user-delete'),
     path('tutorial/complete/', views.complete_tutorial, name='complete-tutorial'),
     

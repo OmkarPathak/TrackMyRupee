@@ -829,12 +829,18 @@
                         {% for expense in expenses %}
                         <tr>
                             <td class="ps-4">
-                                <div class="form-check">
-                                    <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}">
-                                </div>
+                                    <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" 
+                                           {% if expense.user != request.user %}disabled title="{% trans 'You can only select your own expenses' %}"{% endif %}>
                             </td>
                             <td class="text-nowrap">{{ expense.date|date:"d M Y"|translate_digits }}</td>
-                            <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">{{ expense.description|truncatechars:40 }}</td>
+                            <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
+                                {{ expense.description|truncatechars:40 }}
+                                {% if expense.user != request.user %}
+                                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info border-0 ms-1" style="font-size: 0.65rem;" title="{% trans 'Added by' %} {{ expense.user.username }}">
+                                        <i class="bi bi-people-fill me-1"></i>{{ expense.user.username|slice:":1"|upper }}
+                                    </span>
+                                {% endif %}
+                            </td>
                             <td>
                                 <span class="badge bg-secondary opacity-75 d-inline-flex align-items-center gap-1">
                                     <i class="bi {% category_icon expense.category user %}"></i>
@@ -863,6 +869,7 @@
                                             </a>
                                         </li>
                                         <li>
+                                            {% if expense.user == request.user %}
                                             <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button" 
                                                     data-bs-toggle="modal" data-bs-target="#deleteModal" 
                                                     data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
@@ -870,6 +877,13 @@
                                                 <i class="bi bi-trash"></i>
                                                 <span>{% trans "Delete" %}</span>
                                             </button>
+                                            {% else %}
+                                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-muted opacity-50 pe-none" type="button" disabled
+                                                    title="{% trans 'Only the owner can delete this' %}">
+                                                <i class="bi bi-trash"></i>
+                                                <span>{% trans "Delete" %}</span>
+                                            </button>
+                                            {% endif %}
                                         </li>
                                     </ul>
                                 </div>
@@ -935,9 +949,12 @@
 
                                     <!-- Middle: Info -->
                                     <div class="flex-grow-1 min-width-0 px-1">
-                                        <div class="fw-semibold text-body-emphasis text-truncate mb-0" style="font-size: 0.95rem;" 
+                                        <div class="fw-semibold text-body-emphasis d-flex align-items-center gap-1 mb-0" style="font-size: 0.95rem;" 
                                              data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
-                                            {{ expense.description|truncatechars:20 }}
+                                            <span class="text-truncate">{{ expense.description|truncatechars:20 }}</span>
+                                            {% if expense.user != request.user %}
+                                                <i class="bi bi-people-fill text-info" style="font-size: 0.8rem;" title="{% trans 'Added by' %} {{ expense.user.username }}"></i>
+                                            {% endif %}
                                         </div>
                                         <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
                                             <span>{{ expense.date|date:"d M, Y"|translate_digits }}</span>
@@ -972,6 +989,7 @@
                                                 </a>
                                             </li>
                                             <li>
+                                                {% if expense.user == request.user %}
                                                 <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button" 
                                                         data-bs-toggle="modal" data-bs-target="#deleteModal" 
                                                         data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
@@ -979,6 +997,13 @@
                                                     <i class="bi bi-trash"></i>
                                                     <span>{% trans "Delete" %}</span>
                                                 </button>
+                                                {% else %}
+                                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-muted opacity-50 pe-none" type="button" disabled
+                                                        title="{% trans 'Only the owner can delete this' %}">
+                                                    <i class="bi bi-trash"></i>
+                                                    <span>{% trans "Delete" %}</span>
+                                                </button>
+                                                {% endif %}
                                             </li>
                                         </ul>
                                     </div>
@@ -1043,9 +1068,12 @@
 
                                     <!-- Middle: Info -->
                                     <div class="flex-grow-1 min-width-0 px-1">
-                                        <div class="fw-semibold text-body-emphasis text-truncate mb-0" style="font-size: 0.93rem;" 
+                                        <div class="fw-semibold text-body-emphasis d-flex align-items-center gap-1 mb-0" style="font-size: 0.93rem;" 
                                              data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
-                                            {{ expense.description|truncatechars:20 }}
+                                            <span class="text-truncate">{{ expense.description|truncatechars:20 }}</span>
+                                            {% if expense.user != request.user %}
+                                                <i class="bi bi-people-fill text-info" style="font-size: 0.8rem;" title="{% trans 'Added by' %} {{ expense.user.username }}"></i>
+                                            {% endif %}
                                         </div>
                                         <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
                                             <span class="text-truncate">{{ expense.category|truncatechars:18 }}</span>
@@ -1078,6 +1106,7 @@
                                                 </a>
                                             </li>
                                             <li>
+                                                {% if expense.user == request.user %}
                                                 <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button"
                                                         data-bs-toggle="modal" data-bs-target="#deleteModal"
                                                         data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
@@ -1085,6 +1114,13 @@
                                                     <i class="bi bi-trash"></i>
                                                     <span>{% trans "Delete" %}</span>
                                                 </button>
+                                                {% else %}
+                                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-muted opacity-50 pe-none" type="button" disabled
+                                                        title="{% trans 'Only the owner can delete this' %}">
+                                                    <i class="bi bi-trash"></i>
+                                                    <span>{% trans "Delete" %}</span>
+                                                </button>
+                                                {% endif %}
                                             </li>
                                         </ul>
                                     </div>

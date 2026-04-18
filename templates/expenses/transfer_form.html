@@ -66,6 +66,18 @@
                                 <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
                             {% endif %}
                         </div>
+
+                        {% if request.user.profile.family %}
+                        <!-- Share with Family Option -->
+                        <div class="col-12 mb-3">
+                            <div class="form-check form-switch mb-2">
+                                {{ form.is_shared }}
+                                <label class="form-check-label fw-bold small text-muted text-uppercase" for="{{ form.is_shared.id_for_label }}">
+                                    {% trans "Share with Family" %}
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 mt-4">

@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 from decimal import Decimal
 
@@ -21,8 +22,25 @@ CURRENCY_CHOICES = [
     ('元', _('Chinese Yuan (元)')),
     ('₩', _('South Korean Won (₩)')),
 ]
+from django.db.models import Q
+
+class FamilyQuerySet(models.QuerySet):
+    def for_user(self, user):
+        """Returns items owned by the user, OR shared with their family."""
+        if hasattr(user, 'profile') and user.profile.family:
+            return self.filter(
+                Q(user=user) | 
+                Q(family=user.profile.family, is_shared=True)
+            )
+        return self.filter(user=user)
 
 class FinanceBaseManager(models.Manager):
+    def get_queryset(self):
+        return FamilyQuerySet(self.model, using=self._db)
+
+    def for_user(self, user):
+        return self.get_queryset().for_user(user)
+
     def get_monthly_summary(self, user, year, month):
         return self.filter(
             user=user, 
@@ -51,6 +69,25 @@ class IncomeManager(FinanceBaseManager):
         return super().get_queryset().select_related('account')
 
 
+class Family(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_('Family Name'))
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_families')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class FamilyInvitation(models.Model):
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='invitations')
+    email = models.EmailField()
+    code = models.CharField(max_length=50, unique=True, default=uuid.uuid4)
+    is_redeemed = models.BooleanField(default=False)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Invite for {self.email} to {self.family.name}"
+
 class Account(models.Model):
     ACCOUNT_TYPES = [
         ('CASH', _('Cash')),
@@ -66,8 +103,13 @@ class Account(models.Model):
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'), verbose_name=_('Current Balance'))
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
     
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True, related_name='accounts', verbose_name=_('Family'))
+    is_shared = models.BooleanField(default=False, verbose_name=_('Shared with Family'))
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = FinanceBaseManager()
 
     class Meta:
         constraints = [
@@ -98,6 +140,9 @@ class Expense(models.Model):
     base_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Account'))
+
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Family'))
+    is_shared = models.BooleanField(default=False, verbose_name=_('Shared with Family'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -210,6 +255,9 @@ class Income(models.Model):
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='incomes', verbose_name=_('Account'))
 
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True, related_name='incomes', verbose_name=_('Family'))
+    is_shared = models.BooleanField(default=False, verbose_name=_('Shared with Family'))
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -296,6 +344,9 @@ class Transfer(models.Model):
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
     converted_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers', verbose_name=_('Family'))
+    is_shared = models.BooleanField(default=False, verbose_name=_('Shared with Family'))
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def save(self, *args, **kwargs):
@@ -345,6 +396,8 @@ class Transfer(models.Model):
                 
             self.to_account.balance += to_apply_amount
             self.to_account.save()
+
+    objects = FinanceBaseManager()
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
@@ -400,6 +453,10 @@ class RecurringTransaction(models.Model):
     start_date = models.DateField(verbose_name=_('Start Date'))
     last_processed_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transactions', verbose_name=_('Family'))
+    is_shared = models.BooleanField(default=False, verbose_name=_('Shared with Family'))
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -443,6 +500,8 @@ class RecurringTransaction(models.Model):
             
         super().save(*args, **kwargs)
 
+    objects = FinanceBaseManager()
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -462,6 +521,7 @@ class UserProfile(models.Model):
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True, related_name='members', verbose_name=_('Family'))
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
     language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default='en')
     has_seen_tutorial = models.BooleanField(default=False)
@@ -551,6 +611,15 @@ class UserProfile(models.Model):
         limit = get_limit(self.active_tier, 'savings_goals')
         if limit == -1: return True
         return self.user.savings_goals.count() < limit
+
+    def can_add_family_member(self):
+        """Checks family members limit based on tier."""
+        limit = get_limit(self.active_tier, 'family_members')
+        if limit == -1: return True
+        if limit == 0: return False
+        if not self.family: return True
+        # Count all members of the family except the owner
+        return self.family.members.exclude(user=self.family.owner).count() < limit
 
     def is_recurring_locked(self, obj):
         """Check if a specific recurring transaction is locked based on tier limits."""
@@ -695,6 +764,9 @@ class SavingsGoal(models.Model):
     
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
     
+    family = models.ForeignKey(Family, on_delete=models.SET_NULL, null=True, blank=True, related_name='savings_goals', verbose_name=_('Family'))
+    is_shared = models.BooleanField(default=False, verbose_name=_('Shared with Family'))
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -713,6 +785,8 @@ class SavingsGoal(models.Model):
         else:
             self.is_completed = False
         super().save(*args, **kwargs)
+
+    objects = FinanceBaseManager()
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():

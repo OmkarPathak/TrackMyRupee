@@ -148,6 +148,16 @@
                         <label class="form-check-label">{% trans "Active" %}</label>
                     </div>
                 </div>
+                {% if request.user.profile.family %}
+                <div class="col-12 mt-2">
+                    <div class="form-check form-switch d-flex align-items-center">
+                        {{ form.is_shared }}
+                        <label class="form-check-label text-muted small ms-2 mb-0" for="{{ form.is_shared.id_for_label }}" style="line-height: 1;">
+                            {% trans "Share with Family" %}
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <div class="mt-4 d-flex justify-content-end gap-2">

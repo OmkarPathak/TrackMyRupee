@@ -14,8 +14,9 @@ from .models import Category, Expense, Income, RecurringTransaction, UserProfile
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        fields = ['date', 'amount', 'currency', 'account', 'description', 'category', 'payment_method']
+        fields = ['date', 'amount', 'currency', 'account', 'description', 'category', 'payment_method', 'is_shared']
         widgets = {
+            'is_shared': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
@@ -65,8 +66,9 @@ class ExpenseForm(forms.ModelForm):
 class IncomeForm(forms.ModelForm):
     class Meta:
         model = Income
-        fields = ['date', 'amount', 'currency', 'account', 'source', 'description']
+        fields = ['date', 'amount', 'currency', 'account', 'source', 'description', 'is_shared']
         widgets = {
+            'is_shared': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
@@ -107,8 +109,9 @@ class RecurringTransactionForm(forms.ModelForm):
         model = RecurringTransaction
         fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
                   'from_account', 'to_account',
-                  'frequency', 'start_date', 'description', 'is_active', 'payment_method']
+                  'frequency', 'start_date', 'description', 'is_active', 'payment_method', 'is_shared']
         widgets = {
+            'is_shared': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'transaction_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleFields()'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
@@ -286,8 +289,9 @@ from .models import GoalContribution, SavingsGoal
 class SavingsGoalForm(forms.ModelForm):
     class Meta:
         model = SavingsGoal
-        fields = ['name', 'target_amount', 'currency', 'target_date', 'icon', 'color']
+        fields = ['name', 'target_amount', 'currency', 'target_date', 'icon', 'color', 'is_shared']
         widgets = {
+            'is_shared': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Dream Vacation')}),
             'target_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
@@ -365,8 +369,9 @@ from .models import Account, Transfer
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
-        fields = ['name', 'account_type', 'balance', 'currency']
+        fields = ['name', 'account_type', 'balance', 'currency', 'is_shared']
         widgets = {
+            'is_shared': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
             'account_type': forms.Select(attrs={'class': 'form-select'}),
             'balance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -385,8 +390,9 @@ class AccountForm(forms.ModelForm):
 class TransferForm(forms.ModelForm):
     class Meta:
         model = Transfer
-        fields = ['date', 'amount', 'from_account', 'to_account', 'description']
+        fields = ['date', 'amount', 'from_account', 'to_account', 'description', 'is_shared']
         widgets = {
+            'is_shared': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),

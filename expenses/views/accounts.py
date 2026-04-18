@@ -27,7 +27,7 @@ class AccountListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         from .mixins import process_user_recurring_transactions
         process_user_recurring_transactions(self.request.user)
-        queryset = Account.objects.filter(user=self.request.user).order_by('name')
+        queryset = Account.objects.for_user(self.request.user).order_by('name')
         
         account_type = self.request.GET.get('type')
         if account_type:
@@ -59,6 +59,8 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
             messages.error(self.request, _("You have reached the limit of %(limit)s accounts for your current plan. Please upgrade to add more.") % {'limit': limit})
             return redirect('pricing')
         form.instance.user = self.request.user
+        if hasattr(self.request.user, 'profile') and self.request.user.profile.family:
+            form.instance.family = self.request.user.profile.family
         messages.success(self.request, _("Account created successfully!"))
         return super().form_valid(form)
 
@@ -74,7 +76,7 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
 
     def get_queryset(self):
-        return Account.objects.filter(user=self.request.user)
+        return Account.objects.for_user(self.request.user)
 
     def form_valid(self, form):
         messages.success(self.request, _("Account updated successfully!"))
@@ -86,7 +88,7 @@ class AccountDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('account-list')
 
     def get_queryset(self):
-        return Account.objects.filter(user=self.request.user)
+        return Account.objects.for_user(self.request.user)
 
 class AccountQuickCreateView(LoginRequiredMixin, View):
     """AJAX endpoint for creating an account from a modal and returning JSON."""
@@ -100,8 +102,9 @@ class AccountQuickCreateView(LoginRequiredMixin, View):
             
         form = AccountForm(request.POST, user=request.user)
         if form.is_valid():
-            account = form.save(commit=False)
             account.user = request.user
+            if hasattr(request.user, 'profile') and request.user.profile.family:
+                account.family = request.user.profile.family
             account.save()
             return JsonResponse({
                 'success': True,
@@ -130,6 +133,8 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        if hasattr(self.request.user, 'profile') and self.request.user.profile.family:
+            form.instance.family = self.request.user.profile.family
         messages.success(self.request, _("Transfer completed successfully!"))
         return super().form_valid(form)
 
@@ -139,7 +144,7 @@ class TransferListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
     context_object_name = 'transfers'
 
     def get_queryset(self):
-        return Transfer.objects.filter(user=self.request.user).order_by('-date')
+        return Transfer.objects.for_user(self.request.user).order_by('-date')
 
 class TransferUpdateView(LoginRequiredMixin, UpdateView):
     model = Transfer
@@ -153,7 +158,7 @@ class TransferUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
 
     def get_queryset(self):
-        return Transfer.objects.filter(user=self.request.user)
+        return Transfer.objects.for_user(self.request.user)
 
     def form_valid(self, form):
         messages.success(self.request, _("Transfer updated successfully!"))
@@ -165,7 +170,7 @@ class TransferDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('transfer-list')
 
     def get_queryset(self):
-        return Transfer.objects.filter(user=self.request.user)
+        return Transfer.objects.for_user(self.request.user)
     
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _("Transfer deleted successfully!"))
@@ -188,10 +193,10 @@ class AccountDetailView(LoginRequiredMixin, View):
         query = request.GET.get('q', '')
         
         # Get all expenses, incomes, and transfers for this account
-        expenses = Expense.objects.filter(user=request.user, account=account)
-        incomes = Income.objects.filter(user=request.user, account=account)
-        transfers_from = Transfer.objects.filter(user=request.user, from_account=account)
-        transfers_to = Transfer.objects.filter(user=request.user, to_account=account)
+        expenses = Expense.objects.for_user(request.user).filter(account=account)
+        incomes = Income.objects.for_user(request.user).filter(account=account)
+        transfers_from = Transfer.objects.for_user(request.user).filter(from_account=account)
+        transfers_to = Transfer.objects.for_user(request.user).filter(to_account=account)
         contributions = GoalContribution.objects.filter(goal__user=request.user, account=account)
 
         if query:
@@ -384,10 +389,10 @@ class AccountDetailView(LoginRequiredMixin, View):
         from django.db.models import F, Value, CharField, DecimalField
         from django.db.models.functions import Coalesce
         
-        expenses = Expense.objects.filter(user=user, account=account)
-        incomes = Income.objects.filter(user=user, account=account)
-        transfers_out = Transfer.objects.filter(user=user, from_account=account)
-        transfers_in = Transfer.objects.filter(user=user, to_account=account).select_related('from_account')
+        expenses = Expense.objects.for_user(user).filter(account=account)
+        incomes = Income.objects.for_user(user).filter(account=account)
+        transfers_out = Transfer.objects.for_user(user).filter(from_account=account)
+        transfers_in = Transfer.objects.for_user(user).filter(to_account=account).select_related('from_account')
         contributions = GoalContribution.objects.filter(goal__user=user, account=account).select_related('goal')
         
         if start_date:

@@ -18,7 +18,7 @@ class SavingsGoalListView(LoginRequiredMixin, ListView):
     context_object_name = 'ignored'
 
     def get_queryset(self):
-        return SavingsGoal.objects.filter(user=self.request.user).order_by('created_at', 'id')
+        return SavingsGoal.objects.for_user(self.request.user).order_by('created_at', 'id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -44,6 +44,8 @@ class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
     def form_valid(self, form):
         form.instance.user = self.request.user
+        if hasattr(self.request.user, 'profile') and self.request.user.profile.family:
+            form.instance.family = self.request.user.profile.family
         return super().form_valid(form)
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user

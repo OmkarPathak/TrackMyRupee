@@ -18,7 +18,7 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Income.objects.filter(user=self.request.user).order_by('-date')
+        queryset = Income.objects.for_user(self.request.user).order_by('-date')
         
         # Date Filter
         date_from = self.request.GET.get('date_from')
@@ -103,6 +103,9 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
         return kwargs
     def form_valid(self, form):
         form.instance.user = self.request.user
+        if hasattr(self.request.user, 'profile') and self.request.user.profile.family:
+            form.instance.family = self.request.user.profile.family
+        
         response = super().form_valid(form)
         
         if form.cleaned_data.get('add_to_recurring'):
@@ -125,6 +128,8 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
                     start_date=form.instance.date,
                     last_processed_date=form.instance.date,
                     description=form.instance.description,
+                    family=form.instance.family,
+                    is_shared=form.instance.is_shared,
                     is_active=True
                 )
                 messages.info(self.request, _("A recurring income subscription has also been created."))

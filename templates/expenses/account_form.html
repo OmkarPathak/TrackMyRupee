@@ -56,6 +56,18 @@
                         <small class="form-text text-muted">{% trans "Current amount of money in this account." %}</small>
                     </div>
 
+                    {% if request.user.profile.family %}
+                    <!-- Share with Family Option -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch d-flex align-items-center">
+                            {{ form.is_shared }}
+                            <label class="form-check-label fw-bold small text-muted text-uppercase ms-2 mb-0" for="{{ form.is_shared.id_for_label }}" style="line-height: 1;">
+                                {% trans "Share with Family" %}
+                            </label>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="d-flex justify-content-end align-items-center gap-2">
                         <a href="{% url 'account-list' %}" class="btn btn-outline-secondary px-4">
                             {% trans "Cancel" %}

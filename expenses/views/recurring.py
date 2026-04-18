@@ -19,7 +19,7 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
     filter_expenses_only = True
 
     def get_queryset(self):
-        queryset = RecurringTransaction.objects.filter(user=self.request.user)
+        queryset = RecurringTransaction.objects.for_user(self.request.user)
         if self.filter_expenses_only:
             queryset = queryset.filter(transaction_type__in=['EXPENSE', 'TRANSFER'])
         queryset = queryset.order_by('-created_at')
@@ -36,7 +36,7 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
         today = date.today()
         
         # Categories for filter
-        user_transactions = RecurringTransaction.objects.filter(user=self.request.user)
+        user_transactions = RecurringTransaction.objects.for_user(self.request.user)
         categories = user_transactions.values_list('category', flat=True).distinct().order_by('category')
         # Filter out None/Empty if any
         categories = [c for c in categories if c]
@@ -167,7 +167,7 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
         
         # Nudge context for upgrade banner (use is_plus/is_pro to respect subscription expiry)
         profile = self.request.user.profile
-        active_count = RecurringTransaction.objects.filter(user=self.request.user, is_active=True).count()
+        active_count = RecurringTransaction.objects.for_user(self.request.user).filter(is_active=True).count()
         
         from finance_tracker.plans import get_limit
         limit = get_limit(profile.active_tier, 'recurring_transactions')
@@ -222,6 +222,8 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.user = self.request.user
+        if hasattr(self.request.user, 'profile') and self.request.user.profile.family:
+            form.instance.family = self.request.user.profile.family
         # Prevent exact duplicate recurring transactions
         dup = RecurringTransaction.objects.filter(
             user=self.request.user,
@@ -285,12 +287,12 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         # We need to import RecurringTransaction if not already in scope, but it's in models.
         # This view already defines model=RecurringTransaction, so it's in scope.
-        return super().get_queryset().filter(user=self.request.user)
+        return super().get_queryset().for_user(self.request.user)
 
 class RecurringTransactionDeleteView(LoginRequiredMixin, DeleteView):
     model = RecurringTransaction
     success_url = reverse_lazy('recurring-list')
-    def get_queryset(self): return RecurringTransaction.objects.filter(user=self.request.user)
+    def get_queryset(self): return RecurringTransaction.objects.for_user(self.request.user)
 
     def form_valid(self, form):
         # Calculate savings

@@ -6,7 +6,7 @@ from .models import Expense, Income, Category
 
 class FinancialService:
     @staticmethod
-    def get_monthly_history(user, months=6):
+    def get_monthly_history(user, months=6, is_family_mode=False):
         """
         Returns a list of monthly income and expense totals for the last N months.
         """
@@ -19,12 +19,14 @@ class FinancialService:
         
         start_date = (today.replace(day=1) - timedelta(days=30 * (months - 1))).replace(day=1)
         
-        income_qs = Income.objects.filter(
-            user=user, date__gte=start_date, date__lte=today
+        income_base = Income.objects.for_user(user) if is_family_mode else Income.objects.filter(user=user)
+        income_qs = income_base.filter(
+            date__gte=start_date, date__lte=today
         ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount'))
         
-        expense_qs = Expense.objects.filter(
-            user=user, date__gte=start_date, date__lte=today
+        expense_base = Expense.objects.for_user(user) if is_family_mode else Expense.objects.filter(user=user)
+        expense_qs = expense_base.filter(
+            date__gte=start_date, date__lte=today
         ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount'))
         
         income_map = {item['month'].date() if hasattr(item['month'], 'date') else item['month']: item['total'] for item in income_qs}

@@ -52,8 +52,12 @@ def home_view(request):
     # Process recurring transactions
     process_user_recurring_transactions(request.user)
     
+    # Determine view mode (Personal vs Family)
+    view_mode = request.GET.get('view_mode', 'personal')
+    is_family_mode = view_mode == 'family' and getattr(request.user.profile, 'family', None) is not None
+
     # --- NET WORTH TREND (Last 6 Months) ---
-    net_worth_history = FinancialService.get_monthly_history(request.user, 6)
+    net_worth_history = FinancialService.get_monthly_history(request.user, 6, is_family_mode=is_family_mode)
     
     net_worth_labels = [date_format(m['month'], 'M Y') for m in net_worth_history]
     net_worth_data = [m['savings'] for m in net_worth_history] # Using savings as a proxy for monthly cash flow trend
@@ -79,11 +83,13 @@ def home_view(request):
                 total += t.amount
         return total
 
-    # Base QuerySet - All user expenses
-    expenses = Expense.objects.filter(user=request.user).order_by('-date')
+    # Base QuerySet
+    expense_base = Expense.objects.for_user(request.user) if is_family_mode else Expense.objects.filter(user=request.user)
+    expenses = expense_base.order_by('-date')
     
-    # Wealth Growth (Investments) - Transfers to Investment accounts
-    investments = Transfer.objects.filter(user=request.user, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
+    # Wealth Growth (Investments)
+    transfer_base = Transfer.objects.for_user(request.user) if is_family_mode else Transfer.objects.filter(user=request.user)
+    investments = transfer_base.filter(to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
     
     # Logic for EOM projection
     now = datetime.now()
@@ -136,7 +142,8 @@ def home_view(request):
         expenses = expenses.filter(category__in=selected_categories)
         
     # Income Logic (Mirroring Expense Filters)
-    incomes = Income.objects.filter(user=request.user)
+    income_base = Income.objects.for_user(request.user) if is_family_mode else Income.objects.filter(user=request.user)
+    incomes = income_base
     if start_date or end_date:
         if start_date:
             incomes = incomes.filter(date__gte=start_date)
@@ -159,9 +166,9 @@ def home_view(request):
     
     total_income = incomes.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
     total_investments = sum_transfers_base(investments)
-    all_dates = Expense.objects.filter(user=request.user).dates('date', 'year', order='DESC')
+    all_dates = expense_base.dates('date', 'year', order='DESC')
     years = sorted(list(set([d.year for d in all_dates] + [datetime.now().year])), reverse=True)
-    all_categories = Expense.objects.filter(user=request.user).values_list('category', flat=True).distinct().order_by('category')
+    all_categories = expense_base.values_list('category', flat=True).distinct().order_by('category')
 
     # 1. Category Chart Data (Distribution) & Summary Table
     # We need to fetch raw values and merge them in Python to handle whitespace duplicates
@@ -352,14 +359,14 @@ def home_view(request):
                 prev_year = sel_year
 
             # Current year-month stats
-            prev_expenses_all = Expense.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month)
+            prev_expenses_all = expense_base.filter(date__year=prev_year, date__month=prev_month)
             prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-            prev_investments = sum_transfers_base(Transfer.objects.filter(
-                user=request.user, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'],
+            prev_investments = sum_transfers_base(transfer_base.filter(
+                to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'],
                 date__year=prev_year, date__month=prev_month
             ))
 
-            prev_income = Income.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+            prev_income = income_base.filter(date__year=prev_year, date__month=prev_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
             prev_savings = prev_income - prev_expenses_op
 
             def calc_pct(current, previous):
@@ -409,7 +416,7 @@ def home_view(request):
     
 
     # 4a. Internal Transfers (excluded from income/expense, just movement)
-    transfers_qs = Transfer.objects.filter(user=request.user)
+    transfers_qs = transfer_base.all()
     if start_date or end_date:
         if start_date:
             transfers_qs = transfers_qs.filter(date__gte=start_date)
@@ -429,8 +436,8 @@ def home_view(request):
     current_month = current_date.month 
 
     # 1. Calculate YTD Savings (Strictly for current year, regardless of filters)
-    ytd_income = Income.objects.filter(user=request.user, date__year=current_year, date__month__lte=current_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-    ytd_expenses = Expense.objects.filter(user=request.user, date__year=current_year, date__month__lte=current_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+    ytd_income = income_base.filter(date__year=current_year, date__month__lte=current_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+    ytd_expenses = expense_base.filter(date__year=current_year, date__month__lte=current_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
     ytd_savings = ytd_income - ytd_expenses
     
     projected_savings = 0
@@ -582,7 +589,7 @@ def home_view(request):
                 m += 12
                 y -= 1
             
-            m_total = Expense.objects.filter(user=request.user, date__year=y, date__month=m).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+            m_total = expense_base.filter(date__year=y, date__month=m).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
             if m_total > 0:
                 last_3_months_total += m_total
                 months_counted += 1
@@ -673,7 +680,7 @@ def home_view(request):
                     m_calc += 12
                     y_calc -= 1
                 
-                m_cat_total = Expense.objects.filter(user=request.user, date__year=y_calc, date__month=m_calc, category__iexact=top_cat).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+                m_cat_total = expense_base.filter(date__year=y_calc, date__month=m_calc, category__iexact=top_cat).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
                 if m_cat_total > 0:
                     cat_3_month_total += m_cat_total
                     cat_months_counted += 1
@@ -1348,7 +1355,8 @@ def home_view(request):
         proj_forecast.append(float(avg_spend))
 
     # Net Worth & Asset Allocation Calculation (multi-currency aware)
-    accounts = Account.objects.filter(user=request.user)
+    account_base = Account.objects.for_user(request.user) if is_family_mode else Account.objects.filter(user=request.user)
+    accounts = account_base.all()
     base_currency = currency_symbol  # user's profile currency
 
     # Convert each account balance to user's base currency
@@ -1374,8 +1382,8 @@ def home_view(request):
     
     # Get income and expense sums for the current month ONLY (for change indicators)
     curr_mon_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    month_income_sum = Income.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-    month_expense_sum = Expense.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+    month_income_sum = income_base.filter(date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+    month_expense_sum = expense_base.filter(date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
     
     # Net change (savings) is the growth in net worth
     net_worth_change = month_income_sum - month_expense_sum
@@ -1600,11 +1608,13 @@ def home_view(request):
         'proj_labels': proj_labels,
         'proj_historical': proj_historical,
         'proj_forecast': proj_forecast,
+        'view_mode': view_mode,
+        'is_family_mode': is_family_mode,
     }
 
     # --- DAILY MODE DATA ---
     today = date.today()
-    today_expenses = Expense.objects.filter(user=request.user, date=today).order_by('-created_at')
+    today_expenses = expense_base.filter(date=today).order_by('-created_at')
     today_contributions = GoalContribution.objects.filter(goal__user=request.user, date=today).order_by('-created_at')
     
     today_spent = (today_expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00'))
@@ -1643,8 +1653,8 @@ def home_view(request):
         daily_top_category_pct = round(float(top_cat_today['total']) / float(today_spent) * 100)
 
     # Safe to spend today (remaining budget for the rest of the month / remaining days)
-    month_spent_so_far = Expense.objects.filter(
-        user=request.user, date__year=today.year, date__month=today.month
+    month_spent_so_far = expense_base.filter(
+        date__year=today.year, date__month=today.month
     ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
     remaining_month_budget = Decimal(str(total_monthly_budget)) - month_spent_so_far
     remaining_days = max(1, days_in_current_month - today.day + 1)
@@ -1674,16 +1684,16 @@ def home_view(request):
     # --- Average per-category spend (last 30 days) for "unusual" tagging ---
     thirty_days_ago = today - timedelta(days=30)
     cat_avg_30d = {}
-    cat_avg_qs = Expense.objects.filter(
-        user=request.user, date__gte=thirty_days_ago, date__lt=today
+    cat_avg_qs = expense_base.filter(
+        date__gte=thirty_days_ago, date__lt=today
     ).values('category').annotate(avg_amt=Avg('base_amount'))
     for row in cat_avg_qs:
         cat_avg_30d[row['category']] = float(row['avg_amt'])
 
     # --- Quick stats for right sidebar ---
     avg_daily_spend_month = float(month_spent_so_far) / max(1, today.day - 1) if today.day > 1 else float(today_spent)
-    month_transaction_count = Expense.objects.filter(
-        user=request.user, date__year=today.year, date__month=today.month
+    month_transaction_count = expense_base.filter(
+        date__year=today.year, date__month=today.month
     ).count()
 
     # Enrich today_expenses with category icons + tags
@@ -1768,8 +1778,7 @@ def home_view(request):
         )
     
     # 2. Expense Category Nudge: Check for "Miscellaneous" or "Other" usage
-    misc_usage = Expense.objects.filter(
-        user=request.user, 
+    misc_usage = expense_base.filter(
         category__in=['Miscellaneous', 'Other', 'Misc']
     ).count()
     if misc_usage >= 3:

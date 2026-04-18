@@ -62,6 +62,7 @@ def process_user_recurring_transactions(user):
                             description=description, payment_method=rt.payment_method,
                             exchange_rate=exchange_rate, base_amount=base_amount,
                             account=rt.account,
+                            family=rt.family, is_shared=rt.is_shared
                         ).save()
                     except Exception:
                         pass  # Skip duplicates or constraint violations
@@ -80,7 +81,8 @@ def process_user_recurring_transactions(user):
                             new_transfer = Transfer(
                                 user=user, date=current_date, amount=rt.amount,
                                 from_account=rt.from_account, to_account=rt.to_account,
-                                description=description
+                                description=description,
+                                family=rt.family, is_shared=rt.is_shared
                             )
                             new_transfer.save()
                         except Exception as e:
@@ -98,6 +100,7 @@ def process_user_recurring_transactions(user):
                             currency=rt.currency, source=source,
                             description=description, exchange_rate=exchange_rate,
                             base_amount=base_amount, account=rt.account,
+                            family=rt.family, is_shared=rt.is_shared
                         ).save()
                     except Exception:
                         pass  # Skip duplicates or constraint violations

@@ -78,6 +78,9 @@
             <a href="{% url 'profile-settings' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'profile-settings' %}active{% endif %}">
                 <i class="bi bi-person-badge me-2"></i> {% trans "Profile" %}
             </a>
+            <a href="{% url 'family-settings' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 {% if request.resolver_match.url_name == 'family-settings' %}active{% endif %}">
+                <i class="bi bi-people me-2"></i> {% trans "Family Setup" %}
+            </a>
             <a href="{% url 'user-delete' %}" class="list-group-item list-group-item-action border rounded-pill mb-1 py-2 text-danger fw-bold">
                 <i class="bi bi-person-x me-2"></i> {% trans "Delete" %}
             </a>
