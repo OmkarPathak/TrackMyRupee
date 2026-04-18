@@ -205,29 +205,35 @@
 
 </style>
 
-<!-- Daily Mode / Full Report Toggle -->
-<div class="d-flex flex-column align-items-center mb-4 gap-3 fade-in">
+<!-- Daily Mode / Full Report Toggle Container -->
+<div class="d-flex flex-row {% if request.user.profile.family %}justify-content-between{% else %}justify-content-center{% endif %} align-items-center mb-4 gap-2 gap-md-3 fade-in flex-nowrap dashboard-toggle-container">
     <!-- View Mode Toggle (Personal vs Family) -->
     {% if request.user.profile.family %}
-    <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm" style="border: 1px solid var(--bs-border-color-translucent);">
-        <a href="?view_mode=personal" class="btn btn-sm rounded-pill px-4 py-1 fw-bold {% if view_mode == 'personal' %}active{% endif %}" style="min-width: 100px; transition: all 0.3s ease;">
-            <i class="bi bi-person-fill me-1"></i> {% trans "Personal" %}
+    <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm flex-shrink-0" style="border: 1px solid var(--bs-border-color-translucent);">
+        <a href="?view_mode=personal" class="btn btn-sm rounded-pill py-1 fw-bold {% if view_mode == 'personal' %}active{% endif %} dashboard-toggle-btn transition-all" title="{% trans 'Personal View' %}">
+            <i class="bi bi-person-fill me-md-1"></i>
+            <span class="d-none d-md-inline">{% trans "Personal" %}</span>
         </a>
-        <a href="?view_mode=family" class="btn btn-sm rounded-pill px-4 py-1 fw-bold {% if view_mode == 'family' %}active{% endif %}" style="min-width: 100px; transition: all 0.3s ease;">
-            <i class="bi bi-people-fill me-1"></i> {% trans "Family" %}
+        <a href="?view_mode=family" class="btn btn-sm rounded-pill py-1 fw-bold {% if view_mode == 'family' %}active{% endif %} dashboard-toggle-btn transition-all" title="{% trans 'Family View' %}">
+            <i class="bi bi-people-fill me-md-1"></i>
+            <span class="d-none d-md-inline">{% trans "Family" %}</span>
         </a>
     </div>
     {% endif %}
 
-    <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm" role="group" id="dashboard-mode-toggle" style="border: 1px solid var(--bs-border-color-translucent);">
-        <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold daily-mode-btn active d-inline-flex align-items-center justify-content-center" id="btn-daily-mode" onclick="switchToDailyMode()" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
-            {% trans "Daily Mode" %}
+    <!-- Report Mode Toggle -->
+    <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm flex-shrink-0" role="group" id="dashboard-mode-toggle" style="border: 1px solid var(--bs-border-color-translucent);">
+        <button type="button" class="btn btn-sm rounded-pill py-2 fw-bold daily-mode-btn active dashboard-toggle-btn transition-all" id="btn-daily-mode" onclick="switchToDailyMode()" title="{% trans 'Daily Mode' %}">
+            <i class="bi bi-calendar2-day me-md-1"></i>
+            <span class="d-none d-md-inline">{% trans "Daily Mode" %}</span>
         </button>
-        <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold full-report-btn d-inline-flex align-items-center justify-content-center" id="btn-full-report" onclick="switchToFullReport()" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
-            {% trans "Full Report" %}
+        <button type="button" class="btn btn-sm rounded-pill py-2 fw-bold full-report-btn dashboard-toggle-btn transition-all" id="btn-full-report" onclick="switchToFullReport()" title="{% trans 'Full Report' %}">
+            <i class="bi bi-journal-text me-md-1"></i>
+            <span class="d-none d-md-inline">{% trans "Full Report" %}</span>
         </button>
-        <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center justify-content-center" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
-            {% trans "Trends" %}
+        <button type="button" class="btn btn-sm rounded-pill py-2 fw-bold dashboard-toggle-btn transition-all" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'" title="{% trans 'Trends' %}">
+            <i class="bi bi-graph-up-arrow me-md-1"></i>
+            <span class="d-none d-md-inline">{% trans "Trends" %}</span>
         </button>
     </div>
 </div>
@@ -248,19 +254,31 @@
         background: rgba(var(--bs-primary-rgb), 0.08);
     }
 
-    /* Responsive Dashboard Toggle */
-    @media (max-width: 480px) {
-        #dashboard-mode-toggle {
-            width: 100%;
-            display: flex !important;
+    /* Dashboard Toggle Button System */
+    .dashboard-toggle-btn {
+        min-width: 90px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Ultra-Compact Mobile Layout */
+    @media (max-width: 576px) {
+        .dashboard-toggle-container {
+            gap: 0.35rem !important;
+            padding: 0 0.5rem;
+            justify-content: center !important;
         }
-        #dashboard-mode-toggle .btn {
-            min-width: 0 !important;
-            flex: 1;
-            padding-left: 0.25rem !important;
-            padding-right: 0.25rem !important;
-            font-size: 0.8rem !important;
-            white-space: nowrap;
+        .dashboard-toggle-btn {
+            min-width: 38px !important;
+            width: 38px !important;
+            height: 38px !important;
+            padding: 0 !important;
+            font-size: 1rem !important;
+        }
+        .dashboard-toggle-btn i {
+            margin: 0 !important;
         }
     }
 
