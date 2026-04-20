@@ -229,6 +229,11 @@ body {
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
 }
 
+body.demo-mode .sidebar {
+  top: 40px;
+  height: calc(100vh - 40px);
+}
+
 /* Glassmorphism Effect for Sidebar */
 .sidebar {
   background: rgba(var(--bs-body-bg-rgb), 0.7) !important;
@@ -486,7 +491,11 @@ body {
   body.has-sidebar {
     padding-left: var(--sidebar-width);
     padding-top: 64px;
-    transition: padding-left var(--sidebar-transition);
+    transition: padding-left var(--sidebar-transition), padding-top var(--sidebar-transition);
+  }
+
+  body.has-sidebar.demo-mode {
+    padding-top: 104px; /* 64px navbar + 40px demo banner */
   }
 
   body.has-sidebar main {
@@ -511,12 +520,17 @@ body {
     right: 0;
     left: var(--sidebar-width);
     width: auto;
-    transition: left var(--sidebar-transition);
+    transition: all var(--sidebar-transition);
     z-index: 1020;
     background: rgba(var(--bs-body-bg-rgb), 0.7) !important;
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Offset navbar in demo mode when banner is present */
+  body.demo-mode.has-sidebar .navbar.sticky-top {
+    top: 40px;
   }
 
   [data-bs-theme="dark"] body.has-sidebar .navbar.sticky-top {

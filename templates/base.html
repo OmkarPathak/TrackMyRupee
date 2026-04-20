@@ -588,8 +588,8 @@
         {% include 'components/sidebar.html' %}
     {% endif %}
     {% if request.user.username == 'demo' %}
-    <div class="alert alert-primary text-center fw-bold m-0 rounded-0 py-2 small shadow-sm sticky-top d-flex justify-content-center align-items-center gap-2"
-        role="alert" style="z-index: 1050; border: none; background: linear-gradient(90deg, #1D9E75, #1a4a35); color: white;">
+    <div class="alert alert-primary text-center fw-bold m-0 rounded-0 py-2 small shadow-sm demo-banner d-flex justify-content-center align-items-center gap-2"
+        role="alert" style="z-index: 1060; border: none; background: linear-gradient(90deg, #1D9E75, #1a4a35); color: white; position: fixed; top: 0; left: 0; right: 0; height: 40px;">
         <span class="d-inline-flex align-items-center">
             <i class="bi bi-stars me-2"></i> 
             {% trans "You're in Demo Mode." %}
@@ -609,13 +609,16 @@
     </div>
     <style>
         .hover-underline:hover { text-decoration: underline !important; }
-        /* Offset sticky navbar when demo banner is present */
-        .navbar.sticky-top {
-            top: 40px !important; /* height of the demo banner */
-            transition: top 0.3s;
-        }
+        
+        /* Ensure navbar doesn't cover demo banner on mobile/non-sidebar views */
         @media (max-width: 991.98px) {
-            .navbar.sticky-top { top: 40px !important; }
+            body.demo-mode { padding-top: 40px !important; }
+            body.demo-mode .navbar.sticky-top { top: 40px !important; }
+        }
+        
+        /* If navbar is fixed but body doesn't have has-sidebar (e.g. landing) */
+        body.demo-mode:not(.has-sidebar) .navbar.sticky-top {
+            top: 40px !important;
         }
     </style>
     {% endif %}
