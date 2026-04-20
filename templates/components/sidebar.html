@@ -111,8 +111,9 @@
                 <span class="nav-text">{% trans "Settings" %}</span>
             </a>
 
-            <a class="nav-link d-flex align-items-center gap-3 rounded-3 text-danger" href="{% url 'account_logout' %}">
-                <i class="bi bi-box-arrow-right"></i> {% trans "Logout" %}
+            <a class="nav-link d-flex align-items-center gap-3 rounded-3 text-danger" href="{% url 'account_logout' %}" title="{% trans 'Logout' %}">
+                <i class="bi bi-box-arrow-right fs-5"></i>
+                <span class="nav-text">{% trans "Logout" %}</span>
             </a>
         </div>
     </div>
