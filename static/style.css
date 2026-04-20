@@ -282,7 +282,28 @@ body {
   justify-content: center;
   padding-left: 0 !important;
   padding-right: 0 !important;
-  border-left: none;
+}
+
+/* Account type status dots */
+.account-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #6c757d; /* Default Other */
+  transition: all 0.2s ease;
+}
+
+.type-bank .account-dot, 
+.type-cash .account-dot { background-color: #1D9E75; }
+.type-investment .account-dot, 
+.type-fixed_deposit .account-dot { background-color: #6610f2; }
+.type-credit_card .account-dot { background-color: #fd7e14; }
+
+.sidebar.collapsed .account-item .account-dot {
+  margin-right: 0 !important;
+  width: 10px;
+  height: 10px;
 }
 
 .sidebar.collapsed .nav-link i {
@@ -383,8 +404,9 @@ body {
 
 /* Sidebar Divider */
 .sidebar hr {
-  margin: 1rem 0 !important;
-  opacity: 0.05;
+  margin: 1.5rem 0 1rem 0 !important;
+  opacity: 0.5;
+  border-top: 1px solid var(--sidebar-border);
 }
 
 /* Sidebar Sections (Accounts) */
@@ -398,6 +420,10 @@ body {
   height: 0;
   margin: 0 !important;
   overflow: hidden;
+}
+
+.sidebar-section {
+  margin-top: 0.5rem;
 }
 
 .sidebar-section-title {
@@ -432,13 +458,12 @@ body {
   font-weight: 600;
 }
 
-}
-
 .sidebar-section .nav-link.small .text-primary {
-  color: var(--bs-primary) !important;
+  border-top: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+  width: 100%;
 }
-
-/* Sidebar Footer */
 .sidebar-footer {
   padding: 1rem 0;
   border-top: 1px solid rgba(var(--bs-border-color-rgb), 0.05);

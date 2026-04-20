@@ -30,7 +30,7 @@
             <!-- Subscriptions -->
             <a href="{% url 'recurring-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'recurring' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Subscriptions' %}">
                 <i class="bi bi-arrow-repeat fs-5"></i>
-                <span class="nav-text">{% trans "Subscriptions" %}</span>
+                <span class="nav-text">{% trans "Recurring" %}</span>
             </a>
 
             <!-- Goals -->
@@ -64,11 +64,17 @@
                 </div>
                 <div class="nav flex-column gap-1">
                     {% for account in sidebar_accounts %}
-                    <a href="{% url 'account-detail' account.pk %}" class="nav-link small py-1 d-flex align-items-center rounded-2 account-item" 
+                    <a href="{% url 'account-detail' account.pk %}" class="nav-link small py-1 d-flex align-items-center rounded-2 account-item type-{{ account.account_type|lower }}" 
                        title="{{ account.name }}: {{ currency_symbol }}{{ account.balance }}">
                         <div class="d-flex justify-content-between align-items-center w-100 min-width-0">
-                            <span class="account-name text-truncate">{{ account.name }}</span>
-                            <span class="account-balance ms-2">{{ account.balance|compact_amount:currency_symbol }}</span>
+                            <div class="d-flex align-items-center min-width-0">
+                                <span class="account-dot me-2"></span>
+                                <span class="account-name text-truncate">{{ account.name|truncatechars:18 }}</span>
+                                {% if account.account_type == 'CREDIT_CARD' %}
+                                <i class="ms-2 bi bi-credit-card ms-1 smaller opacity-50 d-inline-flex align-items-center" style="line-height: 1; font-size: 14px;" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Credit card balance: negative means outstanding debt.' %}"></i>
+                                {% endif %}
+                            </div>
+                            <span class="account-balance ms-2 {% if account.balance < 0 %}text-danger{% endif %}">{{ account.balance|compact_amount:currency_symbol }}</span>
                         </div>
                     </a>
                     {% empty %}
@@ -94,10 +100,12 @@
     <div class="sidebar-footer border-top">
         <div class="nav flex-column gap-1">
             <!-- Support Us -->
+            {% if not user.profile.is_pro %}
             <a href="https://rzp.io/rzp/AP7kBG2" target="_blank" class="nav-link d-flex align-items-center gap-3 rounded-3 text-primary fw-bold" title="{% trans 'Support Us' %}">
                 <i class="bi bi-heart-fill fs-5"></i>
                 <span class="nav-text">{% trans "Support Us" %}</span>
             </a>
+            {% endif %}
 
             <!-- Theme Toggle -->
             <a href="#" class="nav-link d-flex align-items-center gap-3 rounded-3 theme-toggle-btn" title="{% trans 'Toggle Theme' %}">
