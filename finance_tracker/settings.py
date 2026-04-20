@@ -124,6 +124,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'expenses.context_processors.currency_symbol',
                 'expenses.context_processors.notifications',
+                'expenses.context_processors.user_accounts',
                 'expenses.context_processors.webpush_vapid_key',
                 'finance_tracker.context_processors.google_analytics',
                 'finance_tracker.context_processors.plan_details',

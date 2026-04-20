@@ -205,6 +205,269 @@ body {
   /* Override Bootstrap warning */
   --bs-warning: #D4831A;
   --bs-warning-rgb: 224, 123, 57;
+
+  /* Sidebar Variables */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 85px;
+  --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-bg: var(--bs-body-bg);
+  --sidebar-border: var(--bs-border-color);
+}
+
+/* --- Sidebar Styles --- */
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1040;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  transition: var(--sidebar-transition);
+  overflow: hidden;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+}
+
+/* Glassmorphism Effect for Sidebar */
+.sidebar {
+  background: rgba(var(--bs-body-bg-rgb), 0.7) !important;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+[data-bs-theme="dark"] .sidebar {
+  background: rgba(15, 15, 15, 0.75) !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Sidebar Brand Area */
+.sidebar-brand {
+  letter-spacing: -0.02em;
+  transition: all 0.2s ease;
+}
+
+.sidebar-brand:hover {
+  opacity: 0.8;
+}
+
+/* Collapsed State */
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+.sidebar.collapsed .brand-text,
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .sidebar-section .chevron-icon,
+.sidebar.collapsed .sidebar-footer .nav-text,
+.sidebar.collapsed .sidebar-brand span {
+  display: none !important;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
+
+.sidebar.collapsed .sidebar-brand {
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar-toggle {
+  background: rgba(var(--bs-primary-rgb), 0.05);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  color: var(--bs-primary) !important;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(var(--bs-primary-rgb), 0.15);
+  transform: scale(1.1);
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  position: absolute;
+  right: -14px;
+  top: 24px;
+  background: var(--bs-body-bg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid var(--sidebar-border);
+  z-index: 100;
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 0.8rem 0 !important;
+  margin: 0.2rem 0.6rem !important;
+}
+
+.sidebar.collapsed .sidebar-content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.sidebar.collapsed .collapse {
+  display: none !important;
+}
+
+/* Nav links refinements */
+.sidebar .nav-link {
+  color: var(--bs-body-color);
+  padding: 0.8rem 1.5rem;
+  margin: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: 0;
+  font-weight: 500;
+  font-size: 0.925rem;
+  opacity: 0.75;
+}
+
+.sidebar .nav-link i {
+  font-size: 1.15rem;
+  transition: transform 0.2s ease;
+  width: 20px;
+  display: inline-block;
+  text-align: center;
+}
+
+.sidebar .nav-link:hover {
+  background: rgba(var(--bs-primary-rgb), 0.05);
+  color: var(--bs-primary);
+  opacity: 1;
+}
+
+.sidebar .nav-link.active {
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+  font-weight: 600;
+  opacity: 1;
+}
+
+/* Sidebar Divider */
+.sidebar hr {
+  margin: 1rem 0 !important;
+  opacity: 0.05;
+}
+
+/* Sidebar Sections (Accounts) */
+.sidebar-section {
+  transition: opacity 0.2s ease;
+}
+
+.sidebar.collapsed .sidebar-section {
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+.sidebar-section-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--bs-secondary-color);
+  opacity: 0.6;
+}
+
+.account-item {
+  color: var(--bs-body-color);
+  transition: all 0.2s ease;
+}
+
+.account-item:hover {
+  background: rgba(var(--bs-primary-rgb), 0.05) !important;
+  color: var(--bs-primary) !important;
+}
+
+.account-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.account-balance {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: var(--bs-font-monospace);
+  font-weight: 600;
+}
+
+}
+
+.sidebar-section .nav-link.small .text-primary {
+  color: var(--bs-primary) !important;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  padding: 1rem 0;
+  border-top: 1px solid rgba(var(--bs-border-color-rgb), 0.05);
+}
+
+/* Top Navbar Adjustments */
+.navbar.sticky-top {
+  background: rgba(var(--bs-body-bg-rgb), 0.8) !important;
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  border-bottom: 1px solid rgba(var(--bs-border-color-rgb), 0.05) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+/* Layout Adjustments for Desktop */
+@media (min-width: 992px) {
+  body.has-sidebar {
+    padding-left: var(--sidebar-width);
+    padding-top: 64px;
+    transition: padding-left var(--sidebar-transition);
+  }
+
+  body.has-sidebar.sidebar-collapsed {
+    padding-left: var(--sidebar-collapsed-width);
+  }
+
+  body.has-sidebar .navbar.sticky-top {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: var(--sidebar-width);
+    width: auto;
+    transition: left var(--sidebar-transition);
+    z-index: 1020;
+    background: rgba(var(--bs-body-bg-rgb), 0.7) !important;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  }
+
+  [data-bs-theme="dark"] body.has-sidebar .navbar.sticky-top {
+    background: rgba(15, 15, 15, 0.75) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  body.has-sidebar.sidebar-collapsed .navbar.sticky-top {
+    left: var(--sidebar-collapsed-width);
+  }
+
+  /* When demo banner is present */
+  body.has-sidebar.demo-mode .navbar.sticky-top {
+    top: 40px !important;
+  }
 }
 
 /* Override Bootstrap form check/switch colors */

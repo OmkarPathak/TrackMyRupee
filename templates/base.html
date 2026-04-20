@@ -580,9 +580,13 @@
 
 </head>
 
-<body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated{% endif %}">
+<body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated has-sidebar{% endif %} {% if request.user.username == 'demo' %}demo-mode{% endif %}">
     <!-- Instant Progress Bar (Static) -->
     <div id="global-progress-bar"></div>
+
+    {% if user.is_authenticated %}
+        {% include 'components/sidebar.html' %}
+    {% endif %}
     {% if request.user.username == 'demo' %}
     <div class="alert alert-primary text-center fw-bold m-0 rounded-0 py-2 small shadow-sm sticky-top d-flex justify-content-center align-items-center gap-2"
         role="alert" style="z-index: 1050; border: none; background: linear-gradient(90deg, #1D9E75, #1a4a35); color: white;">
@@ -721,6 +725,7 @@
         {% block content %}{% endblock %}
     </main>
 
+    {% if not user.is_authenticated %}
     <footer class="mt-auto bg-body-tertiary border-top pt-5 pb-3 d-none d-lg-block">
         <div class="container">
             <div class="row g-4 justify-content-between">
@@ -803,6 +808,7 @@
             </div>
         </div>
     </footer>
+    {% endif %}
 
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -1480,6 +1486,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <script src="{% static 'js/tutorial.js' %}"></script>
+    <script src="{% static 'js/sidebar.js' %}"></script>
     <script>
         // Set the URL for marking tutorial as complete globally for tutorial.js
         window.tutorialCompleteUrl = "{% url 'complete-tutorial' %}";

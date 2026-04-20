@@ -1,8 +1,8 @@
 {% load static i18n %}
 <!-- Unified Navbar -->
 <nav class="navbar navbar-expand-lg sticky-top {% if user.is_authenticated %}d-none d-lg-flex{% endif %} {% if is_landing %}navbar-landing{% else %}bg-body-tertiary border-bottom{% endif %}">
-    <div class="container">
-        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'landing' %}{% endif %}">
+    <div class="{% if user.is_authenticated %}d-flex w-100 px-3{% else %}container{% endif %}">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2 {% if user.is_authenticated %}d-lg-none{% endif %}" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'landing' %}{% endif %}">
             <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" width="32" height="32" class="d-inline-block align-text-top rounded-3">
             <span class="fs-4">TrackMyRupee</span>
         </a>
@@ -70,49 +70,44 @@
         <div class="collapse navbar-collapse" id="navbarContent">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
                 
-                <!-- Authenticated User Links -->
+                <!-- Authenticated User Links (Hidden on desktop because moved to sidebar) -->
                 {% if user.is_authenticated %}
-                    <li class="nav-item">
+                    <li class="nav-item d-lg-none">
                         <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                             {% trans "Dashboard" %}
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item d-lg-none">
                         <a href="{% url 'expense-list' %}" class="nav-link {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
                             {% trans "Expenses" %}
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item d-lg-none">
                         <a href="{% url 'recurring-list' %}" class="nav-link {% if 'recurring' in request.resolver_match.url_name %}active{% endif %}">
                             {% trans "Subscriptions" %}
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item d-lg-none">
                         <a href="{% url 'goal-list' %}" class="nav-link {% if 'goal' in request.resolver_match.url_name %}active{% endif %}">
                             {% trans "Goals" %}
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item d-lg-none">
                         <a href="{% url 'calendar' %}" class="nav-link {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
                             {% trans "Calendar" %}
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item d-lg-none">
                         <a href="{% url 'analytics' %}" class="nav-link {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}">
                             {% trans "Analytics" %}
                         </a>
-                    </li>
-                    <!-- Settings Link (Removed, moving to dropdown) -->
-
-                    <!-- Vertical Divider (Desktop) -->
-                    <li class="nav-item d-none d-lg-flex align-items-center mx-2">
-                        <div class="vr h-50 my-auto text-body opacity-25"></div>
                     </li>
 
                     <!-- Action Dropdown -->
                     <li class="nav-item dropdown d-none d-lg-block ms-2">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="text-gradient-primary">{% trans "Add" %}</span>
+                            <i class="bi bi-plus-circle-fill me-2 fs-5 text-primary"></i>
+                            <span class="fw-bold">{% trans "Add" %}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
                             <li><a class="dropdown-item py-2" href="{% url 'expense-create' %}?next={{ request.path }}"><i class="bi bi-dash-circle text-danger me-2"></i> {% trans "Add Expense" %}</a></li>

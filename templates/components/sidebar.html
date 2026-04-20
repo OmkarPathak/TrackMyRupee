@@ -1,0 +1,119 @@
+{% load static i18n digit_filters %}
+
+<div class="sidebar d-none d-lg-flex flex-column" id="sidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header d-flex align-items-center px-3 py-4">
+        <a href="{% url 'home' %}" class="sidebar-brand d-flex align-items-center gap-2 text-decoration-none">
+            <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" width="32" height="32" class="rounded-3 shadow-sm">
+            <span class="brand-text fw-bold fs-5 text-body">TrackMyRupee</span>
+        </a>
+        <button class="btn btn-link link-body-emphasis ms-auto p-0 sidebar-toggle d-none d-lg-block" id="sidebarCollapse">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar-content flex-grow-1 overflow-y-auto px-0">
+        <div class="nav flex-column gap-1">
+            <!-- Dashboard -->
+            <a href="{% url 'home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'home' %}active{% endif %}" title="{% trans 'Dashboard' %}">
+                <i class="bi bi-speedometer2 fs-5"></i>
+                <span class="nav-text">{% trans "Dashboard" %}</span>
+            </a>
+
+            <!-- Expenses -->
+            <a href="{% url 'expense-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'expense' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Expenses' %}">
+                <i class="bi bi-credit-card fs-5"></i>
+                <span class="nav-text">{% trans "Expenses" %}</span>
+            </a>
+
+            <!-- Subscriptions -->
+            <a href="{% url 'recurring-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'recurring' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Subscriptions' %}">
+                <i class="bi bi-arrow-repeat fs-5"></i>
+                <span class="nav-text">{% trans "Subscriptions" %}</span>
+            </a>
+
+            <!-- Goals -->
+            <a href="{% url 'goal-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'goal' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Goals' %}">
+                <i class="bi bi-bullseye fs-5"></i>
+                <span class="nav-text">{% trans "Goals" %}</span>
+            </a>
+
+            <!-- Calendar -->
+            <a href="{% url 'calendar' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}" title="{% trans 'Calendar' %}">
+                <i class="bi bi-calendar3 fs-5"></i>
+                <span class="nav-text">{% trans "Calendar" %}</span>
+            </a>
+
+            <!-- Analytics -->
+            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name or 'mom' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
+                <i class="bi bi-graph-up-arrow fs-5"></i>
+                <span class="nav-text">{% trans "Analytics" %}</span>
+            </a>
+
+            <!-- Divider -->
+            <hr>
+
+            <!-- Accounts Section -->
+            <div class="sidebar-section mb-2">
+                <div class="sidebar-section-title d-flex justify-content-between align-items-center mb-2">
+                    <span class="px-3 text-muted">{% trans "Accounts" %}</span>
+                    <a href="{% url 'account-create' %}" class="btn btn-link p-0 text-decoration-none nav-text me-4" title="{% trans 'Add Account' %}">
+                        <i class="bi bi-plus-lg"></i>
+                    </a>
+                </div>
+                <div class="nav flex-column gap-1">
+                    {% for account in sidebar_accounts %}
+                    <a href="{% url 'account-detail' account.pk %}" class="nav-link small py-1 d-flex align-items-center rounded-2 account-item" 
+                       title="{{ account.name }}: {{ currency_symbol }}{{ account.balance }}">
+                        <div class="d-flex justify-content-between align-items-center w-100 min-width-0">
+                            <span class="account-name text-truncate">{{ account.name }}</span>
+                            <span class="account-balance ms-2">{{ account.balance|compact_amount:currency_symbol }}</span>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="text-center py-2">
+                        <p class="text-muted smaller mb-2">{% trans "No accounts found" %}</p>
+                        <a href="{% url 'account-create' %}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-plus"></i> {% trans "Add new" %}
+                        </a>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if has_more_accounts %}
+                    <a href="{% url 'account-list' %}" class="nav-link small py-1 text-primary fw-medium d-flex align-items-center">
+                        <span class="nav-text">{% trans "View all" %}</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-footer border-top">
+        <div class="nav flex-column gap-1">
+            <!-- Support Us -->
+            <a href="https://rzp.io/rzp/AP7kBG2" target="_blank" class="nav-link d-flex align-items-center gap-3 rounded-3 text-primary fw-bold" title="{% trans 'Support Us' %}">
+                <i class="bi bi-heart-fill fs-5"></i>
+                <span class="nav-text">{% trans "Support Us" %}</span>
+            </a>
+
+            <!-- Theme Toggle -->
+            <a href="#" class="nav-link d-flex align-items-center gap-3 rounded-3 theme-toggle-btn" title="{% trans 'Toggle Theme' %}">
+                <i class="bi bi-moon-stars-fill theme-icon-active fs-5"></i>
+                <span class="nav-text">{% trans "Switch Theme" %}</span>
+            </a>
+
+            <!-- Settings -->
+            <a href="{% url 'profile-settings' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'profile-settings' %}active{% endif %}" title="{% trans 'Settings' %}">
+                <i class="bi bi-gear fs-5"></i>
+                <span class="nav-text">{% trans "Settings" %}</span>
+            </a>
+
+            <a class="nav-link d-flex align-items-center gap-3 rounded-3 text-danger" href="{% url 'account_logout' %}">
+                <i class="bi bi-box-arrow-right"></i> {% trans "Logout" %}
+            </a>
+        </div>
+    </div>
+</div>

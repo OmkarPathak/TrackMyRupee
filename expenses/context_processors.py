@@ -40,3 +40,16 @@ def currency_symbol(request):
         except UserProfile.DoesNotExist:
             return {'currency_symbol': '₹'}
     return {'currency_symbol': '₹'}
+
+def user_accounts(request):
+    """Provides user accounts to all templates for the sidebar."""
+    if request.user.is_authenticated:
+        from .models import Account
+        accounts = Account.objects.filter(user=request.user).order_by('name')
+        count = accounts.count()
+        return {
+            'sidebar_accounts': accounts[:5],
+            'sidebar_accounts_count': count,
+            'has_more_accounts': count > 5
+        }
+    return {'sidebar_accounts': [], 'sidebar_accounts_count': 0, 'has_more_accounts': False}
