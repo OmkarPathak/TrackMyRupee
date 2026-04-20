@@ -437,6 +437,18 @@ body {
     transition: padding-left var(--sidebar-transition);
   }
 
+  body.has-sidebar main {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  @media (min-width: 1400px) {
+    body.has-sidebar main {
+      padding-left: 3rem !important;
+      padding-right: 3rem !important;
+    }
+  }
+
   body.has-sidebar.sidebar-collapsed {
     padding-left: var(--sidebar-collapsed-width);
   }
@@ -462,6 +474,38 @@ body {
 
   body.has-sidebar.sidebar-collapsed .navbar.sticky-top {
     left: var(--sidebar-collapsed-width);
+  }
+
+  /* Settings Navigation */
+  .settings-horizontal-nav .nav-link {
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .settings-horizontal-nav .nav-link:hover {
+    background: rgba(var(--bs-primary-rgb), 0.05);
+  }
+
+  .settings-horizontal-nav .nav-link.active {
+    background: rgba(var(--bs-primary-rgb), 0.1) !important;
+  }
+
+  .settings-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .settings-card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
+    background: rgba(var(--bs-primary-rgb), 0.02);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   /* When demo banner is present */

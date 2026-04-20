@@ -106,7 +106,7 @@
             </a>
 
             <!-- Settings -->
-            <a href="{% url 'profile-settings' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'profile-settings' %}active{% endif %}" title="{% trans 'Settings' %}">
+            <a href="{% url 'settings-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'settings' in request.resolver_match.url_name or 'profile' in request.resolver_match.url_name or 'currency' in request.resolver_match.url_name or 'language' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Settings' %}">
                 <i class="bi bi-gear fs-5"></i>
                 <span class="nav-text">{% trans "Settings" %}</span>
             </a>

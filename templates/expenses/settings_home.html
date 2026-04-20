@@ -185,7 +185,178 @@
     </div>
 </div>
 
-<!-- Desktop Placeholder (Visible only when sidebar is present) -->
+<!-- Desktop Settings Dashboard -->
+<div class="d-none d-md-block fade-in">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="h4 fw-bold mb-1">{% trans "Settings & Preferences" %}</h2>
+            <p class="text-muted small mb-0">{% trans "Manage your account settings, data, and app experience." %}</p>
+        </div>
+        <div class="card bg-primary bg-opacity-10 border-0 rounded-4">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-2 text-primary">
+                        <small class="text-uppercase fw-bold d-block" style="font-size: 0.6rem;">{% trans "Plan" %}</small>
+                        <span class="fw-bold">{{ user.profile.active_tier_display }}</span>
+                    </div>
+                    {% if not user.profile.is_pro %}
+                    <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold ms-2" style="font-size: 0.7rem;">{% trans "Upgrade" %}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section: Data & Tools -->
+    <h6 class="text-muted text-uppercase fw-bold mb-3 mt-4" style="font-size: 0.7rem; letter-spacing: 0.05rem;">{% trans "Data & Tools" %}</h6>
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <a href="{% url 'account-list' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-info bg-opacity-10 text-info rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-wallet2 fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Accounts" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Manage your banks, wallets and investment portfolios." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'income-list' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-success bg-opacity-10 text-success rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-cash-stack fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Income" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Track and manage your various income sources." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'budget' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-indigo bg-opacity-10 text-indigo rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-pie-chart fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Budget Dashboard" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Plan and monitor your spending limits and goals." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'category-list' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-tags fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Categories" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Customize your expense and income categories." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'upload' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-cloud-arrow-up fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Bulk Upload" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Import your transactions from CSV or Excel files." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'export-data' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-secondary bg-opacity-10 text-secondary rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-download fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Export Data" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Backup your financial records for offline use." %}</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Section: App Preferences -->
+    <h6 class="text-muted text-uppercase fw-bold mb-3 mt-4" style="font-size: 0.7rem; letter-spacing: 0.05rem;">{% trans "App Preferences" %}</h6>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <a href="{% url 'profile-settings' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-info bg-opacity-10 text-info rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-person-badge fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Profile" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Update your personal details and avatar." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'currency-settings' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-success bg-opacity-10 text-success rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-coin fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Currency" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Change your primary currency and viewing options." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'language-settings' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-info bg-opacity-10 text-info rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-translate fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Language" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Select your preferred language for the interface." %}</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Section: Support & Help -->
+    <h6 class="text-muted text-uppercase fw-bold mb-3 mt-5" style="font-size: 0.7rem; letter-spacing: 0.05rem;">{% trans "Support & Help" %}</h6>
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <a href="{% url 'home' %}?tour=true" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-info bg-opacity-10 text-info rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-question-circle fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Tutorial" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Start the guided tour to learn how to use the app." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'contact' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-secondary bg-opacity-10 text-secondary rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-envelope fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Contact Support" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Get help with any issues or suggest new features." %}</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Section: Danger Zone -->
+    <h6 class="text-danger text-uppercase fw-bold mb-3 mt-5 opacity-75" style="font-size: 0.7rem; letter-spacing: 0.05rem;">{% trans "Danger Zone" %}</h6>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <a href="{% url 'user-delete' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover border-start border-danger border-4">
+                <div class="card-body p-4">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-person-x fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1 text-danger">{% trans "Delete Account" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Permanently remove your account and all your data." %}</p>
+                </div>
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}
