@@ -50,24 +50,31 @@ def compact_amount(value, currency=''):
 
     from django.contrib.humanize.templatetags.humanize import intcomma
 
-    # Only abbreviate if the number is >= 100,000
-    if num < 100000:
-        return intcomma(f"{num:,.0f}")
+    abs_num = abs(num)
+    sign = "-" if num < 0 else ""
+
+    # Only abbreviate if the absolute number is >= 100,000
+    if abs_num < 100000:
+        return f"{sign}{intcomma(f'{abs_num:,.0f}')}"
 
     # Currency-aware formatting
     if str(currency).upper() in ['INR', '₹']:
         # Indian Numbering System (Lakhs, Crores)
-        if num >= 10000000:  # 1 Crore
-            return f"{num / 10000000:.1f}Cr".replace('.0Cr', 'Cr')
-        elif num >= 100000:  # 1 Lakh
-            return f"{num / 100000:.1f}L".replace('.0L', 'L')
+        if abs_num >= 10000000:  # 1 Crore
+            res = f"{abs_num / 10000000:.1f}Cr".replace('.0Cr', 'Cr')
+        elif abs_num >= 100000:  # 1 Lakh
+            res = f"{abs_num / 100000:.1f}L".replace('.0L', 'L')
+        else:
+            res = intcomma(f"{abs_num:,.0f}")
     else:
         # International Numbering System (Millions, Billions)
-        if num >= 1000000000:  # 1 Billion
-            return f"{num / 1000000000:.1f}B".replace('.0B', 'B')
-        elif num >= 1000000:  # 1 Million
-            return f"{num / 1000000:.1f}M".replace('.0M', 'M')
-        elif num >= 1000:    # 1 Thousand
-            return f"{num / 1000:.0f}k"
+        if abs_num >= 1000000000:  # 1 Billion
+            res = f"{abs_num / 1000000000:.1f}B".replace('.0B', 'B')
+        elif abs_num >= 1000000:  # 1 Million
+            res = f"{abs_num / 1000000:.1f}M".replace('.0M', 'M')
+        elif abs_num >= 1000:    # 1 Thousand
+            res = f"{abs_num / 1000:.0f}k"
+        else:
+            res = intcomma(f"{abs_num:,.0f}")
     
-    return intcomma(f"{num:,.0f}")
+    return f"{sign}{res}"

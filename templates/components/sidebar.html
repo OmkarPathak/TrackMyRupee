@@ -69,7 +69,7 @@
                         <div class="d-flex justify-content-between align-items-center w-100 min-width-0">
                             <div class="d-flex align-items-center min-width-0">
                                 <span class="account-dot me-2"></span>
-                                <span class="account-name text-truncate">{{ account.name|truncatechars:18 }}</span>
+                                <span class="account-name text-truncate">{{ account.name|truncatechars:15 }}</span>
                                 {% if account.account_type == 'CREDIT_CARD' %}
                                 <i class="ms-2 bi bi-credit-card ms-1 smaller opacity-50 d-inline-flex align-items-center" style="line-height: 1; font-size: 14px;" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Credit card balance: negative means outstanding debt.' %}"></i>
                                 {% endif %}
@@ -119,7 +119,11 @@
                 <span class="nav-text">{% trans "Settings" %}</span>
             </a>
 
-            <a class="nav-link d-flex align-items-center gap-3 rounded-3 text-danger" href="{% url 'account_logout' %}" title="{% trans 'Logout' %}">
+            <form id="logout-form" action="{% url 'account_logout' %}" method="post" class="d-none">
+                {% csrf_token %}
+            </form>
+            <a class="nav-link d-flex align-items-center gap-3 rounded-3 text-danger" href="{% url 'account_logout' %}" 
+               onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="{% trans 'Logout' %}">
                 <i class="bi bi-box-arrow-right fs-5"></i>
                 <span class="nav-text">{% trans "Logout" %}</span>
             </a>
