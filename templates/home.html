@@ -451,7 +451,7 @@
         </button>
         
         <!-- Desktop Filter Form (Hidden on Mobile) -->
-        <form method="get" class="d-none d-md-flex flex-wrap align-items-center gap-2 bg-body p-1 rounded-3 shadow-sm border" id="filter-form" style="position: relative; z-index: 1040;">
+        <form method="get" class="d-none d-md-flex flex-wrap align-items-center gap-2 bg-body p-1 rounded-3 shadow-sm border" id="dashboard-home-filter-form" style="position: relative; z-index: 1040;">
             <!-- Hidden Actual Inputs -->
             <input type="hidden" name="start_date" id="start_date" value="{{ start_date|default:'' }}">
             <input type="hidden" name="end_date" id="end_date" value="{{ end_date|default:'' }}">
@@ -541,7 +541,7 @@
 
 <!-- Mobile Filter Form (Realigned) -->
 <div class="collapse d-md-none w-100" id="dashboardFilters" style="position: relative; z-index: 1050;">
-    <form method="get" class="mb-4 d-flex flex-column gap-3 bg-body-tertiary p-3 rounded shadow-sm">
+    <form method="get" class="mb-4 d-flex flex-column gap-3 bg-body-tertiary p-3 rounded shadow-sm" id="dashboard-mobile-filter-form">
         <!-- Date Range Group -->
         <div class="row g-2">
             <div class="col-6">

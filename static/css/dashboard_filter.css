@@ -37,8 +37,8 @@
     font-size: 1rem;
 }
 
-/* Ensure Category dropdown (Multiselect) matches height and radius */
-#filter-form .multiselect {
+/* Ensure Category dropdown (Multiselect) matches height and radius on Dashboard */
+#dashboard-home-filter-form .multiselect {
     border-radius: 8px !important;
     font-size: 0.875rem !important;
     padding: 0.35rem 1rem !important;
@@ -96,11 +96,11 @@
     color: var(--bs-primary);
 }
 
-#filter-form .multiselect .caret {
+#dashboard-home-filter-form .multiselect .caret {
     display: none !important;
 }
 
-#filter-form .multiselect-container {
+#dashboard-home-filter-form .multiselect-container {
     width: 100% !important;
 }
 

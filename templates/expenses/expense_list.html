@@ -3,14 +3,7 @@
 
 {% block content %}
 <style>
-    /* Responsive Filter Widths */
-    @media (min-width: 992px) {
-        .filter-w-search { width: 140px; }
-        .filter-w-date { width: 130px; }
-        .filter-w-year { width: 110px; }
-        .filter-w-month { width: 140px; }
-        .filter-w-category { width: 160px; }
-    }
+    /* Responsive Filter Widths - Removed hardcoded px widths that cause overflows */
 
     /* Fix multiselect dropdown overflow on mobile */
     #filter-form .row,
@@ -379,7 +372,7 @@
                         <i class="bi bi-grid-fill" style="font-size: 0.85rem;"></i>
                     </button>
                 </div>
-                <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="true" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
+                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
                 </button>
                 <a href="{% url 'expense-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
@@ -434,7 +427,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-6 col-md-auto filter-w-month">
+            <div class="col-6 col-md">
                 <label for="month-select" class="form-label small text-muted">{% trans "Month" %}</label>
                 <select name="month" id="month-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Months...' %}">
                     {% for num, name in months_list %}
@@ -446,7 +439,7 @@
             </div>
 
             <!-- Category -->
-            <div class="col-12 col-md-auto filter-w-category">
+            <div class="col-12 col-md">
                 <label for="category-select" class="form-label small text-muted">{% trans "Category" %}</label>
                 <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
                     {% for cat in categories %}
@@ -457,30 +450,29 @@
                 </select>
             </div>
 
-            <!-- Action Buttons (Unified Alignment & Spacing) -->
-            <div class="col-12 col-md-auto flex-grow-1 flex-lg-grow-0 mt-3 mt-md-0">
-                <div class="d-flex flex-wrap flex-md-nowrap gap-2 align-items-end">
-                    <button type="submit" class="btn btn-primary btn-sm flex-fill flex-md-grow-0">
-                        <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
-                    </button>
-                    
-                    <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary btn-sm flex-fill flex-md-grow-0">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
-                    </a>
+        </div> <!-- End of inputs row -->
 
-                    <!-- Bulk Actions (Desktop) -->
-                    <div class="d-none d-md-flex gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm bulk-edit-btn" id="bulkEditBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal">
-                            <i class="bi bi-pencil me-1"></i> {% trans "Edit Selected" %}
-                        </button>
-                        <button type="button" class="btn btn-outline-danger btn-sm bulk-delete-btn" id="bulkDeleteBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                            <i class="bi bi-trash me-1"></i> {% trans "Delete Selected" %}
-                        </button>
-                    </div>
-                </div>
+        <!-- Action Buttons Row (Ensures wrapping and prevents overflow) -->
+        <div class="row g-2 mt-3 align-items-center">
+            <div class="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+                <button type="submit" class="btn btn-primary btn-sm px-4">
+                    <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
+                </button>
+                
+                <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary btn-sm px-4">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
+                </a>
+
+                <div class="vr mx-1 d-none d-md-block opacity-25"></div>
+
+                <!-- Bulk Actions (Desktop) -->
+                <button type="button" class="btn btn-outline-primary btn-sm bulk-edit-btn d-none d-md-inline-block" id="bulkEditBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal">
+                    <i class="bi bi-pencil me-1"></i> {% trans "Edit Selected" %}
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm bulk-delete-btn d-none d-md-inline-block" id="bulkDeleteBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
+                    <i class="bi bi-trash me-1"></i> {% trans "Delete Selected" %}
+                </button>
             </div>
-
-
         </div>
     </form>
     </div>
@@ -689,11 +681,8 @@
                 checkDescriptionOverflow();
             }
 
-            // Show filters by default on desktop
-            if (window.innerWidth >= 768) {
-                const filters = document.getElementById('expenseFilters');
-                if (filters) filters.classList.add('show');
-            }
+            // Filters are hidden by default via HTML classes ('collapse' without 'show').
+            // No auto-expand logic to ensure they stay hidden until explicitly toggled by the user.
         });
 
         function checkDescriptionOverflow() {

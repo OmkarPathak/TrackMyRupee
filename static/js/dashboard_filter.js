@@ -13,13 +13,16 @@ class DashboardDatePicker {
         this.presets = document.querySelectorAll('.preset-item');
         this.applyBtn = document.getElementById('apply-filter-btn');
         this.cancelBtn = document.getElementById('cancel-filter-btn');
-        this.form = document.getElementById('filter-form');
+        this.form = document.getElementById('dashboard-home-filter-form') || document.getElementById('dashboard-mobile-filter-form');
         
         this.init();
     }
 
     init() {
-        if (!this.trigger) return;
+        // Safe check: only init if all required elements for the modernized picker exist
+        if (!this.trigger || !this.startInput || !this.endInput || !this.form || !this.applyBtn) {
+            return;
+        }
 
         // Initialize Flatpickr
         this.fp = flatpickr("#inline-calendar", {
@@ -45,8 +48,12 @@ class DashboardDatePicker {
             item.addEventListener('click', (e) => this.handlePresetClick(e));
         });
 
-        this.applyBtn.addEventListener('click', () => this.apply());
-        this.cancelBtn.addEventListener('click', () => this.close());
+        if (this.applyBtn) {
+            this.applyBtn.addEventListener('click', () => this.apply());
+        }
+        if (this.cancelBtn) {
+            this.cancelBtn.addEventListener('click', () => this.close());
+        }
     }
 
     handlePresetClick(e) {
@@ -150,13 +157,21 @@ class DashboardDatePicker {
     }
 
     apply() {
+        if (!this.fp || !this.form) return;
         const range = this.fp.selectedDates;
         if (range.length === 2) {
-            this.startInput.value = this.formatDate(range[0]);
-            this.endInput.value = this.formatDate(range[1]);
+            if (this.startInput) this.startInput.value = this.formatDate(range[0]);
+            if (this.endInput) this.endInput.value = this.formatDate(range[1]);
             
             if (window.showLoader) window.showLoader();
-            this.form.submit();
+            
+            // Context-aware form finding is more robust than ID lookups
+            const formToSubmit = this.applyBtn ? this.applyBtn.closest('form') : this.form;
+            if (formToSubmit) {
+                formToSubmit.submit();
+            } else {
+                console.error("DashboardDatePicker: No form found to submit");
+            }
         }
     }
 
