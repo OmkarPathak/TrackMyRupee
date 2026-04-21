@@ -2,17 +2,17 @@
 {% load i18n humanize currency_filters digit_filters %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Dashboard Mode Toggle -->
-    <div class="d-flex justify-content-center mb-4 fade-in">
-        <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm" role="group" id="dashboard-mode-toggle" style="border: 1px solid var(--bs-border-color-translucent);">
-            <a href="{% url 'home' %}?mode=daily" class="btn btn-sm rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center justify-content-center" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
+<div class="container">
+    <!-- Dashboard Mode Toggle (Mobile Only) -->
+    <div class="d-lg-none d-flex justify-content-center mb-4 fade-in">
+        <div class="dashboard-mode-container" role="group">
+            <a href="{% url 'home' %}?mode=daily" class="btn btn-sm mode-btn daily-mode-btn">
                 {% trans "Daily Mode" %}
             </a>
-            <a href="{% url 'home' %}?mode=full" class="btn btn-sm rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center justify-content-center" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
+            <a href="{% url 'home' %}?mode=full" class="btn btn-sm mode-btn full-report-btn">
                 {% trans "Full Report" %}
             </a>
-            <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold active d-inline-flex align-items-center justify-content-center" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
+            <button type="button" class="btn btn-sm mode-btn active" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'">
                 {% trans "Trends" %}
             </button>
         </div>
@@ -454,35 +454,8 @@
 </script>
 
 <style>
-    #dashboard-mode-toggle .active {
-        background-color: var(--bs-primary) !important;
-        color: #fff !important;
-        box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.35);
-    }
-    #dashboard-mode-toggle .btn {
-        color: var(--bs-body-color);
-        border: none;
-        text-decoration: none;
-    }
-    #dashboard-mode-toggle .btn:not(.active):hover {
-        background: rgba(var(--bs-primary-rgb), 0.08);
-    }
+    /* Redundant styles removed */
 
-    /* Responsive Dashboard Toggle */
-    @media (max-width: 480px) {
-        #dashboard-mode-toggle {
-            width: 100%;
-            display: flex !important;
-        }
-        #dashboard-mode-toggle .btn {
-            min-width: 0 !important;
-            flex: 1;
-            padding-left: 0.25rem !important;
-            padding-right: 0.25rem !important;
-            font-size: 0.8rem !important;
-            white-space: nowrap;
-        }
-    }
     .card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
     .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important; }
 

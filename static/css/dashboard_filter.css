@@ -57,7 +57,45 @@
     padding-right: 2.5rem !important;
 }
 
-/* Hide default library caret */
+/* Dashboard Mode Toggle Shared Styles */
+.dashboard-mode-container {
+    background-color: var(--bs-tertiary-bg);
+    border-radius: 50rem !important; /* rounded-pill */
+    padding: 0.25rem !important;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: var(--bs-box-shadow-sm);
+    border: 1px solid var(--bs-border-color-translucent);
+}
+
+.dashboard-mode-container .mode-btn {
+    min-width: 110px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    line-height: 1.2;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    border: none !important;
+    border-radius: 50rem !important; /* Standardize pill shape for all buttons */
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-mode-container .mode-btn.active {
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.dashboard-mode-container .mode-btn:not(.active) {
+    color: var(--bs-secondary-color);
+}
+
+.dashboard-mode-container .mode-btn:not(.active):hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    color: var(--bs-primary);
+}
+
 #filter-form .multiselect .caret {
     display: none !important;
 }

@@ -4,8 +4,7 @@
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-    /* Date Filter UI */
-    @import url("{% static 'css/dashboard_filter.css' %}");
+    /* Date Filter UI moved to base.html */
 
     /* ── Typography Scale ─────────────────────────────────
        Hero KPI:      1.5rem   (main number per card)
@@ -17,9 +16,6 @@
        Badge:         0.7rem   (header badges)
        Icon:          16×16    (card header SVGs)
     ────────────────────────────────────────────────────── */
-
-    /* Unified card header title size */
-    /* Unified card header title size - Standardized to use default body size */
 
     .icon-shape {
         display: inline-flex;
@@ -208,16 +204,16 @@
 
 </style>
 
-<!-- Daily Mode / Full Report Toggle -->
-<div class="d-flex justify-content-center mb-4 fade-in">
-    <div class="bg-body-tertiary rounded-pill p-1 d-inline-flex align-items-center shadow-sm" role="group" id="dashboard-mode-toggle" style="border: 1px solid var(--bs-border-color-translucent);">
-        <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold daily-mode-btn active d-inline-flex align-items-center justify-content-center" id="btn-daily-mode" onclick="switchToDailyMode()" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
+<!-- Daily Mode / Full Report Toggle (Mobile Only) -->
+<div class="d-md-none d-flex justify-content-center mb-4 fade-in">
+    <div class="dashboard-mode-container" role="group">
+        <button type="button" class="btn btn-sm mode-btn daily-mode-btn active" id="btn-daily-mode" onclick="switchToDailyMode()">
             {% trans "Daily Mode" %}
         </button>
-        <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold full-report-btn d-inline-flex align-items-center justify-content-center" id="btn-full-report" onclick="switchToFullReport()" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
+        <button type="button" class="btn btn-sm mode-btn full-report-btn" id="btn-full-report" onclick="switchToFullReport()">
             {% trans "Full Report" %}
         </button>
-        <button type="button" class="btn btn-sm rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center justify-content-center" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'" style="min-width: 120px; transition: all 0.3s ease; line-height: 1.2;">
+        <button type="button" class="btn btn-sm mode-btn" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'">
             {% trans "Trends" %}
         </button>
     </div>
@@ -2362,11 +2358,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // --- 1. Trend Chart ---
-        const ctxTrend = document.getElementById('trendChart').getContext('2d');
-        const trendIsDaily = {{ trend_is_daily|yesno:"true,false" }};
-        const trend7dAvg = {{ trend_7d_avg|safe }};
+        const trendCanvas = document.getElementById('trendChart');
+        if (trendCanvas) {
+            const ctxTrend = trendCanvas.getContext('2d');
+            const trendIsDaily = {{ trend_is_daily|yesno:"true,false" }};
+            const trend7dAvg = {{ trend_7d_avg|safe }};
 
-        if (trendIsDaily && trendLabels.length > 1) {
+            if (trendIsDaily && trendLabels.length > 1) {
             // --- Daily view: Area line + 7-day moving average ---
             const areaGradient = 'rgba(29, 158, 117, 0.12)';
 
@@ -2522,8 +2520,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+    }
 
-        // --- 2. Money Flow Chart (Layer 2) ---
+    // --- 2. Money Flow Chart (Layer 2) ---
         const moneyFlowCanvas = document.getElementById('moneyFlowChart');
         const savedAmount = parseFloat("{{ hero_metrics.saved|stringformat:'f'|default:'0' }}");
 
@@ -3210,52 +3209,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </div><!-- END #full-report-view -->
 
-<script>
-// Dashboard Mode Toggle Logic
-function switchToDailyMode() {
-    document.getElementById('daily-mode-view').style.display = 'block';
-    document.getElementById('full-report-view').style.display = 'none';
-    document.getElementById('btn-daily-mode').classList.add('active');
-    document.getElementById('btn-full-report').classList.remove('active');
-    const btnMom = document.getElementById('btn-mom');
-    if (btnMom) btnMom.classList.remove('active');
-    localStorage.setItem('tmr_dashboard_mode', 'daily');
-}
-
-function switchToFullReport() {
-    document.getElementById('daily-mode-view').style.display = 'none';
-    document.getElementById('full-report-view').style.display = 'block';
-    document.getElementById('btn-daily-mode').classList.remove('active');
-    document.getElementById('btn-full-report').classList.add('active');
-    const btnMom = document.getElementById('btn-mom');
-    if (btnMom) btnMom.classList.remove('active');
-    localStorage.setItem('tmr_dashboard_mode', 'full');
-    
-    // Trigger Chart.js resize since canvases are now visible
-    if (window.dispatchEvent) {
-        window.dispatchEvent(new Event('resize'));
-    }
-    
-    // Explicitly update moneyFlowChart if it exists
-    if (window.charts && window.charts.moneyFlow) {
-        window.charts.moneyFlow.resize();
-        window.charts.moneyFlow.update();
-    }
-}
-
-// Restore last-used mode on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlMode = urlParams.get('mode');
-    const savedMode = localStorage.getItem('tmr_dashboard_mode');
-    
-    if (urlMode === 'full' || (urlMode === null && savedMode === 'full')) {
-        switchToFullReport();
-    } else {
-        switchToDailyMode();
-    }
-});
-</script>
 
 <script src="{% static 'js/dashboard_filter.js' %}"></script>
 

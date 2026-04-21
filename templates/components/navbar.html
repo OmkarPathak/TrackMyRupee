@@ -103,6 +103,23 @@
                         </a>
                     </li>
 
+                    <!-- Dashboard Mode Toggle (Desktop only, Home or Trends page) -->
+                    {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'analytics-mom' %}
+                    <li class="nav-item d-none d-lg-flex align-items-center me-3">
+                        <div class="dashboard-mode-container" role="group">
+                            <button type="button" class="btn btn-sm mode-btn daily-mode-btn {% if request.resolver_match.url_name == 'home' %}active{% endif %}" id="nav-btn-daily-mode" onclick="switchToDailyMode()">
+                                {% trans "Daily Mode" %}
+                            </button>
+                            <button type="button" class="btn btn-sm mode-btn full-report-btn" id="nav-btn-full-report" onclick="switchToFullReport()">
+                                {% trans "Full Report" %}
+                            </button>
+                            <button type="button" class="btn btn-sm mode-btn {% if request.resolver_match.url_name == 'analytics-mom' %}active{% endif %}" id="nav-btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'">
+                                {% trans "Trends" %}
+                            </button>
+                        </div>
+                    </li>
+                    {% endif %}
+
                     <!-- Action Dropdown -->
                     <li class="nav-item dropdown d-none d-lg-block ms-2">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

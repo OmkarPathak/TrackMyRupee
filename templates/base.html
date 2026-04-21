@@ -366,6 +366,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'style.css' %}?v=1.9">
     <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.4">
+    <link rel="stylesheet" href="{% static 'css/dashboard_filter.css' %}">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/css/bootstrap-multiselect.min.css">
     <style>
@@ -1494,9 +1495,11 @@
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <script src="{% static 'js/tutorial.js' %}"></script>
     <script src="{% static 'js/sidebar.js' %}"></script>
+    <script src="{% static 'js/dashboard_toggle.js' %}"></script>
     <script>
         // Set the URL for marking tutorial as complete globally for tutorial.js
         window.tutorialCompleteUrl = "{% url 'complete-tutorial' %}";
+        window.homeUrl = "{% url 'home' %}";
 
         {% if show_tutorial %}
         document.addEventListener('DOMContentLoaded', function () {
