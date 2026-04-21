@@ -217,10 +217,13 @@ class ExpenseCreateView(LoginRequiredMixin, View):
                 for obj in formset.deleted_objects:
                     obj.delete()
 
+                messages.success(request, _("Expenses added successfully!"))
                 next_url = request.POST.get('next') or request.GET.get('next')
+
                 if next_url:
                     return redirect(next_url)
                 return redirect('expense-list')
+
             except IntegrityError:
                 messages.error(request, _("Duplicate record found! You already have this expense recorded for this date."))
                 return render(request, self.template_name, {'formset': formset})
@@ -267,6 +270,10 @@ class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, _("Expense deleted successfully."))
+        return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')

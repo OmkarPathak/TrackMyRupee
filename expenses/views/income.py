@@ -98,11 +98,14 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
     form_class = IncomeForm
     template_name = 'expenses/income_form.html'
     success_url = reverse_lazy('income-list')
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
         return kwargs
+
     def form_valid(self, form):
         form.instance.user = self.request.user
+        messages.success(self.request, _("Income record added successfully!"))
         response = super().form_valid(form)
         
         if form.cleaned_data.get('add_to_recurring'):
@@ -149,9 +152,11 @@ class IncomeUpdateView(LoginRequiredMixin, UpdateView):
     form_class = IncomeForm
     template_name = 'expenses/income_form.html'
     success_url = reverse_lazy('income-list')
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
         return kwargs
+
     def get_queryset(self): return Income.objects.filter(user=self.request.user)
 
     def get_success_url(self):
@@ -163,6 +168,7 @@ class IncomeUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         from django.db import IntegrityError
         try:
+            messages.success(self.request, _("Income record updated successfully!"))
             response = super().form_valid(form)
             if form.cleaned_data.get('add_to_recurring'):
                 existing_rt = RecurringTransaction.objects.filter(
@@ -202,6 +208,11 @@ class IncomeUpdateView(LoginRequiredMixin, UpdateView):
 class IncomeDeleteView(LoginRequiredMixin, DeleteView):
     model = Income
     def get_queryset(self): return Income.objects.filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, _("Income record deleted successfully."))
+        return super().delete(request, *args, **kwargs)
+
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
         if next_url:

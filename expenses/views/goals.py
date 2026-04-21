@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
+from finance_tracker.plans import get_limit
 
 from ..forms import GoalContributionForm, SavingsGoalForm
 from ..models import GoalContribution, SavingsGoal
@@ -37,14 +38,18 @@ class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
     form_class = SavingsGoalForm
     template_name = 'expenses/goal_form.html'
     success_url = reverse_lazy('goal-list')
+
     def dispatch(self, request, *args, **kwargs):
         if not request.user.profile.can_add_goal():
             messages.error(request, _("Goal limit reached."))
             return redirect('goal-list')
         return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         form.instance.user = self.request.user
+        messages.success(self.request, _("Savings goal created successfully!"))
         return super().form_valid(form)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
         return kwargs
@@ -54,6 +59,7 @@ class SavingsGoalUpdateView(LoginRequiredMixin, UpdateView):
     form_class = SavingsGoalForm
     template_name = 'expenses/goal_form.html'
     success_url = reverse_lazy('goal-list')
+
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object(); profile = request.user.profile
         from finance_tracker.plans import get_limit
@@ -64,6 +70,7 @@ class SavingsGoalUpdateView(LoginRequiredMixin, UpdateView):
                 messages.error(request, _("This goal is locked."))
                 return redirect('goal-list')
         return super().dispatch(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
         return kwargs
@@ -110,18 +117,22 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
                 pass
         # Lock check for POST contributions
         profile = request.user.profile
-        from finance_tracker.plans import get_limit
+        
         limit = get_limit(profile.active_tier, 'savings_goals')
         if limit != -1:
              goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
              if goal in goals and goals.index(goal) >= limit:
                  messages.error(request, _("This goal is locked."))
                  return redirect('goal-list')
+
         form = GoalContributionForm(request.POST, user=request.user)
+
         if form.is_valid():
             c = form.save(commit=False); c.goal = goal; c.save()
+            messages.success(request, _("Contribution added successfully!"))
             request.session['trigger_confetti'] = True
             return redirect('goal-detail', pk=goal.pk)
+
         return render(request, self.template_name, {'goal': goal, 'form': form})
 
 class GoalContributionUpdateView(LoginRequiredMixin, UpdateView):

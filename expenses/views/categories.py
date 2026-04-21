@@ -88,6 +88,7 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
             messages.error(self.request, _("Category limit reached. Please upgrade."))
             return redirect('pricing')
         form.instance.user = self.request.user
+        messages.success(self.request, _("Category created successfully!"))
         return super().form_valid(form)
 
     def get_form(self, form_class=None):
@@ -148,6 +149,7 @@ class CategoryUpdateView(LoginRequiredMixin, UpdateView):
         try:
             # Store old name to update related expenses
             old_name = self.get_object().name
+            messages.success(self.request, _("Category updated successfully!"))
             response = super().form_valid(form)
             new_name = self.object.name
             
@@ -164,3 +166,7 @@ class CategoryDeleteView(LoginRequiredMixin, DeleteView):
     model = Category
     success_url = reverse_lazy('category-list')
     def get_queryset(self): return Category.objects.filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, _("Category deleted successfully."))
+        return super().delete(request, *args, **kwargs)

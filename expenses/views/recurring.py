@@ -233,9 +233,12 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
             start_date=form.instance.start_date,
             is_active=True,
         ).exists()
+
         if dup:
             messages.warning(self.request, _("A recurring transaction with the same details already exists."))
             return self.form_invalid(form)
+
+        messages.success(self.request, _("Recurring transaction created successfully!"))
         return super().form_valid(form)
     
     def get_form_kwargs(self):
@@ -264,9 +267,12 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UpdateView):
             messages.error(request, _("This subscription is locked."))
             return redirect('recurring-list')
         return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         form.instance.user = self.request.user
+        messages.success(self.request, _("Recurring transaction updated successfully!"))
         return super().form_valid(form)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
         return kwargs
