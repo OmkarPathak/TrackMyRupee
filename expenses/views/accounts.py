@@ -88,9 +88,9 @@ class AccountDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         return Account.objects.filter(user=self.request.user)
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
         messages.success(self.request, _("Account deleted successfully."))
-        return super().delete(request, *args, **kwargs)
+        return super().form_valid(form)
 
 class AccountQuickCreateView(LoginRequiredMixin, View):
     """AJAX endpoint for creating an account from a modal and returning JSON."""

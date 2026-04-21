@@ -1163,16 +1163,13 @@
         {% endfor %}
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var toasts = document.querySelectorAll('.toast');
+        (function() {
+            var toasts = document.querySelectorAll('.toast:not(#donationToast)');
             toasts.forEach(function (toastEl) {
-                // Determine if this is a donation toast (which has manual control) or a message toast
-                if (!toastEl.id || toastEl.id !== 'donationToast') {
-                    var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-                    toast.show();
-                }
+                var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                toast.show();
             });
-        });
+        })();
     </script>
     {% endif %}
 

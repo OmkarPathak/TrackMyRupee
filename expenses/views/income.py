@@ -209,9 +209,9 @@ class IncomeDeleteView(LoginRequiredMixin, DeleteView):
     model = Income
     def get_queryset(self): return Income.objects.filter(user=self.request.user)
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
         messages.success(self.request, _("Income record deleted successfully."))
-        return super().delete(request, *args, **kwargs)
+        return super().form_valid(form)
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')

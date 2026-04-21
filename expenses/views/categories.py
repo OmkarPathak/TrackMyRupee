@@ -167,6 +167,6 @@ class CategoryDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('category-list')
     def get_queryset(self): return Category.objects.filter(user=self.request.user)
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
         messages.success(self.request, _("Category deleted successfully."))
-        return super().delete(request, *args, **kwargs)
+        return super().form_valid(form)

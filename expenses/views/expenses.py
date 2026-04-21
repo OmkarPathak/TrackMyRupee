@@ -271,9 +271,9 @@ class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user)
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
         messages.success(self.request, _("Expense deleted successfully."))
-        return super().delete(request, *args, **kwargs)
+        return super().form_valid(form)
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
@@ -298,9 +298,9 @@ class ExpenseBulkDeleteView(LoginRequiredMixin, View):
         
         if deleted_count > 0:
             expenses_to_delete.delete()
-            messages.success(request, f'{deleted_count} expenses deleted successfully.')
+            messages.success(request, _('%(count)d expenses deleted successfully.') % {'count': deleted_count})
         else:
-            messages.warning(request, 'No valid expenses found to delete.')
+            messages.warning(request, _('No valid expenses found to delete.'))
             
         return redirect(self.get_success_url())
 
@@ -337,7 +337,7 @@ class ExpenseBulkUpdateView(LoginRequiredMixin, View):
         
         if updated_count > 0:
             expenses_to_update.update(**update_data)
-            messages.success(request, _(f'{updated_count} expenses updated successfully.'))
+            messages.success(request, _('%(count)d expenses updated successfully.') % {'count': updated_count})
         else:
             messages.warning(request, _('No valid expenses found to update.'))
             
