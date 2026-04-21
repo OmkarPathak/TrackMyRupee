@@ -231,6 +231,16 @@
     line-height: 44px !important;
     border-radius: 8px !important;
     margin: 2px 0 !important;
+    color: var(--bs-body-color); /* Use theme-aware color */
+}
+
+[data-bs-theme="dark"] .flatpickr-day {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-bs-theme="dark"] .flatpickr-day.prevMonthDay,
+[data-bs-theme="dark"] .flatpickr-day.nextMonthDay {
+    color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Theme Color Overrides (Force Soft Green everywhere) */
@@ -291,8 +301,9 @@ span.flatpickr-weekday {
 .flatpickr-day.prevMonthDay:hover,
 .flatpickr-day.nextMonthDay:hover,
 .flatpickr-day.focused:hover {
-    background: rgba(45, 179, 137, 0.12) !important; /* Soft green hover/inRange */
+    background: rgba(45, 179, 137, 0.15) !important; /* Soft green hover/inRange */
     border-color: transparent !important;
+    box-shadow: -5px 0 0 rgba(45, 179, 137, 0.15), 5px 0 0 rgba(45, 179, 137, 0.15) !important; /* Remove white box-shadow */
 }
 
 .flatpickr-months .flatpickr-prev-month:hover svg, 
