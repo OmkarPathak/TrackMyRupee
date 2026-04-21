@@ -1,0 +1,313 @@
+/* Dashboard Filter Overhaul Styles */
+
+.date-range-trigger {
+    background: var(--bs-body-bg) !important;
+    border: 1px solid var(--bs-border-color) !important;
+    padding: 0.35rem 1rem !important;
+    border-radius: 8px !important;
+    font-size: 0.875rem !important;
+    color: var(--bs-body-color) !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start !important; /* Changed from space-between to allow padding-right to work */
+    gap: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    min-width: 260px;
+    position: relative !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232db389' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1rem center !important;
+    background-size: 12px 12px !important;
+    padding-right: 2.5rem !important;
+}
+
+.date-range-trigger .bi-chevron-down {
+    display: none !important;
+}
+
+.date-range-trigger:hover {
+    border-color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), 0.02) !important;
+}
+
+.date-range-trigger i {
+    color: var(--bs-primary);
+    font-size: 1rem;
+}
+
+/* Ensure Category dropdown (Multiselect) matches height and radius */
+#filter-form .multiselect {
+    border-radius: 8px !important;
+    font-size: 0.875rem !important;
+    padding: 0.35rem 1rem !important;
+    border: 1px solid var(--bs-border-color) !important;
+    background: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    min-width: 180px !important;
+    position: relative !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232db389' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1rem center !important;
+    background-size: 12px 12px !important;
+    padding-right: 2.5rem !important;
+}
+
+/* Hide default library caret */
+#filter-form .multiselect .caret {
+    display: none !important;
+}
+
+#filter-form .multiselect-container {
+    width: 100% !important;
+}
+
+.filter-dropdown-menu {
+    min-width: 680px;
+    padding: 0;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.filter-split-view {
+    display: flex;
+    min-height: 480px;
+}
+
+/* Left Pane: Presets */
+.filter-presets-sidebar {
+    width: 220px;
+    background: var(--bs-tertiary-bg);
+    border-right: 1px solid var(--bs-border-color);
+    padding: 0.75rem 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.preset-item {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.85rem;
+    color: var(--bs-body-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.preset-item:hover {
+    background: rgba(var(--bs-primary-rgb), 0.08);
+    color: var(--bs-primary);
+}
+
+.preset-item.active {
+    background: rgba(var(--bs-primary-rgb), 0.12);
+    color: var(--bs-primary);
+    font-weight: 600;
+    border-left-color: var(--bs-primary);
+}
+
+/* Right Pane: Main Content */
+.filter-main-content {
+    flex: 1;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    background: var(--bs-body-bg);
+}
+
+.filter-inputs-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-date-input-group {
+    position: relative;
+}
+
+.filter-date-input-group label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.filter-date-input-group input {
+    width: 100%;
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    color: var(--bs-body-color);
+}
+
+#inline-calendar {
+    width: 100%;
+    background: var(--bs-tertiary-bg);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.flatpickr-calendar.inline {
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    max-width: none !important;
+    display: block !important;
+}
+
+.flatpickr-innerContainer, 
+.flatpickr-rContainer, 
+.flatpickr-days, 
+.dayContainer,
+.flatpickr-weekdays {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+}
+
+.dayContainer {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-around !important;
+}
+
+.flatpickr-day {
+    max-width: none !important;
+    flex: 1 0 14% !important; /* Force growth to fill 1/7th */
+    height: 44px !important;
+    line-height: 44px !important;
+    border-radius: 8px !important;
+    margin: 2px 0 !important;
+}
+
+/* Theme Color Overrides (Force Soft Green everywhere) */
+.flatpickr-months,
+.flatpickr-month,
+.flatpickr-current-month,
+.flatpickr-monthDropdown-months,
+.flatpickr-weekdays {
+    background: #2db389 !important; /* Softer shade of green */
+    color: #fff !important;
+    fill: #fff !important;
+}
+
+.flatpickr-months {
+    border-radius: 12px 12px 0 0 !important;
+    padding: 0.5rem 0 !important;
+}
+
+span.flatpickr-weekday {
+    background: #2db389 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600 !important;
+}
+
+.flatpickr-innerContainer {
+    background: var(--bs-body-bg) !important;
+    border-radius: 0 0 12px 12px !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-top: none !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+}
+
+.flatpickr-day.selected, 
+.flatpickr-day.startRange, 
+.flatpickr-day.endRange,
+.flatpickr-day.selected:hover, 
+.flatpickr-day.startRange:hover, 
+.flatpickr-day.endRange:hover,
+.flatpickr-day.selected.prevMonthDay,
+.flatpickr-day.selected.nextMonthDay {
+    background: #2db389 !important; /* Consistent soft green */
+    border-color: #2db389 !important;
+    color: #fff !important;
+}
+
+.flatpickr-day.inRange,
+.flatpickr-day.prevMonthDay.inRange,
+.flatpickr-day.nextMonthDay.inRange,
+.flatpickr-day.today.inRange,
+.flatpickr-day.prev_month_day.today.inRange,
+.flatpickr-day.next_month_day.today.inRange,
+.flatpickr-day:hover,
+.flatpickr-day.prevMonthDay:hover,
+.flatpickr-day.nextMonthDay:hover,
+.flatpickr-day.focused:hover {
+    background: rgba(45, 179, 137, 0.12) !important; /* Soft green hover/inRange */
+    border-color: transparent !important;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover svg, 
+.flatpickr-months .flatpickr-next-month:hover svg {
+    fill: #fff !important;
+}
+
+.filter-action-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--bs-border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+    .filter-dropdown-menu {
+        min-width: 100%;
+        width: 100vw;
+        position: fixed !important;
+        bottom: 0;
+        left: 0 !important;
+        top: auto !important;
+        transform: none !important;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .filter-split-view {
+        flex-direction: column;
+        min-height: auto;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    
+    .filter-presets-sidebar {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0.5rem;
+        border-right: none;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    
+    .preset-item {
+        padding: 0.5rem 1rem;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+    }
+    
+    .preset-item.active {
+        border-bottom-color: var(--bs-primary);
+    }
+}

@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
-{% load currency_filters i18n digit_filters expense_extras humanize %}
+{% load static currency_filters i18n digit_filters expense_extras humanize %}
 
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
+    /* Date Filter UI */
+    @import url("{% static 'css/dashboard_filter.css' %}");
+
     /* ── Typography Scale ─────────────────────────────────
        Hero KPI:      1.5rem   (main number per card)
        Secondary KPI: 1.1rem   (projected, net commitment)
@@ -451,37 +454,73 @@
             <i class="bi bi-info-circle fs-5"></i>
         </button>
         
-        <!-- Desktop Filter Form (Realigned) -->
-        <form method="get" class="d-flex flex-wrap align-items-center gap-2 bg-body p-2 rounded shadow-sm" id="filter-form" style="position: relative; z-index: 1040;">
-            <!-- Date Range Group -->
-            <div class="d-flex gap-2">
-                <div class="input-group input-group-sm" style="width: auto;">
-                    <span class="input-group-text bg-body border-end-0">{% trans "From" %}</span>
-                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
-                </div>
-                <div class="input-group input-group-sm" style="width: auto;">
-                    <span class="input-group-text bg-body border-end-0">{% trans "To" %}</span>
-                    <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date|default:'' }}">
+        <!-- Desktop Filter Form (Hidden on Mobile) -->
+        <form method="get" class="d-none d-md-flex flex-wrap align-items-center gap-2 bg-body p-1 rounded-3 shadow-sm border" id="filter-form" style="position: relative; z-index: 1040;">
+            <!-- Hidden Actual Inputs -->
+            <input type="hidden" name="start_date" id="start_date" value="{{ start_date|default:'' }}">
+            <input type="hidden" name="end_date" id="end_date" value="{{ end_date|default:'' }}">
+
+            <!-- Date Range Trigger -->
+            <div class="dropdown">
+                <button type="button" class="date-range-trigger" id="date-range-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    <i class="bi bi-calendar3"></i>
+                    <span id="active-range-text" class="fw-medium">
+                        {% if start_date and end_date %}
+                            {{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}
+                        {% else %}
+                            {% trans "Select Date Range" %}
+                        {% endif %}
+                    </span>
+                </button>
+                
+                <div class="dropdown-menu filter-dropdown-menu shadow-lg border-0">
+                    <div class="filter-split-view">
+                        <!-- Left Sidebar: Presets -->
+                        <div class="filter-presets-sidebar">
+                            <div class="preset-item" data-preset="today">{% trans "Today" %}</div>
+                            <div class="preset-item" data-preset="yesterday">{% trans "Yesterday" %}</div>
+                            <div class="preset-item" data-preset="last-7-days">{% trans "Last 7 days" %}</div>
+                            <div class="preset-item active" data-preset="last-30-days">{% trans "Last 30 days" %}</div>
+                            <div class="preset-item" data-preset="this-month">{% trans "This month" %}</div>
+                            <div class="preset-item" data-preset="last-month">{% trans "Last month" %}</div>
+                            <div class="preset-item" data-preset="last-90-days">{% trans "Last 90 days" %}</div>
+                            <div class="preset-item" data-preset="quarter-to-date">{% trans "Quarter to date" %}</div>
+                            <div class="preset-item" data-preset="this-year">{% trans "This year" %}</div>
+                        </div>
+
+                        <!-- Right Area: Calendar and Inputs -->
+                        <div class="filter-main-content">
+                            <div class="filter-inputs-row">
+                                <div class="filter-date-input-group">
+                                    <label>{% trans "Start Date" %}</label>
+                                    <input type="text" id="visual-start-date" readonly placeholder="YYYY-MM-DD">
+                                </div>
+                                <div class="text-muted mt-3">
+                                    <i class="bi bi-arrow-right"></i>
+                                </div>
+                                <div class="filter-date-input-group">
+                                    <label>{% trans "End Date" %}</label>
+                                    <input type="text" id="visual-end-date" readonly placeholder="YYYY-MM-DD">
+                                </div>
+                            </div>
+
+                            <!-- Flatpickr Inline Calendar -->
+                            <div id="inline-calendar"></div>
+
+                            <div class="filter-action-footer">
+                                <button type="button" class="btn btn-light btn-sm px-3 rounded-pill" id="cancel-filter-btn">{% trans "Cancel" %}</button>
+                                <button type="button" class="btn btn-primary btn-sm px-4 rounded-pill fw-bold" id="apply-filter-btn">{% trans "Apply Range" %}</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <div class="vr mx-1 opacity-25"></div>
+
             <!-- Select Groups -->
             <div class="d-flex flex-wrap gap-2">
-                <div style="min-width: 110px;">
-                    <select name="year" id="year-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Years' %}">
-                        {% for y in years %}
-                            <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div style="min-width: 140px;">
-                    <select name="month" id="month-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Months' %}">
-                        {% for num, name in months_list %}
-                            <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div style="min-width: 150px;">
+                <div style="min-width: 180px;">
                      <select name="category" id="category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories' %}">
                         {% for c in all_categories %}
                             <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
@@ -492,10 +531,10 @@
 
             <!-- Action Buttons -->
             <div class="d-flex gap-2 ms-md-auto">
-                <button type="submit" class="btn btn-primary btn-sm d-flex align-items-center" onclick="showLoader()">
+                <button type="submit" class="btn btn-primary btn-sm d-flex align-items-center px-3" onclick="showLoader()">
                     <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
                 </button>
-                <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center" onclick="showLoader()">
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center px-3" onclick="showLoader()">
                     <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
                 </a>
             </div>
@@ -525,20 +564,6 @@
 
         <!-- Selects Grid -->
         <div class="row g-2">
-            <div class="col-6">
-                <select name="year" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Years' %}">
-                    {% for y in years %}
-                        <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-6">
-                <select name="month" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Months' %}">
-                    {% for num, name in months_list %}
-                        <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
             <div class="col-12">
                 <select name="category" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories' %}">
                     {% for c in all_categories %}
@@ -550,10 +575,10 @@
 
         <!-- Action Buttons -->
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center flex-grow-1" onclick="showLoader()">
+            <button type="submit" class="btn btn-primary rounded-pill d-flex align-items-center justify-content-center flex-grow-1" onclick="showLoader()">
                 <i class="bi bi-filter me-1"></i> {% trans "Apply Filters" %}
             </button>
-            <a href="{% url 'home' %}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" onclick="showLoader()">
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center px-4" onclick="showLoader()">
                 <i class="bi bi-arrow-counterclockwise"></i>
             </a>
         </div>
@@ -3231,6 +3256,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<script src="{% static 'js/dashboard_filter.js' %}"></script>
 
 {% endblock %}
 
