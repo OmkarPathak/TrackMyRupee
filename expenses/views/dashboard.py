@@ -1167,7 +1167,7 @@ def home_view(request):
                         cat_obj = user_categories.get(cat_name)
                         icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
                         smart_bullet_insights.append({
-                            'text': format_html(_("<a href='{url}' class='text-decoration-none text-reset hover-link'>{cat}</a> spending up <span class='text-danger fw-bold'>{pct}%</span> vs last month"), url=cat_url, cat=cat_name, pct=int(diff_pct)),
+                            'text': format_html(_("Heads up! <a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a> is up <span class='text-danger fw-bold'>{pct}%</span>. <br> <span class='small opacity-75'>Take a quick look to see if this spike was intentional.</span>"), url=cat_url, cat=cat_name, pct=int(diff_pct)),
                             'icon': icon_cls,
                             'theme': 'warning'
                         })
@@ -1180,7 +1180,7 @@ def home_view(request):
                         cat_obj = user_categories.get(cat_name)
                         icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
                         smart_bullet_insights.append({
-                            'text': format_html(_("<a href='{url}' class='text-decoration-none text-reset hover-link'>{cat}</a> spending dropped <span class='text-success fw-bold'>{pct}%</span>! Nice job."), url=cat_url, cat=cat_name, pct=int(abs(diff_pct))),
+                            'text': format_html(_("Look at you! <a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a> spending dropped <span class='text-success fw-bold'>{pct}%</span>! <br> <span class='small opacity-75'>That's money staying in your pocket where it belongs.</span>"), url=cat_url, cat=cat_name, pct=int(abs(diff_pct))),
                             'icon': icon_cls,
                             'theme': 'success'
                         })
@@ -1199,7 +1199,7 @@ def home_view(request):
     if applicable_milestone:
         if not any(c.get('icon') == 'bi-trophy' for c in smart_bullet_insights):
             smart_bullet_insights.insert(0, {
-                'text': format_html(_("Milestone Reached! You crossed <span class='fw-bold'>{}</span> in net worth."), format_currency(applicable_milestone)),
+                'text': format_html(_("You crossed <span class='fw-bold'>{}</span> in net worth! <br> <span class='small opacity-75'>That's years of discipline showing up as a number. Most people never get here. You did.</span>"), compact_amount(applicable_milestone, currency_symbol)),
                 'icon': 'bi-trophy',
                 'theme': 'warning'
             })
@@ -1209,7 +1209,7 @@ def home_view(request):
         if not any(c.get('icon') == 'bi-stars' for c in smart_bullet_insights):
             projected_annual = savings * 12
             smart_bullet_insights.insert(0, {
-                'text': format_html(_(" You're saving more than usual this month! <br> Keep this up and you could hit <span class='fw-bold text-success'>{}</span> in savings this year."), format_currency(projected_annual)),
+                'text': format_html(_("High five! You're saving more than usual this month. <br> <span class='small opacity-75'>If you keep this momentum, you could save <span class='fw-bold text-success'>{}</span> this year!</span>"), compact_amount(projected_annual, currency_symbol)),
                 'icon': 'bi-stars',
                 'theme': 'success'
             })

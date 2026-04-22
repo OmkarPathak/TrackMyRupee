@@ -127,16 +127,16 @@ def personalization(request):
     
     # Context-aware encouragement
     if day > last_day - 3:
-        encouragement = "month almost over — stay disciplined"
+        encouragement = "month almost over - stay disciplined"
     elif week_num >= 4:
         encouragement = "finish strong"
     elif day <= 7:
-        encouragement = "fresh start — track everything"
+        encouragement = "fresh start - track everything"
     else:
         encouragement = "keep the momentum going"
 
     return {
         'personalized_greeting': greeting,
         'greeting_user_name': user_name,
-        'month_progress_encouragement': f"{week_str} — {encouragement}"
+        'month_progress_encouragement': f"{week_str} - {encouragement}"
     }

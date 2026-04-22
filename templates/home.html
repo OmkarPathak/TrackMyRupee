@@ -1604,10 +1604,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="text-start mt-2">
                         {% for insight in smart_bullet_insights %}
                         <div class="d-flex align-items-start mb-4">
-                            <div class="rounded-circle bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-1 mt-1 pb-1 flex-shrink-0" style="width: 28px; height: 28px;">
+                            <div class="rounded-circle bg-{{ insight.theme }} bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-3 mt-1 flex-shrink-0" style="width: 32px; height: 32px;">
                                 <i class="bi {{ insight.icon }}" style="font-size: 0.9rem;"></i>
                             </div>
-                            <p class="mb-0 lh-sm mt-1" style="font-size: 0.85rem;">{{ insight.text|safe }}</p>
+                            <div class="flex-grow-1">
+                                <p class="mb-0 lh-base text-body" style="font-size: 0.9rem;">{{ insight.text|safe }}</p>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
