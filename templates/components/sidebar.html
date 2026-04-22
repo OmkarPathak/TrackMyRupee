@@ -31,18 +31,33 @@
             <a href="{% url 'goal-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'goal' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Goals' %}">
                 <i class="bi bi-bullseye fs-5"></i>
                 <span class="nav-text">{% trans "Goals" %}</span>
+                {% if active_goals_count > 0 %}
+                <span class="badge badge-soft-success ms-auto nav-text" style="font-size: 0.65rem;">
+                    {{ active_goals_count }} {% trans "active" %}
+                </span>
+                {% endif %}
             </a>
 
             <!-- Calendar -->
             <a href="{% url 'calendar' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}" title="{% trans 'Calendar' %}">
                 <i class="bi bi-calendar3 fs-5"></i>
                 <span class="nav-text">{% trans "Calendar" %}</span>
+                {% if calendar_this_week_count > 0 %}
+                <span class="badge badge-soft-info ms-auto nav-text" style="font-size: 0.65rem;">
+                    {{ calendar_this_week_count }} {% trans "this week" %}
+                </span>
+                {% endif %}
             </a>
 
             <!-- Subscriptions -->
             <a href="{% url 'recurring-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'recurring' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Subscriptions' %}">
                 <i class="bi bi-arrow-repeat fs-5"></i>
                 <span class="nav-text">{% trans "Subscriptions" %}</span>
+                {% if upcoming_subscriptions_count > 0 %}
+                <span class="badge badge-soft-danger ms-auto nav-text" style="font-size: 0.65rem;">
+                    {% trans "due soon" %}
+                </span>
+                {% endif %}
             </a>
 
             <!-- Analytics -->

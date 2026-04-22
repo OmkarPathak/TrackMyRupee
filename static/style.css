@@ -648,9 +648,39 @@ body.demo-mode .sidebar {
   color: #9E9D9A;
 }
 
+.badge-soft-success {
+  background-color: rgba(29, 158, 117, 0.1);
+  color: #1D9E75;
+}
+
+.badge-soft-danger {
+  background-color: rgba(224, 92, 69, 0.1);
+  color: #E05C45;
+}
+
+.badge-soft-info {
+  background-color: rgba(61, 122, 138, 0.1);
+  color: #3d7a8a;
+}
+
 [data-bs-theme="dark"] .badge-soft-secondary {
   background-color: rgba(255, 255, 255, 0.08);
   color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .badge-soft-success {
+  background-color: rgba(29, 158, 117, 0.2);
+  color: #9FE1CB;
+}
+
+[data-bs-theme="dark"] .badge-soft-danger {
+  background-color: rgba(224, 92, 69, 0.2);
+  color: #F49C8C;
+}
+
+[data-bs-theme="dark"] .badge-soft-info {
+  background-color: rgba(61, 122, 138, 0.2);
+  color: #8db5c0;
 }
 
 .form-check-input:focus {

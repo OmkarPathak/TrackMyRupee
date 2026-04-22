@@ -1,6 +1,8 @@
 from django.conf import settings
 
-from .models import Notification, UserProfile
+from datetime import timedelta
+from django.utils import timezone
+from .models import Notification, UserProfile, SavingsGoal, RecurringTransaction
 
 
 def webpush_vapid_key(request):
@@ -53,3 +55,31 @@ def user_accounts(request):
             'has_more_accounts': count > 5
         }
     return {'sidebar_accounts': [], 'sidebar_accounts_count': 0, 'has_more_accounts': False}
+
+def sidebar_badges(request):
+    """Provides badge counts for the sidebar navigation."""
+    if not request.user.is_authenticated:
+        return {}
+
+    today = timezone.now().date()
+    next_week = today + timedelta(days=7)
+
+    # 1. Goals: Active (incomplete) goals
+    active_goals_count = SavingsGoal.objects.filter(user=request.user, is_completed=False).count()
+
+    # 2. Subscriptions: Due within next 7 days
+    upcoming_subscriptions_count = 0
+    active_recurring = RecurringTransaction.objects.filter(user=request.user, is_active=True)
+    for rt in active_recurring:
+        if today <= rt.next_due_date <= next_week:
+            upcoming_subscriptions_count += 1
+
+    # 3. Calendar: Events this week (reusing subscription count for now as they are the primary scheduled events)
+    # We could also include other items if available.
+    calendar_this_week_count = upcoming_subscriptions_count
+
+    return {
+        'active_goals_count': active_goals_count,
+        'upcoming_subscriptions_count': upcoming_subscriptions_count,
+        'calendar_this_week_count': calendar_this_week_count,
+    }
