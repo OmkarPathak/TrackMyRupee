@@ -11,6 +11,15 @@
             <i class="bi bi-chevron-left"></i>
         </button>
     </div>
+    
+    <!-- Sidebar Greeting -->
+    <div class="sidebar-greeting-container">
+        <div class="sidebar-greeting-box">
+            <div class="greeting-text">{% trans personalized_greeting %}</div>
+            <div class="user-name">{{ greeting_user_name }}</div>
+            <div class="encouragement-text">{% trans month_progress_encouragement %}</div>
+        </div>
+    </div>
 
     <!-- Sidebar Navigation -->
     <div class="sidebar-content flex-grow-1 overflow-y-auto px-0">

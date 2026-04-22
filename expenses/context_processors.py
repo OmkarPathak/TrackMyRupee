@@ -1,3 +1,5 @@
+import calendar
+
 from django.conf import settings
 
 from datetime import timedelta
@@ -82,4 +84,59 @@ def sidebar_badges(request):
         'active_goals_count': active_goals_count,
         'upcoming_subscriptions_count': upcoming_subscriptions_count,
         'calendar_this_week_count': calendar_this_week_count,
+    }
+
+def personalization(request):
+    """Provides time-based greetings and month progress encouragement to all templates."""
+    if not request.user.is_authenticated:
+        return {}
+
+    # Get current time in user's timezone (Middleware handles activation)
+    now = timezone.now()
+    hour = now.hour
+    
+    # 1. Time-based greeting logic
+    if 5 <= hour < 12:
+        greeting = "Good morning"
+    elif 12 <= hour < 17:
+        greeting = "Good afternoon"
+    elif 17 <= hour < 21:
+        greeting = "Good evening"
+    else:
+        greeting = "Good night"
+
+    # 2. User name logic (Prefer first name, fallback to username)
+    user_name = request.user.first_name or request.user.username
+
+    # 3. Month progress & Encouragement
+    day = now.day
+    
+    _, last_day = calendar.monthrange(now.year, now.month)
+    
+    # Heuristic for week number
+    week_num = (day - 1) // 7 + 1
+    month_name = now.strftime('%B')
+    
+    # Suffix for ordinal week (1st, 2nd, etc.)
+    if 10 <= week_num <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(week_num % 10, 'th')
+        
+    week_str = f"{week_num}{suffix} week of {month_name}"
+    
+    # Context-aware encouragement
+    if day > last_day - 3:
+        encouragement = "month almost over — stay disciplined"
+    elif week_num >= 4:
+        encouragement = "finish strong"
+    elif day <= 7:
+        encouragement = "fresh start — track everything"
+    else:
+        encouragement = "keep the momentum going"
+
+    return {
+        'personalized_greeting': greeting,
+        'greeting_user_name': user_name,
+        'month_progress_encouragement': f"{week_str} — {encouragement}"
     }

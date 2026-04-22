@@ -127,6 +127,7 @@ TEMPLATES = [
                 'expenses.context_processors.user_accounts',
                 'expenses.context_processors.webpush_vapid_key',
                 'expenses.context_processors.sidebar_badges',
+                'expenses.context_processors.personalization',
                 'finance_tracker.context_processors.google_analytics',
                 'finance_tracker.context_processors.plan_details',
             ],
