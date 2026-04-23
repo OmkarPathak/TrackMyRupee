@@ -524,6 +524,25 @@ body.demo-mode .sidebar {
   border-top: 1px solid rgba(var(--bs-border-color-rgb), 0.05);
 }
 
+/* Dark Mode Sidebar Hover Enhancements */
+[data-bs-theme="dark"] .sidebar .nav-link:hover,
+[data-bs-theme="dark"] .sidebar .nav-link.active,
+[data-bs-theme="dark"] .sidebar .account-item:hover,
+[data-bs-theme="dark"] .sidebar #sidebarUserDropdown:hover,
+[data-bs-theme="dark"] .sidebar .dropdown-item:hover {
+  color: #5DCAA5 !important; /* Brighter Mint Green */
+  background: rgba(93, 202, 165, 0.08) !important;
+  opacity: 1;
+}
+
+[data-bs-theme="dark"] .sidebar .nav-link:hover i,
+[data-bs-theme="dark"] .sidebar .nav-link.active i,
+[data-bs-theme="dark"] .sidebar .account-item:hover i,
+[data-bs-theme="dark"] .sidebar #sidebarUserDropdown:hover i,
+[data-bs-theme="dark"] .sidebar .dropdown-item:hover i {
+  color: #5DCAA5 !important;
+}
+
 /* Top Navbar Adjustments */
 .navbar.sticky-top {
   background: rgba(var(--bs-body-bg-rgb), 0.8) !important;

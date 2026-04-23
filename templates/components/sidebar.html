@@ -120,22 +120,63 @@
         </div>
     </div>
 
-    <!-- Sidebar Bottom -->
-    <div class="sidebar-footer border-top">
-        <div class="nav flex-column gap-1">
-            <!-- Support Us -->
-            {% if not user.profile.is_pro %}
-            <a href="https://rzp.io/rzp/AP7kBG2" target="_blank" class="nav-link d-flex align-items-center gap-3 rounded-3 text-primary fw-bold" title="{% trans 'Support Us' %}">
-                <i class="bi bi-heart-fill fs-5"></i>
-                <span class="nav-text">{% trans "Support Us" %}</span>
+    <!-- Sidebar Bottom: User Profile & Dropdown -->
+    <div class="sidebar-footer border-top p-3 mt-auto">
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle no-arrow p-1 rounded-3 hover-bg" 
+               data-bs-toggle="dropdown" aria-expanded="false" id="sidebarUserDropdown">
+                <!-- Avatar -->
+                <div class="rounded-circle text-primary fw-bold border d-flex align-items-center justify-content-center bg-primary-subtle shadow-sm flex-shrink-0" 
+                     style="width: 40px; height: 40px; font-size: 0.9rem;">
+                    {% if user.first_name and user.last_name %}
+                        {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                    {% else %}
+                        {{ user.username|slice:":2"|upper }}
+                    {% endif %}
+                </div>
+                
+                <!-- User Info (Visible when sidebar is expanded) -->
+                <div class="ms-3 nav-text overflow-hidden flex-grow-1">
+                    <div class="fw-bold text-body text-truncate mb-0" style="font-size: 0.9rem; line-height: 1.2;">
+                        {{ user.get_full_name|default:user.username }}
+                    </div>
+                    <div class="text-muted text-truncate" style="font-size: 0.75rem; line-height: 1.2;">
+                        {{ user.profile.active_tier_display }} {% trans "plan" %}
+                    </div>
+                </div>
             </a>
-            {% endif %}
 
-            <!-- Settings -->
-            <a href="{% url 'settings-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'settings' in request.resolver_match.url_name or 'profile' in request.resolver_match.url_name or 'currency' in request.resolver_match.url_name or 'language' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Settings' %}">
-                <i class="bi bi-gear fs-5"></i>
-                <span class="nav-text">{% trans "Settings" %}</span>
-            </a>
+            <!-- Dropdown Menu -->
+            <ul class="dropdown-menu shadow-lg border-0 mb-3" aria-labelledby="sidebarUserDropdown" style="min-width: 220px; border-radius: 12px; transform: translateY(-10px);">
+                <li>
+                    <div class="px-3 py-2 border-bottom">
+                        <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</h6>
+                        <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">{{ user.email }}</small>
+                    </div>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded d-flex align-items-center gap-3 py-2" href="{% url 'settings-home' %}">
+                        <i class="bi bi-gear text-muted"></i>
+                        <span>{% trans "Settings" %}</span>
+                        <span class="ms-auto text-muted smaller opacity-50"><i class="bi bi-command"></i></span>
+                    </a>
+                </li>
+                <li>
+                    <button class="dropdown-item rounded d-flex align-items-center gap-3  py-2 theme-toggle-btn" type="button">
+                        <i class="bi bi-moon-stars-fill theme-icon-active text-muted"></i>
+                        <span>{% trans "Theme" %}</span>
+                    </button>
+                </li>
+                <li class="border-top py-2">
+                    <form action="{% url 'account_logout' %}" method="post" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item rounded d-flex align-items-center gap-3 text-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>{% trans "Logout" %}</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
         </div>
     </div>
 </div>

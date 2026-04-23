@@ -186,46 +186,6 @@
                         </ul>
                     </li>
 
-                    <!-- User Dropdown (Desktop Only) -->
-                    <li class="nav-item dropdown d-none d-lg-block ms-2">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center no-arrow p-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="rounded-circle text-primary fw-bold border d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-size: 0.9rem;">
-                                {% if user.first_name and user.last_name %}
-                                    {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
-                                {% else %}
-                                    {{ user.username|slice:":2"|upper }}
-                                {% endif %}
-                            </div>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 p-2" style="min-width: 200px; border-radius: 12px;">
-                            <li>
-                                <div class="px-3 py-2 border-bottom mb-2">
-                                    <h6 class="mb-0 fw-bold text-truncate">{{ user.get_full_name|default:user.username }}</h6>
-                                    <small class="text-muted text-truncate d-block" style="max-width: 180px;">{{ user.email }}</small>
-                                </div>
-                            </li>
-                            <li>
-                                <a class="dropdown-item rounded py-2 d-flex align-items-center gap-2" href="{% url 'settings-home' %}">
-                                    <i class="bi bi-gear"></i> {% trans "Settings" %}
-                                </a>
-                            </li>
-                            <li>
-                                <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2 theme-toggle-btn" type="button">
-                                    <i class="bi bi-moon-stars-fill theme-icon-active"></i> {% trans "Theme" %}
-                                </button>
-                            </li>
-                            <li><hr class="dropdown-divider my-2"></li>
-                            <li>
-                                <form action="{% url 'account_logout' %}" method="post" class="d-block w-100 mb-0">
-                                    {% csrf_token %}
-                                    <button type="submit" class="dropdown-item rounded py-2 d-flex align-items-center gap-2 text-danger">
-                                        <i class="bi bi-box-arrow-right"></i> {% trans "Logout" %}
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </li>
-
                     <!-- Mobile User Options (Visible only on mobile) -->
                     <li class="nav-item d-lg-none mt-3 border-top pt-3">
                         <div class="mb-2">
