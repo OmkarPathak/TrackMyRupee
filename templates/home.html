@@ -1721,7 +1721,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             {% elif item.transaction_type == 'SAVINGS' %}bg-warning bg-opacity-10 text-warning
                             {% elif item.transaction_type == 'TRANSFER' %}bg-info bg-opacity-10 text-info
                             {% else %}bg-danger bg-opacity-10 text-danger{% endif %}"
-                            style="width: 45px; height: 45px;">
+                            style="width: 40px; height: 40px;">
                             {% if item.transaction_type == 'TRANSFER' %}
                                 <i class="bi bi-arrow-left-right"></i>
                             {% elif item.transaction_type == 'INCOME' %}
@@ -1735,8 +1735,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         <!-- Middle Content -->
                         <div class="flex-grow-1 me-2 me-md-3" style="min-width: 0;">
-                            <h6 class="mb-0 fw-bold text-truncate">{{ item.description }}</h6>
-                            <small class="text-muted d-block text-truncate">
+                            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.9rem;">{{ item.description }}</h6>
+                            <small class="text-muted d-block text-truncate" style="font-size: 0.85rem;">
                                 {{ item.date|date:"M d"|translate_digits }} • 
                                 {% if item.transaction_type == 'TRANSFER' %}
                                     {{ item.from_account.name }} → {{ item.to_account.name }}
@@ -1801,27 +1801,27 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body bg-transparent p-0 d-flex flex-column h-100">
                 <!-- 1. Top Summary Totals -->
-                <div class="p-4 border-bottom bg-transparent bg-opacity-10">
-                    <div class="row g-2 text-center mb-4">
+                <div class="border-bottom bg-transparent bg-opacity-10">
+                    <div class="row g-2 text-center py-4">
                         <div class="col-3 border-end">
-                            <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Income" %}</p>
+                            <p class="text-muted small-xs text-uppercase fw-bold mb-1" style="font-size: 0.8rem;">{% trans "Income" %}</p>
                             <span class="text-success fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.INCOME.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
                         <div class="col-3 border-end">
-                            <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Expenses" %}</p>
+                            <p class="text-muted small-xs text-uppercase fw-bold mb-1" style="font-size: 0.8rem;">{% trans "Expenses" %}</p>
                             <span class="text-danger fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.EXPENSE.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
                         <div class="col-3 border-end">
-                            <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Invest" %}</p>
+                            <p class="text-muted small-xs text-uppercase fw-bold mb-1" style="font-size: 0.8rem;">{% trans "Invest" %}</p>
                             <span class="text-info fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.INVESTMENT.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
                         <div class="col-3">
-                            <p class="text-muted small-xs text-uppercase fw-bold mb-1">{% trans "Transfers" %}</p>
+                            <p class="text-muted small-xs text-uppercase fw-bold mb-1" style="font-size: 0.8rem;">{% trans "Transfers" %}</p>
                             <span class="text-secondary fw-bold" style="font-size: 0.9rem;">{{ currency_symbol }}{{ recurring_groups.TRANSFER.total|compact_amount:currency_symbol|translate_digits }}</span>
                         </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-10">
+                    <div class="d-flex justify-content-between align-items-center p-3 border-top border-secondary border-opacity-10">
                         <div>
                             <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.85rem; letter-spacing: 0.3px;">{% trans "Recurring Net Commitment" %}</span>
                             <small class="text-muted opacity-50" style="font-size: 0.75rem;">{% trans "Based on recurring transactions" %}</small>
