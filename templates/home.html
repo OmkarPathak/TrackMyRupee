@@ -1055,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
 
-            <div class="card-body p-4 position-relative">
+            <div class="card-body p-3 position-relative">
                 {% if is_net_worth_locked %}
                 <div class="nw-locked-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center px-4 text-center" style="z-index: 10; border-radius: inherit;">
                     <div class="mb-3 bg-primary bg-opacity-10 rounded-circle text-primary d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
@@ -1114,250 +1114,78 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 </div>
-                <hr>
-
-                <!-- Premium Account List (Image Match) -->
-                <!-- Desktop-only Account List (Indices 1-3 visible, 4+ hidden by default) -->
-                <div class="nw-accounts-list-premium px-2 d-none d-lg-block">
-                    {% for account in accounts %}
-                        {% if forloop.counter == 4 %}
-                            <div class="collapse" id="moreAccountsCollapse">
-                        {% endif %}
-                        
-                        <a href="{% url 'account-detail' account.pk %}" class="account-item-premium text-decoration-none">
-                            <div class="account-status-bar 
-                                {% if account.account_type == 'CREDIT_CARD' %}bg-danger
-                                {% elif account.account_type == 'INVESTMENT' or account.account_type == 'FIXED_DEPOSIT' %}bg-primary
-                                {% elif account.account_type == 'CASH' %}bg-warning
-                                {% else %}bg-info{% endif %}">
-                            </div>
-                            <div class="account-info">
-                                <span class="account-name-bold text-truncate">{{ account.name }}</span>
-                                <span class="account-type-subtext">{{ account.get_account_type_display }}</span>
-                            </div>
-                            <div class="account-amount-bold text-body-emphasis">
-                                {% with balance=account_base_balances|get_dict_item:account.pk %}
-                                    {% if balance < 0 %}
-                                        <span class="text-negative">{{ currency_symbol }}{{ balance|abs_val|humanize_currency:currency_symbol|translate_digits }}</span>
-                                    {% else %}
-                                        {{ currency_symbol }}{{ balance|humanize_currency:currency_symbol|translate_digits }}
-                                    {% endif %}
-                                {% endwith %}
-                            </div>
-                        </a>
-
-                        {% if forloop.last and forloop.counter > 3 %}
-                            </div> <!-- Close collapse -->
-                            <div class="text-center mt-2">
-                                <button class="btn btn-sm btn-link text-muted text-decoration-none fw-bold w-100 py-2" 
-                                        type="button" 
-                                        data-bs-toggle="collapse" 
-                                        data-bs-target="#moreAccountsCollapse" 
-                                        aria-expanded="false" 
-                                        aria-controls="moreAccountsCollapse"
-                                        data-text-more="{% trans 'Show' %} {{ accounts.count|add:'-3' }} {% trans 'more accounts' %}"
-                                        data-text-less="{% trans 'Show less' %}"
-                                        onclick="this.innerText.trim() == this.getAttribute('data-text-more').trim() ? this.innerText = this.getAttribute('data-text-less') : this.innerText = this.getAttribute('data-text-more')">
-                                    {% trans "Show" %} {{ accounts.count|add:"-3" }} {% trans "more accounts" %}
-                                </button>
-                            </div>
-                        {% endif %}
-                    {% empty %}
-                        <div class="text-center py-4">
-                            <p class="text-muted small">{% trans "No accounts found." %}</p>
-                            <a href="{% url 'account-create' %}" class="btn btn-sm btn-outline-primary rounded-pill">{% trans "Add Account" %}</a>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Mobile-only Account List (Completely hidden by default) -->
-                <div class="nw-accounts-list-premium px-2 d-lg-none">
-                    {% if accounts %}
-                        <div class="text-center">
-                            <button class="btn btn-sm w-100 rounded-pill fw-bold py-2" 
-                                    type="button" 
-                                    data-bs-toggle="collapse" 
-                                    data-bs-target="#mobileAccountsCollapse" 
-                                    aria-expanded="false" 
-                                    aria-controls="mobileAccountsCollapse">
-                                <i class="bi bi-wallet2 me-2"></i> {% trans "View Accounts" %} ({{ accounts.count|translate_digits }})
-                                <i class="bi bi-chevron-down ms-2"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="collapse mt-2" id="mobileAccountsCollapse">
-                            {% for account in accounts %}
-                                <a href="{% url 'account-detail' account.pk %}" class="account-item-premium text-decoration-none border-0 mb-1 rounded-3">
-                                    <div class="account-status-bar 
-                                        {% if account.account_type == 'CREDIT_CARD' %}bg-danger
-                                        {% elif account.account_type == 'INVESTMENT' or account.account_type == 'FIXED_DEPOSIT' %}bg-primary
-                                        {% elif account.account_type == 'CASH' %}bg-warning
-                                        {% else %}bg-info{% endif %}" style="width: 3px;">
-                                    </div>
-                                    <div class="account-info">
-                                        <span class="account-name-bold text-truncate" style="font-size: 0.85rem;">{{ account.name }}</span>
-                                        <span class="account-type-subtext" style="font-size: 0.7rem;">{{ account.get_account_type_display }}</span>
-                                    </div>
-                                    <div class="account-amount-bold text-body-emphasis" style="font-size: 0.85rem;">
-                                        {% with balance=account_base_balances|get_dict_item:account.pk %}
-                                            {% if balance < 0 %}
-                                                <span class="text-negative">{{ currency_symbol }}{{ balance|abs_val|humanize_currency:currency_symbol|translate_digits }}</span>
-                                            {% else %}
-                                                {{ currency_symbol }}{{ balance|humanize_currency:currency_symbol|translate_digits }}
-                                            {% endif %}
-                                        {% endwith %}
-                                    </div>
-                                </a>
-                            {% endfor %}
-                            <div class="text-center mt-2">
-                                <a href="{% url 'account-list' %}" class="text-muted small text-decoration-none fw-bold">{% trans "Manage" %} →</a>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
             </div>
         </div>
     </div>
-    <!-- Financial Health Card -->
-    <div class="col-12 col-lg-6 nw-animate-in" style="animation-delay: 0.2s;">
-        <div class="card shadow-lg border-0 rounded-4 h-100 overflow-hidden transition-all">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center px-4 fw-bold">
-                <div class="d-inline-flex align-items-center" style="line-height: 1;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted flex-shrink-0" style="vertical-align: middle;">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" class="anim-heartbeat"/>
-                    </svg>
+    <!-- Smart Insights Card -->
+    <div class="col-12 col-lg-6 nw-animate-in" id="tour-smart-insights-card" style="animation-delay: 0.2s;">
+        <div class="card shadow-lg border-0 h-100 rounded-4">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold">
+                 <div class="d-inline-flex align-items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
+                        <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/>
+                        <path d="M9 18h6"/>
+                        <path d="M10 22h4"/>
+                        <path d="M12 2v2" class="anim-twinkle" fill="currentColor"/>
+                        <path d="M12 6v2" class="anim-twinkle" fill="currentColor"/>
+                    </svg> 
                     <span class="cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" 
-                          title="{% trans 'A summary of your savings rate and overall financial performance for the period.' %}">
-                        {% trans "Financial Health" %}
+                          title="{% trans 'AI-generated observations about your spending patterns and financial trends.' %}">
+                        {% trans "Smart Insights" %}
                     </span>
                     – {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
-                </div>
-                {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
-                    {% if hero_metrics.status == 'excellent' %}
-                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 border border-success border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-star-fill me-1"></i> {% trans "Excellent" %}</span>
-                    {% elif hero_metrics.status == 'good' %}
-                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 border border-primary border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-check-circle-fill me-1"></i> {% trans "Good" %}</span>
-                    {% else %}
-                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 border border-warning border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-exclamation-triangle-fill me-1"></i> {% trans "Needs Attention" %}</span>
-                    {% endif %}
-                {% else %}
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 border border-secondary border-opacity-10">{% trans "No Data" %}</span>
-                {% endif %}
+                 </div>
             </div>
-            
-            {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
-            <div class="card-body px-4 py-3 text-center">
-                <!-- Savings Rate Hero -->
-                <div class="mb-4 mt-2 px-3 text-center">
-                    <h1 class="fw-black mb-2 text-body-emphasis" style="font-family: 'DM Sans', 'Inter', sans-serif; font-size: 2rem; letter-spacing: -1px;">
-                        {{ hero_metrics.savings_rate|translate_digits }}<span class="fs-4 text-muted fw-bold">%</span>
-                    </h1>
-                    <p class="text-muted small text-uppercase mb-2" style="letter-spacing: 0.5px;">{% trans "Savings Rate" %}</p>
-                    <div class="mx-auto mb-3" style="max-width: 300px;">
-                        <div class="progress rounded-pill bg-secondary bg-opacity-10 mb-2 progress-animate" style="height: 10px;">
-                            <div class="progress-bar rounded-pill {% if hero_metrics.savings_rate >= 20 %}bg-success{% elif hero_metrics.savings_rate > 0 %}bg-primary{% else %}bg-danger{% endif %}" 
-                                 role="progressbar" 
-                                 style="--progress-width: {% if hero_metrics.savings_rate < 0 %}0{% else %}{{ hero_metrics.savings_rate|floatformat:1 }}{% endif %}%; width: {% if hero_metrics.savings_rate < 0 %}0{% else %}{{ hero_metrics.savings_rate|floatformat:1 }}{% endif %}%;" 
-                                 aria-valuenow="{{ hero_metrics.savings_rate|floatformat:1 }}" aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between text-muted fw-bold px-1" style="font-size: 0.9rem;">
-                            <div class="d-flex flex-column align-items-start text-start">
-                                <span>{{ currency_symbol }}{{ hero_metrics.saved|humanize_currency:currency_symbol|translate_digits }} {% trans "saved" %}</span>
-                                {% if hero_metrics.savings_diff_pct %}
-                                <span class="{% if hero_metrics.savings_diff_pct > 0 %}text-success{% else %}text-danger{% endif %} mt-1 cursor-help" style="font-size: 0.65rem;"
-                                      data-bs-toggle="tooltip" 
-                                      title="{% trans 'The actual amount of currency saved compared to last month.' %}">
-                                    {% if hero_metrics.savings_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ hero_metrics.savings_diff_pct_abs|translate_digits|floatformat:1 }}% 
-                                    {% trans "total cash vs last month" %}
-                                </span>
+            <div class="card-body p-2 d-flex flex-column">
+                {% if smart_bullet_insights %}
+                    <div class="insights-carousel-container">
+                        <div class="insights-carousel">
+                            {% for insight in smart_bullet_insights %}
+                                {% if forloop.counter0|divisibleby:3 %}
+                                    <div class="insight-slide d-flex flex-column gap-2">
                                 {% endif %}
-                            </div>
-                            <span>{{ currency_symbol }}{{ hero_metrics.income|humanize_currency:currency_symbol|translate_digits }} {% trans "income" %}</span>
+                                
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-{{ insight.theme }} bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 42px; height: 42px;">
+                                        <i class="bi {{ insight.icon }}" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-0 lh-base text-body" style="font-size: 0.925rem;">{{ insight.text|safe }}</p>
+                                    </div>
+                                </div>
+
+                                {% if forloop.counter|divisibleby:3 or forloop.last %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
                         </div>
-                    </div>
-                    <div class="mt-3 text-center">
-                        {% if hero_metrics.trend_text %}
-                            <span class="badge {% if hero_metrics.trend_type == 'positive' %}bg-success{% elif hero_metrics.trend_type == 'negative' %}bg-danger{% else %}bg-secondary{% endif %} bg-opacity-10 {% if hero_metrics.trend_type == 'positive' %}text-success{% elif hero_metrics.trend_type == 'negative' %}text-danger{% else %}text-secondary{% endif %} rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
-                                {{ hero_metrics.trend_text }}
-                            </span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Stats Row -->
-                <div class="row g-0 py-3 border-top border-bottom">
-                    <a href="{% url 'income-list' %}?{% url_replace %}" class="col-6 border-end px-2 text-decoration-none transition-all">
-                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;" 
-                               data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total money received during the selected period.' %}">
-                            {% trans "Total Income" %}
-                            <i class="bi bi-info-circle ms-1" style="font-size: 0.6rem; opacity: 0.6;"></i>
-                        </small>
-                        <div class="fw-bold mb-0 text-body text-truncate" style="font-size: 0.95rem;">{{ currency_symbol }}{{ total_income|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
-                        {% if prev_month_data.income_pct %}
-                            <div class="mt-1 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.65rem;">
-                                <span class="{% if prev_month_data.income_pct > 0 %}text-success{% elif prev_month_data.income_pct < 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
-                                    {% if prev_month_data.income_pct > 0 %}↑{% elif prev_month_data.income_pct < 0 %}↓{% endif %} {{ prev_month_data.income_pct_abs|floatformat:0|translate_digits }}%
-                                </span>
-                                <span class="text-muted d-none d-md-inline">({% if prev_month_data.income_diff_amount > 0 %}+{% endif %}{{ currency_symbol }}{{ prev_month_data.income_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }})</span>
-                            </div>
-                        {% endif %}
-                    </a>
-                    <a href="{% url 'expense-list' %}?{% url_replace is_investment='false' %}" class="col-6 px-2 text-decoration-none transition-all">
-                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;"
-                               data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total daily living expenses, excluding investments and transfers.' %}">
-                            {% trans "Operating Spent" %}
-                            <i class="bi bi-info-circle ms-1" style="font-size: 0.6rem; opacity: 0.6;"></i>
-                        </small>
-                        <div class="fw-bold mb-0 text-body text-truncate" style="font-size: 0.95rem;">{{ currency_symbol }}{{ hero_metrics.spent|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
-                        {% if prev_month_data.expense_pct %}
-                            <div class="mt-1 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.65rem;">
-                                <span class="{% if prev_month_data.expense_pct < 0 %}text-success{% elif prev_month_data.expense_pct > 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
-                                    {% if prev_month_data.expense_pct > 0 %}↑{% elif prev_month_data.expense_pct < 0 %}↓{% endif %} {{ prev_month_data.expense_pct_abs|floatformat:0|translate_digits }}%
-                                </span>
-                                <span class="text-muted d-none d-md-inline">({% if prev_month_data.expense_diff_amount > 0 %}+{% endif %}{{ currency_symbol }}{{ prev_month_data.expense_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }})</span>
-                            </div>
-                        {% endif %}
-                    </a>
-                </div>
-
-                <!-- Transfer Notice -->
-                {% if total_transfers > 0 %}
-                <div class="mt-3 px-3">
-                    <a href="{% url 'transfer-list' %}" class="d-flex align-items-center gap-2 text-decoration-none bg-info bg-opacity-10 rounded-pill px-3 py-2" style="transition: opacity 0.15s;">
-                        <i class="bi bi-arrow-left-right text-info" style="font-size: 0.8rem;"></i>
-                        <span class="text-body-emphasis small">
-                            {{ currency_symbol }}{{ total_transfers|floatformat:0|humanize_currency:currency_symbol|translate_digits }}
-                            {% trans "moved between accounts" %}
-                            <span class="text-muted">({{ transfer_count|translate_digits }} {% trans "transfers" %})</span>
-                        </span>
-                        <i class="bi bi-chevron-right text-muted ms-auto" style="font-size: 0.65rem;"></i>
-                    </a>
-                    <div class="text-muted text-center mt-1" style="font-size: 0.65rem;">{% trans "Internal transfers are excluded from income & expenses" %}</div>
-                </div>
-                {% endif %}
-
-                <!-- Intelligence Line -->
-                {% if hero_metrics.short_insight %}
-                    <div class="mt-3 pb-1 px-3">
-                        <div class="alert bg-secondary bg-opacity-10 border-0 py-2 rounded-pill d-inline-block mb-0">
-                            <span class="text-body-emphasis small">{{ hero_metrics.short_insight }}</span>
+                        
+                        <!-- Carousel Indicators -->
+                        {% if smart_bullet_insights|length > 3 %}
+                        <div class="insights-indicators">
+                            {% for insight in smart_bullet_insights %}
+                                {% if forloop.counter0|divisibleby:3 %}
+                                    <button class="indicator-dot {% if forloop.first %}active{% endif %}" aria-label="Go to slide"></button>
+                                {% endif %}
+                            {% endfor %}
                         </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="empty-state-container">
+                        <div class="mb-3 text-muted opacity-50">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2a10 10 0 0 0-9.09 14.09A10 10 0 0 0 12 22a10 10 0 0 0 9.09-14.09A10 10 0 0 0 12 2z" opacity="0.2"/>
+                                <path d="M12 18v-6l4 2" class="anim-clock-empty"/>
+                            </svg>
+                        </div>
+                        <p class="text-muted small mb-0">{% trans "No insights available yet." %}</p>
                     </div>
                 {% endif %}
             </div>
-            {% else %}
-            <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
-                <div class="empty-state-container py-4">
-                    <div class="mb-3">
-                        {% include 'illustrations/empty_chart_health.svg' %}
-                    </div>
-                    <p class="text-muted small mb-0">{% trans "No financial data for this period." %}</p>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
+
 
     <!-- Spending Pace Card -->
     <div class="col-12 col-lg-4">
@@ -1580,72 +1408,136 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
-    <!-- NEW: Smart Insights Card -->
+    <!-- Financial Health Card -->
     <div class="col-lg-4">
-        <div class="card shadow-lg border-0 h-100  rounded-4">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold">
-                 <div class="d-inline-flex align-items-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted flex-shrink-0">
-                        <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/>
-                        <path d="M9 18h6"/>
-                        <path d="M10 22h4"/>
-                        <path d="M12 2v2" class="anim-twinkle" fill="currentColor"/>
-                        <path d="M12 6v2" class="anim-twinkle" fill="currentColor"/>
-                    </svg> 
+        <div class="card shadow-lg border-0 rounded-4 h-100 overflow-hidden transition-all">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center px-4 fw-bold">
+                <div class="d-inline-flex align-items-center" style="line-height: 1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted flex-shrink-0" style="vertical-align: middle;">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" class="anim-heartbeat"/>
+                    </svg>
                     <span class="cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" 
-                          title="{% trans 'AI-generated observations about your spending patterns and financial trends.' %}">
-                        {% trans "Smart Insights" %}
+                          title="{% trans 'A summary of your savings rate and overall financial performance for the period.' %}">
+                        {% trans "Financial Health" %}
                     </span>
                     – {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
-                 </div>
-            </div>
-            <div class="card-body p-4 d-flex flex-column justify-content-center">
-                {% if smart_bullet_insights %}
-                    <div class="insights-carousel-container">
-                        <div class="insights-carousel">
-                            {% for insight in smart_bullet_insights %}
-                                {% if forloop.counter0|divisibleby:3 %}
-                                    <div class="insight-slide d-flex flex-column gap-4">
-                                {% endif %}
-                                
-                                <div class="d-flex align-items-start">
-                                    <div class="rounded-circle bg-{{ insight.theme }} bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 42px; height: 42px;">
-                                        <i class="bi {{ insight.icon }}" style="font-size: 1.1rem;"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <p class="mb-0 lh-base text-body" style="font-size: 0.925rem;">{{ insight.text|safe }}</p>
-                                    </div>
-                                </div>
-
-                                {% if forloop.counter|divisibleby:3 or forloop.last %}
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        
-                        <!-- Carousel Indicators -->
-                        {% if smart_bullet_insights|length > 3 %}
-                        <div class="insights-indicators">
-                            {% for insight in smart_bullet_insights %}
-                                {% if forloop.counter0|divisibleby:3 %}
-                                    <button class="indicator-dot {% if forloop.first %}active{% endif %}" aria-label="Go to slide"></button>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
+                </div>
+                {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
+                    {% if hero_metrics.status == 'excellent' %}
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 border border-success border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-star-fill me-1"></i> {% trans "Excellent" %}</span>
+                    {% elif hero_metrics.status == 'good' %}
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 border border-primary border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-check-circle-fill me-1"></i> {% trans "Good" %}</span>
+                    {% else %}
+                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 border border-warning border-opacity-10 d-inline-flex align-items-center"><i class="bi bi-exclamation-triangle-fill me-1"></i> {% trans "Needs Attention" %}</span>
+                    {% endif %}
                 {% else %}
-                    <div class="empty-state-container">
-                        <div class="mb-3 text-muted opacity-50">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 2a10 10 0 0 0-9.09 14.09A10 10 0 0 0 12 22a10 10 0 0 0 9.09-14.09A10 10 0 0 0 12 2z" opacity="0.2"/>
-                                <path d="M12 18v-6l4 2" class="anim-clock-empty"/>
-                            </svg>
-                        </div>
-                        <p class="text-muted small mb-0">{% trans "No insights available yet." %}</p>
-                    </div>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 border border-secondary border-opacity-10">{% trans "No Data" %}</span>
                 {% endif %}
             </div>
+            
+            {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
+            <div class="card-body px-4 py-3 text-center">
+                <!-- Savings Rate Hero -->
+                <div class="mb-4 mt-2 px-3 text-center">
+                    <h1 class="fw-black mb-2 text-body-emphasis" style="font-family: 'DM Sans', 'Inter', sans-serif; font-size: 2rem; letter-spacing: -1px;">
+                        {{ hero_metrics.savings_rate|translate_digits }}<span class="fs-4 text-muted fw-bold">%</span>
+                    </h1>
+                    <p class="text-muted small text-uppercase mb-2" style="letter-spacing: 0.5px;">{% trans "Savings Rate" %}</p>
+                    <div class="mx-auto mb-3" style="max-width: 300px;">
+                        <div class="progress rounded-pill bg-secondary bg-opacity-10 mb-2 progress-animate" style="height: 10px;">
+                            <div class="progress-bar rounded-pill {% if hero_metrics.savings_rate >= 20 %}bg-success{% elif hero_metrics.savings_rate > 0 %}bg-primary{% else %}bg-danger{% endif %}" 
+                                 role="progressbar" 
+                                 style="--progress-width: {% if hero_metrics.savings_rate < 0 %}0{% else %}{{ hero_metrics.savings_rate|floatformat:1 }}{% endif %}%; width: {% if hero_metrics.savings_rate < 0 %}0{% else %}{{ hero_metrics.savings_rate|floatformat:1 }}{% endif %}%;" 
+                                 aria-valuenow="{{ hero_metrics.savings_rate|floatformat:1 }}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted fw-bold px-1" style="font-size: 0.9rem;">
+                            <div class="d-flex flex-column align-items-start text-start">
+                                <span>{{ currency_symbol }}{{ hero_metrics.saved|humanize_currency:currency_symbol|translate_digits }} {% trans "saved" %}</span>
+                                {% if hero_metrics.savings_diff_pct %}
+                                <span class="{% if hero_metrics.savings_diff_pct > 0 %}text-success{% else %}text-danger{% endif %} mt-1 cursor-help" style="font-size: 0.65rem;"
+                                      data-bs-toggle="tooltip" 
+                                      title="{% trans 'The actual amount of currency saved compared to last month.' %}">
+                                    {% if hero_metrics.savings_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ hero_metrics.savings_diff_pct_abs|translate_digits|floatformat:1 }}% 
+                                    {% trans "total cash vs last month" %}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <span>{{ currency_symbol }}{{ hero_metrics.income|humanize_currency:currency_symbol|translate_digits }} {% trans "income" %}</span>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center">
+                        {% if hero_metrics.trend_text %}
+                            <span class="badge {% if hero_metrics.trend_type == 'positive' %}bg-success{% elif hero_metrics.trend_type == 'negative' %}bg-danger{% else %}bg-secondary{% endif %} bg-opacity-10 {% if hero_metrics.trend_type == 'positive' %}text-success{% elif hero_metrics.trend_type == 'negative' %}text-danger{% else %}text-secondary{% endif %} rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
+                                {{ hero_metrics.trend_text }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="row g-0 py-3 border-top border-bottom">
+                    <a href="{% url 'income-list' %}?{% url_replace %}" class="col-6 border-end px-2 text-decoration-none transition-all">
+                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;" 
+                               data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total money received during the selected period.' %}">
+                            {% trans "Total Income" %}
+                            <i class="bi bi-info-circle ms-1" style="font-size: 0.6rem; opacity: 0.6;"></i>
+                        </small>
+                        <div class="fw-bold mb-0 text-body text-truncate" style="font-size: 0.95rem;">{{ currency_symbol }}{{ total_income|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
+                        {% if prev_month_data.income_pct %}
+                            <div class="mt-1 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.65rem;">
+                                <span class="{% if prev_month_data.income_pct > 0 %}text-success{% elif prev_month_data.income_pct < 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
+                                    {% if prev_month_data.income_pct > 0 %}↑{% elif prev_month_data.income_pct < 0 %}↓{% endif %} {{ prev_month_data.income_pct_abs|floatformat:0|translate_digits }}%
+                                </span>
+                                <span class="text-muted d-none d-md-inline">({% if prev_month_data.income_diff_amount > 0 %}+{% endif %}{{ currency_symbol }}{{ prev_month_data.income_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }})</span>
+                            </div>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'expense-list' %}?{% url_replace is_investment='false' %}" class="col-6 px-2 text-decoration-none transition-all">
+                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;"
+                               data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total daily living expenses, excluding investments and transfers.' %}">
+                            {% trans "Operating Spent" %}
+                            <i class="bi bi-info-circle ms-1" style="font-size: 0.6rem; opacity: 0.6;"></i>
+                        </small>
+                        <div class="fw-bold mb-0 text-body text-truncate" style="font-size: 0.95rem;">{{ currency_symbol }}{{ hero_metrics.spent|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
+                        {% if prev_month_data.expense_pct %}
+                            <div class="mt-1 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.65rem;">
+                                <span class="{% if prev_month_data.expense_pct < 0 %}text-success{% elif prev_month_data.expense_pct > 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
+                                    {% if prev_month_data.expense_pct > 0 %}↑{% elif prev_month_data.expense_pct < 0 %}↓{% endif %} {{ prev_month_data.expense_pct_abs|floatformat:0|translate_digits }}%
+                                </span>
+                                <span class="text-muted d-none d-md-inline">({% if prev_month_data.expense_diff_amount > 0 %}+{% endif %}{{ currency_symbol }}{{ prev_month_data.expense_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }})</span>
+                            </div>
+                        {% endif %}
+                    </a>
+                </div>
+
+                <!-- Transfer Notice -->
+                {% if total_transfers > 0 %}
+                <div class="mt-3 px-3">
+                    <a href="{% url 'transfer-list' %}" class="d-flex align-items-center gap-2 text-decoration-none bg-info bg-opacity-10 rounded-pill py-1 px-3" style="transition: opacity 0.15s;">
+                        <i class="bi bi-arrow-left-right text-info" style="font-size: 0.6rem;"></i>
+                        <span class="small" style="font-size: 0.8rem;">
+                            {{ currency_symbol }}{{ total_transfers|floatformat:0|humanize_currency:currency_symbol|translate_digits }}
+                            {% trans "moved between accounts" %}
+                            <br>
+                            <span class="text-muted">({{ transfer_count|translate_digits }} {% trans "transfers" %})</span>
+                        </span>
+                        <i class="bi bi-chevron-right text-muted ms-auto" style="font-size: 0.65rem;"></i>
+                    </a>
+                    <div class="text-muted text-center mt-1" style="font-size: 0.7rem;">{% trans "Internal transfers are excluded from income & expenses" %}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
+                <div class="empty-state-container py-4">
+                    <div class="mb-3">
+                        {% include 'illustrations/empty_chart_health.svg' %}
+                    </div>
+                    <p class="text-muted small mb-0">{% trans "No financial data for this period." %}</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

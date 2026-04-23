@@ -2183,7 +2183,7 @@ a:hover {
   overflow: hidden;
   position: relative;
   width: 100%;
-  min-height: 360px; /* Accommodate 3 vertical items comfortably */
+  min-height: 250px; /* Accommodate 3 vertical items comfortably */
   display: flex;
   flex-direction: column;
   justify-content: center;
