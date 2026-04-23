@@ -2177,3 +2177,59 @@ a:hover {
 [data-bs-theme="dark"] .account-type-subtext {
   color: #adb5bd;
 }
+
+/* Insights Carousel */
+.insights-carousel-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  min-height: 360px; /* Accommodate 3 vertical items comfortably */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.insights-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  width: 100%;
+}
+
+.insights-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.insight-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  padding: 0.5rem 0.25rem;
+  transition: opacity 0.3s ease;
+}
+
+.insights-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bs-border-color);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.indicator-dot.active {
+  width: 20px;
+  border-radius: 10px;
+  background: var(--bs-primary);
+}

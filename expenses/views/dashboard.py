@@ -1150,7 +1150,7 @@ def home_view(request):
         prev_cat_map = {item['category'].strip(): float(item['total']) for item in prev_cat_data}
         
         for item in category_data:
-            if len(smart_bullet_insights) >= 4: break
+            if len(smart_bullet_insights) >= 9: break
             cat_name = item['category']
             current_total = float(item['total'])
             prev_total = prev_cat_map.get(cat_name, 0)

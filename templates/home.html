@@ -1601,17 +1601,38 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body p-4 d-flex flex-column justify-content-center">
                 {% if smart_bullet_insights %}
-                    <div class="text-start mt-2">
-                        {% for insight in smart_bullet_insights %}
-                        <div class="d-flex align-items-start mb-4">
-                            <div class="rounded-circle bg-{{ insight.theme }} bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-3 mt-1 flex-shrink-0" style="width: 32px; height: 32px;">
-                                <i class="bi {{ insight.icon }}" style="font-size: 0.9rem;"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <p class="mb-0 lh-base text-body" style="font-size: 0.9rem;">{{ insight.text|safe }}</p>
-                            </div>
+                    <div class="insights-carousel-container">
+                        <div class="insights-carousel">
+                            {% for insight in smart_bullet_insights %}
+                                {% if forloop.counter0|divisibleby:3 %}
+                                    <div class="insight-slide d-flex flex-column gap-4">
+                                {% endif %}
+                                
+                                <div class="d-flex align-items-start">
+                                    <div class="rounded-circle bg-{{ insight.theme }} bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 42px; height: 42px;">
+                                        <i class="bi {{ insight.icon }}" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-0 lh-base text-body" style="font-size: 0.925rem;">{{ insight.text|safe }}</p>
+                                    </div>
+                                </div>
+
+                                {% if forloop.counter|divisibleby:3 or forloop.last %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
                         </div>
-                        {% endfor %}
+                        
+                        <!-- Carousel Indicators -->
+                        {% if smart_bullet_insights|length > 3 %}
+                        <div class="insights-indicators">
+                            {% for insight in smart_bullet_insights %}
+                                {% if forloop.counter0|divisibleby:3 %}
+                                    <button class="indicator-dot {% if forloop.first %}active{% endif %}" aria-label="Go to slide"></button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
                 {% else %}
                     <div class="empty-state-container">
@@ -3213,6 +3234,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <script src="{% static 'js/dashboard_filter.js' %}"></script>
+<script src="{% static 'js/insights_carousel.js' %}"></script>
 
 {% endblock %}
 
