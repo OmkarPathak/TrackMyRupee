@@ -51,77 +51,79 @@
 
     {% include 'partials/guide_accounts.html' %}
 
-    <div class="card shadow-sm border-0">
+    <!-- Compact List Layout -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0 text-start align-middle">
-                    <thead>
-                        <tr>
-                            <th class="ps-4">{% trans "Account Name" %}</th>
-                            <th>{% trans "Type" %}</th>
-                            <th class="text-end">{% trans "Balance" %}</th>
-                            <th class="text-end pe-4">{% trans "Actions" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for account in accounts %}
-                        <tr>
-                            <td class="ps-4 py-3">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="flex-shrink-0 bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                                        {% if account.account_type == 'CASH' %}
-                                            <i class="bi bi-cash-stack fs-5"></i>
-                                        {% elif account.account_type == 'BANK' %}
-                                            <i class="bi bi-bank fs-5"></i>
-                                        {% elif account.account_type == 'INVESTMENT' or account.account_type == 'FIXED_DEPOSIT' %}
-                                            <i class="bi bi-graph-up-arrow fs-5"></i>
-                                        {% elif account.account_type == 'CREDIT_CARD' %}
-                                            <i class="bi bi-credit-card fs-5"></i>
-                                        {% else %}
-                                            <i class="bi bi-wallet2 fs-5"></i>
-                                        {% endif %}
-                                    </div>
-                                    <a href="{% url 'account-detail' account.pk %}" class="fw-bold text-decoration-none hover-link text-body lh-sm">{{ account.name }}</a>
-                                </div>
-                            </td>
-                            <td class="py-3">
-                                <span class="badge badge-soft badge-soft-primary small">
-                                     {{ account.get_account_type_display }}
-                                 </span>
-                            </td>
-                            <td class="text-end fw-bold {% if account.balance < 0 %}text-danger{% else %}text-success{% endif %}">
+            {% for account in accounts %}
+            <div class="d-flex align-items-center py-3 px-3 {% if not forloop.last %}border-bottom{% endif %} hover-bg-light transition-all">
+                <!-- Icon -->
+                <div class="flex-shrink-0 bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
+                    {% if account.account_type == 'CASH' %}
+                        <i class="bi bi-wallet2 fs-5 text-muted"></i>
+                    {% elif account.account_type == 'BANK' %}
+                        <i class="bi bi-bank fs-5 text-muted"></i>
+                    {% elif account.account_type == 'INVESTMENT' or account.account_type == 'FIXED_DEPOSIT' %}
+                        <i class="bi bi-graph-up-arrow fs-5 text-muted"></i>
+                    {% elif account.account_type == 'CREDIT_CARD' %}
+                        <i class="bi bi-credit-card fs-5 text-muted"></i>
+                    {% else %}
+                        <i class="bi bi-cash-stack fs-5 text-muted"></i>
+                    {% endif %}
+                </div>
+
+                <!-- Account Info -->
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div style="min-width: 0;">
+                            <a href="{% url 'account-detail' account.pk %}" class="fw-bold text-decoration-none text-body d-block text-truncate mb-0" style="font-size: 0.95rem; letter-spacing: -0.2px;">
+                                {{ account.name }}
+                            </a>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <small class="text-muted" style="font-size: 0.78rem;">{{ account.get_account_type_display }}</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Balance & Actions -->
+                        <div class="d-flex align-items-center gap-2 ps-2">
+                            <div class="fw-bold {% if account.balance < 0 %}text-danger{% else %}text-body{% endif %}" style="font-size: 1.05rem; letter-spacing: -0.3px;">
                                 {{ account.currency }}{{ account.balance|ind_comma:account.currency|translate_digits }}
-                            </td>
-                            <td class="text-end pe-4 text-nowrap">
-                                <div class="hstack gap-3 justify-content-end">
-                                    <a href="{% url 'account-edit' account.pk %}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Edit' %}">
-                                        <i class="bi bi-pencil-square text-primary fs-6"></i>
-                                    </a>
-                                    <a href="{% url 'account-delete' account.pk %}" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" title="{% trans 'Delete' %}">
-                                        <i class="bi bi-trash text-danger fs-6"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center py-5">
-                                <div class="py-4">
-                                    <div class="mb-4">
-                                        {% include 'illustrations/empty_accounts.svg' %}
-                                    </div>
-                                    <h4 class="fw-bold text-muted">{% trans "No Accounts Yet" %}</h4>
-                                    <p class="text-muted mb-4">{% trans "Track your balances across different bank accounts and wallets." %}</p>
-                                    <a href="{% url 'account-create' %}" class="btn btn-primary">
-                                        <i class="bi bi-plus-lg me-1"></i> {% trans "Add Account" %}
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-link text-muted p-0 border-0 opacity-50 hover-opacity-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical" style="font-size: 1rem;"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-1">
+                                    <li>
+                                        <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small" href="{% url 'account-edit' account.pk %}">
+                                            <i class="bi bi-pencil-square text-primary"></i>
+                                            <span>{% trans "Edit" %}</span>
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small" href="{% url 'account-delete' account.pk %}">
+                                            <i class="bi bi-trash"></i>
+                                            <span>{% trans "Delete" %}</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    {% include 'illustrations/empty_accounts.svg' %}
+                </div>
+                <h5 class="fw-bold text-muted">{% trans "No Accounts Found" %}</h5>
+                <p class="text-muted small mb-4">{% trans "Start by adding your first account." %}</p>
+                <a href="{% url 'account-create' %}" class="btn btn-primary btn-sm px-4 rounded-pill">
+                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Account" %}
+                </a>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>

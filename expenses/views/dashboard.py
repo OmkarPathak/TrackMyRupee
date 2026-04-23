@@ -1091,9 +1091,9 @@ def home_view(request):
             show_year_in_review = Expense.objects.filter(user=request.user, date__year=year_in_review_year).exists()
 
     # --- Smart Insights Bullets (New Card) ---
-    smart_bullet_insights = []
+    raw_insights = []
     
-    # 0. Power AI Insight (Top Priority)
+    # 0. Power AI Insight (Positive/Proactive)
     if total_income > 0 and total_expenses > 0 and top_5_categories:
         top_cat = top_5_categories[0]['category']
         top_amount = top_5_categories[0]['total']
@@ -1105,42 +1105,45 @@ def home_view(request):
             pct=top_cat_pct,
             cat=_(top_cat),
             sym=currency_symbol,
-                savings=compact_amount(potential_savings, currency_symbol)
+            savings=compact_amount(potential_savings, currency_symbol)
         )
-        smart_bullet_insights.append({
+        raw_insights.append({
             'text': power_insight_text,
             'icon': 'bi-robot',
-            'theme': 'primary'
+            'theme': 'primary',
+            'score': 20 # Positive/Actionable
         })
     
-    # 1. Highest Spending Category
+    # 1. Highest Spending Category (Neutral)
     if top_category:
         cat_url = f"{reverse('expense-list')}?category={top_category}"
         cat_obj = user_categories.get(top_category)
         icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
-        smart_bullet_insights.append({
+        raw_insights.append({
             'text': format_html(_("<a href='{url}' class='text-decoration-none text-reset hover-link'>{cat}</a> is your top expense this month."), url=cat_url, cat=top_category),
             'icon': icon_cls,
-            'theme': 'primary'
+            'theme': 'primary',
+            'score': 40, # Neutral
+            'cat': top_category
         })
 
-    # 2. Budget Breaches (High Priority)
+    # 2. Budget Breaches (Warnings)
     for cat in over_budget_cats:
-        if len(smart_bullet_insights) >= 4: break
         over_amt = cat['total'] - cat['limit']
         if over_amt > 0:
             cat_url = f"{reverse('expense-list')}?category={cat['name']}"
             cat_obj = user_categories.get(cat['name'])
             icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
-            smart_bullet_insights.append({
+            raw_insights.append({
                 'text': format_html(_("<a href='{url}' class='text-decoration-none text-reset hover-link'>{cat}</a> category exceeded budget by <span class='text-danger fw-bold'>{val}</span>"), url=cat_url, cat=cat['name'], val=format_currency(over_amt)),
                 'icon': icon_cls,
-                'theme': 'danger'
+                'theme': 'danger',
+                'score': 30, # Warning
+                'cat': cat['name']
             })
             
-    # 3. Category MoM Spikes & Drops (Diverse insights)
+    # 3. Category MoM Spikes & Drops (Mixed)
     if prev_month_data and len(selected_years) == 1 and len(selected_months) == 1:
-        # Fetch previous month category totals
         prev_cat_data = Expense.objects.filter(
             user=request.user, 
             date__year=prev_year, 
@@ -1150,7 +1153,6 @@ def home_view(request):
         prev_cat_map = {item['category'].strip(): float(item['total']) for item in prev_cat_data}
         
         for item in category_data:
-            if len(smart_bullet_insights) >= 9: break
             cat_name = item['category']
             current_total = float(item['total'])
             prev_total = prev_cat_map.get(cat_name, 0)
@@ -1160,33 +1162,36 @@ def home_view(request):
                 
                 # Check for significant spike (10%+)
                 if diff_pct >= 10:
-                    # Avoid redundancy if already in budget breaches or top category
-                    is_redundant = any(c.get('cat') == cat_name or c.get('text').find(cat_name) != -1 for c in smart_bullet_insights)
+                    is_redundant = any(c.get('cat') == cat_name or c.get('text').find(cat_name) != -1 for c in raw_insights)
                     if not is_redundant:
                         cat_url = f"{reverse('expense-list')}?category={cat_name}"
                         cat_obj = user_categories.get(cat_name)
                         icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
-                        smart_bullet_insights.append({
+                        raw_insights.append({
                             'text': format_html(_("Heads up! <a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a> is up <span class='text-danger fw-bold'>{pct}%</span>. <br> <span class='small opacity-75'>Take a quick look to see if this spike was intentional.</span>"), url=cat_url, cat=cat_name, pct=int(diff_pct)),
                             'icon': icon_cls,
-                            'theme': 'warning'
+                            'theme': 'warning',
+                            'score': 30, # Warning
+                            'cat': cat_name
                         })
                 
                 # Check for significant drop (10%+)
                 elif diff_pct <= -10:
-                    is_redundant = any(c.get('text').find(cat_name) != -1 for c in smart_bullet_insights)
+                    is_redundant = any(c.get('text').find(cat_name) != -1 for c in raw_insights)
                     if not is_redundant:
                         cat_url = f"{reverse('expense-list')}?category={cat_name}"
                         cat_obj = user_categories.get(cat_name)
                         icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
-                        smart_bullet_insights.append({
+                        raw_insights.append({
                             'text': format_html(_("Look at you! <a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a> spending dropped <span class='text-success fw-bold'>{pct}%</span>! <br> <span class='small opacity-75'>That's money staying in your pocket where it belongs.</span>"), url=cat_url, cat=cat_name, pct=int(abs(diff_pct))),
                             'icon': icon_cls,
-                            'theme': 'success'
+                            'theme': 'success',
+                            'score': 20, # Positive
+                            'cat': cat_name
                         })
 
-    # --- Financial Coach Moments ---
-    # 1. Net Worth Milestone
+    # 4. Financial Coach Moments (Milestones)
+    # Net Worth Milestone
     net_worth = Account.objects.filter(user=request.user).aggregate(Sum('balance'))['balance__sum'] or 0
     milestones = [100000, 500000, 1000000, 2500000, 5000000, 10000000]
     applicable_milestone = None
@@ -1197,22 +1202,28 @@ def home_view(request):
             break
 
     if applicable_milestone:
-        if not any(c.get('icon') == 'bi-trophy' for c in smart_bullet_insights):
-            smart_bullet_insights.insert(0, {
-                'text': format_html(_("You crossed <span class='fw-bold'>{}</span> in net worth! <br> <span class='small opacity-75'>That's years of discipline showing up as a number. Most people never get here. You did.</span>"), compact_amount(applicable_milestone, currency_symbol)),
-                'icon': 'bi-trophy',
-                'theme': 'warning'
-            })
+        raw_insights.append({
+            'text': format_html(_("You crossed <span class='fw-bold'>{}</span> in net worth! <br> <span class='small opacity-75'>That's years of discipline showing up as a number. Most people never get here. You did.</span>"), compact_amount(applicable_milestone, currency_symbol)),
+            'icon': 'bi-trophy',
+            'theme': 'warning',
+            'score': 10 # Milestone
+        })
             
-    # 2. Good Month Moment
+    # Good Month Moment
     if prev_month_data and prev_month_data.get('savings', 0) > 0 and savings > prev_month_data['savings'] * Decimal('1.2'):
-        if not any(c.get('icon') == 'bi-stars' for c in smart_bullet_insights):
-            projected_annual = savings * 12
-            smart_bullet_insights.insert(0, {
-                'text': format_html(_("High five! You're saving more than usual this month. <br> <span class='small opacity-75'>If you keep this momentum, you could save <span class='fw-bold text-success'>{}</span> this year!</span>"), compact_amount(projected_annual, currency_symbol)),
-                'icon': 'bi-stars',
-                'theme': 'success'
-            })
+        projected_annual = savings * 12
+        raw_insights.append({
+            'text': format_html(_("High five! You're saving more than usual this month. <br> <span class='small opacity-75'>If you keep this momentum, you could save <span class='fw-bold text-success'>{}</span> this year!</span>"), compact_amount(projected_annual, currency_symbol)),
+            'icon': 'bi-stars',
+            'theme': 'success',
+            'score': 10 # Milestone
+        })
+
+    # Sort by score: Milestones (10) > Positive (20) > Warnings (30) > Neutral (40)
+    raw_insights.sort(key=lambda x: x['score'])
+    
+    # Slice to a reasonable amount (e.g., 6)
+    smart_bullet_insights = raw_insights[:10]
 
     # Fallback/Empty state for smart insights
     if not smart_bullet_insights:
