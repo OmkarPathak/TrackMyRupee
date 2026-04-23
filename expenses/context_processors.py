@@ -92,7 +92,7 @@ def personalization(request):
         return {}
 
     # Get current time in user's timezone (Middleware handles activation)
-    now = timezone.now()
+    now = timezone.localtime(timezone.now())
     hour = now.hour
     
     # 1. Time-based greeting logic
