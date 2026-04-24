@@ -23,7 +23,7 @@ class Command(BaseCommand):
         profiles = UserProfile.objects.filter(daily_reminder=True).select_related('user')
         
         sent_count = 0
-        skipped_count = 0
+        no_subscription_count = 0
         
         # Base URL for media assets
         site_url = getattr(settings, 'SITE_URL', 'https://trackmyrupee.com').rstrip('/')
@@ -33,41 +33,36 @@ class Command(BaseCommand):
         for profile in profiles:
             user = profile.user
             
-            # Check if user has added any expense today
-            has_expense = Expense.objects.filter(user=user, date=today).exists()
+            # 1. Internal UI Notification
+            title = "Expense Reminder 💸"
+            message = "Don't forget to add your expenses for today to keep your tracker up to date!"
             
-            if not has_expense:
-                # 1. Internal UI Notification
-                title = "Expense Reminder 💸"
-                message = "Don't forget to add your expenses for today to keep your tracker up to date!"
+            ui_slug = f"daily-expense-reminder-{today}"
+            if not Notification.objects.filter(user=user, slug=ui_slug).exists():
+                Notification.objects.create(
+                    user=user,
+                    title=title,
+                    message=message,
+                    notification_type='SYSTEM',
+                    slug=ui_slug,
+                    link='/expenses/add/'
+                )
+            
+            # 2. External Push Notification
+            if PushInformation.objects.filter(user=user).exists():
+                payload = {
+                    "head": title,
+                    "body": message,
+                    "icon": absolute_icon_url,
+                    "url": f"{site_url}/expenses/add/"
+                }
                 
-                ui_slug = "daily-expense-reminder"
-                if not Notification.objects.filter(user=user, slug=ui_slug, is_read=False).exists():
-                    Notification.objects.create(
-                        user=user,
-                        title=title,
-                        message=message,
-                        notification_type='SYSTEM',
-                        slug=ui_slug,
-                        link='/expenses/add/'
-                    )
-                
-                # 2. External Push Notification
-                # Only attempt and count if the user has at least one active subscription
-                if PushInformation.objects.filter(user=user).exists():
-                    payload = {
-                        "head": title,
-                        "body": message,
-                        "icon": absolute_icon_url,
-                        "url": f"{site_url}/expenses/add/"
-                    }
-                    
-                    try:
-                        send_user_notification(user=user, payload=payload, ttl=3600)
-                        sent_count += 1
-                    except Exception as e:
-                        self.stdout.write(self.style.WARNING(f"Failed to send Push to {user.username}: {e}"))
+                try:
+                    send_user_notification(user=user, payload=payload, ttl=3600)
+                    sent_count += 1
+                except Exception as e:
+                    self.stdout.write(self.style.WARNING(f"Failed to send Push to {user.username}: {e}"))
             else:
-                skipped_count += 1
+                no_subscription_count += 1
                 
-        self.stdout.write(self.style.SUCCESS(f"Daily reminders sent: {sent_count}, Skipped: {skipped_count}"))
+        self.stdout.write(self.style.SUCCESS(f"Daily reminders sent: {sent_count}, No Subscription: {no_subscription_count}"))
