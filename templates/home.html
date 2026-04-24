@@ -1035,12 +1035,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" 
                           title="{% trans 'The combined balance of all your accounts (Savings, Cash, Investments minus Credit Card debt).' %}">
                         {% trans "Total Net Worth" %}
-                    </span> – 
-                    {% if selected_month and selected_year %}
-                        {{ selected_month }} {{ selected_year|translate_digits }}
-                    {% else %}
-                        {% trans "Dashboard" %}
-                    {% endif %}
+                        {% if selected_month and selected_year %}
+                            ({{ selected_month }} {{ selected_year|translate_digits }})
+                        {% else %}
+                            ({% trans "Dashboard" %})
+                        {% endif %}
+                    </span> 
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <div class="dropdown">
@@ -1131,9 +1131,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </svg> 
                     <span class="cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" 
                           title="{% trans 'AI-generated observations about your spending patterns and financial trends.' %}">
-                        {% trans "Smart Insights" %}
+                        {% trans "Smart Insights" %} ({% if salary_breakdown.month_name %}{{ salary_breakdown.month_name }}{% else %}Custom Range{% endif %})
                     </span>
-                    – {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
                  </div>
             </div>
             <div class="card-body p-2 d-flex flex-column">
@@ -1142,15 +1141,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="insights-carousel">
                             {% for insight in smart_bullet_insights %}
                                 {% if forloop.counter0|divisibleby:3 %}
-                                    <div class="insight-slide d-flex flex-column gap-2">
+                                    <div class="insight-slide d-flex flex-column gap-3 py-1">
                                 {% endif %}
                                 
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle bg-{{ insight.theme }} bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 42px; height: 42px;">
-                                        <i class="bi {{ insight.icon }}" style="font-size: 1.1rem;"></i>
+                                <div class="d-flex align-items-center mb-1">
+                                    <div class="rounded-circle bg-{{ insight.theme }} bg-opacity-10 text-{{ insight.theme }} d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 44px; height: 44px;">
+                                        <i class="bi {{ insight.icon }}" style="font-size: 1rem;"></i>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <p class="mb-0 lh-base text-body" style="font-size: 0.925rem;">{{ insight.text|safe }}</p>
+                                        <div class="lh-base text-body" style="font-size: 0.9rem;">{{ insight.text|safe }}</div>
                                     </div>
                                 </div>
 
@@ -1418,9 +1417,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </svg>
                     <span class="cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" 
                           title="{% trans 'A summary of your savings rate and overall financial performance for the period.' %}">
-                        {% trans "Financial Health" %}
+                        {% trans "Financial Health" %} ({% if salary_breakdown.month_name %}{{ salary_breakdown.month_name }}{% else %}Custom Range{% endif %})
                     </span>
-                    – {% if salary_breakdown.month_name %} {{ salary_breakdown.month_name }} {% else %} Custom Range {% endif %}
                 </div>
                 {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
                     {% if hero_metrics.status == 'excellent' %}

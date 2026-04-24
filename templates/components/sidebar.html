@@ -31,10 +31,15 @@
             </a>
 
             <!-- Expenses -->
-            <a href="{% url 'expense-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'expense' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Expenses' %}">
-                <i class="bi bi-credit-card fs-5"></i>
-                <span class="nav-text">{% trans "Expenses" %}</span>
-            </a>
+            <div class="d-flex align-items-center position-relative px-0">
+                <a href="{% url 'expense-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'expense' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Expenses' %}">
+                    <i class="bi bi-credit-card fs-5"></i>
+                    <span class="nav-text">{% trans "Expenses" %}</span>
+                </a>
+                <a href="{% url 'expense-create' %}" class="btn-sidebar-add nav-text me-2" title="{% trans 'Add Expense' %}">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
 
             <!-- Goals -->
             <a href="{% url 'goal-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'goal' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Goals' %}">
@@ -127,7 +132,7 @@
                data-bs-toggle="dropdown" aria-expanded="false" id="sidebarUserDropdown">
                 <!-- Avatar -->
                 <div class="rounded-circle text-primary fw-bold border d-flex align-items-center justify-content-center bg-primary-subtle shadow-sm flex-shrink-0" 
-                     style="width: 40px; height: 40px; font-size: 0.9rem;">
+                     style="width: 40px; height: 40px; font-size: 1rem;">
                     {% if user.first_name and user.last_name %}
                         {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
                     {% else %}
@@ -137,10 +142,10 @@
                 
                 <!-- User Info (Visible when sidebar is expanded) -->
                 <div class="ms-3 nav-text overflow-hidden flex-grow-1">
-                    <div class="fw-bold text-body text-truncate mb-0" style="font-size: 0.9rem; line-height: 1.2;">
+                    <div class="fw-bold text-body text-truncate mb-1" style="font-size: 1rem; line-height: 1.2;">
                         {{ user.get_full_name|default:user.username }}
                     </div>
-                    <div class="text-muted text-truncate" style="font-size: 0.75rem; line-height: 1.2;">
+                    <div class="text-muted text-truncate" style="font-size: 0.8rem; line-height: 1.2;">
                         {{ user.profile.active_tier_display }} {% trans "plan" %}
                     </div>
                 </div>

@@ -457,6 +457,28 @@ body.demo-mode .sidebar {
   opacity: 1;
 }
 
+.btn-sidebar-add {
+  position: absolute;
+  right: 1.2rem;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  color: var(--bs-secondary-color);
+  text-decoration: none;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.nav-link:hover + .btn-sidebar-add,
+.nav-link.active + .btn-sidebar-add,
+.btn-sidebar-add:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: var(--bs-primary) !important;
+}
+
 /* Sidebar Divider */
 .sidebar hr {
   margin: 1.5rem 0 1rem 0 !important;

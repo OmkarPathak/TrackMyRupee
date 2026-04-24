@@ -1152,6 +1152,9 @@ def home_view(request):
         
         prev_cat_map = {item['category'].strip(): float(item['total']) for item in prev_cat_data}
         
+        spikes = []
+        drops = []
+        
         for item in category_data:
             cat_name = item['category']
             current_total = float(item['total'])
@@ -1160,35 +1163,76 @@ def home_view(request):
             if prev_total > 0:
                 diff_pct = ((current_total - prev_total) / prev_total) * 100
                 
-                # Check for significant spike (10%+)
+                # Check for significant changes (10%+)
                 if diff_pct >= 10:
-                    is_redundant = any(c.get('cat') == cat_name or c.get('text').find(cat_name) != -1 for c in raw_insights)
+                    # Avoid redundancy
+                    is_redundant = any(c.get('cat') == cat_name or (c.get('text') and cat_name in str(c.get('text'))) or (c.get('text') and hasattr(c.get('text'), 'find') and c.get('text').find(cat_name) != -1) for c in raw_insights)
                     if not is_redundant:
-                        cat_url = f"{reverse('expense-list')}?category={cat_name}"
-                        cat_obj = user_categories.get(cat_name)
-                        icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
-                        raw_insights.append({
-                            'text': format_html(_("Heads up! <a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a> is up <span class='text-danger fw-bold'>{pct}%</span>. <br> <span class='small opacity-75'>Take a quick look to see if this spike was intentional.</span>"), url=cat_url, cat=cat_name, pct=int(diff_pct)),
-                            'icon': icon_cls,
-                            'theme': 'warning',
-                            'score': 30, # Warning
-                            'cat': cat_name
-                        })
-                
-                # Check for significant drop (10%+)
+                        spikes.append({'cat': cat_name, 'pct': int(diff_pct)})
                 elif diff_pct <= -10:
-                    is_redundant = any(c.get('text').find(cat_name) != -1 for c in raw_insights)
+                    is_redundant = any(c.get('cat') == cat_name or (c.get('text') and cat_name in str(c.get('text'))) or (c.get('text') and hasattr(c.get('text'), 'find') and c.get('text').find(cat_name) != -1) for c in raw_insights)
                     if not is_redundant:
-                        cat_url = f"{reverse('expense-list')}?category={cat_name}"
-                        cat_obj = user_categories.get(cat_name)
-                        icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
-                        raw_insights.append({
-                            'text': format_html(_("Look at you! <a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a> spending dropped <span class='text-success fw-bold'>{pct}%</span>! <br> <span class='small opacity-75'>That's money staying in your pocket where it belongs.</span>"), url=cat_url, cat=cat_name, pct=int(abs(diff_pct))),
-                            'icon': icon_cls,
-                            'theme': 'success',
-                            'score': 20, # Positive
-                            'cat': cat_name
-                        })
+                        drops.append({'cat': cat_name, 'pct': int(abs(diff_pct))})
+
+        # Process Spikes (Club if > 1)
+        if len(spikes) > 1:
+            spike_links = []
+            for s in spikes[:3]:
+                url = f"{reverse('expense-list')}?category={s['cat']}"
+                spike_links.append(format_html("<a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a>", url=url, cat=s['cat']))
+            
+            spike_cats_html = spike_links[0]
+            if len(spike_links) > 1:
+                spike_cats_html = format_html("{} and {}", mark_safe(", ".join([str(x) for x in spike_links[:-1]])), spike_links[-1])
+            
+            raw_insights.append({
+                'text': format_html(_("Heads up! Spending is up in <b>{count} categories</b> including {cats}. <br> <span class='small opacity-50'>Take a quick look to see if these spikes were intentional.</span>"), count=len(spikes), cats=spike_cats_html),
+                'icon': 'bi-exclamation-triangle',
+                'theme': 'warning',
+                'score': 30
+            })
+        else:
+            for s in spikes:
+                cat_url = f"{reverse('expense-list')}?category={s['cat']}"
+                cat_obj = user_categories.get(s['cat'])
+                icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
+                raw_insights.append({
+                    'text': format_html(_("Heads up! <a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a> is up <span class='text-danger fw-bold'>{pct}%</span>. <br> <span class='small opacity-50'>Take a quick look to see if this spike was intentional.</span>"), url=cat_url, cat=s['cat'], pct=s['pct']),
+                    'icon': icon_cls,
+                    'theme': 'warning',
+                    'score': 30,
+                    'cat': s['cat']
+                })
+
+        # Process Drops (Club if > 1)
+        if len(drops) > 1:
+            drop_links = []
+            for d in drops[:3]:
+                url = f"{reverse('expense-list')}?category={d['cat']}"
+                drop_links.append(format_html("<a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a>", url=url, cat=d['cat']))
+            
+            drop_cats_html = drop_links[0]
+            if len(drop_links) > 1:
+                drop_cats_html = format_html("{} and {}", mark_safe(", ".join([str(x) for x in drop_links[:-1]])), drop_links[-1])
+            
+            raw_insights.append({
+                'text': format_html(_("Look at you! You've reduced spending in <b>{count} categories</b> including {cats}! <br> <span class='small opacity-50'>That's money staying in your pocket where it belongs.</span>"), count=len(drops), cats=drop_cats_html),
+                'icon': 'bi-lightning-charge',
+                'theme': 'success',
+                'score': 20
+            })
+        else:
+            for d in drops:
+                cat_url = f"{reverse('expense-list')}?category={d['cat']}"
+                cat_obj = user_categories.get(d['cat'])
+                icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
+                raw_insights.append({
+                    'text': format_html(_("Look at you! <a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a> spending dropped <span class='text-success fw-bold'>{pct}%</span>! <br> <span class='small opacity-50'>That's money staying in your pocket where it belongs.</span>"), url=cat_url, cat=d['cat'], pct=d['pct']),
+                    'icon': icon_cls,
+                    'theme': 'success',
+                    'score': 20,
+                    'cat': d['cat']
+                })
 
     # 4. Financial Coach Moments (Milestones)
     # Net Worth Milestone
@@ -1203,7 +1247,7 @@ def home_view(request):
 
     if applicable_milestone:
         raw_insights.append({
-            'text': format_html(_("You crossed <span class='fw-bold'>{}</span> in net worth! <br> <span class='small opacity-75'>That's years of discipline showing up as a number. Most people never get here. You did.</span>"), compact_amount(applicable_milestone, currency_symbol)),
+            'text': format_html(_("You crossed <span class='fw-bold'>{}</span> in net worth! <br> <span class='small opacity-50'>That's years of discipline showing up as a number. Most people never get here. You did.</span>"), compact_amount(applicable_milestone, currency_symbol)),
             'icon': 'bi-trophy',
             'theme': 'warning',
             'score': 10 # Milestone
@@ -1213,7 +1257,7 @@ def home_view(request):
     if prev_month_data and prev_month_data.get('savings', 0) > 0 and savings > prev_month_data['savings'] * Decimal('1.2'):
         projected_annual = savings * 12
         raw_insights.append({
-            'text': format_html(_("High five! You're saving more than usual this month. <br> <span class='small opacity-75'>If you keep this momentum, you could save <span class='fw-bold text-success'>{}</span> this year!</span>"), compact_amount(projected_annual, currency_symbol)),
+            'text': format_html(_("High five! You're saving more than usual this month. <br> <span class='small opacity-50'>If you keep this momentum, you could save <span class='fw-bold text-success'>{}</span> this year!</span>"), compact_amount(projected_annual, currency_symbol)),
             'icon': 'bi-stars',
             'theme': 'success',
             'score': 10 # Milestone
