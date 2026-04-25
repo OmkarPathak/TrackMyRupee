@@ -20,11 +20,11 @@
             }
         })();
     </script>
-    <title>TrackMyRupee — Personal Finance Dashboard for Indian Professionals</title>
+    <title>TrackMyRupee | The Finance Dashboard Built for Indian Salaried Professionals</title>
 
     <!-- SEO Meta Tags -->
     <meta name="description"
-        content="TrackMyRupee: Privacy-first personal finance dashboard for Indian professionals. Track expenses, manage accounts, watch your net worth grow — without sharing bank logins or SMS access.">
+        content="Your salary has a story. TrackMyRupee tells you the whole thing. See your net worth grow, spot spending leaks, and hit your goals without bank logins or SMS access.">
     <meta name="keywords"
         content="best finance tracker, expense tracker india, budget app, personal finance manager, rupee tracker, money management software, spending tracker, track my rupee, net worth tracker india">
     <meta name="author" content="Omkar Pathak">
@@ -34,9 +34,9 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://trackmyrupee.com/">
-    <meta property="og:title" content="TrackMyRupee | Personal Finance Dashboard for Indian Professionals">
+    <meta property="og:title" content="TrackMyRupee | The Finance Dashboard Built for Indian Salaried Professionals">
     <meta property="og:description"
-        content="Finally know exactly where your salary goes. Privacy-first expense tracking, net worth monitoring, and AI insights.">
+        content="Your salary has a story. TrackMyRupee tells you the whole thing. Watch your net worth grow and spot spending leaks without bank logins or SMS access.">
     <meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -44,9 +44,9 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://trackmyrupee.com/">
-    <meta name="twitter:title" content="TrackMyRupee | Personal Finance Dashboard for Indian Professionals">
+    <meta name="twitter:title" content="rackMyRupee | The Finance Dashboard Built for Indian Salaried Professionals">
     <meta name="twitter:description"
-        content="Finally know exactly where your salary goes. Privacy-first expense tracking and net worth monitoring.">
+        content="Your salary has a story. TrackMyRupee tells you the whole thing. Watch your net worth grow and spot spending leaks without bank logins or SMS access.">
     <meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
 
     <!-- Schema.org JSON-LD -->
@@ -889,7 +889,6 @@
     <div class="container d-flex align-items-center justify-content-between py-3">
         <a class="nav-logo" href="/">TrackMyRupee</a>
         <ul class="nav-links d-none d-lg-flex list-unstyled mb-0 gap-4">
-            <li><a href="#networth" class="text-decoration-none">{% trans "Net Worth" %}</a></li>
             <li><a href="#features" class="text-decoration-none">{% trans "Features" %}</a></li>
             <li><a href="#pricing" class="text-decoration-none">{% trans "Pricing" %}</a></li>
             <li><a href="{% url 'demo_login' %}" class="text-decoration-none">{% trans "Live Demo" %}</a></li>
@@ -912,7 +911,6 @@
 <!-- Mobile Menu Overlay -->
 <div class="mobile-menu" id="mobile-menu">
     <a href="#features" onclick="toggleMenu()">{% trans "Features" %}</a>
-    <a href="#networth" onclick="toggleMenu()">{% trans "Net Worth" %}</a>
     <a href="#pricing" onclick="toggleMenu()">{% trans "Pricing" %}</a>
     <a href="{% url 'demo_login' %}">{% trans "Live Demo" %}</a>
     <a href="{% url 'account_signup' %}" class="nav-cta">{% trans "Start Free" %}</a>
@@ -924,15 +922,23 @@
         <div class="row justify-content-center">
             <div class="col-lg-10 text-center">
                 <h1 class="mb-4">
-                    {% trans "Know exactly where your money" %}<br class="d-none d-md-block">
-                    {% trans "is going and where it's headed." %}
+                    {% trans "Your salary has a story." %}<br class="d-none d-md-block">
+                    {% trans "TrackMyRupee tells you the whole thing." %}
                 </h1>
-                <p class="mx-auto mb-5" style="font-size: 19px; line-height: 1.6; color: var(--tmr-ink-600); max-width: 600px;">
-                    {% trans "Type an expense in 3 seconds. See your salary's full story with no bank logins, no SMS access, no noise." %}
+                <p class="mx-auto mb-5" style="font-size: 19px; line-height: 1.6; color: var(--tmr-ink-600); max-width: 640px;">
+                    {% trans "See your net worth grow. Know when you'll hit your goals. Spot spending leaks before they drain your month. All without giving any app access to your bank or messages." %}
                 </p>
-                <div class="d-flex justify-content-center flex-wrap gap-3">
-                    <a href="{% url 'demo_login' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Try live demo" %}</a>
-                    <a href="{% url 'account_signup' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start for Free" %}</a>
+                <div class="d-flex flex-column align-items-center">
+                    <div class="d-flex justify-content-center flex-wrap gap-3 mb-3">
+                        <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start Free" %}</a>
+                        <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "See live demo" %} &rarr;</a>
+                    </div>
+                    <div style="font-size: 13px; color: var(--tmr-ink-400); font-weight: 500;">
+                        <i class="bi bi-check"></i>
+                        {% trans "It's free, takes 2 minutes" %}
+                        <i class="bi bi-check"></i>
+                        <span>{% trans "Used by professionals in Bangalore, Mumbai, Pune and 12 other cities" %}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -945,6 +951,76 @@
             </div>
             <div class="mobile-mockup">
                 <img src="{% static 'img/mobile-2.png' %}" alt="TrackMyRupee Mobile App" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- NET WORTH SPOTLIGHT -->
+<section class="landing-section" id="networth" style="background: var(--tmr-teal-50);">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 order-2 order-lg-1">
+                <div class="dashboard-card mx-auto mx-lg-0" style="background:white">
+                    <div style="font-size:12px;color:var(--ink3);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.06em">{% trans "Net Worth Over Time" %}</div>
+                    <svg viewBox="0 0 300 120" style="width:100%;margin-bottom:14px">
+                        <polyline points="0,100 50,88 100,75 150,60 200,42 250,30 300,18"
+                            fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="0,100 50,88 100,75 150,60 200,42 250,30 300,18 300,120 0,120"
+                            fill="rgba(45,106,79,0.08)" stroke="none"/>
+                        <text x="0" y="114" font-size="9" fill="#8a8a84" font-family="sans-serif">Oct</text>
+                        <text x="100" y="114" font-size="9" fill="#8a8a84" font-family="sans-serif">Dec</text>
+                        <text x="200" y="114" font-size="9" fill="#8a8a84" font-family="sans-serif">Feb</text>
+                        <text x="270" y="114" font-size="9" fill="#8a8a84" font-family="sans-serif">Mar</text>
+                        <circle cx="300" cy="18" r="3" fill="#1D9E75"/>
+                    </svg>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--paper);border-radius:12px;border:1px solid var(--border)">
+                        <div>
+                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink3);margin-bottom:2px">{% trans "6-month growth" %}</div>
+                            <div style="font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-0.02em">+₹2,14,000</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink3);margin-bottom:2px">{% trans "Savings rate" %}</div>
+                            <div style="font-size:22px;font-weight:800;color:var(--accent);letter-spacing:-0.02em">41.6%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 order-1 order-lg-2">
+                <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-600); margin-bottom: var(--space-3);">{% trans "Your financial picture" %}</div>
+                <h2 class="section-title">{% trans "Stop tracking expenses." %}<br>{% trans "Start tracking wealth." %}</h2>
+                <div class="networth-explainer mt-4">
+                    <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 12px;">{% trans "All your accounts. One number that matters." %}</h3>
+                    <p style="font-size: 15px; color: var(--tmr-ink-600); line-height: 1.6;">{% trans "Add your savings, FDs, mutual funds, PPF, and credit cards - TrackMyRupee calculates your true net worth and shows you exactly how it moves each month." %}</p>
+                    <div class="account-types mt-4">
+                        <div class="row row-cols-1 row-cols-md-2 g-2">
+                            <div class="col">
+                                <div class="account-type-row d-flex align-items-center gap-2">
+                                    <div class="account-type-dot" style="background:#1D9E75"></div>
+                                    <div class="account-type-name" style="font-size: 13px;">{% trans "Savings & Current Accounts" %}</div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="account-type-row d-flex align-items-center gap-2">
+                                    <div class="account-type-dot" style="background:#3a86ff"></div>
+                                    <div class="account-type-name" style="font-size: 13px;">{% trans "Mutual Funds & Stocks" %}</div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="account-type-row d-flex align-items-center gap-2">
+                                    <div class="account-type-dot" style="background:#D4831A"></div>
+                                    <div class="account-type-name" style="font-size: 13px;">{% trans "Fixed Deposits & PPF" %}</div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="account-type-row d-flex align-items-center gap-2">
+                                    <div class="account-type-dot" style="background:#E05C45"></div>
+                                    <div class="account-type-name" style="font-size: 13px;">{% trans "Credit Cards & Loans" %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1021,7 +1097,7 @@
 <section class="landing-section">
     <div class="container py-5">
         <div class="section-tag">{% trans "The Problem" %}</div>
-        <h2 class="section-title">{% trans "Salary credited." %} <br>{% trans "Three weeks later - gone." %}</h2>
+        <h2 class="section-title">{% trans "Salary credited." %} <br>{% trans "Three weeks later - where did it go?." %}</h2>
         <p class="section-sub">{% trans "Sound familiar?" %}</p>
         <div class="row g-4">
             <div class="col-md-6 col-lg-4">
@@ -1046,81 +1122,12 @@
     </div>
 </section>
 
-<!-- NET WORTH SPOTLIGHT -->
-<section class="landing-section" id="networth" style="background: var(--tmr-teal-50);">
-    <div class="container py-5">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6 order-2 order-lg-1">
-                <div class="dashboard-card mx-auto mx-lg-0" style="background:white">
-                    <div style="font-size:12px;color:var(--ink3);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.06em">{% trans "Net Worth Over Time" %}</div>
-                    <svg viewBox="0 0 300 120" style="width:100%;margin-bottom:14px">
-                        <polyline points="0,100 50,88 100,75 150,60 200,42 250,30 300,18"
-                            fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline points="0,100 50,88 100,75 150,60 200,42 250,30 300,18 300,120 0,120"
-                            fill="rgba(45,106,79,0.08)" stroke="none"/>
-                        <text x="0" y="114" font-size="9" fill="#8a8a84" font-family="sans-serif">Oct</text>
-                        <text x="100" y="114" font-size="9" fill="#8a8a84" font-family="sans-serif">Dec</text>
-                        <text x="200" y="114" font-size="9" fill="#8a8a84" font-family="sans-serif">Feb</text>
-                        <text x="270" y="114" font-size="9" fill="#8a8a84" font-family="sans-serif">Mar</text>
-                        <circle cx="300" cy="18" r="3" fill="#1D9E75"/>
-                    </svg>
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--paper);border-radius:12px;border:1px solid var(--border)">
-                        <div>
-                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink3);margin-bottom:2px">{% trans "6-month growth" %}</div>
-                            <div style="font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-0.02em">+₹2,14,000</div>
-                        </div>
-                        <div style="text-align:right">
-                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink3);margin-bottom:2px">{% trans "Savings rate" %}</div>
-                            <div style="font-size:22px;font-weight:800;color:var(--accent);letter-spacing:-0.02em">41.6%</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 order-1 order-lg-2">
-                <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-600); margin-bottom: var(--space-3);">{% trans "Your financial picture" %}</div>
-                <h2 class="section-title">{% trans "Stop tracking expenses." %}<br>{% trans "Start tracking wealth." %}</h2>
-                <div class="networth-explainer mt-4">
-                    <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 12px;">{% trans "All your accounts. One number that matters." %}</h3>
-                    <p style="font-size: 15px; color: var(--tmr-ink-600); line-height: 1.6;">{% trans "Add your savings, FDs, mutual funds, PPF, and credit cards - TrackMyRupee calculates your true net worth and shows you exactly how it moves each month." %}</p>
-                    <div class="account-types mt-4">
-                        <div class="row row-cols-1 row-cols-md-2 g-2">
-                            <div class="col">
-                                <div class="account-type-row d-flex align-items-center gap-2">
-                                    <div class="account-type-dot" style="background:#1D9E75"></div>
-                                    <div class="account-type-name" style="font-size: 13px;">{% trans "Savings & Current Accounts" %}</div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="account-type-row d-flex align-items-center gap-2">
-                                    <div class="account-type-dot" style="background:#3a86ff"></div>
-                                    <div class="account-type-name" style="font-size: 13px;">{% trans "Mutual Funds & Stocks" %}</div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="account-type-row d-flex align-items-center gap-2">
-                                    <div class="account-type-dot" style="background:#D4831A"></div>
-                                    <div class="account-type-name" style="font-size: 13px;">{% trans "Fixed Deposits & PPF" %}</div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="account-type-row d-flex align-items-center gap-2">
-                                    <div class="account-type-dot" style="background:#E05C45"></div>
-                                    <div class="account-type-name" style="font-size: 13px;">{% trans "Credit Cards & Loans" %}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <!-- FEATURES (THE EXPERIENCE) -->
 <section class="landing-section" id="features">
     <div class="container py-5 text-center text-lg-start">
         <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-3);" class="mx-auto mx-lg-0">{% trans "Built around how you actually spend" %}</div>
-        <h2 class="section-title">{% trans "Every feature earns its place." %}</h2>
+        <h2 class="section-title">{% trans "Built for how Indian salaried professionals actually live." %}</h2>
         <div class="row g-4 mt-4">
             <!-- 1: Smart Insights -->
             <div class="col-md-6 col-lg-4">
@@ -1133,35 +1140,35 @@
             <div class="col-md-6 col-lg-4">
                 <div class="feature-card h-100">
                     <div class="feature-title">{% trans "Your month starts when your salary hits" %}</div>
-                    <div class="feature-desc">{% trans "Not on the 1st. TrackMyRupee follows your actual salary cycle — month-end crunches and all." %}</div>
+                    <div class="feature-desc">{% trans "Not on the 1st. TrackMyRupee follows your actual salary cycle - month-end crunches and all." %}</div>
                 </div>
             </div>
             <!-- 3: Visual Net Worth -->
             <div class="col-md-6 col-lg-4">
                 <div class="feature-card h-100">
                     <div class="feature-title">{% trans "Watch your net worth grow" %}</div>
-                    <div class="feature-desc">{% trans "One real-time number across savings, SIPs, and credit cards. Not a list of transactions — a trajectory." %}</div>
+                    <div class="feature-desc">{% trans "One real-time number across savings, SIPs, and credit cards. Not a list of transactions - a trajectory." %}</div>
                 </div>
             </div>
             <!-- 4: Automated SIPs -->
             <div class="col-md-6 col-lg-4">
                 <div class="feature-card h-100">
                     <div class="feature-title">{% trans "Recurring expenses log themselves" %}</div>
-                    <div class="feature-desc">{% trans "Set up your SIPs, rent, and subscriptions once. Only log what changes — takes 30 seconds a day." %}</div>
+                    <div class="feature-desc">{% trans "Set up your SIPs, rent, and subscriptions once. Only log what changes, takes 30 seconds a day." %}</div>
                 </div>
             </div>
             <!-- 5: Savings Goals -->
             <div class="col-md-6 col-lg-4">
                 <div class="feature-card h-100">
                     <div class="feature-title">{% trans "See exactly when you'll hit your goals" %}</div>
-                    <div class="feature-desc">{% trans "Set a savings target and get a projected date based on your real saving pace — not guesswork." %}</div>
+                    <div class="feature-desc">{% trans "Set a savings target and get a projected date based on your real saving pace - not guesswork." %}</div>
                 </div>
             </div>
             <!-- 6: Multi-language Support -->
             <div class="col-md-6 col-lg-4">
                 <div class="feature-card h-100">
                     <div class="feature-title">{% trans "Track in your own language" %}</div>
-                    <div class="feature-desc">{% trans "Fully translated in English, Hindi, and Marathi — finance that feels natural to read." %}</div>
+                    <div class="feature-desc">{% trans "Fully translated in English, Hindi, and Marathi - finance that feels natural to read." %}</div>
                 </div>
             </div>
             <!-- 7: Multi-currency -->
@@ -1207,7 +1214,7 @@
         <div class="section-tag mx-auto">{% trans "Privacy first" %}</div>
         <h2 class="section-title">{% trans "Most finance apps sell your behaviour. We don't." %}</h2>
         <p class="section-sub mx-auto" style="max-width: 700px;">
-            {% trans "TrackMyRupee runs on subscriptions — your data has no role in our business model, and never will." %}
+            {% trans "TrackMyRupee runs on subscriptions. Your data has no role in our business model, and never will." %}
         </p>
 
         <div class="row g-4 mt-4">
@@ -1240,7 +1247,7 @@
                     </div>
                     <div style="font-weight: 800; font-size: 18px; color: var(--tmr-ink-900); margin-bottom: 8px;">{% trans "Safe by design" %}</div>
                     <div style="color: var(--tmr-ink-600); font-size: 14px; line-height: 1.6;">
-                        {% trans "We never connect to your bank or read your SMS — so there's nothing sensitive to leak." %}
+                        {% trans "We never connect to your bank or read your SMS. So there's nothing sensitive to leak." %}
                     </div>
                 </div>
             </div>
@@ -1257,6 +1264,25 @@
                     <div style="font-weight: 800; font-size: 18px; color: var(--tmr-ink-900); margin-bottom: 8px;">{% trans "You're the customer" %}</div>
                     <div style="color: var(--tmr-ink-600); font-size: 14px; line-height: 1.6;">
                         {% trans "Subscription-funded. Our only job is to make the product better for you." %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 p-4 mx-auto" style="max-width: 850px; background: white; border: 1px solid var(--tmr-surface-3); border-radius: 24px;">
+            <div class="row align-items-center g-4">
+                <div class="col-md-7 text-center text-md-start">
+                    <div style="font-weight: 800; font-size: 18px; color: var(--tmr-ink-900); margin-bottom: 8px;">{% trans "Security & Transparency" %}</div>
+                    <p style="color: var(--tmr-ink-600); font-size: 14px; line-height: 1.6; margin-bottom: 0;">
+                        {% blocktrans %}Unlike every other finance app in India - TrackMyRupee is fully open source. Inspect every line of code on GitHub. All data is encrypted at rest and in transit. Export your full history anytime - you're never locked in.{% endblocktrans %}
+                    </p>
+                </div>
+                <div class="col-md-5">
+                    <div class="p-3 rounded-4" style="background: var(--tmr-surface-1);">
+                         <div class="small fw-bold mb-2">{% trans "Nothing to hide." %}</div>
+                         <a href="https://github.com/OmkarPathak/TrackMyRupee" target="_blank" class="btn btn-dark btn-sm w-100 rounded-pill">
+                            <i class="bi bi-github me-2"></i>{% trans "View Source on GitHub" %}
+                         </a>
                     </div>
                 </div>
             </div>
@@ -1278,7 +1304,7 @@
                         <li>{% trans "Excel sheets you stop updating after week 2" %}</li>
                         <li>{% trans "No idea what your actual net worth is" %}</li>
                         <li>{% trans "Spending on Swiggy and subscriptions you forgot about" %}</li>
-                        <li>{% trans "Saving \"whatever is left\" — usually nothing" %}</li>
+                        <li>{% trans "Saving \"whatever is left\" - usually nothing" %}</li>
                     </ul>
                 </div>
             </div>
@@ -1298,11 +1324,49 @@
     </div>
 </section>
 
+<!-- WHY TRACKMYRUPEE? -->
+<section class="landing-section" style="background: white; border-top: 1px solid var(--tmr-surface-3);">
+    <div class="container py-5 mt-4">
+        <div class="text-center mb-5">
+            <div class="section-tag mx-auto">{% trans "The Comparison" %}</div>
+            <h2 class="section-title">{% trans "Why TrackMyRupee?" %}</h2>
+            <p class="section-sub mx-auto">{% trans "Built for those who value clarity and privacy over passive dashboard noise." %}</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 h-100 border rounded-4 bg-light">
+                    <div class="fw-bold mb-2" style="color: var(--tmr-ink-900);">{% trans "vs. Fi Money" %}</div>
+                    <p class="small text-muted mb-0" style="line-height: 1.6;">{% trans "Fi requires their savings account. You're locked into their ecosystem. TrackMyRupee works with any bank, any account, any combination." %}</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 h-100 border rounded-4 bg-light">
+                    <div class="fw-bold mb-2" style="color: var(--tmr-ink-900);">{% trans "vs. INDmoney" %}</div>
+                    <p class="small text-muted mb-0" style="line-height: 1.6;">{% trans "They connect directly to your Zerodha or bank - powerful but invasive. TrackMyRupee never touches your accounts. You log what you choose." %}</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 h-100 border rounded-4 bg-light">
+                    <div class="fw-bold mb-2" style="color: var(--tmr-ink-900);">{% trans "vs. Walnut / ET Money" %}</div>
+                    <p class="small text-muted mb-0" style="line-height: 1.6;">{% trans "Built on SMS reading and bank statement parsing. TrackMyRupee has never read a single message. Ever." %}</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 h-100 border rounded-4 bg-light">
+                    <div class="fw-bold mb-2" style="color: var(--tmr-ink-900);">{% trans "vs. Spreadsheets" %}</div>
+                    <p class="small text-muted mb-0" style="line-height: 1.6;">{% trans "You eventually stop updating them. Our 3-second logging and auto-recurring features mean 95% of your data is always current." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- PRICING -->
 <section class="landing-section" id="pricing" style="background: var(--tmr-surface-1); border-top: 1px solid var(--tmr-surface-3); border-bottom: 1px solid var(--tmr-surface-3);">
     <div class="container py-5 text-center">
         <div class="section-tag mx-auto">{% trans "Simple pricing" %}</div>
-        <h2 class="section-title">{% trans "Less than ₹2 a day to understand your money" %}</h2>
+        <h2 class="section-title">{% trans "Less than a chai a day. More clarity than any spreadsheet." %}</h2>
         <p class="section-sub mx-auto">{% trans "Start free, upgrade when you're ready. No credit card required. No hidden fees." %}</p>
 
         <!-- Billing Toggle -->
@@ -1613,19 +1677,14 @@
 <!-- FOUNDER -->
 <section class="founder-section" style="background: var(--tmr-ink-900); padding: var(--space-10) 0;">
     <div class="container text-center">
-        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-4);">{% trans "Built by one person, for people like you" %}</div>
+        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-4);">{% trans "Built with purpose, not VC pressure" %}</div>
         <img src="https://github.com/OmkarPathak.png" alt="Omkar Pathak" class="founder-avatar rounded-circle mb-4" width="80" height="80" loading="lazy">
-        <div class="founder-quote mx-auto mb-4" style="max-width: 800px; font-size: clamp(18px, 3vw, 24px); color: white; line-height: 1.4; opacity: 0.9;">{% blocktrans %}I built TrackMyRupee after losing track of an entire month's salary and having no idea where it went. If that sounds familiar, you're in the right place.{% endblocktrans %}</div>
+        <div class="founder-quote mx-auto mb-4" style="max-width: 800px; font-size: clamp(18px, 3vw, 24px); color: white; line-height: 1.4; opacity: 0.9;">
+            {% blocktrans %}I'm Omkar - I built TrackMyRupee after losing track of an entire month's salary. No investor pressure means no dark patterns, no data selling, no forced upsells. Just a product that earns your trust.{% endblocktrans %}
+        </div>
         <div class="founder-info mt-2">
             <div class="founder-name" style="font-size: 18px; font-weight: 700; color: white;">Omkar Pathak</div>
             <div style="color: white;">{% trans "Indie Developer · Pune, India" %}</div>
-        </div>
-
-        <div class="mt-5 pt-4 border-top border-secondary mx-auto" style="max-width: 600px; border-color: rgba(255,255,255,0.1) !important;">
-            <p class="text-white mb-3" style="font-size: 0.9rem; opacity: 0.8;">{% trans "TrackMyRupee is fully open source. If you'd rather self-host and stay 100% off the cloud, you can." %}</p>
-            <a href="https://github.com/OmkarPathak/TrackMyRupee" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-4" style="font-size: 0.8rem; font-weight: 600;">
-                <i class="bi bi-github me-2"></i>{% trans "Source Code" %}
-            </a>
         </div>
     </div>
 </section>
@@ -1634,8 +1693,8 @@
 <section class="cta-section" style="background: var(--tmr-teal-50); padding: var(--space-10) 0;">
     <div class="container text-center">
         <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-600); margin-bottom: var(--space-4);">{% trans "Ready to begin?" %}</div>
-        <h2 class="section-title mx-auto">{% trans "A calm financial life is just a click away." %}</h2>
-        <p class="mx-auto mb-5" style="font-size: 17px; color: var(--tmr-ink-600); max-width: 640px;">{% blocktrans %}Free forever. Takes 2 minutes to set up. Available in English, Hindi and Marathi.{% endblocktrans %}</p>
+        <h2 class="section-title mx-auto">{% trans "Your salary deserves a better story. Start writing it today." %}</h2>
+        <p class="mx-auto mb-5" style="font-size: 17px; color: var(--tmr-ink-600); max-width: 640px;">{% trans "Free forever. 2 minutes to set up. No bank access needed." %}</p>
         <div class="cta-actions d-flex flex-wrap justify-content-center gap-3">
             <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start Free" %}</a>
             <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Try live demo" %}</a>
