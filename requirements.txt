@@ -14,7 +14,7 @@ openpyxl==3.1.5
 packaging==25.0
 psycopg2-binary==2.9.11
 pycparser==2.23
-PyJWT==2.10.1
+PyJWT==2.12.0
 python-dotenv==1.0.0
 requests==2.32.5
 sqlparse==0.5.5
