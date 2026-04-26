@@ -1044,7 +1044,7 @@
                                             {{ expense.description|truncatechars:20 }}
                                         </div>
                                         <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
-                                            <span class="text-truncate">{{ expense.category|truncatechars:18 }}{% if expense.account.name is not null %} | {{ expense.account.name|truncatechars:18 }}{% endif %}</span>
+                                            <span class="text-truncate">{{ expense.category|truncatechars:18 }}{% if expense.account.name is not null %} • {{ expense.account.name|truncatechars:18 }}{% endif %}</span>
                                         </div>
                                     </div>
 
