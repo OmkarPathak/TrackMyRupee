@@ -826,7 +826,7 @@
                             <td class="text-nowrap">{{ expense.date|date:"d M Y"|translate_digits }}</td>
                             <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">{{ expense.description|truncatechars:40 }}</td>
                             <td>
-                                <span class="badge bg-secondary opacity-75 d-inline-flex bg-success align-items-center gap-1">
+                                <span class="badge-soft badge-soft-success align-items-center gap-1">
                                     <i class="bi {% category_icon expense.category user %}"></i>
                                     {{ expense.category }}
                                 </span>
