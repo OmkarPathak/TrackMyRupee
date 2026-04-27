@@ -2274,3 +2274,12 @@ a:hover {
   border-radius: 10px;
   background: var(--bs-primary);
 }
+
+/* Custom Indigo Utilities */
+.text-indigo {
+    color: #6610f2 !important;
+}
+
+.bg-indigo {
+    background-color: rgba(102, 16, 242, var(--bs-bg-opacity, 1)) !important;
+}
