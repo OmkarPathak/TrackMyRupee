@@ -626,13 +626,22 @@
         body.demo-mode { padding-top: 40px !important; }
         body.demo-mode .navbar.sticky-top { top: 40px !important; }
 
-        /* Ensure navbar doesn't cover demo banner on mobile/non-sidebar views */
+        /* On Desktop (992px+), if authenticated, the navbar is also visible and sticky */
+        @media (min-width: 992px) {
+            body.demo-mode.is-authenticated { padding-top: 104px !important; }
+        }
+
+        /* Ensure navbar doesn't cover demo banner on mobile/non-sidebar views (like landing) */
         @media (max-width: 575.98px) {
-            /* If the banner wraps to 2 lines on very small screens */
+            /* If the banner wraps on very small screens */
             body.demo-mode { padding-top: 60px !important; }
             body.demo-mode .navbar.sticky-top { top: 60px !important; }
             
             .demo-banner { font-size: 0.75rem !important; }
+
+            /* On mobile authenticated view, navbar is hidden, so keep padding minimal */
+            body.demo-mode.is-authenticated { padding-top: 40px !important; }
+            /* If it wraps, maybe 60px */
         }
         
         /* If navbar is fixed but body doesn't have has-sidebar (e.g. landing) */

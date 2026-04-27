@@ -424,9 +424,8 @@ class TransferForm(forms.ModelForm):
             raise forms.ValidationError(_("Transfer amount must be greater than zero."))
 
         if from_account and amount and from_account.balance < amount:
-            # Optional: Allow overdraft? USER didn't specify. Let's show a warning or validation error.
-            # Many finance apps allow it, but let's be strict or just allow it.
-            # user requirement "mathematically robust" might imply we should at least warn.
+            # Allow negative balances to show "liability", example: in case of credit cards, 
+            # the account balance can be negative
             pass
 
         return cleaned_data
