@@ -87,6 +87,7 @@ class Command(BaseCommand):
             # General / Investment-related (Standard categories now)
             {'name': 'Mutual Funds', 'limit': 30000, 'icon': 'bi-graph-up-arrow'},
             {'name': 'Stocks', 'limit': 20000, 'icon': 'bi-bank'},
+            {'name': 'Other', 'limit': 5000, 'icon': 'bi-three-dots'},
         ]
         
         cat_objs = {}

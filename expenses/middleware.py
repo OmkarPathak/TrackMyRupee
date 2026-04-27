@@ -12,11 +12,16 @@ class DemoReadOnlyMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated and request.user.username == 'demo':
-            # Allow logout POST request to pass through
-            if request.path == reverse('account_logout'):
-                return self.get_response(request)
-
             if request.method in ['POST', 'PUT', 'DELETE', 'PATCH']:
+                # Whitelist non-state-changing API POST requests
+                whitelisted_paths = [
+                    reverse('account_logout'),
+                    reverse('parse-expense'),
+                    reverse('predict-category')
+                ]
+                if request.path in whitelisted_paths:
+                    return self.get_response(request)
+
                 messages.warning(request, "⚠️ Demo Account: This action is restricted to read-only mode.")
                 return redirect(request.META.get('HTTP_REFERER', '/'))
 

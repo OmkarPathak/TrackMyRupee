@@ -177,12 +177,13 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register("{% url 'service-worker' %}")
+                const swUrl = "{% url 'service-worker' %}";
+                navigator.serviceWorker.register(swUrl)
                     .then(registration => {
-                        console.log('SW registered:', registration);
+                        // console.log('SW registered:', registration);
                     })
                     .catch(error => {
-                        console.log('SW registration failed:', error);
+                        // console.log('SW registration failed:', error);
                     });
 
                 // Listen for the controlling service worker changing and reload the page
@@ -593,21 +594,27 @@
         {% include 'components/sidebar.html' %}
     {% endif %}
     {% if request.user.username == 'demo' %}
-    <div class="alert alert-primary text-center fw-bold m-0 rounded-0 py-2 small shadow-sm demo-banner d-flex justify-content-center align-items-center gap-2"
-        role="alert" style="z-index: 1060; border: none; background: linear-gradient(90deg, #1D9E75, #1a4a35); color: white; position: fixed; top: 0; left: 0; right: 0; height: 40px;">
-        <span class="d-inline-flex align-items-center">
+    <div class="alert alert-primary text-center fw-bold m-0 rounded-0 shadow-sm demo-banner d-flex justify-content-center align-items-center flex-wrap gap-2 gap-sm-3"
+        role="alert" style="z-index: 1060; border: none; background: linear-gradient(90deg, #1D9E75, #1a4a35); color: white; position: fixed; top: 0; left: 0; right: 0; min-height: 40px; padding: 0.5rem 1rem;">
+        <div class="d-flex align-items-center">
             <i class="bi bi-stars me-2"></i> 
-            {% trans "You're in Demo Mode." %}
-        </span>
-        <span class="opacity-50">|</span>
-        <a href="{% url 'demo_signup' %}" class="text-white text-decoration-none hover-underline">
-            {% trans "Save your data — Create free account →" %}
+            <span class="d-none d-sm-inline">{% trans "You're in Demo Mode." %}</span>
+            <span class="d-inline d-sm-none">{% trans "Demo Mode" %}</span>
+        </div>
+        
+        <div class="d-none d-sm-block opacity-50">|</div>
+        
+        <a href="{% url 'demo_signup' %}" class="text-white text-decoration-none hover-underline d-flex align-items-center">
+            <span class="d-none d-md-inline">{% trans "Save your data — Create free account" %} &rarr;</span>
+            <span class="d-inline d-md-none">{% trans "Create free account" %}</span>
         </a>
-        <span class="opacity-50">|</span>
+        
+        <div class="opacity-50">|</div>
+        
         <form action="{% url 'account_logout' %}" method="post" class="d-inline">
             {% csrf_token %}
             <button type="submit" class="btn btn-link p-0 align-baseline text-white text-decoration-underline fw-bold"
-                style="font-size: inherit;">
+                style="font-size: 0.875rem;">
                 {% trans "Exit" %}
             </button>
         </form>
@@ -615,15 +622,27 @@
     <style>
         .hover-underline:hover { text-decoration: underline !important; }
         
+        /* Default adjustments for demo banner */
+        body.demo-mode { padding-top: 40px !important; }
+        body.demo-mode .navbar.sticky-top { top: 40px !important; }
+
         /* Ensure navbar doesn't cover demo banner on mobile/non-sidebar views */
-        @media (max-width: 991.98px) {
-            body.demo-mode { padding-top: 40px !important; }
-            body.demo-mode .navbar.sticky-top { top: 40px !important; }
+        @media (max-width: 575.98px) {
+            /* If the banner wraps to 2 lines on very small screens */
+            body.demo-mode { padding-top: 60px !important; }
+            body.demo-mode .navbar.sticky-top { top: 60px !important; }
+            
+            .demo-banner { font-size: 0.75rem !important; }
         }
         
         /* If navbar is fixed but body doesn't have has-sidebar (e.g. landing) */
         body.demo-mode:not(.has-sidebar) .navbar.sticky-top {
             top: 40px !important;
+        }
+        @media (max-width: 575.98px) {
+            body.demo-mode:not(.has-sidebar) .navbar.sticky-top {
+                top: 60px !important;
+            }
         }
     </style>
     {% endif %}

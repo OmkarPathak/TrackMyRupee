@@ -1082,15 +1082,24 @@
         btnParse.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
         btnParse.disabled = true;
 
+        const csrfToken = '{{ csrf_token }}' || document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
         fetch('{% url "parse-expense" %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({ text: text })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Server returned ' + response.status);
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new TypeError("Oops, we didn't get JSON!");
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success && data.data) {
                 const result = data.data;
@@ -1110,7 +1119,11 @@
                         amountInput.classList.add('parse-highlight');
                         setTimeout(() => amountInput.classList.remove('parse-highlight'), 1500);
                     }
-                    if (descInput && result.description) descInput.value = result.description;
+                    if (descInput && result.description) {
+                        descInput.value = result.description;
+                        descInput.classList.add('parse-highlight');
+                        setTimeout(() => descInput.classList.remove('parse-highlight'), 1500);
+                    }
                     if (dateInput && result.date) {
                         dateInput.value = result.date;
                         dateInput.dispatchEvent(new Event('change', { bubbles: true }));
@@ -1124,6 +1137,9 @@
                                 categorySelect.selectedIndex = i;
                                 categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
                                 
+                                categorySelect.classList.add('parse-highlight');
+                                setTimeout(() => categorySelect.classList.remove('parse-highlight'), 1500);
+
                                 // Sync multiselect if present
                                 if (typeof $ !== 'undefined' && $(categorySelect).hasClass('django-multi-select')) {
                                     $(categorySelect).multiselect('select', categorySelect.options[i].value);
@@ -1138,6 +1154,9 @@
                             if (accountSelect.options[i].text.toLowerCase().includes(result.account.toLowerCase())) {
                                 accountSelect.selectedIndex = i;
                                 accountSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                
+                                accountSelect.classList.add('parse-highlight');
+                                setTimeout(() => accountSelect.classList.remove('parse-highlight'), 1500);
                                 break;
                             }
                         }
@@ -1148,12 +1167,18 @@
                             if (pmSelect.options[i].text.toLowerCase().includes(result.payment_method.toLowerCase())) {
                                 pmSelect.selectedIndex = i;
                                 pmSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                
+                                pmSelect.classList.add('parse-highlight');
+                                setTimeout(() => pmSelect.classList.remove('parse-highlight'), 1500);
                                 break;
                             }
                         }
                     }
                 }
             }
+        })
+        .catch(err => {
+            console.error('Quick Parser Error:', err);
         })
         .finally(() => {
             btnParse.innerHTML = originalHtml;

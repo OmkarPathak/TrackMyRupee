@@ -70,7 +70,7 @@ def parse_expense_nl(text, user_categories=None, user_accounts=None, user=None):
 
     # 1. Use AI Prediction for Category (if not found in user_categories)
     if not category_found:
-        predicted_category = predict_category_ai(description, user=user)
+        predicted_category = predict_category_ai(description, user=user, categories=user_categories)
         if predicted_category:
             category = predicted_category
             is_clue_found = True
