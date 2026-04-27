@@ -374,13 +374,22 @@ class AccountForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if user:
-            self.fields['currency'].initial = user.profile.currency
-        
-        # If editing an existing account, disable balance field to prevent manual manipulation?
-        # User requirement: "manage CRUD for transactions". Let's allow it for now if they want to adjust.
+        if self.user:
+            self.fields['currency'].initial = self.user.profile.currency
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name and self.user:
+            # Check for uniqueness, excluding current instance if updating
+            queryset = Account.objects.filter(user=self.user, name__iexact=name)
+            if self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            
+            if queryset.exists():
+                raise forms.ValidationError(_("An account with this name already exists."))
+        return name
 
 class TransferForm(forms.ModelForm):
     class Meta:
