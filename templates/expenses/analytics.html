@@ -605,8 +605,14 @@
                         backgroundColor: CHART_COLORS.teal + '14', // ~0.08 alpha
                         fill: true,
                         tension: 0.4,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
+                        pointRadius: 5,
+                        pointBackgroundColor: CHART_COLORS.teal,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#0F6E56',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2.5,
                         yAxisID: 'y'
                     },
                     {
@@ -616,8 +622,14 @@
                         backgroundColor: CHART_COLORS.coral + '14',
                         fill: true,
                         tension: 0.4,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
+                        pointRadius: 5,
+                        pointBackgroundColor: CHART_COLORS.coral,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#b13a26',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2.5,
                         yAxisID: 'y'
                     },
                     {
@@ -626,8 +638,14 @@
                         borderColor: CHART_COLORS.amber,
                         borderWidth: 3,
                         borderDash: [5, 5],
-                        pointRadius: 4,
+                        pointRadius: 5,
                         pointBackgroundColor: CHART_COLORS.amber,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#b66d11',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2.5,
                         tension: 0.4,
                         fill: false,
                         yAxisID: 'y1'
@@ -824,10 +842,14 @@
                     backgroundColor: CHART_COLORS.teal + '14',
                     fill: true,
                     tension: 0.4,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: CHART_COLORS.teal,
-                    pointHoverRadius: 6
+                    pointRadius: 5,
+                    pointBackgroundColor: CHART_COLORS.teal,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#0F6E56',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2.5
                 }]
             },
              options: {
@@ -947,7 +969,14 @@
                             backgroundColor: CHART_COLORS.coral + '14',
                             fill: true,
                             tension: 0.2,
-                            pointRadius: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: CHART_COLORS.coral,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 8,
+                            pointHoverBackgroundColor: '#b13a26',
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 2.5,
                             segment: {
                                 borderColor: ctx => {
                                     const val = burnSpent[ctx.p0DataIndex];
