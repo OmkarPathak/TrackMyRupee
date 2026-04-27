@@ -350,42 +350,27 @@
 
   function buildSettings() {
     return '' +
-      '<div class="sk-settings-layout">' +
-        // Sidebar (hidden on mobile via CSS)
-        '<div class="sk-sidebar">' +
-          // Plan card
-          '<div class="sk-card" style="margin-bottom:12px;padding:14px">' +
-            b('sk-h-8" style="width:70px;margin-bottom:6px') +
-            b('sk-h-16" style="width:100px') +
+      // Horizontal nav items
+      '<div style="display:flex; gap:16px; margin-bottom:2rem; overflow:hidden; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:12px;">' +
+        b('sk-h-32 sk-rounded-pill" style="width:100px') +
+        b('sk-h-32 sk-rounded-pill" style="width:80px') +
+        b('sk-h-32 sk-rounded-pill" style="width:90px') +
+        b('sk-h-32 sk-rounded-pill" style="width:110px') +
+        b('sk-h-32 sk-rounded-pill" style="width:70px') +
+      '</div>' +
+      // Content Area
+      '<div class="sk-settings-content">' +
+        '<div class="sk-header">' +
+          '<div class="sk-header-left">' +
+            b('sk-h-24" style="width:180px') +
+            b('sk-h-10" style="width:300px') +
           '</div>' +
-          b('sk-h-8" style="width:50px;margin-bottom:10px') +
-          buildSidebarItems(7) +
-          '<div style="margin:12px 0"></div>' +
-          b('sk-h-8" style="width:50px;margin-bottom:10px') +
-          buildSidebarItems(4) +
+          b('sk-h-32 sk-rounded-pill" style="width:110px') +
         '</div>' +
-        // Content
-        '<div class="sk-settings-content">' +
-          '<div class="sk-header">' +
-            '<div class="sk-header-left">' +
-              b('sk-h-24" style="width:160px') +
-              b('sk-h-10" style="width:280px') +
-            '</div>' +
-            b('sk-h-32 sk-rounded-pill" style="width:110px') +
-          '</div>' +
-          buildTable(4, 5) +
-        '</div>' +
+        buildTable(4, 6) +
       '</div>';
   }
 
-  function buildSidebarItems(count) {
-    var html = '';
-    for (var i = 0; i < count; i++) {
-      var w = (50 + Math.floor(Math.random() * 40)) + '%';
-      html += '<div class="sk-sidebar-item">' + b('sk-h-12" style="width:' + w) + '</div>';
-    }
-    return html;
-  }
 
   function buildCalendar() {
     return '' +

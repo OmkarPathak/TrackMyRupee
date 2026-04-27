@@ -57,7 +57,7 @@
   -webkit-backdrop-filter: blur(2px);
   overflow-y: auto;
   overflow-x: hidden;
-  padding-top: 80px; /* Clear navbar */
+  padding-top: 64px; /* Default Navbar height */
   opacity: 1 !important;
   display: block !important;
 }
@@ -100,6 +100,42 @@
 
 @media (min-width: 1200px) {
   .skeleton-overlay .skeleton-inner { padding: 1rem 0.75rem 2rem; }
+}
+
+/* --- Layout Adjustments for Desktop Sidebar --- */
+@media (min-width: 992px) {
+  .skeleton-overlay {
+    padding-top: 64px; /* Matches standard navbar height */
+  }
+
+  body.demo-mode .skeleton-overlay {
+    padding-top: 104px; /* Matches demo banner + navbar */
+  }
+
+  /* When sidebar is present, offset the skeleton to the right */
+  body.has-sidebar .skeleton-overlay {
+    left: var(--sidebar-width, 260px);
+    width: calc(100% - var(--sidebar-width, 260px));
+  }
+
+  /* Handle collapsed sidebar state */
+  body.has-sidebar.sidebar-collapsed .skeleton-overlay {
+    left: var(--sidebar-collapsed-width, 85px);
+    width: calc(100% - var(--sidebar-collapsed-width, 85px));
+  }
+  
+  /* Ensure inner content matches main container padding on large screens */
+  body.has-sidebar .skeleton-overlay .skeleton-inner {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  body.has-sidebar .skeleton-overlay .skeleton-inner {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
 }
 
 /* --- Size Helpers --- */
@@ -288,22 +324,6 @@
   gap: 1.5rem;
 }
 
-.sk-sidebar {
-  display: none;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 220px;
-  max-width: 250px;
-}
-
-@media (min-width: 768px) {
-  .sk-sidebar { display: flex; }
-}
-
-.sk-sidebar-item {
-  border-radius: 50rem;
-  padding: 10px 16px;
-}
 
 .sk-settings-content {
   flex: 1;
