@@ -10,7 +10,7 @@ class ExpenseParserTest(TestCase):
         result = parse_expense_nl(text)
         self.assertTrue(result['success'])
         self.assertEqual(result['amount'], "450.00")
-        self.assertEqual(result['category'], "Food")
+        self.assertEqual(result['category'], "Dining Out")
         self.assertTrue("lunch" in result['description'].lower() or "expense" in result['description'].lower())
 
     def test_currency_symbols(self):

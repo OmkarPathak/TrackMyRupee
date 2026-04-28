@@ -163,6 +163,23 @@ def home_view(request):
     years = sorted(list(set([d.year for d in all_dates] + [datetime.now().year])), reverse=True)
     all_categories = Expense.objects.filter(user=request.user).values_list('category', flat=True).distinct().order_by('category')
 
+    # --- PERFORMANCE OPTIMIZATION: BATCH MONTHLY TOTALS ---
+    # Fetch 2 years of monthly totals in one go to avoid multiple N+1 aggregations in loops
+    hist_start = (timezone.now().replace(day=1) - timedelta(days=730)).date()
+    batch_inc = Income.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+    batch_exp = Expense.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+    
+    monthly_summary_map = {} # (year, month) -> {'income': 0, 'expense': 0}
+    for item in batch_inc:
+        dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
+        monthly_summary_map[(dt.year, dt.month)] = {'income': float(item['total']), 'expense': 0.0}
+    for item in batch_exp:
+        dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
+        if (dt.year, dt.month) not in monthly_summary_map:
+            monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
+        monthly_summary_map[(dt.year, dt.month)]['expense'] = float(item['total'])
+
+
     # 1. Category Chart Data (Distribution) & Summary Table
     # We need to fetch raw values and merge them in Python to handle whitespace duplicates
     raw_category_data = expenses.values('category').annotate(total=Sum('base_amount'))
@@ -546,9 +563,8 @@ def home_view(request):
     
     # helper for streaks
     def get_monthly_savings_status(u, y, m):
-        inc = Income.objects.filter(user=u, date__year=y, date__month=m).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-        exp = Expense.objects.filter(user=u, date__year=y, date__month=m).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-        return inc > exp
+        status = monthly_summary_map.get((y, m), {'income': 0, 'expense': 0})
+        return status['income'] > status['expense']
 
     # Construct date params for deep linking
     date_params = ""
@@ -582,7 +598,7 @@ def home_view(request):
                 m += 12
                 y -= 1
             
-            m_total = Expense.objects.filter(user=request.user, date__year=y, date__month=m).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+            m_total = monthly_summary_map.get((y, m), {}).get('expense', 0)
             if m_total > 0:
                 last_3_months_total += m_total
                 months_counted += 1
@@ -663,7 +679,14 @@ def home_view(request):
             # Update viral insight with this more powerful one
             # viral_insight = power_insight  # Moving this to smart_bullet_insights
             
-            # Calculate 3-month average for this specific top category
+            # OPTIMIZATION: Fetch category history for the top category in one query
+            cat_3m_history = Expense.objects.filter(
+                user=request.user, 
+                category__iexact=top_cat,
+                date__gte=now.replace(day=1) - timedelta(days=100)
+            ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+            cat_3m_map = {(item['m'].year, item['m'].month): float(item['total']) for item in cat_3m_history}
+
             cat_3_month_total = 0
             cat_months_counted = 0
             for i in range(1, 4):
@@ -673,7 +696,10 @@ def home_view(request):
                     m_calc += 12
                     y_calc -= 1
                 
-                m_cat_total = Expense.objects.filter(user=request.user, date__year=y_calc, date__month=m_calc, category__iexact=top_cat).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+                m_cat_total = cat_3m_map.get((y_calc, m_calc), 0)
+                if m_cat_total > 0:
+                    cat_3_month_total += m_cat_total
+                    cat_months_counted += 1
                 if m_cat_total > 0:
                     cat_3_month_total += m_cat_total
                     cat_months_counted += 1
@@ -1357,11 +1383,7 @@ def home_view(request):
         proj_labels.append(month_label)
         
         # Aggregate expenses (Operating Only)
-        m_total = Expense.objects.filter(
-            user=request.user, 
-            date__year=y, 
-            date__month=m
-        ).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+        m_total = monthly_summary_map.get((y, m), {}).get('expense', 0)
         
         proj_historical.append(float(m_total))
         proj_forecast.append(None) # No forecast for historical months
@@ -1526,7 +1548,7 @@ def home_view(request):
     recent_transfers = list(transfers_qs.order_by('-date')[:10])
     for t in recent_transfers: t.transaction_type = 'TRANSFER'
 
-    recent_contributions = list(GoalContribution.objects.filter(goal__user=request.user).order_by('-date')[:10])
+    recent_contributions = list(GoalContribution.objects.filter(goal__user=request.user).select_related('goal').order_by('-date')[:10])
     for c in recent_contributions:
         c.transaction_type = 'SAVINGS'
         c.description = _("Contribution: %(goal)s") % {'goal': c.goal.name}
@@ -1698,9 +1720,8 @@ def home_view(request):
         daily_top_category_pct = round(float(top_cat_today['total']) / float(today_spent) * 100)
 
     # Safe to spend today (remaining budget for the rest of the month / remaining days)
-    month_spent_so_far = Expense.objects.filter(
-        user=request.user, date__year=today.year, date__month=today.month
-    ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+    month_spent_so_far = Decimal(str(monthly_summary_map.get((today.year, today.month), {}).get('expense', 0.0)))
+
     remaining_month_budget = Decimal(str(total_monthly_budget)) - month_spent_so_far
     remaining_days = max(1, days_in_current_month - today.day + 1)
     safe_to_spend = max(Decimal('0.00'), remaining_month_budget / remaining_days)

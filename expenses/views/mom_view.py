@@ -53,6 +53,22 @@ def mom_analysis_view(request):
     
     months_data.sort(key=lambda x: x['start']) # Oldest to newest
 
+    # --- PERFORMANCE OPTIMIZATION: BATCH MONTHLY TOTALS ---
+    from django.db.models.functions import TruncMonth
+    history_start = months_data[0]['start']
+    
+    batch_inc = Income.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+    batch_exp = Expense.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+    batch_inv = Transfer.objects.filter(
+        user=user, date__gte=history_start, 
+        to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT']
+    ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('converted_amount'))
+    
+    mo_inc_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inc}
+    mo_exp_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_exp}
+    mo_inv_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inv}
+
+
     # 2. Net Worth Calculation (Backwards reconstruction)
     accounts = Account.objects.filter(user=user)
     current_net_worth = Decimal('0.00')
@@ -63,11 +79,12 @@ def mom_analysis_view(request):
             rate = get_exchange_rate(acc.currency, currency_symbol)
             current_net_worth += (acc.balance * rate).quantize(Decimal('0.01'))
 
-    # Helper: get net cashflow for a date range
-    def get_net_cashflow(start_date, end_date):
-        inc = Income.objects.filter(user=user, date__range=[start_date, end_date]).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
-        exp = Expense.objects.filter(user=user, date__range=[start_date, end_date]).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
-        return inc - exp
+    # Helper: get net cashflow for a month from pre-fetched maps
+    def get_net_cashflow_cached(year, month):
+        inc = mo_inc_map.get((year, month), 0)
+        exp = mo_exp_map.get((year, month), 0)
+        return Decimal(str(inc)) - Decimal(str(exp))
+
 
     # We want Net Worth at the END of each selected month.
     nw_data = []
@@ -81,7 +98,9 @@ def mom_analysis_view(request):
     
     if num_months > 1:
         # Subtract current month's cashflow to get NW at end of previous month
-        running_nw -= get_net_cashflow(curr_month_start, date.today())
+        # Since the pre-fetched maps use TruncMonth, they already contain data up to 'today' for the current month.
+        running_nw -= get_net_cashflow_cached(date.today().year, date.today().month)
+
         nw_data.append(float(running_nw))
         
         # Subtract previous months' cashflows
@@ -90,7 +109,8 @@ def mom_analysis_view(request):
             p_end = temp_date - timedelta(days=1)
             p_start = p_end.replace(day=1)
             
-            running_nw -= get_net_cashflow(p_start, p_end)
+            running_nw -= get_net_cashflow_cached(p_start.year, p_start.month)
+
             nw_data.append(float(running_nw))
             temp_date = p_start
         
@@ -106,19 +126,10 @@ def mom_analysis_view(request):
     today = timezone.now().date()
     
     for m in months_data:
-        m_inc_agg = Income.objects.filter(user=user, date__range=[m['start'], m['end']]).aggregate(Sum('base_amount'))['base_amount__sum']
-        m_exp_agg = Expense.objects.filter(user=user, date__range=[m['start'], m['end']]).aggregate(Sum('base_amount'))['base_amount__sum']
-        
-        m_inc = m_inc_agg or Decimal('0')
-        m_exp = m_exp_agg or Decimal('0')
-        
-        # Calculate Investments (Transfers to Investment/FD accounts)
-        m_inv_agg = Transfer.objects.filter(
-            user=user, 
-            date__range=[m['start'], m['end']], 
-            to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT']
-        ).aggregate(Sum('converted_amount'))['converted_amount__sum']
-        m_inv = m_inv_agg or Decimal('0')
+        m_inc = mo_inc_map.get((m['year'], m['month']), 0)
+        m_exp = mo_exp_map.get((m['year'], m['month']), 0)
+        m_inv = mo_inv_map.get((m['year'], m['month']), 0)
+
         
         labels.append(m['label'])
         
@@ -128,8 +139,9 @@ def mom_analysis_view(request):
         else:
             days = calendar.monthrange(m['year'], m['month'])[1]
         
-        # If both are None, it's likely missing data
-        if m_inc_agg is None and m_exp_agg is None:
+        # If 0, it's likely missing data or just 0
+        if m_inc == 0 and m_exp == 0:
+
             inc_data.append(None)
             exp_data.append(None)
             inv_data.append(None)
