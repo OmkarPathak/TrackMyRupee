@@ -79,7 +79,7 @@
     <!-- Calendar Grid -->
     <div class="card-body p-0">
         <!-- Weekday Headers -->
-        <div class="d-grid text-center border-bottom bg-body-tertiary" style="grid-template-columns: repeat(7, 1fr);">
+        <div class="d-grid text-center border-bottom bg-body-tertiary" style="grid-template-columns: repeat(7, minmax(0, 1fr));">
             <div class="p-2 fw-bold text-muted small">{% trans "Sun" %}</div>
             <div class="p-2 fw-bold text-muted small">{% trans "Mon" %}</div>
             <div class="p-2 fw-bold text-muted small">{% trans "Tue" %}</div>
@@ -91,7 +91,7 @@
 
         <!-- Days -->
         {% for week in calendar_data %}
-        <div class="d-grid" style="grid-template-columns: repeat(7, 1fr);">
+        <div class="d-grid" style="grid-template-columns: repeat(7, minmax(0, 1fr));">
             {% for day_data in week %}
                 {% if day_data %}
                     <div class="border-end border-bottom p-2 day-cell heatmap-{{ day_data.intensity }} d-flex flex-column align-items-center align-items-md-stretch" 
@@ -216,6 +216,7 @@
 
     .day-cell {
         transition: background-color 0.15s ease-in-out;
+        overflow: hidden;
     }
 
     .day-cell:hover {
