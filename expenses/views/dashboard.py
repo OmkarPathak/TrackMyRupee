@@ -1322,7 +1322,7 @@ def home_view(request):
     
     total_recurring_commitment = Decimal('0.00')
     
-    active_recurring = RecurringTransaction.objects.filter(user=request.user, is_active=True)
+    active_recurring = RecurringTransaction.objects.filter(user=request.user, is_active=True).select_related('account', 'from_account', 'to_account')
     for rt in active_recurring:
         # Find if it occurs in the viewed month
         due_date = rt.start_date

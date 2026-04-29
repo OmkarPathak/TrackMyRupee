@@ -24,7 +24,45 @@ class Command(BaseCommand):
         self.today = timezone.now().date()
         self.stdout.write(f"Starting notification run for {self.today}...")
         
+        # --- Pre-fetch all necessary data to avoid N+1 queries ---
+        
+        # 1. Pre-fetch Active Savings Goals
+        self.active_goals_by_user = {}
+        for goal in SavingsGoal.objects.filter(is_completed=False):
+            self.active_goals_by_user.setdefault(goal.user_id, []).append(goal)
+            
+        # 2. Pre-fetch Active Recurring Transactions
+        self.active_recurring_by_user = {}
+        for rt in RecurringTransaction.objects.filter(is_active=True):
+            self.active_recurring_by_user.setdefault(rt.user_id, []).append(rt)
+            
+        # 3. Pre-fetch Categories with Limits
+        self.categories_by_user = {}
+        for cat in Category.objects.filter(limit__gt=0):
+            self.categories_by_user.setdefault(cat.user_id, []).append(cat)
+            
+        # 4. Pre-fetch Monthly Expenses for Budget checking
+        expenses_summary = Expense.objects.filter(
+            date__year=self.today.year,
+            date__month=self.today.month
+        ).values('user_id', 'category').annotate(total=Sum('base_amount'))
+        self.expense_sums = {}
+        for row in expenses_summary:
+            self.expense_sums[(row['user_id'], row['category'])] = row['total'] or 0
+
+        # 5. Pre-fetch sent notifications for deduplication
+        self.sent_notifications_by_user = {}
+        for n in Notification.objects.filter(
+            created_at__year=self.today.year,
+            created_at__month=self.today.month
+        ).values('user_id', 'slug'):
+            self.sent_notifications_by_user.setdefault(n['user_id'], set()).add(n['slug'])
+            
+        # 6. Pre-fetch Push Information presence
+        self.users_with_push = set(PushInformation.objects.values_list('user_id', flat=True))
+
         users = UserProfile.objects.all().select_related('user')
+
         
         for profile in users:
             user = profile.user
@@ -55,12 +93,8 @@ class Command(BaseCommand):
 
     def _is_recently_sent(self, user, slug):
         """Deduplication logic: check if this slug was sent in the current calendar month."""
-        return Notification.objects.filter(
-            user=user,
-            slug=slug,
-            created_at__year=self.today.year,
-            created_at__month=self.today.month
-        ).exists()
+        user_sent_slugs = self.sent_notifications_by_user.get(user.id, set())
+        return slug in user_sent_slugs
 
     def _create_notification(self, user, title, message, n_type, slug=None, link=None, metadata=None, related_transaction=None):
         """Helper to create UI and Push notification if not recently sent."""
@@ -80,7 +114,7 @@ class Command(BaseCommand):
         )
         
         # 2. Send Push Notification (WebPush)
-        if PushInformation.objects.filter(user=user).exists():
+        if user.id in self.users_with_push:
             site_url = getattr(settings, 'SITE_URL', 'https://trackmyrupee.com').rstrip('/')
             icon_path = static('img/pwa-icon-512.png')
             absolute_icon_url = f"{site_url}{icon_path}"
@@ -148,7 +182,7 @@ class Command(BaseCommand):
         reminder_days = 3
         due_date = self.today + timedelta(days=reminder_days)
         
-        recurring = RecurringTransaction.objects.filter(user=user, is_active=True)
+        recurring = self.active_recurring_by_user.get(user.id, [])
         for rt in recurring:
             next_due = rt.next_due_date
             if next_due == due_date:
@@ -167,12 +201,9 @@ class Command(BaseCommand):
 
     def _process_budget_alerts(self, user):
         """Notifies if user exceeds 80% or 100% of a category's budget limit."""
-        categories_with_limits = Category.objects.filter(user=user, limit__gt=0)
+        categories_with_limits = self.categories_by_user.get(user.id, [])
         for cat in categories_with_limits:
-            spent = Expense.objects.filter(
-                user=user, category=cat.name, 
-                date__year=self.today.year, date__month=self.today.month
-            ).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+            spent = self.expense_sums.get((user.id, cat.name), 0)
             
             if spent >= cat.limit:
                 slug = f"budget-exceeded-{cat.id}-{self.today.year}-{self.today.month}"
@@ -189,7 +220,7 @@ class Command(BaseCommand):
 
     def _process_milestone_alerts(self, user):
         """Notifies about savings goal milestones (50, 90, 100)."""
-        goals = SavingsGoal.objects.filter(user=user, is_completed=False)
+        goals = self.active_goals_by_user.get(user.id, [])
         for goal in goals:
             pct = goal.progress_percentage
             

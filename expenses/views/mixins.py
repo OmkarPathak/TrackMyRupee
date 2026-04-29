@@ -18,7 +18,7 @@ class RecurringTransactionMixin:
 def process_user_recurring_transactions(user):
     today = date.today()
     profile = user.profile
-    recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True).order_by('created_at')
+    recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True).select_related('account', 'from_account', 'to_account').order_by('created_at')
     
     # Enforce Tier Limits for processing
     from finance_tracker.plans import get_limit
