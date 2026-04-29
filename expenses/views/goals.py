@@ -40,6 +40,9 @@ class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('goal-list')
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+            
         if not request.user.profile.can_add_goal():
             messages.error(request, _("Goal limit reached."))
             return redirect('goal-list')
@@ -61,6 +64,9 @@ class SavingsGoalUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('goal-list')
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+            
         obj = self.get_object(); profile = request.user.profile
         from finance_tracker.plans import get_limit
         limit = get_limit(profile.active_tier, 'savings_goals')
@@ -99,12 +105,14 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
     template_name = 'expenses/goal_detail.html'
     def get(self, request, pk):
         goal = get_object_or_404(SavingsGoal, pk=pk, user=request.user)
-        profile = request.user.profile; is_locked = False
-        from finance_tracker.plans import get_limit
-        limit = get_limit(profile.active_tier, 'savings_goals')
-        if limit != -1:
-             goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
-             is_locked = (goal in goals and goals.index(goal) >= limit)
+        is_locked = False
+        if request.user.is_authenticated:
+            profile = request.user.profile
+            from finance_tracker.plans import get_limit
+            limit = get_limit(profile.active_tier, 'savings_goals')
+            if limit != -1:
+                 goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
+                 is_locked = (goal in goals and goals.index(goal) >= limit)
         return render(request, self.template_name, {'goal': goal, 'is_locked': is_locked, 'contributions': goal.contributions.all().order_by('-date'), 'form': GoalContributionForm(user=request.user)})
     def post(self, request, pk):
         goal = get_object_or_404(SavingsGoal, pk=pk, user=request.user)

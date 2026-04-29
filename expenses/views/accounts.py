@@ -35,10 +35,14 @@ class AccountListView(LoginRequiredMixin, ListView):
             queryset = [acc for acc in queryset if acc.account_type == account_type]
             
         # Annotate locked status
-        from finance_tracker.plans import get_limit
-        limit = get_limit(self.request.user.profile.active_tier, 'accounts')
-        for i, acc in enumerate(queryset):
-            acc.is_locked = (limit != -1 and i >= limit)
+        if self.request.user.is_authenticated:
+            from finance_tracker.plans import get_limit
+            limit = get_limit(self.request.user.profile.active_tier, 'accounts')
+            for i, acc in enumerate(queryset):
+                acc.is_locked = (limit != -1 and i >= limit)
+        else:
+            for acc in queryset:
+                acc.is_locked = False
 
         return queryset
 
@@ -84,6 +88,9 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
         return Account.objects.filter(user=self.request.user)
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+            
         account = self.get_object()
         if request.user.profile.is_account_locked(account):
             messages.error(request, _("This account is locked. Please upgrade your plan to modify it."))
@@ -103,6 +110,9 @@ class AccountDeleteView(LoginRequiredMixin, DeleteView):
         return Account.objects.filter(user=self.request.user)
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+            
         account = self.get_object()
         if request.user.profile.is_account_locked(account):
             messages.error(request, _("This account is locked. Please upgrade your plan to delete it."))
@@ -210,7 +220,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             process_user_recurring_transactions(request.user)
             
         account = get_object_or_404(Account, pk=pk, user=request.user)
-        if request.user.profile.is_account_locked(account):
+        if request.user.is_authenticated and request.user.profile.is_account_locked(account):
             messages.error(request, _("This account is locked. Please upgrade your plan to view its history."))
             return redirect('pricing')
         query = request.GET.get('q', '')

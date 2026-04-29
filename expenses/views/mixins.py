@@ -16,6 +16,8 @@ class RecurringTransactionMixin:
         process_user_recurring_transactions(user)
 
 def process_user_recurring_transactions(user):
+    if not user.is_authenticated:
+        return
     today = date.today()
     profile = user.profile
     recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True).select_related('account', 'from_account', 'to_account').order_by('created_at')

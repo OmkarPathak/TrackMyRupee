@@ -116,6 +116,9 @@ class CategoryUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('category-list')
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+            
         obj = self.get_object()
         profile = request.user.profile
         from finance_tracker.plans import get_limit
