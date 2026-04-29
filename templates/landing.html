@@ -887,7 +887,10 @@
 
 <nav class="landing-nav">
     <div class="container d-flex align-items-center justify-content-between py-3">
-        <a class="nav-logo" href="/">TrackMyRupee</a>
+        <a class="nav-logo" href="/">
+            <img src="{% static 'icon.svg' %}" alt="TrackMyRupee Logo" width="28" height="28">
+            TrackMyRupee
+        </a>
         <ul class="nav-links d-none d-lg-flex list-unstyled mb-0 gap-4">
             <li><a href="#features" class="text-decoration-none">{% trans "Features" %}</a></li>
             <li><a href="#pricing" class="text-decoration-none">{% trans "Pricing" %}</a></li>
