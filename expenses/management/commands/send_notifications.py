@@ -14,7 +14,7 @@ from webpush import send_user_notification
 from webpush.models import PushInformation
 
 from expenses.models import Notification, RecurringTransaction, UserProfile, SavingsGoal, Expense, Category
-from finance_tracker.plans import PLAN_DETAILS
+from finance_tracker.plans import PLAN_DETAILS, get_limit
 
 
 class Command(BaseCommand):
@@ -182,7 +182,17 @@ class Command(BaseCommand):
         reminder_days = 3
         due_date = self.today + timedelta(days=reminder_days)
         
+        # Enforce Tier Limits for reminders
+        profile = user.profile
+        limit = get_limit(profile.active_tier, 'recurring_transactions')
+        
         recurring = self.active_recurring_by_user.get(user.id, [])
+        # Sort by created_at to be consistent with model-level locking logic
+        recurring.sort(key=lambda x: (x.created_at or timezone.now(), x.id))
+        
+        if limit != -1:
+            recurring = recurring[:limit]
+            
         for rt in recurring:
             next_due = rt.next_due_date
             if next_due == due_date:
@@ -201,7 +211,16 @@ class Command(BaseCommand):
 
     def _process_budget_alerts(self, user):
         """Notifies if user exceeds 80% or 100% of a category's budget limit."""
+        profile = user.profile
+        limit_count = get_limit(profile.active_tier, 'budget_categories')
+        
         categories_with_limits = self.categories_by_user.get(user.id, [])
+        # Sort to match locking logic
+        categories_with_limits.sort(key=lambda x: (x.id))
+        
+        if limit_count != -1:
+            categories_with_limits = categories_with_limits[:limit_count]
+            
         for cat in categories_with_limits:
             spent = self.expense_sums.get((user.id, cat.name), 0)
             
@@ -220,7 +239,16 @@ class Command(BaseCommand):
 
     def _process_milestone_alerts(self, user):
         """Notifies about savings goal milestones (50, 90, 100)."""
+        profile = user.profile
+        limit_count = get_limit(profile.active_tier, 'savings_goals')
+        
         goals = self.active_goals_by_user.get(user.id, [])
+        # Sort to match locking logic
+        goals.sort(key=lambda x: (x.created_at or timezone.now(), x.id))
+        
+        if limit_count != -1:
+            goals = goals[:limit_count]
+            
         for goal in goals:
             pct = goal.progress_percentage
             

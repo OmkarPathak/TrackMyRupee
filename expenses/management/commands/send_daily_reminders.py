@@ -37,16 +37,16 @@ class Command(BaseCommand):
             title = "Expense Reminder 💸"
             message = "Don't forget to add your expenses for today to keep your tracker up to date!"
             
-            ui_slug = f"daily-expense-reminder-{today}"
-            if not Notification.objects.filter(user=user, slug=ui_slug).exists():
-                Notification.objects.create(
-                    user=user,
-                    title=title,
-                    message=message,
-                    notification_type='SYSTEM',
-                    slug=ui_slug,
-                    link='/expenses/add/'
-                )
+            # ui_slug = f"daily-expense-reminder-{today}"
+            # if not Notification.objects.filter(user=user, slug=ui_slug).exists():
+            #     Notification.objects.create(
+            #         user=user,
+            #         title=title,
+            #         message=message,
+            #         notification_type='SYSTEM',
+            #         slug=ui_slug,
+            #         link='/expenses/add/'
+            #     )
             
             # 2. External Push Notification
             if PushInformation.objects.filter(user=user).exists():
