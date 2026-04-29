@@ -6,7 +6,9 @@
     <div class="pt-1 pb-3 mb-2">
         <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
             <div class="d-flex align-items-center gap-2">
-                <h2 class="h4 mb-0 fw-bold">{% trans "Accounts" %}</h2>
+                <h2 class="h4 mb-0 fw-bold">{% trans "Accounts" %}
+                    <span class="badge-soft badge-soft-success" style="font-size: 1rem;">{{ accounts|length }}</span>
+                </h2>
                 <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px; line-height: 1;" data-bs-toggle="collapse" data-bs-target="#guideAccounts" aria-expanded="false" title="{% trans 'How it works' %}">
                     <i class="bi bi-info-lg" style="font-size: 0.7rem;"></i>
                 </button>
