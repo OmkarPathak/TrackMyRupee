@@ -57,7 +57,7 @@ def llms_txt(request):
     return HttpResponse("llms.txt not found", status=404)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('tmr_admin/', admin.site.urls),
     path('auth/login/', RedirectView.as_view(pattern_name='account_login', permanent=True)), # Redirect legacy login
     path('accounts/', include('allauth.urls')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
