@@ -562,6 +562,17 @@ class UserProfile(models.Model):
             return True
         return False
 
+    def is_account_locked(self, account):
+        """Check if a specific account is locked based on tier limits."""
+        limit = get_limit(self.active_tier, 'accounts')
+        if limit == -1: return False
+        
+        # Order by created_at so the 'oldest' accounts stay unlocked
+        accounts = list(self.user.accounts.all().order_by('created_at', 'id'))
+        if account in accounts and accounts.index(account) >= limit:
+            return True
+        return False
+
     @property
     def active_tier(self):
         """Returns the actual active tier string (respecting subscription expiry)."""

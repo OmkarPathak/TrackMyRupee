@@ -46,10 +46,17 @@ class ExpenseForm(forms.ModelForm):
             choices = [(cat.name, cat.name) for cat in categories]
             self.fields['category'].widget = forms.Select(choices=choices, attrs={'class': 'form-select django-multi-select'})
             
-            # Filter accounts for the user
-            self.fields['account'].queryset = Account.objects.filter(user=user)
+            # Filter accounts for the user, enforcing tier limits
+            all_accounts = Account.objects.filter(user=user).order_by('created_at', 'id')
+            limit = get_limit(profile.active_tier, 'accounts')
+            if limit != -1:
+                unlocked_ids = all_accounts.values_list('id', flat=True)[:limit]
+                self.fields['account'].queryset = all_accounts.filter(id__in=unlocked_ids)
+            else:
+                self.fields['account'].queryset = all_accounts
+
             # Default to the first account (likely 'Cash')
-            default_account = Account.objects.filter(user=user, name='Cash').first()
+            default_account = self.fields['account'].queryset.filter(name='Cash').first()
             if default_account:
                 self.fields['account'].initial = default_account
         else:
@@ -89,8 +96,18 @@ class IncomeForm(forms.ModelForm):
         self.fields['date'].initial = date.today
         if self.user:
             self.fields['currency'].initial = self.user.profile.currency
-            self.fields['account'].queryset = Account.objects.filter(user=self.user)
-            default_account = Account.objects.filter(user=self.user, name='Cash').first()
+            
+            # Enforce Tier Limits for Accounts
+            all_accounts = Account.objects.filter(user=self.user).order_by('created_at', 'id')
+            from finance_tracker.plans import get_limit
+            limit = get_limit(self.user.profile.active_tier, 'accounts')
+            if limit != -1:
+                unlocked_ids = all_accounts.values_list('id', flat=True)[:limit]
+                self.fields['account'].queryset = all_accounts.filter(id__in=unlocked_ids)
+            else:
+                self.fields['account'].queryset = all_accounts
+
+            default_account = self.fields['account'].queryset.filter(name='Cash').first()
             if default_account:
                 self.fields['account'].initial = default_account
         else:
@@ -129,7 +146,17 @@ class RecurringTransactionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if user:
             self.fields['currency'].initial = user.profile.currency
-            accounts_qs = Account.objects.filter(user=user)
+            
+            # Enforce Tier Limits for Accounts
+            all_accounts = Account.objects.filter(user=user).order_by('created_at', 'id')
+            from finance_tracker.plans import get_limit
+            limit = get_limit(user.profile.active_tier, 'accounts')
+            if limit != -1:
+                unlocked_ids = all_accounts.values_list('id', flat=True)[:limit]
+                accounts_qs = all_accounts.filter(id__in=unlocked_ids)
+            else:
+                accounts_qs = all_accounts
+
             self.fields['account'].queryset = accounts_qs
             self.fields['from_account'].queryset = accounts_qs
             self.fields['to_account'].queryset = accounts_qs
@@ -329,7 +356,15 @@ class GoalContributionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['date'].initial = date.today
         if user:
-            self.fields['account'].queryset = Account.objects.filter(user=user)
+            # Enforce Tier Limits for Accounts
+            all_accounts = Account.objects.filter(user=user).order_by('created_at', 'id')
+            from finance_tracker.plans import get_limit
+            limit = get_limit(user.profile.active_tier, 'accounts')
+            if limit != -1:
+                unlocked_ids = all_accounts.values_list('id', flat=True)[:limit]
+                self.fields['account'].queryset = all_accounts.filter(id__in=unlocked_ids)
+            else:
+                self.fields['account'].queryset = all_accounts
         
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
@@ -408,8 +443,18 @@ class TransferForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['date'].initial = date.today
         if user:
-            self.fields['from_account'].queryset = Account.objects.filter(user=user)
-            self.fields['to_account'].queryset = Account.objects.filter(user=user)
+            # Enforce Tier Limits for Accounts
+            all_accounts = Account.objects.filter(user=user).order_by('created_at', 'id')
+            from finance_tracker.plans import get_limit
+            limit = get_limit(user.profile.active_tier, 'accounts')
+            if limit != -1:
+                unlocked_ids = all_accounts.values_list('id', flat=True)[:limit]
+                accounts_qs = all_accounts.filter(id__in=unlocked_ids)
+            else:
+                accounts_qs = all_accounts
+
+            self.fields['from_account'].queryset = accounts_qs
+            self.fields['to_account'].queryset = accounts_qs
 
     def clean(self):
         cleaned_data = super().clean()

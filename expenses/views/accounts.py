@@ -27,12 +27,19 @@ class AccountListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         from .mixins import process_user_recurring_transactions
         process_user_recurring_transactions(self.request.user)
-        queryset = Account.objects.filter(user=self.request.user).order_by('name')
+        # Order by created_at to ensure consistent locking of 'newer' accounts
+        queryset = list(Account.objects.filter(user=self.request.user).order_by('created_at', 'id'))
         
         account_type = self.request.GET.get('type')
         if account_type:
-            queryset = queryset.filter(account_type=account_type)
+            queryset = [acc for acc in queryset if acc.account_type == account_type]
             
+        # Annotate locked status
+        from finance_tracker.plans import get_limit
+        limit = get_limit(self.request.user.profile.active_tier, 'accounts')
+        for i, acc in enumerate(queryset):
+            acc.is_locked = (limit != -1 and i >= limit)
+
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -76,6 +83,13 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         return Account.objects.filter(user=self.request.user)
 
+    def dispatch(self, request, *args, **kwargs):
+        account = self.get_object()
+        if request.user.profile.is_account_locked(account):
+            messages.error(request, _("This account is locked. Please upgrade your plan to modify it."))
+            return redirect('pricing')
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         messages.success(self.request, _("Account updated successfully!"))
         return super().form_valid(form)
@@ -87,6 +101,13 @@ class AccountDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Account.objects.filter(user=self.request.user)
+
+    def dispatch(self, request, *args, **kwargs):
+        account = self.get_object()
+        if request.user.profile.is_account_locked(account):
+            messages.error(request, _("This account is locked. Please upgrade your plan to delete it."))
+            return redirect('pricing')
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         messages.success(self.request, _("Account deleted successfully."))
@@ -189,6 +210,9 @@ class AccountDetailView(LoginRequiredMixin, View):
             process_user_recurring_transactions(request.user)
             
         account = get_object_or_404(Account, pk=pk, user=request.user)
+        if request.user.profile.is_account_locked(account):
+            messages.error(request, _("This account is locked. Please upgrade your plan to view its history."))
+            return redirect('pricing')
         query = request.GET.get('q', '')
         
         # Get all expenses, incomes, and transfers for this account
