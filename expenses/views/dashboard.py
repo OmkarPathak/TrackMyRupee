@@ -71,7 +71,7 @@ def home_view(request):
     # Helper: sum transfer amounts converted to user's base currency
     def sum_transfers_base(qs):
         total = Decimal('0.00')
-        for t in qs.select_related('from_account'):
+        for t in qs:
             if t.from_account and t.from_account.currency != currency_symbol:
                 rate = get_exchange_rate(t.from_account.currency, currency_symbol)
                 total += (t.amount * rate).quantize(Decimal('0.01'))
@@ -1548,7 +1548,7 @@ def home_view(request):
     recent_transfers = list(transfers_qs.order_by('-date')[:10])
     for t in recent_transfers: t.transaction_type = 'TRANSFER'
 
-    recent_contributions = list(GoalContribution.objects.filter(goal__user=request.user).select_related('goal').order_by('-date')[:10])
+    recent_contributions = list(GoalContribution.objects.filter(goal__user=request.user).order_by('-date')[:10])
     for c in recent_contributions:
         c.transaction_type = 'SAVINGS'
         c.description = _("Contribution: %(goal)s") % {'goal': c.goal.name}
@@ -2115,7 +2115,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             
             total = Decimal('0.00')
             user_currency = user.profile.currency if hasattr(user, 'profile') else '₹'
-            for t in qs.select_related('from_account'):
+            for t in qs:
                 if t.from_account and t.from_account.currency != user_currency:
                     rate = get_exchange_rate(t.from_account.currency, user_currency)
                     total += (t.amount * rate).quantize(Decimal('0.01'))

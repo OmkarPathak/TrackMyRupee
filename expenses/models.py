@@ -51,6 +51,16 @@ class IncomeManager(FinanceBaseManager):
         return super().get_queryset().select_related('account')
 
 
+class TransferManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('from_account', 'to_account')
+
+
+class GoalContributionManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('goal', 'account')
+
+
 class Account(models.Model):
     ACCOUNT_TYPES = [
         ('CASH', _('Cash')),
@@ -291,6 +301,8 @@ class Transfer(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
     date = models.DateField(default=timezone.now, verbose_name=_('Date'))
     description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    
+    objects = TransferManager()
     
     # Multi-currency support (No currency field in DB yet for Transfer, using from_account.currency)
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
@@ -746,6 +758,8 @@ class GoalContribution(models.Model):
     date = models.DateField(default=timezone.now, verbose_name=_('Date'))
     
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = GoalContributionManager()
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
