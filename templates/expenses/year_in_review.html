@@ -16,15 +16,29 @@
     }
     
     /* Hide the main navbar/sidebar to make it immersive */
-    .navbar, footer, .sidebar {
+    .navbar, footer, .sidebar, .sidebar-greeting-container {
         display: none !important;
     }
     
+    /* Override body padding from sidebar (base template adds padding-left for sidebar) */
+    body {
+        padding-left: 0 !important;
+        padding-top: 0 !important;
+    }
+    
     /* Override base container padding to be full edge */
-    .container-fluid, .container {
+    .container-fluid, .container, main.container {
         padding: 0 !important;
         margin: 0 !important;
         max-width: 100% !important;
+    }
+    
+    /* Hide the main element itself */
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        flex-grow: 0 !important;
     }
 
     .yir-slide {
