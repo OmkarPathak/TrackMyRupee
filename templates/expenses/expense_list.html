@@ -369,7 +369,7 @@
                 {% endif %}
                 <span class="h4 mb-0">
                 {% if display_month and display_year %}
-                    {{ display_month }} {{ display_year|translate_digits }}
+                    {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
                 {% else %}
                     {% trans "Expenses" %}
                 {% endif %}
@@ -420,7 +420,7 @@
                 {% endif %}
                 <span class="h3 mb-0">
                 {% if display_month and display_year %}
-                    {{ display_month }} {{ display_year|translate_digits }}
+                    {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
                 {% else %}
                     {% trans "Expenses" %}
                 {% endif %}
@@ -1005,14 +1005,14 @@
                                              data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
                                             {{ expense.description }}
                                         </div>
-                                        <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
-                                            <span>{{ expense.date|date:"d M, Y"|translate_digits }}</span>
-                                            <span class="opacity-50 mx-1">|</span>
-                                            <span class="text-truncate" title="{{ expense.category }}">{{ expense.category|truncatechars:18 }}</span>
+                                        <div class="text-body-secondary d-flex align-items-center gap-1 mt-1 flex-nowrap" style="font-size: 0.72rem;">
+                                            <span class="text-nowrap">{{ expense.date|date:"d M 'y"|translate_digits }}</span>
+                                            <span class="opacity-50 mx-1 flex-shrink-0">|</span>
+                                            <span class="text-truncate" title="{{ expense.category }}">{{ expense.category }}</span>
                                         </div>
                                         <div>
                                             <span class="text-muted" style="font-size: 0.7rem; opacity: 0.55;">
-                                                {{ expense.account.name }}
+                                                {{ expense.account.name|truncatechars:30 }}
                                             </span>
                                         </div>
                                     </div>
@@ -1114,7 +1114,7 @@
 
                                     <!-- Middle: Info -->
                                     <div class="flex-grow-1 min-width-0 px-1">
-                                        <div class="fw-semibold text-body-emphasis line-clamp-2 mb-0" style="font-size: 0.93rem;" 
+                                        <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
                                              data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
                                             {{ expense.description }}
                                         </div>
@@ -1125,7 +1125,7 @@
 
                                     <!-- Right: Amount + Payment Badge -->
                                     <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
-                                        <div class="fw-bold text-body-emphasis" style="font-size: 1.02rem; line-height: 1.2;">
+                                        <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
                                             {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
                                             {% if expense.currency != user.profile.currency %}
                                             <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">
