@@ -159,7 +159,7 @@
                         {% if object %}{% trans "Edit Expense" %}{% else %}{% trans "New Expense" %}{% endif %}
                     </h4>
                     <button type="button" class="btn btn-outline-primary btn-sm ms-auto" id="header-add-category-btn"
-                            title="{% trans 'Add New Category' %}" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                            title="{% trans 'Add New Category' %}">
                         <i class="bi bi-plus-lg me-1"></i> {% trans "New Category" %}
                     </button>
                 </div>
@@ -457,6 +457,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_body %}
     <!-- Add Category Modal -->
     <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
