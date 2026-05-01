@@ -146,6 +146,33 @@
         border: 1px solid var(--bs-border-color-translucent) !important;
         background-color: var(--bs-body-bg);
     }
+    .month-nav-pill {
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background-color: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color-translucent);
+        color: var(--bs-body-color);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .month-nav-pill:hover {
+        background-color: var(--bs-tertiary-bg);
+        color: var(--bs-primary);
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+        line-height: 1.25;
+        max-height: 2.5em; /* Fallback for very old browsers */
+    }
     .delete-btn-card {
         transition: all 0.2s ease;
     }
@@ -334,7 +361,25 @@
     <!-- Mobile Header -->
     <div class="card-header bg-transparent d-md-none pt-1 pb-3">
         <div class="d-flex justify-content-between align-items-center">
-            <h2 class="h4 mb-0 fw-bold">{% trans "Expenses" %}</h2>
+            <h3 class="mb-0 fw-bold d-flex align-items-center gap-3">
+                {% if prev_month_url %}
+                    <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}">
+                        <i class="bi bi-chevron-left fs-5"></i>
+                    </a>
+                {% endif %}
+                <span class="h4 mb-0">
+                {% if display_month and display_year %}
+                    {{ display_month }} {{ display_year|translate_digits }}
+                {% else %}
+                    {% trans "Expenses" %}
+                {% endif %}
+                </span>
+                {% if next_month_url %}
+                    <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}">
+                        <i class="bi bi-chevron-right fs-5"></i>
+                    </a>
+                {% endif %}
+            </h3>
             <div class="d-flex align-items-center gap-2">
                 <!-- View Toggle -->
                 <div class="d-flex gap-1 me-1">
@@ -349,19 +394,50 @@
                     <i class="bi bi-funnel"></i>
                 </button>
                 {% if request.user.profile.can_export_csv %}
-                <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-action-btn btn-outline-success d-flex align-items-center gap-1 no-loader">
-                    <i class="bi bi-download"></i> <span>{% trans "Export" %}</span>
+                <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-action-btn btn-outline-primary d-flex align-items-center gap-1 no-loader">
+                    <i class="bi bi-download"></i>
                 </a>
                 {% endif %}
             </div>
         </div>
-        <p class="text-muted small mb-0 mt-1">{% trans "Tracking every penny is the first step to financial freedom." %}</p>
+        <p class="text-muted text-center small mb-0 mt-4 fw-medium">
+            <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot; 
+            <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
+            {% if days_left is not None %}
+            &middot; <span class="fw-bold text-primary">{{ days_left|translate_digits }}</span> {% trans "days left in cycle" %}
+            {% endif %}
+        </p>
     </div>
 
     <!-- Desktop Header -->
     <div class="card-header bg-transparent d-none d-md-block pt-1 pb-3">
         <div class="d-flex justify-content-between align-items-center">
-            <h2 class="h4 mb-0 fw-bold">{% trans "Expenses" %}</h2>
+            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
+                {% if prev_month_url %}
+                    <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}">
+                        <i class="bi bi-chevron-left fs-5"></i>
+                    </a>
+                {% endif %}
+                <span class="h3 mb-0">
+                {% if display_month and display_year %}
+                    {{ display_month }} {{ display_year|translate_digits }}
+                {% else %}
+                    {% trans "Expenses" %}
+                {% endif %}
+                </span>
+                {% if next_month_url %}
+                    <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}">
+                        <i class="bi bi-chevron-right fs-5"></i>
+                    </a>
+                {% endif %}
+            </h2>
+            <p class="text-muted text-center small mb-0 mt-2 fw-medium">
+                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot; 
+                <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
+                {% if days_left is not None %}
+                &middot; <span class="fw-bold text-primary">{{ days_left|translate_digits }}</span> {% trans "days left in cycle" %}
+                {% endif %}
+            </p>
             <div class="d-flex align-items-center gap-2">
                 <!-- View Toggle -->
                 <div class="d-flex gap-1">
@@ -385,7 +461,6 @@
                 {% endif %}
             </div>
         </div>
-        <p class="text-muted small mb-0 mt-1">{% trans "Tracking every penny is the first step to financial freedom." %}</p>
     </div>
     
 
@@ -478,7 +553,7 @@
     </div>
 
     <!-- Stats Row -->
-    <div class="mb-4 mt-3 mt-md-0">
+    <!-- <div class="mb-4 mt-3 mt-md-0">
         <div class="row g-3">
             <div class="col-6 col-md-auto">
                 <div class="p-2 px-3 border rounded bg-body stats-card h-100 d-flex align-items-center gap-3">
@@ -503,7 +578,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <script>
         // Bulk Delete Logic
@@ -912,7 +987,7 @@
                     {% for expense in expenses %}
                     <div class="col-12 col-md-6 col-lg-4">
                         <div class="card expense-card h-100 shadow-sm border-0 position-relative">
-                            <div class="card-body px-3 py-3">
+                            <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
                                 <div class="d-flex align-items-center gap-2">
                                     <!-- Left: Checkbox -->
                                     <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
@@ -926,9 +1001,9 @@
 
                                     <!-- Middle: Info -->
                                     <div class="flex-grow-1 min-width-0 px-1">
-                                        <div class="fw-semibold text-body-emphasis text-truncate mb-0" style="font-size: 0.95rem;" 
+                                        <div class="fw-semibold text-body-emphasis line-clamp-2 mb-0" style="font-size: 0.95rem;" 
                                              data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
-                                            {{ expense.description|truncatechars:20 }}
+                                            {{ expense.description }}
                                         </div>
                                         <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
                                             <span>{{ expense.date|date:"d M, Y"|translate_digits }}</span>
@@ -1025,7 +1100,7 @@
                         <!-- Day's Expenses -->
                         {% for expense in group.list %}
                         <div class="card expense-card shadow-sm border-0 position-relative mb-3">
-                            <div class="card-body px-3 py-3">
+                            <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
                                 <div class="mobile-card-inner">
                                     <!-- Left: Checkbox -->
                                     <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
@@ -1039,9 +1114,9 @@
 
                                     <!-- Middle: Info -->
                                     <div class="flex-grow-1 min-width-0 px-1">
-                                        <div class="fw-semibold text-body-emphasis text-truncate mb-0" style="font-size: 0.93rem;" 
+                                        <div class="fw-semibold text-body-emphasis line-clamp-2 mb-0" style="font-size: 0.93rem;" 
                                              data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
-                                            {{ expense.description|truncatechars:20 }}
+                                            {{ expense.description }}
                                         </div>
                                         <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
                                             <span class="text-truncate">{{ expense.category|truncatechars:18 }}{% if expense.account.name is not null %} • {{ expense.account.name|truncatechars:18 }}{% endif %}</span>

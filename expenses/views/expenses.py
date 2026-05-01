@@ -145,7 +145,93 @@ class ExpenseListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
             if not has_active_filters:
                 context['selected_years'] = [str(datetime.now().year)]
                 context['selected_months'] = [str(datetime.now().month)]
+
+        # Month Navigation Logic
+        curr_selected_years = context['selected_years']
+        curr_selected_months = context['selected_months']
+        
+        display_year = None
+        display_month = None
+        
+        if len(curr_selected_years) == 1:
+            display_year = curr_selected_years[0]
             
+        if len(curr_selected_months) == 1:
+            try:
+                m_idx = int(curr_selected_months[0])
+                display_month = _(calendar.month_name[m_idx])
+            except (ValueError, IndexError):
+                pass
+                
+        context['display_year'] = display_year
+        context['display_month'] = display_month
+
+        prev_month_url = None
+        next_month_url = None
+
+        if len(curr_selected_years) == 1 and len(curr_selected_months) == 1:
+            try:
+                curr_year = int(curr_selected_years[0])
+                curr_month = int(curr_selected_months[0])
+                
+                if curr_month == 1:
+                    pm = 12
+                    py = curr_year - 1
+                else:
+                    pm = curr_month - 1
+                    py = curr_year
+                
+                if curr_month == 12:
+                    nm = 1
+                    ny = curr_year + 1
+                else:
+                    nm = curr_month + 1
+                    ny = curr_year
+
+                base_qs = []
+                for c in selected_categories:
+                    base_qs.append(f'category={c}')
+                if search_query:
+                    base_qs.append(f'search={search_query}')
+                
+                payment_method = self.request.GET.get('payment_method')
+                if payment_method:
+                    base_qs.append(f'payment_method={payment_method}')
+                
+                sort_by = self.request.GET.get('sort')
+                if sort_by:
+                    base_qs.append(f'sort={sort_by}')
+                
+                qs_prev = base_qs + [f'year={py}', f'month={pm}']
+                qs_next = base_qs + [f'year={ny}', f'month={nm}']
+                
+                prev_month_url = f"{reverse('expense-list')}?{'&'.join(qs_prev)}"
+                next_month_url = f"{reverse('expense-list')}?{'&'.join(qs_next)}"
+            except ValueError:
+                pass
+                
+        context['prev_month_url'] = prev_month_url
+        context['next_month_url'] = next_month_url
+
+        # Calculate days left in cycle
+        now = datetime.now()
+        is_current_month = False
+        days_left = None
+        
+        if display_year and display_month:
+            try:
+                sel_year = int(curr_selected_years[0])
+                sel_month = int(curr_selected_months[0])
+                if sel_year == now.year and sel_month == now.month:
+                    is_current_month = True
+                    last_day = calendar.monthrange(now.year, now.month)[1]
+                    days_left = last_day - now.day
+            except (ValueError, IndexError):
+                pass
+                
+        context['is_current_month'] = is_current_month
+        context['days_left'] = days_left
+
         return context
 
 class ExpenseCreateView(LoginRequiredMixin, View):
