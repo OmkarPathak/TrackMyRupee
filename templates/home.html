@@ -2340,7 +2340,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         tooltip: {
                             callbacks: {
                                 label: function(ctx) {
-                                    return ctx.dataset.label + ': {{ currency_symbol }}' + translateDigits(ctx.parsed.y.toLocaleString());
+                                    return ctx.dataset.label + ': {{ currency_symbol }}' + window.compactAmount(ctx.parsed.y, '{{ currency_symbol }}');
                                 }
                             }
                         }
@@ -2579,7 +2579,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 ctx.textBaseline = 'middle';
                                 const x = bar.x - (bar.width / 2);
                                 if (x !== undefined && bar.y !== undefined) {
-                                    ctx.fillText('{{ currency_symbol }}' + translateDigits(Math.round(val).toLocaleString()), x, bar.y);
+                                    ctx.fillText('{{ currency_symbol }}' + window.compactAmount(val, '{{ currency_symbol }}'), x, bar.y);
                                 }
                             }
                         });
@@ -2622,7 +2622,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
                             
                             // Amount text
-                            const amountText = '{{ currency_symbol }}' + translateDigits(value.toLocaleString());
+                            const amountText = '{{ currency_symbol }}' + window.compactAmount(value, '{{ currency_symbol }}');
                             // Percentage text
                             const pctText = translateDigits(percentage) + '%';
                                                         // Only draw text if the slice is large enough
@@ -2661,7 +2661,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         label += ': ';
                                     }
                                     if (context.parsed !== null) {
-                                        label += '{{ currency_symbol }}' + translateDigits(context.parsed.toLocaleString());
+                                        label += '{{ currency_symbol }}' + window.compactAmount(context.parsed, '{{ currency_symbol }}');
                                     }
                                     return label;
                                 }
@@ -2741,7 +2741,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const item = withLimits[index];
                             const y = bar.y;
                             const x = left + width / 2;
-                            const text = `{{ currency_symbol }}${translateDigits(item.total.toLocaleString())} / {{ currency_symbol }}${translateDigits(item.limit.toLocaleString())}`;
+                            const text = `{{ currency_symbol }}${window.compactAmount(item.total, '{{ currency_symbol }}')} / {{ currency_symbol }}${window.compactAmount(item.limit, '{{ currency_symbol }}')}`;
                             ctx.font = 'bold 11px sans-serif';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
@@ -2766,11 +2766,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 title: (c) => c[0].label,
                                 label: (c) => {
                                     const item = withLimits[c.dataIndex];
-                                    if (c.dataset.label === 'Spent') return `Spent: {{ currency_symbol }}${translateDigits(item.total.toLocaleString())} (${translateDigits(item.used_percent)}%)`;
+                                    if (c.dataset.label === 'Spent') return `Spent: {{ currency_symbol }}${window.compactAmount(item.total, '{{ currency_symbol }}')} (${translateDigits(item.used_percent)}%)`;
                                     const remaining = Math.max(0, item.limit - item.total);
-                                    return `Remaining: {{ currency_symbol }}${translateDigits(remaining.toLocaleString())}`;
+                                    return `Remaining: {{ currency_symbol }}${window.compactAmount(remaining, '{{ currency_symbol }}')}`;
                                 },
-                                footer: (c) => `Limit: {{ currency_symbol }}${translateDigits(withLimits[c[0].dataIndex].limit.toLocaleString())}`
+                                footer: (c) => `Limit: {{ currency_symbol }}${window.compactAmount(withLimits[c[0].dataIndex].limit, '{{ currency_symbol }}')}`
                             }
                         }
                     },
@@ -2862,7 +2862,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                  const value = context.raw;
                                                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                                  const pct = ((value / total) * 100).toFixed(1);
-                                                 return ` ${context.label}: {{ currency_symbol }}${translateDigits(value.toLocaleString())} (${translateDigits(pct)}%)`;
+                                                 return ` ${context.label}: {{ currency_symbol }}${window.compactAmount(value, '{{ currency_symbol }}')} (${translateDigits(pct)}%)`;
                                              }
                                          }
                                      }
@@ -2892,7 +2892,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                           
                                           if (arc.circumference > 0.4 && percentage > 5) {
                                               const center = arc.getCenterPoint();
-                                              const amountText = '{{ currency_symbol }}' + translateDigits(value.toLocaleString());
+                                              const amountText = '{{ currency_symbol }}' + window.compactAmount(value, '{{ currency_symbol }}');
                                               const pctText = translateDigits(percentage) + '%';
                                               
                                               ctx.textAlign = 'center';

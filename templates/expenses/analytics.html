@@ -570,10 +570,9 @@
                         if (chart.config.type === 'line' || dataset.label.includes('Rate')) {
                              text += '%';
                         } else {
-                             // Currency for others (approx) - can just show number
-                             text = value.toLocaleString(); 
+                             // Currency for others
+                             text = window.compactAmount(value, '{{ user.profile.currency }}'); 
                         }
-                        text = translateDigits(text);
 
                         ctx.font = 'bold 10px "DM Sans", sans-serif';
                         ctx.fillStyle = isDark ? '#adb5bd' : '#6c757d';
@@ -1025,7 +1024,7 @@
                             grid: { color: gridColor },
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + translateDigits(value.toLocaleString());
+                                    return '{{ user.profile.currency }}' + window.compactAmount(value, '{{ user.profile.currency }}');
                                 }
                             }
                         },
