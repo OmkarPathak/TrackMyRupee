@@ -43,28 +43,28 @@ class Command(BaseCommand):
             user=user, 
             name="HDFC Bank (Main)", 
             account_type='BANK', 
-            balance=Decimal('500000.00'), 
+            balance=Decimal('150000.00'), 
             currency='₹'
         )
         acc_savings = Account.objects.create(
             user=user, 
             name="SBI Savings", 
             account_type='BANK', 
-            balance=Decimal('100000.00'), 
+            balance=Decimal('80000.00'), 
             currency='₹'
         )
         acc_cash = Account.objects.create(
             user=user, 
             name="Cash Wallet", 
             account_type='CASH', 
-            balance=Decimal('100000.00'), 
+            balance=Decimal('5000.00'), 
             currency='₹'
         )
         acc_invest = Account.objects.create(
             user=user, 
             name="Zerodha Demat", 
             account_type='INVESTMENT', 
-            balance=Decimal('250000.00'), 
+            balance=Decimal('120000.00'), 
             currency='₹'
         )
 
@@ -73,21 +73,21 @@ class Command(BaseCommand):
         # 2. Categories & Budgets
         categories_data = [
             # Needs
-            {'name': 'Rent', 'limit': 30000, 'icon': 'bi-house-fill'},
-            {'name': 'Groceries', 'limit': 15000, 'icon': 'bi-cart-fill'},
-            {'name': 'Utilities', 'limit': 8000, 'icon': 'bi-lightning-charge-fill'},
-            {'name': 'Transport', 'limit': 10000, 'icon': 'bi-car-front-fill'},
+            {'name': 'Rent', 'limit': 18000, 'icon': 'bi-house-fill'},
+            {'name': 'Groceries', 'limit': 6000, 'icon': 'bi-cart-fill'},
+            {'name': 'Utilities', 'limit': 4000, 'icon': 'bi-lightning-charge-fill'},
+            {'name': 'Transport', 'limit': 4000, 'icon': 'bi-car-front-fill'},
             
             # Wants
-            {'name': 'Dining Out', 'limit': 15000, 'icon': 'bi-egg-fried'}, 
-            {'name': 'Shopping', 'limit': 15000, 'icon': 'bi-bag-heart-fill'},
-            {'name': 'Subscriptions', 'limit': 5000, 'icon': 'bi-tv-fill'},
-            {'name': 'Travel', 'limit': 30000, 'icon': 'bi-airplane-fill'},
+            {'name': 'Dining Out', 'limit': 5000, 'icon': 'bi-egg-fried'}, 
+            {'name': 'Shopping', 'limit': 5000, 'icon': 'bi-bag-heart-fill'},
+            {'name': 'Subscriptions', 'limit': 2000, 'icon': 'bi-tv-fill'},
+            {'name': 'Travel', 'limit': 10000, 'icon': 'bi-airplane-fill'},
             
-            # General / Investment-related (Standard categories now)
-            {'name': 'Mutual Funds', 'limit': 30000, 'icon': 'bi-graph-up-arrow'},
-            {'name': 'Stocks', 'limit': 20000, 'icon': 'bi-bank'},
-            {'name': 'Other', 'limit': 5000, 'icon': 'bi-three-dots'},
+            # General / Investment-related
+            {'name': 'Mutual Funds', 'limit': 15000, 'icon': 'bi-graph-up-arrow'},
+            {'name': 'Stocks', 'limit': 5000, 'icon': 'bi-bank'},
+            {'name': 'Other', 'limit': 3000, 'icon': 'bi-three-dots'},
         ]
         
         cat_objs = {}
@@ -103,12 +103,12 @@ class Command(BaseCommand):
 
         # 3. Time Windows (Last 3 months)
         today = date.today()
-        three_months_ago = (today.replace(day=1) - timedelta(days=62)).replace(day=1) # Approx 3 months ago start
+        three_months_ago = (today.replace(day=1) - timedelta(days=62)).replace(day=1) 
         
         # 4. Income History
         income_sources = [
-            {'source': '💼 Salary', 'amount': 95000, 'day': 1},
-            {'source': '🚀 Freelance Gig', 'amount': 40000, 'day': 20},
+            {'source': '💼 Salary', 'amount': 45000, 'day': 1},
+            {'source': '🚀 Freelance Gig', 'amount': 10000, 'day': 20},
         ]
 
         # Generate income for past 3 months
@@ -135,20 +135,19 @@ class Command(BaseCommand):
         
         expense_patterns = [
             # Needs
-            {'cat': 'Rent', 'amount': 25000, 'freq': 'MONTHLY', 'desc': 'Apartment Rent'},
-            {'cat': 'Groceries', 'amount': 2000, 'freq': 'WEEKLY', 'desc': 'Weekly Groceries'},
-            {'cat': 'Utilities', 'amount': 4500, 'freq': 'MONTHLY', 'desc': 'Electricity & Water'},
-            {'cat': 'Transport', 'amount': 800, 'freq': 'WEEKLY', 'desc': 'Fuel/Cab Spends'},
+            {'cat': 'Rent', 'amount': 18000, 'freq': 'MONTHLY', 'desc': '2BHK Rent in Pune'},
+            {'cat': 'Groceries', 'amount': 1500, 'freq': 'WEEKLY', 'desc': 'Zepto/Blinkit Orders'},
+            {'cat': 'Utilities', 'amount': 3200, 'freq': 'MONTHLY', 'desc': 'Electricity & Internet'},
+            {'cat': 'Transport', 'amount': 600, 'freq': 'WEEKLY', 'desc': 'Uber/Auto Spends'},
             
             # Wants
-            {'cat': 'Dining Out', 'amount': 1500, 'freq': 'WEEKLY', 'desc': 'Weekend Dinner'},
+            {'cat': 'Dining Out', 'amount': 2000, 'freq': 'WEEKLY', 'desc': 'Weekend Swiggy/Dining'},
             {'cat': 'Subscriptions', 'amount': 649, 'freq': 'MONTHLY', 'desc': 'Netflix Premium'},
             {'cat': 'Subscriptions', 'amount': 299, 'freq': 'MONTHLY', 'desc': 'Spotify Family'},
-            {'cat': 'Shopping', 'amount': 4000, 'freq': 'MONTHLY', 'desc': 'Amazon/Myntra Shopping'},
+            {'cat': 'Shopping', 'amount': 3000, 'freq': 'MONTHLY', 'desc': 'Amazon/Myntra Shopping'},
             
             # Investments (SIPs)
-            {'cat': 'Mutual Funds', 'amount': 15000, 'freq': 'MONTHLY', 'desc': 'Nifty 50 Index Fund SIP'},
-            {'cat': 'Stocks', 'amount': 5000, 'freq': 'MONTHLY', 'desc': 'Monthly Bluechip Portfolio'},
+            {'cat': 'Mutual Funds', 'amount': 10000, 'freq': 'MONTHLY', 'desc': 'Nifty 50 Index Fund SIP'},
         ]
 
         curr_date = three_months_ago
@@ -164,7 +163,7 @@ class Command(BaseCommand):
                     # Add some randomness to amount (except rent)
                     amt = pattern['amount']
                     if 'Rent' not in pattern['cat']:
-                        variation = random.randint(-200, 500)
+                        variation = random.randint(-100, 300)
                         amt = Decimal(amt) + Decimal(variation)
 
                     # Determine Account
@@ -187,14 +186,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Generated Realistic Expense History'))
         
         # 5.1 Enforce "Today" and "Yesterday" Expenses for Dashboard KPI
+        # We target ~₹12,000 in Dining Out for May to show the '33%' insight on ~₹36k total expenses
         today_expenses = [
-            {'cat': 'Dining Out', 'amount': 180, 'desc': 'Morning Coffee & Maska Bun', 'date': today},
-            {'cat': 'Transport', 'amount': 240, 'desc': 'Uber to WeWork', 'date': today},
-            {'cat': 'Dining Out', 'amount': 450, 'desc': 'Lunch with Team', 'date': today},
-            {'cat': 'Shopping', 'amount': 1200, 'desc': 'New Notebook & Pens', 'date': today},
-            {'cat': 'Groceries', 'amount': 850, 'desc': 'Milk, Eggs & Fruits', 'date': today - timedelta(days=1)},
-            {'cat': 'Transport', 'amount': 320, 'desc': 'Auto Rickshaw (Return)', 'date': today - timedelta(days=1)},
-            {'cat': 'Dining Out', 'amount': 650, 'desc': 'Dinner with Friend', 'date': today - timedelta(days=1)},
+            {'cat': 'Dining Out', 'amount': 3800, 'desc': 'Swiggy Dinner Party', 'date': today},
+            {'cat': 'Transport', 'amount': 450, 'desc': 'Uber to Baner', 'date': today},
+            {'cat': 'Groceries', 'amount': 850, 'desc': 'Zepto - Weekend stock', 'date': today - timedelta(days=1)},
+            {'cat': 'Dining Out', 'amount': 2200, 'desc': 'Lunch at Blue Frog', 'date': today - timedelta(days=1)},
         ]
         
         for te in today_expenses:
@@ -210,24 +207,10 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS('Injected Current Day Data for ROI Visibility'))
 
-        # 5.2 Ensure April/Current Month has healthy balance for "Aspirational" trend
-        if today.day < 5:
-            # If it's early in the month, add a 'Q1 Bonus' or similar to ENSURE positive NW trend
-            Income.objects.create(
-                user=user,
-                source='🏆 Quarterly Bonus',
-                amount=Decimal('45000.00'),
-                date=today.replace(day=1),
-                description="Bonus for consistent SaaS delivery",
-                account=acc_main
-            )
-            self.stdout.write(self.style.SUCCESS('Seeded Early Month Bonus for Positive Trend'))
-
         # 6. Savings Goals & Contributions
         goals = [
-            {'name': 'Emergency Fund', 'target': 200000, 'current': 0, 'icon': '🛡️', 'color': 'success'},
-            {'name': 'New MacBook Pro', 'target': 180000, 'current': 0, 'icon': '💻', 'color': 'info'},
-            {'name': 'Maldives Trip', 'target': 300000, 'current': 0, 'icon': '🏝️', 'color': 'warning'},
+            {'name': 'Emergency Fund', 'target': 100000, 'current': 0, 'icon': '🛡️', 'color': 'success'},
+            {'name': 'New iPad Pro', 'target': 80000, 'current': 0, 'icon': '📱', 'color': 'info'},
         ]
 
         for g_data in goals:

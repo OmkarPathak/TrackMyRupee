@@ -1121,13 +1121,18 @@ def home_view(request):
     
     # 0. Power AI Insight (Positive/Proactive)
     if total_income > 0 and total_expenses > 0 and top_5_categories:
-        top_cat = top_5_categories[0]['category']
-        top_amount = top_5_categories[0]['total']
+        # Pick the top category, but skip 'Rent' for the 'Cut 20%' insight as it's usually fixed
+        target_cat_data = top_5_categories[0]
+        if target_cat_data['category'] == 'Rent' and len(top_5_categories) > 1:
+            target_cat_data = top_5_categories[1]
+            
+        top_cat = target_cat_data['category']
+        top_amount = target_cat_data['total']
         top_cat_pct = round(float(top_amount) / float(total_expenses) * 100) if total_expenses > 0 else 0
         potential_savings = float(top_amount) * 0.20
         
         power_insight_text = format_html(
-            _("You spent <b>{pct}%</b> of your expenses on <b>{cat}</b>. Reduce by 20% to save <span class='text-success fw-bold'>{sym}{savings}</span>."),
+            _("You spent <b>{pct}%</b> on <b>{cat}</b> this month. Cut 20% to save <span class='text-success fw-bold'>{sym}{savings}</span>."),
             pct=top_cat_pct,
             cat=_(top_cat),
             sym=currency_symbol,
