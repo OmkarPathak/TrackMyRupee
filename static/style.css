@@ -94,6 +94,19 @@ body {
   font-size: 1.125rem !important; /* Middle ground between fs-5 (1.25rem) and fs-6 (1rem) */
 }
 
+/* --- Premium Table Refinements --- */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-striped-bg: rgba(29, 158, 117, 0.02);
+  --bs-table-hover-bg: rgba(29, 158, 117, 0.05);
+  border-color: var(--bs-border-color-translucent);
+}
+
+[data-bs-theme="dark"] .table {
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+  --bs-table-hover-bg: rgba(93, 202, 165, 0.06);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
