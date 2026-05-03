@@ -843,6 +843,7 @@
 
     <!-- Views Container -->
     <div class="card-body p-0">
+        {% if expenses %}
         <form id="bulkDeleteForm" method="post" action="{% url 'expense-bulk-delete' %}?{{ request.GET.urlencode }}">
             {% csrf_token %}
             
@@ -941,32 +942,6 @@
                                 </div>
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="py-4">
-                                    <i class="bi bi-receipt text-muted display-1 mb-3 d-block"></i>
-                                    <h4 class="fw-bold text-muted">{% trans "No Expenses Found" %}</h4>
-                                    <p class="text-muted mb-4">
-                                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month %}
-                                            {% trans "We couldn't find any expenses matching your filters." %}
-                                        {% else %}
-                                            {% trans "You haven't added any expenses yet. Start tracking your spending!" %}
-                                        {% endif %}
-                                    </p>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a href="{% url 'expense-create' %}" class="btn btn-primary">
-                                            <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
-                                        </a>
-                                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month %}
-                                            <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary">
-                                                <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Clear Filters" %}
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -1057,131 +1032,129 @@
                             </div>
                         </div>
                     </div>
-                    {% empty %}
-                    <div class="col-12 text-center py-5">
-                         <div>
-                            {% include 'illustrations/empty_expenses.svg' %}
-                            <h4 class="fw-bold text-muted mt-3">{% trans "No Expenses Found" %}</h4>
-                            <p class="text-muted mb-4">
-                                {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month %}
-                                    {% trans "We couldn't find any expenses matching your filters." %}
-                                {% else %}
-                                    {% trans "You haven't added any expenses yet." %}
-                                {% endif %}
-                            </p>
-                         </div>
-                    </div>
                     {% endfor %}
                 </div>
             </div>
 
             <!-- 3. Mobile Grid View (Daily Grouped) -->
             <div id="mobileGridView" class="py-2 d-none">
-                {% if expenses %}
-                    <div class="d-flex align-items-center mb-2 px-1 mobile-selection-header">
-                        <div id="mobileSelectAllRow" class="d-flex align-items-center gap-2">
-                            <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
-                            <label class="small text-muted" for="selectAllMobile" style="cursor: pointer;">{% trans "Select All" %}</label>
-                        </div>
-                        <a href="#" id="mobileSelectToggle" class="text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</a>
+                <div class="d-flex align-items-center mb-2 px-1 mobile-selection-header">
+                    <div id="mobileSelectAllRow" class="d-flex align-items-center gap-2">
+                        <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
+                        <label class="small text-muted" for="selectAllMobile" style="cursor: pointer;">{% trans "Select All" %}</label>
                     </div>
-                    {% regroup expenses by date as expenses_by_date %}
-                    {% for group in expenses_by_date %}
-                    <div class="mb-3">
-                        <!-- Day Header -->
-                        <div class="d-flex justify-content-between align-items-center px-1 mb-2">
-                            <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
-                                {{ group.grouper|date:"d M, Y"|translate_digits }}
-                            </div>
-                            <div class="fw-bold text-body-secondary" style="font-size: 0.78rem;">
-                                {{ user.profile.currency }}{{ group.list|sum_base_amounts|compact_amount:user.profile.currency|translate_digits }}
-                            </div>
+                    <a href="#" id="mobileSelectToggle" class="text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</a>
+                </div>
+                {% regroup expenses by date as expenses_by_date %}
+                {% for group in expenses_by_date %}
+                <div class="mb-3">
+                    <!-- Day Header -->
+                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                        <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                            {{ group.grouper|date:"d M, Y"|translate_digits }}
                         </div>
-                        <!-- Day's Expenses -->
-                        {% for expense in group.list %}
-                        <div class="card expense-card shadow-sm border-0 position-relative mb-3">
-                            <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
-                                <div class="mobile-card-inner">
-                                    <!-- Left: Checkbox -->
-                                    <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
-                                        <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
-                                    </div>
+                        <div class="fw-bold text-body-secondary" style="font-size: 0.78rem;">
+                            {{ user.profile.currency }}{{ group.list|sum_base_amounts|compact_amount:user.profile.currency|translate_digits }}
+                        </div>
+                    </div>
+                    <!-- Day's Expenses -->
+                    {% for expense in group.list %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-3">
+                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                            <div class="mobile-card-inner">
+                                <!-- Left: Checkbox -->
+                                <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
+                                    <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
+                                </div>
 
-                                    <!-- Left-Mid: Category Icon (Vertically Centered) -->
-                                    <div class="category-icon-container" title="{{ expense.category }}">
-                                        <i class="bi {% category_icon expense.category user %}"></i>
-                                    </div>
+                                <!-- Left-Mid: Category Icon (Vertically Centered) -->
+                                <div class="category-icon-container" title="{{ expense.category }}">
+                                    <i class="bi {% category_icon expense.category user %}"></i>
+                                </div>
 
-                                    <!-- Middle: Info -->
-                                    <div class="flex-grow-1 min-width-0 px-1">
-                                        <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
-                                             data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
-                                            {{ expense.description }}
+                                <!-- Middle: Info -->
+                                <div class="flex-grow-1 min-width-0 px-1">
+                                    <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
+                                         data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
+                                        {{ expense.description }}
+                                    </div>
+                                    <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                        <span class="text-truncate">{{ expense.category|truncatechars:18 }}{% if expense.account.name is not null %} • {{ expense.account.name|truncatechars:18 }}{% endif %}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Right: Amount + Payment Badge -->
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
+                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
+                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                        {% if expense.currency != user.profile.currency %}
+                                        <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">
+                                            ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
                                         </div>
-                                        <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
-                                            <span class="text-truncate">{{ expense.category|truncatechars:18 }}{% if expense.account.name is not null %} • {{ expense.account.name|truncatechars:18 }}{% endif %}</span>
-                                        </div>
+                                        {% endif %}
                                     </div>
+                                    <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
+                                </div>
 
-                                    <!-- Right: Amount + Payment Badge -->
-                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
-                                        <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
-                                            {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
-                                            {% if expense.currency != user.profile.currency %}
-                                            <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">
-                                                ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                        <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
-                                    </div>
-
-                                    <!-- Far Right: Menu -->
-                                    <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
-                                        <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
-                                            <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
-                                            <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}">
-                                                    <i class="bi bi-pencil-square text-primary"></i>
-                                                    <span>{% trans "Edit" %}</span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button"
-                                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                        data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
-                                                        data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
-                                                    <i class="bi bi-trash"></i>
-                                                    <span>{% trans "Delete" %}</span>
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>
+                                <!-- Far Right: Menu -->
+                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
+                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-pencil-square text-primary"></i>
+                                                <span>{% trans "Edit" %}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                    data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
+                                                    data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
+                                                <i class="bi bi-trash"></i>
+                                                <span>{% trans "Delete" %}</span>
+                                            </button>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
                     {% endfor %}
-                {% else %}
-                    <div class="text-center py-5">
-                        <div class="py-4">
-                            <i class="bi bi-receipt text-muted display-1 mb-3 d-block"></i>
-                            <h4 class="fw-bold text-muted">{% trans "No Expenses Found" %}</h4>
-                            <p class="text-muted mb-4">
-                                {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month %}
-                                    {% trans "We couldn't find any expenses matching your filters." %}
-                                {% else %}
-                                    {% trans "You haven't added any expenses yet." %}
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                {% endif %}
+                </div>
+                {% endfor %}
             </div>
         </form>
+        {% else %}
+            <!-- Global Empty State -->
+            <div class="text-center py-5">
+                <div class="py-5 px-3">
+                    <div class="mb-4">
+                        {% include 'illustrations/empty_expenses.svg' %}
+                    </div>
+                    <h3 class="fw-bold text-body-emphasis mb-2">{% trans "No Expenses Found" %}</h3>
+                    <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">
+                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month %}
+                            {% trans "We couldn't find any expenses matching your filters. Try adjusting your search criteria." %}
+                        {% else %}
+                            {% trans "You haven't added any expenses yet. Start tracking your spending to get insights into your finances!" %}
+                        {% endif %}
+                    </p>
+                    <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-2">
+                        <a href="{% url 'expense-create' %}" class="btn btn-primary fw-bold px-4 rounded-pill text-nowrap">
+                            <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
+                        </a>
+                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month %}
+                            <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary fw-bold px-4 rounded-pill text-nowrap">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Clear Filters" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </div>
 
     {% if is_paginated %}
