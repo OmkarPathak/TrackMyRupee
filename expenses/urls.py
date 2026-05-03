@@ -90,6 +90,7 @@ urlpatterns = [
     path('ping/', views.ping, name='ping'),
 
     # Payments
+    path('settings/payments/', views_payment.PaymentHistoryView.as_view(), name='payment-history'),
     path('api/create-order/', views_payment.create_order, name='create-order'),
     path('api/verify-payment/', views_payment.verify_payment, name='verify-payment'),
     path('api/razorpay-webhook/', views_payment.razorpay_webhook, name='razorpay-webhook'),

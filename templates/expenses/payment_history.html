@@ -1,0 +1,194 @@
+{% extends 'expenses/settings_base.html' %}
+{% load i18n digit_filters humanize %}
+
+{% block settings_content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="pt-1 pb-3 mb-4">
+        <h2 class="h4 mb-1 fw-bold">{% trans "Payment History" %}</h2>
+        <p class="text-muted small mb-0">{% trans "Manage your subscriptions and view your transaction records." %}</p>
+    </div>
+
+    <!-- Current Subscription Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, var(--bs-body-bg) 0%, var(--bs-tertiary-bg) 100%);">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 56px; height: 56px;">
+                            <i class="bi bi-patch-check-fill fs-2"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ profile.active_tier_display }} {% trans "Plan" %}</h5>
+                            {% if profile.tier != 'FREE' %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill small">
+                                    {% if profile.is_lifetime %}
+                                        {% trans "Lifetime Access" %}
+                                    {% elif profile.razorpay_subscription_id %}
+                                        {% trans "Auto-Renewing" %}
+                                    {% else %}
+                                        {% trans "One-time Payment" %}
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill small">
+                                    {% trans "Free Forever" %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if profile.tier != 'FREE' and profile.subscription_end_date %}
+                    <div class="mb-3">
+                        <p class="text-muted small mb-1">
+                            {% if profile.cancel_at_cycle_end %}
+                                {% trans "Access expires on" %}
+                            {% else %}
+                                {% trans "Next billing date" %}
+                            {% endif %}
+                        </p>
+                        <h6 class="fw-bold">{{ profile.subscription_end_date|date:"F d, Y"|translate_digits }}</h6>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                    {% if profile.tier == 'FREE' %}
+                        <a href="{% url 'pricing' %}" class="btn btn-primary fw-bold px-4 py-2 rounded-pill shadow-sm">
+                            {% trans "Upgrade to Pro" %}
+                        </a>
+                    {% elif profile.razorpay_subscription_id and not profile.cancel_at_cycle_end %}
+                        <button class="btn btn-outline-danger fw-bold px-4 py-2 rounded-pill" id="cancelSubscriptionBtn">
+                            {% trans "Cancel Subscription" %}
+                        </button>
+                    {% elif profile.tier != 'FREE' %}
+                         <a href="{% url 'pricing' %}" class="btn btn-outline-primary fw-bold px-4 py-2 rounded-pill">
+                            {% trans "Change Plan" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+            <h5 class="fw-bold mb-0">{% trans "Transactions" %}</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Order ID" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td class="ps-4 text-nowrap">
+                                <span class="text-muted small">{{ payment.created_at|date:"d M Y, H:i"|translate_digits }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{{ payment.tier }} {{ payment.duration|title }}</span>
+                                    {% if payment.payment_id %}
+                                        <span class="text-muted" style="font-size: 0.7rem;">PID: {{ payment.payment_id }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="fw-bold">₹{{ payment.amount|floatformat:2|translate_digits }}</td>
+                            <td>
+                                {% if payment.status == 'SUCCESS' %}
+                                    <span class="badge-soft badge-soft-success">{% trans "Success" %}</span>
+                                {% elif payment.status == 'PENDING' %}
+                                    <span class="badge-soft badge-soft-warning">{% trans "Pending" %}</span>
+                                {% else %}
+                                    <span class="badge-soft badge-soft-danger">{% trans "Failed" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <code class="small text-muted">{{ payment.order_id }}</code>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="py-4">
+                                    <i class="bi bi-credit-card text-muted display-4 mb-3 d-block"></i>
+                                    <p class="text-muted">{% trans "No transaction history found." %}</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-4">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a>
+                    </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">{% trans "Page" %} {{ page_obj.number|translate_digits }} {% trans "of" %} {{ paginator.num_pages|translate_digits }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+{% if profile.razorpay_subscription_id %}
+<!-- Cancel Subscription Script -->
+<script>
+    document.getElementById('cancelSubscriptionBtn')?.addEventListener('click', function() {
+        if (confirm("{% trans 'Are you sure you want to cancel your auto-renewing subscription? You will still have access until the end of your current billing cycle.' %}")) {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{% trans "Processing..." %}';
+
+            fetch("{% url 'cancel-subscription' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || "{% trans 'Failed to cancel subscription' %}");
+                    btn.disabled = false;
+                    btn.innerHTML = "{% trans 'Cancel Subscription' %}";
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("{% trans 'An error occurred' %}");
+                btn.disabled = false;
+                btn.innerHTML = "{% trans 'Cancel Subscription' %}";
+            });
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.models import User
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import PaymentHistory, SubscriptionPlan, UserProfile
 from finance_tracker.plans import PLAN_DETAILS
 
@@ -276,11 +278,24 @@ def cancel_subscription(request):
             profile.cancel_at_cycle_end = True
             profile.save()
             
-            return JsonResponse({
-                'success': True, 
+            return JsonResponse({'success': True, 
                 'message': 'Subscription cancelled successfully. You will have access until the end of your current cycle.'
             })
         except Exception as e:
             logger.error(f"Error cancelling subscription: {e}")
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
+class PaymentHistoryView(LoginRequiredMixin, ListView):
+    model = PaymentHistory
+    template_name = 'expenses/payment_history.html'
+    context_object_name = 'payments'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return PaymentHistory.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['profile'] = self.request.user.profile
+        return context

@@ -32,6 +32,9 @@
         <a href="{% url 'account-list' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if 'account' in request.resolver_match.url_name %}active fw-bold text-primary{% else %}text-muted{% endif %}">
             {% trans "Accounts" %}
         </a>
+        <a href="{% url 'payment-history' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if request.resolver_match.url_name == 'payment-history' %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+            {% trans "Payments" %}
+        </a>
     </div>
 
     <!-- Main Content Area -->
