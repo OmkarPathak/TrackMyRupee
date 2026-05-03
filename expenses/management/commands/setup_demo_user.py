@@ -25,7 +25,16 @@ class Command(BaseCommand):
         username = 'demo'
         
         # 1. Reset User
-        User.objects.filter(username=username).delete()
+        user_qs = User.objects.filter(username=username)
+        if user_qs.exists():
+            u = user_qs.first()
+            # Explicitly delete objects in order to avoid IntegrityErrors with complex constraints
+            SavingsGoal.objects.filter(user=u).delete()
+            RecurringTransaction.objects.filter(user=u).delete()
+            Account.objects.filter(user=u).delete()
+            Category.objects.filter(user=u).delete()
+            user_qs.delete()
+            
         user = User.objects.create_user(username=username, email='demo@example.com', password='demo_password_123')
         
         # Setup Profile as PRO
