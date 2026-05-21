@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.contrib.postgres.indexes import GinIndex
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -184,6 +185,8 @@ class JournalEntry(models.Model):
             models.Index(fields=['user', 'posted_at']),
             models.Index(fields=['source_type', 'source_id']),
             models.Index(fields=['status']),
+            models.Index(fields=['user', 'source_type', 'status']),
+            GinIndex(fields=['metadata'], name='journalentry_metadata_gin'),
         ]
 
     def __str__(self):

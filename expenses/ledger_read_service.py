@@ -64,9 +64,6 @@ class LedgerReadService:
             journal_entry__status="POSTED",
         ).only("direction", "amount", "currency")
 
-        if not lines.exists():
-            return Decimal("0.00")
-
         debit = Decimal("0.00")
         credit = Decimal("0.00")
         for line in lines:
@@ -116,20 +113,71 @@ class LedgerReadService:
 
     @classmethod
     def get_net_worth(cls, user):
-        accounts = user.accounts.filter(is_active=True)
+        accounts = list(user.accounts.filter(is_active=True))
+        if not accounts:
+            return Decimal("0.00"), {}
+
         base_currency = user.profile.currency
+        account_ids = [a.id for a in accounts]
+        account_map = {a.id: a for a in accounts}
+
+        # 1 query: all posted journal lines for all active accounts
+        all_lines = JournalLine.objects.filter(
+            account_ref_id__in=account_ids,
+            journal_entry__status="POSTED",
+        ).only("account_ref_id", "direction", "amount", "currency")
+
+        lines_by_account: dict = {aid: [] for aid in account_ids}
+        for line in all_lines:
+            lines_by_account[line.account_ref_id].append(line)
+
+        # 1 query: opening entry account IDs for this user
+        opening_account_ids = set(
+            JournalEntry.objects.filter(
+                user=user,
+                source_type="ADJUSTMENT",
+                status="POSTED",
+                metadata__has_key="opening_account_id",
+            ).values_list("metadata__opening_account_id", flat=True)
+        )
+        # values come back as strings from JSONField key lookup
+        opening_account_ids = {int(v) for v in opening_account_ids if v is not None}
 
         net_worth = Decimal("0.00")
         account_base_balances = {}
 
         for account in accounts:
-            balance = cls.get_account_balance(account)
+            lines = lines_by_account[account.id]
+            debit = Decimal("0.00")
+            credit = Decimal("0.00")
+            for line in lines:
+                converted = cls._line_amount_in_account_currency(line, account)
+                if line.direction == "DEBIT":
+                    debit += converted
+                else:
+                    credit += converted
+            ledger_delta = (debit - credit).quantize(Decimal("0.01"))
+
+            has_opening_entry = account.id in opening_account_ids
+            if has_opening_entry:
+                balance = ledger_delta
+            else:
+                balance = account.balance
+
+            cls._log_comparison(
+                account=account,
+                selected_balance=balance,
+                ledger_delta=ledger_delta,
+                used_fallback=not has_opening_entry,
+                has_opening_entry=has_opening_entry,
+            )
+
             if account.currency == base_currency:
-                converted = balance
+                converted_bal = balance
             else:
                 rate = get_exchange_rate(account.currency, base_currency)
-                converted = (balance * rate).quantize(Decimal("0.01"))
-            account_base_balances[account.pk] = converted
-            net_worth += converted
+                converted_bal = (balance * rate).quantize(Decimal("0.01"))
+            account_base_balances[account.pk] = converted_bal
+            net_worth += converted_bal
 
         return net_worth.quantize(Decimal("0.01")), account_base_balances

@@ -1362,8 +1362,9 @@ def home_view(request):
 
     # 4. Financial Coach Moments (Milestones)
     # Net Worth Milestone (match Net Worth card logic to avoid contradictory insights)
-    milestone_net_worth, _milestone_account_balances = LedgerReadService.get_net_worth(request.user)
-    milestone_net_worth -= Decimal(str(LoanService.get_total_liabilities(request.user)))
+    # NOTE: _ledger_net_worth_result is reused below in the Net Worth section to avoid a second bulk query.
+    _ledger_net_worth_result = LedgerReadService.get_net_worth(request.user)
+    milestone_net_worth = _ledger_net_worth_result[0] - Decimal(str(LoanService.get_total_liabilities(request.user)))
     milestones = [100000, 500000, 1000000, 2500000, 5000000, 10000000]
     applicable_milestone = None
     for m in milestones:
@@ -1531,7 +1532,8 @@ def home_view(request):
     base_currency = currency_symbol  # user's profile currency
 
     # Convert balances to base currency from adapter (feature-flagged with fallback).
-    net_worth, account_base_balances = LedgerReadService.get_net_worth(request.user)
+    # Reuse the result already fetched for the milestone section above (avoids duplicate bulk queries).
+    net_worth, account_base_balances = _ledger_net_worth_result
     investment_accounts_balance = Decimal('0.00')
     for acc in accounts:
         if acc.account_type in ['INVESTMENT', 'FIXED_DEPOSIT']:
