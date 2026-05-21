@@ -5,12 +5,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% trans "Loan EMI Calculator" %} - TrackMyRupee</title>
-    <meta name="description" content="Free Loan EMI Calculator for India. Calculate monthly EMI, total interest, total payment, and prepayment impact instantly. Home loan, car loan, and personal loan support.">
+    <title>Loan EMI Calculator India – Home, Car &amp; Personal Loan | TrackMyRupee</title>
+    <meta name="description" content="Free EMI calculator for India — home, car, and personal loans. Calculate monthly EMI, total interest, and amortization schedule instantly. Then track every real EMI payment inside TrackMyRupee. No bank login needed.">
     <meta name="keywords" content="loan emi calculator india, home loan emi calculator, personal loan calculator, car loan emi calculator, prepayment calculator, amortization schedule india">
     <meta name="author" content="Omkar Pathak">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="geo.region" content="IN" />
+    <meta name="geo.placename" content="India" />
+    <meta name="geo.position" content="20.5937;78.9629" />
     <link rel="canonical" href="https://trackmyrupee.com/loan-emi-calculator/">
 
     <link rel="alternate" hreflang="en" href="https://trackmyrupee.com/loan-emi-calculator/">
@@ -21,7 +24,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="TrackMyRupee">
     <meta property="og:url" content="https://trackmyrupee.com/loan-emi-calculator/">
-    <meta property="og:title" content="Loan EMI Calculator (India) - TrackMyRupee">
+    <meta property="og:title" content="Loan EMI Calculator India – Home, Car &amp; Personal Loan | TrackMyRupee">
     <meta property="og:description" content="Calculate EMI, interest outgo, and month-end repayment plan in seconds. Includes prepayment impact and amortization preview.">
     <meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
     <meta property="og:image:width" content="1200">
@@ -29,31 +32,22 @@
     <meta property="og:locale" content="en_IN">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Loan EMI Calculator (India) - TrackMyRupee">
+    <meta name="twitter:title" content="Loan EMI Calculator India – Home, Car &amp; Personal Loan | TrackMyRupee">
     <meta name="twitter:description" content="Free EMI calculator with prepayment impact, amortization, and total interest breakdown.">
     <meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
     <meta name="twitter:url" content="https://trackmyrupee.com/loan-emi-calculator/">
 
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Loan EMI Calculator",
+    { "@context": "https://schema.org", "@type": "WebApplication",
+      "name": "Loan EMI Calculator India",
       "url": "https://trackmyrupee.com/loan-emi-calculator/",
+      "description": "Free loan EMI calculator for India. Calculate monthly EMI, total interest, amortization schedule, and prepayment impact for home, car, and personal loans.",
       "applicationCategory": "FinanceApplication",
       "operatingSystem": "Web",
-      "publisher": {
-        "@type": "Organization",
-        "name": "TrackMyRupee",
-        "url": "https://trackmyrupee.com"
-      },
-      "description": "Free EMI calculator for Indian borrowers. Get EMI, total interest, and prepayment impact instantly.",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "INR"
-      }
-    }
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+      "author": { "@type": "Person", "name": "Omkar Pathak", "url": "https://trackmyrupee.com" },
+      "provider": { "@type": "Organization", "name": "TrackMyRupee", "url": "https://trackmyrupee.com",
+        "logo": "https://trackmyrupee.com/static/img/logo.svg" } }
     </script>
 
     <script type="application/ld+json">
@@ -368,7 +362,7 @@
     <div class="container">
       <div class="row g-4 align-items-center">
         <div class="col-lg-8">
-          <h1 class="display-6 fw-bold mb-3">{% trans "Loan EMI Calculator" %}</h1>
+          <h1 class="display-6 fw-bold mb-3">{% trans "Free Loan EMI Calculator for India" %}</h1>
           <p class="lead mb-3">{% trans "Calculate your monthly EMI, total interest payout, and month-end loan outgo in seconds. Built for home loan, car loan, education loan, and personal loan planning." %}</p>
         </div>
         <div class="d-none d-md-block col-lg-4">
@@ -597,6 +591,24 @@
     });
 
     updateCalculator();
+  </script>
+
+  <script type="application/ld+json">
+  { "@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "How is EMI calculated in India?",
+        "acceptedAnswer": { "@type": "Answer", "text": "EMI is calculated using the formula: EMI = P × r × (1+r)^n / ((1+r)^n - 1), where P is the principal loan amount, r is the monthly interest rate (annual rate divided by 12), and n is the loan tenure in months." } },
+      { "@type": "Question", "name": "What is a floating rate EMI?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A floating rate EMI changes when the RBI repo rate changes. Most home loans in India are linked to the REPO rate. When rates rise, your EMI or tenure increases. TrackMyRupee lets you track floating rate changes over time." } },
+      { "@type": "Question", "name": "How does prepayment reduce my loan?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Making additional monthly payments reduces your principal faster, which reduces total interest paid and can shorten the loan tenure significantly. Use the prepayment field in this calculator to see the exact impact." } },
+      { "@type": "Question", "name": "Is this EMI calculator free to use?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes, this EMI calculator is completely free. No signup required. You can also track your actual loan EMI payments inside TrackMyRupee after creating a free account." } },
+      { "@type": "Question", "name": "What is an amortization schedule?",
+        "acceptedAnswer": { "@type": "Answer", "text": "An amortization schedule shows the month-by-month breakdown of your loan repayment — how much of each EMI goes toward interest and how much reduces the principal. In the early months, most of your EMI goes toward interest." } },
+      { "@type": "Question", "name": "Will my actual bank EMI match this calculator?",
+        "acceptedAnswer": { "@type": "Answer", "text": "It will be very close but may differ slightly due to lender-specific rounding methods, processing fees, and payment date conventions. Use this calculator for planning and comparison purposes." } }
+    ] }
   </script>
 </body>
 </html>
