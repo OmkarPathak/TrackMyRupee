@@ -184,7 +184,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
         total_monthly_expense = sum(item['total'] for item in expenses) or 0
         total_monthly_income = sum(item['total'] for item in incomes) or 0
         total_monthly_investment = sum(item['total'] for item in investments) or 0
-        month_net_savings = total_monthly_income - total_monthly_expense
+        month_net_savings = total_monthly_income - total_monthly_expense - total_monthly_investment
 
         context['calendar_data'] = calendar_data
         context['current_year'] = year
