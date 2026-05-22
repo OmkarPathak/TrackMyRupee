@@ -20,6 +20,30 @@ def sum_base_amounts(expenses):
     return sum(e.base_amount for e in expenses)
 
 
+@register.filter(name='sum_net_unified_amounts')
+def sum_net_unified_amounts(transactions):
+    """Sum signed unified amounts for mixed transaction lists.
+
+    INCOME is positive, EXPENSE/LOAN are negative, TRANSFER is neutral.
+    Supports both dict-like items (values() querysets) and model-like objects.
+    """
+    total = 0
+    for tx in transactions:
+        if isinstance(tx, dict):
+            tx_type = tx.get('type')
+            amount = tx.get('unified_amount', 0) or 0
+        else:
+            tx_type = getattr(tx, 'type', None)
+            amount = getattr(tx, 'unified_amount', 0) or 0
+
+        if tx_type == 'INCOME':
+            total += amount
+        elif tx_type in ('EXPENSE', 'LOAN'):
+            total -= amount
+
+    return total
+
+
 @register.filter(name='payment_color')
 def payment_color(method):
     """Returns a subtle color for a payment method."""

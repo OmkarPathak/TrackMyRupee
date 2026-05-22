@@ -376,7 +376,15 @@
                 {% regroup transactions by date as tx_by_date %}
                 {% for group in tx_by_date %}
                 <div class="mb-3">
-                    <div class="text-body-secondary fw-semibold small mb-2 px-1">{{ group.grouper|date:"d M, Y"|translate_digits }}</div>
+                    {% with day_net=group.list|sum_net_unified_amounts %}
+                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                        <div class="text-body-secondary fw-semibold small">{{ group.grouper|date:"d M, Y"|translate_digits }}</div>
+                        <div class="fw-bold small">
+                            {% if day_net > 0 %}+{% elif day_net < 0 %}-{% endif %}
+                            {{ user.profile.currency }}{{ day_net|abs_val|compact_amount:user.profile.currency|translate_digits }}
+                        </div>
+                    </div>
+                    {% endwith %}
                     {% for tx in group.list %}
                     <div class="card expense-card shadow-sm border-0 mb-2">
                         <div class="card-body p-3">
