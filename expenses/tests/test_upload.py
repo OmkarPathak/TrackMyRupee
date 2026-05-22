@@ -5,10 +5,11 @@ from unittest.mock import patch
 
 import openpyxl
 from django.contrib.auth.models import User
+from django.test import override_settings
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from expenses.models import Expense
+from expenses.models import Account, Expense, JournalEntry
 
 
 class UploadViewTest(TestCase):
@@ -18,6 +19,13 @@ class UploadViewTest(TestCase):
         self.client.login(username='testuser', password='password')
         self.user.profile.has_seen_tutorial = True
         self.user.profile.save()
+        self.account = Account.objects.create(
+            user=self.user,
+            name='Primary Account',
+            account_type='BANK',
+            balance=10000,
+            currency='₹',
+        )
 
     def create_excel_file(self, data):
         wb = openpyxl.Workbook()
@@ -52,6 +60,7 @@ class UploadViewTest(TestCase):
         excel_file.name = 'test.xlsx'
         
         response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
             'currency': '₹',
             'file': excel_file
         })
@@ -61,6 +70,7 @@ class UploadViewTest(TestCase):
         results = response.context['results']
         self.assertEqual(results['created_count'], 2, f"Results: {results}")
         self.assertEqual(Expense.objects.count(), 2)
+        self.assertTrue(all(e.account_id == self.account.id for e in Expense.objects.all()))
         # Category prioritization check (none in file, should use AI)
         self.assertEqual(Expense.objects.first().category, 'Food')
 
@@ -77,6 +87,7 @@ class UploadViewTest(TestCase):
         csv_file.name = 'test.csv'
         
         response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
             'currency': '$',
             'file': csv_file
         })
@@ -85,9 +96,50 @@ class UploadViewTest(TestCase):
         self.assertIn('results', response.context)
         results = response.context['results']
         self.assertEqual(results['created_count'], 2, f"Results: {results}")
-        self.assertEqual(Expense.objects.filter(currency='$').count(), 2)
+        self.assertEqual(Expense.objects.filter(currency='$', account=self.account).count(), 2)
         self.assertEqual(Expense.objects.get(description='Uber Ride').category, 'Transport')
         self.assertEqual(Expense.objects.get(description='Uber Ride').date, date(2026, 12, 15))
+
+    @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=True)
+    @patch('expenses.views.predict_category_ai')
+    def test_upload_posts_ledger_when_account_present(self, mock_ai):
+        mock_ai.return_value = 'Food'
+        data = [
+            ['Date', 'Amount', 'Description'],
+            ['2025-01-01', 500, 'Ledger-linked import'],
+        ]
+        csv_file = self.create_csv_file(data)
+        csv_file.name = 'test.csv'
+
+        response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
+            'currency': '₹',
+            'file': csv_file,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        expense = Expense.objects.get(description='Ledger-linked import')
+        self.assertEqual(expense.account_id, self.account.id)
+        self.assertEqual(JournalEntry.objects.filter(source_type='EXPENSE', source_id=expense.id).count(), 1)
+
+    def test_upload_defaults_to_first_account_when_not_provided(self):
+        data = [
+            ['Date', 'Amount', 'Description'],
+            ['2025-01-01', 500, 'Rent'],
+        ]
+        csv_file = self.create_csv_file(data)
+        csv_file.name = 'test.csv'
+
+        response = self.client.post(reverse('upload'), {'currency': '₹', 'file': csv_file})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Expense.objects.count(), 1)
+        self.assertEqual(Expense.objects.first().account_id, self.account.id)
+
+    def test_upload_shows_guidance_when_no_accounts_exist(self):
+        self.account.delete()
+        response = self.client.get(reverse('upload'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Create Account')
 
     def test_upload_deduplication(self):
         data = [
@@ -98,12 +150,12 @@ class UploadViewTest(TestCase):
         csv_file.name = 'test.csv'
         
         # First upload
-        self.client.post(reverse('upload'), {'currency': '₹', 'file': csv_file})
+        self.client.post(reverse('upload'), {'account': self.account.id, 'currency': '₹', 'file': csv_file})
         self.assertEqual(Expense.objects.count(), 1)
         
         # Second upload (same file)
         csv_file.seek(0)
-        response = self.client.post(reverse('upload'), {'currency': '₹', 'file': csv_file})
+        response = self.client.post(reverse('upload'), {'account': self.account.id, 'currency': '₹', 'file': csv_file})
         
         self.assertIn('results', response.context)
         results = response.context['results']
@@ -123,6 +175,7 @@ class UploadViewTest(TestCase):
         csv_file.name = 'test.csv'
         
         response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
             'currency': '₹',
             'file': csv_file
         })
@@ -145,6 +198,7 @@ class UploadViewTest(TestCase):
         csv_file.name = 'test.csv'
         
         response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
             'currency': '₹',
             'file': csv_file
         })
@@ -167,6 +221,7 @@ class UploadViewTest(TestCase):
         excel_file.name = 'test.xlsx'
         
         response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
             'currency': '₹',
             'file': excel_file
         })
@@ -184,6 +239,7 @@ class UploadViewTest(TestCase):
         csv_file.name = 'test.csv'
         
         self.client.post(reverse('upload'), {
+            'account': self.account.id,
             'currency': '₹',
             'file': csv_file
         })
@@ -201,6 +257,7 @@ class UploadViewTest(TestCase):
         csv_file.name = 'expenses_today.csv'
         
         response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
             'currency': '₹',
             'file': csv_file
         })

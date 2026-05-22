@@ -12,7 +12,7 @@ from django.shortcuts import redirect
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
-from ..models import Expense, Income, RecurringTransaction, SavingsGoal, Transfer
+from ..models import Expense, Income, LoanRepayment, RecurringTransaction, SavingsGoal, Transfer
 
 
 class DataExportView(LoginRequiredMixin, TemplateView):
@@ -39,30 +39,125 @@ class DataExportView(LoginRequiredMixin, TemplateView):
         if 'expenses' in selected_entities:
             output = io.StringIO()
             writer = csv.writer(output)
-            writer.writerow([_('Date'), _('Description'), _('Amount'), _('Category'), _('Account'), _('Type')])
-            for e in Expense.objects.filter(user=request.user).order_by('-date'):
-                writer.writerow([e.date, e.description, e.amount, e.category, e.account.name if e.account else '', _('Expense')])
+            writer.writerow([
+                _('Date'),
+                _('Description'),
+                _('Amount'),
+                _('Currency'),
+                _('Exchange Rate'),
+                _('Base Amount'),
+                _('Category'),
+                _('Payment Method'),
+                _('Account'),
+                _('Account Currency'),
+                _('Type'),
+            ])
+            for e in Expense.objects.select_related('account').filter(user=request.user).order_by('-date'):
+                writer.writerow([
+                    e.date,
+                    e.description,
+                    e.amount,
+                    e.currency,
+                    e.exchange_rate,
+                    e.base_amount,
+                    e.category,
+                    e.payment_method,
+                    e.account.name if e.account else '',
+                    e.account.currency if e.account else '',
+                    _('Expense'),
+                ])
             files_to_zip['expenses.csv'] = output.getvalue()
 
         # 2. Incomes
         if 'incomes' in selected_entities:
             output = io.StringIO()
             writer = csv.writer(output)
-            writer.writerow([_('Date'), _('Source'), _('Amount'), _('Description'), _('Account')])
-            for i in Income.objects.filter(user=request.user).order_by('-date'):
-                writer.writerow([i.date, i.source, i.amount, i.description, i.account.name if i.account else ''])
+            writer.writerow([
+                _('Date'),
+                _('Source'),
+                _('Amount'),
+                _('Currency'),
+                _('Exchange Rate'),
+                _('Base Amount'),
+                _('Description'),
+                _('Account'),
+                _('Account Currency'),
+            ])
+            for i in Income.objects.select_related('account').filter(user=request.user).order_by('-date'):
+                writer.writerow([
+                    i.date,
+                    i.source,
+                    i.amount,
+                    i.currency,
+                    i.exchange_rate,
+                    i.base_amount,
+                    i.description,
+                    i.account.name if i.account else '',
+                    i.account.currency if i.account else '',
+                ])
             files_to_zip['incomes.csv'] = output.getvalue()
 
         # 3. Transfers
         if 'transfers' in selected_entities:
             output = io.StringIO()
             writer = csv.writer(output)
-            writer.writerow([_('Date'), _('From Account'), _('To Account'), _('Amount'), _('Description')])
-            for t in Transfer.objects.filter(user=request.user).order_by('-date'):
-                writer.writerow([t.date, t.from_account.name, t.to_account.name, t.amount, t.description])
+            writer.writerow([
+                _('Date'),
+                _('From Account'),
+                _('From Account Currency'),
+                _('To Account'),
+                _('To Account Currency'),
+                _('Amount'),
+                _('Exchange Rate'),
+                _('Converted Amount'),
+                _('Description'),
+            ])
+            for t in Transfer.objects.select_related('from_account', 'to_account').filter(user=request.user).order_by('-date'):
+                writer.writerow([
+                    t.date,
+                    t.from_account.name,
+                    t.from_account.currency,
+                    t.to_account.name,
+                    t.to_account.currency,
+                    t.amount,
+                    t.exchange_rate,
+                    t.converted_amount,
+                    t.description,
+                ])
             files_to_zip['transfers.csv'] = output.getvalue()
 
-        # 4. Recurring Transactions
+        # 4. Loan Repayments
+        if 'loan_repayments' in selected_entities:
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow([
+                _('Date'),
+                _('Loan'),
+                _('Total Amount'),
+                _('Loan Currency'),
+                _('Exchange Rate'),
+                _('Base Amount'),
+                _('Principal Portion'),
+                _('Interest Portion'),
+                _('Paid From Account'),
+                _('Account Currency'),
+            ])
+            for r in LoanRepayment.objects.select_related('loan', 'from_account').filter(loan__user=request.user).order_by('-date'):
+                writer.writerow([
+                    r.date,
+                    r.loan.name,
+                    r.amount,
+                    r.loan.currency,
+                    r.exchange_rate,
+                    r.base_amount,
+                    r.principal_portion,
+                    r.interest_portion,
+                    r.from_account.name if r.from_account else '',
+                    r.from_account.currency if r.from_account else '',
+                ])
+            files_to_zip['loan_repayments.csv'] = output.getvalue()
+
+        # 5. Recurring Transactions
         if 'recurring' in selected_entities:
             output = io.StringIO()
             writer = csv.writer(output)
@@ -71,7 +166,7 @@ class DataExportView(LoginRequiredMixin, TemplateView):
                 writer.writerow([r.description, r.amount, r.transaction_type, r.frequency, r.next_due_date, r.is_active])
             files_to_zip['recurring_transactions.csv'] = output.getvalue()
 
-        # 5. Savings Goals
+        # 6. Savings Goals
         if 'goals' in selected_entities:
             output = io.StringIO()
             writer = csv.writer(output)
@@ -139,9 +234,31 @@ def export_expenses(request):
     response['Content-Disposition'] = f'attachment; filename="expenses_filtered_{timestamp}.csv"'
     
     writer = csv.writer(response)
-    writer.writerow([_('Date'), _('Description'), _('Amount'), _('Category'), _('Account')])
+    writer.writerow([
+        _('Date'),
+        _('Description'),
+        _('Amount'),
+        _('Currency'),
+        _('Exchange Rate'),
+        _('Base Amount'),
+        _('Category'),
+        _('Payment Method'),
+        _('Account'),
+        _('Account Currency'),
+    ])
     
-    for e in queryset.order_by('-date'):
-        writer.writerow([e.date, e.description, e.amount, e.category, e.account.name if e.account else ''])
+    for e in queryset.select_related('account').order_by('-date'):
+        writer.writerow([
+            e.date,
+            e.description,
+            e.amount,
+            e.currency,
+            e.exchange_rate,
+            e.base_amount,
+            e.category,
+            e.payment_method,
+            e.account.name if e.account else '',
+            e.account.currency if e.account else '',
+        ])
     
     return response

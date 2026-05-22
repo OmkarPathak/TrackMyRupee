@@ -21,6 +21,7 @@ from django.views.generic import TemplateView, View
 
 from ..forms import ContactForm
 from ..models import (
+    Account,
     CURRENCY_CHOICES,
     Expense,
     Income,
@@ -207,9 +208,38 @@ def upload_view(request):
     """
     results = None
     
+    accounts_qs = Account.objects.filter(user=request.user, is_active=True).order_by('name')
+
     if request.method == 'POST' and request.FILES.get('file'):
         uploaded_file = request.FILES['file']
         selected_currency = request.POST.get('currency', request.user.profile.currency)
+        selected_account_id = request.POST.get('account')
+
+        selected_account = None
+        if not selected_account_id and accounts_qs.exists():
+            selected_account_id = str(accounts_qs.first().id)
+
+        if not selected_account_id:
+            messages.error(request, _("Please create an account before importing expenses."))
+            return render(request, 'upload.html', {
+                'results': None,
+                'currencies': CURRENCY_CHOICES,
+                'default_currency': request.user.profile.currency,
+                'accounts': accounts_qs,
+                'selected_account_id': None,
+            })
+
+        try:
+            selected_account = accounts_qs.get(pk=selected_account_id)
+        except Account.DoesNotExist:
+            messages.error(request, _("Selected account is invalid. Please choose one of your active accounts."))
+            return render(request, 'upload.html', {
+                'results': None,
+                'currencies': CURRENCY_CHOICES,
+                'default_currency': request.user.profile.currency,
+                'accounts': accounts_qs,
+                'selected_account_id': None,
+            })
         
         from . import predict_category_ai
 
@@ -418,7 +448,8 @@ def upload_view(request):
                                     amount=amount,
                                     description=desc,
                                     category=category_name,
-                                    currency=selected_currency
+                                    currency=selected_currency,
+                                    account=selected_account,
                                 )
                                 summary['created_count'] += 1
                                 summary['total_amount'] += float(amount)
@@ -447,7 +478,9 @@ def upload_view(request):
     return render(request, 'upload.html', {
         'results': results,
         'currencies': CURRENCY_CHOICES,
-        'default_currency': request.user.profile.currency
+        'default_currency': request.user.profile.currency,
+        'accounts': accounts_qs,
+        'selected_account_id': request.POST.get('account') if request.method == 'POST' else None,
     })
 
 

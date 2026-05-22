@@ -14,8 +14,7 @@
         </p>
 
         <div class="alert alert-info border-0 shadow-sm mb-4">
-            <h6 class="alert-heading fw-bold">
-                <i class="bi bi-info-circle me-2"></i>{% trans "Flexible Matching" %}</h6>
+            <h6 class="alert-heading fw-bold">{% trans "Flexible Matching" %}</h6>
             <p class="mb-2 small">
                 {% blocktrans %}
                 Our parser automatically detects columns for <b>Date</b>, <b>Amount</b>, <b>Description</b>, and <b>Category</b>.
@@ -100,11 +99,37 @@
         {% endif %}
 
 
+        {% if not accounts %}
+        <div class="alert alert-warning border-0 shadow-sm mb-4">
+            <h6 class="alert-heading fw-bold mb-2">
+                <i class="bi bi-bank me-2"></i>{% trans "Create an account first" %}
+            </h6>
+            <p class="mb-3 small">{% trans "You need at least one TrackMyRupee account to upload expenses. Imported entries are linked to an account for balance tracking and ledger posting." %}</p>
+            <a href="{% url 'account-create' %}" class="btn btn-sm btn-primary">{% trans "Create Account" %}</a>
+        </div>
+        {% endif %}
+
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
+                <label for="account" class="form-label">{% trans "Account" %}</label>
+                <select name="account" id="account" class="form-select shadow-sm" required {% if not accounts %}disabled{% endif %}>
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}" {% if selected_account_id|stringformat:"s" == account.id|stringformat:"s" or not selected_account_id and forloop.first %}selected{% endif %}>
+                            {{ account.name }} ({{ account.currency }})
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if not accounts %}
+                <div class="form-text text-danger">{% trans "No active accounts found for your profile." %}</div>
+                {% else %}
+                <div class="form-text">{% trans "Only your TrackMyRupee accounts are shown. Imported expenses will be linked to this account." %}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
                 <label for="currency" class="form-label">{% trans "Currency" %}</label>
-                <select name="currency" id="currency" class="form-select shadow-sm" required>
+                <select name="currency" id="currency" class="form-select shadow-sm" required {% if not accounts %}disabled{% endif %}>
                     {% for code, name in currencies %}
                         <option value="{{ code }}" {% if code == default_currency %}selected{% endif %}>{{ name }}</option>
                     {% endfor %}
@@ -115,10 +140,10 @@
             <div class="mb-4">
                 <label for="formFile" class="form-label">{% trans "Excel or CSV File (.xlsx, .xls, .csv)" %}</label>
                 <input class="form-control" type="file" id="formFile" name="file"
-                    accept=".xlsx, .xls, .csv" required>
+                    accept=".xlsx, .xls, .csv" required {% if not accounts %}disabled{% endif %}>
             </div>
 
-            <button type="submit" class="btn btn-primary px-4">
+            <button type="submit" class="btn btn-primary px-4" {% if not accounts %}disabled{% endif %}>
                 <i class="bi bi-cloud-arrow-up me-2"></i>{% trans "Upload & Process" %}
             </button>
         </form>

@@ -1,10 +1,13 @@
 from datetime import date
+from decimal import Decimal
+import io
+import zipfile
 
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from expenses.models import Category, Expense, Notification, RecurringTransaction
+from expenses.models import Account, Category, Expense, Loan, LoanRepayment, Notification, RecurringTransaction
 
 
 class BaseFeatureTest(TestCase):
@@ -70,6 +73,63 @@ class FeatureViewTest(BaseFeatureTest):
         content = response.content.decode('utf-8')
         self.assertIn('Food', content)
         self.assertIn('100', content)
+        self.assertIn('Currency', content)
+        self.assertIn('Base Amount', content)
+
+    def test_export_data_includes_loan_repayments(self):
+        self.user.profile.tier = 'PLUS'
+        self.user.profile.is_lifetime = True
+        self.user.profile.save()
+
+        account = Account.objects.create(
+            user=self.user,
+            name='Loan Pay Account',
+            account_type='BANK',
+            balance=Decimal('50000.00'),
+            currency='₹',
+        )
+        loan = Loan.objects.create(
+            user=self.user,
+            name='Home Loan',
+            loan_type='HOME',
+            initial_principal=Decimal('2000000.00'),
+            duration_months=240,
+            start_date=date.today(),
+            currency='₹',
+        )
+        LoanRepayment.objects.create(
+            loan=loan,
+            from_account=account,
+            amount=Decimal('25000.00'),
+            principal_portion=Decimal('20000.00'),
+            interest_portion=Decimal('5000.00'),
+            date=date.today(),
+        )
+
+        response = self.client.post(reverse('export-data'), {'entities': ['loan_repayments']})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/csv')
+        content = response.content.decode('utf-8')
+        self.assertIn('Loan', content)
+        self.assertIn('Home Loan', content)
+        self.assertIn('Principal Portion', content)
+
+    def test_export_data_zip_contains_loan_repayments_csv(self):
+        self.user.profile.tier = 'PLUS'
+        self.user.profile.is_lifetime = True
+        self.user.profile.save()
+
+        Category.objects.get_or_create(user=self.user, name='Food')
+        Expense.objects.create(user=self.user, date=date.today(), amount=100, category='Food', description='Zip Test', currency='₹')
+
+        response = self.client.post(reverse('export-data'), {'entities': ['expenses', 'loan_repayments']})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/x-zip-compressed')
+
+        with zipfile.ZipFile(io.BytesIO(response.content), 'r') as zip_file:
+            names = set(zip_file.namelist())
+            self.assertIn('expenses.csv', names)
+            self.assertIn('loan_repayments.csv', names)
 
 class RecurringCRUDTest(BaseFeatureTest):
     def test_create_recurring(self):
