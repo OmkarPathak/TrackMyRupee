@@ -322,7 +322,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <!-- Simple Delete Confirmation Modal Script reused from global or base if available, 
      otherwise we rely on the generic confirmDelete logic or link to the delete page.
@@ -334,7 +333,9 @@
      to be consistent with the standalone delete page I just made.
 -->
 
-<!-- Limit Reached Modal -->
+{% endblock %}
+
+{% block modals %}
 <div class="modal fade" id="limitReachedModal" tabindex="-1" aria-labelledby="limitReachedModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
@@ -344,7 +345,7 @@
                         <i class="bi bi-shield-lock-fill fs-1"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-3">{% trans "Subscription Limit Reached" %}</h3>
+                <h3 class="fw-bold mb-3" id="limitReachedModalLabel">{% trans "Subscription Limit Reached" %}</h3>
                 <p class="text-muted mb-4">
                     {% blocktrans with limit=current_limit|floatformat:0 %}
                     You have reached the free limit of <strong>{{ limit }}</strong> subscriptions for your current plan. Upgrade to unlock more slots and keep your finances on track.
@@ -362,5 +363,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
