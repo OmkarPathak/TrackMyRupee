@@ -1000,6 +1000,29 @@ class DashboardMoMChangeTest(_BaseTestCase):
         # Last month savings: 8000-5000=3000, This month: 10000-4000=6000
         self.assertAlmostEqual(float(pmd["income_diff_amount"]), 2000.0, places=2)
 
+    def test_salary_cycle_mode_uses_previous_cycle_for_comparison(self):
+        self.user.profile.salary_date = 15
+        self.user.profile.save()
+
+        Income.objects.filter(user=self.user).delete()
+        Expense.objects.filter(user=self.user).delete()
+
+        # Current salary cycle for May selection: May 15 - Jun 14
+        Income.objects.create(user=self.user, date=date(2026, 6, 1), amount=Decimal("10000"), source="Salary", currency="₹")
+        Expense.objects.create(user=self.user, date=date(2026, 6, 2), amount=Decimal("4000"), description="Rent", category="Rent", currency="₹")
+
+        # Previous salary cycle: Apr 15 - May 14 (note: falls in May, not April)
+        Income.objects.create(user=self.user, date=date(2026, 5, 1), amount=Decimal("8000"), source="Salary", currency="₹")
+        Expense.objects.create(user=self.user, date=date(2026, 5, 2), amount=Decimal("5000"), description="Rent", category="Rent", currency="₹")
+
+        response = self.client.get(reverse("home"), {"year": "2026", "month": "5"})
+        pmd = response.context["prev_month_data"]
+
+        self.assertEqual(float(response.context["total_income"]), 10000.0)
+        self.assertAlmostEqual(float(pmd["income"]), 8000.0, places=2)
+        self.assertAlmostEqual(pmd["income_pct"], 25.0, places=1)
+        self.assertAlmostEqual(pmd["expense_pct"], -20.0, places=1)
+
 
 # ===========================================================================
 # 6. COMBINED SCENARIO TESTS (End-to-End-like)

@@ -1511,7 +1511,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% trans "Burn rate" %}
                         {% if salary_breakdown.spending_pace.burn_diff_pct is not None %}
                             <span class="{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}text-danger{% else %}text-success{% endif %} fw-bold">{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ salary_breakdown.spending_pace.burn_diff_pct_abs|floatformat:0|translate_digits }}%</span>
-                            {% trans "vs last month" %}
+                            {{ comparison_label }}
                         {% endif %}
                     </div>
                 </div>
@@ -1731,7 +1731,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="metric-mini-value mb-2">{{ currency_symbol }}{{ total_income|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
                         {% if prev_month_data.income_pct %}
                         <div class="metric-mini-text {% if prev_month_data.income_pct > 0 %}text-success{% elif prev_month_data.income_pct < 0 %}text-danger{% else %}text-muted{% endif %}">
-                            {% if prev_month_data.income_pct > 0 %}↑{% elif prev_month_data.income_pct < 0 %}↓{% endif %} {{ prev_month_data.income_pct_abs|floatformat:0|translate_digits }}% {% trans "vs last month" %}
+                            {% if prev_month_data.income_pct > 0 %}↑{% elif prev_month_data.income_pct < 0 %}↓{% endif %} {{ prev_month_data.income_pct_abs|floatformat:0|translate_digits }}% {{ comparison_label }}
                         </div>
                         {% endif %}
                     </a>
@@ -1743,7 +1743,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="metric-mini-value mb-2">{{ currency_symbol }}{{ hero_metrics.spent|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
                         {% if prev_month_data.expense_pct %}
                         <div class="metric-mini-text {% if prev_month_data.expense_pct < 0 %}text-success{% elif prev_month_data.expense_pct > 0 %}text-danger{% else %}text-muted{% endif %}">
-                            {% if prev_month_data.expense_pct > 0 %}↑{% elif prev_month_data.expense_pct < 0 %}↓{% endif %} {{ prev_month_data.expense_pct_abs|floatformat:0|translate_digits }}% {% trans "vs last month" %}
+                            {% if prev_month_data.expense_pct > 0 %}↑{% elif prev_month_data.expense_pct < 0 %}↓{% endif %} {{ prev_month_data.expense_pct_abs|floatformat:0|translate_digits }}% {{ comparison_label }}
                         </div>
                         {% endif %}
                     </a>

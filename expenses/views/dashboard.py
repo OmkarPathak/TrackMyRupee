@@ -449,36 +449,70 @@ def home_view(request):
     
     # Calculate MoM Changes ONLY if exactly one year and one month are selected
     prev_month_data = None
+    comparison_label = _("vs last month")
+    prev_year = None
+    prev_month = None
     if len(selected_years) == 1 and len(selected_months) == 1:
         try:
             sel_year = int(selected_years[0])
             sel_month = int(selected_months[0])
-            
-            # Calculate previous month and year
-            if sel_month == 1:
-                prev_month = 12
-                prev_year = sel_year - 1
+
+            if salary_cycle_active and salary_cycle_start and salary_cycle_end:
+                comparison_label = _("vs previous cycle")
+                prev_cycle_end = salary_cycle_start - timedelta(days=1)
+                prev_cycle_start, prev_cycle_end = SalaryAnalysisService.get_salary_cycle_dates(request.user, prev_cycle_end)
+
+                prev_expenses_all = Expense.objects.filter(
+                    user=request.user,
+                    date__gte=prev_cycle_start,
+                    date__lte=prev_cycle_end,
+                )
+                prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+                prev_investments = sum_transfers_base(Transfer.objects.filter(
+                    user=request.user,
+                    to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'],
+                    date__gte=prev_cycle_start,
+                    date__lte=prev_cycle_end,
+                ))
+                prev_income = Income.objects.filter(
+                    user=request.user,
+                    date__gte=prev_cycle_start,
+                    date__lte=prev_cycle_end,
+                ).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+                prev_loan_stats = LoanRepayment.objects.filter(
+                    loan__user=request.user,
+                    date__gte=prev_cycle_start,
+                    date__lte=prev_cycle_end,
+                ).aggregate(
+                    total_interest=Sum(F('interest_portion') * F('exchange_rate')),
+                    total_emi=Sum('base_amount')
+                )
             else:
-                prev_month = sel_month - 1
-                prev_year = sel_year
+                # Calculate previous month and year
+                if sel_month == 1:
+                    prev_month = 12
+                    prev_year = sel_year - 1
+                else:
+                    prev_month = sel_month - 1
+                    prev_year = sel_year
 
-            # Current year-month stats
-            prev_expenses_all = Expense.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month)
-            prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-            prev_investments = sum_transfers_base(Transfer.objects.filter(
-                user=request.user, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'],
-                date__year=prev_year, date__month=prev_month
-            ))
+                prev_expenses_all = Expense.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month)
+                prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+                prev_investments = sum_transfers_base(Transfer.objects.filter(
+                    user=request.user, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'],
+                    date__year=prev_year, date__month=prev_month
+                ))
 
-            prev_income = Income.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-            prev_loan_stats = LoanRepayment.objects.filter(
-                loan__user=request.user,
-                date__year=prev_year,
-                date__month=prev_month,
-            ).aggregate(
-                total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-                total_emi=Sum('base_amount')
-            )
+                prev_income = Income.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+                prev_loan_stats = LoanRepayment.objects.filter(
+                    loan__user=request.user,
+                    date__year=prev_year,
+                    date__month=prev_month,
+                ).aggregate(
+                    total_interest=Sum(F('interest_portion') * F('exchange_rate')),
+                    total_emi=Sum('base_amount')
+                )
+
             prev_loan_interest = prev_loan_stats['total_interest'] or 0
             prev_loan_emi = prev_loan_stats['total_emi'] or 0
             prev_loan_principal = prev_loan_emi - prev_loan_interest
@@ -493,9 +527,18 @@ def home_view(request):
             # TREND DATA FOR PREVIOUS MONTH
             prev_trend_qs = prev_expenses_all.annotate(period=TruncDay('date'))
             prev_day_data = prev_trend_qs.values('period').annotate(total=Sum('base_amount')).order_by('period')
-            prev_day_map = {item['period'].day: float(item['total']) for item in prev_day_data}
-            
-            prev_num_days = calendar.monthrange(prev_year, prev_month)[1]
+            if salary_cycle_active and salary_cycle_start and salary_cycle_end:
+                prev_day_map = {
+                    ((item['period'].date() if hasattr(item['period'], 'date') else item['period']) - prev_cycle_start).days + 1: float(item['total'])
+                    for item in prev_day_data
+                }
+                prev_num_days = (prev_cycle_end - prev_cycle_start).days + 1
+                daily_map_key = 'cycle_day'
+            else:
+                prev_day_map = {item['period'].day: float(item['total']) for item in prev_day_data}
+                prev_num_days = calendar.monthrange(prev_year, prev_month)[1]
+                daily_map_key = 'month_day'
+
             prev_daily_burn = float(prev_expenses_total) / prev_num_days if prev_num_days > 0 else 0
 
             prev_month_data = {
@@ -513,6 +556,7 @@ def home_view(request):
                 'investments_diff_amount': total_investments - prev_investments,
                 'daily_burn': prev_daily_burn,
                 'daily_map': prev_day_map,
+                'daily_map_key': daily_map_key,
             }
             # Add absolute versions for percentages for template display
             for key in list(prev_month_data.keys()):
@@ -526,8 +570,14 @@ def home_view(request):
     prev_trend_data = []
     if trend_is_daily and prev_month_data and 'daily_map' in prev_month_data:
         daily_map = prev_month_data['daily_map']
-        for p in periods:
-            prev_trend_data.append(daily_map.get(p.day, 0.0))
+        if prev_month_data.get('daily_map_key') == 'cycle_day' and salary_cycle_active and salary_cycle_start:
+            for p in periods:
+                period_date = p.date() if hasattr(p, 'date') else p
+                day_idx = (period_date - salary_cycle_start).days + 1
+                prev_trend_data.append(daily_map.get(day_idx, 0.0))
+        else:
+            for p in periods:
+                prev_trend_data.append(daily_map.get(p.day, 0.0))
     top_category = category_data[0]['category'] if category_data else None
     
 
@@ -1300,7 +1350,7 @@ def home_view(request):
             })
             
     # 3. Category MoM Spikes & Drops (Mixed)
-    if prev_month_data and len(selected_years) == 1 and len(selected_months) == 1:
+    if prev_month_data and len(selected_years) == 1 and len(selected_months) == 1 and not salary_cycle_active:
         prev_cat_data = Expense.objects.filter(
             user=request.user, 
             date__year=prev_year, 
@@ -1790,6 +1840,7 @@ def home_view(request):
         'salary_cycle_active': salary_cycle_active,
         'salary_cycle_start': salary_cycle_start,
         'salary_cycle_end': salary_cycle_end,
+        'comparison_label': comparison_label,
         'months_list': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'recurring_groups': recurring_groups,
         'recurring_net_balance': recurring_net_balance,
