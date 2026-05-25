@@ -1784,6 +1784,9 @@ def home_view(request):
         'selected_year': display_year,    # NEW: For template display labels
         'selected_month': display_month,  # NEW: For template display labels
         'selected_categories': selected_categories,
+        'salary_cycle_active': salary_cycle_active,
+        'salary_cycle_start': salary_cycle_start,
+        'salary_cycle_end': salary_cycle_end,
         'months_list': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'recurring_groups': recurring_groups,
         'recurring_net_balance': recurring_net_balance,
