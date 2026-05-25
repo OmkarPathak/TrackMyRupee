@@ -877,6 +877,8 @@ def home_view(request):
         budget_diff = round(ideal_spent_so_far - float(total_expenses), 0)  # positive = under budget
         spent_percent = round(float(total_expenses) / total_monthly_budget * 100, 1) if total_monthly_budget > 0 else 0
         ideal_percent = round(days_elapsed / num_days * 100, 1) if num_days > 0 else 0
+        projected_month_spend = round(daily_burn * num_days, 0)
+        projected_budget_diff = round(total_monthly_budget - projected_month_spend, 0) if total_monthly_budget > 0 else 0
 
         # Daily burn comparison with last month
         burn_diff_pct = None
@@ -885,11 +887,12 @@ def home_view(request):
 
         spending_pace = {
             'daily_spending_pace': round(daily_burn, 0),
-            'projected_month_spend': round(daily_burn * num_days, 0),
+            'projected_month_spend': projected_month_spend,
             'status': 'on_track',
-            'diff_amount': max(0, round((daily_burn * num_days) - total_monthly_budget, 0)),
-            'budget_multiplier': round((daily_burn * num_days) / total_monthly_budget, 1) if total_monthly_budget > 0 else 0,
+            'diff_amount': max(0, round(projected_month_spend - total_monthly_budget, 0)),
+            'budget_multiplier': round(projected_month_spend / total_monthly_budget, 1) if total_monthly_budget > 0 else 0,
             'budget_diff': budget_diff,
+            'projected_budget_diff': projected_budget_diff,
             'spent_percent': min(spent_percent, 150),  # cap at 150% for display
             'ideal_percent': ideal_percent,
             'days_elapsed': days_elapsed,

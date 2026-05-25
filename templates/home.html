@@ -1536,11 +1536,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     <div class="metric-mini-card">
-                        {% if salary_breakdown.spending_pace.budget_diff > 0 %}
-                            <div class="metric-mini-value mb-2 text-success">{{ currency_symbol }}{{ salary_breakdown.spending_pace.budget_diff|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
+                        {% if salary_breakdown.spending_pace.projected_budget_diff > 0 %}
+                            <div class="metric-mini-value mb-2 text-success">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_budget_diff|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
                             <div class="metric-mini-text text-success">{% trans "Projected under budget" %}</div>
-                        {% elif salary_breakdown.spending_pace.budget_diff < 0 %}
-                            <div class="metric-mini-value mb-2 text-danger">{{ currency_symbol }}{{ salary_breakdown.spending_pace.budget_diff|floatformat:0|cut:"-"|humanize_currency:currency_symbol|translate_digits }}</div>
+                        {% elif salary_breakdown.spending_pace.projected_budget_diff < 0 %}
+                            <div class="metric-mini-value mb-2 text-danger">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_budget_diff|floatformat:0|cut:"-"|humanize_currency:currency_symbol|translate_digits }}</div>
                             <div class="metric-mini-text text-danger">{% trans "Projected over budget" %}</div>
                         {% else %}
                             <div class="metric-mini-value mb-2 text-info">{{ currency_symbol }}0</div>
