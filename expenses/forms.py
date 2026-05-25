@@ -254,10 +254,18 @@ class RecurringTransactionForm(forms.ModelForm):
         return cleaned_data
 
 class ProfileUpdateForm(forms.ModelForm):
+    SALARY_DATE_CHOICES = [(i, str(i)) for i in range(1, 32)]
+    
     auth_email = forms.EmailField(required=True, label='Email Address')
     first_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     daily_reminder = forms.BooleanField(required=False, label=_('Daily Expense Reminder'), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    salary_date = forms.ChoiceField(
+        choices=SALARY_DATE_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_('Salary Date'),
+        required=True
+    )
 
     class Meta:
         model = User
@@ -267,6 +275,7 @@ class ProfileUpdateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['auth_email'].initial = self.instance.email
         self.fields['daily_reminder'].initial = self.instance.profile.daily_reminder
+        self.fields['salary_date'].initial = self.instance.profile.salary_date
         self.fields['auth_email'].widget.attrs.update({'class': 'form-control'})
 
         # Check if user has social account
@@ -295,6 +304,7 @@ class ProfileUpdateForm(forms.ModelForm):
             user.save()
             profile = user.profile
             profile.daily_reminder = self.cleaned_data['daily_reminder']
+            profile.salary_date = int(self.cleaned_data['salary_date'])
             profile.save()
         return user
 
@@ -304,6 +314,22 @@ class LanguageUpdateForm(forms.ModelForm):
         fields = ['language']
         widgets = {
             'language': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+class SalaryDateUpdateForm(forms.ModelForm):
+    SALARY_DATE_CHOICES = [(i, str(i)) for i in range(1, 32)]
+    salary_date = forms.ChoiceField(
+        choices=SALARY_DATE_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_('Salary Date'),
+        help_text=_('Day of month when you receive salary (1-31)')
+    )
+    
+    class Meta:
+        model = UserProfile
+        fields = ['salary_date']
+        widgets = {
+            'salary_date': forms.Select(attrs={'class': 'form-select'}),
         }
 
 class CustomSignupForm(UserCreationForm):

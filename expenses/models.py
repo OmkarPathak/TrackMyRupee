@@ -5,6 +5,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models, transaction
 from django.contrib.postgres.indexes import GinIndex
 from django.utils import timezone
@@ -980,6 +981,13 @@ class UserProfile(models.Model):
     last_drip_email_day = models.IntegerField(default=0)
     expiry_reminder_sent = models.BooleanField(default=False)
     daily_reminder = models.BooleanField(default=True, verbose_name=_('Daily Expense Reminder'))
+    
+    # Salary settings
+    salary_date = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        help_text=_('Day of month when salary is received (1-31). Default is 1st of every month.')
+    )
 
     @property
     def is_pro(self):

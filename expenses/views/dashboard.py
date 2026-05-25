@@ -29,7 +29,7 @@ from ..models import (
     Transfer,
     UserProfile,
 )
-from ..services import FinancialService, LoanService
+from ..services import FinancialService, LoanService, SalaryAnalysisService
 from ..templatetags.digit_filters import compact_amount
 from ..utils import (
     format_indian_number,
@@ -108,26 +108,45 @@ def home_view(request):
     selected_months = [m for m in selected_months if m]
     selected_categories = [c for c in selected_categories if c]
 
+    salary_cycle_active = False
+    salary_cycle_start = None
+    salary_cycle_end = None
+
+    # For single month/year views, align all dashboard cards to salary cycle.
+    if not (start_date or end_date):
+        has_filter_params = selected_years or selected_months or selected_categories
+        if not has_filter_params:
+            selected_years = [str(datetime.now().year)]
+            selected_months = [str(datetime.now().month)]
+
+        if len(selected_months) == 1 and len(selected_years) == 1:
+            try:
+                sel_month = int(selected_months[0])
+                sel_year = int(selected_years[0])
+                target_date = date(sel_year, sel_month, calendar.monthrange(sel_year, sel_month)[1])
+                salary_cycle_start, salary_cycle_end = SalaryAnalysisService.get_salary_cycle_dates(request.user, target_date)
+                salary_cycle_active = True
+            except (ValueError, IndexError):
+                salary_cycle_active = False
+
+    effective_start_date = None
+    effective_end_date = None
+
     # Date Range takes precedence
     if start_date or end_date:
-        if start_date:
-            expenses = expenses.filter(date__gte=start_date)
-        if end_date:
-            expenses = expenses.filter(date__lte=end_date)
+        effective_start_date = start_date
+        effective_end_date = end_date
         
         # Reset lists for UI clarity since we are in range mode
         selected_years = []
         selected_months = []
         
         trend_title = _("Expenses Trend (Custom Range)")
+    elif salary_cycle_active:
+        effective_start_date = salary_cycle_start
+        effective_end_date = salary_cycle_end
+        trend_title = _("Daily Expenses for Salary Cycle")
     else:
-        # Default to current month/year when no filter params are provided
-        # (ignore non-filter params like 'onboarded' from onboarding redirect)
-        has_filter_params = selected_years or selected_months or selected_categories
-        if not has_filter_params:
-            selected_years = [str(datetime.now().year)]
-            selected_months = [str(datetime.now().month)]
-        
         if selected_years:
             expenses = expenses.filter(date__year__in=selected_years)
         if selected_months:
@@ -138,42 +157,46 @@ def home_view(request):
         else:
             trend_title = _("Monthly Expenses Trend")
 
+    if effective_start_date:
+        expenses = expenses.filter(date__gte=effective_start_date)
+    if effective_end_date:
+        expenses = expenses.filter(date__lte=effective_end_date)
+
     if selected_categories:
         expenses = expenses.filter(category__in=selected_categories)
         
     # Income Logic (Mirroring Expense Filters)
     incomes = Income.objects.filter(user=request.user)
-    if start_date or end_date:
-        if start_date:
-            incomes = incomes.filter(date__gte=start_date)
-        if end_date:
-            incomes = incomes.filter(date__lte=end_date)
+    if effective_start_date or effective_end_date:
+        if effective_start_date:
+            incomes = incomes.filter(date__gte=effective_start_date)
+            investments = investments.filter(date__gte=effective_start_date)
+        if effective_end_date:
+            incomes = incomes.filter(date__lte=effective_end_date)
+            investments = investments.filter(date__lte=effective_end_date)
     else:
         if selected_years:
             incomes = incomes.filter(date__year__in=selected_years)
+            investments = investments.filter(date__year__in=selected_years)
         if selected_months:
             incomes = incomes.filter(date__month__in=selected_months)
             investments = investments.filter(date__month__in=selected_months)
-        if selected_years:
-            investments = investments.filter(date__year__in=selected_years)
-
-    if start_date or end_date:
-        if start_date:
-            investments = investments.filter(date__gte=start_date)
-        if end_date:
-            investments = investments.filter(date__lte=end_date)
     
     total_income = incomes.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
     total_investments = sum_transfers_base(investments)
     
     # Fetch loan repayments for the selected period (moved up to fix UnboundLocalError)
     loan_repayments_selected = LoanRepayment.objects.filter(loan__user=request.user)
-    if start_date or end_date:
-        if start_date: loan_repayments_selected = loan_repayments_selected.filter(date__gte=start_date)
-        if end_date: loan_repayments_selected = loan_repayments_selected.filter(date__lte=end_date)
+    if effective_start_date or effective_end_date:
+        if effective_start_date:
+            loan_repayments_selected = loan_repayments_selected.filter(date__gte=effective_start_date)
+        if effective_end_date:
+            loan_repayments_selected = loan_repayments_selected.filter(date__lte=effective_end_date)
     else:
-        if selected_years: loan_repayments_selected = loan_repayments_selected.filter(date__year__in=selected_years)
-        if selected_months: loan_repayments_selected = loan_repayments_selected.filter(date__month__in=selected_months)
+        if selected_years:
+            loan_repayments_selected = loan_repayments_selected.filter(date__year__in=selected_years)
+        if selected_months:
+            loan_repayments_selected = loan_repayments_selected.filter(date__month__in=selected_months)
     
     loan_stats = loan_repayments_selected.aggregate(
         total_interest=Sum(F('interest_portion') * F('exchange_rate')),
@@ -357,12 +380,16 @@ def home_view(request):
     
     # Include loan repayments in expense trend
     loan_repayments_filtered = LoanRepayment.objects.filter(loan__user=request.user)
-    if start_date or end_date:
-        if start_date: loan_repayments_filtered = loan_repayments_filtered.filter(date__gte=start_date)
-        if end_date: loan_repayments_filtered = loan_repayments_filtered.filter(date__lte=end_date)
+    if effective_start_date or effective_end_date:
+        if effective_start_date:
+            loan_repayments_filtered = loan_repayments_filtered.filter(date__gte=effective_start_date)
+        if effective_end_date:
+            loan_repayments_filtered = loan_repayments_filtered.filter(date__lte=effective_end_date)
     else:
-        if selected_years: loan_repayments_filtered = loan_repayments_filtered.filter(date__year__in=selected_years)
-        if selected_months: loan_repayments_filtered = loan_repayments_filtered.filter(date__month__in=selected_months)
+        if selected_years:
+            loan_repayments_filtered = loan_repayments_filtered.filter(date__year__in=selected_years)
+        if selected_months:
+            loan_repayments_filtered = loan_repayments_filtered.filter(date__month__in=selected_months)
 
     loan_trend = loan_repayments_filtered.annotate(period=trunc_func('date')).values('period').annotate(
         total_interest=Sum(F('interest_portion') * F('exchange_rate')),
@@ -506,11 +533,11 @@ def home_view(request):
 
     # 4a. Internal Transfers (excluded from income/expense, just movement)
     transfers_qs = Transfer.objects.filter(user=request.user)
-    if start_date or end_date:
-        if start_date:
-            transfers_qs = transfers_qs.filter(date__gte=start_date)
-        if end_date:
-            transfers_qs = transfers_qs.filter(date__lte=end_date)
+    if effective_start_date or effective_end_date:
+        if effective_start_date:
+            transfers_qs = transfers_qs.filter(date__gte=effective_start_date)
+        if effective_end_date:
+            transfers_qs = transfers_qs.filter(date__lte=effective_end_date)
     else:
         if selected_years:
             transfers_qs = transfers_qs.filter(date__year__in=selected_years)
@@ -740,6 +767,7 @@ def home_view(request):
         
     # --- "Where Did My Salary Go?" Data ---
     salary_breakdown = None
+    
     if total_expenses > 0:
         # 1. Top 5 Categories
         top_5_categories = category_data[:5]

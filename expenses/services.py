@@ -367,3 +367,149 @@ class LoanService:
             'normal_interest': round(normal_interest, 2),
         }
 
+
+class SalaryAnalysisService:
+    """Service for calculating financial metrics based on salary cycles."""
+    
+    @staticmethod
+    def get_salary_cycle_dates(user, target_date):
+        """
+        Get the start and end dates of a salary cycle containing the target_date.
+        
+        Args:
+            user: User instance
+            target_date: The date to find the salary cycle for (date object)
+            
+        Returns:
+            Tuple of (cycle_start_date, cycle_end_date)
+            
+        Example:
+            If salary_date=15 and target_date=2026-05-25, returns (2026-05-15, 2026-06-14)
+        """
+        user_profile = user.profile
+        salary_date = user_profile.salary_date
+        
+        # Handle day 31 in months with fewer days
+        def get_safe_date(year, month, day):
+            """Get the last day of month if day exceeds month length."""
+            last_day = calendar.monthrange(year, month)[1]
+            return date(year, month, min(day, last_day))
+        
+        # Determine which month's salary cycle contains target_date
+        if target_date.day >= salary_date:
+            # Salary cycle starts in current month
+            cycle_start = get_safe_date(target_date.year, target_date.month, salary_date)
+            
+            # Next cycle starts next month
+            if target_date.month == 12:
+                cycle_end = get_safe_date(target_date.year + 1, 1, salary_date) - timedelta(days=1)
+            else:
+                cycle_end = get_safe_date(target_date.year, target_date.month + 1, salary_date) - timedelta(days=1)
+        else:
+            # Salary cycle started in previous month
+            if target_date.month == 1:
+                cycle_start = get_safe_date(target_date.year - 1, 12, salary_date)
+            else:
+                cycle_start = get_safe_date(target_date.year, target_date.month - 1, salary_date)
+            
+            # Current month's salary date is the end
+            cycle_end = get_safe_date(target_date.year, target_date.month, salary_date) - timedelta(days=1)
+        
+        return cycle_start, cycle_end
+    
+    @staticmethod
+    def get_transactions_in_salary_cycle(user, target_date):
+        """
+        Get all income and expense transactions within the salary cycle.
+        
+        Returns:
+            Dict with 'income' and 'expenses' QuerySet lists
+        """
+        cycle_start, cycle_end = SalaryAnalysisService.get_salary_cycle_dates(user, target_date)
+        
+        income_list = Income.objects.filter(
+            user=user,
+            date__gte=cycle_start,
+            date__lte=cycle_end
+        ).order_by('date')
+        
+        expense_list = Expense.objects.filter(
+            user=user,
+            date__gte=cycle_start,
+            date__lte=cycle_end
+        ).order_by('date')
+        
+        return {
+            'cycle_start': cycle_start,
+            'cycle_end': cycle_end,
+            'income': income_list,
+            'expenses': expense_list,
+        }
+    
+    @staticmethod
+    def calculate_salary_cycle_metrics(user, target_date):
+        """
+        Calculate income, expenses, and savings for a salary cycle.
+        
+        Returns:
+            Dict with 'income', 'expenses', 'savings', 'daily_burn', 'savings_rate'
+        """
+        transactions = SalaryAnalysisService.get_transactions_in_salary_cycle(user, target_date)
+        
+        cycle_start = transactions['cycle_start']
+        cycle_end = transactions['cycle_end']
+        income_list = transactions['income']
+        expense_list = transactions['expenses']
+        
+        # Calculate totals in base currency
+        total_income = Decimal('0')
+        for inc in income_list:
+            total_income += inc.base_amount or Decimal('0')
+        
+        total_expenses = Decimal('0')
+        for exp in expense_list:
+            total_expenses += exp.base_amount or Decimal('0')
+        
+        # Calculate loan repayment amount in this cycle
+        total_loan_principal = Decimal('0')
+        loan_repayments = LoanRepayment.objects.filter(
+            loan__user=user,
+            date__gte=cycle_start,
+            date__lte=cycle_end
+        )
+        for repay in loan_repayments:
+            # Principal = EMI - Interest, adjusted for exchange rate
+            principal = (repay.base_amount or Decimal('0')) - (repay.interest_portion or Decimal('0')) * (repay.exchange_rate or Decimal('1'))
+            total_loan_principal += principal
+        
+        # Calculate savings = Income - Expenses - Loan Principal
+        savings = total_income - total_expenses - total_loan_principal
+        # Include loan interest in expenses for savings calculation
+        total_loan_interest = Decimal('0')
+        for repay in loan_repayments:
+            interest = (repay.interest_portion or Decimal('0')) * (repay.exchange_rate or Decimal('1'))
+            total_loan_interest += interest
+        
+        # Savings = Income - Expenses (including interest) - Principal
+        total_expenses_with_interest = total_expenses + total_loan_interest
+        savings = total_income - total_expenses_with_interest - total_loan_principal
+        
+        # Calculate daily burn
+        num_days = (cycle_end - cycle_start).days + 1
+        daily_burn = total_expenses / num_days if num_days > 0 else Decimal('0')
+        
+        # Calculate savings rate
+        savings_rate = (savings / total_income * 100) if total_income > 0 else Decimal('0')
+        
+        return {
+            'cycle_start': cycle_start,
+            'cycle_end': cycle_end,
+            'total_income': float(total_income),
+            'total_expenses': float(total_expenses),
+            'total_loan_principal': float(total_loan_principal),
+            'savings': float(savings),
+            'daily_burn': float(daily_burn.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)),
+            'savings_rate': float(savings_rate.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)),
+            'num_days': num_days,
+        }
+

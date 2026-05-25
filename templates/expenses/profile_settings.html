@@ -52,6 +52,18 @@
                 </div>
             </div>
 
+            <div class="mb-4">
+                <label for="{{ form.salary_date.id_for_label }}" class="form-label text-muted small fw-bold">{% trans "Salary Date" %}</label>
+                <div class="input-group">
+                    <span class="input-group-text">{% trans "Monthly on day" %}</span>
+                    {{ form.salary_date }}
+                </div>
+                {% if form.salary_date.errors %}
+                <div class="text-danger small mt-1">{{ form.salary_date.errors.0 }}</div>
+                {% endif %}
+                <div class="form-text text-muted small mt-2">{% trans "Your salary cycle for dashboard analysis will be calculated from this date to the next month's salary date. For example, if set to 15th, analysis will show transactions from 15th of one month to 14th of the next month." %}</div>
+            </div>
+
             {% if show_year_in_review %}
             <div class="mb-4 p-3 bg-body-secondary rounded border border-primary border-opacity-25 d-flex align-items-center justify-content-between">
                 <div>
