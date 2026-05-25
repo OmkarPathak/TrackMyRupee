@@ -368,6 +368,50 @@
     .daily-over-pulse {
         animation: dailyOverPulse 2s ease-in-out infinite;
     }
+
+    .salary-cycle-subtle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: var(--bs-secondary-color);
+        font-size: 0.80rem;
+        line-height: 1;
+        font-weight: 500;
+    }
+    .salary-cycle-subtle .bi {
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        opacity: 0.8;
+    }
+    .salary-cycle-subtle a {
+        color: var(--bs-primary);
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 0.2rem;
+        line-height: 1;
+    }
+    .salary-cycle-subtle a .bi {
+        font-size: 1em;
+        line-height: 1;
+        vertical-align: middle;
+        opacity: 1;
+    }
+    .salary-cycle-subtle a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 767.98px) {
+        .salary-cycle-subtle-wrap {
+            margin-top: 0.15rem;
+            margin-bottom: 0.5rem;
+        }
+        .salary-cycle-subtle {
+            font-size: 0.88rem;
+        }
+    }
 </style>
 
 <!-- Include Daily Dashboard View -->
@@ -549,12 +593,13 @@
 </div>
 
 {% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}
-<div class="mb-3 fade-in">
-    <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle rounded-pill px-3 py-2">
-        <i class="bi bi-calendar-range me-1"></i>
-        {% trans "Salary Cycle:" %}
-        {{ salary_cycle_start|date:"d M Y" }} - {{ salary_cycle_end|date:"d M Y" }}
-    </span>
+<div class="mb-1 fade-in salary-cycle-subtle-wrap">
+    <div class="salary-cycle-subtle text-muted">
+        <span>
+            {% trans "Salary cycle:" %} {{ salary_cycle_start|date:"d M" }} - {{ salary_cycle_end|date:"d M" }}
+            <a href="{% url 'profile-settings' %}"><i class="bi bi-pencil"></i></a>
+        </span>
+    </div>
 </div>
 {% endif %}
 
