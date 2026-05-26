@@ -733,19 +733,40 @@ def home_view(request):
         status = monthly_summary_map.get((y, m), {'income': 0, 'expense': 0})
         return status['income'] > status['expense']
 
-    # Construct date params for deep linking
-    date_params = ""
-    for y in selected_years:
-        date_params += f"&year={y}"
-    for m in selected_months:
-        date_params += f"&month={m}"
+    # Construct date params for deep linking so downstream pages follow the same period context.
+    date_param_parts = []
+    if start_date or end_date:
+        if start_date:
+            date_param_parts.append(f"start_date={start_date}")
+        if end_date:
+            date_param_parts.append(f"end_date={end_date}")
+    elif salary_cycle_active and salary_cycle_start and salary_cycle_end:
+        date_param_parts.append(f"start_date={salary_cycle_start.strftime('%Y-%m-%d')}")
+        date_param_parts.append(f"end_date={salary_cycle_end.strftime('%Y-%m-%d')}")
+    else:
+        for y in selected_years:
+            date_param_parts.append(f"year={y}")
+        for m in selected_months:
+            date_param_parts.append(f"month={m}")
+
+    date_params = "".join(f"&{p}" for p in date_param_parts)
+
+    def expense_list_url(category_name=None):
+        params = []
+        if category_name:
+            params.append(f"category={category_name}")
+        params.extend(date_param_parts)
+        query = "&".join(params)
+        if query:
+            return f"{reverse('expense-list')}?{query}"
+        return reverse('expense-list')
 
     # helper for category links
     def link_cats(cats):
         links_html = format_html_join(
             mark_safe(', '),
             '<a href="{}" class="alert-link text-decoration-underline">{}</a>',
-            ((reverse('expense-list') + f"?category={c}{date_params}", c) for c in cats[:2])
+            ((expense_list_url(c), c) for c in cats[:2])
         )
         if len(cats) > 2:
             return format_html('{}, etc.', links_html)
@@ -1323,7 +1344,7 @@ def home_view(request):
     
     # 1. Highest Spending Category (Neutral)
     if top_category:
-        cat_url = f"{reverse('expense-list')}?category={top_category}"
+        cat_url = expense_list_url(top_category)
         cat_obj = user_categories.get(top_category)
         icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
         raw_insights.append({
@@ -1338,7 +1359,7 @@ def home_view(request):
     for cat in over_budget_cats:
         over_amt = cat['total'] - cat['limit']
         if over_amt > 0:
-            cat_url = f"{reverse('expense-list')}?category={cat['name']}"
+            cat_url = expense_list_url(cat['name'])
             cat_obj = user_categories.get(cat['name'])
             icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
             raw_insights.append({
@@ -1385,7 +1406,7 @@ def home_view(request):
         if len(spikes) > 1:
             spike_links = []
             for s in spikes[:3]:
-                url = f"{reverse('expense-list')}?category={s['cat']}"
+                url = expense_list_url(s['cat'])
                 spike_links.append(format_html("<a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a>", url=url, cat=s['cat']))
             
             spike_cats_html = spike_links[0]
@@ -1400,7 +1421,7 @@ def home_view(request):
             })
         else:
             for s in spikes:
-                cat_url = f"{reverse('expense-list')}?category={s['cat']}"
+                cat_url = expense_list_url(s['cat'])
                 cat_obj = user_categories.get(s['cat'])
                 icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
                 raw_insights.append({
@@ -1415,7 +1436,7 @@ def home_view(request):
         if len(drops) > 1:
             drop_links = []
             for d in drops[:3]:
-                url = f"{reverse('expense-list')}?category={d['cat']}"
+                url = expense_list_url(d['cat'])
                 drop_links.append(format_html("<a href='{url}' class='text-decoration-none text-reset hover-link fw-bold'>{cat}</a>", url=url, cat=d['cat']))
             
             drop_cats_html = drop_links[0]
@@ -1430,7 +1451,7 @@ def home_view(request):
             })
         else:
             for d in drops:
-                cat_url = f"{reverse('expense-list')}?category={d['cat']}"
+                cat_url = expense_list_url(d['cat'])
                 cat_obj = user_categories.get(d['cat'])
                 icon_cls = cat_obj.icon if cat_obj else 'bi-tag'
                 raw_insights.append({

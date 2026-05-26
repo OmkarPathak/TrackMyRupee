@@ -1723,7 +1723,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <div class="metric-mini-grid">
-                    <a href="{% url 'income-list' %}?{% url_replace %}" class="metric-mini-card text-decoration-none text-body">
+                    <a href="{% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}{% url 'income-list' %}?date_from={{ salary_cycle_start|date:'Y-m-d' }}&date_to={{ salary_cycle_end|date:'Y-m-d' }}{% elif start_date or end_date %}{% url 'income-list' %}?date_from={{ start_date|default:'' }}&date_to={{ end_date|default:'' }}{% else %}{% url 'income-list' %}?{% url_replace %}{% endif %}" class="metric-mini-card text-decoration-none text-body">
                         <div class="metric-label-sm mb-1">
                             {% trans "Income" %}
                             <i class="bi bi-info-circle ms-1 cursor-help metric-help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total money received during the selected period.' %}"></i>
@@ -1735,7 +1735,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         {% endif %}
                     </a>
-                    <a href="{% url 'expense-list' %}?{% url_replace is_investment='false' %}" class="metric-mini-card text-decoration-none text-body">
+                    <a href="{% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}{% url 'expense-list' %}?start_date={{ salary_cycle_start|date:'Y-m-d' }}&end_date={{ salary_cycle_end|date:'Y-m-d' }}&is_investment=false{% elif start_date or end_date %}{% url 'expense-list' %}?start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}&is_investment=false{% else %}{% url 'expense-list' %}?{% url_replace is_investment='false' %}{% endif %}" class="metric-mini-card text-decoration-none text-body">
                         <div class="metric-label-sm mb-1">
                             {% trans "Spent" %}
                             <i class="bi bi-info-circle ms-1 cursor-help metric-help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Operating spend excludes internal transfers and investments.' %}"></i>
@@ -1934,7 +1934,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% trans "Recent Activity" %}
                     </span>
                 </div>
-                <a href="{% url 'expense-list' %}" class="btn btn-sm text-decoration-none opacity-25" title="{% trans 'View All' %}"><i class="bi bi-box-arrow-up-right"></i></a>
+                <a href="{% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}{% url 'expense-list' %}?start_date={{ salary_cycle_start|date:'Y-m-d' }}&end_date={{ salary_cycle_end|date:'Y-m-d' }}{% elif start_date or end_date %}{% url 'expense-list' %}?start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% else %}{% url 'expense-list' %}?{% url_replace %}{% endif %}" class="btn btn-sm text-decoration-none opacity-25" title="{% trans 'View All' %}"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
@@ -2235,11 +2235,24 @@ document.addEventListener('DOMContentLoaded', function() {
     window.filterByCategory = function(category) {
         const sMonths = JSON.parse(document.getElementById('selected-months-data').textContent);
         const sYears = JSON.parse(document.getElementById('selected-years-data').textContent);
+        const salaryCycleActive = {{ salary_cycle_active|yesno:"true,false" }};
+        const salaryCycleStart = "{{ salary_cycle_start|date:'Y-m-d' }}";
+        const salaryCycleEnd = "{{ salary_cycle_end|date:'Y-m-d' }}";
+        const startDate = "{{ start_date|default:'' }}";
+        const endDate = "{{ end_date|default:'' }}";
         
         const queryParams = new URLSearchParams();
         queryParams.append('category', category);
-        if (sMonths && sMonths.length) sMonths.forEach(m => queryParams.append('month', m));
-        if (sYears && sYears.length) sYears.forEach(y => queryParams.append('year', y));
+        if (salaryCycleActive && salaryCycleStart && salaryCycleEnd) {
+            queryParams.append('start_date', salaryCycleStart);
+            queryParams.append('end_date', salaryCycleEnd);
+        } else if (startDate || endDate) {
+            if (startDate) queryParams.append('start_date', startDate);
+            if (endDate) queryParams.append('end_date', endDate);
+        } else {
+            if (sMonths && sMonths.length) sMonths.forEach(m => queryParams.append('month', m));
+            if (sYears && sYears.length) sYears.forEach(y => queryParams.append('year', y));
+        }
         
         showLoader();
         window.location.href = "{% url 'expense-list' %}?" + queryParams.toString();
@@ -2285,6 +2298,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const paymentData = safeParse('payment-data');
         const nwTrend = safeParse('net-worth-trend');
         const nwLabels = safeParse('net-worth-labels');
+        const salaryCycleActive = {{ salary_cycle_active|yesno:"true,false" }};
+        const salaryCycleStart = "{{ salary_cycle_start|date:'Y-m-d' }}";
+        const salaryCycleEnd = "{{ salary_cycle_end|date:'Y-m-d' }}";
+        const startDate = "{{ start_date|default:'' }}";
+        const endDate = "{{ end_date|default:'' }}";
+
+        const appendExpensePeriodFilters = (queryParams) => {
+            if (salaryCycleActive && salaryCycleStart && salaryCycleEnd) {
+                queryParams.append('start_date', salaryCycleStart);
+                queryParams.append('end_date', salaryCycleEnd);
+                return;
+            }
+
+            if (startDate || endDate) {
+                if (startDate) queryParams.append('start_date', startDate);
+                if (endDate) queryParams.append('end_date', endDate);
+                return;
+            }
+
+            if (sMonths && sMonths.length) sMonths.forEach(m => queryParams.append('month', m));
+            if (sYears && sYears.length) sYears.forEach(y => queryParams.append('year', y));
+        };
 
         // --- Theme handling ---
         const getThemeColor = () => {
@@ -2758,8 +2793,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             // Build Query Params
                             const queryParams = new URLSearchParams();
-                            if (sMonths && sMonths.length) sMonths.forEach(m => queryParams.append('month', m));
-                            if (sYears && sYears.length) sYears.forEach(y => queryParams.append('year', y));
+                            appendExpensePeriodFilters(queryParams);
 
                             if (label === '{% trans "Lifestyle" %}') {
                                 showLoader();
@@ -2925,8 +2959,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const queryParams = new URLSearchParams();
                             queryParams.append('category', label);
                             
-                            if (sMonths && sMonths.length) sMonths.forEach(m => queryParams.append('month', m));
-                            if (sYears && sYears.length) sYears.forEach(y => queryParams.append('year', y));
+                            appendExpensePeriodFilters(queryParams);
                             
                             showLoader();
                             window.location.href = "{% url 'expense-list' %}?" + queryParams.toString();
