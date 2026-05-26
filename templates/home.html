@@ -1639,7 +1639,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="rounded-circle d-inline-block mt-1" style="width: 10px; height: 10px; background-color: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %}; flex-shrink: 0;"></span>
                                 <div>
                                     <div class="small text-body-emphasis lh-sm fw-bold allocation-legend-label">{{ item.type }}</div>
-                                    <div class="text-muted small mt-1 allocation-legend-value">{{ item.percent|translate_digits }}%</div>
+                                    <div class="text-muted small mt-1 allocation-legend-value">{{ item.percent|translate_digits }}% <span class="text-muted small opacity-50">({{ currency_symbol }}{{ item.total|humanize_currency:currency_symbol|translate_digits }})</span></div>
                                 </div>
                             </div>
                         </div>
@@ -1655,7 +1655,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %};"></span>
                             <span class="text-muted allocation-legend-label">{{ item.type }}</span>
                         </div>
-                        <div class="allocation-legend-value">{{ item.percent|translate_digits }}%</div>
+                        <div class="allocation-legend-value">{{ item.percent|translate_digits }}% <span class="text-muted small opacity-50">({{ currency_symbol }}{{ item.total|humanize_currency:currency_symbol|translate_digits }})</span></div>
                     </div>
                     {% endfor %}
                 </div>
