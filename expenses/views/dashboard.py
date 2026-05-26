@@ -615,15 +615,17 @@ def home_view(request):
     ytd_loan_interest = ytd_loan_stats['total_interest'] or 0
     ytd_loan_emi = ytd_loan_stats['total_emi'] or 0
     ytd_loan_principal = ytd_loan_emi - ytd_loan_interest
-    ytd_savings = ytd_income - (ytd_expenses + ytd_loan_interest) - ytd_loan_principal
+    # Keep projection semantics aligned with displayed savings (principal excluded).
+    ytd_savings = ytd_income - (ytd_expenses + ytd_loan_interest)
     
     projected_savings = 0
+    avg_monthly_savings = 0
     
     # Only project if we have data and positive savings
     if ytd_savings > 0:
         # Avoid division by zero if it's January (month 1)
         # Actually, even in Jan, months_passed is 1. So we are good.
-        months_passed = current_month
+        months_passed = max(current_month, 1)
         avg_monthly_savings = ytd_savings / months_passed
         
         months_remaining = 12 - months_passed
@@ -649,10 +651,10 @@ def home_view(request):
     if prev_month_data and 'savings_rate' in prev_month_data:
         rate_diff = savings_rate_value - prev_month_data['savings_rate']
         if rate_diff > 0:
-            trend_text = _("Savings efficiency ↑ +%(diff).1f%% vs last month") % {'diff': rate_diff}
+            trend_text = _("Savings efficiency ↑ +%(diff).1f%% %(period)s") % {'diff': rate_diff, 'period': comparison_label}
             trend_type = 'positive'
         elif rate_diff < 0:
-            trend_text = _("Savings efficiency ↓ %(diff).1f%% vs last month") % {'diff': abs(rate_diff)}
+            trend_text = _("Savings efficiency ↓ %(diff).1f%% %(period)s") % {'diff': abs(rate_diff), 'period': comparison_label}
             trend_type = 'negative'
         else:
             trend_text = _("Savings efficiency unchanged")
@@ -948,7 +950,9 @@ def home_view(request):
         budget_diff = round(ideal_spent_so_far - float(total_expenses), 0)  # positive = under budget
         spent_percent = round(float(total_expenses) / total_monthly_budget * 100, 1) if total_monthly_budget > 0 else 0
         ideal_percent = round(days_elapsed / num_days * 100, 1) if num_days > 0 else 0
-        projected_month_spend = round(daily_burn * num_days, 0)
+        daily_spending_pace_value = round(daily_burn, 0)
+        remaining_days = max(num_days - days_elapsed, 0)
+        projected_month_spend = round(float(total_expenses) + (daily_spending_pace_value * remaining_days), 0)
         projected_budget_diff = round(total_monthly_budget - projected_month_spend, 0) if total_monthly_budget > 0 else 0
 
         # Daily burn comparison with last month
@@ -957,7 +961,7 @@ def home_view(request):
             burn_diff_pct = ((daily_burn - prev_month_data['daily_burn']) / prev_month_data['daily_burn']) * 100
 
         spending_pace = {
-            'daily_spending_pace': round(daily_burn, 0),
+            'daily_spending_pace': daily_spending_pace_value,
             'projected_month_spend': projected_month_spend,
             'status': 'on_track',
             'diff_amount': max(0, round(projected_month_spend - total_monthly_budget, 0)),
@@ -968,6 +972,7 @@ def home_view(request):
             'ideal_percent': ideal_percent,
             'days_elapsed': days_elapsed,
             'num_days': num_days,
+            'remaining_days': remaining_days,
             'ideal_spent_so_far': round(ideal_spent_so_far, 0),
             'burn_diff_pct': burn_diff_pct,
             'burn_diff_pct_abs': abs(burn_diff_pct) if burn_diff_pct is not None else None,
@@ -1107,7 +1112,7 @@ def home_view(request):
                     'type': 'success',
                     'icon': 'graph-up-arrow',
                     'title': _('Momentum Building 🚀'),
-                    'message': _("Your savings grew by %(savings_pct_abs)s%% vs last month. You're getting better at this!") % {'savings_pct_abs': f"{prev_month_data['savings_pct_abs']:.0f}"},
+                    'message': _("Your savings grew by %(savings_pct_abs)s%% %(period)s. You're getting better at this!") % {'savings_pct_abs': f"{prev_month_data['savings_pct_abs']:.0f}", 'period': comparison_label},
                     'allow_share': True,
                     'share_text': _("My savings grew by %(savings_pct_abs)s%% this month! 🚀 via TrackMyRupee") % {'savings_pct_abs': f"{prev_month_data['savings_pct_abs']:.0f}"}
                 })
@@ -1184,8 +1189,8 @@ def home_view(request):
             'icon': 'graph-up-arrow',
             'title': _('Wealth Projection'),
             'message': format_html(
-                _("If you maintain this savings rate, you could accumulate {proj} this year. This reinforces future thinking."),
-                proj=proj_bold
+                _("If you maintain this pace (based on year-to-date average savings), you could accumulate {proj} this year."),
+                proj=proj_bold,
             ),
             'allow_share': True,
             'share_text': _("I'm on track to save big this year! 📈 via TrackMyRupee")
@@ -1293,7 +1298,7 @@ def home_view(request):
     if projected_savings > 0:
         proj_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(projected_savings, currency_symbol)}</b>")
         monthly_story += format_html(
-            _(" At this pace, you could save {proj} by year's end."),
+            _(" At this pace (using your year-to-date average), you could save {proj} by year's end."),
             proj=proj_bold
         )
     # Check for onboarding (True if user has NO data at all)
@@ -1868,6 +1873,7 @@ def home_view(request):
         'total_recurring_commitment': total_recurring_commitment,
         'top_category': top_category,
         'projected_savings': projected_savings, # NEW
+        'avg_monthly_savings': avg_monthly_savings,
         'start_date': start_date,
         'end_date': end_date,
         'prev_month_data': prev_month_data,

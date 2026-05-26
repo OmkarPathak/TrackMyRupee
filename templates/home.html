@@ -1531,7 +1531,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="metric-mini-grid">
                     <div class="metric-mini-card">
                         <div class="metric-mini-value text-body-emphasis mb-2">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_month_spend|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
-                        <div class="metric-mini-text text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Estimated month-end spend based on your current spending pace.' %}">
+                        <div class="metric-mini-text text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Estimated month-end spend = current spent + daily pace × remaining days.' %}">
                             {% trans "Projected total spend" %}
                         </div>
                     </div>
@@ -1795,7 +1795,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% else %}
                             <span class="text-muted fw-bold">0</span>
                         {% endif %}
-                        <span class="text-muted opacity-50">{% trans "vs last mo" %}</span>
+                        <span class="text-muted opacity-50">{{ comparison_label }}</span>
                     </div>
                 </div>
                 {% endif %}
@@ -1841,7 +1841,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <h6 class="mb-0 fw-semibold text-truncate py-1" title="{{ item.name }}">{{ item.name }}</h6>
                                 {% if item.trend_pct is not None %}
                                     <small class="{% if item.trend_dir == 'down' %}text-success{% elif item.trend_dir == 'up' %}text-danger{% else %}text-muted{% endif %} d-block" style="font-size: 0.65rem; font-weight: 600; margin-top: -1px;">
-                                        {% if item.trend_dir == 'down' %}↓{% elif item.trend_dir == 'up' %}↑{% endif %} {{ item.trend_pct|translate_digits }}% {% trans "vs last mo" %}
+                                        {% if item.trend_dir == 'down' %}↓{% elif item.trend_dir == 'up' %}↑{% endif %} {{ item.trend_pct|translate_digits }}% {{ comparison_label }}
                                     </small>
                                 {% endif %}
                             </div>
