@@ -295,23 +295,32 @@ class LedgerPostingService:
             repayment.loan.currency,
         )
 
-        lines = [
-            cls._build_line(
-                entry=None,
-                ledger_account=loan_liability_ledger,
-                direction="DEBIT",
-                amount=repayment.principal_portion,
-                currency=repayment.loan.currency,
-                user=user,
-            ),
-            cls._build_line(
-                entry=None,
-                ledger_account=interest_expense_ledger,
-                direction="DEBIT",
-                amount=repayment.interest_portion,
-                currency=repayment.loan.currency,
-                user=user,
-            ),
+        lines = []
+        if repayment.principal_portion > 0:
+            lines.append(
+                cls._build_line(
+                    entry=None,
+                    ledger_account=loan_liability_ledger,
+                    direction="DEBIT",
+                    amount=repayment.principal_portion,
+                    currency=repayment.loan.currency,
+                    user=user,
+                )
+            )
+
+        if repayment.interest_portion > 0:
+            lines.append(
+                cls._build_line(
+                    entry=None,
+                    ledger_account=interest_expense_ledger,
+                    direction="DEBIT",
+                    amount=repayment.interest_portion,
+                    currency=repayment.loan.currency,
+                    user=user,
+                )
+            )
+
+        lines.append(
             cls._build_line(
                 entry=None,
                 ledger_account=paying_asset_ledger,
@@ -320,8 +329,8 @@ class LedgerPostingService:
                 currency=repayment.loan.currency,
                 user=user,
                 account_ref=repayment.from_account,
-            ),
-        ]
+            )
+        )
 
         return cls._create_entry(
             user=user,

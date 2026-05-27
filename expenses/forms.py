@@ -29,6 +29,32 @@ from .models import (
 from .utils import BOOTSTRAP_ICONS
 
 
+class CachedModelChoiceField(forms.ModelChoiceField):
+    """ModelChoiceField that can resolve selected objects from a preloaded map.
+
+    This avoids repeated queryset.get(pk=...) calls during formset validation.
+    """
+
+    def __init__(self, *args, object_cache=None, **kwargs):
+        self.object_cache = object_cache or {}
+        super().__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        if value in self.empty_values:
+            return None
+
+        try:
+            lookup_key = int(value)
+        except (TypeError, ValueError):
+            lookup_key = value
+
+        obj = self.object_cache.get(lookup_key)
+        if obj is not None:
+            return obj
+
+        return super().to_python(value)
+
+
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
@@ -51,31 +77,65 @@ class ExpenseForm(forms.ModelForm):
         if user:
             self.fields['currency'].initial = user.profile.currency
             self.fields['payment_method'].initial = 'Credit Card'
-            categories = Category.objects.filter(user=user).order_by('id')
-            
-            # Enforce Tier Limits
             profile = user.profile
-            limit = get_limit(profile.active_tier, 'budget_categories')
-            if limit != -1:
-                categories = categories[:limit]
-            
-            # Create choices list: [(name, name), ...]
-            choices = [(cat.name, cat.name) for cat in categories]
+            active_tier = profile.active_tier
+
+            # Cache category choices for this request/user object to avoid repeated queries
+            category_cache = getattr(user, '_expense_form_category_cache', None)
+            if category_cache and category_cache.get('tier') == active_tier:
+                choices = category_cache.get('choices', [])
+            else:
+                categories = Category.objects.filter(user=user).order_by('id')
+                # Enforce Tier Limits
+                limit = get_limit(active_tier, 'budget_categories')
+                if limit != -1:
+                    categories = categories[:limit]
+
+                choices = [(cat.name, cat.name) for cat in categories]
+                user._expense_form_category_cache = {
+                    'tier': active_tier,
+                    'choices': choices,
+                }
+
             self.fields['category'].widget = forms.Select(choices=choices, attrs={'class': 'form-select django-multi-select'})
             
-            # Filter accounts for the user, enforcing tier limits
-            all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
-            limit = get_limit(profile.active_tier, 'accounts')
-            if limit != -1:
-                unlocked_ids = list(all_accounts.values_list('id', flat=True)[:limit])
-                self.fields['account'].queryset = all_accounts.filter(id__in=unlocked_ids)
+            # Cache account queryset/default account id to avoid repeated lookups per form init
+            account_cache = getattr(user, '_expense_form_account_cache', None)
+            if account_cache and account_cache.get('tier') == active_tier:
+                accounts_qs = account_cache.get('queryset')
+                default_account_id = account_cache.get('default_account_id')
+                account_map = account_cache.get('account_map', {})
             else:
-                self.fields['account'].queryset = all_accounts
+                all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
+                limit = get_limit(active_tier, 'accounts')
+                if limit != -1:
+                    unlocked_ids = list(all_accounts.values_list('id', flat=True)[:limit])
+                    accounts_qs = all_accounts.filter(id__in=unlocked_ids)
+                else:
+                    accounts_qs = all_accounts
+
+                account_map = {acc.id: acc for acc in accounts_qs}
+                default_account_id = accounts_qs.filter(name='Cash').values_list('id', flat=True).first()
+                user._expense_form_account_cache = {
+                    'tier': active_tier,
+                    'queryset': accounts_qs,
+                    'default_account_id': default_account_id,
+                    'account_map': account_map,
+                }
+
+            existing_field = self.fields['account']
+            self.fields['account'] = CachedModelChoiceField(
+                queryset=accounts_qs,
+                object_cache=account_map,
+                required=existing_field.required,
+                label=existing_field.label,
+                help_text=existing_field.help_text,
+                widget=existing_field.widget,
+            )
 
             # Default to the first account (likely 'Cash')
-            default_account = self.fields['account'].queryset.filter(name='Cash').first()
-            if default_account:
-                self.fields['account'].initial = default_account
+            if default_account_id:
+                self.fields['account'].initial = default_account_id
         else:
             self.fields['category'].widget = forms.TextInput(attrs={'class': 'form-control'})
             self.fields['account'].queryset = Account.objects.none()

@@ -142,3 +142,34 @@ class LedgerPostingServiceTest(TestCase):
         self.assertEqual(entry.source_type, "LOAN_REPAYMENT")
         self.assertEqual(entry.lines.count(), 3)
         self._assert_entry_balanced(entry)
+
+    def test_post_loan_repayment_balanced_with_zero_interest(self):
+        loan = Loan.objects.create(
+            user=self.user,
+            name="Zero Interest Loan",
+            loan_type="PERSONAL",
+            initial_principal=Decimal("10000.00"),
+            duration_months=10,
+            start_date=date.today(),
+            currency="₹",
+        )
+
+        repayment = LoanRepayment.objects.create(
+            loan=loan,
+            from_account=self.bank,
+            amount=Decimal("1000.00"),
+            principal_portion=Decimal("1000.00"),
+            interest_portion=Decimal("0.00"),
+            date=date.today(),
+        )
+
+        key = f"LOAN_REPAYMENT:{repayment.id}:ZERO_INTEREST"
+        entry, created = LedgerPostingService.post_loan_repayment(
+            repayment=repayment,
+            idempotency_key=key,
+        )
+
+        self.assertTrue(created)
+        self.assertEqual(entry.source_type, "LOAN_REPAYMENT")
+        self.assertEqual(entry.lines.count(), 2)
+        self._assert_entry_balanced(entry)
