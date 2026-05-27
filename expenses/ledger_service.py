@@ -9,11 +9,13 @@ from django.utils import timezone
 from .models import (
     Account,
     Expense,
+    GoalContribution,
     Income,
     JournalEntry,
     JournalLine,
     LedgerAccount,
     Loan,
+    SavingsGoal,
     Transfer,
 )
 from .utils import get_exchange_rate
@@ -99,6 +101,31 @@ class LedgerPostingService:
         }
         ledger_account, _ = LedgerAccount.objects.get_or_create(code=code, defaults=defaults)
         return ledger_account
+
+    @classmethod
+    def _get_or_create_goal_reserve_ledger(cls, user, goal):
+        code = f"USR:{user.id}:ASSET:GOAL_RESERVE:{goal.id}"
+        defaults = {
+            "user": user,
+            "name": f"Goal Reserve - {goal.name}",
+            "account_type": "ASSET",
+            # Goal contributions may come from accounts with mixed currencies.
+            "currency": None,
+            "is_active": True,
+        }
+        ledger_account, _ = LedgerAccount.objects.get_or_create(code=code, defaults=defaults)
+        return ledger_account
+
+    @classmethod
+    def _goal_amount_in_account_currency(cls, contribution):
+        if not contribution.account:
+            return contribution.amount, contribution.goal.currency
+        if contribution.goal.currency == contribution.account.currency:
+            return contribution.amount, contribution.goal.currency
+
+        rate = get_exchange_rate(contribution.goal.currency, contribution.account.currency)
+        converted = (contribution.amount * rate).quantize(Decimal("0.01"))
+        return converted, contribution.account.currency
 
     @classmethod
     def _build_line(cls, *, entry, ledger_account, direction, amount, currency, user, account_ref=None):
@@ -338,6 +365,46 @@ class LedgerPostingService:
             source_id=repayment.id,
             idempotency_key=idempotency_key,
             description=f"Loan repayment for {repayment.loan.name}",
+            metadata=metadata,
+            lines=lines,
+        )
+
+    @classmethod
+    def post_goal_contribution(cls, *, contribution, idempotency_key, metadata=None):
+        user = contribution.goal.user
+        if contribution.account is None:
+            raise ValidationError("Goal contribution must include a source account for ledger posting.")
+
+        source_asset_ledger = cls._get_or_create_account_ledger(user, contribution.account)
+        goal_reserve_ledger = cls._get_or_create_goal_reserve_ledger(user, contribution.goal)
+        amount, currency = cls._goal_amount_in_account_currency(contribution)
+
+        lines = [
+            cls._build_line(
+                entry=None,
+                ledger_account=goal_reserve_ledger,
+                direction="DEBIT",
+                amount=amount,
+                currency=currency,
+                user=user,
+            ),
+            cls._build_line(
+                entry=None,
+                ledger_account=source_asset_ledger,
+                direction="CREDIT",
+                amount=amount,
+                currency=currency,
+                user=user,
+                account_ref=contribution.account,
+            ),
+        ]
+
+        return cls._create_entry(
+            user=user,
+            source_type="GOAL_CONTRIBUTION",
+            source_id=contribution.id,
+            idempotency_key=idempotency_key,
+            description=f"Goal contribution for {contribution.goal.name}",
             metadata=metadata,
             lines=lines,
         )
@@ -648,6 +715,47 @@ class LedgerPostingService:
         )
 
     @classmethod
+    def _post_goal_contribution_reversal(cls, *, contribution, idempotency_key, metadata=None):
+        user = contribution.goal.user
+        if contribution.account is None:
+            return None, False
+
+        source_asset_ledger = cls._get_or_create_account_ledger(user, contribution.account)
+        goal_reserve_ledger = cls._get_or_create_goal_reserve_ledger(user, contribution.goal)
+        amount, currency = cls._goal_amount_in_account_currency(contribution)
+
+        lines = [
+            cls._build_line(
+                entry=None,
+                ledger_account=source_asset_ledger,
+                direction="DEBIT",
+                amount=amount,
+                currency=currency,
+                user=user,
+                account_ref=contribution.account,
+            ),
+            cls._build_line(
+                entry=None,
+                ledger_account=goal_reserve_ledger,
+                direction="CREDIT",
+                amount=amount,
+                currency=currency,
+                user=user,
+            ),
+        ]
+
+        return cls._create_entry(
+            user=user,
+            source_type="GOAL_CONTRIBUTION",
+            source_id=contribution.id,
+            idempotency_key=idempotency_key,
+            description=f"Reversal: Goal contribution for {contribution.goal.name}",
+            metadata=metadata,
+            lines=lines,
+            status="REVERSED",
+        )
+
+    @classmethod
     def shadow_post_expense_create(cls, *, expense, version_token):
         if not cls._has_fk(expense, "account"):
             return None, False
@@ -785,6 +893,41 @@ class LedgerPostingService:
             metadata={"shadow_action": "DELETE_REVERSE", "version": version_token},
         )
 
+    @classmethod
+    def shadow_post_goal_contribution_create(cls, *, contribution, version_token):
+        if not cls._has_fk(contribution, "account"):
+            return None, False
+
+        return cls.post_goal_contribution(
+            contribution=contribution,
+            idempotency_key=cls._idempotency_key("GOAL_CONTRIBUTION", contribution.id, f"{version_token}-POST"),
+            metadata={"shadow_action": "CREATE", "version": version_token},
+        )
+
+    @classmethod
+    def shadow_post_goal_contribution_update(cls, *, contribution, previous_contribution, version_token):
+        cls._post_goal_contribution_reversal(
+            contribution=previous_contribution,
+            idempotency_key=cls._idempotency_key("GOAL_CONTRIBUTION", contribution.id, f"{version_token}-REV"),
+            metadata={"shadow_action": "UPDATE_REVERSE", "version": version_token},
+        )
+        if not cls._has_fk(contribution, "account"):
+            return None, False
+
+        return cls.post_goal_contribution(
+            contribution=contribution,
+            idempotency_key=cls._idempotency_key("GOAL_CONTRIBUTION", contribution.id, f"{version_token}-POST"),
+            metadata={"shadow_action": "UPDATE_POST", "version": version_token},
+        )
+
+    @classmethod
+    def shadow_post_goal_contribution_delete(cls, *, contribution, version_token):
+        return cls._post_goal_contribution_reversal(
+            contribution=contribution,
+            idempotency_key=cls._idempotency_key("GOAL_CONTRIBUTION", contribution.id, f"{version_token}-REV"),
+            metadata={"shadow_action": "DELETE_REVERSE", "version": version_token},
+        )
+
     @staticmethod
     def _expense_like(data):
         user = Expense._meta.get_field("user").remote_field.model.objects.get(pk=data["user_id"])
@@ -838,6 +981,17 @@ class LedgerPostingService:
             principal_portion=Decimal(data["principal_portion"]),
             interest_portion=Decimal(data["interest_portion"]),
             from_account=from_account,
+        )
+
+    @staticmethod
+    def _goal_contribution_like(data):
+        goal = SavingsGoal.objects.get(pk=data["goal_id"])
+        account = Account.objects.filter(pk=data.get("account_id")).first() if data.get("account_id") else None
+        return SimpleNamespace(
+            id=data["source_id"],
+            goal=goal,
+            account=account,
+            amount=Decimal(data["amount"]),
         )
 
     @classmethod
@@ -903,6 +1057,24 @@ class LedgerPostingService:
         if handler == "loan_repayment_delete":
             repayment = cls._repayment_like(payload["loan_repayment"])
             cls.shadow_post_loan_repayment_delete(repayment=repayment, version_token=version_token)
+            return
+
+        if handler == "goal_contribution_create":
+            contribution = cls._goal_contribution_like(payload["goal_contribution"])
+            cls.shadow_post_goal_contribution_create(contribution=contribution, version_token=version_token)
+            return
+        if handler == "goal_contribution_update":
+            contribution = cls._goal_contribution_like(payload["goal_contribution"])
+            previous = cls._goal_contribution_like(payload["previous_goal_contribution"])
+            cls.shadow_post_goal_contribution_update(
+                contribution=contribution,
+                previous_contribution=previous,
+                version_token=version_token,
+            )
+            return
+        if handler == "goal_contribution_delete":
+            contribution = cls._goal_contribution_like(payload["goal_contribution"])
+            cls.shadow_post_goal_contribution_delete(contribution=contribution, version_token=version_token)
             return
 
         raise ValidationError(f"Unsupported retry handler: {handler}")

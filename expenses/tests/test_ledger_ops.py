@@ -11,10 +11,12 @@ from django.urls import reverse
 from expenses.models import (
     Account,
     Expense,
+    GoalContribution,
     JournalEntry,
     LedgerPostingFailure,
     LedgerReconciliationReport,
     Loan,
+    SavingsGoal,
 )
 
 
@@ -259,6 +261,48 @@ class LedgerOpsTest(TestCase):
         failure.refresh_from_db()
         self.assertEqual(failure.status, "RESOLVED")
         self.assertEqual(JournalEntry.objects.filter(source_type="LOAN_REPAYMENT", source_id=400).count(), 2)
+
+    def test_retry_goal_contribution_update_handler(self):
+        goal = SavingsGoal.objects.create(
+            user=self.user,
+            name="Emergency Fund",
+            target_amount=Decimal("10000.00"),
+            target_date=date.today(),
+            currency="₹",
+        )
+
+        failure = LedgerPostingFailure.objects.create(
+            source_type="GOAL_CONTRIBUTION",
+            source_id=500,
+            action="UPDATE",
+            payload={
+                "handler": "goal_contribution_update",
+                "version_token": "UPDATE-500",
+                "goal_contribution": {
+                    "source_id": 500,
+                    "goal_id": goal.id,
+                    "account_id": self.bank.id,
+                    "amount": "700.00",
+                    "goal_currency": "₹",
+                    "user_id": self.user.id,
+                },
+                "previous_goal_contribution": {
+                    "source_id": 500,
+                    "goal_id": goal.id,
+                    "account_id": self.bank.id,
+                    "amount": "500.00",
+                    "goal_currency": "₹",
+                    "user_id": self.user.id,
+                },
+            },
+            error_message="temporary",
+            status="PENDING",
+        )
+
+        call_command("retry_ledger_shadow_failures", limit=10)
+        failure.refresh_from_db()
+        self.assertEqual(failure.status, "RESOLVED")
+        self.assertEqual(JournalEntry.objects.filter(source_type="GOAL_CONTRIBUTION", source_id=500).count(), 2)
 
     def test_run_ledger_maintenance_runs_retry_and_reconcile(self):
         LedgerPostingFailure.objects.create(

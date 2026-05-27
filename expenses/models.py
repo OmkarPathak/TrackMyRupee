@@ -33,7 +33,14 @@ logger = logging.getLogger(__name__)
 
 def _build_ledger_version(instance, action):
     action_prefix = (action or 'OP').upper()
-    ts = getattr(instance, 'updated_at', None) or getattr(instance, 'created_at', None) or timezone.now()
+    updated_at = getattr(instance, 'updated_at', None)
+    created_at = getattr(instance, 'created_at', None)
+    if action_prefix == 'CREATE':
+        ts = updated_at or created_at or timezone.now()
+    else:
+        # For models without updated_at, use current time for mutable operations
+        # so idempotency keys don't collide across multiple updates/deletes.
+        ts = updated_at or timezone.now()
     return f"{action_prefix}-{int(ts.timestamp() * 1000000)}"
 
 
@@ -164,6 +171,7 @@ class JournalEntry(models.Model):
         ('INCOME', _('Income')),
         ('TRANSFER', _('Transfer')),
         ('LOAN_REPAYMENT', _('Loan Repayment')),
+        ('GOAL_CONTRIBUTION', _('Goal Contribution')),
         ('ADJUSTMENT', _('Adjustment')),
     ]
     STATUS_CHOICES = [
@@ -1266,8 +1274,9 @@ class GoalContribution(models.Model):
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
+            old_instance = None
             if self.pk:
-                old_instance = GoalContribution.objects.select_related(None).select_for_update().get(pk=self.pk)
+                old_instance = GoalContribution.objects.select_related('goal', 'account').select_for_update().get(pk=self.pk)
                 # Revert old balance and goal amount
                 if old_instance.account_id:
                     old_account = Account.objects.select_for_update().get(pk=old_instance.account_id)
@@ -1297,6 +1306,49 @@ class GoalContribution(models.Model):
             
             self.goal.current_amount += self.amount
             self.goal.save()
+
+            def _post_shadow_entry():
+                from .ledger_service import LedgerPostingService
+
+                version_token = _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE')
+                if old_instance is None:
+                    LedgerPostingService.shadow_post_goal_contribution_create(
+                        contribution=self,
+                        version_token=version_token,
+                    )
+                else:
+                    LedgerPostingService.shadow_post_goal_contribution_update(
+                        contribution=self,
+                        previous_contribution=old_instance,
+                        version_token=version_token,
+                    )
+
+            _run_ledger_shadow(
+                _post_shadow_entry,
+                source_type='GOAL_CONTRIBUTION',
+                source_id=self.id,
+                action='CREATE' if old_instance is None else 'UPDATE',
+                payload={
+                    'handler': 'goal_contribution_create' if old_instance is None else 'goal_contribution_update',
+                    'version_token': _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE'),
+                    'goal_contribution': {
+                        'source_id': self.id,
+                        'goal_id': self.goal_id,
+                        'account_id': self.account_id,
+                        'amount': str(self.amount),
+                        'goal_currency': self.goal.currency,
+                        'user_id': self.goal.user_id,
+                    },
+                    'previous_goal_contribution': {
+                        'source_id': old_instance.id,
+                        'goal_id': old_instance.goal_id,
+                        'account_id': old_instance.account_id,
+                        'amount': str(old_instance.amount),
+                        'goal_currency': old_instance.goal.currency,
+                        'user_id': old_instance.goal.user_id,
+                    } if old_instance else None,
+                },
+            )
             
     def delete(self, *args, **kwargs):
         with transaction.atomic():
@@ -1314,6 +1366,33 @@ class GoalContribution(models.Model):
                 
             self.goal.current_amount -= self.amount
             self.goal.save()
+
+            def _post_shadow_entry():
+                from .ledger_service import LedgerPostingService
+
+                LedgerPostingService.shadow_post_goal_contribution_delete(
+                    contribution=self,
+                    version_token=_build_ledger_version(self, 'DELETE'),
+                )
+
+            _run_ledger_shadow(
+                _post_shadow_entry,
+                source_type='GOAL_CONTRIBUTION',
+                source_id=self.id,
+                action='DELETE',
+                payload={
+                    'handler': 'goal_contribution_delete',
+                    'version_token': _build_ledger_version(self, 'DELETE'),
+                    'goal_contribution': {
+                        'source_id': self.id,
+                        'goal_id': self.goal_id,
+                        'account_id': self.account_id,
+                        'amount': str(self.amount),
+                        'goal_currency': self.goal.currency,
+                        'user_id': self.goal.user_id,
+                    },
+                },
+            )
             
             super().delete(*args, **kwargs)
 

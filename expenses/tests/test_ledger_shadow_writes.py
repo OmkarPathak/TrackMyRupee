@@ -7,11 +7,13 @@ from django.test import TestCase, override_settings
 from expenses.models import (
     Account,
     Expense,
+    GoalContribution,
     Income,
     JournalEntry,
     LedgerPostingFailure,
     Loan,
     LoanRepayment,
+    SavingsGoal,
     Transfer,
 )
 
@@ -277,3 +279,81 @@ class LedgerShadowWriteTest(TestCase):
         self.assertEqual(entries.filter(status="REVERSED").count(), 1)
         self.assertEqual(entries.filter(status="POSTED").count(), 1)
         self.assertEqual(LedgerPostingFailure.objects.count(), 0)
+
+    @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
+    def test_goal_contribution_create_writes_shadow_entry(self):
+        goal = SavingsGoal.objects.create(
+            user=self.user,
+            name="Emergency Fund",
+            target_amount=Decimal("10000.00"),
+            target_date=date.today(),
+            currency="₹",
+        )
+
+        contribution = GoalContribution.objects.create(
+            goal=goal,
+            account=self.bank,
+            amount=Decimal("500.00"),
+            date=date.today(),
+        )
+
+        self.assertEqual(
+            JournalEntry.objects.filter(
+                source_type="GOAL_CONTRIBUTION",
+                source_id=contribution.id,
+                status="POSTED",
+            ).count(),
+            1,
+        )
+
+    @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
+    def test_goal_contribution_update_creates_reversal_and_new_post(self):
+        goal = SavingsGoal.objects.create(
+            user=self.user,
+            name="Emergency Fund",
+            target_amount=Decimal("10000.00"),
+            target_date=date.today(),
+            currency="₹",
+        )
+
+        contribution = GoalContribution.objects.create(
+            goal=goal,
+            account=self.bank,
+            amount=Decimal("500.00"),
+            date=date.today(),
+        )
+
+        contribution.amount = Decimal("700.00")
+        contribution.save()
+
+        entries = JournalEntry.objects.filter(
+            source_type="GOAL_CONTRIBUTION",
+            source_id=contribution.id,
+        ).order_by("created_at")
+
+        self.assertEqual(entries.count(), 3)
+        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
+        self.assertEqual(entries.filter(status="POSTED").count(), 2)
+
+    @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
+    def test_goal_contribution_delete_creates_reversal_entry(self):
+        goal = SavingsGoal.objects.create(
+            user=self.user,
+            name="Emergency Fund",
+            target_amount=Decimal("10000.00"),
+            target_date=date.today(),
+            currency="₹",
+        )
+
+        contribution = GoalContribution.objects.create(
+            goal=goal,
+            account=self.bank,
+            amount=Decimal("500.00"),
+            date=date.today(),
+        )
+        contribution_id = contribution.id
+        contribution.delete()
+
+        entries = JournalEntry.objects.filter(source_type="GOAL_CONTRIBUTION", source_id=contribution_id)
+        self.assertEqual(entries.count(), 2)
+        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
