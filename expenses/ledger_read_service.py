@@ -3,9 +3,10 @@ import random
 from decimal import Decimal
 
 from django.conf import settings
+from django.db.models import Sum
 
 from .ledger_rollout import is_user_in_read_cohort
-from .models import JournalEntry, JournalLine
+from .models import JournalEntry, JournalLine, Loan, SavingsGoal
 from .utils import get_exchange_rate
 
 logger = logging.getLogger(__name__)
@@ -115,7 +116,34 @@ class LedgerReadService:
     def get_net_worth(cls, user):
         accounts = list(user.accounts.filter(is_active=True))
         if not accounts:
-            return Decimal("0.00"), {}
+            base_currency = user.profile.currency
+
+            # Even when no active accounts exist, preserve accounting semantics:
+            # net worth = goal reserves - outstanding liabilities.
+            goal_reserves_base = Decimal("0.00")
+            for goal in SavingsGoal.objects.filter(user=user):
+                goal_amount = goal.current_amount or Decimal("0.00")
+                if goal.currency != base_currency:
+                    rate = get_exchange_rate(goal.currency, base_currency)
+                    goal_amount = (goal_amount * rate).quantize(Decimal("0.01"))
+                goal_reserves_base += goal_amount
+
+            outstanding_loan_base = Decimal("0.00")
+            for loan in Loan.objects.filter(user=user, is_active=True):
+                paid_principal = (
+                    loan.repayments.aggregate(total_principal=Sum("principal_portion"))["total_principal"]
+                    or Decimal("0.00")
+                )
+                remaining_principal = (loan.initial_principal - paid_principal).quantize(Decimal("0.01"))
+                if remaining_principal <= Decimal("0.00"):
+                    continue
+
+                if loan.currency != base_currency:
+                    rate = get_exchange_rate(loan.currency, base_currency)
+                    remaining_principal = (remaining_principal * rate).quantize(Decimal("0.01"))
+                outstanding_loan_base += remaining_principal
+
+            return (goal_reserves_base - outstanding_loan_base).quantize(Decimal("0.01")), {}
 
         base_currency = user.profile.currency
         account_ids = [a.id for a in accounts]
@@ -180,4 +208,31 @@ class LedgerReadService:
             account_base_balances[account.pk] = converted_bal
             net_worth += converted_bal
 
-        return net_worth.quantize(Decimal("0.01")), account_base_balances
+        # Goal contributions represent internal earmarking of assets. Include goal
+        # reserves so net worth is not reduced by moving money into goals.
+        goal_reserves_base = Decimal("0.00")
+        for goal in SavingsGoal.objects.filter(user=user):
+            goal_amount = goal.current_amount or Decimal("0.00")
+            if goal.currency != base_currency:
+                rate = get_exchange_rate(goal.currency, base_currency)
+                goal_amount = (goal_amount * rate).quantize(Decimal("0.01"))
+            goal_reserves_base += goal_amount
+
+        # Subtract outstanding loan principal to reflect liabilities.
+        outstanding_loan_base = Decimal("0.00")
+        for loan in Loan.objects.filter(user=user, is_active=True):
+            paid_principal = (
+                loan.repayments.aggregate(total_principal=Sum("principal_portion"))["total_principal"]
+                or Decimal("0.00")
+            )
+            remaining_principal = (loan.initial_principal - paid_principal).quantize(Decimal("0.01"))
+            if remaining_principal <= Decimal("0.00"):
+                continue
+
+            if loan.currency != base_currency:
+                rate = get_exchange_rate(loan.currency, base_currency)
+                remaining_principal = (remaining_principal * rate).quantize(Decimal("0.01"))
+            outstanding_loan_base += remaining_principal
+
+        net_worth = (net_worth + goal_reserves_base - outstanding_loan_base).quantize(Decimal("0.01"))
+        return net_worth, account_base_balances

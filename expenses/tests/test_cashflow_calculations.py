@@ -816,9 +816,9 @@ class IntegratedCashflowScenarioTest(CashflowCalculationTestBase):
         # Get final net worth
         final_net_worth = self.get_net_worth()
         
-        # Net worth increased by income, reduced by the expense and goal contribution.
-        # The transfer only moves money between accounts.
-        expected_change = Decimal('100000') - Decimal('10000') - Decimal('20000')
+        # Net worth increased by income and reduced by expense.
+        # Transfer and goal contribution are internal reallocations.
+        expected_change = Decimal('100000') - Decimal('10000')
         actual_change = final_net_worth - initial_net_worth
         
         self.assertEqual(actual_change, expected_change)

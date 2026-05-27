@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -134,6 +135,24 @@ class LedgerOpsTest(TestCase):
             LedgerReconciliationReport.objects.filter(user=self.user, status="DRIFT").count(),
             2,
         )
+
+    def test_reconcile_gate_fails_on_drift(self):
+        with self.assertRaises(CommandError):
+            call_command(
+                "reconcile_ledgers",
+                user_id=self.user.id,
+                threshold="0.01",
+                fail_on_drift=True,
+            )
+
+    def test_reconcile_gate_fails_when_opening_balance_missing(self):
+        with self.assertRaises(CommandError):
+            call_command(
+                "reconcile_ledgers",
+                user_id=self.user.id,
+                threshold="0.01",
+                require_opening_balances=True,
+            )
 
     def test_retry_income_update_handler(self):
         failure = LedgerPostingFailure.objects.create(

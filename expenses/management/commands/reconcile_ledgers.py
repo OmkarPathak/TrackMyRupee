@@ -1,13 +1,14 @@
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from expenses.models import (
     Account,
+    JournalEntry,
     JournalLine,
     LedgerReconciliationReport,
 )
@@ -25,6 +26,16 @@ class Command(BaseCommand):
             default=str(getattr(settings, "LEDGER_RECONCILE_ALERT_THRESHOLD", "10.00")),
             help="Absolute drift amount above which a user alert is created",
         )
+        parser.add_argument(
+            "--fail-on-drift",
+            action="store_true",
+            help="Exit with non-zero status when any account is in DRIFT.",
+        )
+        parser.add_argument(
+            "--require-opening-balances",
+            action="store_true",
+            help="Exit with non-zero status when any reconciled account has no opening balance journal entry.",
+        )
 
     def handle(self, *args, **options):
         threshold = Decimal(options["threshold"])
@@ -35,9 +46,20 @@ class Command(BaseCommand):
         as_of_date = timezone.now().date()
         total = 0
         drifts = 0
+        missing_opening_entries = 0
 
         for account in accounts:
             total += 1
+
+            has_opening_entry = JournalEntry.objects.filter(
+                user=account.user,
+                source_type="ADJUSTMENT",
+                metadata__opening_account_id=account.id,
+                status="POSTED",
+            ).exists()
+            if not has_opening_entry:
+                missing_opening_entries += 1
+
             debit_total = (
                 JournalLine.objects.filter(
                     account_ref=account,
@@ -72,9 +94,22 @@ class Command(BaseCommand):
                 ledger_balance=ledger_balance,
                 drift_amount=drift_amount,
                 status=status,
-                metadata={"threshold": str(threshold)},
+                metadata={
+                    "threshold": str(threshold),
+                    "has_opening_entry": has_opening_entry,
+                },
             )
 
         self.stdout.write(
-            self.style.SUCCESS(f"Reconciliation complete: accounts={total}, drifts={drifts}")
+            self.style.SUCCESS(
+                f"Reconciliation complete: accounts={total}, drifts={drifts}, missing_opening_entries={missing_opening_entries}"
+            )
         )
+
+        if options.get("require_opening_balances") and missing_opening_entries > 0:
+            raise CommandError(
+                f"Reconciliation gate failed: {missing_opening_entries} account(s) are missing opening balance journal entries."
+            )
+
+        if options.get("fail_on_drift") and drifts > 0:
+            raise CommandError(f"Reconciliation gate failed: {drifts} account(s) in DRIFT state.")
