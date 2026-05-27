@@ -109,6 +109,9 @@ class LedgerOpsTest(TestCase):
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
     def test_manual_account_balance_edit_reconciles_as_match(self):
+        self.user.profile.tier = "PLUS"
+        self.user.profile.save(update_fields=["tier"])
+
         account = Account.objects.create(
             user=self.user,
             name="Manual Edit Account",
@@ -130,6 +133,47 @@ class LedgerOpsTest(TestCase):
         report = LedgerReconciliationReport.objects.filter(user=self.user, account=account).latest("created_at")
         self.assertEqual(report.status, "MATCH")
         self.assertEqual(report.drift_amount, Decimal("0.00"))
+
+    @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
+    def test_manual_account_balance_edit_offsets_existing_drift(self):
+        self.user.profile.tier = "PLUS"
+        self.user.profile.save(update_fields=["tier"])
+
+        account = Account.objects.create(
+            user=self.user,
+            name="Drifted Account",
+            account_type="BANK",
+            balance=Decimal("0.00"),
+            currency="₹",
+        )
+
+        Expense.objects.create(
+            user=self.user,
+            date=date.today(),
+            amount=Decimal("100.00"),
+            description="Creates baseline ledger movement",
+            category="Food",
+            account=account,
+            currency="₹",
+        )
+
+        # Simulate pre-existing drift: model balance is manually changed outside the view.
+        Account.objects.filter(pk=account.pk).update(balance=Decimal("-50.00"))
+
+        response = self.client.post(reverse("account-edit", kwargs={"pk": account.pk}), {
+            "name": "Drifted Account",
+            "account_type": "BANK",
+            "balance": "200.00",
+            "currency": "₹",
+        })
+        self.assertEqual(response.status_code, 302)
+
+        call_command("reconcile_ledgers", user_id=self.user.id, threshold="0.01")
+
+        report = LedgerReconciliationReport.objects.filter(user=self.user, account=account).latest("created_at")
+        self.assertEqual(report.status, "MATCH")
+        self.assertEqual(report.account_balance, Decimal("200.00"))
+        self.assertEqual(report.ledger_balance, Decimal("200.00"))
 
     def test_reconcile_command_does_not_create_drift_notifications(self):
         call_command("reconcile_ledgers", user_id=self.user.id, threshold="0.01", alert_threshold="0.01")

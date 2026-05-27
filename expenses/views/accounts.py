@@ -128,14 +128,26 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        old_balance = self.get_object().balance
+        old_state = self.get_object()
+        old_balance = old_state.balance
         messages.success(self.request, _("Account updated successfully!"))
         response = super().form_valid(form)
 
-        # Manual balance edits must produce a matching ledger adjustment to avoid drift.
-        balance_delta = (self.object.balance - old_balance).quantize(Decimal('0.01'))
-        if balance_delta != Decimal('0.00') and getattr(settings, 'LEDGER_WRITE_ENABLED', False):
+        # Manual balance edits should treat the entered balance as source of truth.
+        # Offset any existing drift by targeting the current ledger-derived balance.
+        if getattr(settings, 'LEDGER_WRITE_ENABLED', False):
             from ..ledger_service import LedgerPostingService
+
+            try:
+                ledger_balance_before_adjustment = LedgerReadService.get_account_ledger_delta(self.object)
+            except Exception:
+                ledger_balance_before_adjustment = old_balance
+
+            target_balance = self.object.balance.quantize(Decimal('0.01'))
+            balance_delta = (target_balance - ledger_balance_before_adjustment).quantize(Decimal('0.01'))
+
+            if balance_delta == Decimal('0.00'):
+                return response
 
             version_token = f"ACCOUNT_BALANCE_EDIT-{int(self.object.updated_at.timestamp() * 1000000)}"
 
@@ -149,6 +161,7 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
                         'actor_user_id': self.request.user.id,
                         'old_balance': str(old_balance),
                         'new_balance': str(self.object.balance),
+                        'ledger_balance_before_adjustment': str(ledger_balance_before_adjustment),
                     },
                 )
 
@@ -166,6 +179,7 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
                         'currency': self.object.currency,
                         'old_balance': str(old_balance),
                         'new_balance': str(self.object.balance),
+                        'ledger_balance_before_adjustment': str(ledger_balance_before_adjustment),
                         'delta': str(balance_delta),
                     },
                 },

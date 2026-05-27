@@ -188,7 +188,7 @@ class AccountTransferTest(TestCase):
         self.assertEqual(entry.metadata.get('kind'), 'MANUAL_BALANCE_EDIT')
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
-    def test_account_edit_without_balance_change_creates_no_adjustment_entry(self):
+    def test_account_edit_without_balance_change_creates_adjustment_when_drift_exists(self):
         account = Account.objects.create(
             user=self.user,
             name='No Delta Wallet',
@@ -205,10 +205,9 @@ class AccountTransferTest(TestCase):
         })
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            JournalEntry.objects.filter(source_type='ADJUSTMENT', source_id=account.id).count(),
-            0,
-        )
+        entries = JournalEntry.objects.filter(source_type='ADJUSTMENT', source_id=account.id)
+        self.assertEqual(entries.count(), 1)
+        self.assertEqual(entries.first().metadata.get('kind'), 'MANUAL_BALANCE_EDIT')
 
     def test_view_transfer_crud(self):
         # Create via view
