@@ -200,8 +200,8 @@
                         
                         <!-- Balance & Actions -->
                         <div class="d-flex align-items-center gap-2 ps-2">
-                            <div class="fw-bold {% if account.balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}" style="font-size: 1.05rem; letter-spacing: -0.3px;">
-                                {{ account.currency }}{{ account.balance|ind_comma:account.currency|translate_digits }}
+                            <div class="fw-bold {% if account.display_balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}" style="font-size: 1.05rem; letter-spacing: -0.3px;">
+                                {{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}
                             </div>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-link text-muted p-0 border-0 opacity-50 hover-opacity-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">

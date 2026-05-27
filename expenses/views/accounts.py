@@ -58,18 +58,27 @@ class AccountListView(LoginRequiredMixin, ListView):
         accounts = context.get('accounts', [])
         user_currency = getattr(getattr(self.request.user, 'profile', None), 'currency', '₹')
         total_balance = Decimal('0.00')
+        current_status = self.request.GET.get('status', 'active')
 
         for account in accounts:
+            if current_status == 'active':
+                try:
+                    account.display_balance = LedgerReadService.get_account_balance(account)
+                except Exception:
+                    account.display_balance = account.balance
+            else:
+                account.display_balance = account.balance
+
             try:
                 rate = get_exchange_rate(account.currency, user_currency)
             except Exception:
                 rate = Decimal('1.0')
-            total_balance += Decimal(account.balance) * Decimal(str(rate))
+            total_balance += Decimal(account.display_balance) * Decimal(str(rate))
 
         context['account_types'] = Account.ACCOUNT_TYPES
         context['selected_type'] = self.request.GET.get('type', '')
         context['selected_type_label'] = dict(Account.ACCOUNT_TYPES).get(context['selected_type'], '')
-        context['current_status'] = self.request.GET.get('status', 'active')
+        context['current_status'] = current_status
         context['total_balance'] = total_balance.quantize(Decimal('0.01'))
         context['total_balance_currency'] = user_currency
         return context
@@ -314,6 +323,15 @@ class AccountDetailView(LoginRequiredMixin, View):
         if request.user.is_authenticated and request.user.profile.is_account_locked(account):
             messages.error(request, _("This account is locked. Please upgrade your plan to view its history."))
             return redirect('pricing')
+
+        if account.is_active:
+            try:
+                account.display_balance = LedgerReadService.get_account_balance(account)
+            except Exception:
+                account.display_balance = account.balance
+        else:
+            account.display_balance = account.balance
+
         query = request.GET.get('q', '')
         
         # Get all expenses, incomes, and transfers for this account
