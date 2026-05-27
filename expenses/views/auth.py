@@ -87,22 +87,58 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
             
             elif step == 'accounts':
                 accounts_data = data.get('accounts', [])
-                created_accounts = []
+                currency = request.user.profile.currency
+                parsed_accounts = []
                 for acc_data in accounts_data:
-                    name = acc_data.get('name')
-                    acc_type = acc_data.get('type', 'BANK')
-                    balance = Decimal(acc_data.get('balance', 0))
-                    if name:
-                        acc, created = Account.objects.update_or_create(
-                            user=request.user,
-                            name=name,
-                            defaults={
-                                'account_type': acc_type,
-                                'balance': balance,
-                                'currency': request.user.profile.currency
-                            }
+                    name = (acc_data.get('name') or '').strip()
+                    if not name:
+                        continue
+                    parsed_accounts.append({
+                        'name': name,
+                        'account_type': acc_data.get('type', 'BANK'),
+                        'balance': Decimal(acc_data.get('balance', 0)),
+                    })
+
+                account_names = list(dict.fromkeys(acc['name'] for acc in parsed_accounts))
+                existing_by_name = {
+                    acc.name: acc
+                    for acc in Account.objects.filter(user=request.user, name__in=account_names)
+                }
+
+                to_create = []
+                to_update = []
+                for acc_data in parsed_accounts:
+                    existing = existing_by_name.get(acc_data['name'])
+                    if existing:
+                        existing.account_type = acc_data['account_type']
+                        existing.balance = acc_data['balance']
+                        existing.currency = currency
+                        to_update.append(existing)
+                    else:
+                        to_create.append(
+                            Account(
+                                user=request.user,
+                                name=acc_data['name'],
+                                account_type=acc_data['account_type'],
+                                balance=acc_data['balance'],
+                                currency=currency,
+                            )
                         )
-                        created_accounts.append({'id': acc.id, 'name': acc.name})
+
+                if to_create:
+                    Account.objects.bulk_create(to_create)
+                if to_update:
+                    Account.objects.bulk_update(to_update, ['account_type', 'balance', 'currency'])
+
+                refreshed_by_name = {
+                    acc.name: acc
+                    for acc in Account.objects.filter(user=request.user, name__in=account_names).only('id', 'name')
+                }
+                created_accounts = [
+                    {'id': refreshed_by_name[acc_data['name']].id, 'name': acc_data['name']}
+                    for acc_data in parsed_accounts
+                    if acc_data['name'] in refreshed_by_name
+                ]
                 return JsonResponse({'success': True, 'accounts': created_accounts})
             
             elif step == 'budget':

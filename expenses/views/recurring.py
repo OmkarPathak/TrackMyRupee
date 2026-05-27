@@ -21,7 +21,12 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
     def get_queryset(self):
         if not self.request.user.is_authenticated:
             return RecurringTransaction.objects.none()
-        queryset = RecurringTransaction.objects.filter(user=self.request.user)
+        queryset = RecurringTransaction.objects.filter(user=self.request.user).select_related(
+            'account',
+            'from_account',
+            'to_account',
+            'loan',
+        )
         if self.filter_expenses_only:
             queryset = queryset.filter(transaction_type__in=['EXPENSE', 'TRANSFER', 'LOAN'])
         queryset = queryset.order_by('-created_at')

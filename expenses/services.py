@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.db.models import F, Sum
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 
 from .models import Expense, Income, Loan, LoanRepayment
@@ -203,11 +203,14 @@ class LoanService:
         """
         Returns the sum of remaining principal for all active loans.
         """
-        active_loans = Loan.objects.filter(user=user, is_active=True)
+        active_loans = Loan.objects.filter(user=user, is_active=True).annotate(
+            principal_paid=Coalesce(Sum('repayments__principal_portion'), Decimal('0.00'))
+        )
         total = Decimal('0.00')
         for loan in active_loans:
-            summary = LoanService.get_loan_summary(loan)
-            total += Decimal(str(summary['remaining_principal']))
+            remaining_principal = Decimal(str(loan.initial_principal)) - Decimal(str(loan.principal_paid or 0))
+            if remaining_principal > 0:
+                total += remaining_principal
         return float(total)
 
     @staticmethod

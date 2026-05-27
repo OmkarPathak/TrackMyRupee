@@ -53,6 +53,30 @@ class OnboardingViewTest(TestCase):
         self.assertEqual(Account.objects.filter(user=self.user).count(), 2)
         self.assertFalse(self.user.profile.has_seen_tutorial)
 
+    def test_onboarding_step_accounts_updates_existing_by_name(self):
+        existing = Account.objects.create(
+            user=self.user,
+            name='SBI Savings Account',
+            account_type='BANK',
+            balance=0,
+            currency='₹',
+        )
+        data = {
+            'step': 'accounts',
+            'accounts': [
+                {'name': 'SBI Savings Account', 'type': 'BANK', 'balance': 2500},
+                {'name': 'Cash Wallet', 'type': 'CASH', 'balance': 300},
+            ],
+        }
+
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        existing.refresh_from_db()
+        self.assertEqual(existing.balance, 2500)
+        self.assertEqual(Account.objects.filter(user=self.user, name='SBI Savings Account').count(), 1)
+        self.assertEqual(Account.objects.filter(user=self.user).count(), 2)
+
     def test_onboarding_step_income(self):
         # Need an account first
         acc = Account.objects.create(user=self.user, name='SBI Savings Account', balance=0)
