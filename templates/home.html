@@ -1602,11 +1602,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     <svg viewBox="0 0 120 120" class="w-100 h-100" style="transform: rotate(-90deg);">
                         <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bs-tertiary-bg)" stroke-width="12"/>
                         {% for item in asset_allocation %}
-                        <circle cx="60" cy="60" r="45" fill="none" class="allocation-segment"
-                            stroke-width="12"
-                            stroke-dasharray="{{ item.arc_length|floatformat:2 }} 282.74"
-                            stroke-dashoffset="-{{ item.offset_length|floatformat:2 }}"
-                            style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %};"/>
+                        <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="text-decoration-none" aria-label="{{ item.type }}">
+                            <circle cx="60" cy="60" r="45" fill="none" class="allocation-segment"
+                                stroke-width="12"
+                                stroke-dasharray="{{ item.arc_length|floatformat:2 }} 282.74"
+                                stroke-dashoffset="-{{ item.offset_length|floatformat:2 }}"
+                                style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %}; cursor: pointer;"/>
+                        </a>
                         {% endfor %}
                     </svg>
                     <div class="position-absolute top-50 start-50 translate-middle text-center">
@@ -1619,30 +1621,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="d-lg-none w-100 mb-4 px-1">
                     <div class="progress rounded-pill overflow-hidden bg-body-tertiary" style="height: 24px;">
                         {% for item in asset_allocation %}
-                            <div class="progress-bar {% if not forloop.last %}border-end border-white border-opacity-25{% endif %}" 
-                                 role="progressbar" 
-                                 style="width: {{ item.percent }}%; background-color: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %};" 
-                                 aria-valuenow="{{ item.percent }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100">
+                            <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active"
+                               class="progress-bar {% if not forloop.last %}border-end border-white border-opacity-25{% endif %} text-decoration-none"
+                               role="progressbar"
+                               style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %}; cursor: pointer;"
+                               aria-valuenow="{{ item.percent }}"
+                               aria-valuemin="0"
+                               aria-valuemax="100">
                                  {% if item.percent > 12 %}
                                     <span class="fw-bold text-white" style="font-size: 0.75rem;">{{ item.percent|floatformat:0|translate_digits }}%</span>
                                  {% endif %}
-                            </div>
+                            </a>
                         {% endfor %}
                     </div>
                     <!-- Label Row for small segments -->
                     <div class="mt-3 row g-3 text-start">
                         {% for item in asset_allocation %}
                         <div class="col-6">
-                            <div class="d-flex align-items-start gap-2">
+                            <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="d-flex align-items-start gap-2 text-decoration-none text-reset">
                                 <span class="rounded-circle d-inline-block mt-1" style="width: 10px; height: 10px; background-color: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %}; flex-shrink: 0;"></span>
                                 <div>
                                     <div class="small text-body-emphasis lh-sm fw-bold allocation-legend-label">{{ item.type }}</div>
                                     <div class="text-body-emphasis fs-4 lh-1 mt-1 allocation-legend-value">{{ item.percent|translate_digits }}%</div>
                                     <div class="text-muted small mt-1 opacity-75">({{ currency_symbol }}{{ item.total|humanize_currency:currency_symbol|translate_digits }})</div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                         {% endfor %}
                     </div>
@@ -1651,13 +1654,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- Legend (Desktop) -->
                 <div class="d-none d-lg-flex flex-wrap justify-content-center gap-3 mb-3">
                     {% for item in asset_allocation %}
-                    <div class="text-center px-1">
+                    <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="text-center px-1 text-decoration-none text-reset allocation-type-link">
                         <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
                             <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if item.type_key == 'CASH' %}#5DCAA5{% elif item.type_key == 'BANK' %}#1D9E75{% elif item.type_key == 'CREDIT_CARD' %}#E05C45{% elif item.type_key == 'INVESTMENT' or item.type_key == 'FIXED_DEPOSIT' %}#378ADD{% else %}#9E9D9A{% endif %};"></span>
                             <span class="text-muted allocation-legend-label">{{ item.type }}</span>
                         </div>
                         <div class="allocation-legend-value">{{ item.percent|translate_digits }}% <span class="text-muted small opacity-50">({{ currency_symbol }}{{ item.total|humanize_currency:currency_symbol|translate_digits }})</span></div>
-                    </div>
+                    </a>
                     {% endfor %}
                 </div>
             </div>
