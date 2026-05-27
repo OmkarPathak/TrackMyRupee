@@ -11,39 +11,94 @@
         background-color: rgba(29, 158, 117, 0.1);
         color: #1D9E75;
     }
+    .accounts-summary-card {
+        background-color: rgba(var(--bs-primary-rgb), 0.10);
+        border: 1px solid rgba(29, 158, 117, 0.14);
+        box-shadow: 0 10px 30px rgba(17, 24, 39, 0.04);
+    }
+    .accounts-summary-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+        font-weight: 700;
+    }
+    .accounts-summary-amount {
+        font-size: clamp(1.35rem, 3vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+    }
+    .accounts-summary-meta {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+    @media (max-width: 575.98px) {
+        .accounts-summary-card {
+            padding: 0.9rem 1rem !important;
+        }
+        .accounts-summary-label {
+            font-size: 0.63rem;
+        }
+        .accounts-summary-amount {
+            font-size: 1.15rem;
+            letter-spacing: -0.03em;
+        }
+        .accounts-summary-meta {
+            font-size: 0.72rem;
+        }
+    }
 </style>
 <div class="fade-in">
-    <div class="pt-1 pb-3 mb-2">
+    <div class="pt-1 mb-2">
         <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
             <div class="d-flex align-items-center gap-2">
                 <h2 class="h4 mb-0 fw-bold">
                     {% if current_status == 'inactive' %}{% trans "Inactive Accounts" %}{% else %}{% trans "Accounts" %}{% endif %}
-                    <span class="badge-soft {% if current_status == 'inactive' %}badge-soft-secondary{% else %}badge-soft-success{% endif %}" style="font-size: 1rem;">{{ accounts|length }}</span>
                 </h2>
                 <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px; line-height: 1;" data-bs-toggle="collapse" data-bs-target="#guideAccounts" aria-expanded="false" title="{% trans 'How it works' %}">
                     <i class="bi bi-info-lg" style="font-size: 0.7rem;"></i>
                 </button>
             </div>
-            <div class="d-flex gap-2">
-                <a href="{% url 'transfer-list' %}" class="btn btn-outline-primary btn-sm px-2 px-sm-3 d-flex align-items-center shadow-sm" style="border-radius: 8px;">
-                    <i class="bi bi-arrow-left-right me-1"></i> <span class="small">{% trans "History" %}</span>
-                </a>
-                <a href="{% url 'account-create' %}" class="btn btn-primary btn-sm px-2 px-sm-3 d-flex align-items-center shadow-sm" style="border-radius: 8px;">
-                    <i class="bi bi-plus-lg me-1"></i> <span class="small">{% trans "Add" %}</span>
-                </a>
+            <div class="d-flex flex-column align-items-stretch align-items-md-end gap-2">
+                <div class="d-flex gap-2 flex-wrap justify-content-md-end">
+                    <a href="{% url 'transfer-list' %}" class="btn btn-outline-primary btn-sm px-2 px-sm-3 d-flex align-items-center shadow-sm" style="border-radius: 8px;">
+                        <i class="bi bi-arrow-left-right me-1"></i> <span class="small">{% trans "History" %}</span>
+                    </a>
+                    <a href="{% url 'account-create' %}" class="btn btn-primary btn-sm px-2 px-sm-3 d-flex align-items-center shadow-sm" style="border-radius: 8px;">
+                        <i class="bi bi-plus-lg me-1"></i> <span class="small">{% trans "Add" %}</span>
+                    </a>
+                </div>
+                <form method="get" class="d-none d-md-flex align-items-center gap-2 flex-wrap justify-content-md-end">
+                    <select name="status" class="form-select form-select-sm" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 110px;" onchange="this.form.submit()">
+                        <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+                        <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
+                    </select>
+
+                    <select name="type" class="form-select form-select-sm" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 130px;" onchange="this.form.submit()">
+                        <option value="">{% trans "All Types" %}</option>
+                        {% for val, label in account_types %}
+                            <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+
+                    {% if selected_type or current_status != 'active' %}
+                    <a href="{% url 'account-list' %}" class="text-decoration-none text-muted d-flex align-items-center" style="font-size: 0.9rem; height: 38px; padding-top: 2px;">
+                        <i class="bi bi-x-circle me-2 text-danger"></i> {% trans "Reset Filters" %}
+                    </a>
+                    {% endif %}
+                </form>
             </div>
         </div>
         <p class="text-muted small mb-3">{% trans "Manage your wallets, bank accounts, and investment portfolios" %}</p>
     </div>
     
     <!-- Filter & Status Row -->
-    <div class="mb-4">
+        <div class="mb-4">
         <form method="get" class="d-flex align-items-center flex-wrap gap-3">
             <!-- Status Filter -->
             <div class="d-flex align-items-center gap-2">
-                <span class="fw-bold text-muted text-uppercase d-none d-sm-inline" style="letter-spacing: 1px; font-size: 1rem; opacity: 0.8; line-height: 1;">
-                    <i class="bi bi-eye"></i>
-                </span>
                 <select name="status" class="form-select" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 110px;" onchange="this.form.submit()">
                     <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
                     <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
@@ -52,9 +107,6 @@
 
             <!-- Type Filter -->
             <div class="d-flex align-items-center gap-2">
-                <span class="fw-bold text-muted text-uppercase d-none d-sm-inline" style="letter-spacing: 1px; font-size: 1rem; opacity: 0.8; line-height: 1;">
-                    <i class="bi bi-filter-left"></i>
-                </span>
                 <select name="type" class="form-select" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 130px;" onchange="this.form.submit()">
                     <option value="">{% trans "All Types" %}</option>
                     {% for val, label in account_types %}
@@ -71,6 +123,36 @@
             </div>
             {% endif %}
         </form>
+    </div>
+
+    <div class="accounts-summary-card rounded-4 px-3 px-md-4 py-3 mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div class="min-w-0">
+                <div class="accounts-summary-label mb-1">{% trans "Filtered total balance" %}</div>
+                <div class="fw-semibold text-body-emphasis text-truncate accounts-summary-subline">
+                    {% if selected_type_label %}
+                        {{ selected_type_label }}
+                    {% else %}
+                        {% trans "All account types" %}
+                    {% endif %}
+                    <span class="text-muted fw-normal">·</span>
+                    {% if current_status == 'inactive' %}
+                        {% trans "Inactive" %}
+                    {% else %}
+                        {% trans "Active" %}
+                    {% endif %}
+                </div>
+                <div class="accounts-summary-meta mt-1">
+                    {% blocktrans count account_count=accounts|length %}{{ account_count }} account{% plural %}{{ account_count }} accounts{% endblocktrans %}
+                </div>
+            </div>
+            <div class="text-md-end text-start text-md-end">
+                <div class="accounts-summary-amount text-body-emphasis">
+                    {{ total_balance_currency }}{{ total_balance|ind_comma:total_balance_currency|translate_digits }}
+                </div>
+                <div class="accounts-summary-meta mt-1">{% trans "Across the currently filtered list" %}</div>
+            </div>
+        </div>
     </div>
 
     {% include 'partials/guide_accounts.html' %}

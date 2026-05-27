@@ -55,9 +55,23 @@ class AccountListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        accounts = context.get('accounts', [])
+        user_currency = getattr(getattr(self.request.user, 'profile', None), 'currency', '₹')
+        total_balance = Decimal('0.00')
+
+        for account in accounts:
+            try:
+                rate = get_exchange_rate(account.currency, user_currency)
+            except Exception:
+                rate = Decimal('1.0')
+            total_balance += Decimal(account.balance) * Decimal(str(rate))
+
         context['account_types'] = Account.ACCOUNT_TYPES
         context['selected_type'] = self.request.GET.get('type', '')
+        context['selected_type_label'] = dict(Account.ACCOUNT_TYPES).get(context['selected_type'], '')
         context['current_status'] = self.request.GET.get('status', 'active')
+        context['total_balance'] = total_balance.quantize(Decimal('0.01'))
+        context['total_balance_currency'] = user_currency
         return context
 
 class AccountCreateView(LoginRequiredMixin, CreateView):
