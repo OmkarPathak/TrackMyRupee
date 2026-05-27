@@ -70,25 +70,6 @@
                         <i class="bi bi-plus-lg me-1"></i> <span class="small">{% trans "Add" %}</span>
                     </a>
                 </div>
-                <form method="get" class="d-none d-md-flex align-items-center gap-2 flex-wrap justify-content-md-end">
-                    <select name="status" class="form-select form-select-sm" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 110px;" onchange="this.form.submit()">
-                        <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
-                        <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
-                    </select>
-
-                    <select name="type" class="form-select form-select-sm" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 130px;" onchange="this.form.submit()">
-                        <option value="">{% trans "All Types" %}</option>
-                        {% for val, label in account_types %}
-                            <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-
-                    {% if selected_type or current_status != 'active' %}
-                    <a href="{% url 'account-list' %}" class="text-decoration-none text-muted d-flex align-items-center" style="font-size: 0.9rem; height: 38px; padding-top: 2px;">
-                        <i class="bi bi-x-circle me-2 text-danger"></i> {% trans "Reset Filters" %}
-                    </a>
-                    {% endif %}
-                </form>
             </div>
         </div>
         <p class="text-muted small mb-3">{% trans "Manage your wallets, bank accounts, and investment portfolios" %}</p>
