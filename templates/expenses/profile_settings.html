@@ -4,7 +4,7 @@
 
 {% block settings_content %}
 <div class="fade-in">
-    <div class="py-3 mb-3">
+    <div class="mb-3">
         <h2 class="h4 mb-0 fw-bold">{% trans "Profile Settings" %}</h2>
     </div>
     
@@ -65,12 +65,14 @@
             </div>
 
             {% if show_year_in_review %}
-            <div class="mb-4 p-3 bg-body-secondary rounded border border-primary border-opacity-25 d-flex align-items-center justify-content-between">
+            <div class="mb-4 p-3 bg-body-secondary rounded border border-primary border-opacity-25 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
                 <div>
                     <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-stars me-2"></i>Year in Review</h6>
                     <p class="small text-muted mb-0">Replay your {{ year_in_review_year }} financial journey any time.</p>
                 </div>
-                <a href="{% url 'year_in_review' year_in_review_year %}" class="btn btn-sm btn-outline-primary rounded-pill fw-bold">View Saved Wrapped</a>
+                <div>
+                    <a href="{% url 'year_in_review' year_in_review_year %}" class="btn btn-sm btn-outline-primary rounded-pill text-nowrap">View Wrapped</a>
+                </div>
             </div>
             {% endif %}
 
