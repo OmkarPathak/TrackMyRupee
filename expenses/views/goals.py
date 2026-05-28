@@ -299,6 +299,10 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         page_obj = paginator.get_page(page_number)
         contributions_page = page_obj.object_list
 
+        remaining_amount = goal.target_amount - goal.current_amount
+        if remaining_amount < Decimal('0.00'):
+            remaining_amount = Decimal('0.00')
+
         all_contributions = goal.contributions.select_related('account').all()
         estimate_data = self._get_estimated_completion(goal, all_contributions)
         trend_data = self._build_trend_data(
@@ -315,6 +319,7 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             'page_obj': page_obj,
             'is_paginated': page_obj.has_other_pages(),
             'paginator': paginator,
+            'remaining_amount': remaining_amount,
             'filtered_total': filtered_total,
             'search_query': search_query,
             'trend_data': trend_data,

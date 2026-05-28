@@ -12,13 +12,44 @@
                     <li class="breadcrumb-item active" aria-current="page">{{ goal.name }}</li>
                 </ol>
             </nav>
-            <div class="d-flex align-items-center gap-2 mb-0">
-                <h1 class="h2 fw-bold mb-0">{{ goal.icon }} {{ goal.name }}</h1>
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-0 flex-wrap flex-md-nowrap">
+                <h1 class="h2 fw-bold mb-0">
+                    <span class="d-none d-md-inline">{{ goal.icon }} </span>{{ goal.name }}
+                </h1>
+                <div class="d-flex align-items-center gap-2 d-md-none ms-auto">
+                    {% if not goal.is_completed and not is_locked %}
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addContributionModal" aria-label="{% trans 'Add Contribution' %}" title="{% trans 'Add Contribution' %}">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    {% elif is_locked %}
+                        <a href="{% url 'pricing' %}" class="btn btn-sm btn-outline-warning" aria-label="{% trans 'Upgrade to Unlock' %}" title="{% trans 'Upgrade to Unlock' %}">
+                            <i class="bi bi-unlock"></i>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-sm btn-outline-primary" aria-label="{% trans 'Edit Goal' %}" title="{% trans 'Edit Goal' %}">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'goal-delete' goal.pk %}" class="btn btn-sm btn-outline-danger" aria-label="{% trans 'Delete Goal' %}" title="{% trans 'Delete Goal' %}">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="d-md-none mt-2">
+                <p class="text-muted mb-0">
+                    {% trans "Target" %}: {{ goal.currency }}{{ goal.target_amount|ind_comma:goal.currency|translate_digits }}
+                    {% if goal.target_date %}
+                        • {% trans "By" %} {{ goal.target_date|date:"d M Y" }}
+                    {% elif estimated_completion_date %}
+                        • {% trans "Estimated" %}: {{ estimated_completion_date|date:"d M Y" }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="d-none d-md-block">
                 {% if goal.is_completed %}
                     <span class="badge bg-success bg-opacity-10 text-success rounded-pill border">{% trans "Completed" %}</span>
                 {% endif %}
             </div>
-            <p class="text-muted mb-0">
+            <p class="text-muted mb-0 d-none d-md-block">
                 {% trans "Target" %}: {{ goal.currency }}{{ goal.target_amount|ind_comma:goal.currency|translate_digits }}
                 {% if goal.target_date %}
                     • {% trans "By" %} {{ goal.target_date|date:"d M Y" }}
@@ -27,7 +58,7 @@
                 {% endif %}
             </p>
         </div>
-        <div class="d-flex gap-2 flex-wrap goal-action-buttons">
+        <div class="d-flex gap-2 flex-wrap goal-action-buttons d-none d-md-flex">
             {% if not goal.is_completed and not is_locked %}
                 <button type="button" class="btn btn-outline-primary fw-bold goal-action-btn goal-action-btn-primary" data-bs-toggle="modal" data-bs-target="#addContributionModal">
                     <i class="bi bi-plus-circle me-1"></i> {% trans "Add Contribution" %}
@@ -52,11 +83,11 @@
                 <h6 class="text-muted small text-uppercase fw-bold mb-3" style="letter-spacing: 1px;">{% trans "Goal Summary" %}</h6>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted">{% trans "Saved" %}</span>
-                    <span class="fw-bold text-primary">{{ goal.currency }}{{ goal.current_amount|ind_comma:goal.currency|translate_digits }}</span>
+                    <span class="fw-bold text-primary summary-amount-smaller">{{ goal.currency }}{{ goal.current_amount|ind_comma:goal.currency|translate_digits }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted">{% trans "Remaining" %}</span>
-                    <span class="fw-bold text-warning-emphasis">{{ goal.currency }}{{ goal.target_amount|add:"-"|add:goal.current_amount|ind_comma:goal.currency|translate_digits }}</span>
+                    <span class="fw-bold text-warning-emphasis summary-amount-smaller">{{ goal.currency }}{{ remaining_amount|ind_comma:goal.currency|translate_digits }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted">{% trans "Progress" %}</span>
@@ -64,7 +95,7 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">{% trans "Avg Daily" %}</span>
-                    <span class="fw-bold">
+                    <span class="fw-bold summary-amount summary-amount-smaller">
                         {% if avg_daily_contribution and avg_daily_contribution > 0 %}
                             {{ goal.currency }}{{ avg_daily_contribution|ind_comma:goal.currency|translate_digits }}
                         {% else %}
@@ -285,24 +316,41 @@
     z-index: 3055;
 }
 
+.summary-amount {
+    font-size: 1.75rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.summary-amount-smaller {
+    font-size: 1.35rem;
+}
+
 @media (max-width: 767.98px) {
-    .goal-action-buttons {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.75rem;
-        width: 100%;
+    .summary-amount {
+        font-size: 1.5rem;
     }
 
-    .goal-action-buttons .goal-action-btn {
-        width: 100%;
+    .summary-amount-smaller {
+        font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .goal-icon-action {
+        width: 40px;
+        height: 40px;
+        padding: 0;
         display: inline-flex;
-        justify-content: center;
         align-items: center;
-        white-space: nowrap;
+        justify-content: center;
+        border-radius: 12px;
+        flex: 0 0 auto;
     }
 
-    .goal-action-buttons .goal-action-btn-primary {
-        grid-column: 1 / -1;
+    .goal-icon-action i {
+        font-size: 1rem;
+        line-height: 1;
     }
 }
 </style>
