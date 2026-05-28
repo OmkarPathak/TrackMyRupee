@@ -1,271 +1,552 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters %}
+{% load i18n digit_filters currency_filters expense_extras %}
 
 {% block content %}
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<style>
-.milestone-badge {
-    transition: transform 0.3s;
-}
-.milestone-badge:hover {
-    transform: scale(1.1);
-}
-.streak-timeline {
-    border-left: 2px solid var(--bs-primary);
-    padding-left: 1.5rem;
-    position: relative;
-    margin-left: 1rem;
-}
-.streak-timeline::before {
-    content: '';
-    position: absolute;
-    left: -6px;
-    top: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--bs-primary);
-}
-.timeline-item {
-    position: relative;
-    margin-bottom: 2rem;
-}
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -1.82rem;
-    top: 5px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #fff;
-    border: 2px solid var(--bs-primary);
-}
-</style>
-
-<div class="container fade-in py-4 max-w-lg mx-auto" style="max-width: 900px;">
-    
-    <div class="mb-4">
-        <a href="{% url 'goal-list' %}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> {% trans "All Goals" %}
-        </a>
+<div class="container fade-in">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'goal-list' %}">{% trans "Goals" %}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ goal.name }}</li>
+                </ol>
+            </nav>
+            <div class="d-flex align-items-center gap-2 mb-0">
+                <h1 class="h2 fw-bold mb-0">{{ goal.icon }} {{ goal.name }}</h1>
+                {% if goal.is_completed %}
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill border">{% trans "Completed" %}</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0">
+                {% trans "Target" %}: {{ goal.currency }}{{ goal.target_amount|ind_comma:goal.currency|translate_digits }}
+                {% if goal.target_date %}
+                    • {% trans "By" %} {{ goal.target_date|date:"d M Y" }}
+                {% elif estimated_completion_date %}
+                    • {% trans "Estimated" %}: {{ estimated_completion_date|date:"d M Y" }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap goal-action-buttons">
+            {% if not goal.is_completed and not is_locked %}
+                <button type="button" class="btn btn-outline-primary fw-bold goal-action-btn goal-action-btn-primary" data-bs-toggle="modal" data-bs-target="#addContributionModal">
+                    <i class="bi bi-plus-circle me-1"></i> {% trans "Add Contribution" %}
+                </button>
+            {% elif is_locked %}
+                <a href="{% url 'pricing' %}" class="btn btn-outline-warning fw-bold goal-action-btn goal-action-btn-primary">
+                    <i class="bi bi-unlock me-1"></i> {% trans "Upgrade to Unlock" %}
+                </a>
+            {% endif %}
+            <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-primary fw-bold goal-action-btn">
+                <i class="bi bi-pencil me-1"></i> {% trans "Edit Goal" %}
+            </a>
+            <a href="{% url 'goal-delete' goal.pk %}" class="btn btn-outline-danger fw-bold goal-action-btn">
+                <i class="bi bi-trash me-1"></i> {% trans "Delete Goal" %}
+            </a>
+        </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Goal Overview Card -->
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4 p-md-5">
-                    
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="display-3 me-4 text-center lh-1">
-                            {{ goal.icon }}
-                        </div>
-                        <div>
-                            <h2 class="fw-bold mb-1">{{ goal.name }}</h2>
-                            <p class="text-muted mb-0">
-                                {% if goal.target_date %}
-                                    <i class="bi bi-flag-fill me-1 text-{{ goal.color }}"></i> Target by {{ goal.target_date|date:"b d, Y" }}
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4 h-100 bg-primary bg-opacity-10">
+                <h6 class="text-muted small text-uppercase fw-bold mb-3" style="letter-spacing: 1px;">{% trans "Goal Summary" %}</h6>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">{% trans "Saved" %}</span>
+                    <span class="fw-bold text-primary">{{ goal.currency }}{{ goal.current_amount|ind_comma:goal.currency|translate_digits }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">{% trans "Remaining" %}</span>
+                    <span class="fw-bold text-warning-emphasis">{{ goal.currency }}{{ goal.target_amount|add:"-"|add:goal.current_amount|ind_comma:goal.currency|translate_digits }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">{% trans "Progress" %}</span>
+                    <span class="fw-bold">{{ goal.progress_percentage|translate_digits }}%</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">{% trans "Avg Daily" %}</span>
+                    <span class="fw-bold">
+                        {% if avg_daily_contribution and avg_daily_contribution > 0 %}
+                            {{ goal.currency }}{{ avg_daily_contribution|ind_comma:goal.currency|translate_digits }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="progress shadow-sm bg-white mb-2" style="height: 14px; border-radius: 7px;">
+                    <div class="progress-bar bg-success goal-progress-bar" role="progressbar" data-progress="{{ goal.progress_percentage }}" aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <p class="small text-muted mb-0">
+                    {% if goal.is_completed %}
+                        {% trans "Completed" %}
+                    {% elif estimated_completion_date %}
+                        {% trans "Estimated completion" %}: {{ estimated_completion_date|date:"d M Y" }}
+                    {% else %}
+                        {% trans "Add more contributions to project completion" %}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-0" style="letter-spacing: 1px;">
+                        {% if trend_data.type == 'monthly' %}{% trans "Savings Trend (Last 12 Months)" %}{% else %}{% trans "Savings Trend (Last 30 Days)" %}{% endif %}
+                    </h6>
+                    {% if estimated_days_left %}
+                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill">
+                            {{ estimated_days_left|translate_digits }} {% trans "days left (est.)" %}
+                        </span>
+                    {% endif %}
+                </div>
+                <div style="height: 220px;">
+                    <canvas id="goalTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if is_locked %}
+    <div class="alert alert-warning border-0 rounded-4 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h6 class="fw-bold mb-1">{% trans "Goal Locked" %}</h6>
+                <p class="mb-0 small">{% trans "This goal exceeds your current plan's limit. Upgrade to resume adding funds." %}</p>
+            </div>
+            <a href="{% url 'pricing' %}" class="btn btn-warning fw-bold">
+                <i class="bi bi-arrow-up-circle-fill me-1"></i> {% trans "Upgrade Now" %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0 fw-bold">{% trans "Contribution History" %}</h5>
+                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{{ contribution_count }} {% trans "Items" %}</span>
+            </div>
+
+            <form method="get" class="d-flex align-items-center gap-2 w-100" style="max-width: 300px;">
+                <div class="input-group input-group-sm rounded-3 overflow-hidden shadow-none border">
+                    <span class="input-group-text bg-body-tertiary border-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control border-0 bg-body-tertiary ps-0" placeholder="{% trans 'Search by account...' %}" value="{{ search_query }}">
+                    {% if search_query %}
+                        <a href="{% url 'goal-detail' goal.pk %}" class="btn btn-link text-muted border-0 d-flex align-items-center px-3" data-bs-toggle="tooltip" title="{% trans 'Clear search' %}">
+                            <i class="bi bi-x-lg small"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        {% if search_query %}
+        <div class="alert bg-primary-subtle border-0 rounded-0 mb-0 py-2 px-4 shadow-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="small fw-bold text-primary-emphasis text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">
+                    <i class="bi bi-filter-left me-1"></i> {% trans "Filtered Results" %}: "{{ search_query }}"
+                </span>
+                <span class="small fw-bold text-success" style="font-size: 0.85rem;">
+                    {% trans "Search Total" %}: {{ goal.currency }}{{ filtered_total|ind_comma:goal.currency|translate_digits }}
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-body-tertiary">
+                    <tr>
+                        <th class="ps-4 border-0">{% trans "Date" %}</th>
+                        <th class="border-0">{% trans "Description" %}</th>
+                        <th class="border-0">{% trans "Type" %}</th>
+                        <th class="text-end border-0">{% trans "Amount" %}</th>
+                        <th class="text-end pe-4 border-0">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contrib in contributions %}
+                    <tr>
+                        <td class="ps-4 text-muted small">{{ contrib.date|date:"d M Y" }}</td>
+                        <td>
+                            <div class="fw-bold">{% trans "Goal Contribution" %}</div>
+                            <div class="small text-muted">
+                                {% if contrib.account %}
+                                    {% trans "From" %}: {{ contrib.account.name }}
                                 {% else %}
-                                    {% trans "Ongoing Goal" %}
+                                    {% trans "No source account" %}
                                 {% endif %}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Milestone Badges Gamification -->
-                    <div class="d-flex gap-2 mb-4 flex-wrap">
-                        <span class="badge bg-secondary milestone-badge py-2 px-3 shadow-sm" title="Created the goal">🌱 Started</span>
-                        {% if goal.progress_percentage >= 25 %}
-                            <span class="badge bg-info milestone-badge py-2 px-3 shadow-sm text-dark">📈 25% Reached</span>
-                        {% endif %}
-                        {% if goal.progress_percentage >= 50 %}
-                            <span class="badge bg-warning milestone-badge py-2 px-3 shadow-sm text-dark">🔥 Halfway There</span>
-                        {% endif %}
-                        {% if goal.progress_percentage >= 75 %}
-                            <span class="badge bg-primary milestone-badge py-2 px-3 shadow-sm">🚀 Almost Done</span>
-                        {% endif %}
-                        {% if goal.is_completed %}
-                            <span class="badge bg-success milestone-badge py-2 px-3 shadow-sm">🏆 Goal Crushed!</span>
-                        {% endif %}
-                    </div>
-
-                    <div class="p-4 bg-body-tertiary rounded-4 mb-4">
-                        <div class="d-flex justify-content-between align-items-end mb-3">
-                            <div>
-                                <h2 class="display-5 fw-bold text-{{ goal.color }} mb-0">{{ goal.progress_percentage|translate_digits }}%</h2>
                             </div>
-                            <div class="text-end">
-                                <p class="text-muted small fw-bold text-uppercase tracking-wider mb-1">{% trans "Target Amount" %}</p>
-                                <h4 class="fw-bold mb-0">{{ goal.currency }}{{ goal.target_amount|translate_digits }}</h4>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">{% trans "Savings" %}</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="fw-bold text-success">
+                                +{{ goal.currency }}{{ contrib.amount|ind_comma:goal.currency|translate_digits }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="dropdown">
+                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
+                                    <i class="bi bi-three-dots-vertical fs-6"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                                    {% if contrib.account %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'account-detail' contrib.account.pk %}"><i class="bi bi-eye me-2"></i> {% trans "View Account" %}</a></li>
+                                    {% endif %}
+                                    <li><a class="dropdown-item py-2 px-3" href="{% url 'goal-contribution-edit' contrib.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                    <li>
+                                        <a class="dropdown-item py-2 px-3 text-danger cursor-pointer"
+                                           href="#"
+                                           data-bs-toggle="modal"
+                                           data-bs-target="#deleteModal"
+                                           data-url="{% url 'goal-contribution-delete' contrib.pk %}?next={{ request.get_full_path|urlencode }}"
+                                           data-message="{% trans 'Are you sure you want to delete this contribution? The amount will be refunded to your account balance.' %}">
+                                            <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
-                        </div>
-
-                        <div class="progress shadow-sm bg-white" style="height: 20px; border-radius: 10px;">
-                            <div class="progress-bar progress-bar-striped {% if not goal.is_completed %}progress-bar-animated{% endif %} bg-{{ goal.color }}" role="progressbar" 
-                                 style="width: {{ goal.progress_percentage }}%;" aria-valuenow="{{ goal.progress_percentage|stringformat:'f'|translate_digits }}" aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-                        <div class="mt-3 text-center">
-                            <p class="mb-0 fw-bold">{% trans "Currently Saved:" %} <span class="text-success">{{ goal.currency }}{{ goal.current_amount|translate_digits }}</span></p>
-                            {% if not goal.is_completed %}
-                            <p class="text-muted small mt-1">{% trans "Just" %} <strong>{{ goal.currency }}<span class="translate-digits">{{ goal.target_amount|add:"-"|add:goal.current_amount }}</span></strong> {% trans "left to go!" %}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
-
-        <!-- Add Funds / Timeline Column -->
-        <div class="col-lg-5">
-            {% if not goal.is_completed %}
-            <div class="card border-0 shadow-sm border-top border-4 border-{{ goal.color }} mb-4">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-wallet2 me-2 text-{{ goal.color }}"></i>{% trans "Deposit Funds" %}</h5>
-                    
-                    {% if is_locked %}
-                        <div class="p-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded-4 text-center">
-                            <div class="mb-3 d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-25 rounded-circle" style="width: 50px; height: 50px;">
-                                <i class="bi bi-lock-fill fs-3 text-warning"></i>
-                            </div>
-                            <h6 class="fw-bold mb-2">{% trans "Goal Locked" %}</h6>
-                            <p class="small text-muted mb-3">{% trans "This goal exceeds your current plan's limit. Upgrade to resume adding funds." %}</p>
-                            <a href="{% url 'pricing' %}" class="btn btn-warning w-100 fw-bold shadow-sm py-2">
-                                <i class="bi bi-arrow-up-circle-fill me-1"></i> {% trans "Upgrade Now" %}
-                            </a>
-                        </div>
-                    {% else %}
-                        <form method="post" action="{% url 'goal-detail' goal.pk %}">
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <label class="form-label text-muted small fw-bold">{% trans "Amount" %}</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light text-muted border-end-0">{{ goal.currency }}</span>
-                                    {{ form.amount }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="empty-state-container">
+                        <td colspan="5" class="text-center py-5">
+                            <div class="py-4">
+                                <div class="mb-4 text-muted">
+                                    {% include 'illustrations/empty_accounts.svg' %}
                                 </div>
-                                {{ form.amount.errors }}
+                                <h5 class="fw-bold text-muted">
+                                    {% if search_query %}
+                                        {% trans "No results found for" %} "{{ search_query }}"
+                                    {% else %}
+                                        {% trans "No Contributions Found" %}
+                                    {% endif %}
+                                </h5>
+                                <p class="text-muted mb-0">
+                                    {% if search_query %}
+                                        {% trans "Try adjusting your search terms or clearing the filter." %}
+                                    {% else %}
+                                        {% trans "There are no contributions recorded for this goal yet." %}
+                                    {% endif %}
+                                </p>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label text-muted small fw-bold">{% trans "Account" %}</label>
-                                {{ form.account }}
-                                {{ form.account.errors }}
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label text-muted small fw-bold">{% trans "Date" %}</label>
-                                {{ form.date }}
-                                {{ form.date.errors }}
-                            </div>
-                            <button type="submit" class="btn btn-{{ goal.color }} w-100 fw-bold shadow-sm py-2">
-                                <i class="bi bi-plus-circle-fill me-1"></i> {% trans "Add to Savings" %}
-                            </button>
-                        </form>
-                    {% endif %}
-                </div>
-            </div>
-            {% else %}
-            <div class="card border-0 shadow-sm bg-success text-white mb-4 text-center">
-                <div class="card-body p-4 p-md-5">
-                    <i class="bi bi-trophy-fill display-1 mb-3"></i>
-                    <h3 class="fw-bold">{% trans "Goal Conquered!" %}</h3>
-                    <p class="mb-0 opactiy-75">{% trans "You have successfully reached your savings target. Amazing work!" %}</p>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-4">{% trans "Contribution History" %}</h5>
-                    
-                    {% if contributions %}
-                    <div class="streak-timeline">
-                        {% for contrib in contributions %}
-                        <div class="timeline-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <strong class="text-success">+{{ goal.currency }}{{ contrib.amount|translate_digits }}</strong>
-                                <div class="d-flex align-items-center gap-2">
-                                    <small class="text-muted">{{ contrib.date|date:"b d, Y" }}</small>
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="bi bi-three-dots-vertical" style="font-size: 0.8rem;"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 small">
-                                            <li><a class="dropdown-item py-1 px-3" href="{% url 'goal-contribution-edit' contrib.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
-                                            <li><a class="dropdown-item py-1 px-3 text-danger" href="{% url 'goal-contribution-delete' contrib.pk %}"><i class="bi bi-trash me-2"></i> {% trans "Delete" %}</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="bi bi-inbox text-muted fs-1 opacity-50 mb-2 d-block"></i>
-                        <p class="text-muted small">{% trans "No contributions yet." %}</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% if is_paginated %}
+        <div class="card-footer bg-transparent py-3 border-top">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link shadow-none" href="?{% url_replace page=page_obj.previous_page_number %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link bg-transparent border-0 text-muted">
+                            {% trans "Page" %} {{ page_obj.number|translate_digits }} {% trans "of" %} {{ page_obj.paginator.num_pages|translate_digits }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link shadow-none" href="?{% url_replace page=page_obj.next_page_number %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-{% if request.session.trigger_confetti or goal.is_completed %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    {% if request.session.trigger_confetti %}
-    // Fire confetti for new contribution
-    var duration = 3 * 1000;
-    var animationEnd = Date.now() + duration;
-    var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+<style>
+.empty-state-container svg {
+    max-width: 160px;
+    max-height: 140px;
+    height: auto;
+}
 
-    function randomInRange(min, max) {
-      return Math.random() * (max - min) + min;
+#addContributionModal {
+    z-index: 3060;
+}
+
+.modal-backdrop.add-contribution-backdrop {
+    z-index: 3055;
+}
+
+@media (max-width: 767.98px) {
+    .goal-action-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        width: 100%;
     }
 
-    var interval = setInterval(function() {
-      var timeLeft = animationEnd - Date.now();
+    .goal-action-buttons .goal-action-btn {
+        width: 100%;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        white-space: nowrap;
+    }
 
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
+    .goal-action-buttons .goal-action-btn-primary {
+        grid-column: 1 / -1;
+    }
+}
+</style>
 
-      var particleCount = 50 * (timeLeft / duration);
-      confetti(Object.assign({}, defaults, { particleCount,
-        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
-      }));
-      confetti(Object.assign({}, defaults, { particleCount,
-        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
-      }));
-    }, 250);
-    
-    // Clear the session flag so it doesn't fire on refresh
-    fetch('{% url "goal-detail" goal.pk %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({'clear_confetti': true})
-    }).catch(e => console.log(e));
-    {% endif %}
+{{ trend_data.labels|json_script:"trend-labels" }}
+{{ trend_data.values|json_script:"trend-values" }}
+{{ trend_data.projection_values|json_script:"trend-projection-values" }}
+{{ request.session.trigger_confetti|yesno:"true,false"|json_script:"goal-confetti-flag" }}
+{{ goal.is_completed|yesno:"true,false"|json_script:"goal-completed-flag" }}
+{{ form.errors|length|json_script:"goal-form-errors-count" }}
 
-    // Trigger specific confetti burst if newly completed
-    {% if goal.is_completed and request.session.trigger_confetti %}
-    setTimeout(() => {
-        confetti({
-            particleCount: 200,
-            spread: 160,
-            origin: { y: 0.6 },
-            colors: ['#1D9E75', '#D4831A', '#378ADD']
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const shouldConfetti = JSON.parse(document.getElementById('goal-confetti-flag').textContent);
+    const goalCompleted = JSON.parse(document.getElementById('goal-completed-flag').textContent);
+    const formErrorsCount = JSON.parse(document.getElementById('goal-form-errors-count').textContent);
+    const hasFormErrors = formErrorsCount > 0;
+    const progressBar = document.querySelector('.goal-progress-bar');
+    const modalEl = document.getElementById('addContributionModal');
+
+    if (modalEl && modalEl.parentElement !== document.body) {
+        document.body.appendChild(modalEl);
+    }
+
+    if (modalEl) {
+        modalEl.addEventListener('shown.bs.modal', function() {
+            const backdrop = document.querySelector('.modal-backdrop.show');
+            if (backdrop) {
+                backdrop.classList.add('add-contribution-backdrop');
+            }
         });
-    }, 500);
-    {% endif %}
+    }
+
+    if (progressBar) {
+        const progressValue = parseFloat(progressBar.dataset.progress || '0');
+        progressBar.style.width = `${Math.max(0, Math.min(progressValue, 100))}%`;
+    }
+
+        if (shouldConfetti) {
+                var duration = 3 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+                function randomInRange(min, max) {
+                    return Math.random() * (max - min) + min;
+                }
+
+                var interval = setInterval(function() {
+                    var timeLeft = animationEnd - Date.now();
+
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
+
+                    var particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount,
+                        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                    }));
+                    confetti(Object.assign({}, defaults, { particleCount,
+                        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                    }));
+                }, 250);
+
+                fetch('{% url "goal-detail" goal.pk %}', {
+                        method: 'POST',
+                        headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({'clear_confetti': true})
+                }).catch(function(e) { console.log(e); });
+        }
+
+        if (goalCompleted && shouldConfetti) {
+                setTimeout(function() {
+                        confetti({
+                                particleCount: 200,
+                                spread: 160,
+                                origin: { y: 0.6 },
+                                colors: ['#1D9E75', '#D4831A', '#378ADD']
+                        });
+                }, 500);
+        }
+
+    if (hasFormErrors) {
+        if (modalEl && window.bootstrap && window.bootstrap.Modal) {
+            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+    }
 });
 </script>
-{% endif %}
 
+{% if not goal.is_completed and not is_locked %}
+<div class="modal fade" id="addContributionModal" tabindex="-1" aria-labelledby="addContributionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="addContributionModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>{% trans "Add Contribution" %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form method="post" action="{% url 'goal-detail' goal.pk %}" class="row g-3">
+                    {% csrf_token %}
+                    <div class="col-12">
+                        <label class="form-label text-muted small fw-bold">{% trans "Amount" %}</label>
+                        <div class="input-group">
+                            <span class="input-group-text">{{ goal.currency }}</span>
+                            {{ form.amount }}
+                        </div>
+                        {{ form.amount.errors }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small fw-bold">{% trans "Account" %}</label>
+                        {{ form.account }}
+                        {{ form.account.errors }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small fw-bold">{% trans "Date" %}</label>
+                        {{ form.date }}
+                        {{ form.date.errors }}
+                    </div>
+                    <div class="col-12 d-grid mt-2">
+                        <button type="submit" class="btn btn-primary fw-bold">
+                            <i class="bi bi-check2-circle me-1"></i> {% trans "Save Contribution" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('goalTrendChart');
+    if (!ctx) return;
+
+    const labels = JSON.parse(document.getElementById('trend-labels').textContent);
+    const dataValues = JSON.parse(document.getElementById('trend-values').textContent);
+    const projectionValues = JSON.parse(document.getElementById('trend-projection-values').textContent);
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+    const datasets = [{
+        label: '{% trans "Saved" %}',
+        data: dataValues,
+        fill: true,
+        borderColor: '#1D9E75',
+        backgroundColor: 'rgba(29, 158, 117, 0.1)',
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        borderWidth: 2
+    }];
+
+    if (projectionValues && projectionValues.length) {
+        datasets.push({
+            label: '{% trans "Projection" %}',
+            data: projectionValues,
+            fill: false,
+            borderColor: '#378ADD',
+            borderDash: [6, 4],
+            tension: 0.25,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 2
+        });
+    }
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 6,
+                        boxHeight: 6,
+                        padding: 12,
+                        color: isDark ? '#adb5bd' : '#6c757d',
+                        generateLabels: function(chart) {
+                            return Chart.defaults.plugins.legend.labels.generateLabels(chart).map(function(label) {
+                                const dataset = chart.data.datasets[label.datasetIndex];
+                                const markerColor = dataset.borderColor || label.strokeStyle || label.fillStyle;
+                                return Object.assign({}, label, {
+                                    pointStyle: 'circle',
+                                    fillStyle: markerColor,
+                                    strokeStyle: markerColor,
+                                    lineWidth: 0
+                                });
+                            });
+                        }
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) {
+                                label += '{{ goal.currency }}' + context.parsed.y.toLocaleString();
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: { display: false },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 6,
+                        color: isDark ? '#adb5bd' : '#6c757d',
+                        font: { size: 10 }
+                    }
+                },
+                y: {
+                    display: false,
+                    grid: { display: false }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

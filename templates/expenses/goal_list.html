@@ -106,7 +106,7 @@
                         </div>
                         {% else %}
                         <a href="{% url 'goal-detail' goal.pk %}" class="btn btn-{{ goal.color }} btn-sm px-3 fw-bold rounded-3 shadow-sm" onclick="window.showLoader()">
-                            <i class="bi bi-plus-circle me-1"></i>{% trans "Add Funds" %}
+                            <i class="bi bi-eye me-1"></i>{% trans "View Goal" %}
                         </a>
                         {% endif %}
                         <div class="d-flex gap-2">

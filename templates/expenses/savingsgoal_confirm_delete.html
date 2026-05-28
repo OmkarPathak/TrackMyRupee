@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters currency_filters %}
+
+{% block content %}
+<div class="container fade-in py-5" style="max-width: 680px;">
+    <div class="card border-0 shadow-sm border-top border-4 border-danger">
+        <div class="card-body p-4 p-md-5 text-center">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                <i class="bi bi-trash fs-1"></i>
+            </div>
+
+            <h2 class="fw-bold mb-3 text-danger">{% trans "Delete Goal?" %}</h2>
+            <p class="text-muted mb-4 px-2">
+                {% blocktrans with goal_name=object.name %}Are you sure you want to delete "{{ goal_name }}"? This removes the goal tracker and contribution history. Your account balances remain unchanged.{% endblocktrans %}
+            </p>
+
+            <div class="bg-body-tertiary rounded-4 p-4 mb-4 text-start">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Goal" %}</span>
+                    <span class="fw-bold">{{ object.name }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Saved" %}</span>
+                    <span class="fw-bold text-success">{{ object.currency }}{{ object.current_amount|ind_comma:object.currency|translate_digits }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{% trans "Target" %}</span>
+                    <span class="fw-bold">{{ object.currency }}{{ object.target_amount|ind_comma:object.currency|translate_digits }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">{% trans "Target Date" %}</span>
+                    <span class="fw-bold">
+                        {% if object.target_date %}
+                            {{ object.target_date|date:"d M Y" }}
+                        {% else %}
+                            {% trans "Not set" %}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold py-3 shadow-sm">
+                        {% trans "Yes, Delete Goal" %}
+                    </button>
+                    <a href="{% url 'goal-detail' object.pk %}" class="btn btn-outline-secondary fw-bold py-2">
+                        {% trans "Cancel" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
