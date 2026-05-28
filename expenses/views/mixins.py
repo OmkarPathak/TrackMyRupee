@@ -2,6 +2,8 @@ import logging
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 
+from django.db.models import Sum
+
 from ..models import Expense, Income, LoanRepayment, RecurringTransaction, Transfer, UserProfile
 from ..services import LoanService
 from ..utils import get_exchange_rate
@@ -33,11 +35,24 @@ def process_user_recurring_transactions(user):
         recurring_txs = recurring_txs[:limit]
 
     updates_needed = []
+    loan_principal_paid_map = {}
     
     try:
         base_currency = user.profile.currency
     except UserProfile.DoesNotExist:
         return
+
+    loan_ids = [rt.loan_id for rt in recurring_txs if rt.transaction_type == 'LOAN' and rt.loan_id]
+    if loan_ids:
+        repayment_totals = (
+            LoanRepayment.objects.filter(loan_id__in=loan_ids)
+            .values('loan_id')
+            .annotate(total_principal=Sum('principal_portion'))
+        )
+        loan_principal_paid_map = {
+            row['loan_id']: Decimal(str(row['total_principal'] or 0))
+            for row in repayment_totals
+        }
 
     for rt in recurring_txs:
         if not rt.last_processed_date:
@@ -103,8 +118,8 @@ def process_user_recurring_transactions(user):
 
             elif rt.transaction_type == 'LOAN':
                 if rt.loan and rt.account:
-                    summary = LoanService.get_loan_summary(rt.loan)
-                    remaining_principal = Decimal(str(summary['remaining_principal']))
+                    principal_paid = loan_principal_paid_map.get(rt.loan_id, Decimal('0.00'))
+                    remaining_principal = (Decimal(str(rt.loan.initial_principal)) - principal_paid).quantize(Decimal('0.01'))
                     if remaining_principal <= 0:
                         posted_successfully = True
                     else:
@@ -148,6 +163,7 @@ def process_user_recurring_transactions(user):
                                     principal_portion=principal_payment,
                                     interest_portion=interest_payment,
                                 )
+                                loan_principal_paid_map[rt.loan_id] = principal_paid + principal_payment
                                 posted_successfully = True
                             except Exception as exc:
                                 logger.warning("Recurring loan repayment posting failed", exc_info=exc)

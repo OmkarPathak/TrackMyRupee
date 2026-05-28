@@ -11,8 +11,10 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.db import connection
 from django.db import IntegrityError
 from django.test import Client, TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from expenses.models import (
@@ -20,6 +22,8 @@ from expenses.models import (
     Category,
     Expense,
     Income,
+    Loan,
+    LoanInterestRate,
     RecurringTransaction,
     Transfer,
 )
@@ -677,6 +681,46 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         # It should only have processed the first 'limit' transactions
         expenses_count = Expense.objects.filter(user=self.user, description__contains="FREERT_").count()
         self.assertEqual(expenses_count, limit)
+
+    def test_dashboard_recurring_loans_do_not_repeat_principal_sum_queries(self):
+        today = date.today()
+
+        for index in range(4):
+            loan = Loan.objects.create(
+                user=self.user,
+                name=f"Loan {index}",
+                loan_type="PERSONAL",
+                initial_principal=Decimal("1000.00"),
+                duration_months=12,
+                start_date=today,
+                currency="₹",
+            )
+            LoanInterestRate.objects.create(
+                loan=loan,
+                interest_rate=Decimal("999.99"),
+                effective_date=today,
+            )
+            RecurringTransaction.objects.create(
+                user=self.user,
+                transaction_type="LOAN",
+                loan=loan,
+                account=self.bank,
+                amount=Decimal("1.00"),
+                description=f"Loan EMI {index}",
+                frequency="MONTHLY",
+                start_date=today - timedelta(days=30),
+            )
+
+        with CaptureQueriesContext(connection) as queries:
+            process_user_recurring_transactions(self.user)
+
+        principal_sum_queries = [
+            query for query in queries.captured_queries
+            if 'FROM "expenses_loanrepayment"' in query.get('sql', '')
+            and 'SUM("expenses_loanrepayment"."principal_portion")' in query.get('sql', '')
+            and 'loan_id' in query.get('sql', '')
+        ]
+        self.assertLessEqual(len(principal_sum_queries), 1)
 
 
 # ===========================================================================

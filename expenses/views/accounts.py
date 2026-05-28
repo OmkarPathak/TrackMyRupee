@@ -36,7 +36,11 @@ class AccountListView(LoginRequiredMixin, ListView):
         is_active = status == 'active'
         
         # Order by created_at to ensure consistent locking of 'newer' accounts
-        queryset = list(Account.objects.filter(user=self.request.user, is_active=is_active).order_by('created_at', 'id'))
+        queryset = list(
+            Account.objects.select_related('user')
+            .filter(user=self.request.user, is_active=is_active)
+            .order_by('created_at', 'id')
+        )
         
         account_type = self.request.GET.get('type')
         if account_type:

@@ -4,6 +4,8 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.test.utils import CaptureQueriesContext
+from django.db import connection
 
 from expenses.models import Account, Category, Expense, Income, JournalEntry, Transfer
 
@@ -162,6 +164,25 @@ class AccountTransferTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Account.objects.filter(name='Updated Wallet', is_active=True).exists())
         self.assertTrue(Account.objects.filter(name='Updated Wallet', is_active=False).exists())
+
+    def test_account_list_does_not_n_plus_one_auth_user_queries(self):
+        for index in range(5):
+            Account.objects.create(
+                user=self.user,
+                name=f'Extra {index}',
+                account_type='BANK',
+                balance=Decimal('10.00'),
+            )
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(reverse('account-list'))
+
+        self.assertEqual(response.status_code, 200)
+        auth_user_queries = [
+            query for query in queries.captured_queries
+            if 'FROM "auth_user"' in query.get('sql', '')
+        ]
+        self.assertLessEqual(len(auth_user_queries), 1)
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
     def test_account_balance_edit_creates_adjustment_entry(self):
