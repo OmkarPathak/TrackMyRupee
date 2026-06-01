@@ -24,6 +24,7 @@ from expenses.models import (
     Income,
     Loan,
     LoanInterestRate,
+    Notification,
     RecurringTransaction,
     Transfer,
 )
@@ -1066,6 +1067,50 @@ class DashboardMoMChangeTest(_BaseTestCase):
         self.assertAlmostEqual(float(pmd["income"]), 8000.0, places=2)
         self.assertAlmostEqual(pmd["income_pct"], 25.0, places=1)
         self.assertAlmostEqual(pmd["expense_pct"], -20.0, places=1)
+
+
+class DashboardRecurringNudgeTest(_BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = Client()
+        self.client.login(username="testuser", password="password")
+
+    def test_home_does_not_nudge_existing_recurring_expense_again(self):
+        today = date.today()
+        RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='EXPENSE',
+            amount=Decimal('999.00'),
+            description='Airtel Black bill',
+            category='Bills',
+            payment_method='UPI',
+            account=self.bank,
+            frequency='MONTHLY',
+            start_date=today - timedelta(days=90),
+            is_active=True,
+        )
+
+        for offset in (0, 30, 60):
+            Expense.objects.create(
+                user=self.user,
+                date=today - timedelta(days=offset),
+                amount=Decimal('999.00'),
+                description='Airtel Black bill (Recurring)',
+                category='Bills',
+                payment_method='UPI',
+                currency='₹',
+                account=self.bank,
+            )
+
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            Notification.objects.filter(
+                user=self.user,
+                title='Automate Repeat Bills?'
+            ).exists()
+        )
 
 
 # ===========================================================================

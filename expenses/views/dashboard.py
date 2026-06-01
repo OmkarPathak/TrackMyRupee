@@ -2076,13 +2076,25 @@ def home_view(request):
         )
     
     # 3. Potential Recurring Nudge: Looking for patterns
+    recurring_suffix = ' (Recurring)'
+
+    def normalize_recurring_description(value):
+        normalized = (value or '').strip().lower()
+        if normalized.endswith(recurring_suffix.lower()):
+            normalized = normalized[:-len(recurring_suffix)].rstrip()
+        return normalized
+
     three_months_ago = now - timedelta(days=90)
     repeating_expenses = Expense.objects.filter(
         user=request.user, 
         date__gte=three_months_ago
     ).values('description', 'amount').annotate(
         count=Count('id')
-    ).filter(count__gte=3).exclude(description__in=['', 'Miscellaneous', 'Other']).order_by('-count')
+    ).filter(count__gte=3).exclude(
+        description__in=['', 'Miscellaneous', 'Other']
+    ).exclude(
+        description__iendswith=recurring_suffix
+    ).order_by('-count')
     
     top_repeat = None
     if repeating_expenses.exists():
@@ -2092,10 +2104,10 @@ def home_view(request):
         ).values_list('description', flat=True))
         
         # Normalize for comparison
-        active_recurring_desc_norm = {d.strip().lower() for d in active_recurring_desc}
+        active_recurring_desc_norm = {normalize_recurring_description(d) for d in active_recurring_desc}
         
         for repeat in repeating_expenses[:10]: # Check top 10 candidates
-            desc_norm = repeat['description'].strip().lower()
+            desc_norm = normalize_recurring_description(repeat['description'])
             if desc_norm not in active_recurring_desc_norm:
                 top_repeat = repeat
                 break
