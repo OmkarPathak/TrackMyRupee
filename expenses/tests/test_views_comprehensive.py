@@ -7,7 +7,10 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.db import connection
 from django.test import Client, TestCase
+from django.test.utils import CaptureQueriesContext
+from django.test import override_settings
 from django.urls import reverse
 
 from expenses.models import (
@@ -164,6 +167,25 @@ class AccountListViewTest(BaseComprehensiveTest):
         """Test that context contains summary information."""
         response = self.client.get(reverse('account-list'))
         self.assertIn('total_balance', response.context)
+
+    @override_settings(LEDGER_READ_ENABLED=True)
+    def test_account_list_uses_single_opening_balance_lookup(self):
+        Account.objects.create(
+            user=self.user,
+            name='Third Account',
+            account_type='BANK',
+            is_active=True,
+        )
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(reverse('account-list'))
+
+        self.assertEqual(response.status_code, 200)
+        opening_lookup_queries = [
+            query['sql'] for query in queries.captured_queries
+            if 'expenses_journalentry' in query['sql'] and 'opening_account_id' in query['sql']
+        ]
+        self.assertEqual(len(opening_lookup_queries), 1)
 
 
 class AccountCreateViewTest(BaseComprehensiveTest):

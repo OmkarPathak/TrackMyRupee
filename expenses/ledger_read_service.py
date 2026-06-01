@@ -60,6 +60,68 @@ class LedgerReadService:
         return (line.amount * rate).quantize(Decimal("0.01"))
 
     @classmethod
+    def _get_opening_account_ids(cls, user):
+        opening_account_ids = set(
+            JournalEntry.objects.filter(
+                user=user,
+                source_type="ADJUSTMENT",
+                status="POSTED",
+                metadata__has_key="opening_account_id",
+            ).values_list("metadata__opening_account_id", flat=True)
+        )
+        return {int(value) for value in opening_account_ids if value is not None}
+
+    @classmethod
+    def get_account_balances(cls, accounts):
+        accounts = list(accounts)
+        if not accounts:
+            return {}
+
+        user = accounts[0].user
+        if not cls.is_enabled(user):
+            return {account.id: account.balance for account in accounts}
+
+        account_ids = [account.id for account in accounts]
+        account_map = {account.id: account for account in accounts}
+        lines = JournalLine.objects.filter(
+            account_ref_id__in=account_ids,
+            journal_entry__status="POSTED",
+        ).only("account_ref_id", "direction", "amount", "currency")
+
+        lines_by_account = {account_id: [] for account_id in account_ids}
+        for line in lines:
+            lines_by_account[line.account_ref_id].append(line)
+
+        opening_account_ids = cls._get_opening_account_ids(user)
+        balances = {}
+
+        for account_id in account_ids:
+            account = account_map[account_id]
+            debit = Decimal("0.00")
+            credit = Decimal("0.00")
+            for line in lines_by_account[account_id]:
+                converted = cls._line_amount_in_account_currency(line, account)
+                if line.direction == "DEBIT":
+                    debit += converted
+                else:
+                    credit += converted
+
+            ledger_delta = (debit - credit).quantize(Decimal("0.01"))
+            has_opening_entry = account_id in opening_account_ids
+            selected_balance = ledger_delta if has_opening_entry else account.balance
+
+            cls._log_comparison(
+                account=account,
+                selected_balance=selected_balance,
+                ledger_delta=ledger_delta,
+                used_fallback=not has_opening_entry,
+                has_opening_entry=has_opening_entry,
+            )
+            balances[account_id] = selected_balance
+
+        return balances
+
+    @classmethod
     def get_account_ledger_delta(cls, account):
         lines = JournalLine.objects.filter(
             account_ref=account,
@@ -84,34 +146,7 @@ class LedgerReadService:
 
         # Until opening balances are explicitly journaled during backfill,
         # fallback to model balance to avoid regressions for existing accounts.
-        has_opening_entry = JournalEntry.objects.filter(
-            user=account.user,
-            source_type="ADJUSTMENT",
-            metadata__opening_account_id=account.id,
-            status="POSTED",
-        ).exists()
-
-        ledger_delta = cls.get_account_ledger_delta(account)
-
-        if not has_opening_entry:
-            cls._log_comparison(
-                account=account,
-                selected_balance=account.balance,
-                ledger_delta=ledger_delta,
-                used_fallback=True,
-                has_opening_entry=False,
-            )
-            return account.balance
-
-        selected = ledger_delta.quantize(Decimal("0.01"))
-        cls._log_comparison(
-            account=account,
-            selected_balance=selected,
-            ledger_delta=ledger_delta,
-            used_fallback=False,
-            has_opening_entry=True,
-        )
-        return selected
+        return cls.get_account_balances([account]).get(account.id, account.balance)
 
     @classmethod
     def get_net_worth(cls, user):
@@ -160,16 +195,7 @@ class LedgerReadService:
             lines_by_account[line.account_ref_id].append(line)
 
         # 1 query: opening entry account IDs for this user
-        opening_account_ids = set(
-            JournalEntry.objects.filter(
-                user=user,
-                source_type="ADJUSTMENT",
-                status="POSTED",
-                metadata__has_key="opening_account_id",
-            ).values_list("metadata__opening_account_id", flat=True)
-        )
-        # values come back as strings from JSONField key lookup
-        opening_account_ids = {int(v) for v in opening_account_ids if v is not None}
+        opening_account_ids = cls._get_opening_account_ids(user)
 
         net_worth = Decimal("0.00")
         account_base_balances = {}

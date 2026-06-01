@@ -63,13 +63,17 @@ class AccountListView(LoginRequiredMixin, ListView):
         user_currency = getattr(getattr(self.request.user, 'profile', None), 'currency', '₹')
         total_balance = Decimal('0.00')
         current_status = self.request.GET.get('status', 'active')
+        display_balances = {}
+
+        if current_status == 'active':
+            try:
+                display_balances = LedgerReadService.get_account_balances(accounts)
+            except Exception:
+                display_balances = {}
 
         for account in accounts:
             if current_status == 'active':
-                try:
-                    account.display_balance = LedgerReadService.get_account_balance(account)
-                except Exception:
-                    account.display_balance = account.balance
+                account.display_balance = display_balances.get(account.id, account.balance)
             else:
                 account.display_balance = account.balance
 
