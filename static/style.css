@@ -2223,6 +2223,17 @@ a:hover {
   flex-shrink: 0;
 }
 
+.signed-amount {
+  white-space: nowrap;
+}
+
+.amount-expense,
+.amount-income,
+.amount-transfer,
+.amount-loan {
+  white-space: nowrap;
+}
+
 .text-negative {
   color: #ae2012 !important;
 }

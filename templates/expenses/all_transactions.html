@@ -282,7 +282,7 @@
                                 {% endif %}
                             </td>
                             <td class="small text-muted">{{ tx.acc }}</td>
-                            <td class="text-end fw-bold amount-{{ tx.type|lower }}">
+                            <td class="text-end fw-bold amount-{{ tx.type|lower }} signed-amount">
                                 {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
                                 {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
                             </td>
@@ -338,7 +338,7 @@
                                         <div class="text-muted" style="font-size: 0.7rem; opacity: 0.6;">{{ tx.acc|truncatechars:40 }}</div>
                                     </div>
                                     <div class="text-end d-flex align-items-center gap-2">
-                                        <div class="fw-bold fs-5 amount-{{ tx.type|lower }}">
+                                        <div class="fw-bold fs-5 amount-{{ tx.type|lower }} signed-amount">
                                             {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
                                             {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
                                         </div>
@@ -400,7 +400,7 @@
                                     <div class="text-muted" style="font-size: 0.65rem;">{{ tx.acc|truncatechars:40 }}</div>
                                 </div>
                                 <div class="text-end d-flex align-items-center gap-2">
-                                    <div class="fw-bold amount-{{ tx.type|lower }}">
+                                    <div class="fw-bold amount-{{ tx.type|lower }} signed-amount">
                                         {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
                                         {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
                                     </div>

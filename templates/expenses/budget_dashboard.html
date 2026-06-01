@@ -124,7 +124,7 @@
                             </div>
                             <div class="d-flex justify-content-between mt-2 small">
                                 <span class="text-muted">{% blocktrans with limit=data.limit|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}Limit: {{ currency }}{{ limit }}{% endblocktrans %}</span>
-                                <span class="{% if data.spent > data.limit %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                <span class="{% if data.spent > data.limit %}text-danger fw-bold signed-amount{% else %}text-muted{% endif %}">
                                     {% if data.spent > data.limit %}
                                         +{{ currency_symbol }}{{ data.over_budget|compact_amount:currency_symbol|translate_digits }}
                                     {% else %}

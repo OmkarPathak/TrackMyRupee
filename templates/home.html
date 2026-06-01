@@ -1386,7 +1386,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                   data-bs-toggle="tooltip" title="{% trans 'Projected 3-month growth based on recent savings' %}">
                                 <i class="bi bi-magic me-1"></i>
                                 {% trans "3M GOAL" %}: 
-                                {% if projected_3m_growth > 0 %}+{% endif %}{{ currency_symbol }}{{ projected_3m_growth|compact_amount:currency_symbol|translate_digits }}
+                                <span class="signed-amount">{% if projected_3m_growth > 0 %}+{% endif %}{{ currency_symbol }}{{ projected_3m_growth|compact_amount:currency_symbol|translate_digits }}</span>
                             </span>
                             {% endif %}
                         </div>
@@ -1980,7 +1980,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         
                         <div class="text-end flex-shrink-0 me-2">
-                            <span class="d-block fw-bold fs-6 {% if item.transaction_type == 'INCOME' %}text-success{% elif item.transaction_type == 'SAVINGS' %}text-warning{% elif item.transaction_type == 'TRANSFER' %}text-info{% else %}text-danger{% endif %}">
+                            <span class="d-block fw-bold fs-6 signed-amount {% if item.transaction_type == 'INCOME' %}text-success{% elif item.transaction_type == 'SAVINGS' %}text-warning{% elif item.transaction_type == 'TRANSFER' %}text-info{% else %}text-danger{% endif %}">
                                 {% if item.transaction_type == 'INCOME' %}+{% elif item.transaction_type == 'SAVINGS' %}-{% elif item.transaction_type == 'TRANSFER' %}{% else %}-{% endif %}{{ currency_symbol }}{% if item.transaction_type == 'TRANSFER' or item.transaction_type == 'SAVINGS' %}{{ item.amount|compact_amount:currency_symbol|translate_digits }}{% else %}{{ item.base_amount|compact_amount:currency_symbol|translate_digits }}{% endif %}
                             </span>
                         </div>
@@ -2057,7 +2057,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <small class="text-muted opacity-50" style="font-size: 0.75rem;">{% trans "Based on recurring transactions" %}</small>
                         </div>
                         <div class="text-end">
-                            <div class="fw-bold mb-0 {% if recurring_net_balance > 0 %}text-success{% elif recurring_net_balance == 0 %}text-muted{% else %}text-danger{% endif %}" style="font-size: 1.1rem; letter-spacing: -0.5px;">
+                            <div class="fw-bold mb-0 signed-amount {% if recurring_net_balance > 0 %}text-success{% elif recurring_net_balance == 0 %}text-muted{% else %}text-danger{% endif %}" style="font-size: 1.1rem; letter-spacing: -0.5px;">
                                 {% if recurring_net_balance > 0 %}+{% endif %}{{ currency_symbol }}{{ recurring_net_balance|compact_amount:currency_symbol|translate_digits }}
                             </div>
                         </div>
@@ -2092,7 +2092,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="fw-bold" style="font-size: 0.901rem; color: {% if item.type == 'INCOME' %}#1D9E75;{% elif item.type == 'INVESTMENT' %}#378ADD;{% elif item.type == 'TRANSFER' %}#9E9D9A;{% else %}#E05C45;{% endif %}">
+                                        <span class="fw-bold signed-amount" style="font-size: 0.901rem; color: {% if item.type == 'INCOME' %}#1D9E75;{% elif item.type == 'INVESTMENT' %}#378ADD;{% elif item.type == 'TRANSFER' %}#9E9D9A;{% else %}#E05C45;{% endif %}">
                                             {% if item.type == 'INCOME' %}+{% elif item.type == 'TRANSFER' %}{% else %}-{% endif %}{{ currency_symbol }}{{ item.amount|compact_amount:currency_symbol|translate_digits }}
                                         </span>
                                     </div>

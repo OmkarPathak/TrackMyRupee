@@ -142,7 +142,7 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <span class="fw-bold {% if item.transaction_type == 'INCOME' or item.transaction_type == 'TRANSFER_IN' %}text-success{% elif item.transaction_type == 'EXPENSE' or item.transaction_type == 'TRANSFER_OUT' or item.transaction_type == 'SAVINGS' or item.transaction_type == 'LOAN_REPAYMENT' %}text-danger{% endif %}">
+                            <span class="fw-bold signed-amount {% if item.transaction_type == 'INCOME' or item.transaction_type == 'TRANSFER_IN' %}text-success{% elif item.transaction_type == 'EXPENSE' or item.transaction_type == 'TRANSFER_OUT' or item.transaction_type == 'SAVINGS' or item.transaction_type == 'LOAN_REPAYMENT' %}text-danger{% endif %}">
                                 {% if item.transaction_type == 'INCOME' or item.transaction_type == 'TRANSFER_IN' %}+{% else %}-{% endif %}
                                 {{ item.display_currency }}{{ item.amount|ind_comma:item.display_currency|translate_digits }}
                             </span>
