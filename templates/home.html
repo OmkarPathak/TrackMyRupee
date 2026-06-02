@@ -2764,7 +2764,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         legend: { 
                             position: 'bottom', 
                             labels: { 
-                                boxWidth: 10, 
+                                boxWidth: 8, 
+                                boxHeight: 8, 
                                 usePointStyle: true,
                                 pointStyle: 'circle',
                                 font: {size: 11, weight: '500'} 
@@ -2933,7 +2934,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     maintainAspectRatio: false,
                     cutout: '65%',
                     plugins: { 
-                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } },
+                        legend: { position: 'bottom', labels: { boxWidth: 8, boxHeight: 8, usePointStyle: true, pointStyle: 'circle', padding: 12, font: { size: 12 } } },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
@@ -3133,7 +3134,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                      legend: { 
                                          position: 'bottom',
                                          labels: {
+                                             boxWidth: 8,
+                                             boxHeight: 8,
                                              usePointStyle: true,
+                                             pointStyle: 'circle',
                                              padding: 20,
                                              font: { family: '"DM Sans", sans-serif', size: 13 }
                                          }
@@ -3259,7 +3263,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                  mode: 'index',
                              },
                              plugins: {
-                                 legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+                                 legend: { position: 'bottom', labels: { boxWidth: 8, boxHeight: 8, usePointStyle: true, pointStyle: 'circle', font: { size: 13 } } },
                                  tooltip: {
                                      callbacks: {
                                           label: function(context) {
