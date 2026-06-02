@@ -20,20 +20,26 @@ class Command(BaseCommand):
         if options.get("account_id"):
             accounts = accounts.filter(id=options["account_id"])
 
-        accounts = accounts[: options["limit"]]
+        accounts = list(accounts[: options["limit"]])
+        user_ids = {account.user_id for account in accounts}
+        opening_account_ids = set()
+        if user_ids:
+            opening_account_ids = set(
+                JournalEntry.objects.filter(
+                    user_id__in=user_ids,
+                    source_type="ADJUSTMENT",
+                    status="POSTED",
+                    metadata__has_key="opening_account_id",
+                ).values_list("metadata__opening_account_id", flat=True)
+            )
+            opening_account_ids = {int(val) for val in opening_account_ids if val is not None}
 
         created = 0
         skipped = 0
         zero_balance = 0
 
         for account in accounts:
-            exists = JournalEntry.objects.filter(
-                user=account.user,
-                source_type="ADJUSTMENT",
-                source_id=account.id,
-                metadata__opening_account_id=account.id,
-                status="POSTED",
-            ).exists()
+            exists = account.id in opening_account_ids
             if exists:
                 skipped += 1
                 continue

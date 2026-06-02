@@ -43,6 +43,20 @@ class Command(BaseCommand):
         if options.get("user_id"):
             accounts = accounts.filter(user_id=options["user_id"])
 
+        accounts = list(accounts)
+        user_ids = {account.user_id for account in accounts}
+        opening_account_ids = set()
+        if user_ids:
+            opening_account_ids = set(
+                JournalEntry.objects.filter(
+                    user_id__in=user_ids,
+                    source_type="ADJUSTMENT",
+                    status="POSTED",
+                    metadata__has_key="opening_account_id",
+                ).values_list("metadata__opening_account_id", flat=True)
+            )
+            opening_account_ids = {int(val) for val in opening_account_ids if val is not None}
+
         as_of_date = timezone.now().date()
         total = 0
         drifts = 0
@@ -51,12 +65,7 @@ class Command(BaseCommand):
         for account in accounts:
             total += 1
 
-            has_opening_entry = JournalEntry.objects.filter(
-                user=account.user,
-                source_type="ADJUSTMENT",
-                metadata__opening_account_id=account.id,
-                status="POSTED",
-            ).exists()
+            has_opening_entry = account.id in opening_account_ids
             if not has_opening_entry:
                 missing_opening_entries += 1
 

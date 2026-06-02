@@ -7,6 +7,8 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from expenses.models import (
     Account,
@@ -199,6 +201,26 @@ class LedgerOpsTest(TestCase):
                 threshold="0.01",
                 require_opening_balances=True,
             )
+
+    def test_reconcile_uses_single_opening_balance_lookup(self):
+        # Create a third account to have multiple accounts
+        Account.objects.create(
+            user=self.user,
+            name="Extra Account",
+            account_type="BANK",
+            balance=Decimal("2000.00"),
+            currency="₹",
+        )
+
+
+        with CaptureQueriesContext(connection) as queries:
+            call_command("reconcile_ledgers", user_id=self.user.id)
+
+        opening_lookup_queries = [
+            query['sql'] for query in queries.captured_queries
+            if 'expenses_journalentry' in query['sql'] and 'opening_account_id' in query['sql']
+        ]
+        self.assertEqual(len(opening_lookup_queries), 1)
 
     def test_retry_income_update_handler(self):
         failure = LedgerPostingFailure.objects.create(
