@@ -26,7 +26,7 @@ class SavingsGoalListView(LoginRequiredMixin, ListView):
     context_object_name = 'ignored'
 
     def get_queryset(self):
-        return SavingsGoal.objects.filter(user=self.request.user).order_by('created_at', 'id')
+        return SavingsGoal.objects.filter(user=self.request.user).prefetch_related('contributions').order_by('created_at', 'id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

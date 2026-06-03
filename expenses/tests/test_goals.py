@@ -210,3 +210,30 @@ class SavingsGoalTests(TestCase):
         
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('trigger_confetti', self.client.session)
+
+    def test_savings_goal_estimated_completion_date(self):
+        from django.utils import timezone
+        from datetime import date, timedelta
+        
+        # When no contributions exist, it should return None
+        self.assertIsNone(self.goal.estimated_completion_date)
+        
+        # Add a contribution on yesterday
+        today = timezone.localdate()
+        yesterday = today - timedelta(days=1)
+        
+        # To avoid circular import/shadow postings dependencies in test, let's create a contribution
+        # and test properties
+        contrib = GoalContribution.objects.create(
+            goal=self.goal,
+            amount=Decimal('100.00'),
+            date=yesterday
+        )
+        
+        # Progress: 100/1000 = 10%. Elapsed days: 1. Avg daily: 100. Days left: 9.
+        # Est completion should be today + 9 days = yesterday + 10 days
+        self.goal.refresh_from_db()
+        est_date = self.goal.estimated_completion_date
+        self.assertIsNotNone(est_date)
+        expected_date = today + timedelta(days=9)
+        self.assertEqual(est_date, expected_date)

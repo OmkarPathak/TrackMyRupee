@@ -79,16 +79,33 @@
                         </div>
                         <div class="text-end">
                             <span class="text-secondary small d-block mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Saved" %}</span>
-                            <span class="fw-bold">{{ goal.currency }}{{ goal.current_amount|compact_amount:goal.currency|translate_digits }}</span> 
-                            <span class="text-muted small">/ {{ goal.target_amount|compact_amount:goal.currency|translate_digits }}</span>
+                            <span class="fw-bold">{{ goal.currency }}{{ goal.current_amount|ind_comma:goal.currency|translate_digits }}</span> 
+                            <span class="text-muted small">/ {{ goal.currency }}{{ goal.target_amount|ind_comma:goal.currency|translate_digits }}</span>
                         </div>
                     </div>
 
                     <!-- Slim Progress Bar -->
-                    <div class="progress mb-4 bg-body-secondary" style="height: 8px; border-radius: 8px;">
+                    <div class="progress mb-2 bg-body-secondary" style="height: 8px; border-radius: 8px;">
                         <div class="progress-bar progress-bar-striped {% if not goal.is_completed %}progress-bar-animated{% endif %} bg-{{ goal.color }}" role="progressbar" 
                              style="width: {{ goal.progress_percentage }}%; border-radius: 8px;" aria-valuenow="{{ goal.progress_percentage|stringformat:'f'|translate_digits }}" aria-valuemin="0" aria-valuemax="100">
                         </div>
+                    </div>
+
+                    <!-- Est. completion date -->
+                    <div class="mb-3">
+                        <small class="text-muted d-flex align-items-center gap-1">
+                            {% if goal.is_completed %}
+                                <span class="text-success fw-semibold d-flex align-items-center gap-1">
+                                    <i class="bi bi-check-circle-fill"></i><span>{% trans "Goal Achieved!" %}</span>
+                                </span>
+                            {% elif goal.estimated_completion_date %}
+                                <i class="bi bi-calendar-event"></i>
+                                <span>{% trans "Est. completion:" %} {{ goal.estimated_completion_date|date:"M Y" }}</span>
+                            {% else %}
+                                <i class="bi bi-clock-history"></i>
+                                <span>{% trans "No contributions yet" %}</span>
+                            {% endif %}
+                        </small>
                     </div>
 
                     <hr class="text-muted opacity-25 mb-3">
@@ -105,7 +122,7 @@
                             </a>
                         </div>
                         {% else %}
-                        <a href="{% url 'goal-detail' goal.pk %}" class="btn btn-{{ goal.color }} btn-sm px-3 fw-bold rounded-3 shadow-sm" onclick="window.showLoader()">
+                        <a href="{% url 'goal-detail' goal.pk %}" class="btn btn-success btn-sm px-3 fw-bold rounded-3 shadow-sm" onclick="window.showLoader()">
                             <i class="bi bi-eye me-1"></i>{% trans "View Goal" %}
                         </a>
                         {% endif %}

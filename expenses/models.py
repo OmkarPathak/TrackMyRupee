@@ -1259,6 +1259,31 @@ class SavingsGoal(models.Model):
                     contribution.account.save()
             super().delete(*args, **kwargs)
 
+    @property
+    def estimated_completion_date(self):
+        if self.is_completed:
+            return timezone.localdate()
+            
+        contributions = list(self.contributions.all())
+        if not contributions or self.target_amount <= self.current_amount:
+            return None
+            
+        first_contribution = min(contributions, key=lambda c: (c.date, c.id))
+        today = timezone.localdate()
+        days_elapsed = max((today - first_contribution.date).days, 1)
+        
+        total_contributed = sum(c.amount for c in contributions)
+        avg_daily = total_contributed / Decimal(days_elapsed)
+        
+        remaining_amount = self.target_amount - self.current_amount
+        if avg_daily <= 0 or remaining_amount <= 0:
+            return None
+            
+        import math
+        from datetime import timedelta
+        days_left = max(math.ceil(float(remaining_amount / avg_daily)), 1)
+        return today + timedelta(days=days_left)
+
     def __str__(self):
         return self.name
 
