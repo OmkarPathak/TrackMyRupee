@@ -79,6 +79,19 @@ class DashboardViewTest(BaseViewTest):
         food_entry = next(item for item in category_data if item['category'] == 'Food')
         self.assertEqual(food_entry['total'], 200)
 
+    def test_demo_user_dashboard_net_worth_positive(self):
+        """Test that the demo user has a positive net worth on the dashboard."""
+        from django.core.management import call_command
+        call_command('setup_demo_user')
+        
+        demo_client = Client()
+        demo_client.login(username='demo', password='demo_password_123')
+        
+        response = demo_client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(response.context['net_worth'], 0)
+        self.assertGreater(response.context['net_worth_before_liabilities'], response.context['total_liabilities'])
+
 class ExpenseCRUDTest(BaseViewTest):
     def test_create_expense(self):
         url = reverse('expense-create')

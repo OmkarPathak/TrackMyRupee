@@ -1471,7 +1471,7 @@ def home_view(request):
     # Net Worth Milestone (match Net Worth card logic to avoid contradictory insights)
     # NOTE: _ledger_net_worth_result is reused below in the Net Worth section to avoid a second bulk query.
     _ledger_net_worth_result = LedgerReadService.get_net_worth(request.user)
-    milestone_net_worth = _ledger_net_worth_result[0] - Decimal(str(LoanService.get_total_liabilities(request.user)))
+    milestone_net_worth = _ledger_net_worth_result[0]
     milestones = [100000, 500000, 1000000, 2500000, 5000000, 10000000]
     applicable_milestone = None
     for m in milestones:
@@ -1651,9 +1651,8 @@ def home_view(request):
     # This assumes all income/expense transactions affect the total net worth.
     
     total_liabilities = Decimal(str(LoanService.get_total_liabilities(request.user)))
-    net_worth_before_liabilities = net_worth
-    # Subtract liabilities from the total account balances to get true net worth
-    net_worth -= total_liabilities
+    net_worth_before_liabilities = net_worth + total_liabilities
+    # Note: LedgerReadService.get_net_worth already subtracted liabilities. Do not double subtract.
     
     net_worth_change = Decimal('0.00')
     net_worth_percent = Decimal('0.00')

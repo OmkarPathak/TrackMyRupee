@@ -142,7 +142,7 @@ class Command(BaseCommand):
         Income.objects.create(
             user=user,
             source='Opening Balance',
-            amount=Decimal('450000.00'),
+            amount=Decimal('950000.00'),
             date=three_months_ago - timedelta(days=1),
             description='Demo seed corpus',
             account=acc_main,
