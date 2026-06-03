@@ -237,3 +237,42 @@ class SavingsGoalTests(TestCase):
         self.assertIsNotNone(est_date)
         expected_date = today + timedelta(days=9)
         self.assertEqual(est_date, expected_date)
+
+    def test_goal_detail_framing_and_needed_monthly(self):
+        from django.utils import timezone
+        from datetime import date, timedelta
+        
+        self.client.login(username='testuser', password='testpassword')
+        
+        # Set target date to 10 months from today (approx 304 days)
+        today = timezone.localdate()
+        target_date = today + timedelta(days=304)
+        self.goal.target_date = target_date
+        self.goal.save()
+        
+        # Add a contribution on yesterday to set a pace
+        yesterday = today - timedelta(days=1)
+        GoalContribution.objects.create(
+            goal=self.goal,
+            amount=Decimal('200.00'),
+            date=yesterday
+        )
+        
+        # Pace is: 200/day. Remaining target amount: 800.
+        # Est days left: 4 days.
+        # Est completion date: today + 4 days, which is well before target_date.
+        # Therefore, user is early/on-track.
+        
+        response = self.client.get(reverse('goal-detail', kwargs={'pk': self.goal.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['is_on_track'])
+        self.assertIsNotNone(response.context['needed_per_month'])
+        self.assertIsNone(response.context['needed_gap']) # No gap since user is on track
+        self.assertIsNotNone(response.context['completion_status'])
+        self.assertTrue(response.context['completion_status']['is_early'])
+        
+        # Verify content rendering
+        content = response.content.decode('utf-8')
+        self.assertIn('Needed/month to hit target', content)
+        self.assertIn('Target date', content)
+        self.assertIn('At current pace', content)

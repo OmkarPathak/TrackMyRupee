@@ -93,7 +93,7 @@
                     <span class="text-muted">{% trans "Progress" %}</span>
                     <span class="fw-bold">{{ goal.progress_percentage|translate_digits }}%</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center {% if needed_per_month is not None %}mb-2{% else %}mb-3{% endif %}">
                     <span class="text-muted">{% trans "Avg Daily" %}</span>
                     <span class="fw-bold summary-amount summary-amount-smaller">
                         {% if avg_daily_contribution and avg_daily_contribution > 0 %}
@@ -103,6 +103,17 @@
                         {% endif %}
                     </span>
                 </div>
+                {% if needed_per_month is not None %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">{% trans "Needed/month to hit target" %}</span>
+                    <span class="fw-bold summary-amount-smaller {% if is_on_track %}text-success{% else %}text-amber{% endif %}">
+                        {{ goal.currency }}{{ needed_per_month|ind_comma:goal.currency|translate_digits }}
+                        {% if not is_on_track and needed_gap %}
+                            <span class="small" style="font-size: 0.75rem;">(gap: +{{ goal.currency }}{{ needed_gap|ind_comma:goal.currency|translate_digits }})</span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
                 <div class="progress shadow-sm bg-white mb-2" style="height: 14px; border-radius: 7px;">
                     <div class="progress-bar bg-success goal-progress-bar" role="progressbar" data-progress="{{ goal.progress_percentage }}" aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
@@ -110,7 +121,14 @@
                     {% if goal.is_completed %}
                         {% trans "Completed" %}
                     {% elif estimated_completion_date %}
-                        {% trans "Estimated completion" %}: {{ estimated_completion_date|date:"d M Y" }}
+                        {% if goal.target_date %}
+                            {% trans "Target date" %}: {{ goal.target_date|date:"d M Y" }} · {% trans "At current pace" %}: {{ estimated_completion_date|date:"d M Y" }}
+                            {% if completion_status %}
+                                <span class="text-{{ completion_status.class }} fw-semibold">({{ completion_status.text }})</span>
+                            {% endif %}
+                        {% else %}
+                            {% trans "Estimated completion" %}: {{ estimated_completion_date|date:"d M Y" }}
+                        {% endif %}
                     {% else %}
                         {% trans "Add more contributions to project completion" %}
                     {% endif %}

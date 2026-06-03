@@ -311,6 +311,74 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             estimated_days_left=estimate_data.get('estimated_days_left'),
         )
 
+        estimated_completion_date = estimate_data.get('estimated_completion_date')
+        completion_status = None
+        needed_per_month = None
+        needed_gap = None
+        is_on_track = True
+
+        if goal.target_date and not goal.is_completed:
+            today = timezone.localdate()
+            days_left = (goal.target_date - today).days
+
+            # Calculate completion status / early-late framing
+            if estimated_completion_date:
+                if estimated_completion_date <= goal.target_date:
+                    diff_days = (goal.target_date - estimated_completion_date).days
+                    if diff_days >= 30:
+                        months = (goal.target_date.year - estimated_completion_date.year) * 12 + goal.target_date.month - estimated_completion_date.month
+                        if months > 0:
+                            text = _("%(months)d months early!") % {'months': months}
+                        else:
+                            text = _("%(days)d days early!") % {'days': diff_days}
+                    else:
+                        if diff_days > 0:
+                            text = _("%(days)d days early!") % {'days': diff_days}
+                        else:
+                            text = _("on time!")
+                    completion_status = {
+                        'text': text,
+                        'class': 'success',
+                        'is_early': True
+                    }
+                else:
+                    diff_days = (estimated_completion_date - goal.target_date).days
+                    if diff_days >= 30:
+                        months = (estimated_completion_date.year - goal.target_date.year) * 12 + estimated_completion_date.month - goal.target_date.month
+                        if months > 0:
+                            text = _("%(months)d months late") % {'months': months}
+                        else:
+                            text = _("%(days)d days late") % {'days': diff_days}
+                    else:
+                        text = _("%(days)d days late") % {'days': diff_days}
+                    completion_status = {
+                        'text': text,
+                        'class': 'amber',
+                        'is_early': False
+                    }
+
+            # Calculate needed monthly contribution
+            if days_left > 0:
+                months_left = Decimal(str(days_left)) / Decimal('30.437')
+                months_left = max(months_left, Decimal('0.1'))
+                needed_per_month = round(remaining_amount / months_left, 2)
+
+                # Check if on track
+                current_monthly_pace = estimate_data.get('avg_daily_contribution', Decimal('0.00')) * Decimal('30.437')
+                if estimated_completion_date and estimated_completion_date <= goal.target_date:
+                    is_on_track = True
+                else:
+                    if current_monthly_pace > 0 and needed_per_month > current_monthly_pace:
+                        is_on_track = False
+                        needed_gap = round(needed_per_month - current_monthly_pace, 2)
+                    elif current_monthly_pace == 0:
+                        is_on_track = False
+                        needed_gap = needed_per_month
+            else:
+                needed_per_month = remaining_amount
+                is_on_track = False
+                needed_gap = remaining_amount
+
         return {
             'goal': goal,
             'is_locked': is_locked,
@@ -324,6 +392,10 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             'search_query': search_query,
             'trend_data': trend_data,
             'form': form or GoalContributionForm(user=request.user),
+            'completion_status': completion_status,
+            'needed_per_month': needed_per_month,
+            'needed_gap': needed_gap,
+            'is_on_track': is_on_track,
             **estimate_data,
         }
 
