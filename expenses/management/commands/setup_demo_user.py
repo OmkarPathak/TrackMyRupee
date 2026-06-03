@@ -325,16 +325,14 @@ class Command(BaseCommand):
             )
 
             # Add periodic contributions to show progress
-            total_contrib = 0
+            parts = []
             if 'Emergency' in goal.name:
-                total_contrib = 60000  # ~20k/month
+                parts = [Decimal('15000.00'), Decimal('25000.00'), Decimal('20000.00')]
             elif 'iPad' in goal.name:
-                total_contrib = 15000  # ~5k/month
+                parts = [Decimal('4000.00'), Decimal('6000.00'), Decimal('5000.00')]
             
-            if total_contrib > 0:
-                # Break it into 3 monthly parts
-                part = Decimal(total_contrib) / 3
-                for i in range(3):
+            if parts:
+                for i, part in enumerate(parts):
                     contrib_date = today - timedelta(days=30 * i + 5)
                     # We create a Transfer to represent the movement of money to the savings account
                     Transfer.objects.create(
@@ -345,13 +343,12 @@ class Command(BaseCommand):
                         date=contrib_date,
                         description=f"Savings for {goal.name}"
                     )
-                    # Keep contribution account null so goal progress is visible without
-                    # a second balance mutation that can drift from ledger postings.
+                    # Link to savings account
                     GoalContribution.objects.create(
                         goal=goal,
                         amount=part,
                         date=contrib_date,
-                        account=None
+                        account=acc_savings
                     )
 
         # Monthly ATM Withdrawals
