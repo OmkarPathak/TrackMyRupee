@@ -271,7 +271,7 @@ class FeaturesPageView(TemplateView):
                 'description': 'Plan ahead and achieve your financial milestones.',
                 'items': [
                     {
-                        'title': 'Recurring expenses log themselves',
+                        'title': 'Set recurring expenses once, forget them forever.',
                         'desc': 'Set up your SIPs, rent, and subscriptions once. Only log what changes, takes 30 seconds a day.'
                     },
                     {

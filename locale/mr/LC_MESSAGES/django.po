@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-04 19:15+0530\n"
+"POT-Creation-Date: 2026-06-04 19:18+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -9103,7 +9103,7 @@ msgid ""
 msgstr ""
 
 #: templates/landing.html:1120
-msgid "Recurring expenses log themselves"
+msgid "Set recurring expenses once, forget them forever."
 msgstr ""
 
 #: templates/landing.html:1121
@@ -9362,10 +9362,9 @@ msgid "vs. Spreadsheets"
 msgstr ""
 
 #: templates/landing.html:1336
-#, python-format
 msgid ""
 "You eventually stop updating them. Our 3-second logging and auto-recurring "
-"features mean 95%% of your data is always current."
+"features mean your financial picture is always up to date."
 msgstr ""
 
 #: templates/landing.html:1346
