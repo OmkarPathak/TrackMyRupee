@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-04 19:24+0530\n"
+"POT-Creation-Date: 2026-06-04 19:27+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4387,12 +4387,12 @@ msgid "Legal"
 msgstr "कायदेशीर"
 
 #: templates/base.html:824 templates/components/cookie_consent.html:8
-#: templates/components/navbar.html:500 templates/privacy_policy.html:8
+#: templates/components/navbar.html:500 templates/privacy_policy.html:14
 msgid "Privacy Policy"
 msgstr "गोपनीयता धोरण"
 
 #: templates/base.html:827 templates/components/navbar.html:504
-#: templates/terms_of_service.html:8
+#: templates/terms_of_service.html:14
 msgid "Terms of Service"
 msgstr "सेवा अटी"
 
@@ -5078,8 +5078,8 @@ msgstr ""
 msgid "Follow @TrackMyRupee"
 msgstr ""
 
-#: templates/contact.html:106 templates/privacy_policy.html:280
-#: templates/refund_policy.html:110 templates/terms_of_service.html:235
+#: templates/contact.html:106 templates/privacy_policy.html:292
+#: templates/refund_policy.html:110 templates/terms_of_service.html:241
 msgid "Back to Home"
 msgstr ""
 
@@ -10748,13 +10748,13 @@ msgid ""
 "specify."
 msgstr ""
 
-#: templates/privacy_policy.html:9 templates/terms_of_service.html:9
+#: templates/privacy_policy.html:15 templates/terms_of_service.html:15
 #, fuzzy
-#| msgid "Last updated: January 24, 2026"
-msgid "Last updated: February 22, 2026"
-msgstr "अंतिम अपडेट: २४ जानेवारी २०२६"
+#| msgid "Last updated: January 2026"
+msgid "Last updated: June 2026"
+msgstr "अंतिम अपडेट: जानेवारी २०२६"
 
-#: templates/privacy_policy.html:12
+#: templates/privacy_policy.html:18
 msgid ""
 "\n"
 "                        Your privacy matters to us. This policy explains how "
@@ -10766,52 +10766,52 @@ msgstr ""
 "तुमची माहिती कशी गोळा करते, वापरते आणि संरक्षित करते हे या धोरणातून स्पष्ट होते.\n"
 "                        "
 
-#: templates/privacy_policy.html:18 templates/refund_policy.html:18
-#: templates/terms_of_service.html:12
+#: templates/privacy_policy.html:24 templates/refund_policy.html:18
+#: templates/terms_of_service.html:18
 msgid "Table of Contents"
 msgstr "अनुक्रमणिका"
 
-#: templates/privacy_policy.html:20 templates/privacy_policy.html:34
+#: templates/privacy_policy.html:26 templates/privacy_policy.html:40
 msgid "1. Information We Collect"
 msgstr "१. आम्ही गोळा करत असलेली माहिती"
 
-#: templates/privacy_policy.html:21 templates/privacy_policy.html:69
+#: templates/privacy_policy.html:27 templates/privacy_policy.html:81
 msgid "2. How We Use Your Information"
 msgstr "२. आम्ही तुमची माहिती कशी वापरतो"
 
-#: templates/privacy_policy.html:22 templates/privacy_policy.html:103
+#: templates/privacy_policy.html:28 templates/privacy_policy.html:115
 msgid "3. Cookies & Tracking Technologies"
 msgstr "३. कुकीज आणि ट्रॅकिंग तंत्रज्ञान"
 
-#: templates/privacy_policy.html:23 templates/privacy_policy.html:124
+#: templates/privacy_policy.html:29 templates/privacy_policy.html:136
 msgid "4. Information Sharing"
 msgstr "४. माहिती सामायिक करणे"
 
-#: templates/privacy_policy.html:24 templates/privacy_policy.html:154
+#: templates/privacy_policy.html:30 templates/privacy_policy.html:166
 msgid "5. Data Security"
 msgstr "५. डेटा सुरक्षा"
 
-#: templates/privacy_policy.html:25 templates/privacy_policy.html:191
+#: templates/privacy_policy.html:31 templates/privacy_policy.html:203
 msgid "6. Your Rights & Choices"
 msgstr "६. तुमचे अधिकार आणि निवडी"
 
-#: templates/privacy_policy.html:26 templates/privacy_policy.html:226
+#: templates/privacy_policy.html:32 templates/privacy_policy.html:238
 msgid "7. Data Retention"
 msgstr "७. डेटा धारणा (Retention)"
 
-#: templates/privacy_policy.html:27 templates/privacy_policy.html:249
+#: templates/privacy_policy.html:33 templates/privacy_policy.html:261
 msgid "8. Children's Privacy"
 msgstr "८. मुलांची गोपनीयता"
 
-#: templates/privacy_policy.html:28 templates/privacy_policy.html:259
+#: templates/privacy_policy.html:34 templates/privacy_policy.html:271
 msgid "9. Changes to Privacy Policy"
 msgstr "९. गोपनीयता धोरणातील बदल"
 
-#: templates/privacy_policy.html:29 templates/privacy_policy.html:269
+#: templates/privacy_policy.html:35 templates/privacy_policy.html:281
 msgid "10. Contact Us"
 msgstr "१०. आमच्याशी संपर्क साधा"
 
-#: templates/privacy_policy.html:36
+#: templates/privacy_policy.html:42
 msgid ""
 "\n"
 "                            We collect information you provide directly to "
@@ -10825,11 +10825,11 @@ msgstr ""
 "गोळा करतो.\n"
 "                            "
 
-#: templates/privacy_policy.html:42
+#: templates/privacy_policy.html:48
 msgid "Account Information"
 msgstr "खात्याची माहिती"
 
-#: templates/privacy_policy.html:43
+#: templates/privacy_policy.html:49
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -10847,11 +10847,11 @@ msgstr ""
 "(एनक्रिप्टेड).\n"
 "                                "
 
-#: templates/privacy_policy.html:48
+#: templates/privacy_policy.html:54
 msgid "Financial Data"
 msgstr "आर्थिक डेटा"
 
-#: templates/privacy_policy.html:49
+#: templates/privacy_policy.html:55
 msgid ""
 "\n"
 "                                Incomes, expenses, categories, budgets, and "
@@ -10863,11 +10863,11 @@ msgstr ""
 "आणि सदस्यता (subscriptions).\n"
 "                                "
 
-#: templates/privacy_policy.html:54
+#: templates/privacy_policy.html:60
 msgid "Profile Preferences"
 msgstr "प्रोफाइल प्राधान्ये"
 
-#: templates/privacy_policy.html:55
+#: templates/privacy_policy.html:61
 msgid ""
 "\n"
 "                                Currency settings, theme preferences (light/"
@@ -10878,11 +10878,11 @@ msgstr ""
 "                                चलन सेटिंग्ज, थीम प्राधान्ये (लाईट/डार्क मोड).\n"
 "                                "
 
-#: templates/privacy_policy.html:60
+#: templates/privacy_policy.html:66
 msgid "Usage Data"
 msgstr "वापर डेटा"
 
-#: templates/privacy_policy.html:61
+#: templates/privacy_policy.html:67
 msgid ""
 "\n"
 "                                Device information, IP address, browser "
@@ -10894,7 +10894,31 @@ msgstr ""
 "माहिती, आयपी (IP) पत्ता, ब्राउझर प्रकार आणि परस्परसंवाद लॉग (interaction logs).\n"
 "                                "
 
-#: templates/privacy_policy.html:71
+#: templates/privacy_policy.html:72
+#, fuzzy
+#| msgid "Account Information"
+msgid "Payment Information"
+msgstr "खात्याची माहिती"
+
+#: templates/privacy_policy.html:73
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Process and visualize your financial "
+#| "data.\n"
+#| "                                "
+msgid ""
+"\n"
+"                                Payment information is processed by Razorpay "
+"— we do not store card details or UPI IDs.\n"
+"                                "
+msgstr ""
+"\n"
+"                                तुमच्या आर्थिक डेटावर प्रक्रिया करणे आणि त्याचे "
+"व्हिज्युअलायझेशन करणे.\n"
+"                                "
+
+#: templates/privacy_policy.html:83
 msgid ""
 "\n"
 "                            We use the information we collect to provide, "
@@ -10906,7 +10930,7 @@ msgstr ""
 "राखण्यासाठी आणि सुधारण्यासाठी वापरतो.\n"
 "                            "
 
-#: templates/privacy_policy.html:77
+#: templates/privacy_policy.html:89
 msgid ""
 "\n"
 "                                Provide the TrackMyRupee dashboard, expense "
@@ -10918,7 +10942,7 @@ msgstr ""
 "अहवाल प्रदान करणे.\n"
 "                                "
 
-#: templates/privacy_policy.html:82
+#: templates/privacy_policy.html:94
 msgid ""
 "\n"
 "                                Process and visualize your financial data.\n"
@@ -10929,7 +10953,7 @@ msgstr ""
 "व्हिज्युअलायझेशन करणे.\n"
 "                                "
 
-#: templates/privacy_policy.html:87
+#: templates/privacy_policy.html:99
 msgid ""
 "\n"
 "                                Send important notifications, such as "
@@ -10941,7 +10965,7 @@ msgstr ""
 "खाते अलर्ट.\n"
 "                                "
 
-#: templates/privacy_policy.html:92
+#: templates/privacy_policy.html:104
 msgid ""
 "\n"
 "                                Analyze usage patterns to fix bugs and "
@@ -10953,7 +10977,7 @@ msgstr ""
 "सुधारण्यासाठी वापर पद्धतींचे (usage patterns) विश्लेषण करणे.\n"
 "                                "
 
-#: templates/privacy_policy.html:97
+#: templates/privacy_policy.html:109
 msgid ""
 "\n"
 "                                Prevent abuse and enforce our Terms of "
@@ -10964,7 +10988,7 @@ msgstr ""
 "                                गैरवापर रोखणे आणि आमच्या सेवा अटी लागू करणे.\n"
 "                                "
 
-#: templates/privacy_policy.html:105
+#: templates/privacy_policy.html:117
 msgid ""
 "\n"
 "                            We use cookies and similar tracking technologies "
@@ -10976,11 +11000,11 @@ msgstr ""
 "काही माहिती ठेवण्यासाठी आम्ही कुकीज आणि तत्सम ट्रॅकिंग तंत्रज्ञान वापरतो.\n"
 "                            "
 
-#: templates/privacy_policy.html:109
+#: templates/privacy_policy.html:121
 msgid "Google Analytics"
 msgstr "गुगल ॲनालिटिक्स (Google Analytics)"
 
-#: templates/privacy_policy.html:111
+#: templates/privacy_policy.html:123
 msgid ""
 "\n"
 "                            We use Google Analytics to monitor and analyze "
@@ -10996,7 +11020,7 @@ msgstr ""
 "आम्हाला वापरकर्त्यांचे वर्तन समजून घेण्यास आणि आमचे प्लॅटफॉर्म सुधारण्यास मदत करते.\n"
 "                            "
 
-#: templates/privacy_policy.html:116
+#: templates/privacy_policy.html:128
 msgid ""
 "\n"
 "                            You can opt-out of having your activity "
@@ -11009,11 +11033,11 @@ msgstr ""
 "इंस्टॉल करून तुमची अ‍ॅक्टिव्हिटी Google Analytics ला उपलब्ध करून देण्यापासून रोखू शकता.\n"
 "                            "
 
-#: templates/privacy_policy.html:126
+#: templates/privacy_policy.html:138
 msgid "We do not sell your personal information."
 msgstr "आम्ही तुमची वैयक्तिक माहिती विकत नाही."
 
-#: templates/privacy_policy.html:127
+#: templates/privacy_policy.html:139
 msgid ""
 "\n"
 "                            We only share data in limited circumstances:\n"
@@ -11023,11 +11047,11 @@ msgstr ""
 "                            आम्ही फक्त मर्यादित परिस्थितीत डेटा सामायिक करतो:\n"
 "                            "
 
-#: templates/privacy_policy.html:133
+#: templates/privacy_policy.html:145
 msgid "Service Providers"
 msgstr "सेवा पुरवठादार (Service Providers)"
 
-#: templates/privacy_policy.html:134
+#: templates/privacy_policy.html:146
 msgid ""
 "\n"
 "                                With trusted third-party vendors (e.g., "
@@ -11039,11 +11063,11 @@ msgstr ""
 "प्रदाते, ईमेल सेवा, ॲनालिटिक्स) जे आमच्या ऑपरेशन्समध्ये मदत करतात.\n"
 "                                "
 
-#: templates/privacy_policy.html:139
+#: templates/privacy_policy.html:151
 msgid "Legal Compliance"
 msgstr "कायदेशीर पालन (Legal Compliance)"
 
-#: templates/privacy_policy.html:140
+#: templates/privacy_policy.html:152
 msgid ""
 "\n"
 "                                If required by law, regulation, or legal "
@@ -11057,11 +11081,11 @@ msgstr ""
 "असल्यास.\n"
 "                                "
 
-#: templates/privacy_policy.html:145
+#: templates/privacy_policy.html:157
 msgid "Business Transfers"
 msgstr "व्यवसाय हस्तांतरण"
 
-#: templates/privacy_policy.html:146
+#: templates/privacy_policy.html:158
 msgid ""
 "\n"
 "                                In connection with, or during negotiations "
@@ -11075,7 +11099,7 @@ msgstr ""
 "भाग संपादन करण्याच्या संदर्भात किंवा वाटाघाटी दरम्यान.\n"
 "                                "
 
-#: templates/privacy_policy.html:156
+#: templates/privacy_policy.html:168
 msgid ""
 "\n"
 "                            We implement appropriate technical and "
@@ -11087,7 +11111,7 @@ msgstr ""
 "आणि संस्थात्मक उपाययोजना राबवतो.\n"
 "                            "
 
-#: templates/privacy_policy.html:162
+#: templates/privacy_policy.html:174
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11105,7 +11129,7 @@ msgstr ""
 "(एनक्रिप्टेड).\n"
 "                                "
 
-#: templates/privacy_policy.html:167
+#: templates/privacy_policy.html:179
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11123,7 +11147,7 @@ msgstr ""
 "SSL).\n"
 "                                "
 
-#: templates/privacy_policy.html:172
+#: templates/privacy_policy.html:184
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11142,7 +11166,7 @@ msgstr ""
 "व्हिज्युअलायझेशन करणे.\n"
 "                                "
 
-#: templates/privacy_policy.html:177
+#: templates/privacy_policy.html:189
 msgid ""
 "\n"
 "                                Access controls to limit internal access to "
@@ -11154,11 +11178,11 @@ msgstr ""
 "प्रवेश नियंत्रणे (Access controls).\n"
 "                                "
 
-#: templates/privacy_policy.html:183 templates/upload.html:25
+#: templates/privacy_policy.html:195 templates/upload.html:25
 msgid "Note"
 msgstr "नोंद"
 
-#: templates/privacy_policy.html:184
+#: templates/privacy_policy.html:196
 msgid ""
 "\n"
 "                            Your financial data (expenses, incomes, "
@@ -11169,7 +11193,7 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/privacy_policy.html:193
+#: templates/privacy_policy.html:205
 msgid ""
 "\n"
 "                            You have control over your personal "
@@ -11180,11 +11204,11 @@ msgstr ""
 "                            तुमच्या वैयक्तिक माहितीवर तुमचे नियंत्रण आहे.\n"
 "                            "
 
-#: templates/privacy_policy.html:199
+#: templates/privacy_policy.html:211
 msgid "Access & Correction"
 msgstr "प्रवेश आणि दुरुस्ती"
 
-#: templates/privacy_policy.html:200
+#: templates/privacy_policy.html:212
 msgid ""
 "\n"
 "                                You can view and edit your profile and "
@@ -11196,11 +11220,11 @@ msgstr ""
 "(application) पाहू आणि संपादित करू शकता.\n"
 "                                "
 
-#: templates/privacy_policy.html:205
+#: templates/privacy_policy.html:217
 msgid "Data Export"
 msgstr "डेटा निर्यात (Export)"
 
-#: templates/privacy_policy.html:206
+#: templates/privacy_policy.html:218
 msgid ""
 "\n"
 "                                You can export your data (e.g., to CSV/"
@@ -11212,11 +11236,11 @@ msgstr ""
 "Excel मध्ये).\n"
 "                                "
 
-#: templates/privacy_policy.html:211
+#: templates/privacy_policy.html:223
 msgid "Account Deletion"
 msgstr "खाते हटवणे"
 
-#: templates/privacy_policy.html:212
+#: templates/privacy_policy.html:224
 msgid ""
 "\n"
 "                                You can request to delete your account and "
@@ -11228,11 +11252,11 @@ msgstr ""
 "हटवण्याची विनंती करू शकता.\n"
 "                                "
 
-#: templates/privacy_policy.html:217
+#: templates/privacy_policy.html:229
 msgid "Communications"
 msgstr "संवाद (Communications)"
 
-#: templates/privacy_policy.html:218
+#: templates/privacy_policy.html:230
 msgid ""
 "\n"
 "                                You can manage your email preferences or "
@@ -11244,7 +11268,7 @@ msgstr ""
 "अनावश्यक ईमेलमधून अनसबस्क्राइब करू शकता.\n"
 "                                "
 
-#: templates/privacy_policy.html:228
+#: templates/privacy_policy.html:240
 msgid ""
 "\n"
 "                            We retain your information only as long as "
@@ -11256,11 +11280,11 @@ msgstr ""
 "पालन करण्यासाठी आवश्यक असेल तोपर्यंतच तुमची माहिती जतन करून ठेवतो.\n"
 "                            "
 
-#: templates/privacy_policy.html:234
+#: templates/privacy_policy.html:246
 msgid "Active Accounts"
 msgstr "सक्रिय खाती"
 
-#: templates/privacy_policy.html:235
+#: templates/privacy_policy.html:247
 msgid ""
 "\n"
 "                                Data is retained while your account remains "
@@ -11271,11 +11295,11 @@ msgstr ""
 "                                तुमचे खाते सक्रिय असेपर्यंत डेटा राखून ठेवला जातो.\n"
 "                                "
 
-#: templates/privacy_policy.html:240
+#: templates/privacy_policy.html:252
 msgid "Deleted Accounts"
 msgstr "हटवलेली खाती"
 
-#: templates/privacy_policy.html:241
+#: templates/privacy_policy.html:253
 msgid ""
 "\n"
 "                                If you delete your account, your personal "
@@ -11289,7 +11313,7 @@ msgstr ""
 "जातो.\n"
 "                                "
 
-#: templates/privacy_policy.html:251
+#: templates/privacy_policy.html:263
 msgid ""
 "\n"
 "                            TrackMyRupee is not intended for children under "
@@ -11304,7 +11328,7 @@ msgstr ""
 "मुलाकडून वैयक्तिक माहिती गोळा केली आहे, तर आम्ही ती हटवू.\n"
 "                            "
 
-#: templates/privacy_policy.html:261
+#: templates/privacy_policy.html:273
 msgid ""
 "\n"
 "                            We may update this privacy policy from time to "
@@ -11320,7 +11344,7 @@ msgstr ""
 "सेवेचा तुमचा निरंतर वापर बदलांच्या स्वीकृतीचे प्रतीक मानले जाईल.\n"
 "                            "
 
-#: templates/privacy_policy.html:271
+#: templates/privacy_policy.html:283
 msgid ""
 "\n"
 "                            If you have questions about this privacy policy "
@@ -11332,7 +11356,7 @@ msgstr ""
 "पद्धतींबद्दल काही प्रश्न असल्यास, कृपया आमच्याशी यावर संपर्क साधा:\n"
 "                            "
 
-#: templates/refund_policy.html:8 templates/terms_of_service.html:120
+#: templates/refund_policy.html:8 templates/terms_of_service.html:126
 msgid "Refund and Cancellation Policy"
 msgstr "परतावा आणि रद्दीकरण धोरण"
 
@@ -11648,67 +11672,67 @@ msgstr ""
 msgid "Complete Sign Up"
 msgstr ""
 
-#: templates/terms_of_service.html:14 templates/terms_of_service.html:30
+#: templates/terms_of_service.html:20 templates/terms_of_service.html:36
 msgid "1. Acceptance of Terms"
 msgstr "१. अटींची स्वीकृती"
 
-#: templates/terms_of_service.html:15 templates/terms_of_service.html:39
+#: templates/terms_of_service.html:21 templates/terms_of_service.html:45
 msgid "2. Use of Service"
 msgstr "२. सेवेचा वापर"
 
-#: templates/terms_of_service.html:16 templates/terms_of_service.html:55
+#: templates/terms_of_service.html:22 templates/terms_of_service.html:61
 #, fuzzy
 #| msgid "3. User Content"
 msgid "3. User Content & Data Ownership"
 msgstr "३. वापरकर्ता सामग्री (User Content)"
 
-#: templates/terms_of_service.html:17 templates/terms_of_service.html:69
+#: templates/terms_of_service.html:23 templates/terms_of_service.html:75
 msgid "4. Subscription Plans & Payments"
 msgstr ""
 
-#: templates/terms_of_service.html:18 templates/terms_of_service.html:110
+#: templates/terms_of_service.html:24 templates/terms_of_service.html:116
 #, fuzzy
 #| msgid "1. Cancellation Policy"
 msgid "5. Cancellations & Refunds"
 msgstr "१. रद्दीकरण धोरण"
 
-#: templates/terms_of_service.html:19 templates/terms_of_service.html:125
+#: templates/terms_of_service.html:25 templates/terms_of_service.html:131
 msgid "6. Intellectual Property"
 msgstr ""
 
-#: templates/terms_of_service.html:20 templates/terms_of_service.html:139
+#: templates/terms_of_service.html:26 templates/terms_of_service.html:145
 #, fuzzy
 #| msgid "Account Information"
 msgid "7. Account Termination"
 msgstr "खात्याची माहिती"
 
-#: templates/terms_of_service.html:21 templates/terms_of_service.html:158
+#: templates/terms_of_service.html:27 templates/terms_of_service.html:164
 msgid "8. Service Availability"
 msgstr ""
 
-#: templates/terms_of_service.html:22 templates/terms_of_service.html:172
+#: templates/terms_of_service.html:28 templates/terms_of_service.html:178
 #, fuzzy
 #| msgid "4. Limitation of Liability and Disclaimer"
 msgid "9. Limitation of Liability"
 msgstr "४. दायित्वाची मर्यादा आणि अस्वीकरण"
 
-#: templates/terms_of_service.html:23 templates/terms_of_service.html:196
+#: templates/terms_of_service.html:29 templates/terms_of_service.html:202
 msgid "10. Governing Law & Dispute Resolution"
 msgstr ""
 
-#: templates/terms_of_service.html:24 templates/terms_of_service.html:215
+#: templates/terms_of_service.html:30 templates/terms_of_service.html:221
 #, fuzzy
 #| msgid "5. Changes to Terms"
 msgid "11. Changes to Terms"
 msgstr "५. अटींमधील बदल"
 
-#: templates/terms_of_service.html:25 templates/terms_of_service.html:224
+#: templates/terms_of_service.html:31 templates/terms_of_service.html:230
 #, fuzzy
 #| msgid "10. Contact Us"
 msgid "12. Contact Us"
 msgstr "१०. आमच्याशी संपर्क साधा"
 
-#: templates/terms_of_service.html:32
+#: templates/terms_of_service.html:38
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11731,7 +11755,7 @@ msgstr ""
 "भागाशी असहमत असाल, तर तुम्ही सेवेचा वापर करू शकत नाही.\n"
 "                        "
 
-#: templates/terms_of_service.html:41
+#: templates/terms_of_service.html:47
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11754,33 +11778,33 @@ msgstr ""
 "सहमत आहात.\n"
 "                        "
 
-#: templates/terms_of_service.html:45
+#: templates/terms_of_service.html:51
 msgid "You agree not to:"
 msgstr ""
 
-#: templates/terms_of_service.html:47
+#: templates/terms_of_service.html:53
 msgid ""
 "Use the Service for any unlawful purpose or in violation of any applicable "
 "laws."
 msgstr ""
 
-#: templates/terms_of_service.html:48
+#: templates/terms_of_service.html:54
 msgid ""
 "Attempt to gain unauthorized access to other users' accounts or to the "
 "Service's systems."
 msgstr ""
 
-#: templates/terms_of_service.html:49
+#: templates/terms_of_service.html:55
 msgid "Interfere with or disrupt the integrity or performance of the Service."
 msgstr ""
 
-#: templates/terms_of_service.html:50
+#: templates/terms_of_service.html:56
 msgid ""
 "Use automated means (bots, scrapers) to access the Service without our "
 "express written permission."
 msgstr ""
 
-#: templates/terms_of_service.html:57
+#: templates/terms_of_service.html:63
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11803,7 +11827,7 @@ msgstr ""
 "(intellectual property rights) दावा करत नाही.\n"
 "                        "
 
-#: templates/terms_of_service.html:62
+#: templates/terms_of_service.html:68
 msgid ""
 "\n"
 "                            By using the Service, you grant us a limited, "
@@ -11813,7 +11837,7 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/terms_of_service.html:71
+#: templates/terms_of_service.html:77
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11831,13 +11855,13 @@ msgstr ""
 "आणि सदस्यता (subscriptions).\n"
 "                                "
 
-#: templates/terms_of_service.html:77
+#: templates/terms_of_service.html:83
 #, fuzzy
 #| msgid "Free"
 msgid "Free Tier"
 msgstr "विनामूल्य"
 
-#: templates/terms_of_service.html:78
+#: templates/terms_of_service.html:84
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11854,11 +11878,11 @@ msgstr ""
 "                                गैरवापर रोखणे आणि आमच्या सेवा अटी लागू करणे.\n"
 "                                "
 
-#: templates/terms_of_service.html:83
+#: templates/terms_of_service.html:89
 msgid "Paid Plans"
 msgstr ""
 
-#: templates/terms_of_service.html:84
+#: templates/terms_of_service.html:90
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11877,13 +11901,13 @@ msgstr ""
 "माहिती, आयपी (IP) पत्ता, ब्राउझर प्रकार आणि परस्परसंवाद लॉग (interaction logs).\n"
 "                                "
 
-#: templates/terms_of_service.html:89
+#: templates/terms_of_service.html:95
 #, fuzzy
 #| msgid "3. Refund Processing"
 msgid "Payment Processing"
 msgstr "३. परतावा प्रक्रिया"
 
-#: templates/terms_of_service.html:90
+#: templates/terms_of_service.html:96
 msgid ""
 "\n"
 "                                All payments are securely processed by "
@@ -11893,11 +11917,11 @@ msgid ""
 "                                "
 msgstr ""
 
-#: templates/terms_of_service.html:95
+#: templates/terms_of_service.html:101
 msgid "Billing Cycle"
 msgstr ""
 
-#: templates/terms_of_service.html:96
+#: templates/terms_of_service.html:102
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11916,11 +11940,11 @@ msgstr ""
 "आणि सदस्यता (subscriptions).\n"
 "                                "
 
-#: templates/terms_of_service.html:101
+#: templates/terms_of_service.html:107
 msgid "Downgrade on Expiry"
 msgstr ""
 
-#: templates/terms_of_service.html:102
+#: templates/terms_of_service.html:108
 msgid ""
 "\n"
 "                                If a paid subscription expires and is not "
@@ -11930,7 +11954,7 @@ msgid ""
 "                                "
 msgstr ""
 
-#: templates/terms_of_service.html:112
+#: templates/terms_of_service.html:118
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11950,7 +11974,7 @@ msgstr ""
 "संपेपर्यंत सक्रिय राहील. पुढच्या सायकलसाठी तुमच्याकडून कोणतेही शुल्क आकारले जाणार नाही.\n"
 "                        "
 
-#: templates/terms_of_service.html:117
+#: templates/terms_of_service.html:123
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11968,7 +11992,7 @@ msgstr ""
 "खाते अलर्ट.\n"
 "                                "
 
-#: templates/terms_of_service.html:127
+#: templates/terms_of_service.html:133
 msgid ""
 "\n"
 "                            The Service, its original content (excluding "
@@ -11979,7 +12003,7 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/terms_of_service.html:132
+#: templates/terms_of_service.html:138
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11996,7 +12020,7 @@ msgstr ""
 "                            तुमच्या वैयक्तिक माहितीवर तुमचे नियंत्रण आहे.\n"
 "                            "
 
-#: templates/terms_of_service.html:141
+#: templates/terms_of_service.html:147
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12014,20 +12038,20 @@ msgstr ""
 "असल्यास परतावा नाकारण्याचा अधिकार आम्ही राखून ठेवतो.\n"
 "                        "
 
-#: templates/terms_of_service.html:146
+#: templates/terms_of_service.html:152
 msgid "You have violated these Terms of Service."
 msgstr ""
 
-#: templates/terms_of_service.html:147
+#: templates/terms_of_service.html:153
 msgid ""
 "Your account is being used for fraudulent, abusive, or illegal activity."
 msgstr ""
 
-#: templates/terms_of_service.html:148
+#: templates/terms_of_service.html:154
 msgid "You have created multiple accounts to circumvent feature limits."
 msgstr ""
 
-#: templates/terms_of_service.html:151
+#: templates/terms_of_service.html:157
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12046,7 +12070,7 @@ msgstr ""
 "हटवण्याची विनंती करू शकता.\n"
 "                                "
 
-#: templates/terms_of_service.html:160
+#: templates/terms_of_service.html:166
 msgid ""
 "\n"
 "                            We strive to keep TrackMyRupee available at all "
@@ -12056,7 +12080,7 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/terms_of_service.html:165
+#: templates/terms_of_service.html:171
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12075,7 +12099,7 @@ msgstr ""
 "होणारे कोणतेही डेटाचे नुकसान, सेवा व्यत्यय किंवा आर्थिक नुकसानीसाठी आम्ही जबाबदार नाही.\n"
 "                            "
 
-#: templates/terms_of_service.html:174
+#: templates/terms_of_service.html:180
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12096,7 +12120,7 @@ msgstr ""
 "उपलब्धतेबाबत TrackMyRupee कोणतीही हमी देत नाही.\n"
 "                        "
 
-#: templates/terms_of_service.html:180
+#: templates/terms_of_service.html:186
 msgid ""
 "\n"
 "                            We are not liable for any data loss, service "
@@ -12109,7 +12133,7 @@ msgstr ""
 "होणारे कोणतेही डेटाचे नुकसान, सेवा व्यत्यय किंवा आर्थिक नुकसानीसाठी आम्ही जबाबदार नाही.\n"
 "                            "
 
-#: templates/terms_of_service.html:184
+#: templates/terms_of_service.html:190
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12132,7 +12156,7 @@ msgstr ""
 "डेटा, वापर, गुडविल किंवा इतर अमूर्त तोटा समाविष्ट आहे.\n"
 "                        "
 
-#: templates/terms_of_service.html:189
+#: templates/terms_of_service.html:195
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12151,7 +12175,7 @@ msgstr ""
 "(application) पाहू आणि संपादित करू शकता.\n"
 "                                "
 
-#: templates/terms_of_service.html:198
+#: templates/terms_of_service.html:204
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12170,7 +12194,7 @@ msgstr ""
 "पालन करण्यासाठी आवश्यक असेल तोपर्यंतच तुमची माहिती जतन करून ठेवतो.\n"
 "                            "
 
-#: templates/terms_of_service.html:203
+#: templates/terms_of_service.html:209
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12190,7 +12214,7 @@ msgstr ""
 "होणारे कोणतेही डेटाचे नुकसान, सेवा व्यत्यय किंवा आर्थिक नुकसानीसाठी आम्ही जबाबदार नाही.\n"
 "                            "
 
-#: templates/terms_of_service.html:208
+#: templates/terms_of_service.html:214
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12211,7 +12235,7 @@ msgstr ""
 "गोळा करतो.\n"
 "                            "
 
-#: templates/terms_of_service.html:217
+#: templates/terms_of_service.html:223
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12235,7 +12259,7 @@ msgstr ""
 "देण्याचा प्रयत्न करू.\n"
 "                        "
 
-#: templates/terms_of_service.html:226
+#: templates/terms_of_service.html:232
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12384,6 +12408,11 @@ msgstr "अपलोड आणि प्रक्रिया करा"
 #| msgid "Supported formats: .xlsx, .xls"
 msgid "Supported formats: .xlsx, .xls, .csv"
 msgstr "समर्थित फॉर्मॅट: .xlsx, .xls"
+
+#, fuzzy
+#~| msgid "Last updated: January 24, 2026"
+#~ msgid "Last updated: February 22, 2026"
+#~ msgstr "अंतिम अपडेट: २४ जानेवारी २०२६"
 
 #~| msgid "Set Budget"
 #~ msgid "Over Budget"
@@ -12667,6 +12696,3 @@ msgstr "समर्थित फॉर्मॅट: .xlsx, .xls"
 #~ "\n"
 #~ "                                नियमित बॅकअप आणि सुरक्षा मुल्यांकन.\n"
 #~ "                                "
-
-#~ msgid "Last updated: January 2026"
-#~ msgstr "अंतिम अपडेट: जानेवारी २०२६"

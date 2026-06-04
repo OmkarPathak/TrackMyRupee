@@ -1,12 +1,18 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block meta_tags %}
+<meta name="description" content="TrackMyRupee Privacy Policy — how we collect, use, and protect your data. No SMS access, No bank linking. No data selling.">
+<meta name="keywords" content="TrackMyRupee, privacy policy, finance tracker, personal finance, safety, data protection">
+<meta name="author" content="Omkar Pathak">
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
             <h1 class="display-4 fw-bold mb-4 text-center">{% trans "Privacy Policy" %}</h1>
-            <p class="text-muted text-center mb-5">{% trans "Last updated: February 22, 2026" %}</p>
+            <p class="text-muted text-center mb-5">{% trans "Last updated: June 2026" %}</p>
 
                     <p class="lead mb-4">
                         {% blocktrans %}
@@ -60,6 +66,12 @@
                                 <strong>{% trans "Usage Data" %}:</strong>
                                 {% blocktrans %}
                                 Device information, IP address, browser type, and interaction logs to help us improve the service.
+                                {% endblocktrans %}
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Payment Information" %}:</strong>
+                                {% blocktrans %}
+                                Payment information is processed by Razorpay — we do not store card details or UPI IDs.
                                 {% endblocktrans %}
                             </li>
                         </ul>
