@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-04 19:18+0530\n"
+"POT-Creation-Date: 2026-06-04 19:24+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4873,7 +4873,8 @@ msgstr "४. आमच्याशी संपर्क साधा"
 
 #: templates/components/public_footer.html:12
 msgid ""
-"A privacy-first personal finance dashboard for Indian salaried professionals."
+"A privacy-first personal finance system for Indian salaried professionals. "
+"Built by a founder in Pune, India."
 msgstr ""
 
 #: templates/components/public_footer.html:20
