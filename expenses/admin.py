@@ -14,6 +14,9 @@ from .models import (
     LedgerAccount,
     LedgerPostingFailure,
     LedgerReconciliationReport,
+    Loan,
+    LoanInterestRate,
+    LoanRepayment,
     Notification,
     PaymentHistory,
     RecurringTransaction,
@@ -166,6 +169,45 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
     list_editable = ('price', 'is_active')
     list_filter = ('tier', 'duration')
     ordering = ('tier', 'price')
+
+
+class LoanInterestRateInline(admin.TabularInline):
+    model = LoanInterestRate
+    extra = 1
+
+
+class LoanRepaymentInline(admin.TabularInline):
+    model = LoanRepayment
+    extra = 0
+    raw_id_fields = ('from_account',)
+    readonly_fields = ('exchange_rate', 'base_amount')
+
+
+@admin.register(Loan)
+class LoanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'loan_type', 'initial_principal', 'currency', 'duration_months', 'start_date', 'is_active', 'user')
+    list_select_related = ('user',)
+    list_filter = ('loan_type', 'currency', 'is_active', 'start_date')
+    search_fields = ('name', 'user__username')
+    inlines = [LoanInterestRateInline, LoanRepaymentInline]
+
+
+@admin.register(LoanInterestRate)
+class LoanInterestRateAdmin(admin.ModelAdmin):
+    list_display = ('loan', 'interest_rate', 'effective_date')
+    list_select_related = ('loan',)
+    list_filter = ('effective_date',)
+    search_fields = ('loan__name',)
+
+
+@admin.register(LoanRepayment)
+class LoanRepaymentAdmin(admin.ModelAdmin):
+    list_display = ('date', 'loan', 'amount', 'principal_portion', 'interest_portion', 'from_account', 'base_amount')
+    list_select_related = ('loan', 'from_account')
+    list_filter = ('date', 'loan', 'from_account')
+    search_fields = ('loan__name', 'from_account__name')
+    ordering = ('-date',)
+
 
 # Re-register User Admin to include Email Verification inline
 class EmailAddressInline(admin.StackedInline):
