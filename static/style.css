@@ -500,6 +500,15 @@ body.demo-mode .sidebar {
   display: none !important;
 }
 
+/* Prevent sidebar badges from overlapping with the "+ ADD" hover button */
+.sidebar .nav-link .badge {
+  transition: opacity 0.2s ease;
+}
+
+.sidebar:not(.collapsed) .position-relative:hover .nav-link .badge {
+  opacity: 0;
+}
+
 /* Sidebar Divider */
 .sidebar hr {
   margin: 1.5rem 0 1rem 0 !important;

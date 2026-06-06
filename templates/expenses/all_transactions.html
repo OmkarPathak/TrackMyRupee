@@ -329,7 +329,7 @@
                                         {% else %}<i class="bi bi-arrow-left-right"></i>{% endif %}
                                     </div>
                                     <div class="flex-grow-1 min-width-0">
-                                        <div class="fw-semibold text-truncate">{{ tx.tx_description|default:tx.cat }}</div>
+                                        <div class="fw-semibold text-truncate" style="font-size: 0.95rem;">{{ tx.tx_description|default:tx.cat }}</div>
                                         <div class="text-muted d-flex align-items-center gap-1">
                                             <span style="font-size: 0.7rem;">{{ tx.date|date:"d M 'y"|translate_digits }}</span>
                                             <span class="opacity-50 flex-shrink-0">|</span>
@@ -396,7 +396,7 @@
                                     {% else %}<i class="bi bi-arrow-left-right"></i>{% endif %}
                                 </div>
                                 <div class="flex-grow-1 min-width-0">
-                                    <div class="fw-semibold mb-1">{{ tx.tx_description|default:tx.cat }}</div>
+                                    <div class="fw-semibold mb-1" style="font-size: 0.93rem;">{{ tx.tx_description|default:tx.cat }}</div>
                                     <div class="text-muted" style="font-size: 0.65rem;">{{ tx.acc|truncatechars:40 }}</div>
                                 </div>
                                 <div class="text-end d-flex align-items-center gap-2">
