@@ -580,7 +580,7 @@ class LedgerPostingService:
             description=f"Reversal: {expense.description}",
             metadata=metadata,
             lines=lines,
-            status="REVERSED",
+            status="POSTED",
         )
 
     @classmethod
@@ -620,7 +620,7 @@ class LedgerPostingService:
             description=f"Reversal: {income.description or income.source}",
             metadata=metadata,
             lines=lines,
-            status="REVERSED",
+            status="POSTED",
         )
 
     @classmethod
@@ -658,7 +658,7 @@ class LedgerPostingService:
             description=f"Reversal: {transfer.description or 'Account transfer'}",
             metadata=metadata,
             lines=lines,
-            status="REVERSED",
+            status="POSTED",
         )
 
     @classmethod
@@ -711,7 +711,7 @@ class LedgerPostingService:
             description=f"Reversal: Loan repayment for {repayment.loan.name}",
             metadata=metadata,
             lines=lines,
-            status="REVERSED",
+            status="POSTED",
         )
 
     @classmethod
@@ -752,7 +752,7 @@ class LedgerPostingService:
             description=f"Reversal: Goal contribution for {contribution.goal.name}",
             metadata=metadata,
             lines=lines,
-            status="REVERSED",
+            status="POSTED",
         )
 
     @classmethod

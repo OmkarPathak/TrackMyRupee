@@ -73,8 +73,7 @@ class LedgerShadowWriteTest(TestCase):
 
         entries = JournalEntry.objects.filter(source_type="EXPENSE", source_id=expense.id).order_by("created_at")
         self.assertEqual(entries.count(), 3)
-        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
-        self.assertEqual(entries.filter(status="POSTED").count(), 2)
+        self.assertEqual(entries.filter(status="POSTED").count(), 3)
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
     def test_expense_without_account_skips_shadow_failure(self):
@@ -109,8 +108,7 @@ class LedgerShadowWriteTest(TestCase):
 
         entries = JournalEntry.objects.filter(source_type="EXPENSE", source_id=expense.id)
         self.assertEqual(entries.count(), 2)
-        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
-        self.assertEqual(entries.filter(status="POSTED").count(), 1)
+        self.assertEqual(entries.filter(status="POSTED").count(), 2)
         self.assertEqual(LedgerPostingFailure.objects.count(), 0)
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
@@ -130,7 +128,7 @@ class LedgerShadowWriteTest(TestCase):
 
         entries = JournalEntry.objects.filter(source_type="EXPENSE", source_id=expense_id)
         self.assertEqual(entries.count(), 2)
-        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
+        self.assertEqual(entries.filter(status="POSTED").count(), 2)
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
     def test_income_create_writes_shadow_entry(self):
@@ -178,8 +176,7 @@ class LedgerShadowWriteTest(TestCase):
 
         entries = JournalEntry.objects.filter(source_type="INCOME", source_id=income.id)
         self.assertEqual(entries.count(), 2)
-        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
-        self.assertEqual(entries.filter(status="POSTED").count(), 1)
+        self.assertEqual(entries.filter(status="POSTED").count(), 2)
         self.assertEqual(LedgerPostingFailure.objects.count(), 0)
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
@@ -276,8 +273,7 @@ class LedgerShadowWriteTest(TestCase):
 
         entries = JournalEntry.objects.filter(source_type="LOAN_REPAYMENT", source_id=repayment.id)
         self.assertEqual(entries.count(), 2)
-        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
-        self.assertEqual(entries.filter(status="POSTED").count(), 1)
+        self.assertEqual(entries.filter(status="POSTED").count(), 2)
         self.assertEqual(LedgerPostingFailure.objects.count(), 0)
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
@@ -332,8 +328,7 @@ class LedgerShadowWriteTest(TestCase):
         ).order_by("created_at")
 
         self.assertEqual(entries.count(), 3)
-        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
-        self.assertEqual(entries.filter(status="POSTED").count(), 2)
+        self.assertEqual(entries.filter(status="POSTED").count(), 3)
 
     @override_settings(LEDGER_WRITE_ENABLED=True, LEDGER_ENFORCE_BALANCED_WRITE=False)
     def test_goal_contribution_delete_creates_reversal_entry(self):
@@ -356,4 +351,4 @@ class LedgerShadowWriteTest(TestCase):
 
         entries = JournalEntry.objects.filter(source_type="GOAL_CONTRIBUTION", source_id=contribution_id)
         self.assertEqual(entries.count(), 2)
-        self.assertEqual(entries.filter(status="REVERSED").count(), 1)
+        self.assertEqual(entries.filter(status="POSTED").count(), 2)
