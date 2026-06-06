@@ -230,3 +230,114 @@ class LedgerReadServiceTest(TestCase):
         self.cash.refresh_from_db()
         self.assertEqual(self.cash.balance, Decimal("1000.00"))
         self.assertEqual(LedgerReadService.get_account_balance(self.cash), Decimal("1000.00"))
+
+    @override_settings(LEDGER_READ_ENABLED=True, LEDGER_WRITE_ENABLED=True)
+    def test_ledger_balance_after_switching_account_on_update(self):
+        from expenses.ledger_service import LedgerPostingService
+        
+        # 1. Create second account
+        self.bank = Account.objects.create(
+            user=self.user,
+            name="Bank",
+            account_type="BANK",
+            balance=Decimal("4000.00"),
+            currency="₹",
+        )
+        
+        # 2. Enable ledger on both
+        LedgerPostingService.post_opening_balance(account=self.cash)
+        LedgerPostingService.post_opening_balance(account=self.bank)
+        
+        # 3. Create expense on cash (100)
+        expense = Expense.objects.create(
+            user=self.user,
+            date=date.today(),
+            amount=Decimal("100.00"),
+            description="Lunch",
+            category="Food",
+            account=self.cash,
+            currency="₹",
+        )
+        self.cash.refresh_from_db()
+        self.bank.refresh_from_db()
+        self.assertEqual(LedgerReadService.get_account_balance(self.cash), Decimal("900.00"))
+        self.assertEqual(LedgerReadService.get_account_balance(self.bank), Decimal("4000.00"))
+        
+        # 4. Update expense to switch account to bank and change amount to 150
+        expense.account = self.bank
+        expense.amount = Decimal("150.00")
+        expense.save()
+        
+        self.cash.refresh_from_db()
+        self.bank.refresh_from_db()
+        # cash balance should go back to 1000
+        # bank balance should be 4000 - 150 = 3850
+        self.assertEqual(self.cash.balance, Decimal("1000.00"))
+        self.assertEqual(self.bank.balance, Decimal("3850.00"))
+        self.assertEqual(LedgerReadService.get_account_balance(self.cash), Decimal("1000.00"))
+        self.assertEqual(LedgerReadService.get_account_balance(self.bank), Decimal("3850.00"))
+
+    @override_settings(LEDGER_READ_ENABLED=True, LEDGER_WRITE_ENABLED=True)
+    def test_ledger_balance_with_fluctuating_exchange_rates(self):
+        from expenses.ledger_service import LedgerPostingService
+        from unittest.mock import patch
+        
+        # Mock exchange rate first returns 80.00 on creation, then 85.00 on deletion.
+        with patch('expenses.models.get_exchange_rate') as mock_model_rate, \
+             patch('expenses.ledger_service.get_exchange_rate') as mock_service_rate, \
+             patch('expenses.ledger_read_service.get_exchange_rate') as mock_read_rate_outer:
+            
+            # Setup mock returns:
+            mock_model_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("85.00")]
+            mock_service_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("85.00"), Decimal("85.00")]
+            mock_read_rate_outer.return_value = Decimal("80.00")
+            
+            LedgerPostingService.post_opening_balance(account=self.cash)
+            
+            # 1. Create USD expense of $10.00.
+            # exchange rate: 80.00.
+            expense = Expense.objects.create(
+                user=self.user,
+                date=date.today(),
+                amount=Decimal("10.00"),
+                description="Hosting",
+                category="Software",
+                account=self.cash,
+                currency="$",
+            )
+            self.cash.refresh_from_db()
+            self.assertEqual(self.cash.balance, Decimal("200.00"))
+            self.assertEqual(LedgerReadService.get_account_balance(self.cash), Decimal("200.00"))
+            
+            # 2. Delete expense.
+            # exchange rate: 85.00.
+            expense.delete()
+            self.cash.refresh_from_db()
+            self.assertEqual(self.cash.balance, Decimal("1050.00"))
+            
+            # Verification that no exception is raised and ledger read is calculated correctly.
+            with patch('expenses.ledger_read_service.get_exchange_rate') as mock_read_rate:
+                mock_read_rate.return_value = Decimal("85.00")
+                self.assertEqual(LedgerReadService.get_account_balance(self.cash), Decimal("1000.00"))
+
+    @override_settings(LEDGER_READ_ENABLED=True, LEDGER_WRITE_ENABLED=True)
+    def test_reconciliation_report_captures_drift(self):
+        from django.core.management import call_command
+        from expenses.models import LedgerReconciliationReport
+        from expenses.ledger_service import LedgerPostingService
+        
+        # 1. Enable ledger on cash
+        LedgerPostingService.post_opening_balance(account=self.cash)
+        
+        # 2. Manually modify cash model balance to create drift
+        self.cash.balance = Decimal("2000.00")
+        self.cash.save()
+        
+        # 3. Call reconcile_ledgers command
+        call_command("reconcile_ledgers", user_id=self.user.id, threshold="0.01")
+        
+        # 4. Verify report has DRIFT status and drift amount is 1000.00
+        report = LedgerReconciliationReport.objects.filter(account=self.cash).order_by("-created_at").first()
+        self.assertIsNotNone(report)
+        self.assertEqual(report.status, "DRIFT")
+        self.assertEqual(report.drift_amount, Decimal("1000.00"))
