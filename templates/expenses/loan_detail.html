@@ -88,7 +88,7 @@
                                 <tr{% if forloop.counter > 10 %} class="repayment-extra d-none"{% endif %}>
                                     <td class="ps-4">{{ r.date|date:"M d, Y" }}</td>
                                     <td>
-                                        <span class="badge bg-body-tertiary text-dark border shadow-sm">
+                                        <span class="badge bg-body-tertiary text-body border shadow-sm">
                                             <i class="bi bi-wallet2 me-1"></i> {{ r.from_account.name }}
                                         </span>
                                     </td>
@@ -210,11 +210,11 @@
                     </div>
                     <p class="text-muted small mb-3">{% trans "If you pay one additional EMI every year (applied to principal), here's what you save:" %}</p>
 
-                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
                         <span class="small text-muted">{% trans "Interest Saved" %}</span>
                         <span class="fw-bold text-success fs-6">{{ loan.currency }}{{ extra_emi_savings.interest_saved|ind_comma:loan.currency|translate_digits }}</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
                         <span class="small text-muted">{% trans "Time Saved" %}</span>
                         <span class="fw-bold text-primary">{{ extra_emi_savings.months_saved }} {% trans "months" %}
                             {% if extra_emi_savings.years_saved >= 1 %}
@@ -222,7 +222,7 @@
                             {% endif %}
                         </span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-body-tertiary">
                         <span class="small text-muted">{% trans "Extra amount/year" %}</span>
                         <span class="fw-bold">{{ loan.currency }}{{ extra_emi_savings.emi|ind_comma:loan.currency|translate_digits }}</span>
                     </div>
