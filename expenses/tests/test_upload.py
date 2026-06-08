@@ -271,3 +271,62 @@ class UploadViewTest(TestCase):
         uber = Expense.objects.get(description='uber ride')
         self.assertEqual(uber.amount, 103)
         self.assertEqual(uber.date, date(2026, 4, 17))
+
+    def test_xls_html_format_and_column_mapping_safety(self):
+        # HTML content simulating HDFC bank statement with .xls extension
+        html_content = """
+        <html>
+        <body>
+        <table>
+            <tr>
+                <td>Date</td>
+                <td>Narration</td>
+                <td>Chq./Ref.No.</td>
+                <td>Value Dt</td>
+                <td>Withdrawal Amt.</td>
+                <td>Deposit Amt.</td>
+                <td>Closing Balance</td>
+            </tr>
+            <tr>
+                <td>01/04/26</td>
+                <td>POS 512967XXXXXX6594</td>
+                <td>0000609106590811</td>
+                <td>01/04/26</td>
+                <td>2439.79</td>
+                <td></td>
+                <td>80787.22</td>
+            </tr>
+            <tr>
+                <td>27/04/26</td>
+                <td>Salary</td>
+                <td>0000001598202003</td>
+                <td>27/04/26</td>
+                <td></td>
+                <td>114866</td>
+                <td>146986.61</td>
+            </tr>
+        </table>
+        </body>
+        </html>
+        """
+        file_io = io.BytesIO(html_content.encode('utf-8'))
+        file_io.name = 'statement.xls'
+
+        from decimal import Decimal
+        response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
+            'currency': '₹',
+            'file': file_io
+        })
+
+        self.assertEqual(response.status_code, 200)
+        results = response.context['results']
+        # The withdrawal row (first row) should be created
+        # The deposit row (second row, salary) should be skipped silently (not counted as an error)
+        self.assertEqual(results['created_count'], 1)
+        self.assertEqual(results['error_count'], 0)
+        self.assertEqual(results['total_rows'], 2)
+
+        expense = Expense.objects.get(description='POS 512967XXXXXX6594')
+        self.assertEqual(expense.amount, Decimal('2439.79'))
+        self.assertEqual(expense.date, date(2026, 4, 1))

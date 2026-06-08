@@ -266,6 +266,9 @@ def upload_view(request):
             
             for field, keywords in patterns.items():
                 for idx, h in enumerate(header_l):
+                    if field == 'amount' and any(d_kw in h for d_kw in ['date', 'dt']):
+                        # Avoid mapping columns like "Value Dt" or "Value Date" to "amount"
+                        continue
                     if any(kw in h for kw in keywords):
                         mapping[field] = idx
                         break
@@ -282,7 +285,8 @@ def upload_view(request):
             formats = [
                 '%d %b %Y', '%Y-%m-%d', '%d-%m-%Y', '%d/%m/%Y', '%m/%d/%Y', 
                 '%d %B %Y', '%d %b', '%d-%b', '%d %B', '%d/%m', '%Y/%m/%d',
-                '%b %d, %Y', '%B %d, %Y', '%b %d', '%B %d'
+                '%b %d, %Y', '%B %d, %Y', '%b %d', '%B %d',
+                '%d/%m/%y', '%m/%d/%y', '%d-%m-%y', '%y/%m/%d'
             ]
             for fmt in formats:
                 try:
@@ -313,6 +317,9 @@ def upload_view(request):
                 # 2. Identify Amount (looking for numbers in other columns)
                 for i, val in enumerate(cols):
                     if i == mapping.get('date'): continue
+                    if parse_robust_date(val):
+                        # Avoid identifying other date columns as amount
+                        continue
                     # Remove symbols and try to parse
                     try:
                         clean_v = re.sub(r'[^\d\.\-]', '', val)
@@ -340,12 +347,64 @@ def upload_view(request):
         try:
             data_rows = []
             if uploaded_file.name.endswith(('.xlsx', '.xls')):
-                uploaded_file.seek(0)
-                wb = openpyxl.load_workbook(uploaded_file, data_only=True)
-                for sheet in wb.worksheets:
-                    rows = list(sheet.iter_rows(values_only=True))
-                    if not rows: continue
+                sheets_data = []
+                try:
+                    uploaded_file.seek(0)
+                    wb = openpyxl.load_workbook(uploaded_file, data_only=True)
+                    for sheet in wb.worksheets:
+                        rows = list(sheet.iter_rows(values_only=True))
+                        if rows:
+                            sheets_data.append(rows)
+                except Exception:
+                    # Fallback for files that have .xls extension but are actually HTML tables or CSVs
+                    uploaded_file.seek(0)
+                    file_bytes = uploaded_file.read()
                     
+                    decoded = None
+                    for encoding in ['utf-8', 'latin-1', 'cp1252']:
+                        try:
+                            decoded = file_bytes.decode(encoding)
+                            break
+                        except UnicodeDecodeError:
+                            continue
+                    
+                    if decoded:
+                        decoded_stripped = decoded.strip()
+                        # Detect if HTML table
+                        if '<table' in decoded_stripped.lower() or '<html' in decoded_stripped.lower():
+                            try:
+                                from bs4 import BeautifulSoup
+                                soup = BeautifulSoup(decoded, 'html.parser')
+                                for table in soup.find_all('table'):
+                                    rows = []
+                                    for tr in table.find_all('tr'):
+                                        cells = []
+                                        for td in tr.find_all(['td', 'th']):
+                                            cells.append(td.get_text(strip=True))
+                                        if any(cells):
+                                            rows.append(cells)
+                                    if rows:
+                                        sheets_data.append(rows)
+                            except Exception as html_err:
+                                raise ValueError(_("Failed to parse XLS as HTML table: ") + str(html_err))
+                        else:
+                            # Try parsing as CSV
+                            try:
+                                reader = csv.reader(io.StringIO(decoded))
+                                rows = list(reader)
+                                if rows:
+                                    sheets_data.append(rows)
+                            except Exception as csv_err:
+                                raise ValueError(_("Failed to parse XLS as CSV: ") + str(csv_err))
+                    
+                    if not sheets_data:
+                        raise ValueError(_(
+                            "This file appears to be in the older Excel (.xls) format, which is not supported directly. "
+                            "Please open it in Microsoft Excel, Google Sheets, or LibreOffice and save it as a newer .xlsx format, "
+                            "then try uploading again."
+                        ))
+
+                for rows in sheets_data:
                     mapping = {}
                     start_idx = 0
                     for i, row in enumerate(rows[:20]):
@@ -411,14 +470,15 @@ def upload_view(request):
                         if date_idx is None or amount_idx is None or desc_idx is None:
                             raise ValueError(_("Missing required columns in row"))
 
+                        raw_amount = row[amount_idx]
+                        if raw_amount is None or str(raw_amount).strip() in ('', '0', '0.0', '0.00'):
+                            # Skip silently - it's a deposit or empty row, not an expense
+                            continue
+
                         date_val = parse_robust_date(row[date_idx])
                         if not date_val:
                             raise ValueError(_("Invalid date format: ") + str(row[date_idx]))
 
-                        raw_amount = row[amount_idx]
-                        if raw_amount is None:
-                            raise ValueError(_("Missing amount"))
-                        
                         amount_str = str(raw_amount).replace(',', '').strip()
                         # Handle cases like "$ 1,200.00" or "(100.00)"
                         cleaned_amount_str = re.sub(r'[^\d\.\-]', '', amount_str)
@@ -426,7 +486,7 @@ def upload_view(request):
                             raise ValueError(_("Invalid amount format: ") + str(raw_amount))
                         amount = abs(Decimal(cleaned_amount_str))
                         
-                        desc = str(row[desc_idx]).strip()
+                        desc = str(row[desc_idx]).strip() if row[desc_idx] is not None else ""
                         if not desc:
                             raise ValueError(_("Missing description"))
 
