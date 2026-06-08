@@ -146,7 +146,7 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         loan = get_object_or_404(Loan, pk=pk, user=request.user)
         summary = LoanService.get_loan_summary(loan)
         schedule = LoanService.generate_amortization_schedule(loan)
-        repayments = loan.repayments.all().order_by('-date')
+        repayments = loan.repayments.select_related('from_account').order_by('-date')
         
         repayment_form = LoanRepaymentForm(user=request.user, loan=loan)
         rate_form = LoanInterestRateForm()

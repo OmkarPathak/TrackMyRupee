@@ -246,12 +246,11 @@ class LedgerReadService:
 
         # Subtract outstanding loan principal to reflect liabilities.
         outstanding_loan_base = Decimal("0.00")
-        for loan in Loan.objects.filter(user=user, is_active=True):
-            paid_principal = (
-                loan.repayments.aggregate(total_principal=Sum("principal_portion"))["total_principal"]
-                or Decimal("0.00")
-            )
-            remaining_principal = (loan.initial_principal - paid_principal).quantize(Decimal("0.01"))
+        active_loans = Loan.objects.filter(user=user, is_active=True).annotate(
+            paid_principal=Coalesce(Sum("repayments__principal_portion"), Decimal("0.00"))
+        )
+        for loan in active_loans:
+            remaining_principal = (loan.initial_principal - loan.paid_principal).quantize(Decimal("0.01"))
             if remaining_principal <= Decimal("0.00"):
                 continue
 
