@@ -1319,6 +1319,19 @@ a:hover {
     overflow: visible !important;
 }
 
+/* Elevate modals to sit above mobile bottom navigation (1090) and demo banner (1060) */
+.modal {
+  z-index: 1150 !important;
+}
+.modal-backdrop {
+  z-index: 1140 !important;
+}
+.popover {
+  z-index: 1170 !important;
+}
+.tooltip {
+  z-index: 1180 !important;
+}
 
 /* Ensure Navbar sits above filters (which have z-index: 1040) but below modals (1055) */
 /* Essential because backdrop-filter in dark mode creates a new stacking context */
