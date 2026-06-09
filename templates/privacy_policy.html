@@ -28,7 +28,7 @@
                             <li><a href="#section-3" class="text-decoration-none">{% trans "3. Cookies & Tracking Technologies" %}</a></li>
                             <li><a href="#section-4" class="text-decoration-none">{% trans "4. Information Sharing" %}</a></li>
                             <li><a href="#section-5" class="text-decoration-none">{% trans "5. Data Security" %}</a></li>
-                            <li><a href="#section-6" class="text-decoration-none">{% trans "6. Your Rights & Choices" %}</a></li>
+                            <li><a href="#section-6" class="text-decoration-none">{% trans "6. Your Rights Under DPDP Act 2023" %}</a></li>
                             <li><a href="#section-7" class="text-decoration-none">{% trans "7. Data Retention" %}</a></li>
                             <li><a href="#section-8" class="text-decoration-none">{% trans "8. Children's Privacy" %}</a></li>
                             <li><a href="#section-9" class="text-decoration-none">{% trans "9. Changes to Privacy Policy" %}</a></li>
@@ -47,31 +47,31 @@
                             <li class="mb-2">
                                 <strong>{% trans "Account Information" %}:</strong>
                                 {% blocktrans %}
-                                Your username, email address, and password (securely hashed — never stored in plain text).
+                                Email & Username &rarr; Account identification and communication &rarr; Consent &rarr; Until account deletion.
                                 {% endblocktrans %}
                             </li>
                             <li class="mb-2">
                                 <strong>{% trans "Financial Data" %}:</strong>
                                 {% blocktrans %}
-                                Incomes, expenses, categories, budgets, and subscriptions you manually enter.
+                                Manually entered transactions (incomes, expenses, budgets) &rarr; Dashboard processing and visualization &rarr; Consent &rarr; Until account deletion.
                                 {% endblocktrans %}
                             </li>
                             <li class="mb-2">
                                 <strong>{% trans "Profile Preferences" %}:</strong>
                                 {% blocktrans %}
-                                Currency settings, theme preferences (light/dark mode).
+                                Currency and theme preferences &rarr; Interface personalization &rarr; Consent &rarr; Until account deletion.
                                 {% endblocktrans %}
                             </li>
                             <li class="mb-2">
                                 <strong>{% trans "Usage Data" %}:</strong>
                                 {% blocktrans %}
-                                Device information, IP address, browser type, and interaction logs to help us improve the service.
+                                Device & Browser Info, IP address &rarr; Verification of authentic sessions and bot prevention &rarr; Consent &rarr; Until account deletion.
                                 {% endblocktrans %}
                             </li>
                             <li class="mb-2">
                                 <strong>{% trans "Payment Information" %}:</strong>
                                 {% blocktrans %}
-                                Payment information is processed by Razorpay — we do not store card details or UPI IDs.
+                                Payment details (handled by Razorpay) &rarr; Subscription processing &rarr; Contractual necessity &rarr; Up to 7 years for tax compliance.
                                 {% endblocktrans %}
                             </li>
                         </ul>
@@ -200,38 +200,12 @@
                     </div>
 
                     <div id="section-6" class="mb-5">
-                        <h3 class="h4 fw-bold mb-3">{% trans "6. Your Rights & Choices" %}</h3>
+                        <h3 class="h4 fw-bold mb-3">{% trans "6. Your Rights Under DPDP Act 2023" %}</h3>
                         <p class="text-muted">
                             {% blocktrans %}
-                            You have control over your personal information.
+                            Under India's Digital Personal Data Protection Act 2023, you have the right to: (1) Access your personal data. (2) Correct inaccurate data. (3) Request erasure of your data. (4) Withdraw consent at any time. (5) File a complaint with the Data Protection Board of India at dpboard.gov.in.
                             {% endblocktrans %}
                         </p>
-                        <ul class="text-muted">
-                            <li class="mb-2">
-                                <strong>{% trans "Access & Correction" %}:</strong>
-                                {% blocktrans %}
-                                You can view and edit your profile and financial data directly within the application.
-                                {% endblocktrans %}
-                            </li>
-                            <li class="mb-2">
-                                <strong>{% trans "Data Export" %}:</strong>
-                                {% blocktrans %}
-                                You can export your data (e.g., to CSV/Excel) at any time.
-                                {% endblocktrans %}
-                            </li>
-                            <li class="mb-2">
-                                <strong>{% trans "Account Deletion" %}:</strong>
-                                {% blocktrans %}
-                                You can request to delete your account and all associated data permanently.
-                                {% endblocktrans %}
-                            </li>
-                            <li class="mb-2">
-                                <strong>{% trans "Communications" %}:</strong>
-                                {% blocktrans %}
-                                You can manage your email preferences or unsubscribe from non-essential emails.
-                                {% endblocktrans %}
-                            </li>
-                        </ul>
                     </div>
 
                     <div id="section-7" class="mb-5">
@@ -278,12 +252,18 @@
                     </div>
 
                     <div id="section-10" class="mb-0">
-                        <h3 class="h4 fw-bold mb-3">{% trans "10. Contact Us" %}</h3>
-                        <p class="text-muted mb-0">
+                        <h3 class="h4 fw-bold mb-3">{% trans "10. Contact Us & Grievance Officer" %}</h3>
+                        <p class="text-muted mb-3">
                             {% blocktrans %}
                             If you have questions about this privacy policy or our practices, please contact us at:
                             {% endblocktrans %} <br>
                             <a href="mailto:support@trackmyrupee.com" class="fw-bold text-decoration-none">support@trackmyrupee.com</a>
+                        </p>
+                        <h5 class="h6 fw-bold mt-4">{% trans "Grievance Officer" %}</h5>
+                        <p class="text-muted mb-0">
+                            {% blocktrans %}
+                            Grievance Officer: Omkar Pathak, TrackMyRupee, Email: support@trackmyrupee.com. We will respond to all grievances within 30 days.
+                            {% endblocktrans %}
                         </p>
                     </div>
             
