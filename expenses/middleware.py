@@ -115,6 +115,8 @@ class DPDPAConsentMiddleware:
                 'contact',
                 'loan-emi-calculator',
                 'ping',
+                'user-delete',
+                'withdraw-consent',
             ]
 
             is_static_or_media = (

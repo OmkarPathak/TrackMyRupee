@@ -12,6 +12,45 @@ from django.views.generic import DeleteView, TemplateView, UpdateView
 
 from ..forms import LanguageUpdateForm, ProfileUpdateForm
 from ..models import Expense, Income, RecurringTransaction, UserProfile
+from ..models import DeletionRequestAuditLog
+
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
+def log_and_notify_deletion(user):
+    username = user.username
+    email = user.email
+
+    # 1. Log the deletion request
+    DeletionRequestAuditLog.objects.create(email=email, username=username)
+
+    # 2. Send confirmation email
+    if email:
+        try:
+            from django.core.mail import send_mail
+            from django.template.loader import render_to_string
+
+            subject = _("Account Deleted - TrackMyRupee")
+            html_message = render_to_string('email/account_deleted_email.html', {
+                'username': username,
+            })
+            text_message = render_to_string('email/account_deleted_email.txt', {
+                'username': username,
+            })
+
+            send_mail(
+                subject=subject,
+                message=text_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                html_message=html_message,
+            )
+            logger.info(f"Account deletion confirmation email sent to {email}")
+        except Exception as e:
+            logger.error(f"Failed to send account deletion email to {email}: {e}")
 
 
 class SettingsHomeView(LoginRequiredMixin, TemplateView):
@@ -27,6 +66,7 @@ class UserDeleteView(LoginRequiredMixin, DeleteView):
 
     def form_valid(self, form):
         user = self.get_object()
+        log_and_notify_deletion(user)
         logout(self.request)
         user.delete()
         messages.success(self.request, _("Your account has been deleted successfully."))
@@ -42,10 +82,12 @@ class WithdrawConsentView(LoginRequiredMixin, DeleteView):
 
     def form_valid(self, form):
         user = self.get_object()
+        log_and_notify_deletion(user)
         logout(self.request)
         user.delete()
         messages.success(self.request, _("Your consent has been withdrawn and your account and data have been permanently deleted as per DPDPA requirements."))
         return redirect(self.success_url)
+
 
 class CurrencyUpdateView(LoginRequiredMixin, UpdateView):
     model = UserProfile

@@ -105,21 +105,67 @@ class DPDPAComplianceTestCase(TestCase):
         self.assertFalse(self.profile.consent_granted)
 
     def test_withdraw_consent_deletes_account(self):
-        """Test that withdrawing consent deletes the user account and redirects to landing page."""
+        """Test that withdrawing consent deletes the user account, logs audit record, sends confirmation email, and redirects."""
+        from django.core import mail
+        from expenses.models import DeletionRequestAuditLog
+
         self.client.login(username='consentuser', password='password123')
-        
+
         # Grant consent first
         self.profile.consent_granted = True
         self.profile.save()
-        
+
         # Create some dummy data to ensure deletion cascades
         Expense.objects.create(user=self.user, date=date.today(), amount=100, category='Food', description='lunch')
         self.assertEqual(Expense.objects.filter(user=self.user).count(), 1)
-        
+
+        # Clear outbox before action
+        mail.outbox = []
+
         response = self.client.post(reverse('withdraw-consent'))
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.endswith(reverse('landing')))
-        
+
         # Check that user and all data is deleted
         self.assertFalse(User.objects.filter(username='consentuser').exists())
         self.assertEqual(Expense.objects.count(), 0)
+
+        # Verify Audit Log
+        self.assertTrue(DeletionRequestAuditLog.objects.filter(email='consent@example.com', username='consentuser').exists())
+
+        # Verify Email
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ['consent@example.com'])
+        self.assertEqual(email.subject, 'Account Deleted - TrackMyRupee')
+        self.assertIn('Your account has been deleted. All personal data will be permanently removed within 7 days.', email.body)
+        self.assertIn('retained for 5 years', email.body)
+        self.assertIn('cannot be deleted on request', email.body)
+
+    def test_account_delete_logs_audit_and_sends_email(self):
+        """Test that deleting account logs audit record, sends confirmation email, and redirects."""
+        from django.core import mail
+        from expenses.models import DeletionRequestAuditLog
+
+        self.client.login(username='consentuser', password='password123')
+
+        # Clear outbox before action
+        mail.outbox = []
+
+        response = self.client.post(reverse('user-delete'))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.endswith(reverse('landing')))
+
+        # Check that user is deleted
+        self.assertFalse(User.objects.filter(username='consentuser').exists())
+
+        # Verify Audit Log
+        self.assertTrue(DeletionRequestAuditLog.objects.filter(email='consent@example.com', username='consentuser').exists())
+
+        # Verify Email
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ['consent@example.com'])
+        self.assertEqual(email.subject, 'Account Deleted - TrackMyRupee')
+        self.assertIn('Your account has been deleted. All personal data will be permanently removed within 7 days.', email.body)
+

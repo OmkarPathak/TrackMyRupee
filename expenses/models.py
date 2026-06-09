@@ -1649,3 +1649,12 @@ class LoanRepayment(models.Model):
             )
             super().delete(*args, **kwargs)
 
+
+class DeletionRequestAuditLog(models.Model):
+    email = models.EmailField()
+    username = models.CharField(max_length=150)
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Deletion request for {self.username} ({self.email}) at {self.requested_at}"
+

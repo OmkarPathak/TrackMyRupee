@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from .models import (
     Account,
     Category,
+    DeletionRequestAuditLog,
     EmailLog,
     Expense,
     Income,
@@ -220,3 +221,13 @@ class UserAdmin(BaseUserAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
+
+@admin.register(DeletionRequestAuditLog)
+class DeletionRequestAuditLogAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'requested_at')
+    list_filter = ('requested_at',)
+    search_fields = ('username', 'email')
+    readonly_fields = ('username', 'email', 'requested_at')
+    ordering = ('-requested_at',)
+

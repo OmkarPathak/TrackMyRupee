@@ -71,7 +71,7 @@
                             <li class="mb-2">
                                 <strong>{% trans "Payment Information" %}:</strong>
                                 {% blocktrans %}
-                                Payment details (handled by Razorpay) &rarr; Subscription processing &rarr; Contractual necessity &rarr; Up to 7 years for tax compliance.
+                                Payment details (handled by Razorpay) &rarr; Subscription processing &rarr; Contractual necessity &rarr; 5 years as required by Indian tax law.
                                 {% endblocktrans %}
                             </li>
                         </ul>
@@ -206,6 +206,12 @@
                             Under India's Digital Personal Data Protection Act 2023, you have the right to: (1) Access your personal data. (2) Correct inaccurate data. (3) Request erasure of your data. (4) Withdraw consent at any time. (5) File a complaint with the Data Protection Board of India at dpboard.gov.in.
                             {% endblocktrans %}
                         </p>
+                        <p class="text-muted small">
+                            <strong>{% trans "Note on Erasure Requests" %}:</strong>
+                            {% blocktrans %}
+                            Payment records are retained for 5 years as required by Indian tax law and cannot be deleted on request.
+                            {% endblocktrans %}
+                        </p>
                     </div>
 
                     <div id="section-7" class="mb-5">
@@ -226,6 +232,12 @@
                                 <strong>{% trans "Deleted Accounts" %}:</strong>
                                 {% blocktrans %}
                                 If you delete your account, your personal data is removed from our live databases immediately and from backups within 30-90 days.
+                                {% endblocktrans %}
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Exception for Payment Records" %}:</strong>
+                                {% blocktrans %}
+                                Payment records are retained for 5 years as required by Indian tax law and cannot be deleted on request.
                                 {% endblocktrans %}
                             </li>
                         </ul>

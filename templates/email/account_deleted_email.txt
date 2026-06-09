@@ -1,0 +1,12 @@
+Account Deleted - TrackMyRupee
+
+Hi {{ username }},
+
+Your account has been deleted. All personal data will be permanently removed within 7 days.
+
+Note: As required by Indian tax law, some transaction payment records (if any) processed through Razorpay must be retained for 5 years and cannot be deleted on request.
+
+If you did not request this account deletion, please contact our support team immediately.
+
+Best regards,
+The TrackMyRupee Team

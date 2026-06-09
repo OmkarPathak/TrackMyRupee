@@ -1,0 +1,22 @@
+{% extends "account/email/base_email.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Account Deleted - TrackMyRupee" %}{% endblock %}
+
+{% block content %}
+    <h2>{% trans "Account Deleted" %}</h2>
+    
+    <p>{% trans "Hi" %} <strong>{{ username }}</strong>,</p>
+    
+    <p>{% trans "Your account has been deleted. All personal data will be permanently removed within 7 days." %}</p>
+    
+    <div style="text-align: left; margin: 25px 0; background: #fff5f5; border-left: 4px solid #dc3545; border-radius: 4px; padding: 15px;">
+        <p style="margin: 0; color: #b02a37; font-size: 0.9rem;">
+            <strong>{% trans "Note" %}:</strong> {% trans "As required by Indian tax law, some transaction payment records (if any) processed through Razorpay must be retained for 5 years and cannot be deleted on request." %}
+        </p>
+    </div>
+    
+    <p>{% trans "If you did not request this account deletion, please contact our support team immediately." %}</p>
+    
+    <p>{% trans "Best regards" %},<br>{% trans "The TrackMyRupee Team" %}</p>
+{% endblock %}
