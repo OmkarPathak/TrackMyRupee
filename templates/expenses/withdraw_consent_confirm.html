@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="row justify-content-center fade-in">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 mt-5">
+            <div class="card-header bg-danger text-white fw-bold py-3">
+                <i class="bi bi-shield-x me-2"></i> {% trans "Withdraw Data Consent" %}
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="mb-4">
+                    <i class="bi bi-shield-slash-fill text-danger display-1 opacity-25"></i>
+                </div>
+                
+                <h3 class="h4 fw-bold mb-3">{% trans "Withdraw Consent & Delete Data?" %}</h3>
+                <p class="text-muted mb-4">
+                    {% trans "Under the Digital Personal Data Protection (DPDP) Act of India, you have the right to withdraw your consent to data processing at any time. Doing so will immediately and permanently delete your account, settings, and all recorded financial transactions." %}
+                </p>
+
+                <div class="alert alert-danger text-start">
+                    <h6 class="alert-heading fw-bold mb-2">{% trans "What will be deleted permanently:" %}</h6>
+                    <ul class="mb-0 small">
+                        <li>{% trans "Your login credentials and email registry." %}</li>
+                        <li>{% trans "All income records, expense ledger lines, and categories." %}</li>
+                        <li>{% trans "Bank account balances, transfers, and recurring transactions." %}</li>
+                        <li>{% trans "Active savings goals, loan schedules, and payment history." %}</li>
+                    </ul>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between align-items-center gap-2 mt-4">
+                        <button type="submit" class="btn btn-danger px-4 fw-bold">
+                            <i class="bi bi-trash-fill me-1"></i> {% trans "Yes, Withdraw & Delete" %}
+                        </button>
+                        <a href="{% url 'settings-home' %}" class="btn btn-outline-secondary px-4">
+                            {% trans "Cancel" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

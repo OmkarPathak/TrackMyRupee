@@ -650,3 +650,38 @@ class ContactView(View):
 class HealthCheckView(View):
     def get(self, request):
         return JsonResponse({"status": "healthy", "timestamp": datetime.now().isoformat()})
+
+
+@login_required
+def dpdp_consent_view(request):
+    """
+    Standalone DPDPA consent page for users who haven't granted consent yet.
+    """
+    try:
+        profile = request.user.profile
+    except Exception:
+        from ..models import UserProfile
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if profile.consent_granted:
+        return redirect('home')
+
+    if request.method == 'POST':
+        consent_email = request.POST.get('consent_email') == 'on'
+        consent_transactions = request.POST.get('consent_transactions') == 'on'
+        consent_device = request.POST.get('consent_device') == 'on'
+
+        if consent_email and consent_transactions and consent_device:
+            from django.utils import timezone
+            profile.consent_granted = True
+            profile.consent_timestamp = timezone.now()
+            profile.consent_version = 'v1.0'
+            profile.save()
+            messages.success(request, _("Thank you for your consent. You can now use TrackMyRupee."))
+            return redirect('home')
+        else:
+            messages.error(request, _("You must agree to all data collection terms to use TrackMyRupee."))
+
+    return render(request, 'expenses/dpdp_consent.html', {
+        'page_title': _('Data Consent Required')
+    })

@@ -16,7 +16,7 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
     model = RecurringTransaction
     template_name = 'expenses/recurring_transaction_list.html'
     context_object_name = 'recurring_transactions'
-    filter_expenses_only = True
+    filter_expenses_only = False
 
     def get_queryset(self):
         if not self.request.user.is_authenticated:
@@ -67,7 +67,7 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
         total_yearly = 0
         
         for sub in active_subs:
-            if sub.transaction_type == 'TRANSFER':
+            if sub.transaction_type in ('TRANSFER', 'INCOME'):
                 continue
             amount = sub.base_amount
             if sub.frequency == 'DAILY':

@@ -73,3 +73,58 @@ class LocaleMiddlewareByProfile:
         
         response = self.get_response(request)
         return response
+
+
+class DPDPAConsentMiddleware:
+    """
+    Ensures that authenticated users have accepted the DPDPA consent terms.
+    If not, redirects them to the consent page.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated and request.user.username != 'demo':
+            from django.urls import resolve, Resolver404
+            
+            try:
+                resolver_match = resolve(request.path_info)
+                url_name = resolver_match.url_name
+            except Resolver404:
+                url_name = None
+
+            try:
+                profile = getattr(request.user, 'profile', None)
+                if not profile:
+                    from .models import UserProfile
+                    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            except Exception:
+                profile = None
+
+            # Skip checking for specific URLs
+            allowed_url_names = [
+                'dpdp_consent',
+                'account_logout',
+                'landing',
+                'features',
+                'about',
+                'privacy-policy',
+                'terms-of-service',
+                'refund-policy',
+                'security',
+                'contact',
+                'loan-emi-calculator',
+                'ping',
+            ]
+
+            is_static_or_media = (
+                request.path_info.startswith('/static/') or 
+                request.path_info.startswith('/media/') or 
+                request.path_info.startswith('/tmr_admin/')
+            )
+
+            if profile and not profile.consent_granted and not is_static_or_media and url_name not in allowed_url_names:
+                return redirect('dpdp_consent')
+
+        response = self.get_response(request)
+        return response

@@ -185,6 +185,13 @@
     <!-- DANGER ZONE -->
     <small class="text-muted text-uppercase fw-bold px-1 mb-2 d-block text-danger opacity-75" style="font-size: 0.75rem;">{% trans "Danger Zone" %}</small>
     <div class="list-group mb-4 shadow-sm rounded-3 overflow-hidden border-0">
+        <a href="{% url 'withdraw-consent' %}" class="list-group-item list-group-item-action border-0 d-flex justify-content-between align-items-center py-3 text-danger border-bottom">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-shield-x me-3 fs-5"></i>
+                <span class="fw-medium">{% trans "Withdraw Consent" %}</span>
+            </div>
+            <i class="bi bi-chevron-right text-danger opacity-50 small"></i>
+        </a>
         <a href="{% url 'user-delete' %}" class="list-group-item list-group-item-action border-0 d-flex justify-content-between align-items-center py-3 text-danger">
             <div class="d-flex align-items-center">
                 <i class="bi bi-person-x me-3 fs-5"></i>
@@ -382,6 +389,17 @@
     <!-- Section: Danger Zone -->
     <h6 class="text-danger text-uppercase fw-bold mb-3 mt-5 opacity-75" style="font-size: 0.7rem; letter-spacing: 0.05rem;">{% trans "Danger Zone" %}</h6>
     <div class="row g-3">
+        <div class="col-md-4">
+            <a href="{% url 'withdraw-consent' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover border-start border-danger border-4">
+                <div class="card-body p-4">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-shield-x fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1 text-danger">{% trans "Withdraw Consent" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Withdraw your data consent and request permanent account/data deletion." %}</p>
+                </div>
+            </a>
+        </div>
         <div class="col-md-4">
             <a href="{% url 'user-delete' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover border-start border-danger border-4">
                 <div class="card-body p-4">

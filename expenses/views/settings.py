@@ -32,6 +32,21 @@ class UserDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(self.request, _("Your account has been deleted successfully."))
         return redirect(self.success_url)
 
+class WithdrawConsentView(LoginRequiredMixin, DeleteView):
+    model = settings.AUTH_USER_MODEL
+    success_url = reverse_lazy('landing')
+    template_name = 'expenses/withdraw_consent_confirm.html'
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        user = self.get_object()
+        logout(self.request)
+        user.delete()
+        messages.success(self.request, _("Your consent has been withdrawn and your account and data have been permanently deleted as per DPDPA requirements."))
+        return redirect(self.success_url)
+
 class CurrencyUpdateView(LoginRequiredMixin, UpdateView):
     model = UserProfile
     fields = ['currency']

@@ -392,25 +392,30 @@ class SalaryDateUpdateForm(forms.ModelForm):
             'salary_date': forms.Select(attrs={'class': 'form-select'}),
         }
 
-class CustomSignupForm(UserCreationForm):
-    email = forms.EmailField(required=True, label='Email Address')
+class CustomSignupForm(forms.Form):
+    consent_email = forms.BooleanField(
+        required=True,
+        label=_("Email Address"),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    consent_transactions = forms.BooleanField(
+        required=True,
+        label=_("Financial Transactions"),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    consent_device = forms.BooleanField(
+        required=True,
+        label=_("Device and Browser Information"),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
 
-    class Meta:
-        model = User
-        fields = ('username', 'email')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Add reCAPTCHA field if keys are configured
-        if getattr(settings, 'RECAPTCHA_PUBLIC_KEY', None) and getattr(settings, 'RECAPTCHA_PRIVATE_KEY', None):
-            self.fields['captcha'] = ReCaptchaField(widget=ReCaptchaV3)
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
-        return email
+    def signup(self, request, user):
+        from django.utils import timezone
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        profile.consent_granted = True
+        profile.consent_timestamp = timezone.now()
+        profile.consent_version = 'v1.0'
+        profile.save()
 
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your Name'}))

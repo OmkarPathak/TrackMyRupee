@@ -1,0 +1,112 @@
+{% extends "account/auth_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Data Consent Required" %} - TrackMyRupee{% endblock %}
+
+{% block auth_content %}
+<div class="mb-4 text-center">
+    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+        <i class="bi bi-shield-lock-fill fs-3"></i>
+    </div>
+    <h2 class="fw-bold mb-1">{% trans "Data Consent Required" %}</h2>
+    <p class="text-muted small">
+        {% trans "To continue using TrackMyRupee, we require your explicit, informed consent for processing your personal details in compliance with the DPDPA (India)." %}
+    </p>
+</div>
+
+<form method="post" action="{% url 'dpdp_consent' %}" class="needs-validation" novalidate>
+    {% csrf_token %}
+
+    <div class="alert alert-info border-0 rounded-4 mb-4 small text-muted text-start">
+        <i class="bi bi-info-circle-fill text-info me-1"></i>
+        {% trans "You're in control — you can withdraw consent at any time from Settings, and all your data will be permanently deleted." %}
+    </div>
+
+    <div class="d-flex justify-content-end mb-2">
+        <a href="#" id="link_enable_all" class="text-decoration-none small fw-semibold">{% trans "Enable all" %}</a>
+    </div>
+
+    <!-- Toggle 1: Email -->
+    <div class="card border-0 mb-3 shadow-sm rounded-4 text-start" style="background-color: rgba(33, 158, 188, 0.05); border: 1px solid rgba(33, 158, 188, 0.1) !important;">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div class="pe-3">
+                <h6 class="fw-bold mb-1 text-dark">{% trans "1. Email Address" %}</h6>
+                <p class="small text-muted mb-0">{% trans "To identify your account, send secure login keys, and email notifications." %}</p>
+            </div>
+            <div>
+                <span class="badge rounded-pill px-3 py-2 small d-flex align-items-center gap-1 fw-bold" style="background-color: rgba(33, 158, 188, 0.12); color: #1a7890; border: 1px solid rgba(33, 158, 188, 0.25);">
+                    <i class="bi bi-lock-fill"></i> {% trans "Required" %}
+                </span>
+                <input type="hidden" name="consent_email" value="on">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle 2: Financial Transactions -->
+    <div class="card border-0 mb-3 shadow-sm rounded-4 text-start" style="background-color: rgba(33, 158, 188, 0.05); border: 1px solid rgba(33, 158, 188, 0.1) !important;">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div class="pe-3">
+                <h6 class="fw-bold mb-1 text-dark">{% trans "2. Financial Transactions" %}</h6>
+                <p class="small text-muted mb-0">{% trans "To process, format, and display your income, expenses, budgets, and savings goals. All the data is manually entered by you; TrackMyRupee never asks for any credentials." %}</p>
+            </div>
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="consent_transactions" id="id_consent_transactions" checked required style="width: 2.5em; height: 1.25em;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle 3: Device & Browser -->
+    <div class="card border-0 mb-4 shadow-sm rounded-4 text-start" style="background-color: rgba(33, 158, 188, 0.05); border: 1px solid rgba(33, 158, 188, 0.1) !important;">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div class="pe-3">
+                <h6 class="fw-bold mb-1 text-dark">{% trans "3. Device & Browser Info" %}</h6>
+                <p class="small text-muted mb-0">{% trans "Collected to verify authentic sessions, maintain secure tokens, and prevent automated bot access." %}</p>
+            </div>
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="consent_device" id="id_consent_device" checked required style="width: 2.5em; height: 1.25em;">
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary btn-xl w-100 mb-3 shadow-sm" type="submit" id="btn_submit_consent">
+        {% trans "I understand and consent" %}
+    </button>
+
+    <a href="{% url 'account_logout' %}" class="btn btn-link text-decoration-none w-100 text-muted small">
+        <i class="bi bi-box-arrow-right me-1"></i> {% trans "Logout" %}
+    </a>
+    
+    <p class="text-muted text-center mt-3 mb-0" style="font-size: 0.72rem;">
+        {% trans "Consent policy v1.0 · Effective June 2026" %}
+    </p>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chkTransactions = document.getElementById("id_consent_transactions");
+        const chkDevice = document.getElementById("id_consent_device");
+        const btnSubmit = document.getElementById("btn_submit_consent");
+        const linkEnableAll = document.getElementById("link_enable_all");
+
+        function updateSubmitButton() {
+            btnSubmit.disabled = !(chkTransactions.checked && chkDevice.checked);
+        }
+
+        [chkTransactions, chkDevice].forEach(el => {
+            if (el) el.addEventListener('change', updateSubmitButton);
+        });
+
+        if (linkEnableAll) {
+            linkEnableAll.addEventListener("click", function(e) {
+                e.preventDefault();
+                chkTransactions.checked = true;
+                chkDevice.checked = true;
+                updateSubmitButton();
+            });
+        }
+        
+        // Run once on load to ensure initial state matches checkboxes
+        updateSubmitButton();
+    });
+</script>
+{% endblock %}

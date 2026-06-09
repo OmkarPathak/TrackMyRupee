@@ -970,6 +970,11 @@ class UserProfile(models.Model):
     language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default='en')
     has_seen_tutorial = models.BooleanField(default=False)
 
+    # DPDPA Consent Fields
+    consent_granted = models.BooleanField(default=False)
+    consent_timestamp = models.DateTimeField(null=True, blank=True)
+    consent_version = models.CharField(max_length=10, null=True, blank=True)
+
     # Subscription Fields
     TIER_CHOICES = [
         ('FREE', 'Free'),

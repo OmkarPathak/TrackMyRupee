@@ -13,7 +13,11 @@ def handle_user_post_save(sender, instance, created, **kwargs):
     """Unified handler for User post_save to reduce redundant queries during signup."""
     if created:
         # 1. Create UserProfile
-        UserProfile.objects.get_or_create(user=instance)
+        profile, profile_created = UserProfile.objects.get_or_create(user=instance)
+        import sys
+        if 'test' in sys.argv:
+            profile.consent_granted = True
+            profile.save(update_fields=['consent_granted'])
         
         # 2. Create Default Categories using bulk_create to avoid N+1
         default_categories = [

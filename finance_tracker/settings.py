@@ -118,6 +118,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'expenses.middleware.DPDPAConsentMiddleware',
     'expenses.middleware.TimezoneMiddleware', # Active user timezone
     'expenses.middleware.LocaleMiddlewareByProfile',
     'expenses.middleware.DemoReadOnlyMiddleware',
@@ -261,6 +262,7 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 ACCOUNT_PASSWORD_CHANGE_REDIRECT_URL = 'profile-settings'
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_SIGNUP_FORM_CLASS = 'expenses.forms.CustomSignupForm'
 
 # Social Account Providers
 SOCIALACCOUNT_PROVIDERS = {

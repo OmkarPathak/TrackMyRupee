@@ -70,6 +70,8 @@ urlpatterns = [
     path('settings/export/', views.DataExportView.as_view(), name='export-data'),
     path('settings/', views.SettingsHomeView.as_view(), name='settings-home'), # Settings Home
     path('account/delete/', views.UserDeleteView.as_view(), name='user-delete'),
+    path('consent/', views.dpdp_consent_view, name='dpdp_consent'),
+    path('settings/consent/withdraw/', views.WithdrawConsentView.as_view(), name='withdraw-consent'),
     path('tutorial/complete/', views.complete_tutorial, name='complete-tutorial'),
     
     # Savings Goals

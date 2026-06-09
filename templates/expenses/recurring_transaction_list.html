@@ -158,10 +158,13 @@
                             <div class="list-group-item list-group-item-action px-3 py-3 border-0 border-bottom d-flex align-items-center gap-2">
                                 <!-- Icon Column -->
                                 <div class="d-flex align-items-center justify-content-center flex-shrink-0
-                                    {% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger
+                                    {% if sub.is_locked %}text-secondary
+                                    {% elif sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger
                                     {% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning
                                     {% else %}text-secondary{% endif %}" style="width: 44px; height: 44px;">
-                                    {% if sub.transaction_type == 'TRANSFER' %}
+                                    {% if sub.is_locked %}
+                                        <i class="bi bi-lock-fill fs-5"></i>
+                                    {% elif sub.transaction_type == 'TRANSFER' %}
                                         <i class="bi bi-arrow-left-right fs-5"></i>
                                     {% else %}
                                         <i class="bi bi-arrow-repeat fs-5"></i>
@@ -173,10 +176,16 @@
                                     <!-- Top Row: Description & Amount -->
                                     <div class="d-flex justify-content-between align-items-center gap-2 overflow-hidden w-100">
                                         <div class="min-width-0 flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
+                                            {% if sub.is_locked %}
+                                                <h6 class="mb-0 fw-bold text-muted text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">
+                                                    {{ sub.description }}
+                                                </h6>
+                                            {% else %}
+                                                <h6 class="mb-0 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
+                                            {% endif %}
                                         </div>
                                         <div class="flex-shrink-0 text-end">
-                                            <h6 class="fw-bold mb-0 text-nowrap" style="font-size: 1rem;">
+                                            <h6 class="fw-bold mb-0 text-nowrap {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 1rem;">
                                                 {{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                             </h6>
                                         </div>
@@ -187,9 +196,19 @@
                                         <div class="text-muted small d-flex flex-wrap align-items-center gap-2 min-width-0">
                                             <span class="text-nowrap">{{ sub.get_frequency_display }}</span>
                                             
+                                            {% if sub.is_locked %}
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25" style="font-size: 0.65rem;">{% trans "Locked" %}</span>
+                                            {% endif %}
+
                                             {% if sub.transaction_type == 'TRANSFER' %}
                                                 <span class="badge bg-info-subtle text-info rounded-pill text-truncate" style="font-size: 0.65rem; max-width: 120px; padding: 0.2rem 0.5rem;">
                                                     <i class="bi bi-arrow-left-right me-1"></i> {{ sub.to_account.name }}
+                                                </span>
+                                            {% endif %}
+
+                                            {% if sub.transaction_type == 'INCOME' %}
+                                                <span class="badge bg-success-subtle text-success rounded-pill text-truncate" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">
+                                                    {% trans "Income" %}
                                                 </span>
                                             {% endif %}
 
@@ -205,15 +224,24 @@
                                                 <i class="bi bi-three-dots-vertical fs-6"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                                <li><a class="dropdown-item" href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}"><i class="bi bi-pencil me-2"></i>{% trans "Edit" %}</a></li>
-                                                <li>
-                                                    <button class="dropdown-item text-danger delete-btn" type="button" 
-                                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                        data-url="{% url 'recurring-delete' sub.pk %}"
-                                                        data-message="{% trans 'Are you sure?' %}">
-                                                        <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
-                                                    </button>
-                                                </li>
+                                                {% if sub.is_locked %}
+                                                    <li>
+                                                        <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-primary fw-bold" href="{% url 'pricing' %}">
+                                                            <i class="bi bi-rocket-takeoff"></i>
+                                                            <span>{% trans "Unlock" %}</span>
+                                                        </a>
+                                                    </li>
+                                                {% else %}
+                                                    <li><a class="dropdown-item" href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}"><i class="bi bi-pencil me-2"></i>{% trans "Edit" %}</a></li>
+                                                    <li>
+                                                        <button class="dropdown-item text-danger delete-btn" type="button" 
+                                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                            data-url="{% url 'recurring-delete' sub.pk %}"
+                                                            data-message="{% trans 'Are you sure?' %}">
+                                                            <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                                        </button>
+                                                    </li>
+                                                {% endif %}
                                             </ul>
                                         </div>
                                     </div>
@@ -249,19 +277,35 @@
                         {% for sub in renewing_soon %}
                             <div class="list-group-item list-group-item-action px-4 py-3 border-0 border-bottom d-flex justify-content-between align-items-center gap-2 overflow-hidden w-100">
                                 <div class="d-flex align-items-center min-width-0 flex-grow-1">
-                                    <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-danger-subtle text-danger flex-shrink-0" style="width: 42px; height: 42px;">
-                                        <i class="bi bi-exclamation-circle-fill fs-5"></i>
-                                    </div>
+                                    {% if sub.is_locked %}
+                                        <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-secondary bg-opacity-10 text-secondary flex-shrink-0" style="width: 42px; height: 42px;">
+                                            <i class="bi bi-lock-fill fs-5"></i>
+                                        </div>
+                                    {% else %}
+                                        <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-danger-subtle text-danger flex-shrink-0" style="width: 42px; height: 42px;">
+                                            <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                                        </div>
+                                    {% endif %}
                                     <div class="min-width-0 flex-grow-1">
-                                        <h6 class="mb-1 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
+                                        {% if sub.is_locked %}
+                                            <h6 class="mb-1 fw-bold text-muted text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">
+                                                {{ sub.description }}
+                                            </h6>
+                                        {% else %}
+                                            <h6 class="mb-1 fw-bold text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
+                                        {% endif %}
                                         <div class="text-muted small d-flex flex-column align-items-start flex-sm-row align-items-sm-center gap-1 gap-sm-2">
-                                            <span class="badge bg-danger text-white">{% trans "Renewing This Month" %}</span>
+                                            {% if sub.is_locked %}
+                                                <span class="badge bg-secondary text-white">{% trans "Locked" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-danger text-white">{% trans "Renewing This Month" %}</span>
+                                            {% endif %}
                                             <span class="text-nowrap">{{ sub.get_frequency_display }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="text-end flex-shrink-0">
-                                    <h6 class="fw-bold mb-0" style="font-size: 1.05rem;">
+                                    <h6 class="fw-bold mb-0 {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 1.05rem;">
                                         {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
                                     </h6>
                                     {% if sub.currency != user.profile.currency %}
@@ -269,7 +313,11 @@
                                         ({{ sub.currency }}{{ sub.amount|floatformat:0|translate_digits }})
                                     </div>
                                     {% endif %}
-                                    <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary mt-2 rounded-pill" style="font-size: 0.8rem;">{% trans "Manage" %}</a>
+                                    {% if sub.is_locked %}
+                                        <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary mt-2 rounded-pill fw-bold" style="font-size: 0.8rem;">{% trans "Unlock" %}</a>
+                                    {% else %}
+                                        <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary mt-2 rounded-pill" style="font-size: 0.8rem;">{% trans "Manage" %}</a>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
@@ -289,13 +337,28 @@
                         {% for sub in cancelled_subs %}
                             <div class="list-group-item list-group-item-action px-4 py-3 border-0 border-bottom d-flex justify-content-between align-items-center gap-2 opacity-75 overflow-hidden w-100">
                                 <div class="d-flex align-items-center min-width-0 flex-grow-1">
-                                    <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-body-secondary text-secondary flex-shrink-0" style="width: 42px; height: 42px;">
-                                        <i class="bi bi-x-circle fs-5"></i>
-                                    </div>
+                                    {% if sub.is_locked %}
+                                        <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-body-secondary text-secondary flex-shrink-0" style="width: 42px; height: 42px;">
+                                            <i class="bi bi-lock-fill fs-5"></i>
+                                        </div>
+                                    {% else %}
+                                        <div class="me-3 d-flex align-items-center justify-content-center rounded-3 bg-body-secondary text-secondary flex-shrink-0" style="width: 42px; height: 42px;">
+                                            <i class="bi bi-x-circle fs-5"></i>
+                                        </div>
+                                    {% endif %}
                                     <div class="min-width-0 flex-grow-1">
-                                        <h6 class="mb-1 fw-bold text-decoration-line-through text-muted text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
+                                        {% if sub.is_locked %}
+                                            <h6 class="mb-1 fw-bold text-decoration-line-through text-muted text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">
+                                                {{ sub.description }}
+                                            </h6>
+                                        {% else %}
+                                            <h6 class="mb-1 fw-bold text-decoration-line-through text-muted text-truncate" style="font-size: 1rem;" title="{{ sub.description }}">{{ sub.description }}</h6>
+                                        {% endif %}
                                         <div class="text-muted small d-flex flex-column align-items-start flex-sm-row align-items-sm-center gap-1 gap-sm-2">
                                             <span class="badge bg-secondary">{% trans "Cancelled" %}</span>
+                                            {% if sub.is_locked %}
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25" style="font-size: 0.65rem;">{% trans "Locked" %}</span>
+                                            {% endif %}
                                             <span class="text-nowrap">{{ sub.get_frequency_display }}</span>
                                         </div>
                                     </div>
@@ -309,7 +372,11 @@
                                         ({{ sub.currency }}{{ sub.amount|floatformat:0|translate_digits }})
                                     </div>
                                     {% endif %}
-                                    <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-primary mt-2" style="font-size: 0.8rem;">{% trans "Reactivate" %}</a>
+                                    {% if sub.is_locked %}
+                                        <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary mt-2 rounded-pill fw-bold" style="font-size: 0.8rem;">{% trans "Unlock" %}</a>
+                                    {% else %}
+                                        <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-primary mt-2" style="font-size: 0.8rem;">{% trans "Reactivate" %}</a>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
