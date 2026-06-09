@@ -182,6 +182,32 @@
         </a>
     </div>
 
+    <!-- PRIVACY & DATA RIGHTS -->
+    <small class="text-muted text-uppercase fw-bold px-1 mb-2 d-block" style="font-size: 0.75rem;">{% trans "Privacy & Data Rights (DPDPA)" %}</small>
+    <div class="list-group mb-4 shadow-sm rounded-3 overflow-hidden border-0">
+        <a href="#" class="list-group-item list-group-item-action border-0 d-flex justify-content-between align-items-center py-3" data-bs-toggle="modal" data-bs-target="#dataSummaryModal">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-shield-lock me-3 text-primary fs-5"></i>
+                <span class="fw-medium">{% trans "Data Summary" %}</span>
+            </div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+        </a>
+        <a href="{% url 'profile-settings' %}" class="list-group-item list-group-item-action border-0 d-flex justify-content-between align-items-center py-3 border-top">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-pencil-square me-3 text-info fs-5"></i>
+                <span class="fw-medium">{% trans "Correct My Data" %}</span>
+            </div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+        </a>
+        <a href="{% url 'export-data' %}" class="list-group-item list-group-item-action border-0 d-flex justify-content-between align-items-center py-3 border-top">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-download me-3 text-success fs-5"></i>
+                <span class="fw-medium">{% trans "Export My Data" %}</span>
+            </div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+        </a>
+    </div>
+
     <!-- DANGER ZONE -->
     <small class="text-muted text-uppercase fw-bold px-1 mb-2 d-block text-danger opacity-75" style="font-size: 0.75rem;">{% trans "Danger Zone" %}</small>
     <div class="list-group mb-4 shadow-sm rounded-3 overflow-hidden border-0">
@@ -386,6 +412,44 @@
         </div>
     </div>
 
+    <!-- Section: Privacy & Data Rights (DPDPA) -->
+    <h6 class="text-muted text-uppercase fw-bold mb-3 mt-5" style="font-size: 0.7rem; letter-spacing: 0.05rem;">{% trans "Privacy & Data Rights (DPDPA)" %}</h6>
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <a href="#" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover" data-bs-toggle="modal" data-bs-target="#dataSummaryModal">
+                <div class="card-body p-4">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-shield-lock fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Data Summary" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "View a summary of the personal and account data we process." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'profile-settings' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-info bg-opacity-10 text-info rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-pencil-square fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Correct My Data" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Update your profile details, currency, language, and settings." %}</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'export-data' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
+                <div class="card-body p-4">
+                    <div class="bg-success bg-opacity-10 text-success rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
+                        <i class="bi bi-download fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">{% trans "Export My Data" %}</h6>
+                    <p class="text-muted smaller mb-0">{% trans "Download all your transaction, budget, and account records." %}</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
     <!-- Section: Danger Zone -->
     <h6 class="text-danger text-uppercase fw-bold mb-3 mt-5 opacity-75" style="font-size: 0.7rem; letter-spacing: 0.05rem;">{% trans "Danger Zone" %}</h6>
     <div class="row g-3">
@@ -410,6 +474,53 @@
                     <p class="text-muted smaller mb-0">{% trans "Permanently remove your account and all your data." %}</p>
                 </div>
             </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block modals %}
+<!-- Data Summary Modal -->
+<div class="modal fade" id="dataSummaryModal" tabindex="-1" aria-labelledby="dataSummaryModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="dataSummaryModalLabel">{% trans "Your Data Summary (DPDPA)" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="text-muted smaller mb-4">
+                    {% trans "Here is a summary of the personal and application data we process for your account as per DPDPA guidelines." %}
+                </p>
+                <div class="list-group list-group-flush border rounded-3 overflow-hidden">
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <span class="text-muted small">{% trans "Username" %}</span>
+                        <span class="fw-bold">{{ user.username }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <span class="text-muted small">{% trans "Email" %}</span>
+                        <span class="fw-bold text-truncate ms-3" style="max-width: 200px;">{{ user.email }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <span class="text-muted small">{% trans "Account Created" %}</span>
+                        <span class="fw-medium">{{ user.date_joined|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <span class="text-muted small">{% trans "Subscription Plan" %}</span>
+                        <span class="badge bg-primary rounded-pill">{{ user.profile.active_tier_display }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <span class="text-muted small">{% trans "Number of Accounts" %}</span>
+                        <span class="fw-bold text-primary">{{ num_accounts }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <span class="text-muted small">{% trans "Number of Transactions" %}</span>
+                        <span class="fw-bold text-success">{{ num_transactions }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">{% trans "Close" %}</button>
+            </div>
         </div>
     </div>
 </div>

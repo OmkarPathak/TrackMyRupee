@@ -13,6 +13,7 @@ from django.views.generic import DeleteView, TemplateView, UpdateView
 from ..forms import LanguageUpdateForm, ProfileUpdateForm
 from ..models import Expense, Income, RecurringTransaction, UserProfile
 from ..models import DeletionRequestAuditLog
+from ..models import Account, Expense, Income
 
 import logging
 
@@ -55,6 +56,21 @@ def log_and_notify_deletion(user):
 
 class SettingsHomeView(LoginRequiredMixin, TemplateView):
     template_name = 'expenses/settings_home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        # Calculate summary information for DPDP "View My Data" requirement
+        num_accounts = Account.objects.filter(user=user).count()
+        num_expenses = Expense.objects.filter(user=user).count()
+        num_incomes = Income.objects.filter(user=user).count()
+        num_transactions = num_expenses + num_incomes
+
+        context['num_accounts'] = num_accounts
+        context['num_transactions'] = num_transactions
+        return context
+
 
 class UserDeleteView(LoginRequiredMixin, DeleteView):
     model = settings.AUTH_USER_MODEL # Handled via get_object

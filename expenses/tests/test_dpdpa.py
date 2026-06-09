@@ -169,3 +169,25 @@ class DPDPAComplianceTestCase(TestCase):
         self.assertEqual(email.subject, 'Account Deleted - TrackMyRupee')
         self.assertIn('Your account has been deleted. All personal data will be permanently removed within 7 days.', email.body)
 
+    def test_settings_home_shows_dpdpa_summary(self):
+        """Test that the settings home view includes DPDPA user data summary in its context and template."""
+        # Create some accounts/transactions
+        from expenses.models import Account, Expense
+        Account.objects.create(user=self.user, name="Savings Account", account_type="BANK", balance=1000, currency="₹")
+        Expense.objects.create(user=self.user, date=date.today(), amount=50, category="Food", description="chai", currency="₹")
+
+        self.client.login(username='consentuser', password='password123')
+
+        # Grant consent first to bypass middleware
+        self.profile.consent_granted = True
+        self.profile.save()
+
+        response = self.client.get(reverse('settings-home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Your Data Summary')
+        self.assertContains(response, 'Correct My Data')
+        self.assertContains(response, 'Export My Data')
+        self.assertEqual(response.context['num_accounts'], 1)
+        self.assertEqual(response.context['num_transactions'], 1)
+
+
