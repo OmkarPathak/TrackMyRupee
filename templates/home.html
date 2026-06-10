@@ -212,6 +212,103 @@
         background: rgba(var(--bs-body-bg-rgb), 0.6) !important;
     }
 
+    /* Custom Chartjs Tooltip */
+    .custom-chart-tooltip {
+        opacity: 0;
+        position: absolute;
+        pointer-events: none;
+        background: #ffffff;
+        color: #1d2939;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-family: 'DM Sans', 'Inter', sans-serif;
+        font-size: 12px;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        z-index: 1000;
+        transition: opacity 0.15s ease;
+    }
+
+    .custom-chart-tooltip .tooltip-header {
+        font-weight: 600;
+        color: #344054;
+        margin-bottom: 5px;
+        font-size: 11px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        padding-bottom: 4px;
+        white-space: nowrap;
+    }
+
+    .custom-chart-tooltip .tooltip-body {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .custom-chart-tooltip .tooltip-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        white-space: nowrap;
+    }
+
+    .custom-chart-tooltip .tooltip-row-left {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .custom-chart-tooltip .tooltip-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .custom-chart-tooltip .tooltip-label {
+        color: #475467;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .custom-chart-tooltip .tooltip-value {
+        font-weight: 600;
+        color: #1d2939;
+        white-space: nowrap;
+    }
+
+    /* Compact on small screens */
+    @media (max-width: 576px) {
+        .custom-chart-tooltip {
+            font-size: 11px;
+            padding: 6px 9px;
+            border-radius: 6px;
+        }
+        .custom-chart-tooltip .tooltip-header { font-size: 10px; }
+        .custom-chart-tooltip .tooltip-row { gap: 10px; }
+    }
+
+    /* Dark Mode overrides */
+    [data-bs-theme="dark"] .custom-chart-tooltip {
+        background: #1e1e1e;
+        color: #f9fafb;
+        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    [data-bs-theme="dark"] .custom-chart-tooltip .tooltip-header {
+        color: #d0d5dd;
+        border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+    [data-bs-theme="dark"] .custom-chart-tooltip .tooltip-label {
+        color: #98a2b3;
+    }
+    [data-bs-theme="dark"] .custom-chart-tooltip .tooltip-value {
+        color: #f9fafb;
+    }
+
 </style>
 
 <!-- Daily Mode / Full Report Toggle (Mobile Only) -->
@@ -1394,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% if net_worth_trend %}
                         <div class="nw-sparkline-container" id="nw-sparkline-wrapper">
                             <canvas id="nwSparklineChart"></canvas>
-                            <div id="nw-tooltip" class="chartjs-tooltip shadow-sm" style="opacity: 0; position: absolute; pointer-events: none; background: rgba(0,0,0,0.85); color: white; border-radius: 4px; padding: 4px 8px; font-size: 11px; white-space: nowrap; z-index: 1000; transition: opacity 0.2s ease;"></div>
+                            <div id="nw-tooltip" class="custom-chart-tooltip shadow-sm"></div>
                         </div>
                         {% endif %}
                     </div>
@@ -1806,7 +1903,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body d-flex flex-column">
                 {% if trend_labels %}
-                <div style="height: 350px; width: 100%;">
+                <div style="height: 350px; width: 100%; position: relative;">
                     <canvas id="trendChart"></canvas>
                 </div>
                 {% else %}
@@ -2180,7 +2277,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body">
                 {% if has_projection %}
-                <div style="height: 300px; width: 100%;">
+                <div style="height: 300px; width: 100%; position: relative;">
                     <canvas id="projectionChart"></canvas>
                 </div>
                 {% else %}
@@ -2384,6 +2481,101 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const formatCurrencyCompact = (value) => '{{ currency_symbol }}' + window.compactAmount(value, '{{ currency_symbol }}');
 
+        // --- Custom HTML Tooltip Helper ---
+        const createCustomTooltip = (tooltipId, defaultLabel) => {
+            return function(context) {
+                let tooltipEl = document.getElementById(tooltipId);
+                const tooltipModel = context.tooltip;
+                
+                // Hide if no tooltip
+                if (tooltipModel.opacity === 0) {
+                    if (tooltipEl) tooltipEl.style.opacity = 0;
+                    return;
+                }
+                
+                // Create element on first render
+                if (!tooltipEl) {
+                    tooltipEl = document.createElement('div');
+                    tooltipEl.id = tooltipId;
+                    tooltipEl.className = 'custom-chart-tooltip shadow-sm';
+                    context.chart.canvas.parentNode.appendChild(tooltipEl);
+                }
+                
+                // Set text / content
+                if (tooltipModel.body) {
+                    const title = tooltipModel.title[0] || '';
+                    const dataPoints = tooltipModel.dataPoints;
+                    
+                    let innerHtml = '';
+                    if (title) {
+                        innerHtml += `<div class="tooltip-header">${title}</div>`;
+                    }
+                    
+                    innerHtml += '<div class="tooltip-body">';
+                    dataPoints.forEach(function(dataPoint) {
+                        const val = dataPoint.parsed.y;
+                        if (val === null || val === undefined || isNaN(val)) return;
+                        
+                        // Format the value
+                        const formattedValue = formatCurrencyCompact(val);
+                        
+                        // Get color
+                        let color = dataPoint.dataset.borderColor || dataPoint.dataset.backgroundColor || '#1D9E75';
+                        if (typeof color === 'function') {
+                            color = '#1D9E75';
+                        }
+                        
+                        let label = dataPoint.dataset.label || defaultLabel || '';
+                        
+                        // Handle Net Worth projection label if applicable
+                        if (tooltipId === 'nw-tooltip') {
+                            const index = dataPoint.dataIndex;
+                            const isProjected = index >= forecastIndexStart;
+                            if (isProjected) {
+                                label += ' ({% trans "Projected" %})';
+                            }
+                        }
+                        
+                        innerHtml += `
+                            <div class="tooltip-row">
+                                <div class="tooltip-row-left">
+                                    <span class="tooltip-dot" style="background-color: ${color}"></span>
+                                    <span class="tooltip-label">${label}</span>
+                                </div>
+                                <span class="tooltip-value">${formattedValue}</span>
+                            </div>
+                        `;
+                    });
+                    innerHtml += '</div>';
+                    tooltipEl.innerHTML = innerHtml;
+                }
+                
+                // Smart positioning: flip tooltip to the left of the caret when near the right edge,
+                // so it never overflows the chart container on narrow/mobile screens.
+                // Tooltip is inside canvas.parentNode (position:relative), so caretX/caretY
+                // are already relative to that container — no extra offset needed.
+                tooltipEl.style.opacity = 1;
+
+                const tooltipWidth = tooltipEl.offsetWidth || 160;
+                const chartWidth = context.chart.width;
+                const caretX = tooltipModel.caretX;
+                const caretY = tooltipModel.caretY;
+                const MARGIN = 8;
+
+                if (caretX + MARGIN + tooltipWidth <= chartWidth) {
+                    // Enough room on the right: anchor left edge to caret
+                    tooltipEl.style.left = (caretX + MARGIN) + 'px';
+                    tooltipEl.style.transform = 'translateY(-100%)';
+                } else {
+                    // Not enough room on right: flip to left side of caret
+                    tooltipEl.style.left = (caretX - MARGIN) + 'px';
+                    tooltipEl.style.transform = 'translate(-100%, -100%)';
+                }
+
+                tooltipEl.style.top = Math.max(4, caretY - 10) + 'px';
+            };
+        };
+
         // --- 0. Income vs Expenses Chart (SVG Animation) ---
         const totalIncome = {{ total_income|stringformat:"f"|default:0 }};
         const totalExpenses = {{ total_expenses|stringformat:"f"|default:0 }};
@@ -2486,50 +2678,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         legend: { display: false },
                         tooltip: {
                             enabled: false,
-                            external: function(context) {
-                                const tooltipEl = document.getElementById('nw-tooltip');
-                                if (!tooltipEl) return;
-                                const tooltipModel = context.tooltip;
-                                if (tooltipModel.opacity === 0) {
-                                    tooltipEl.style.opacity = 0;
-                                    return;
-                                }
-                                if (tooltipModel.body) {
-                                    const index = tooltipModel.dataPoints[0].dataIndex;
-                                    const isProjected = index >= forecastIndexStart;
-                                    
-                                    const date = tooltipModel.title[0] || '';
-                                    const bodyLines = tooltipModel.body.map(b => b.lines);
-                                    let innerHtml = '<div>';
-                                    if (date) {
-                                        innerHtml += '<div style="font-size: 9px; opacity: 0.8; margin-bottom: 2px; display: flex; justify-content: space-between;">';
-                                        innerHtml += '<span>' + date + '</span>';
-                                        if (isProjected) {
-                                            innerHtml += '<span style="color: #4CC9F0; font-weight: bold; margin-left: 8px;">({% trans "Projected" %})</span>';
-                                        }
-                                        innerHtml += '</div>';
-                                    }
-                                    bodyLines.forEach(function(body, i) {
-                                        innerHtml += '<div style="font-weight: bold;">' + body + '</div>';
-                                    });
-                                    innerHtml += '</div>';
-                                    tooltipEl.innerHTML = innerHtml;
-                                }
-                                tooltipEl.style.opacity = 1;
-                                const tooltipWidth = tooltipEl.offsetWidth || 140;
-                                const clampedX = Math.max(
-                                    tooltipWidth / 2 + 8,
-                                    Math.min(tooltipModel.caretX, context.chart.width - tooltipWidth / 2 - 8)
-                                );
-                                tooltipEl.style.left = clampedX + 'px';
-                                tooltipEl.style.top = (tooltipModel.caretY - 10) + 'px';
-                                tooltipEl.style.transform = 'translate(-50%, -100%)';
-                            },
-                            callbacks: {
-                                label: function(context) {
-                                    return formatCurrencyCompact(context.parsed.y);
-                                }
-                            }
+                            external: createCustomTooltip('nw-tooltip', '{% trans "Net Worth" %}')
                         }
                     },
                     scales: {
@@ -2620,11 +2769,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     plugins: {
                         legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14, usePointStyle: true, pointStyle: 'line', font: { size: 11 } } },
                         tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    return ctx.dataset.label + ': ' + formatCurrencyCompact(ctx.parsed.y);
-                                }
-                            }
+                            enabled: false,
+                            external: createCustomTooltip('trend-tooltip')
                         }
                     },
                     onHover: (event, chartElement, chart) => {
@@ -2637,13 +2783,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             const index = points[0].index;
                             const dateStr = trendIsoDates[index];
                             if (dateStr) {
-                                let url = `{% url 'expense-list' %}?start_date=${dateStr}&end_date=${dateStr}`;
+                                const queryParams = new URLSearchParams();
+                                // Apply the clicked day as the date range
+                                queryParams.append('start_date', dateStr);
+                                queryParams.append('end_date', dateStr);
+                                // Also pass selected categories
                                 if (selectedCategories && selectedCategories.length > 0) {
-                                    selectedCategories.forEach(cat => {
-                                        url += `&category=${encodeURIComponent(cat)}`;
-                                    });
+                                    selectedCategories.forEach(cat => queryParams.append('category', encodeURIComponent(cat)));
                                 }
-                                window.location.href = url;
+                                showLoader();
+                                window.location.href = "{% url 'expense-list' %}?" + queryParams.toString();
                             }
                         }
                     },
@@ -2688,14 +2837,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 const d = new Date(startDateStr);
                                 const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
                                 const endDateStr = lastDay.toISOString().split('T')[0];
-                                
-                                let url = `{% url 'expense-list' %}?start_date=${startDateStr}&end_date=${endDateStr}`;
+
+                                const queryParams = new URLSearchParams();
+                                queryParams.append('start_date', startDateStr);
+                                queryParams.append('end_date', endDateStr);
                                 if (selectedCategories && selectedCategories.length > 0) {
-                                    selectedCategories.forEach(cat => {
-                                        url += `&category=${encodeURIComponent(cat)}`;
-                                    });
+                                    selectedCategories.forEach(cat => queryParams.append('category', encodeURIComponent(cat)));
                                 }
-                                window.location.href = url;
+                                showLoader();
+                                window.location.href = "{% url 'expense-list' %}?" + queryParams.toString();
                             }
                         }
                     },
@@ -3157,7 +3307,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                      if (elements.length > 0) {
                                          const index = elements[0].index;
                                          const label = chart.data.labels[index];
-                                         window.location.href = "{% url 'expense-list' %}?payment_method=" + encodeURIComponent(label);
+                                         const queryParams = new URLSearchParams();
+                                         queryParams.append('payment_method', label);
+                                         appendExpensePeriodFilters(queryParams);
+                                         showLoader();
+                                         window.location.href = "{% url 'expense-list' %}?" + queryParams.toString();
                                      }
                                  },
                                  onHover: (event, chartElement) => {
@@ -3265,13 +3419,8 @@ document.addEventListener('DOMContentLoaded', function() {
                              plugins: {
                                  legend: { position: 'bottom', labels: { boxWidth: 8, boxHeight: 8, usePointStyle: true, pointStyle: 'circle', font: { size: 13 } } },
                                  tooltip: {
-                                     callbacks: {
-                                          label: function(context) {
-                                              const value = context.parsed.y;
-                                              if (value === null || value === undefined) return context.dataset.label;
-                                              return context.dataset.label + ': {{ currency_symbol }}' + window.compactAmount(value, '{{ currency_symbol }}');
-                                          }
-                                     }
+                                     enabled: false,
+                                     external: createCustomTooltip('projection-tooltip')
                                  }
                              },
                              scales: {
