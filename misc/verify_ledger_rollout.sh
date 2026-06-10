@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 # Usage:
-# Preflight only, no writes: READ_ONLY=1 ./verify_ledger_rollout.sh
+# Preflight only, no writes: READ_ONLY=1 misc/verify_ledger_rollout.sh
 
 # Preflight as-if ledger read is enabled (without changing persisted prod env):
-# READ_ONLY=1 FORCE_LEDGER_READ_ENABLED=1 REQUIRE_LEDGER_READ_ENABLED=1 ./verify_ledger_rollout.sh
+# READ_ONLY=1 FORCE_LEDGER_READ_ENABLED=1 REQUIRE_LEDGER_READ_ENABLED=1 misc/verify_ledger_rollout.sh
 
 # Full mutating verification run (ops window):
-# FORCE_LEDGER_READ_ENABLED=1 REQUIRE_LEDGER_READ_ENABLED=1 ./verify_ledger_rollout.sh
+# FORCE_LEDGER_READ_ENABLED=1 REQUIRE_LEDGER_READ_ENABLED=1 misc/verify_ledger_rollout.sh
 
 set -euo pipefail
 
@@ -93,19 +93,58 @@ fi
 run_step "Read cohort status" run_manage python manage.py ledger_rollout_status
 
 if [[ "$READ_ONLY" == "1" ]]; then
+  READONLY_RECON_PREVIEW_CODE="$(cat <<PY
+from decimal import Decimal
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
+from expenses.models import Account, JournalEntry, JournalLine
+
+threshold = Decimal('${THRESHOLD}')
+accounts = list(Account.objects.filter(is_active=True).select_related('user'))
+user_ids = {a.user_id for a in accounts}
+opening_ids = set()
+
+if user_ids:
+  vals = JournalEntry.objects.filter(
+    user_id__in=user_ids,
+    source_type='ADJUSTMENT',
+    status='POSTED',
+    metadata__has_key='opening_account_id',
+  ).values_list('metadata__opening_account_id', flat=True)
+  opening_ids = {int(v) for v in vals if v is not None}
+
+drifts = 0
+missing = 0
+total = 0
+
+for a in accounts:
+  total += 1
+  if a.id not in opening_ids:
+    missing += 1
+
+  debit = JournalLine.objects.filter(
+    account_ref=a,
+    direction='DEBIT',
+    journal_entry__status='POSTED',
+  ).aggregate(total=Coalesce(Sum('amount'), Decimal('0.00'))).get('total', Decimal('0.00'))
+  credit = JournalLine.objects.filter(
+    account_ref=a,
+    direction='CREDIT',
+    journal_entry__status='POSTED',
+  ).aggregate(total=Coalesce(Sum('amount'), Decimal('0.00'))).get('total', Decimal('0.00'))
+
+  ledger = (debit - credit).quantize(Decimal('0.01'))
+  model = a.balance.quantize(Decimal('0.01'))
+  drift = (model - ledger).quantize(Decimal('0.01'))
+  if abs(drift) > threshold:
+    drifts += 1
+
+print({'accounts': total, 'drifts': drifts, 'missing_opening_entries': missing})
+PY
+)"
+
   run_step "Read-only reconciliation gate preview" \
-    run_manage python manage.py shell -c "from decimal import Decimal; from django.db.models import Sum; from django.db.models.functions import Coalesce; from expenses.models import Account, JournalEntry, JournalLine; threshold=Decimal('$THRESHOLD'); accounts=list(Account.objects.filter(is_active=True).select_related('user')); user_ids={a.user_id for a in accounts}; opening_ids=set();\
-if user_ids:\
-    vals=JournalEntry.objects.filter(user_id__in=user_ids, source_type='ADJUSTMENT', status='POSTED', metadata__has_key='opening_account_id').values_list('metadata__opening_account_id', flat=True); opening_ids={int(v) for v in vals if v is not None};\
-drifts=0; missing=0; total=0;\
-for a in accounts:\
-    total+=1;\
-    if a.id not in opening_ids: missing+=1;\
-    debit=JournalLine.objects.filter(account_ref=a, direction='DEBIT', journal_entry__status='POSTED').aggregate(total=Coalesce(Sum('amount'), Decimal('0.00'))).get('total', Decimal('0.00'));\
-    credit=JournalLine.objects.filter(account_ref=a, direction='CREDIT', journal_entry__status='POSTED').aggregate(total=Coalesce(Sum('amount'), Decimal('0.00'))).get('total', Decimal('0.00'));\
-    ledger=(debit-credit).quantize(Decimal('0.01')); model=a.balance.quantize(Decimal('0.01')); drift=(model-ledger).quantize(Decimal('0.01'));\
-    if abs(drift) > threshold: drifts+=1;\
-print({'accounts': total, 'drifts': drifts, 'missing_opening_entries': missing})"
+  run_manage python manage.py shell -c "$READONLY_RECON_PREVIEW_CODE"
 else
   run_step "Strict reconciliation gate" \
     run_manage python manage.py reconcile_ledgers --threshold "$THRESHOLD" --fail-on-drift --require-opening-balances
