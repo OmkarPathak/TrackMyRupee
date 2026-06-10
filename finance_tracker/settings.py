@@ -378,3 +378,47 @@ LEDGER_READ_COMPARE_SAMPLE_RATE = float(os.environ.get('LEDGER_READ_COMPARE_SAMP
 LEDGER_READ_COHORT_PERCENT = max(0, min(100, _env_int('LEDGER_READ_COHORT_PERCENT', 100)))
 LEDGER_READ_COHORT_USER_IDS = _env_int_set('LEDGER_READ_COHORT_USER_IDS')
 LEDGER_READ_EXCLUDE_USER_IDS = _env_int_set('LEDGER_READ_EXCLUDE_USER_IDS')
+
+
+# Logging
+# Routes the 'expenses' logger (used by ledger read compare) to the console.
+# In production, set LOG_LEVEL=WARNING (or use a structured handler) to reduce noise.
+_log_level = os.environ.get('LOG_LEVEL', 'DEBUG' if DEBUG else 'WARNING').upper()
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
+            'propagate': False,
+        },
+        # Ledger read-service comparison logs (ledger_read_compare events)
+        'expenses': {
+            'handlers': ['console'],
+            'level': _log_level,
+            'propagate': False,
+        },
+    },
+}
