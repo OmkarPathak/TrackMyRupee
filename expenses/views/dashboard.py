@@ -994,6 +994,94 @@ def home_view(request):
             elif spending_pace['projected_month_spend'] >= total_monthly_budget * 0.9:
                 spending_pace['status'] = 'near_limit'
 
+        # --- Impulse vs Planned Ratio ---
+        # Planned = expense description matches an active recurring transaction (it was budgeted/expected)
+        # Impulse = everything else (ad-hoc, unplanned spend)
+        impulse_ratio = None
+        try:
+            # Fetch active recurring expense descriptions once (normalized to lowercase strip)
+            recurring_desc_set = {
+                d.strip().lower()
+                for d in RecurringTransaction.objects.filter(
+                    user=request.user, is_active=True, transaction_type='EXPENSE'
+                ).values_list('description', flat=True)
+                if d
+            }
+
+            # Build period queryset (same filters as the main expense queryset)
+            period_expenses_qs = Expense.objects.filter(user=request.user)
+            if effective_start_date:
+                period_expenses_qs = period_expenses_qs.filter(date__gte=effective_start_date)
+            if effective_end_date:
+                period_expenses_qs = period_expenses_qs.filter(date__lte=effective_end_date)
+            if not (effective_start_date or effective_end_date):
+                if selected_years:
+                    period_expenses_qs = period_expenses_qs.filter(date__year__in=selected_years)
+                if selected_months:
+                    period_expenses_qs = period_expenses_qs.filter(date__month__in=selected_months)
+
+            impulse_total = Decimal('0.00')
+            planned_total = Decimal('0.00')
+            for exp in period_expenses_qs.values('description', 'base_amount'):
+                desc = (exp['description'] or '').strip().lower()
+                clean_desc = desc.replace(' (recurring)', '').strip()
+                if '(recurring)' in desc or clean_desc in recurring_desc_set:
+                    planned_total += exp['base_amount']
+                else:
+                    impulse_total += exp['base_amount']
+
+            period_total = impulse_total + planned_total
+            if period_total > 0:
+                impulse_pct = round(float(impulse_total) / float(period_total) * 100)
+                planned_pct = 100 - impulse_pct
+
+                # Previous period comparison — handle salary cycle vs calendar month
+                prev_impulse_pct = None
+                if prev_month_data:
+                    if salary_cycle_active and salary_cycle_start and salary_cycle_end:
+                        # Use the previous cycle date range (already calculated above)
+                        prev_cycle_end_date = salary_cycle_start - timedelta(days=1)
+                        prev_cycle_start_date, prev_cycle_end_date = SalaryAnalysisService.get_salary_cycle_dates(
+                            request.user, prev_cycle_end_date
+                        )
+                        prev_exp_qs = Expense.objects.filter(
+                            user=request.user,
+                            date__gte=prev_cycle_start_date,
+                            date__lte=prev_cycle_end_date,
+                        ).values('description', 'base_amount')
+                    elif prev_year and prev_month:
+                        prev_exp_qs = Expense.objects.filter(
+                            user=request.user,
+                            date__year=prev_year,
+                            date__month=prev_month,
+                        ).values('description', 'base_amount')
+                    else:
+                        prev_exp_qs = None
+
+                    if prev_exp_qs is not None:
+                        prev_impulse_total = Decimal('0.00')
+                        prev_period_total = Decimal('0.00')
+                        for exp in prev_exp_qs:
+                            prev_period_total += exp['base_amount']
+                            prev_desc = (exp['description'] or '').strip().lower()
+                            prev_clean = prev_desc.replace(' (recurring)', '').strip()
+                            if '(recurring)' not in prev_desc and prev_clean not in recurring_desc_set:
+                                prev_impulse_total += exp['base_amount']
+                        if prev_period_total > 0:
+                            prev_impulse_pct = round(float(prev_impulse_total) / float(prev_period_total) * 100)
+
+                impulse_ratio = {
+                    'impulse_pct': impulse_pct,
+                    'planned_pct': planned_pct,
+                    'impulse_amount': round(float(impulse_total), 0),
+                    'planned_amount': round(float(planned_total), 0),
+                    'prev_impulse_pct': prev_impulse_pct,
+                    'period_label': (display_month + ' ' + str(display_year)) if (display_month and display_year) else (calendar.month_name[now.month] + ' so far'),
+                }
+        except Exception:
+            pass
+
+
         salary_breakdown = {
             'income': total_income,
             'expenses': total_expenses,
@@ -1006,7 +1094,8 @@ def home_view(request):
             'month_name': display_month if display_month else (calendar.month_name[now.month] if (selected_months and len(selected_months) == 1) else ""),
             'year': display_year if display_year else (now.year if (selected_years and len(selected_years) == 1) else ""),
             'spending_pace': spending_pace,
-            'total_monthly_budget': total_monthly_budget
+            'total_monthly_budget': total_monthly_budget,
+            'impulse_ratio': impulse_ratio,
         }
 
     # 1. Budget Warnings (High Priority)

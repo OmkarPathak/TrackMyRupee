@@ -1383,6 +1383,55 @@ document.addEventListener('DOMContentLoaded', function() {
         opacity: 0.8;
     }
 
+    /* Spending Pace custom tab nav */
+    .spending-pace-tabs {
+        display: flex;
+        gap: 2px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .spending-pace-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 12px 7px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        background: transparent;
+        color: var(--bs-secondary-color);
+        border-bottom: 2px solid transparent;
+        border-radius: 0;
+        cursor: pointer;
+        transition: color 0.18s ease, border-color 0.18s ease;
+        letter-spacing: 0.01em;
+        line-height: 1;
+    }
+    .spending-pace-tab-btn:hover {
+        color: var(--bs-body-color);
+    }
+    .spending-pace-tab-btn.active {
+        color: var(--bs-primary);
+        border-bottom-color: var(--bs-primary);
+    }
+    /* Hide the status badge when on the Impulse tab */
+    #spendingPaceTabs .spending-pace-tab-btn[data-bs-target="#impulse-panel"].active ~ * #spending-pace-status-badge {
+        display: none;
+    }
+    .tab-pane.flex-grow-1 {
+        min-height: 0;
+    }
+    .spending-pace-card .tab-content {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    .spending-pace-card .tab-pane.active {
+        display: flex !important;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
     @media (max-width: 575.98px) {
         .hero-metric-card .card-title-text {
             font-size: 1rem;
@@ -1583,85 +1632,170 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% trans "Spending Pace" %}
                     </span>
                 </div>
-                {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
-                    {% if salary_breakdown.total_monthly_budget > 0 %}
-                        {% if salary_breakdown.spending_pace.status == 'on_track' %}
-                            <span class="header-chip bg-success bg-opacity-10 text-success border-success border-opacity-10">{% trans "On track" %}</span>
-                        {% elif salary_breakdown.spending_pace.status == 'near_limit' %}
-                            <span class="header-chip bg-warning bg-opacity-10 border-warning border-opacity-10" style="color: #D4831A;">{% trans "Near limit" %}</span>
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Status badge (only shown on Pace tab) -->
+                    <span id="spending-pace-status-badge">
+                    {% if hero_metrics.income > 0 or hero_metrics.spent > 0 %}
+                        {% if salary_breakdown.total_monthly_budget > 0 %}
+                            {% if salary_breakdown.spending_pace.status == 'on_track' %}
+                                <span class="header-chip bg-success bg-opacity-10 text-success border-success border-opacity-10">{% trans "On track" %}</span>
+                            {% elif salary_breakdown.spending_pace.status == 'near_limit' %}
+                                <span class="header-chip bg-warning bg-opacity-10 border-warning border-opacity-10" style="color: #D4831A;">{% trans "Near limit" %}</span>
+                            {% else %}
+                                <span class="header-chip bg-danger bg-opacity-10 text-danger border-danger border-opacity-10">{% trans "Over budget" %}</span>
+                            {% endif %}
                         {% else %}
-                            <span class="header-chip bg-danger bg-opacity-10 text-danger border-danger border-opacity-10">{% trans "Over budget" %}</span>
+                            <span class="header-chip bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-10">{% trans "No budget" %}</span>
                         {% endif %}
-                    {% else %}
-                        <span class="header-chip bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-10">{% trans "No budget" %}</span>
                     {% endif %}
-                {% endif %}
+                    </span>
+                </div>
             </div>
+
             {% if hero_metrics.spent > 0 or salary_breakdown.total_monthly_budget > 0 %}
-            <div class="card-body p-4 d-flex flex-column gap-3 justify-content-center">
-                {% if salary_breakdown.spending_pace.daily_spending_pace > 0 %}
-                <div>
-                    <div class="d-flex align-items-end justify-content-between gap-2">
-                        <div class="metric-main text-body-emphasis">{{ currency_symbol }}{{ salary_breakdown.spending_pace.daily_spending_pace|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 fw-normal text-muted">/ {% trans "day" %}</span></div>
-                    </div>
-                    <div class="metric-subline mt-1 mb-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Average daily spend for the selected period.' %}">
-                        {% trans "Burn rate" %}
-                        {% if salary_breakdown.spending_pace.burn_diff_pct is not None %}
-                            <span class="{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}text-danger{% else %}text-success{% endif %} fw-bold">{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ salary_breakdown.spending_pace.burn_diff_pct_abs|floatformat:0|translate_digits }}%</span>
-                            {{ comparison_label }}
+            <!-- Tab Nav -->
+            <div class="px-3 pt-2 pb-0" style="background: transparent; border-bottom: 1px solid var(--bs-border-color);">
+                <ul class="nav spending-pace-tabs mb-0" id="spendingPaceTabs" role="tablist" style="gap: 2px;">
+                    <li class="nav-item" role="presentation">
+                        <button class="spending-pace-tab-btn active" id="pace-tab-btn" data-bs-toggle="tab" data-bs-target="#pace-panel" type="button" role="tab" aria-controls="pace-panel" aria-selected="true">
+                            {% trans "Pace" %}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="spending-pace-tab-btn" id="impulse-tab-btn" data-bs-toggle="tab" data-bs-target="#impulse-panel" type="button" role="tab" aria-controls="impulse-panel" aria-selected="false">
+                            {% trans "Spend Ratio" %}
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content" id="spendingPaceTabContent">
+
+                <!-- PACE PANEL -->
+                <div class="tab-pane fade show active" id="pace-panel" role="tabpanel" aria-labelledby="pace-tab-btn">
+                    <div class="card-body p-4 d-flex flex-column gap-3">
+                        {% if salary_breakdown.spending_pace.daily_spending_pace > 0 %}
+                        <div>
+                            <div class="d-flex align-items-end justify-content-between gap-2">
+                                <div class="metric-main text-body-emphasis">{{ currency_symbol }}{{ salary_breakdown.spending_pace.daily_spending_pace|compact_amount:currency_symbol|translate_digits }} <span class="fs-6 fw-normal text-muted">/ {% trans "day" %}</span></div>
+                            </div>
+                            <div class="metric-subline mt-1 mb-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Average daily spend for the selected period.' %}">
+                                {% trans "Burn rate" %}
+                                {% if salary_breakdown.spending_pace.burn_diff_pct is not None %}
+                                    <span class="{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}text-danger{% else %}text-success{% endif %} fw-bold">{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ salary_breakdown.spending_pace.burn_diff_pct_abs|floatformat:0|translate_digits }}%</span>
+                                    {{ comparison_label }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if salary_breakdown.total_monthly_budget > 0 %}
+                        <div>
+                            <div class="metric-track mb-2">
+                                <div class="metric-track-bar {% if salary_breakdown.spending_pace.spent_percent > 100 %}bg-danger{% elif salary_breakdown.spending_pace.spent_percent > 80 %}bg-warning{% else %}bg-success{% endif %}" style="width: {% if salary_breakdown.spending_pace.spent_percent > 100 %}100{% else %}{{ salary_breakdown.spending_pace.spent_percent|floatformat:1 }}{% endif %}%;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between metric-mini-text text-muted mb-2">
+                                <span>{{ currency_symbol }}{{ hero_metrics.spent|floatformat:0|humanize_currency:currency_symbol|translate_digits }} {% trans "spent" %}</span>
+                                <span>{{ currency_symbol }}{{ salary_breakdown.total_monthly_budget|floatformat:0|humanize_currency:currency_symbol|translate_digits }} {% trans "budget" %}</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-mini-grid">
+                            <div class="metric-mini-card">
+                                <div class="metric-mini-value text-body-emphasis mb-2">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_month_spend|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
+                                <div class="metric-mini-text text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Estimated month-end spend = current spent + daily pace × remaining days.' %}">
+                                    {% trans "Projected total spend" %}
+                                </div>
+                            </div>
+                            <div class="metric-mini-card">
+                                {% if salary_breakdown.spending_pace.projected_budget_diff > 0 %}
+                                    <div class="metric-mini-value mb-2 text-success">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_budget_diff|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
+                                    <div class="metric-mini-text text-success">{% trans "Projected under budget" %}</div>
+                                {% elif salary_breakdown.spending_pace.projected_budget_diff < 0 %}
+                                    <div class="metric-mini-value mb-2 text-danger">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_budget_diff|floatformat:0|cut:"-"|humanize_currency:currency_symbol|translate_digits }}</div>
+                                    <div class="metric-mini-text text-danger">{% trans "Projected over budget" %}</div>
+                                {% else %}
+                                    <div class="metric-mini-value mb-2 text-info">{{ currency_symbol }}0</div>
+                                    <div class="metric-mini-text text-info">{% trans "Projected on budget" %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% elif salary_breakdown.spending_pace.daily_spending_pace > 0 %}
+                        <div class="metric-mini-card text-center">
+                            <div class="metric-label-sm mb-1">{% trans "Projected monthly spend" %}</div>
+                            <div class="metric-main text-body-emphasis mb-2" style="font-size: 1.7rem;">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_month_spend|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
+                            <a href="{% url 'budget' %}" class="text-primary small text-decoration-none fw-bold d-inline-flex align-items-center"><i class="bi bi-plus-circle me-1"></i>{% trans "Set budget to track pace" %}</a>
+                        </div>
+                        {% else %}
+                        <div class="empty-state-container text-center py-2">
+                            <div class="mb-3">
+                                {% include 'illustrations/empty_chart_pace.svg' %}
+                            </div>
+                            <p class="text-muted small mb-3">{% trans "Set a budget to monitor your spending pace." %}</p>
+                            <a href="{% url 'budget' %}" class="btn btn-outline-primary btn-sm rounded-pill px-4">{% trans "Set Budget" %}</a>
+                        </div>
                         {% endif %}
                     </div>
-                </div>
-                {% endif %}
+                </div><!-- /PACE PANEL -->
 
-                {% if salary_breakdown.total_monthly_budget > 0 %}
-                <div>
-                    <div class="metric-track mb-2">
-                        <div class="metric-track-bar {% if salary_breakdown.spending_pace.spent_percent > 100 %}bg-danger{% elif salary_breakdown.spending_pace.spent_percent > 80 %}bg-warning{% else %}bg-success{% endif %}" style="width: {% if salary_breakdown.spending_pace.spent_percent > 100 %}100{% else %}{{ salary_breakdown.spending_pace.spent_percent|floatformat:1 }}{% endif %}%;"></div>
-                    </div>
-                    <div class="d-flex justify-content-between metric-mini-text text-muted mb-2">
-                        <span>{{ currency_symbol }}{{ hero_metrics.spent|floatformat:0|humanize_currency:currency_symbol|translate_digits }} {% trans "spent" %}</span>
-                        <span>{{ currency_symbol }}{{ salary_breakdown.total_monthly_budget|floatformat:0|humanize_currency:currency_symbol|translate_digits }} {% trans "budget" %}</span>
-                    </div>
-                </div>
+                <!-- IMPULSE PANEL -->
+                <div class="tab-pane fade" id="impulse-panel" role="tabpanel" aria-labelledby="impulse-tab-btn">
+                    {% if salary_breakdown.impulse_ratio %}
+                    <div class="card-body p-4 d-flex flex-column gap-3">
+                        <!-- Period label top-right -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="small fw-bold d-flex align-items-center gap-1 text-muted">
+                                {% trans "Impulse vs planned spend ratio" %}
+                            </div>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 py-1 fw-bold" style="font-size: 0.72rem;">{{ salary_breakdown.impulse_ratio.period_label }}</span>
+                        </div>
 
-                <div class="metric-mini-grid">
-                    <div class="metric-mini-card">
-                        <div class="metric-mini-value text-body-emphasis mb-2">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_month_spend|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
-                        <div class="metric-mini-text text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Estimated month-end spend = current spent + daily pace × remaining days.' %}">
-                            {% trans "Projected total spend" %}
+                        <!-- Two ratio boxes -->
+                        <div class="metric-mini-grid">
+                            <!-- Planned -->
+                            <div class="metric-mini-card">
+                                <div class="metric-mini-value text-body-emphasis mb-2">{{ salary_breakdown.impulse_ratio.planned_pct|translate_digits }}%</div>
+                                <div class="metric-mini-text text-muted">
+                                    {% trans "Planned" %} ({{ currency_symbol }}{{ salary_breakdown.impulse_ratio.planned_amount|floatformat:0|humanize_currency:currency_symbol|translate_digits }})
+                                </div>
+                            </div>
+                            <!-- Impulse (highlighted warm tint) -->
+                            <div class="metric-mini-card" style="background: rgba(var(--bs-danger-rgb), 0.06); border-color: rgba(var(--bs-danger-rgb), 0.15);">
+                                <div class="metric-mini-value text-danger mb-2">{{ salary_breakdown.impulse_ratio.impulse_pct|translate_digits }}%</div>
+                                <div class="metric-mini-text text-danger">
+                                    {% trans "Impulse" %} ({{ currency_symbol }}{{ salary_breakdown.impulse_ratio.impulse_amount|floatformat:0|humanize_currency:currency_symbol|translate_digits }})
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footnote with previous month comparison -->
+                        <div class="text-muted" style="font-size: 0.8rem; line-height: 1.5;">
+                            {% trans "Planned: expenses matching your active recurring transactions. Impulse: everything else." %}
+                            {% if salary_breakdown.impulse_ratio.prev_impulse_pct is not None %}
+                                {% trans "Last month was" %} {{ salary_breakdown.impulse_ratio.prev_impulse_pct|translate_digits }}% {% trans "impulse" %}: 
+                                {% if salary_breakdown.impulse_ratio.impulse_pct > salary_breakdown.impulse_ratio.prev_impulse_pct %}
+                                    {% trans "slight uptick this month." %}
+                                {% elif salary_breakdown.impulse_ratio.impulse_pct < salary_breakdown.impulse_ratio.prev_impulse_pct %}
+                                    {% trans "improvement this month." %}
+                                {% else %}
+                                    {% trans "same as last month." %}
+                                {% endif %}
+                            {% endif %}
                         </div>
                     </div>
-                    <div class="metric-mini-card">
-                        {% if salary_breakdown.spending_pace.projected_budget_diff > 0 %}
-                            <div class="metric-mini-value mb-2 text-success">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_budget_diff|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
-                            <div class="metric-mini-text text-success">{% trans "Projected under budget" %}</div>
-                        {% elif salary_breakdown.spending_pace.projected_budget_diff < 0 %}
-                            <div class="metric-mini-value mb-2 text-danger">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_budget_diff|floatformat:0|cut:"-"|humanize_currency:currency_symbol|translate_digits }}</div>
-                            <div class="metric-mini-text text-danger">{% trans "Projected over budget" %}</div>
-                        {% else %}
-                            <div class="metric-mini-value mb-2 text-info">{{ currency_symbol }}0</div>
-                            <div class="metric-mini-text text-info">{% trans "Projected on budget" %}</div>
-                        {% endif %}
+                    {% else %}
+                    <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
+                        <div class="empty-state-container py-4">
+                            <div class="mb-3 text-muted" style="opacity: 0.4;">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            </div>
+                            <p class="text-muted small mb-0">{% trans "No impulse data available for this period." %}</p>
+                        </div>
                     </div>
-                </div>
-                {% elif salary_breakdown.spending_pace.daily_spending_pace > 0 %}
-                <div class="metric-mini-card text-center">
-                    <div class="metric-label-sm mb-1">{% trans "Projected monthly spend" %}</div>
-                    <div class="metric-main text-body-emphasis mb-2" style="font-size: 1.7rem;">{{ currency_symbol }}{{ salary_breakdown.spending_pace.projected_month_spend|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
-                    <a href="{% url 'budget' %}" class="text-primary small text-decoration-none fw-bold d-inline-flex align-items-center"><i class="bi bi-plus-circle me-1"></i>{% trans "Set budget to track pace" %}</a>
-                </div>
-                {% else %}
-                <div class="empty-state-container text-center py-2">
-                    <div class="mb-3">
-                        {% include 'illustrations/empty_chart_pace.svg' %}
-                    </div>
-                    <p class="text-muted small mb-3">{% trans "Set a budget to monitor your spending pace." %}</p>
-                    <a href="{% url 'budget' %}" class="btn btn-outline-primary btn-sm rounded-pill px-4">{% trans "Set Budget" %}</a>
-                </div>
-                {% endif %}
+                    {% endif %}
+                </div><!-- /IMPULSE PANEL -->
 
-            </div>
+            </div><!-- /tab-content -->
             {% else %}
             <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
                 <div class="empty-state-container py-4">
@@ -1814,7 +1948,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <div>
-                    <div class="metric-label-sm mb-1 mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Visual progress of your savings rate toward healthier levels.' %}">
+                    <div class="small text-muted mb-1 mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Visual progress of your savings rate toward healthier levels.' %}">
                         {% trans "Savings progress" %}
                     </div>
                     <div class="metric-track mb-2">
@@ -1825,7 +1959,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <div class="metric-mini-grid">
                     <a href="{% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}{% url 'income-list' %}?date_from={{ salary_cycle_start|date:'Y-m-d' }}&date_to={{ salary_cycle_end|date:'Y-m-d' }}{% elif start_date or end_date %}{% url 'income-list' %}?date_from={{ start_date|default:'' }}&date_to={{ end_date|default:'' }}{% else %}{% url 'income-list' %}?{% url_replace %}{% endif %}" class="metric-mini-card text-decoration-none text-body">
-                        <div class="metric-label-sm mb-1">
+                        <div class="small text-muted mb-1">
                             {% trans "Income" %}
                             <i class="bi bi-info-circle ms-1 cursor-help metric-help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total money received during the selected period.' %}"></i>
                         </div>
@@ -1837,7 +1971,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% endif %}
                     </a>
                     <a href="{% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}{% url 'expense-list' %}?start_date={{ salary_cycle_start|date:'Y-m-d' }}&end_date={{ salary_cycle_end|date:'Y-m-d' }}&is_investment=false{% elif start_date or end_date %}{% url 'expense-list' %}?start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}&is_investment=false{% else %}{% url 'expense-list' %}?{% url_replace is_investment='false' %}{% endif %}" class="metric-mini-card text-decoration-none text-body">
-                        <div class="metric-label-sm mb-1">
+                        <div class="small text-muted mb-1">
                             {% trans "Spent" %}
                             <i class="bi bi-info-circle ms-1 cursor-help metric-help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Operating spend excludes internal transfers and investments.' %}"></i>
                         </div>
@@ -3584,4 +3718,22 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         </script>
     {% endif %}
+
+<script>
+// Spending Pace tab: hide status badge on Impulse tab, show on Pace tab
+(function() {
+    var tabBtns = document.querySelectorAll('#spendingPaceTabs .spending-pace-tab-btn');
+    var statusBadge = document.getElementById('spending-pace-status-badge');
+    if (!tabBtns.length || !statusBadge) return;
+    tabBtns.forEach(function(btn) {
+        btn.addEventListener('shown.bs.tab', function(e) {
+            if (e.target.getAttribute('data-bs-target') === '#impulse-panel') {
+                statusBadge.style.display = 'none';
+            } else {
+                statusBadge.style.display = '';
+            }
+        });
+    });
+})();
+</script>
 {% endblock %}
