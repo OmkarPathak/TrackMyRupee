@@ -128,4 +128,31 @@ class StaticPageTest(TestCase):
         rrset = res_msg.answer[0]
         self.assertEqual(rrset.rdtype, dns.rdatatype.HTTPS)
         self.assertIn('trackmyrupee.com.', rrset[0].to_text())
+
+    def test_markdown_negotiation(self):
+        url = reverse('landing')
+        
+        # Request without text/markdown (default browser request)
+        response_html = self.client.get(url)
+        self.assertEqual(response_html.status_code, 200)
+        self.assertTrue(response_html['Content-Type'].startswith('text/html'))
+        self.assertIn('<html', response_html.content.decode('utf-8').lower())
+
+        # Request with Accept: text/markdown
+        response_md = self.client.get(url, HTTP_ACCEPT='text/markdown')
+        self.assertEqual(response_md.status_code, 200)
+        self.assertEqual(response_md['Content-Type'], 'text/markdown')
+        self.assertIn('X-Markdown-Tokens', response_md)
+        self.assertIn('Vary', response_md)
+        self.assertIn('Accept', response_md['Vary'])
+        
+        md_body = response_md.content.decode('utf-8')
+        # Should not contain HTML layout tags
+        self.assertNotIn('<html', md_body.lower())
+        self.assertNotIn('<body', md_body.lower())
+        # Should contain page content in markdown structure (e.g. headers or links)
+        self.assertTrue(len(md_body) > 0)
+        token_count = int(response_md['X-Markdown-Tokens'])
+        self.assertEqual(token_count, len(md_body) // 4)
+
  

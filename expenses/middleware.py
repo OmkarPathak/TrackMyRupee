@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
+import re
+from bs4 import BeautifulSoup, NavigableString
 
 
 class DemoReadOnlyMiddleware:
@@ -130,3 +132,93 @@ class DPDPAConsentMiddleware:
 
         response = self.get_response(request)
         return response
+
+
+class AgentMarkdownMiddleware:
+    """
+    Middleware that converts HTML responses to Markdown if the request Accept header
+    prefers or includes 'text/markdown'.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        accept_header = request.META.get('HTTP_ACCEPT', '')
+        response = self.get_response(request)
+
+        if request.method == 'GET' and 'text/markdown' in accept_header:
+            content_type = response.get('Content-Type', '')
+            if content_type.startswith('text/html'):
+                html_content = response.content.decode('utf-8')
+                markdown_content = self.html_to_markdown(html_content)
+                token_count = len(markdown_content) // 4
+
+                response.content = markdown_content.encode('utf-8')
+                response['Content-Type'] = 'text/markdown'
+                response['X-Markdown-Tokens'] = str(token_count)
+
+                if 'Vary' in response:
+                    varies = [v.strip() for v in response['Vary'].split(',')]
+                    if 'Accept' not in varies:
+                        response['Vary'] = f"{response['Vary']}, Accept"
+                else:
+                    response['Vary'] = 'Accept'
+
+        return response
+
+    def html_to_markdown(self, html_content):
+
+        soup = BeautifulSoup(html_content, 'html.parser')
+        for el in soup(['script', 'style', 'head', 'title', 'meta', 'link']):
+            el.decompose()
+
+        def convert_node(node):
+            if isinstance(node, NavigableString):
+                return node.string
+
+            child_texts = []
+            for child in node.children:
+                child_texts.append(convert_node(child) or '')
+            inner_content = ''.join(child_texts)
+            tag = node.name
+
+            if tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
+                level = int(tag[1])
+                return f'\n\n' + '#' * level + f' {inner_content.strip()}\n\n'
+            elif tag == 'p':
+                return f'\n\n{inner_content.strip()}\n\n'
+            elif tag == 'br':
+                return '\n'
+            elif tag == 'li':
+                parent_tag = node.parent.name if node.parent else 'ul'
+                if parent_tag == 'ol':
+                    siblings = [s for s in node.parent.children if s.name == 'li'] if node.parent else []
+                    idx = siblings.index(node) + 1 if node in siblings else 1
+                    return f'\n{idx}. {inner_content.strip()}'
+                else:
+                    return f'\n- {inner_content.strip()}'
+            elif tag in ['ul', 'ol']:
+                return f'\n{inner_content}\n'
+            elif tag in ['strong', 'b']:
+                return f'**{inner_content}**'
+            elif tag in ['em', 'i']:
+                return f'*{inner_content}*'
+            elif tag == 'a':
+                href = node.get('href', '')
+                if href and not href.startswith('javascript:'):
+                    return f'[{inner_content}]({href})'
+                return inner_content
+            elif tag == 'code':
+                return f'`{inner_content}`'
+            elif tag == 'pre':
+                return f'\n```\n{inner_content}\n```\n'
+            elif tag == 'blockquote':
+                lines = [f'> {line}' for line in inner_content.strip().split('\n')]
+                return f'\n\n' + '\n'.join(lines) + '\n\n'
+            return inner_content
+
+        body = soup.find('body') or soup
+        markdown_text = convert_node(body)
+        markdown_text = re.sub(r'\n{3,}', '\n\n', markdown_text)
+        return markdown_text.strip()
+

@@ -122,6 +122,7 @@ MIDDLEWARE = [
     'expenses.middleware.TimezoneMiddleware', # Active user timezone
     'expenses.middleware.LocaleMiddlewareByProfile',
     'expenses.middleware.DemoReadOnlyMiddleware',
+    'expenses.middleware.AgentMarkdownMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
