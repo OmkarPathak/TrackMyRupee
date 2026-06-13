@@ -1,10 +1,19 @@
+import base64
 import calendar
 import csv
 import io
+import json
 import re
 import traceback
 from datetime import date, datetime
 from decimal import Decimal
+
+import dns.message
+import dns.rdata
+import dns.rdataclass
+import dns.rdatatype
+import dns.flags
+from django.views.decorators.csrf import csrf_exempt
 
 import openpyxl
 from django.contrib import messages
@@ -13,7 +22,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q, Sum
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
@@ -685,3 +694,166 @@ def dpdp_consent_view(request):
     return render(request, 'expenses/dpdp_consent.html', {
         'page_title': _('Data Consent Required')
     })
+
+
+@csrf_exempt
+def doh_handler_view(request):
+    """
+    DNS-over-HTTPS (DoH) handler supporting both RFC 8484 binary wire format
+    and JSON DNS formats.
+    """
+    query_bytes = None
+    is_json = False
+    data = {}
+
+    if request.method == 'GET':
+        if 'dns' in request.GET:
+            dns_param = request.GET.get('dns', '')
+            # Add base64url padding
+            padding_len = len(dns_param) % 4
+            if padding_len:
+                dns_param += '=' * (4 - padding_len)
+            try:
+                # Use urlsafe_b64decode to decode base64url
+                query_bytes = base64.urlsafe_b64decode(dns_param)
+            except Exception:
+                return HttpResponse("Invalid base64 in dns parameter", status=400)
+        elif 'name' in request.GET:
+            is_json = True
+        else:
+            return HttpResponse("Missing dns or name parameter", status=400)
+    elif request.method == 'POST':
+        # Default to binary body if request has content-type 'application/dns-message'
+        # or doesn't start with json curly brace
+        body = request.body
+        if body.startswith(b'{'):
+            try:
+                data = json.loads(body.decode('utf-8'))
+                if 'name' in data:
+                    is_json = True
+            except Exception:
+                pass
+        
+        if not is_json:
+            query_bytes = body
+    else:
+        return HttpResponse("Method Not Allowed", status=405)
+
+    if is_json:
+        name = request.GET.get('name', '') if request.method == 'GET' else data.get('name', '')
+        qtype_str = request.GET.get('type', 'SVCB') if request.method == 'GET' else data.get('type', 'SVCB')
+
+        try:
+            if qtype_str.isdigit():
+                qtype_val = int(qtype_str)
+                qtype = qtype_val
+            else:
+                qtype = dns.rdatatype.from_text(qtype_str.upper())
+        except Exception:
+            qtype = dns.rdatatype.SVCB
+
+        # Format name properly for lookup
+        name_lower = name.lower().strip()
+        if not name_lower.endswith('.'):
+            name_lower += '.'
+
+        answers = []
+        labels = name_lower.rstrip('.').split('.')
+
+        is_dns_aid = False
+        domain = ""
+        if '_agents' in labels:
+            idx = labels.index('_agents')
+            if idx > 0 and labels[idx - 1].startswith('_'):
+                is_dns_aid = True
+                domain = '.'.join(labels[idx + 1:])
+
+        if is_dns_aid:
+            # We return SVCB/HTTPS parameters
+            types_to_return = []
+            try:
+                target_rdtype = dns.rdatatype.from_text(qtype_str.upper()) if not qtype_str.isdigit() else int(qtype_str)
+            except Exception:
+                target_rdtype = dns.rdatatype.SVCB
+
+            if target_rdtype == dns.rdatatype.SVCB or target_rdtype == 255:
+                types_to_return.append((64, 'SVCB'))
+            if target_rdtype == dns.rdatatype.HTTPS or target_rdtype == 255:
+                types_to_return.append((65, 'HTTPS'))
+
+            for rdtype_val, rdtype_name in types_to_return:
+                target_host = domain if domain.endswith('.') else f"{domain}."
+                answers.append({
+                    "name": name,
+                    "type": rdtype_val,
+                    "TTL": 3600,
+                    "data": f"1 {target_host} mandatory=alpn,port alpn=a2a port=443"
+                })
+
+        response_data = {
+            "Status": 0,  # NOERROR
+            "TC": False,
+            "RD": True,
+            "RA": True,
+            "AD": True,   # Authenticated Data (DNSSEC validated)
+            "CD": False,
+            "Question": [
+                {
+                    "name": name,
+                    "type": qtype
+                }
+            ],
+            "Answer": answers
+        }
+        return JsonResponse(response_data, content_type='application/dns-json')
+
+    if query_bytes:
+        try:
+            query_msg = dns.message.from_wire(query_bytes)
+        except Exception as e:
+            return HttpResponse(f"Invalid DNS binary message: {e}", status=400)
+
+        response_msg = dns.message.make_response(query_msg)
+        response_msg.flags |= dns.flags.AD
+
+        for question in query_msg.question:
+            qname = question.name
+            qtype = question.rdtype
+            qclass = question.rdclass
+
+            qname_str = qname.to_text().lower().rstrip('.')
+            labels = qname_str.split('.')
+
+            is_dns_aid = False
+            domain = ""
+            if '_agents' in labels:
+                idx = labels.index('_agents')
+                if idx > 0 and labels[idx - 1].startswith('_'):
+                    is_dns_aid = True
+                    domain = '.'.join(labels[idx + 1:])
+
+            if is_dns_aid:
+                types_to_return = []
+                if qtype == dns.rdatatype.SVCB or qtype == 255:
+                    types_to_return.append(dns.rdatatype.SVCB)
+                if qtype == dns.rdatatype.HTTPS or qtype == 255:
+                    types_to_return.append(dns.rdatatype.HTTPS)
+
+                target_host = domain if domain.endswith('.') else f"{domain}."
+                for rdtype in types_to_return:
+                    rrset = response_msg.find_rrset(
+                        response_msg.answer,
+                        qname,
+                        qclass,
+                        rdtype,
+                        create=True
+                    )
+                    rdata_text = f"1 {target_host} mandatory=alpn,port alpn=a2a port=443"
+                    rdata = dns.rdata.from_text(qclass, rdtype, rdata_text)
+                    rrset.add(rdata, ttl=3600)
+
+        response_wire = response_msg.to_wire()
+        return HttpResponse(response_wire, content_type='application/dns-message')
+
+    return HttpResponse("Bad Request", status=400)
+

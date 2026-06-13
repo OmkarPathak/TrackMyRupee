@@ -1,3 +1,8 @@
+import base64
+import json
+import dns.message
+import dns.rdatatype
+import dns.flags
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -11,6 +16,8 @@ class StaticPageTest(TestCase):
         url = reverse('landing')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        self.assertIn('Link', response)
+        self.assertIn('rel="service-doc"', response['Link'])
 
     def test_pricing_page(self):
         url = reverse('pricing')
@@ -47,10 +54,80 @@ class StaticPageTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_robots_txt(self):
-        # Assuming robots.txt is served or configured
         try:
-             url = reverse('robots_txt') # Or partial path if hardcoded in urls
+             url = reverse('robots_txt')
              response = self.client.get(url)
              self.assertEqual(response.status_code, 200)
         except:
-             pass 
+             pass
+
+    def test_doh_json_get(self):
+        # 1. Test JSON GET queries for SVCB
+        url = reverse('dns-query-short')
+        response = self.client.get(url, {'name': '_a2a._agents.localhost', 'type': 'SVCB'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/dns-json')
+        data = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(data['Status'], 0)
+        self.assertTrue(data['AD'])
+        self.assertEqual(len(data['Answer']), 1)
+        self.assertEqual(data['Answer'][0]['type'], 64)
+        self.assertIn('alpn=a2a', data['Answer'][0]['data'])
+        self.assertIn('localhost.', data['Answer'][0]['data'])
+
+    def test_doh_json_post(self):
+        # 2. Test JSON POST queries for HTTPS
+        url = reverse('dns-query-wellknown')
+        post_data = {'name': '_index._agents.example.com', 'type': 'HTTPS'}
+        response = self.client.post(
+            url,
+            json.dumps(post_data),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/dns-json')
+        data = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(data['Status'], 0)
+        self.assertEqual(len(data['Answer']), 1)
+        self.assertEqual(data['Answer'][0]['type'], 65)
+        self.assertIn('example.com.', data['Answer'][0]['data'])
+
+    def test_doh_binary_get(self):
+        # 3. Test Binary GET query using base64url encoding
+        msg = dns.message.make_query('_api-catalog._agents.localhost', dns.rdatatype.SVCB)
+        wire = msg.to_wire()
+        dns_param = base64.urlsafe_b64encode(wire).decode('utf-8').rstrip('=')
+        
+        url = reverse('dns-query-short-slash')
+        response = self.client.get(url, {'dns': dns_param})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/dns-message')
+        
+        res_msg = dns.message.from_wire(response.content)
+        self.assertTrue(res_msg.flags & dns.flags.AD)
+        self.assertEqual(len(res_msg.answer), 1)
+        rrset = res_msg.answer[0]
+        self.assertEqual(rrset.rdtype, dns.rdatatype.SVCB)
+        self.assertIn('localhost.', rrset[0].to_text())
+
+    def test_doh_binary_post(self):
+        # 4. Test Binary POST query with raw dns message body
+        msg = dns.message.make_query('_service-desc._agents.trackmyrupee.com', dns.rdatatype.HTTPS)
+        wire = msg.to_wire()
+        
+        url = reverse('dns-query-wellknown-slash')
+        response = self.client.post(
+            url,
+            wire,
+            content_type='application/dns-message'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/dns-message')
+        
+        res_msg = dns.message.from_wire(response.content)
+        self.assertTrue(res_msg.flags & dns.flags.AD)
+        self.assertEqual(len(res_msg.answer), 1)
+        rrset = res_msg.answer[0]
+        self.assertEqual(rrset.rdtype, dns.rdatatype.HTTPS)
+        self.assertIn('trackmyrupee.com.', rrset[0].to_text())
+ 

@@ -129,6 +129,12 @@ urlpatterns = [
     path('loans/repayment/<int:pk>/delete/', views.LoanRepaymentDeleteView.as_view(), name='loan-repayment-delete'),
     path('loans/<int:pk>/rate-update/', views.LoanInterestRateCreateView.as_view(), name='loan-rate-update'),
 
+    # DNS-over-HTTPS (DoH) resolver endpoints for DNS-AID
+    path('dns-query', views.doh_handler_view, name='dns-query-short'),
+    path('dns-query/', views.doh_handler_view, name='dns-query-short-slash'),
+    path('.well-known/dns-query', views.doh_handler_view, name='dns-query-wellknown'),
+    path('.well-known/dns-query/', views.doh_handler_view, name='dns-query-wellknown-slash'),
+
     # Sentry Debug
     path('sentry-debug/', lambda request: 1 / 0),
 ]

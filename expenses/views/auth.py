@@ -226,6 +226,11 @@ class LandingPageView(TemplateView):
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        response['Link'] = '</llms.txt>; rel="service-doc", </sitemap.xml>; rel="describedby", </.well-known/api-catalog>; rel="api-catalog"'
+        return response
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         plans = SubscriptionPlan.objects.filter(is_active=True)
