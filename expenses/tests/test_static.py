@@ -54,12 +54,10 @@ class StaticPageTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_robots_txt(self):
-        try:
-             url = reverse('robots_txt')
-             response = self.client.get(url)
-             self.assertEqual(response.status_code, 200)
-        except:
-             pass
+         url = reverse('robots_txt')
+         response = self.client.get(url)
+         self.assertEqual(response.status_code, 200)
+         self.assertIn("Content-Signal: ai-train=no, search=yes, ai-input=no", response.content.decode('utf-8'))
 
     def test_doh_json_get(self):
         # 1. Test JSON GET queries for SVCB
