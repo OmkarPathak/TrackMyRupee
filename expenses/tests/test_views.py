@@ -298,6 +298,35 @@ class AnalyticsViewTest(BaseViewTest):
         self.assertIn('income_data', response.context)
         self.assertIn('expense_data', response.context)
 
+    def test_mom_analysis_access(self):
+        url = reverse('analytics-mom')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('creep_categories', response.context)
+        self.assertIn('asset_allocation', response.context)
+        self.assertIn('labels', response.context)
+        self.assertFalse(response.context['has_enough_creep_data'])
+
+    def test_mom_analysis_with_enough_data(self):
+        # Create expenses in last 3 months
+        today = date.today()
+        # Month 1 (current)
+        Expense.objects.create(user=self.user, date=today, amount=200, category='Food', currency='₹')
+        # Month 2 (previous)
+        m2_date = today.replace(day=1) - timedelta(days=5)
+        Expense.objects.create(user=self.user, date=m2_date, amount=150, category='Food', currency='₹')
+        # Month 3 (2 months ago)
+        m3_date = m2_date.replace(day=1) - timedelta(days=5)
+        Expense.objects.create(user=self.user, date=m3_date, amount=100, category='Food', currency='₹')
+
+        url = reverse('analytics-mom')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['has_enough_creep_data'])
+        # Also check that creep is detected (amount increased 100 -> 150 -> 200)
+        self.assertEqual(len(response.context['creep_categories']), 1)
+        self.assertEqual(response.context['creep_categories'][0]['name'], 'Food')
+
 class RecurringTransactionMixinTest(BaseViewTest):
     def test_recurring_expense_generation(self):
         # Create a recurring transaction due today
