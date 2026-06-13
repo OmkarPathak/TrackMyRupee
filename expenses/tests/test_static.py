@@ -59,6 +59,12 @@ class StaticPageTest(TestCase):
          self.assertEqual(response.status_code, 200)
          self.assertIn("Content-Signal: ai-train=no, search=yes, ai-input=no", response.content.decode('utf-8'))
 
+    def test_llms_txt(self):
+         response = self.client.get('/llms.txt')
+         self.assertEqual(response.status_code, 200)
+         self.assertEqual(response['Content-Type'], 'text/plain')
+         self.assertIn('# TrackMyRupee', response.content.decode('utf-8'))
+
     def test_doh_json_get(self):
         # 1. Test JSON GET queries for SVCB
         url = reverse('dns-query-short')

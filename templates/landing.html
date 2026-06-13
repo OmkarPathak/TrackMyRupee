@@ -51,72 +51,106 @@
 
     <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "TrackMyRupee",
-      "applicationCategory": "FinanceApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "INR"
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "TrackMyRupee",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "Free Plan",
+            "price": "0",
+            "priceCurrency": "INR",
+            "areaServed": "IN"
+          },
+          {
+            "@type": "Offer",
+            "name": "Plus Plan (Monthly)",
+            "price": "49",
+            "priceCurrency": "INR",
+            "areaServed": "IN"
+          },
+          {
+            "@type": "Offer",
+            "name": "Plus Plan (Yearly)",
+            "price": "499",
+            "priceCurrency": "INR",
+            "areaServed": "IN"
+          },
+          {
+            "@type": "Offer",
+            "name": "Pro Plan (Monthly)",
+            "price": "99",
+            "priceCurrency": "INR",
+            "areaServed": "IN"
+          },
+          {
+            "@type": "Offer",
+            "name": "Pro Plan (Yearly)",
+            "price": "999",
+            "priceCurrency": "INR",
+            "areaServed": "IN"
+          }
+        ],
+        "description": "Your salary has a story. TrackMyRupee tells you the whole thing. Watch your net worth grow and spot spending leaks without bank logins or SMS access.",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "ratingCount": "500"
+        },
+        "author": {
+            "@type": "Person",
+            "name": "Omkar Pathak"
+        }
       },
-      "description": "Your salary has a story. TrackMyRupee tells you the whole thing. Watch your net worth grow and spot spending leaks without bank logins or SMS access.",
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "500"
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "TrackMyRupee",
+        "url": "https://trackmyrupee.com",
+        "logo": "https://trackmyrupee.com/static/img/icon.png",
+        "sameAs": [
+          "https://twitter.com/trackmyrupee",
+          "https://github.com/omkarpathak/trackmyrupee"
+        ]
       },
-      "author": {
-          "@type": "Person",
-          "name": "Omkar Pathak"
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [{
+          "@type": "Question",
+          "name": "What is the best free finance tracker for India?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "TrackMyRupee is the best free finance tracker designed for the Indian market, offering currency support (₹), recurring payment reminders, net worth tracking, and expense analysis."
+          }
+        }, {
+          "@type": "Question",
+          "name": "Does TrackMyRupee support recurring payments?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, TrackMyRupee features a robust Smart Notification system that sends alerts via Email, Web Push, and In-App notifications for all your recurring subscriptions and bills."
+          }
+        }, {
+          "@type": "Question",
+          "name": "Is TrackMyRupee safe to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, TrackMyRupee prioritizes user privacy. We do not sell your data, read SMS, or need bank logins. We use secure authentication and follow best practices for data protection."
+          }
+        }, {
+          "@type": "Question",
+          "name": "Can I use TrackMyRupee on mobile?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely. TrackMyRupee is a Progressive Web App (PWA), meaning you can install it on your Android or iOS device and use it just like a native app."
+          }
+        }]
       }
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "TrackMyRupee",
-      "url": "https://trackmyrupee.com",
-      "logo": "https://trackmyrupee.com/static/img/icon.png",
-      "sameAs": [
-        "https://twitter.com/trackmyrupee",
-        "https://github.com/omkarpathak/trackmyrupee"
-      ]
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [{
-        "@type": "Question",
-        "name": "What is the best free finance tracker for India?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "TrackMyRupee is the best free finance tracker designed for the Indian market, offering currency support (₹), recurring payment reminders, net worth tracking, and expense analysis."
-        }
-      }, {
-        "@type": "Question",
-        "name": "Does TrackMyRupee support recurring payments?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, TrackMyRupee features a robust Smart Notification system that sends alerts via Email, Web Push, and In-App notifications for all your recurring subscriptions and bills."
-        }
-      }, {
-        "@type": "Question",
-        "name": "Is TrackMyRupee safe to use?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, TrackMyRupee prioritizes user privacy. We do not sell your data, read SMS, or need bank logins. We use secure authentication and follow best practices for data protection."
-        }
-      }, {
-        "@type": "Question",
-        "name": "Can I use TrackMyRupee on mobile?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Absolutely. TrackMyRupee is a Progressive Web App (PWA), meaning you can install it on your Android or iOS device and use it just like a native app."
-        }
-      }]
-    }
+    ]
     </script>
 
     <!-- Google Fonts -->

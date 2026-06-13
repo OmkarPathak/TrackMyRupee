@@ -262,11 +262,11 @@ class FeaturesPageView(TemplateView):
                     },
                     {
                         'title': 'Your month starts when your salary hits',
-                        'desc': 'Not on the 1st. TrackMyRupee follows your actual salary cycle - month-end crunches and all.'
+                        'desc': 'Not on the 1st. TrackMyRupee follows your actual salary cycle - month-end crunches and all, enabling smart salary-cycle budgeting that fits your real income pattern.'
                     },
                     {
                         'title': 'Watch your net worth grow',
-                        'desc': 'One real-time number across savings, SIPs, and credit cards. Not a list of transactions - a trajectory.'
+                        'desc': 'One real-time number across savings, SIPs, and credit cards. Includes automatic SIP tracking to monitor your mutual fund investments and watch your trajectory grow.'
                     },
                 ]
             },
@@ -296,11 +296,11 @@ class FeaturesPageView(TemplateView):
             {
                 'id': 'trust',
                 'title': 'Trust & Control',
-                'description': 'Your data is yours. Full privacy and data sovereignty.',
+                'description': 'Your data is yours. Full privacy and data sovereignty with a secure manual expense tracker for India.',
                 'items': [
                     {
                         'title': 'Your data is never locked in',
-                        'desc': 'Export your full transaction history to CSV anytime. No permission needed, no hoops to jump through.'
+                        'desc': 'Export your full transaction history to CSV anytime. Enjoy the security of a no SMS access expense manager that keeps your financial details private.'
                     },
                     {
                         'title': 'Balanced Double-Entry Ledger',
