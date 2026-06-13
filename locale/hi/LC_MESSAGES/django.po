@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-04 19:27+0530\n"
+"POT-Creation-Date: 2026-06-13 08:25+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -692,7 +692,7 @@ msgstr ""
 #: templates/expenses/expense_list.html:1117
 #: templates/expenses/goal_detail.html:255
 #: templates/expenses/goal_list.html:137 templates/expenses/loan_list.html:91
-#: templates/expenses/recurring_transaction_list.html:214
+#: templates/expenses/recurring_transaction_list.html:241
 #: templates/expenses/transfer_list.html:67
 msgid "Delete"
 msgstr "मिटाएँ"
@@ -866,43 +866,43 @@ msgid "Sunday"
 msgstr ""
 
 #: env/lib/python3.9/site-packages/django/utils/dates.py:16
-#: expenses/views/dashboard.py:2671 expenses/views_old.py:3245
+#: expenses/views/dashboard.py:2760 expenses/views_old.py:3245
 #: templates/expenses/calendar.html:84
 msgid "Mon"
 msgstr "सोम"
 
 #: env/lib/python3.9/site-packages/django/utils/dates.py:17
-#: expenses/views/dashboard.py:2671 expenses/views_old.py:3245
+#: expenses/views/dashboard.py:2760 expenses/views_old.py:3245
 #: templates/expenses/calendar.html:85
 msgid "Tue"
 msgstr "मंगल"
 
 #: env/lib/python3.9/site-packages/django/utils/dates.py:18
-#: expenses/views/dashboard.py:2671 expenses/views_old.py:3245
+#: expenses/views/dashboard.py:2760 expenses/views_old.py:3245
 #: templates/expenses/calendar.html:86
 msgid "Wed"
 msgstr "बुध"
 
 #: env/lib/python3.9/site-packages/django/utils/dates.py:19
-#: expenses/views/dashboard.py:2671 expenses/views_old.py:3245
+#: expenses/views/dashboard.py:2760 expenses/views_old.py:3245
 #: templates/expenses/calendar.html:87
 msgid "Thu"
 msgstr "गुरु"
 
 #: env/lib/python3.9/site-packages/django/utils/dates.py:20
-#: expenses/views/dashboard.py:2671 expenses/views_old.py:3245
+#: expenses/views/dashboard.py:2760 expenses/views_old.py:3245
 #: templates/expenses/calendar.html:88
 msgid "Fri"
 msgstr "शुक्र"
 
 #: env/lib/python3.9/site-packages/django/utils/dates.py:21
-#: expenses/views/dashboard.py:2671 expenses/views_old.py:3245
+#: expenses/views/dashboard.py:2760 expenses/views_old.py:3245
 #: templates/expenses/calendar.html:89
 msgid "Sat"
 msgstr "शनि"
 
 #: env/lib/python3.9/site-packages/django/utils/dates.py:22
-#: expenses/views/dashboard.py:2671 expenses/views_old.py:3245
+#: expenses/views/dashboard.py:2760 expenses/views_old.py:3245
 #: templates/expenses/calendar.html:83
 msgid "Sun"
 msgstr "रवि"
@@ -1536,7 +1536,7 @@ msgstr "जैसे वेतन, फ्रीलांस"
 msgid "Make this a recurring income"
 msgstr ""
 
-#: expenses/forms.py:166 expenses/forms.py:643 expenses/models.py:864
+#: expenses/forms.py:166 expenses/forms.py:648 expenses/models.py:864
 #: expenses/views/export.py:164 templates/expenses/income_list.html:291
 #: templates/expenses/loan_detail.html:321
 #: templates/expenses/recurring_transaction_form.html:34
@@ -1561,8 +1561,8 @@ msgid "Expense"
 msgstr "खर्च"
 
 #: expenses/forms.py:228 expenses/models.py:138 expenses/models.py:171
-#: expenses/models.py:839 expenses/views/dashboard.py:1526
-#: expenses/views/dashboard.py:2391 expenses/views_old.py:2948
+#: expenses/models.py:839 expenses/views/dashboard.py:1615
+#: expenses/views/dashboard.py:2480 expenses/views_old.py:2948
 #: expenses/views_old.py:2953 expenses/views_old.py:2957
 #: expenses/views_old.py:2960 templates/components/navbar.html:408
 #: templates/components/sidebar.html:47 templates/components/sidebar.html:49
@@ -1573,17 +1573,18 @@ msgstr "खर्च"
 #: templates/expenses/calendar.html:106 templates/expenses/income_list.html:20
 #: templates/expenses/income_list.html:23
 #: templates/expenses/income_list.html:36
+#: templates/expenses/recurring_transaction_list.html:211
 #: templates/expenses/recurring_transaction_manage.html:51
 #: templates/expenses/recurring_transaction_manage.html:105
 #: templates/expenses/settings_base.html:27
 #: templates/expenses/settings_home.html:99
-#: templates/expenses/settings_home.html:266 templates/home.html:1732
-#: templates/home.html:2037 templates/mom_analysis.html:354
+#: templates/expenses/settings_home.html:299 templates/home.html:1963
+#: templates/home.html:2268 templates/mom_analysis.html:354
 msgid "Income"
 msgstr "आय"
 
 #: expenses/forms.py:229 expenses/models.py:172 expenses/models.py:840
-#: expenses/views/dashboard.py:1557 templates/expenses/account_detail.html:27
+#: expenses/views/dashboard.py:1646 templates/expenses/account_detail.html:27
 #: templates/expenses/account_detail.html:31
 #: templates/expenses/all_transactions.html:215
 #: templates/expenses/all_transactions.html:269
@@ -1630,7 +1631,7 @@ msgstr "खर्च के लिए श्रेणी आवश्यक ह�
 msgid "To account is required for transfers."
 msgstr "खर्च के लिए श्रेणी आवश्यक है।"
 
-#: expenses/forms.py:305 expenses/forms.py:582 expenses/models.py:673
+#: expenses/forms.py:305 expenses/forms.py:587 expenses/models.py:673
 msgid "Source and destination accounts must be different."
 msgstr ""
 
@@ -1646,7 +1647,7 @@ msgstr "आय के लिए स्रोत आवश्यक है।"
 msgid "Account is required for recurring loan repayments."
 msgstr "खर्च के लिए श्रेणी आवश्यक है।"
 
-#: expenses/forms.py:322 expenses/models.py:991
+#: expenses/forms.py:322 expenses/models.py:996
 #: templates/expenses/profile_settings.html:45
 #, fuzzy
 #| msgid "Email Address"
@@ -1664,39 +1665,55 @@ msgstr "प्रारंभ तिथि"
 msgid "Day of month when you receive salary (1-31)"
 msgstr ""
 
-#: expenses/forms.py:440
+#: expenses/forms.py:398 templates/expenses/profile_settings.html:34
+#, fuzzy
+#| msgid "Email Address"
+msgid "Email Address"
+msgstr "ईमेल पता"
+
+#: expenses/forms.py:403
+#, fuzzy
+#| msgid "Recent Transactions"
+msgid "Financial Transactions"
+msgstr "हाल के लेनदेन"
+
+#: expenses/forms.py:408
+msgid "Device and Browser Information"
+msgstr ""
+
+#: expenses/forms.py:445
 msgid "e.g. Dream Vacation"
 msgstr ""
 
-#: expenses/forms.py:444
+#: expenses/forms.py:449
 msgid "e.g. ✈️"
 msgstr ""
 
-#: expenses/forms.py:446
+#: expenses/forms.py:451
 msgid "Blue"
 msgstr ""
 
-#: expenses/forms.py:447
+#: expenses/forms.py:452
 msgid "Green"
 msgstr ""
 
-#: expenses/forms.py:448
+#: expenses/forms.py:453
 msgid "Red"
 msgstr ""
 
-#: expenses/forms.py:449
+#: expenses/forms.py:454
 msgid "Yellow"
 msgstr ""
 
-#: expenses/forms.py:450
+#: expenses/forms.py:455
 msgid "Light Blue"
 msgstr ""
 
-#: expenses/forms.py:463
+#: expenses/forms.py:468
 msgid "Target amount must be greater than zero."
 msgstr ""
 
-#: expenses/forms.py:472 expenses/models.py:298 expenses/models.py:494
+#: expenses/forms.py:477 expenses/models.py:298 expenses/models.py:494
 #: expenses/models.py:658 expenses/models.py:846 expenses/views/export.py:45
 #: expenses/views/export.py:78 expenses/views/export.py:110
 #: expenses/views/export.py:164 expenses/views/export.py:240
@@ -1720,58 +1737,58 @@ msgstr ""
 msgid "Amount"
 msgstr "मूल्य"
 
-#: expenses/forms.py:493
+#: expenses/forms.py:498
 msgid "Contribution amount must be greater than zero."
 msgstr ""
 
-#: expenses/forms.py:504 expenses/models.py:470
+#: expenses/forms.py:509 expenses/models.py:470
 #: templates/expenses/expense_form.html:474
 msgid "Category Name"
 msgstr "श्रेणी का नाम"
 
-#: expenses/forms.py:511
+#: expenses/forms.py:516
 #, fuzzy
 #| msgid "Category is required for expenses."
 msgid "Category name is required."
 msgstr "खर्च के लिए श्रेणी आवश्यक है।"
 
-#: expenses/forms.py:514 expenses/views/categories.py:72
+#: expenses/forms.py:519 expenses/views/categories.py:72
 #, fuzzy
 #| msgid "This income entry already exists."
 msgid "A category with this name already exists."
 msgstr "यह आय प्रविष्टि पहले से मौजूद है।"
 
-#: expenses/forms.py:522
+#: expenses/forms.py:527
 msgid "Account Name (e.g. HDFC Bank)"
 msgstr ""
 
-#: expenses/forms.py:543
+#: expenses/forms.py:548
 #, fuzzy
 #| msgid "This income entry already exists."
 msgid "An account with this name already exists."
 msgstr "यह आय प्रविष्टि पहले से मौजूद है।"
 
-#: expenses/forms.py:585
+#: expenses/forms.py:590
 msgid "Transfer amount must be greater than zero."
 msgstr ""
 
-#: expenses/forms.py:599
+#: expenses/forms.py:604
 msgid "e.g. Home Loan"
 msgstr ""
 
-#: expenses/forms.py:608
+#: expenses/forms.py:613
 msgid "Initial Interest Rate (%)"
 msgstr ""
 
-#: expenses/forms.py:638 templates/expenses/loan_detail.html:316
+#: expenses/forms.py:643 templates/expenses/loan_detail.html:316
 msgid "Make this a recurring loan repayment"
 msgstr ""
 
-#: expenses/forms.py:736 expenses/models.py:1501
+#: expenses/forms.py:741 expenses/models.py:1506
 msgid "Repayment amount must be greater than zero."
 msgstr ""
 
-#: expenses/forms.py:746
+#: expenses/forms.py:751
 msgid "Please select a recurring frequency."
 msgstr ""
 
@@ -1860,7 +1877,7 @@ msgstr "निवेश खाता"
 msgid "Fixed Deposit"
 msgstr "सावधि जमा"
 
-#: expenses/models.py:112 expenses/models.py:1450
+#: expenses/models.py:112 expenses/models.py:1455
 #: templates/expenses/transfer_form.html:108
 msgid "Other"
 msgstr "अन्य"
@@ -1887,7 +1904,7 @@ msgid "Current Balance"
 msgstr "वर्तमान योजना"
 
 #: expenses/models.py:118 expenses/models.py:311 expenses/models.py:498
-#: expenses/models.py:853 expenses/models.py:1230 expenses/models.py:1458
+#: expenses/models.py:853 expenses/models.py:1235 expenses/models.py:1463
 #: expenses/views/export.py:46 expenses/views/export.py:79
 #: expenses/views/export.py:241 expenses/views_old.py:1695
 #: templates/expenses/account_form.html:39
@@ -1897,7 +1914,7 @@ msgstr "वर्तमान योजना"
 #: templates/expenses/recurring_transaction_form.html:50
 #: templates/expenses/settings_base.html:15
 #: templates/expenses/settings_home.html:146
-#: templates/expenses/settings_home.html:337
+#: templates/expenses/settings_home.html:370
 #: templates/expenses/transfer_form.html:112 templates/upload.html:131
 msgid "Currency"
 msgstr "मुद्रा"
@@ -1972,7 +1989,7 @@ msgid "Drift"
 msgstr ""
 
 #: expenses/models.py:297 expenses/models.py:493 expenses/models.py:659
-#: expenses/models.py:1294 expenses/views/export.py:43
+#: expenses/models.py:1299 expenses/views/export.py:43
 #: expenses/views/export.py:76 expenses/views/export.py:105
 #: expenses/views/export.py:134 expenses/views/export.py:238
 #: expenses/views_old.py:1695 templates/expenses/account_detail.html:107
@@ -1990,7 +2007,7 @@ msgstr ""
 #: templates/expenses/transfer_confirm_delete.html:19
 #: templates/expenses/transfer_list.html:32
 msgid "Date"
-msgstr "तारीख"
+msgstr "दिनांक"
 
 #: expenses/models.py:299 expenses/models.py:495 expenses/models.py:660
 #: expenses/models.py:847 expenses/views/export.py:44
@@ -2052,19 +2069,19 @@ msgstr "नेटबैंकिंग"
 #: expenses/views/export.py:245 templates/expenses/expense_form.html:288
 #: templates/expenses/expense_form.html:412
 #: templates/expenses/expense_list.html:874
-#: templates/expenses/expense_list.html:1232 templates/home.html:2135
+#: templates/expenses/expense_list.html:1232 templates/home.html:2366
 msgid "Payment Method"
 msgstr "भुगतान विधि"
 
 #: expenses/models.py:312 expenses/models.py:499 expenses/models.py:665
-#: expenses/models.py:854 expenses/models.py:1487 expenses/views/export.py:47
+#: expenses/models.py:854 expenses/models.py:1492 expenses/views/export.py:47
 #: expenses/views/export.py:80 expenses/views/export.py:111
 #: expenses/views/export.py:138 expenses/views/export.py:242
 msgid "Exchange Rate"
 msgstr ""
 
 #: expenses/models.py:313 expenses/models.py:500 expenses/models.py:666
-#: expenses/models.py:855 expenses/models.py:1488
+#: expenses/models.py:855 expenses/models.py:1493
 msgid "Amount in Base Currency"
 msgstr ""
 
@@ -2085,7 +2102,7 @@ msgstr ""
 msgid "Account"
 msgstr "सक्रिय खाते"
 
-#: expenses/models.py:471 expenses/models.py:1226
+#: expenses/models.py:471 expenses/models.py:1231
 #: templates/expenses/category_list.html:155
 msgid "Icon"
 msgstr ""
@@ -2101,7 +2118,7 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: expenses/models.py:656 expenses/models.py:861 expenses/models.py:1292
+#: expenses/models.py:656 expenses/models.py:861 expenses/models.py:1297
 #: expenses/views/export.py:106
 #: templates/expenses/recurring_transaction_form.html:86
 #, fuzzy
@@ -2154,185 +2171,185 @@ msgstr "वार्षिक"
 msgid "Transaction Type"
 msgstr "हाल के लेनदेन"
 
-#: expenses/models.py:858 expenses/models.py:1496 expenses/views/export.py:135
+#: expenses/models.py:858 expenses/models.py:1501 expenses/views/export.py:135
 #: templates/expenses/recurring_transaction_form.html:74
 #: templates/expenses/recurring_transaction_manage.html:47
 #: templates/expenses/recurring_transaction_manage.html:101
 msgid "Loan"
 msgstr ""
 
-#: expenses/models.py:865 expenses/models.py:1457
+#: expenses/models.py:865 expenses/models.py:1462
 #: templates/expenses/loan_form.html:64
 #: templates/expenses/recurring_transaction_form.html:59
-#: templates/home.html:545
+#: templates/home.html:642
 msgid "Start Date"
 msgstr "प्रारंभ तिथि"
 
-#: expenses/models.py:997
+#: expenses/models.py:1002
 msgid ""
 "Day of month when salary is received (1-31). Default is 1st of every month."
 msgstr ""
 
-#: expenses/models.py:1198
+#: expenses/models.py:1203
 #, fuzzy
 #| msgid "Recent Transactions"
 msgid "Recurring Transaction"
 msgstr "हाल के लेनदेन"
 
-#: expenses/models.py:1199
+#: expenses/models.py:1204
 #, fuzzy
 #| msgid "Analytics"
 msgid "AI Analytics/Insights"
 msgstr "विश्लेषण"
 
-#: expenses/models.py:1200
+#: expenses/models.py:1205
 msgid "Financial Milestone"
 msgstr ""
 
-#: expenses/models.py:1201
+#: expenses/models.py:1206
 #, fuzzy
 #| msgid "Subscription"
 msgid "System/Subscription Alert"
 msgstr "सदस्यता"
 
-#: expenses/models.py:1208
+#: expenses/models.py:1213
 msgid "Used for deduplication (same slug shouldn't repeat in a month)"
 msgstr ""
 
-#: expenses/models.py:1209
+#: expenses/models.py:1214
 msgid "URL for redirection when clicked"
 msgstr ""
 
-#: expenses/models.py:1222
+#: expenses/models.py:1227
 msgid "Goal Name"
 msgstr ""
 
-#: expenses/models.py:1223 expenses/views/export.py:173
+#: expenses/models.py:1228 expenses/views/export.py:173
 msgid "Target Amount"
 msgstr ""
 
-#: expenses/models.py:1224 expenses/views/export.py:173
+#: expenses/models.py:1229 expenses/views/export.py:173
 msgid "Current Amount"
 msgstr ""
 
-#: expenses/models.py:1225 expenses/views/export.py:173
+#: expenses/models.py:1230 expenses/views/export.py:173
 #: templates/expenses/savingsgoal_confirm_delete.html:31
 #, fuzzy
 #| msgid "Usage Data"
 msgid "Target Date"
 msgstr "उपयोग डेटा"
 
-#: expenses/models.py:1227
+#: expenses/models.py:1232
 msgid "Color Theme"
 msgstr ""
 
-#: expenses/models.py:1293
+#: expenses/models.py:1298
 msgid "Contribution Amount"
 msgstr ""
 
-#: expenses/models.py:1445
+#: expenses/models.py:1450
 msgid "Home Loan"
 msgstr ""
 
-#: expenses/models.py:1446
+#: expenses/models.py:1451
 msgid "Car Loan"
 msgstr ""
 
-#: expenses/models.py:1447
+#: expenses/models.py:1452
 msgid "Personal Loan"
 msgstr ""
 
-#: expenses/models.py:1448
+#: expenses/models.py:1453
 msgid "Education Loan"
 msgstr ""
 
-#: expenses/models.py:1449
+#: expenses/models.py:1454
 #, fuzzy
 #| msgid "Business Transfers"
 msgid "Business Loan"
 msgstr "व्यावसायिक स्थानांतरण"
 
-#: expenses/models.py:1453 templates/expenses/loan_form.html:26
+#: expenses/models.py:1458 templates/expenses/loan_form.html:26
 #, fuzzy
 #| msgid "Active Accounts"
 msgid "Loan Name"
 msgstr "सक्रिय खाते"
 
-#: expenses/models.py:1454 templates/expenses/loan_form.html:33
+#: expenses/models.py:1459 templates/expenses/loan_form.html:33
 #, fuzzy
 #| msgid "Active Accounts"
 msgid "Loan Type"
 msgstr "सक्रिय खाते"
 
-#: expenses/models.py:1455
+#: expenses/models.py:1460
 msgid "Initial Principal Amount"
 msgstr ""
 
-#: expenses/models.py:1456 templates/expenses/loan_form.html:59
+#: expenses/models.py:1461 templates/expenses/loan_form.html:59
 #, fuzzy
 #| msgid "Description"
 msgid "Duration (Months)"
 msgstr "विवरण"
 
-#: expenses/models.py:1459
+#: expenses/models.py:1464
 #, fuzzy
 #| msgid "Active"
 msgid "Is Active"
 msgstr "सक्रिय"
 
-#: expenses/models.py:1468
+#: expenses/models.py:1473
 msgid "Annual Interest Rate (%)"
 msgstr ""
 
-#: expenses/models.py:1469
+#: expenses/models.py:1474
 #, fuzzy
 #| msgid "Reactivate"
 msgid "Effective Date"
 msgstr "फिर से सक्रिय करें"
 
-#: expenses/models.py:1480 expenses/views/export.py:142
+#: expenses/models.py:1485 expenses/views/export.py:142
 #, fuzzy
 #| msgid "Active Accounts"
 msgid "Paid From Account"
 msgstr "सक्रिय खाते"
 
-#: expenses/models.py:1481
+#: expenses/models.py:1486
 #, fuzzy
 #| msgid "Total Amount"
 msgid "Total Amount Paid (EMI)"
 msgstr "कुल राशि"
 
-#: expenses/models.py:1482 expenses/views/export.py:140
+#: expenses/models.py:1487 expenses/views/export.py:140
 msgid "Principal Portion"
 msgstr ""
 
-#: expenses/models.py:1483 expenses/views/export.py:141
+#: expenses/models.py:1488 expenses/views/export.py:141
 msgid "Interest Portion"
 msgstr ""
 
-#: expenses/models.py:1484 templates/expenses/loan_detail.html:304
+#: expenses/models.py:1489 templates/expenses/loan_detail.html:304
 #, fuzzy
 #| msgid "Payment"
 msgid "Payment Date"
 msgstr "भुगतान"
 
-#: expenses/models.py:1504
+#: expenses/models.py:1509
 msgid "Principal portion cannot be negative."
 msgstr ""
 
-#: expenses/models.py:1507
+#: expenses/models.py:1512
 msgid "Interest portion cannot be negative."
 msgstr ""
 
-#: expenses/models.py:1510
+#: expenses/models.py:1515
 msgid "Repayment must equal principal portion plus interest portion."
 msgstr ""
 
-#: expenses/models.py:1513
+#: expenses/models.py:1518
 msgid "Selected account does not belong to this user."
 msgstr ""
 
-#: expenses/models.py:1520
+#: expenses/models.py:1525
 msgid "Principal portion cannot exceed remaining principal."
 msgstr ""
 
@@ -2645,27 +2662,27 @@ msgstr ""
 msgid "🟠 Heads up. Expenses are slightly high this month."
 msgstr ""
 
-#: expenses/views/dashboard.py:1027
+#: expenses/views/dashboard.py:1116
 #, python-brace-format
 msgid ""
 "Even strong months have leaks. {cat_name} exceeded by {currency}{exceeded}."
 msgstr ""
 
-#: expenses/views/dashboard.py:1029
+#: expenses/views/dashboard.py:1118
 #, fuzzy, python-brace-format
 #| msgid "⚠️ Budget crossed in {cats_str} — let’s rebalance to stay safe."
 msgid ""
 "{cat_name} exceeded by {currency}{exceeded} — let’s rebalance to stay safe."
 msgstr "⚠️ {cats_str} में बजट पार हो गया — सुरक्षित रहने के लिए पुनर्संतुलन करें।"
 
-#: expenses/views/dashboard.py:1040
+#: expenses/views/dashboard.py:1129
 #, python-brace-format
 msgid ""
 "Even strong months have leaks. {count} categories exceeded limits: "
 "{cats_str}."
 msgstr ""
 
-#: expenses/views/dashboard.py:1042
+#: expenses/views/dashboard.py:1131
 #, fuzzy, python-brace-format
 #| msgid "⚠️ Budget crossed in {cats_str} — let’s rebalance to stay safe."
 msgid ""
@@ -2673,203 +2690,203 @@ msgid ""
 "safe."
 msgstr "⚠️ {cats_str} में बजट पार हो गया — सुरक्षित रहने के लिए पुनर्संतुलन करें।"
 
-#: expenses/views/dashboard.py:1047 expenses/views_old.py:894
+#: expenses/views/dashboard.py:1136 expenses/views_old.py:894
 msgid "Budget Breached"
 msgstr "बजट पार हो गया"
 
-#: expenses/views/dashboard.py:1056 expenses/views_old.py:903
+#: expenses/views/dashboard.py:1145 expenses/views_old.py:903
 msgid "Approaching Limit"
 msgstr "सीमा के करीब"
 
-#: expenses/views/dashboard.py:1057 expenses/views_old.py:904
+#: expenses/views/dashboard.py:1146 expenses/views_old.py:904
 #, python-brace-format
 msgid "Heads up! You're close to overspending on {cats_str}."
 msgstr "सावधान! आप {cats_str} पर अधिक खर्च करने के करीब हैं।"
 
-#: expenses/views/dashboard.py:1091 expenses/views_old.py:929
+#: expenses/views/dashboard.py:1180 expenses/views_old.py:929
 #, python-format
 msgid "You've saved %(savings_rate)s%% of your income this month."
 msgstr "आपने इस महीने अपनी आय का %(savings_rate)s%% बचाया है।"
 
-#: expenses/views/dashboard.py:1092 expenses/views_old.py:930
+#: expenses/views/dashboard.py:1181 expenses/views_old.py:930
 #, python-format
 msgid ""
 "I saved %(savings_rate)s%% of my income this month using TrackMyRupee! 🏆"
 msgstr ""
 
-#: expenses/views/dashboard.py:1096 expenses/views_old.py:934
+#: expenses/views/dashboard.py:1185 expenses/views_old.py:934
 #, python-brace-format
 msgid ""
 "{msg_text} You spent less on {cats_link} — that's where the magic happened."
 msgstr ""
 
-#: expenses/views/dashboard.py:1105 expenses/views_old.py:941
+#: expenses/views/dashboard.py:1194 expenses/views_old.py:941
 msgid "Super Saver Status! 🏆"
 msgstr "सुपर सेवर स्टेटस! 🏆"
 
-#: expenses/views/dashboard.py:1114 expenses/views_old.py:950
+#: expenses/views/dashboard.py:1203 expenses/views_old.py:950
 msgid "Momentum Building 🚀"
 msgstr "गति बन रही है 🚀"
 
-#: expenses/views/dashboard.py:1115
+#: expenses/views/dashboard.py:1204
 #, python-format
 msgid ""
 "Your savings grew by %(savings_pct_abs)s%% %(period)s. You're getting better "
 "at this!"
 msgstr ""
 
-#: expenses/views/dashboard.py:1117 expenses/views_old.py:953
+#: expenses/views/dashboard.py:1206 expenses/views_old.py:953
 #, python-format
 msgid ""
 "My savings grew by %(savings_pct_abs)s%% this month! 🚀 via TrackMyRupee"
 msgstr ""
 
-#: expenses/views/dashboard.py:1123 expenses/views_old.py:959
+#: expenses/views/dashboard.py:1212 expenses/views_old.py:959
 #, python-format
 msgid "You've cut spending by %(expense_pct_abs)s%%."
 msgstr "आपने खर्च में %(expense_pct_abs)s%% की कटौती की है।"
 
-#: expenses/views/dashboard.py:1124 expenses/views/dashboard.py:1138
+#: expenses/views/dashboard.py:1213 expenses/views/dashboard.py:1227
 #: expenses/views_old.py:960 expenses/views_old.py:974
 #, python-format
 msgid ""
 "I cut my spending by %(expense_pct_abs)s%% this month! 👍 via TrackMyRupee"
 msgstr ""
 
-#: expenses/views/dashboard.py:1128 expenses/views_old.py:964
+#: expenses/views/dashboard.py:1217 expenses/views_old.py:964
 #, python-brace-format
 msgid "{msg_text} {cats_link} saw the biggest drops."
 msgstr "{msg_text} {cats_link} में सबसे बड़ी गिरावट देखी गई।"
 
-#: expenses/views/dashboard.py:1135 expenses/views_old.py:971
+#: expenses/views/dashboard.py:1224 expenses/views_old.py:971
 msgid "You’re in Control 👍"
 msgstr "आप नियंत्रण में हैं 👍"
 
-#: expenses/views/dashboard.py:1170 expenses/views_old.py:1001
+#: expenses/views/dashboard.py:1259 expenses/views_old.py:1001
 msgid "On a Roll!"
 msgstr "शानदार लय में!"
 
-#: expenses/views/dashboard.py:1171
+#: expenses/views/dashboard.py:1260
 #, fuzzy, python-format
 #| msgid "🔥 This is your %(streak)s month in a row staying under budget."
 msgid "This is your %(streak)s month in a row staying under budget."
 msgstr "🔥 यह लगातार आपका %(streak)sवां महीना है जब आप बजट के अंदर हैं।"
 
-#: expenses/views/dashboard.py:1173
+#: expenses/views/dashboard.py:1262
 #, python-format
 msgid ""
 "I've stayed under budget for %(streak)s months in a row! via TrackMyRupee"
 msgstr ""
 
-#: expenses/views/dashboard.py:1190
+#: expenses/views/dashboard.py:1279
 #, fuzzy
 #| msgid "Yearly Projection"
 msgid "Wealth Projection"
 msgstr "वार्षिक प्रक्षेपण"
 
-#: expenses/views/dashboard.py:1192
+#: expenses/views/dashboard.py:1281
 #, python-brace-format
 msgid ""
 "If you maintain this pace (based on year-to-date average savings), you could "
 "accumulate {proj} this year."
 msgstr ""
 
-#: expenses/views/dashboard.py:1196
+#: expenses/views/dashboard.py:1285
 msgid "I'm on track to save big this year! 📈 via TrackMyRupee"
 msgstr ""
 
-#: expenses/views/dashboard.py:1204 expenses/views_old.py:1012
+#: expenses/views/dashboard.py:1293 expenses/views_old.py:1012
 msgid "In the Green"
 msgstr "बचत में"
 
-#: expenses/views/dashboard.py:1205 expenses/views_old.py:1013
+#: expenses/views/dashboard.py:1294 expenses/views_old.py:1013
 #, python-format
 msgid "You've saved %(savings)s so far. Keep it up!"
 msgstr "आपने अब तक %(savings)s बचाए हैं। इसे जारी रखें!"
 
-#: expenses/views/dashboard.py:1212 expenses/views_old.py:1020
+#: expenses/views/dashboard.py:1301 expenses/views_old.py:1020
 msgid "Fresh Start"
 msgstr "नई शुरुआत"
 
-#: expenses/views/dashboard.py:1213 expenses/views_old.py:1021
+#: expenses/views/dashboard.py:1302 expenses/views_old.py:1021
 msgid ""
 "Small steps today lead to big results tomorrow. Let's track some expenses!"
 msgstr ""
 
-#: expenses/views/dashboard.py:1247
+#: expenses/views/dashboard.py:1336
 #: templates/expenses/recurring_transaction_manage.html:67
-#: templates/home.html:530 templates/partials/daily_dashboard.html:175
+#: templates/home.html:627 templates/partials/daily_dashboard.html:175
 msgid "Today"
 msgstr "आज"
 
-#: expenses/views/dashboard.py:1249
+#: expenses/views/dashboard.py:1338
 #: templates/expenses/recurring_transaction_manage.html:67
 msgid "Tomorrow"
 msgstr "कल"
 
-#: expenses/views/dashboard.py:1251
+#: expenses/views/dashboard.py:1340
 #, python-format
 msgid "in %(days)s days"
 msgstr "%(days)s दिनों में"
 
-#: expenses/views/dashboard.py:1256
+#: expenses/views/dashboard.py:1345
 #, fuzzy
 #| msgid "Payment"
 msgid "Upcoming Payment"
 msgstr "भुगतान"
 
-#: expenses/views/dashboard.py:1257
+#: expenses/views/dashboard.py:1346
 #, python-brace-format
 msgid "Your recurring payment for <b>{}</b> is due {}. ({})"
 msgstr ""
 
-#: expenses/views/dashboard.py:1267
+#: expenses/views/dashboard.py:1356
 msgid "This period"
 msgstr "यह अवधि"
 
-#: expenses/views/dashboard.py:1282
+#: expenses/views/dashboard.py:1371
 #, python-brace-format
 msgid ""
 "In {month}, you earned {income}. You spent {lifestyle} on lifestyle, and "
 "invested {invest} toward future wealth."
 msgstr ""
 
-#: expenses/views/dashboard.py:1291
+#: expenses/views/dashboard.py:1380
 #, python-brace-format
 msgid ""
 " That means {future_total} ({future_pct}%) went toward your future, while "
 "{lifestyle} ({life_pct}%) funded your lifestyle."
 msgstr ""
 
-#: expenses/views/dashboard.py:1301
+#: expenses/views/dashboard.py:1390
 #, python-brace-format
 msgid ""
 " At this pace (using your year-to-date average), you could save {proj} by "
 "year's end."
 msgstr ""
 
-#: expenses/views/dashboard.py:1337
+#: expenses/views/dashboard.py:1426
 #, python-brace-format
 msgid ""
 "You spent <b>{pct}%</b> on <b>{cat}</b> this month. Cut 20% to save <span "
 "class='text-success fw-bold'>{sym}{savings}</span>."
 msgstr ""
 
-#: expenses/views/dashboard.py:1356
+#: expenses/views/dashboard.py:1445
 #, python-brace-format
 msgid ""
 "<a href='{url}' class='text-decoration-none text-reset hover-link'>{cat}</a> "
 "is your top expense this month."
 msgstr ""
 
-#: expenses/views/dashboard.py:1371
+#: expenses/views/dashboard.py:1460
 #, python-brace-format
 msgid ""
 "<a href='{url}' class='text-decoration-none text-reset hover-link'>{cat}</a> "
 "category exceeded budget by <span class='text-danger fw-bold'>{val}</span>"
 msgstr ""
 
-#: expenses/views/dashboard.py:1422
+#: expenses/views/dashboard.py:1511
 #, python-brace-format
 msgid ""
 "Heads up! Spending is up in <b>{count} categories</b> including {cats}. <br> "
@@ -2877,7 +2894,7 @@ msgid ""
 "intentional.</span>"
 msgstr ""
 
-#: expenses/views/dashboard.py:1433
+#: expenses/views/dashboard.py:1522
 #, python-brace-format
 msgid ""
 "Heads up! <a href='{url}' class='text-decoration-none text-reset hover-link "
@@ -2886,7 +2903,7 @@ msgid ""
 "was intentional.</span>"
 msgstr ""
 
-#: expenses/views/dashboard.py:1452
+#: expenses/views/dashboard.py:1541
 #, python-brace-format
 msgid ""
 "Look at you! You've reduced spending in <b>{count} categories</b> including "
@@ -2894,7 +2911,7 @@ msgid ""
 "pocket where it belongs.</span>"
 msgstr ""
 
-#: expenses/views/dashboard.py:1463
+#: expenses/views/dashboard.py:1552
 #, python-brace-format
 msgid ""
 "Look at you! <a href='{url}' class='text-decoration-none text-reset hover-"
@@ -2903,7 +2920,7 @@ msgid ""
 "staying in your pocket where it belongs.</span>"
 msgstr ""
 
-#: expenses/views/dashboard.py:1485
+#: expenses/views/dashboard.py:1574
 #, python-brace-format
 msgid ""
 "You crossed <span class='fw-bold'>{}</span> in net worth! <br> <span "
@@ -2911,7 +2928,7 @@ msgid ""
 "Most people never get here. You did.</span>"
 msgstr ""
 
-#: expenses/views/dashboard.py:1495
+#: expenses/views/dashboard.py:1584
 #, python-brace-format
 msgid ""
 "High five! You're saving more than usual this month. <br> <span class='small "
@@ -2919,266 +2936,266 @@ msgid ""
 "text-success'>{}</span> this year!</span>"
 msgstr ""
 
-#: expenses/views/dashboard.py:1510
+#: expenses/views/dashboard.py:1599
 msgid "You're maintaining a steady financial pace."
 msgstr ""
 
-#: expenses/views/dashboard.py:1516
+#: expenses/views/dashboard.py:1605
 msgid "Consistent tracking leads to better wealth."
 msgstr ""
 
-#: expenses/views/dashboard.py:1527 templates/components/navbar.html:82
+#: expenses/views/dashboard.py:1616 templates/components/navbar.html:82
 #: templates/components/navbar.html:292 templates/components/sidebar.html:35
 #: templates/components/sidebar.html:37
 #: templates/expenses/expense_list.html:374
 #: templates/expenses/expense_list.html:425
 #: templates/expenses/export_data.html:23
-#: templates/expenses/export_data.html:131 templates/home.html:2041
+#: templates/expenses/export_data.html:131 templates/home.html:2272
 #: templates/mom_analysis.html:371
 msgid "Expenses"
 msgstr "खर्च"
 
-#: expenses/views/dashboard.py:1528 expenses/views/dashboard.py:2410
-#: templates/expenses/calendar.html:61 templates/home.html:2732
-#: templates/home.html:2806 templates/mom_analysis.html:388
+#: expenses/views/dashboard.py:1617 expenses/views/dashboard.py:2499
+#: templates/expenses/calendar.html:61 templates/home.html:3016
+#: templates/home.html:3090 templates/mom_analysis.html:388
 #: templates/partials/guide_accounts.html:73
 #: templates/partials/savings_modal.html:41
 msgid "Investments"
 msgstr "निवेश"
 
-#: expenses/views/dashboard.py:1529 templates/expenses/export_data.html:159
-#: templates/home.html:2049 templates/partials/savings_modal.html:31
+#: expenses/views/dashboard.py:1618 templates/expenses/export_data.html:159
+#: templates/home.html:2280 templates/partials/savings_modal.html:31
 #: templates/partials/savings_modal.html:245
 msgid "Transfers"
 msgstr "स्थानांतरण"
 
-#: expenses/views/dashboard.py:1530 templates/expenses/export_data.html:47
+#: expenses/views/dashboard.py:1619 templates/expenses/export_data.html:47
 #: templates/expenses/export_data.html:173
 #, fuzzy
 #| msgid "Payment"
 msgid "Loan Repayments"
 msgstr "भुगतान"
 
-#: expenses/views/dashboard.py:1557 expenses/views/dashboard.py:2752
-#: expenses/views_old.py:3323 templates/home.html:1060
+#: expenses/views/dashboard.py:1646 expenses/views/dashboard.py:2841
+#: expenses/views_old.py:3323 templates/home.html:1157
 #: templates/partials/daily_dashboard.html:200
 msgid "Recurring"
 msgstr "आवर्ती"
 
-#: expenses/views/dashboard.py:1762 expenses/views/dashboard.py:2008
+#: expenses/views/dashboard.py:1851 expenses/views/dashboard.py:2097
 #, python-format
 msgid "Contribution: %(goal)s"
 msgstr "योगदान: %(goal)s"
 
-#: expenses/views/dashboard.py:2009 expenses/views/dashboard.py:2406
+#: expenses/views/dashboard.py:2098 expenses/views/dashboard.py:2495
 #: expenses/views_old.py:2957 templates/expenses/account_detail.html:139
 #: templates/expenses/goal_detail.html:231 templates/mom_analysis.html:415
 msgid "Savings"
 msgstr "बचत"
 
-#: expenses/views/dashboard.py:2056
+#: expenses/views/dashboard.py:2145
 msgid "Smart Tip: Multiple Accounts"
 msgstr "स्मार्ट टिप: एकाधिक खाते"
 
-#: expenses/views/dashboard.py:2057
+#: expenses/views/dashboard.py:2146
 msgid ""
 "Add separate accounts (like cash, bank, or UPI) to track your money more "
 "accurately across all sources."
 msgstr ""
 
-#: expenses/views/dashboard.py:2070
+#: expenses/views/dashboard.py:2159
 msgid "Organize Your Spend"
 msgstr "अपना खर्च व्यवस्थित करें"
 
-#: expenses/views/dashboard.py:2071
+#: expenses/views/dashboard.py:2160
 msgid ""
 "Categorizing helps you see exactly where your money goes. Try creating "
 "specific categories for better insights!"
 msgstr ""
 
-#: expenses/views/dashboard.py:2118
+#: expenses/views/dashboard.py:2207
 msgid "Automate Repeat Bills?"
 msgstr "क्या बार-बार आने वाले बिलों को स्वचालित करें?"
 
-#: expenses/views/dashboard.py:2120
+#: expenses/views/dashboard.py:2209
 #, python-brace-format
 msgid ""
 "Looks like {desc} repeats monthly. Want to transition it to a recurring "
 "transaction?"
 msgstr ""
 
-#: expenses/views/dashboard.py:2134
+#: expenses/views/dashboard.py:2223
 #, python-format
 msgid "Reduce %(category)s spending to recover"
 msgstr "वसूली के लिए %(category)s खर्च कम करें"
 
-#: expenses/views/dashboard.py:2142
+#: expenses/views/dashboard.py:2231
 msgid "3 days of overspending in a row"
 msgstr "लगातार 3 दिन अधिक खर्च"
 
-#: expenses/views/dashboard.py:2143
+#: expenses/views/dashboard.py:2232
 msgid "This usually leads to a budget miss. Rein it in!"
 msgstr "इससे आमतौर पर बजट चूक जाता है। इस पर नियंत्रण रखें!"
 
-#: expenses/views/dashboard.py:2147
+#: expenses/views/dashboard.py:2236
 #, fuzzy
 #| msgid "Top Categories"
 msgid "various categories"
 msgstr "शीर्ष श्रेणियाँ"
 
-#: expenses/views/dashboard.py:2152
+#: expenses/views/dashboard.py:2241
 #, python-format
 msgid "You overspent %(amount)s today"
 msgstr "आपने आज %(amount)s अधिक खर्च किया"
 
-#: expenses/views/dashboard.py:2153
+#: expenses/views/dashboard.py:2242
 #, python-brace-format
 msgid ""
 "This is <strong>{}</strong> your usual daily spend<br>Mostly from <span "
 "class='fw-bold'>{}</span>"
 msgstr ""
 
-#: expenses/views/dashboard.py:2158
+#: expenses/views/dashboard.py:2247
 #, python-format
 msgid "You spent %(pct)s%% on %(category)s today"
 msgstr "आपने आज %(category)s पर %(pct)s%% खर्च किया"
 
-#: expenses/views/dashboard.py:2162
+#: expenses/views/dashboard.py:2251
 #, fuzzy, python-format
 #| msgid "Set limits for your categories to track spending."
 msgid "Try to limit %(category)s spending"
 msgstr "खर्च पर नज़र रखने के लिए अपनी श्रेणियों के लिए सीमाएँ निर्धारित करें।"
 
-#: expenses/views/dashboard.py:2167
+#: expenses/views/dashboard.py:2256
 msgid "You're within budget today"
 msgstr "आप आज बजट के भीतर हैं"
 
-#: expenses/views/dashboard.py:2168
+#: expenses/views/dashboard.py:2257
 msgid "Great financial discipline! Keep it up"
 msgstr "शानदार वित्तीय अनुशासन! इसे बनाए रखें"
 
-#: expenses/views/dashboard.py:2394 expenses/views_old.py:2960
+#: expenses/views/dashboard.py:2483 expenses/views_old.py:2960
 msgid "Deficit (Overspending)"
 msgstr "घाटा (अधिक खर्च)"
 
-#: expenses/views/dashboard.py:2414 expenses/views/dashboard.py:2421
-#: expenses/views/dashboard.py:2426
+#: expenses/views/dashboard.py:2503 expenses/views/dashboard.py:2510
+#: expenses/views/dashboard.py:2515
 #, fuzzy
 #| msgid "Add Expense"
 msgid "Living Expenses"
 msgstr "खर्च जोड़ें"
 
-#: expenses/views/dashboard.py:2426 expenses/views_old.py:2953
+#: expenses/views/dashboard.py:2515 expenses/views_old.py:2953
 #: templates/expenses/analytics.html:748
 #, fuzzy
 #| msgid "Add Expense"
 msgid "Other Expenses"
 msgstr "खर्च जोड़ें"
 
-#: expenses/views/dashboard.py:2463 expenses/views_old.py:3028
+#: expenses/views/dashboard.py:2552 expenses/views_old.py:3028
 msgid "At Risk"
 msgstr "जोखिम में"
 
-#: expenses/views/dashboard.py:2466 expenses/views_old.py:3031
+#: expenses/views/dashboard.py:2555 expenses/views_old.py:3031
 #, python-format
 msgid ""
 "You spent %(currency)s%(expense)s against %(currency)s%(income)s income "
 "(%(pct)s%% overspend)."
 msgstr ""
 
-#: expenses/views/dashboard.py:2473 expenses/views_old.py:3038
+#: expenses/views/dashboard.py:2562 expenses/views_old.py:3038
 #, python-format
 msgid "Review '%(cat)s' which accounts for %(cat_pct)s%% of your spending."
 msgstr "'%(cat)s' की समीक्षा करें जो आपके खर्च का %(cat_pct)s%% है।"
 
-#: expenses/views/dashboard.py:2480 expenses/views_old.py:3045
+#: expenses/views/dashboard.py:2569 expenses/views_old.py:3045
 #, fuzzy
 #| msgid "Description"
 msgid "Caution"
 msgstr "विवरण"
 
-#: expenses/views/dashboard.py:2482 expenses/views/dashboard.py:2501
+#: expenses/views/dashboard.py:2571 expenses/views/dashboard.py:2590
 #: expenses/views_old.py:3047 expenses/views_old.py:3066
 #, python-format
 msgid ""
 "You saved %(currency)s%(savings)s out of %(currency)s%(income)s (%(rate)s%%)."
 msgstr ""
 
-#: expenses/views/dashboard.py:2490 expenses/views_old.py:3055
+#: expenses/views/dashboard.py:2579 expenses/views_old.py:3055
 #, python-format
 msgid "Cutting '%(cat)s' by 20%% could save %(currency)s%(amount)s more."
 msgstr ""
 
-#: expenses/views/dashboard.py:2498 expenses/views_old.py:3063
+#: expenses/views/dashboard.py:2587 expenses/views_old.py:3063
 msgid "Stable"
 msgstr "स्थिर"
 
-#: expenses/views/dashboard.py:2508 expenses/views_old.py:3073
+#: expenses/views/dashboard.py:2597 expenses/views_old.py:3073
 #, python-format
 msgid "Just %(currency)s%(gap)s more to hit the 30%% savings benchmark."
 msgstr ""
 
-#: expenses/views/dashboard.py:2515 expenses/views_old.py:3080
+#: expenses/views/dashboard.py:2604 expenses/views_old.py:3080
 msgid "Wealth Builder"
 msgstr "संपत्ति निर्माता"
 
-#: expenses/views/dashboard.py:2518 expenses/views_old.py:3083
+#: expenses/views/dashboard.py:2607 expenses/views_old.py:3083
 #, python-format
 msgid ""
 "You saved %(currency)s%(savings)s out of %(currency)s%(income)s "
 "(%(rate)s%%). That's top-tier financial discipline."
 msgstr ""
 
-#: expenses/views/dashboard.py:2533 expenses/views_old.py:3098
+#: expenses/views/dashboard.py:2622 expenses/views_old.py:3098
 #, python-format
 msgid ""
 "'%(cat)s' is consuming %(pct)s%% of your income (%(currency)s%(amount)s). "
 "Consider setting a budget limit."
 msgstr ""
 
-#: expenses/views/dashboard.py:2554 expenses/views_old.py:3119
+#: expenses/views/dashboard.py:2643 expenses/views_old.py:3119
 #, python-format
 msgid ""
 "Spending is trending %(pct)s%% above your 3-month average. %(month)s may "
 "reach %(currency)s%(projected)s at this pace."
 msgstr ""
 
-#: expenses/views/dashboard.py:2575 expenses/views_old.py:3140
+#: expenses/views/dashboard.py:2664 expenses/views_old.py:3140
 #: templates/expenses/analytics.html:218 templates/mom_analysis.html:71
 #: templates/mom_analysis.html:205
 msgid "Savings Rate"
 msgstr "बचत दर"
 
-#: expenses/views/dashboard.py:2599 expenses/views_old.py:3164
+#: expenses/views/dashboard.py:2688 expenses/views_old.py:3164
 #, fuzzy
 #| msgid "Expense"
 msgid "Expense Growth"
 msgstr "खर्च"
 
-#: expenses/views/dashboard.py:2617 expenses/views_old.py:3191
+#: expenses/views/dashboard.py:2706 expenses/views_old.py:3191
 msgid "Consistency"
 msgstr "निरंतरता"
 
-#: expenses/views/dashboard.py:2636 expenses/views_old.py:3210
+#: expenses/views/dashboard.py:2725 expenses/views_old.py:3210
 msgid "Risk Buffer"
 msgstr "जोखिम बफर"
 
-#: expenses/views/dashboard.py:2637 expenses/views_old.py:3211
+#: expenses/views/dashboard.py:2726 expenses/views_old.py:3211
 #, python-format
 msgid "%(months)s months"
 msgstr "%(months)s महीने"
 
-#: expenses/views/dashboard.py:2649 expenses/views_old.py:3223
+#: expenses/views/dashboard.py:2738 expenses/views_old.py:3223
 #, python-format
 msgid "Your %(label)s is excellent."
 msgstr "आपका %(label)s उत्कृष्ट है।"
 
-#: expenses/views/dashboard.py:2651 expenses/views_old.py:3225
+#: expenses/views/dashboard.py:2740 expenses/views_old.py:3225
 #, python-format
 msgid "However, %(label)s needs attention (%(value)s)."
 msgstr "हालाँकि, %(label)s पर ध्यान देने की आवश्यकता है (%(value)s)।"
 
-#: expenses/views/dashboard.py:2752 expenses/views_old.py:3323
+#: expenses/views/dashboard.py:2841 expenses/views_old.py:3323
 msgid "One-time"
 msgstr "एक बार"
 
@@ -3532,56 +3549,82 @@ msgstr ""
 msgid "Selected account is invalid. Please choose one of your active accounts."
 msgstr ""
 
-#: expenses/views/misc.py:401
+#: expenses/views/misc.py:389
+msgid "Failed to parse XLS as HTML table: "
+msgstr ""
+
+#: expenses/views/misc.py:398
+msgid "Failed to parse XLS as CSV: "
+msgstr ""
+
+#: expenses/views/misc.py:402
+msgid ""
+"This file appears to be in the older Excel (.xls) format, which is not "
+"supported directly. Please open it in Microsoft Excel, Google Sheets, or "
+"LibreOffice and save it as a newer .xlsx format, then try uploading again."
+msgstr ""
+
+#: expenses/views/misc.py:460
 msgid ""
 "Could not detect required columns (Date, Amount, Description). Please check "
 "your file."
 msgstr ""
 
-#: expenses/views/misc.py:412
+#: expenses/views/misc.py:471
 msgid "Missing required columns in row"
 msgstr ""
 
-#: expenses/views/misc.py:416
+#: expenses/views/misc.py:480
 msgid "Invalid date format: "
 msgstr ""
 
-#: expenses/views/misc.py:420
-msgid "Missing amount"
-msgstr ""
-
-#: expenses/views/misc.py:426
+#: expenses/views/misc.py:486
 msgid "Invalid amount format: "
 msgstr ""
 
-#: expenses/views/misc.py:431
+#: expenses/views/misc.py:491
 #, fuzzy
 #| msgid "Description"
 msgid "Missing description"
 msgstr "विवरण"
 
-#: expenses/views/misc.py:470
+#: expenses/views/misc.py:530
 msgid "Processing complete! See summary below."
 msgstr ""
 
-#: expenses/views/misc.py:472
+#: expenses/views/misc.py:532
 msgid "Processing complete. No new expenses were added."
 msgstr ""
 
-#: expenses/views/misc.py:496
+#: expenses/views/misc.py:556
 msgid "AI Insights is a paid feature."
 msgstr ""
 
-#: expenses/views/misc.py:524
+#: expenses/views/misc.py:584
 msgid "Your message has been sent!"
 msgstr ""
 
-#: expenses/views/misc.py:532
+#: expenses/views/misc.py:592
 msgid "Submission limit reached."
 msgstr ""
 
-#: expenses/views/misc.py:536
+#: expenses/views/misc.py:596
 msgid "Your message has been sent! We'll get back to you shortly."
+msgstr ""
+
+#: expenses/views/misc.py:680
+#, fuzzy
+#| msgid "Support TrackMyRupee"
+msgid "Thank you for your consent. You can now use TrackMyRupee."
+msgstr "TrackMyRupee का समर्थन करें"
+
+#: expenses/views/misc.py:683
+msgid "You must agree to all data collection terms to use TrackMyRupee."
+msgstr ""
+
+#: expenses/views/misc.py:686 templates/expenses/dpdp_consent.html:4
+#: templates/expenses/dpdp_consent.html:11
+msgid "Data Consent Required"
 msgstr ""
 
 #: expenses/views/recurring.py:226
@@ -3614,38 +3657,50 @@ msgstr "आवर्ती लेनदेन सफलतापूर्वक 
 msgid "You just saved %(currency)s%(amount)s/year 🎉"
 msgstr ""
 
-#: expenses/views/settings.py:32
+#: expenses/views/settings.py:37 templates/email/account_deleted_email.html:4
+#, fuzzy
+#| msgid "Support TrackMyRupee"
+msgid "Account Deleted - TrackMyRupee"
+msgstr "TrackMyRupee का समर्थन करें"
+
+#: expenses/views/settings.py:88
 #, fuzzy
 #| msgid "Recurring transaction updated successfully."
 msgid "Your account has been deleted successfully."
 msgstr "आवर्ती लेनदेन सफलतापूर्वक अपडेट किया गया।"
 
-#: expenses/views/settings.py:64
+#: expenses/views/settings.py:104
+msgid ""
+"Your consent has been withdrawn and your account and data have been "
+"permanently deleted as per DPDPA requirements."
+msgstr ""
+
+#: expenses/views/settings.py:137
 #, python-format
 msgid ""
 "Currency preference updated. %(count)d transactions were skipped due to "
 "potential duplication."
 msgstr ""
 
-#: expenses/views/settings.py:66 expenses/views/settings.py:68
+#: expenses/views/settings.py:139 expenses/views/settings.py:141
 #, fuzzy
 #| msgid "Recurring transaction updated successfully."
 msgid "Currency preference updated successfully."
 msgstr "आवर्ती लेनदेन सफलतापूर्वक अपडेट किया गया।"
 
-#: expenses/views/settings.py:85
+#: expenses/views/settings.py:158
 #, fuzzy
 #| msgid "Recurring transaction updated successfully."
 msgid "Language preference updated successfully."
 msgstr "आवर्ती लेनदेन सफलतापूर्वक अपडेट किया गया।"
 
-#: expenses/views/settings.py:102 templates/expenses/profile_settings.html:8
+#: expenses/views/settings.py:175 templates/expenses/profile_settings.html:8
 #, fuzzy
 #| msgid "Profile Preferences"
 msgid "Profile Settings"
 msgstr "प्रोफ़ाइल प्राथमिकताएं"
 
-#: expenses/views/settings.py:128
+#: expenses/views/settings.py:201
 #, fuzzy
 #| msgid "Recurring transaction updated successfully."
 msgid "Profile updated successfully."
@@ -3672,7 +3727,7 @@ msgstr ""
 
 #: expenses/views_old.py:868
 msgid "Traffic Alert 🚦"
-msgstr "यातायात चेतावनी 🚦"
+msgstr "ट्रैफिक अलर्ट 🚦"
 
 #: expenses/views_old.py:886
 #, python-brace-format
@@ -3802,6 +3857,7 @@ msgid "per year"
 msgstr ""
 
 #: finance_tracker/plans.py:50 templates/contact.html:37
+#: templates/expenses/settings_home.html:500
 msgid "Email"
 msgstr ""
 
@@ -3821,15 +3877,15 @@ msgstr "मुफ्त योजना में सब कुछ"
 msgid "Priority email"
 msgstr "प्राथमिकता सहायता"
 
-#: finance_tracker/settings.py:207
+#: finance_tracker/settings.py:208
 msgid "English"
 msgstr ""
 
-#: finance_tracker/settings.py:208
+#: finance_tracker/settings.py:209
 msgid "Hindi"
 msgstr ""
 
-#: finance_tracker/settings.py:209
+#: finance_tracker/settings.py:210
 msgid "Marathi"
 msgstr ""
 
@@ -4130,7 +4186,7 @@ msgid "Sign up today."
 msgstr ""
 
 #: templates/account/login.html:56 templates/account/login.html:113
-#: templates/account/signup.html:55 templates/account/signup.html:104
+#: templates/account/signup.html:58 templates/account/signup.html:236
 #, fuzzy
 #| msgid "Show more"
 msgid "Show"
@@ -4159,7 +4215,7 @@ msgstr ""
 msgid "Continue with Google"
 msgstr ""
 
-#: templates/account/login.html:109 templates/account/signup.html:100
+#: templates/account/login.html:109 templates/account/signup.html:232
 msgid "Hide"
 msgstr ""
 
@@ -4278,12 +4334,88 @@ msgstr ""
 msgid "Log In."
 msgstr ""
 
-#: templates/account/signup.html:77 templates/socialaccount/signup.html:9
-msgid "Sign Up"
+#: templates/account/signup.html:77 templates/socialaccount/login.html:19
+msgid "Continue"
 msgstr ""
 
 #: templates/account/signup.html:87
 msgid "Join with Google"
+msgstr ""
+
+#: templates/account/signup.html:94
+#, fuzzy
+#| msgid "Data Retention"
+msgid "Data Consent Settings"
+msgstr "डेटा प्रतिधारण (Data Retention)"
+
+#: templates/account/signup.html:96
+msgid ""
+"To comply with the DPDP Act of India, please review the categories of "
+"personal data we collect. Toggling each is required to complete your "
+"registration."
+msgstr ""
+
+#: templates/account/signup.html:102 templates/expenses/dpdp_consent.html:22
+msgid ""
+"You're in control — you can withdraw consent at any time from Settings, and "
+"all your data will be permanently deleted."
+msgstr ""
+
+#: templates/account/signup.html:106 templates/expenses/dpdp_consent.html:26
+#, fuzzy
+#| msgid "Enable Push"
+msgid "Enable all"
+msgstr "पुश सक्षम करें"
+
+#: templates/account/signup.html:113 templates/expenses/dpdp_consent.html:33
+#, fuzzy
+#| msgid "Email Address"
+msgid "1. Email Address"
+msgstr "ईमेल पता"
+
+#: templates/account/signup.html:114
+msgid ""
+"Used to identify your account, send secure login keys, and email "
+"notifications."
+msgstr ""
+
+#: templates/account/signup.html:118 templates/expenses/dpdp_consent.html:38
+msgid "Required"
+msgstr ""
+
+#: templates/account/signup.html:129 templates/expenses/dpdp_consent.html:49
+#, fuzzy
+#| msgid "Recent Transactions"
+msgid "2. Financial Transactions"
+msgstr "हाल के लेनदेन"
+
+#: templates/account/signup.html:130
+msgid ""
+"Required to process, format, and display your income, expenses, budgets, and "
+"savings goals. All the data is manually entered by you; TrackMyRupee never "
+"asks for any credentials."
+msgstr ""
+
+#: templates/account/signup.html:142 templates/expenses/dpdp_consent.html:62
+msgid "3. Device & Browser Info"
+msgstr ""
+
+#: templates/account/signup.html:143 templates/expenses/dpdp_consent.html:63
+msgid ""
+"Collected to verify authentic sessions, maintain secure tokens, and prevent "
+"automated bot access."
+msgstr ""
+
+#: templates/account/signup.html:152 templates/expenses/dpdp_consent.html:72
+msgid "I understand and consent"
+msgstr ""
+
+#: templates/account/signup.html:156
+msgid "Back to credentials"
+msgstr ""
+
+#: templates/account/signup.html:160 templates/expenses/dpdp_consent.html:80
+msgid "Consent policy v1.0 · Effective June 2026"
 msgstr ""
 
 #: templates/account/verification_sent.html:6
@@ -4314,15 +4446,11 @@ msgstr "हटाए गए खाते"
 msgid "Exit"
 msgstr ""
 
-#: templates/base.html:780
+#: templates/base.html:780 templates/components/public_footer.html:12
 msgid ""
-"Turn financial chaos into clarity. TrackMyRupee gives you a precision "
-"dashboard to visualize your spending, spot trends, and master your monthly "
-"budget."
-msgstr ""
-"वित्तीय अराजकता को स्पष्टता में बदलें। TrackMyRupee आपको अपने खर्च की कल्पना करने, "
-"रुझानों को पहचानने और अपने मासिक बजट में महारत हासिल करने के लिए एक सटीक डैशबोर्ड देता "
-"है।"
+"A privacy-first personal finance system for Indian salaried professionals. "
+"Built by a founder in Pune, India."
+msgstr "भारतीय वेतनभोगी पेशेवरों के लिए एक गोपनीयता-प्रथम व्यक्तिगत वित्त प्रणाली। पुणे, भारत में एक संस्थापक द्वारा निर्मित।"
 
 #: templates/base.html:784 templates/components/public_footer.html:37
 msgid "Support Us"
@@ -4386,6 +4514,7 @@ msgstr "कानूनी"
 
 #: templates/base.html:824 templates/components/cookie_consent.html:8
 #: templates/components/navbar.html:500 templates/privacy_policy.html:14
+#: templates/terms_of_service.html:76
 msgid "Privacy Policy"
 msgstr "गोपनीयता नीति"
 
@@ -4594,9 +4723,7 @@ msgstr ""
 
 #: templates/components/cookie_consent.html:6
 msgid "We use cookies to improve your experience and analyze site traffic."
-msgstr ""
-"हम आपके अनुभव को बेहतर बनाने और साइट ट्रैफ़िक का विश्लेषण करने के लिए कुकीज़ का उपयोग करते "
-"हैं।"
+msgstr "हम आपके अनुभव को बेहतर बनाने और साइट ट्रैफ़िक का विश्लेषण करने के लिए कुकीज़ का उपयोग करते हैं।"
 
 #: templates/components/cookie_consent.html:7
 msgid "By clicking \\"
@@ -4679,7 +4806,7 @@ msgid "No new notifications"
 msgstr "कोई नई सूचना नहीं"
 
 #: templates/components/navbar.html:61 templates/components/navbar.html:190
-#: templates/home.html:1941
+#: templates/home.html:2172
 msgid "View All"
 msgstr "सभी देखें"
 
@@ -4688,7 +4815,7 @@ msgstr "सभी देखें"
 #: templates/expenses/account_detail.html:10
 #: templates/expenses/goal_detail.html:10 templates/expenses/pricing.html:129
 #: templates/expenses/pricing.html:218 templates/expenses/pricing.html:306
-#: templates/home.html:438 templates/home.html:480 templates/home.html:1319
+#: templates/home.html:535 templates/home.html:577 templates/home.html:1465
 #: templates/landing.html:1403 templates/landing.html:1484
 #: templates/landing.html:1569
 msgid "Dashboard"
@@ -4703,14 +4830,14 @@ msgstr "सदस्यताएँ"
 
 #: templates/components/navbar.html:92 templates/components/navbar.html:431
 #: templates/components/sidebar.html:64 templates/components/sidebar.html:66
-#: templates/home.html:1054 templates/partials/savings_modal.html:46
+#: templates/home.html:1151 templates/partials/savings_modal.html:46
 #: templates/partials/savings_modal.html:591
 msgid "Budgets"
 msgstr "बजट"
 
 #: templates/components/navbar.html:97 templates/components/navbar.html:436
 #: templates/components/sidebar.html:70 templates/components/sidebar.html:72
-#: templates/expenses/goal_detail.html:11 templates/home.html:1048
+#: templates/expenses/goal_detail.html:11 templates/home.html:1145
 msgid "Goals"
 msgstr "लक्ष्य"
 
@@ -4725,17 +4852,17 @@ msgstr "कैलेंडर"
 msgid "Analytics"
 msgstr "विश्लेषण"
 
-#: templates/components/navbar.html:116 templates/home.html:221
+#: templates/components/navbar.html:116 templates/home.html:318
 #: templates/mom_analysis.html:10
 msgid "Daily Mode"
 msgstr "दैनिक मोड"
 
-#: templates/components/navbar.html:119 templates/home.html:224
+#: templates/components/navbar.html:119 templates/home.html:321
 #: templates/mom_analysis.html:13
 msgid "Full Report"
 msgstr "पूर्ण रिपोर्ट"
 
-#: templates/components/navbar.html:122 templates/home.html:227
+#: templates/components/navbar.html:122 templates/home.html:324
 #: templates/mom_analysis.html:16
 msgid "Trends"
 msgstr "रुझान"
@@ -4758,10 +4885,10 @@ msgstr "जोड़ें"
 #: templates/expenses/all_transactions.html:172
 #: templates/expenses/all_transactions.html:450
 #: templates/expenses/expense_list.html:455
-#: templates/expenses/expense_list.html:1147 templates/home.html:769
-#: templates/home.html:1575 templates/home.html:1763 templates/home.html:1818
-#: templates/home.html:1889 templates/home.html:1923 templates/home.html:2003
-#: templates/home.html:2149 templates/home.html:2192
+#: templates/expenses/expense_list.html:1147 templates/home.html:866
+#: templates/home.html:1806 templates/home.html:1994 templates/home.html:2049
+#: templates/home.html:2120 templates/home.html:2154 templates/home.html:2234
+#: templates/home.html:2380 templates/home.html:2423
 #: templates/partials/daily_dashboard.html:234
 msgid "Add Expense"
 msgstr "खर्च जोड़ें"
@@ -4771,7 +4898,7 @@ msgid "Add Subscription"
 msgstr "सब्सक्रिप्शन जोड़ें"
 
 #: templates/components/navbar.html:138 templates/components/navbar.html:342
-#: templates/expenses/transfer_form.html:11 templates/home.html:1329
+#: templates/expenses/transfer_form.html:11 templates/home.html:1475
 #, fuzzy
 #| msgid "Business Transfers"
 msgid "Internal Transfer"
@@ -4801,6 +4928,7 @@ msgstr "थीम"
 
 #: templates/components/navbar.html:219 templates/components/navbar.html:466
 #: templates/components/sidebar.html:205
+#: templates/expenses/dpdp_consent.html:76
 msgid "Logout"
 msgstr ""
 
@@ -4832,7 +4960,7 @@ msgstr "हाल के लेनदेन"
 #: templates/expenses/pricing.html:192 templates/expenses/pricing.html:280
 #: templates/expenses/settings_base.html:33
 #: templates/expenses/settings_home.html:120
-#: templates/expenses/settings_home.html:255 templates/landing.html:1377
+#: templates/expenses/settings_home.html:288 templates/landing.html:1377
 #: templates/landing.html:1458 templates/landing.html:1543
 #: templates/partials/savings_modal.html:26
 msgid "Accounts"
@@ -4868,15 +4996,10 @@ msgstr "परिवर्तन सहेजें"
 msgid "Contact Us"
 msgstr "4. हमसे संपर्क करें"
 
-#: templates/components/public_footer.html:12
-msgid ""
-"A privacy-first personal finance system for Indian salaried professionals. "
-"Built by a founder in Pune, India."
-msgstr ""
-
 #: templates/components/public_footer.html:20
-#: templates/components/public_footer.html:24 templates/home.html:1351
-#: templates/mom_analysis.html:56 templates/mom_analysis.html:327
+#: templates/components/public_footer.html:24 templates/home.html:1497
+#: templates/home.html:2815 templates/mom_analysis.html:56
+#: templates/mom_analysis.html:327
 msgid "Net Worth"
 msgstr "कुल संपत्ति"
 
@@ -4925,7 +5048,7 @@ msgid "Close menu"
 msgstr ""
 
 #: templates/components/sidebar.html:60
-#: templates/expenses/payment_history.html:76 templates/home.html:1042
+#: templates/expenses/payment_history.html:76 templates/home.html:1139
 msgid "Transactions"
 msgstr "लेन-देन"
 
@@ -4943,7 +5066,7 @@ msgstr "जल्द देय"
 
 #: templates/components/sidebar.html:114
 #: templates/expenses/account_list.html:248
-#: templates/expenses/transfer_form.html:14 templates/home.html:1674
+#: templates/expenses/transfer_form.html:14 templates/home.html:1905
 #, fuzzy
 #| msgid "Active Accounts"
 msgid "Add Account"
@@ -5014,7 +5137,7 @@ msgstr ""
 #: templates/components/upgrade_nudge.html:47
 #: templates/expenses/goal_list.html:121
 #: templates/expenses/settings_home.html:24
-#: templates/expenses/settings_home.html:213 templates/mom_analysis.html:41
+#: templates/expenses/settings_home.html:246 templates/mom_analysis.html:41
 msgid "Upgrade"
 msgstr "अपग्रेड"
 
@@ -5078,10 +5201,54 @@ msgstr ""
 msgid "Follow @TrackMyRupee"
 msgstr "TrackMyRupee का समर्थन करें"
 
-#: templates/contact.html:106 templates/privacy_policy.html:292
-#: templates/refund_policy.html:110 templates/terms_of_service.html:241
+#: templates/contact.html:106 templates/privacy_policy.html:311
+#: templates/refund_policy.html:110 templates/terms_of_service.html:247
 msgid "Back to Home"
 msgstr ""
+
+#: templates/email/account_deleted_email.html:7
+#, fuzzy
+#| msgid "Account Deletion"
+msgid "Account Deleted"
+msgstr "खाता हटाना"
+
+#: templates/email/account_deleted_email.html:9
+msgid "Hi"
+msgstr ""
+
+#: templates/email/account_deleted_email.html:11
+msgid ""
+"Your account has been deleted. All personal data will be permanently removed "
+"within 7 days."
+msgstr ""
+
+#: templates/email/account_deleted_email.html:15
+#: templates/privacy_policy.html:196 templates/upload.html:25
+msgid "Note"
+msgstr "नोट"
+
+#: templates/email/account_deleted_email.html:15
+msgid ""
+"As required by Indian tax law, some transaction payment records (if any) "
+"processed through Razorpay must be retained for 5 years and cannot be "
+"deleted on request."
+msgstr ""
+
+#: templates/email/account_deleted_email.html:19
+msgid ""
+"If you did not request this account deletion, please contact our support "
+"team immediately."
+msgstr ""
+
+#: templates/email/account_deleted_email.html:21
+msgid "Best regards"
+msgstr ""
+
+#: templates/email/account_deleted_email.html:21
+#, fuzzy
+#| msgid "Support TrackMyRupee"
+msgid "The TrackMyRupee Team"
+msgstr "TrackMyRupee का समर्थन करें"
 
 #: templates/email/subscription_expiry_reminder.html:4
 msgid "Subscription Expiring Soon - TrackMyRupee"
@@ -5133,8 +5300,8 @@ msgid "Thank you for using TrackMyRupee!"
 msgstr "TrackMyRupee का समर्थन करें"
 
 #: templates/expenses/account_delete_confirm.html:9
-#: templates/expenses/settings_home.html:191
-#: templates/expenses/settings_home.html:391
+#: templates/expenses/settings_home.html:224
+#: templates/expenses/settings_home.html:473
 #, fuzzy
 #| msgid "Deleted Accounts"
 msgid "Delete Account"
@@ -5187,7 +5354,8 @@ msgstr "थोक विलोपन की पुष्टि करें"
 #: templates/expenses/settings_home.html:61
 #: templates/expenses/transfer_confirm_delete.html:43
 #: templates/expenses/transfer_form.html:72
-#: templates/expenses/transfer_form.html:137 templates/home.html:561
+#: templates/expenses/transfer_form.html:137
+#: templates/expenses/withdraw_consent_confirm.html:35 templates/home.html:658
 #: templates/socialaccount/login.html:22
 msgid "Cancel"
 msgstr "रद्द करें"
@@ -5312,7 +5480,7 @@ msgstr ""
 #: templates/expenses/goal_list.html:130
 #: templates/expenses/income_list.html:137 templates/expenses/loan_list.html:84
 #: templates/expenses/recurring_transaction_form.html:9
-#: templates/expenses/recurring_transaction_list.html:208
+#: templates/expenses/recurring_transaction_list.html:235
 #: templates/expenses/recurring_transaction_manage.html:76
 #: templates/expenses/transfer_list.html:64
 msgid "Edit"
@@ -5422,12 +5590,12 @@ msgstr "पृष्ठ"
 #: templates/expenses/expense_list.html:1171
 #: templates/expenses/goal_detail.html:304
 #: templates/expenses/income_list.html:208
-#: templates/expenses/payment_history.html:147 templates/home.html:1716
+#: templates/expenses/payment_history.html:147 templates/home.html:1947
 msgid "of"
 msgstr "का"
 
 #: templates/expenses/account_detail.html:314
-#: templates/expenses/loan_detail.html:139 templates/home.html:2811
+#: templates/expenses/loan_detail.html:139 templates/home.html:3095
 #: templates/loan_emi_calculator.html:453
 msgid "Balance"
 msgstr "शेष"
@@ -5469,8 +5637,8 @@ msgstr "सक्रिय खाते"
 #: templates/expenses/account_list.html:60
 #: templates/expenses/budget_dashboard.html:11
 #: templates/expenses/recurring_transaction_list.html:40
-#: templates/expenses/transfer_list.html:13 templates/home.html:457
-#: templates/home.html:503
+#: templates/expenses/transfer_list.html:13 templates/home.html:554
+#: templates/home.html:600
 msgid "How it works"
 msgstr "यह कैसे काम करता है"
 
@@ -5516,6 +5684,9 @@ msgid "Across the currently filtered list"
 msgstr ""
 
 #: templates/expenses/account_list.html:177
+#: templates/expenses/recurring_transaction_list.html:200
+#: templates/expenses/recurring_transaction_list.html:299
+#: templates/expenses/recurring_transaction_list.html:360
 msgid "Locked"
 msgstr ""
 
@@ -5553,15 +5724,15 @@ msgstr ""
 
 #: templates/expenses/all_transactions.html:134
 #: templates/expenses/expense_list.html:366
-#: templates/expenses/expense_list.html:417 templates/home.html:428
-#: templates/home.html:469 templates/home.html:2568
+#: templates/expenses/expense_list.html:417 templates/home.html:525
+#: templates/home.html:566 templates/home.html:2851
 msgid "Previous Month"
 msgstr "पिछला महीना"
 
 #: templates/expenses/all_transactions.html:148
 #: templates/expenses/expense_list.html:378
-#: templates/expenses/expense_list.html:429 templates/home.html:442
-#: templates/home.html:486
+#: templates/expenses/expense_list.html:429 templates/home.html:539
+#: templates/home.html:583
 msgid "Next Month"
 msgstr "अगला महीना"
 
@@ -5642,7 +5813,7 @@ msgstr "महीना"
 #: templates/expenses/expense_list.html:534
 #: templates/expenses/income_list.html:66
 #: templates/expenses/recurring_transaction_list.html:86
-#: templates/home.html:585
+#: templates/home.html:682
 msgid "Apply"
 msgstr "लागू करें"
 
@@ -5651,7 +5822,7 @@ msgstr "लागू करें"
 #: templates/expenses/expense_list.html:538
 #: templates/expenses/income_list.html:69
 #: templates/expenses/recurring_transaction_list.html:92
-#: templates/home.html:588
+#: templates/home.html:685
 msgid "Reset"
 msgstr "रीसेट"
 
@@ -5693,7 +5864,7 @@ msgstr ""
 #: templates/expenses/expense_list.html:1151
 #: templates/expenses/income_list.html:170
 msgid "Clear Filters"
-msgstr "फ़िल्टर हटाएं"
+msgstr "फ़िल्टर साफ़ करें"
 
 #: templates/expenses/all_transactions.html:462
 #: templates/expenses/expense_list.html:1166
@@ -5713,7 +5884,7 @@ msgstr "अगला"
 
 #: templates/expenses/analytics.html:12
 msgid "Analytics & Trends"
-msgstr "एनालिटिक्स और ट्रेंड्स"
+msgstr "विश्लेषण और रुझान"
 
 #: templates/expenses/analytics.html:13
 msgid "Visualizing your financial journey over the year."
@@ -5729,7 +5900,7 @@ msgstr "सभी देखें"
 msgid "Wrapped"
 msgstr ""
 
-#: templates/expenses/analytics.html:40 templates/home.html:1691
+#: templates/expenses/analytics.html:40 templates/home.html:1922
 msgid "Financial Health"
 msgstr "वित्तीय स्वास्थ्य"
 
@@ -5757,7 +5928,7 @@ msgstr ""
 msgid "View Breakdown"
 msgstr "अभी देखें"
 
-#: templates/expenses/analytics.html:163 templates/home.html:929
+#: templates/expenses/analytics.html:163 templates/home.html:1026
 msgid "Total Income"
 msgstr "कुल आय"
 
@@ -5812,7 +5983,7 @@ msgid ""
 "daily spending habits."
 msgstr ""
 
-#: templates/expenses/analytics.html:286 templates/home.html:1908
+#: templates/expenses/analytics.html:286 templates/home.html:2139
 msgid "Category Distribution"
 msgstr "श्रेणी वितरण"
 
@@ -6003,7 +6174,7 @@ msgstr ""
 msgid "You’re close to your limit"
 msgstr ""
 
-#: templates/expenses/budget_dashboard.html:147 templates/home.html:1878
+#: templates/expenses/budget_dashboard.html:147 templates/home.html:2109
 msgid "No limit set"
 msgstr "कोई सीमा निर्धारित नहीं"
 
@@ -6134,8 +6305,8 @@ msgstr ""
 #: templates/expenses/category_list.html:8
 #: templates/expenses/settings_base.html:36
 #: templates/expenses/settings_home.html:113
-#: templates/expenses/settings_home.html:288 templates/home.html:574
-#: templates/home.html:629 templates/home.html:1066
+#: templates/expenses/settings_home.html:321 templates/home.html:671
+#: templates/home.html:726 templates/home.html:1163
 #, fuzzy
 #| msgid "Top Categories"
 msgid "Categories"
@@ -6264,6 +6435,24 @@ msgstr ""
 msgid "Yes, Update Everything"
 msgstr ""
 
+#: templates/expenses/dpdp_consent.html:13
+msgid ""
+"To continue using TrackMyRupee, we require your explicit, informed consent "
+"for processing your personal details in compliance with the DPDPA (India)."
+msgstr ""
+
+#: templates/expenses/dpdp_consent.html:34
+msgid ""
+"To identify your account, send secure login keys, and email notifications."
+msgstr ""
+
+#: templates/expenses/dpdp_consent.html:50
+msgid ""
+"To process, format, and display your income, expenses, budgets, and savings "
+"goals. All the data is manually entered by you; TrackMyRupee never asks for "
+"any credentials."
+msgstr ""
+
 #: templates/expenses/expense_form.html:159
 msgid "Edit Expense"
 msgstr "खर्च संपादित करें"
@@ -6371,7 +6560,7 @@ msgid "Toggle Filters"
 msgstr "फ़िल्टर टॉगल करें"
 
 #: templates/expenses/expense_list.html:405
-#: templates/expenses/expense_list.html:436 templates/home.html:1526
+#: templates/expenses/expense_list.html:436 templates/home.html:1698
 #: templates/partials/daily_dashboard.html:279
 msgid "spent"
 msgstr "खर्च किया"
@@ -6390,14 +6579,14 @@ msgstr "निर्यात"
 #: templates/expenses/expense_list.html:482
 #: templates/expenses/goal_detail.html:224
 #: templates/expenses/transfer_confirm_delete.html:23
-#: templates/expenses/transfer_list.html:33 templates/home.html:614
+#: templates/expenses/transfer_list.html:33 templates/home.html:711
 msgid "From"
 msgstr "से"
 
 #: templates/expenses/expense_list.html:487
 #: templates/expenses/expense_list.html:489
 #: templates/expenses/transfer_confirm_delete.html:27
-#: templates/expenses/transfer_list.html:34 templates/home.html:620
+#: templates/expenses/transfer_list.html:34 templates/home.html:717
 msgid "To"
 msgstr "तक"
 
@@ -6411,7 +6600,7 @@ msgstr "महीने..."
 
 #: templates/expenses/expense_list.html:519
 msgid "Categories..."
-msgstr "श्रेणियां..."
+msgstr "श्रेणियाँ..."
 
 #: templates/expenses/expense_list.html:545
 msgid "Edit Selected"
@@ -6511,7 +6700,7 @@ msgstr "अपडेट किया जा रहा है..."
 
 #: templates/expenses/export_data.html:7
 #: templates/expenses/settings_home.html:134
-#: templates/expenses/settings_home.html:310
+#: templates/expenses/settings_home.html:343
 #, fuzzy
 #| msgid "Export"
 msgid "Export Data"
@@ -6573,10 +6762,10 @@ msgstr ""
 
 #: templates/expenses/export_data.html:76
 #: templates/expenses/goal_detail.html:166
-#: templates/expenses/recurring_transaction_list.html:356
+#: templates/expenses/recurring_transaction_list.html:423
 #: templates/expenses/settings_base.html:76
-#: templates/expenses/settings_home.html:85 templates/home.html:716
-#: templates/home.html:1344
+#: templates/expenses/settings_home.html:85 templates/home.html:813
+#: templates/home.html:1490
 msgid "Upgrade Now"
 msgstr "अभी अपग्रेड करें"
 
@@ -6689,13 +6878,13 @@ msgstr "उपयोग डेटा"
 #: templates/expenses/goal_detail.html:85
 #: templates/expenses/goal_detail.html:521 templates/expenses/goal_list.html:81
 #: templates/expenses/savingsgoal_confirm_delete.html:23
-#: templates/home.html:924
+#: templates/home.html:1021
 msgid "Saved"
 msgstr "बचत"
 
 #: templates/expenses/goal_detail.html:89 templates/expenses/loan_list.html:63
-#: templates/home.html:2732 templates/home.html:2809 templates/home.html:3009
-#: templates/home.html:3054
+#: templates/home.html:3016 templates/home.html:3093 templates/home.html:3293
+#: templates/home.html:3338
 msgid "Remaining"
 msgstr "शेष"
 
@@ -6789,6 +6978,7 @@ msgid "There are no contributions recorded for this goal yet."
 msgstr ""
 
 #: templates/expenses/goal_detail.html:473
+#: templates/expenses/settings_home.html:522
 msgid "Close"
 msgstr ""
 
@@ -6801,7 +6991,7 @@ msgstr "कोई नई सूचना नहीं"
 #: templates/expenses/goal_detail.html:534
 #: templates/expenses/recurring_transaction_list.html:126
 msgid "Projection"
-msgstr "अनुमान"
+msgstr "प्रक्षेपण"
 
 #: templates/expenses/goal_form.html:11
 msgid "New Savings Goal"
@@ -6933,7 +7123,7 @@ msgid ""
 "the frequency."
 msgstr ""
 
-#: templates/expenses/income_list.html:26 templates/home.html:461
+#: templates/expenses/income_list.html:26 templates/home.html:558
 msgid "Filters"
 msgstr "फिल्टर"
 
@@ -6987,7 +7177,7 @@ msgstr ""
 
 #: templates/expenses/income_list.html:296
 msgid "Quarterly"
-msgstr ""
+msgstr "त्रैमासिक"
 
 #: templates/expenses/language_settings.html:7
 msgid "Language Preference"
@@ -7390,7 +7580,7 @@ msgstr ""
 
 #: templates/expenses/payment_history.html:8
 #: templates/expenses/settings_home.html:33
-#: templates/expenses/settings_home.html:239
+#: templates/expenses/settings_home.html:272
 #, fuzzy
 #| msgid "Payment Method Distribution"
 msgid "Payment History"
@@ -7401,7 +7591,7 @@ msgid "Manage your subscriptions and view your transaction records."
 msgstr ""
 
 #: templates/expenses/payment_history.html:22
-#: templates/expenses/settings_home.html:209
+#: templates/expenses/settings_home.html:242
 msgid "Plan"
 msgstr ""
 
@@ -7607,7 +7797,7 @@ msgstr "हमारा समर्थन करें"
 
 #: templates/expenses/pricing.html:157 templates/expenses/pricing.html:246
 #: templates/expenses/pricing.html:334 templates/expenses/settings_home.html:16
-#: templates/expenses/settings_home.html:228
+#: templates/expenses/settings_home.html:261
 msgid "Current Plan"
 msgstr "वर्तमान योजना"
 
@@ -7693,12 +7883,6 @@ msgstr ""
 msgid "Last Name"
 msgstr ""
 
-#: templates/expenses/profile_settings.html:34
-#, fuzzy
-#| msgid "Email Address"
-msgid "Email Address"
-msgstr "ईमेल पता"
-
 #: templates/expenses/profile_settings.html:39
 msgid "This email will be used for logins and account recovery."
 msgstr ""
@@ -7749,10 +7933,10 @@ msgid "Manage your recurring payments and never miss a due date again."
 msgstr "अपने आवर्ती भुगतानों को प्रबंधित करें और कभी भी नियत तारीख न चूकें।"
 
 #: templates/expenses/recurring_transaction_list.html:48
-#: templates/expenses/recurring_transaction_list.html:272
-#: templates/home.html:1361
+#: templates/expenses/recurring_transaction_list.html:319
+#: templates/home.html:1507
 msgid "Manage"
-msgstr "प्रबंधन करें"
+msgstr "प्रबंधित करें"
 
 #: templates/expenses/recurring_transaction_list.html:107
 #, fuzzy
@@ -7769,7 +7953,7 @@ msgid "Daily Cost"
 msgstr ""
 
 #: templates/expenses/recurring_transaction_list.html:120
-#: templates/home.html:1508 templates/mom_analysis.html:244
+#: templates/home.html:1680 templates/mom_analysis.html:244
 #: templates/partials/daily_dashboard.html:70
 #, fuzzy
 #| msgid "May"
@@ -7785,58 +7969,66 @@ msgid "Renewing Soon"
 msgstr "जल्द ही नवीनीकरण"
 
 #: templates/expenses/recurring_transaction_list.html:148
-#: templates/expenses/recurring_transaction_list.html:298
+#: templates/expenses/recurring_transaction_list.html:358
 #: templates/expenses/recurring_transaction_manage.html:119
 #: templates/expenses/settings_home.html:51
 msgid "Cancelled"
 msgstr "रद्द की गई"
 
-#: templates/expenses/recurring_transaction_list.html:198
+#: templates/expenses/recurring_transaction_list.html:217
 #, python-format
 msgid "In %(days)sd"
 msgstr ""
 
-#: templates/expenses/recurring_transaction_list.html:213
+#: templates/expenses/recurring_transaction_list.html:231
+#: templates/expenses/recurring_transaction_list.html:317
+#: templates/expenses/recurring_transaction_list.html:376
+#, fuzzy
+#| msgid "Active Accounts"
+msgid "Unlock"
+msgstr "सक्रिय खाते"
+
+#: templates/expenses/recurring_transaction_list.html:240
 msgid "Are you sure?"
 msgstr ""
 
-#: templates/expenses/recurring_transaction_list.html:230
+#: templates/expenses/recurring_transaction_list.html:258
 msgid "No active subscriptions"
 msgstr "कोई सक्रिय सदस्यता नहीं"
 
-#: templates/expenses/recurring_transaction_list.html:231
+#: templates/expenses/recurring_transaction_list.html:259
 msgid ""
 "Most people forget at least one renewal every year. Add yours now so we can "
 "remind you before you pay."
 msgstr ""
 
-#: templates/expenses/recurring_transaction_list.html:234
-#: templates/expenses/recurring_transaction_list.html:238
+#: templates/expenses/recurring_transaction_list.html:262
+#: templates/expenses/recurring_transaction_list.html:266
 msgid "Add your first subscription"
 msgstr "अपनी पहली सदस्यता जोड़ें"
 
-#: templates/expenses/recurring_transaction_list.html:258
+#: templates/expenses/recurring_transaction_list.html:301
 msgid "Renewing This Month"
-msgstr "इस महीने नवीनीकरण हो रहा है"
+msgstr "इस महीने नवीनीकरण"
 
-#: templates/expenses/recurring_transaction_list.html:280
+#: templates/expenses/recurring_transaction_list.html:328
 msgid "No renewals coming up this month!"
 msgstr "इस महीने कोई नवीनीकरण नहीं आ रहा है!"
 
-#: templates/expenses/recurring_transaction_list.html:312
+#: templates/expenses/recurring_transaction_list.html:378
 #: templates/expenses/recurring_transaction_manage.html:124
 msgid "Reactivate"
 msgstr "फिर से सक्रिय करें"
 
-#: templates/expenses/recurring_transaction_list.html:319
+#: templates/expenses/recurring_transaction_list.html:386
 msgid "No cancelled subscriptions."
 msgstr "कोई रद्द की गई सदस्यता नहीं।"
 
-#: templates/expenses/recurring_transaction_list.html:348
+#: templates/expenses/recurring_transaction_list.html:415
 msgid "Subscription Limit Reached"
 msgstr ""
 
-#: templates/expenses/recurring_transaction_list.html:350
+#: templates/expenses/recurring_transaction_list.html:417
 #, python-format
 msgid ""
 "\n"
@@ -7846,7 +8038,7 @@ msgid ""
 "                    "
 msgstr ""
 
-#: templates/expenses/recurring_transaction_list.html:359
+#: templates/expenses/recurring_transaction_list.html:426
 msgid "I'll do it later"
 msgstr ""
 
@@ -7903,13 +8095,13 @@ msgstr ""
 
 #: templates/expenses/settings_base.html:12
 #: templates/expenses/settings_home.html:160
-#: templates/expenses/settings_home.html:326
+#: templates/expenses/settings_home.html:359
 msgid "Profile"
 msgstr "प्रोफाइल"
 
 #: templates/expenses/settings_base.html:18
 #: templates/expenses/settings_home.html:153
-#: templates/expenses/settings_home.html:348
+#: templates/expenses/settings_home.html:381
 #, fuzzy
 #| msgid "Select Language"
 msgid "Language"
@@ -8007,7 +8199,7 @@ msgid "Tools"
 msgstr ""
 
 #: templates/expenses/settings_home.html:106
-#: templates/expenses/settings_home.html:277
+#: templates/expenses/settings_home.html:310
 msgid "Budget Dashboard"
 msgstr ""
 
@@ -8018,117 +8210,202 @@ msgid "Upload Data"
 msgstr "उपयोग डेटा"
 
 #: templates/expenses/settings_home.html:172
-#: templates/expenses/settings_home.html:364
+#: templates/expenses/settings_home.html:397
 msgid "Tutorial"
 msgstr "ट्यूटोरियल"
 
 #: templates/expenses/settings_home.html:179
-#: templates/expenses/settings_home.html:375 templates/security.html:127
+#: templates/expenses/settings_home.html:408 templates/security.html:127
 #, fuzzy
 #| msgid "Contact"
 msgid "Contact Support"
 msgstr "संपर्क"
 
 #: templates/expenses/settings_home.html:186
-#: templates/expenses/settings_home.html:383
+#: templates/expenses/settings_home.html:416
+msgid "Privacy & Data Rights (DPDPA)"
+msgstr ""
+
+#: templates/expenses/settings_home.html:191
+#: templates/expenses/settings_home.html:424
+#, fuzzy
+#| msgid "Usage Data"
+msgid "Data Summary"
+msgstr "उपयोग डेटा"
+
+#: templates/expenses/settings_home.html:198
+#: templates/expenses/settings_home.html:435
+#, fuzzy
+#| msgid "Export"
+msgid "Correct My Data"
+msgstr "निर्यात"
+
+#: templates/expenses/settings_home.html:205
+#: templates/expenses/settings_home.html:446
+#, fuzzy
+#| msgid "Export"
+msgid "Export My Data"
+msgstr "निर्यात"
+
+#: templates/expenses/settings_home.html:212
+#: templates/expenses/settings_home.html:454
 msgid "Danger Zone"
 msgstr ""
 
-#: templates/expenses/settings_home.html:202
+#: templates/expenses/settings_home.html:217
+#: templates/expenses/settings_home.html:462
+msgid "Withdraw Consent"
+msgstr ""
+
+#: templates/expenses/settings_home.html:235
 #, fuzzy
 #| msgid "Save Preference"
 msgid "Settings & Preferences"
 msgstr "पसंद सहेजें"
 
-#: templates/expenses/settings_home.html:203
+#: templates/expenses/settings_home.html:236
 msgid "Manage your account settings, data, and app experience."
 msgstr ""
 
-#: templates/expenses/settings_home.html:220
+#: templates/expenses/settings_home.html:253
 #, fuzzy
 #| msgid "Subscription"
 msgid "Subscription & Billing"
 msgstr "सदस्यता"
 
-#: templates/expenses/settings_home.html:229
+#: templates/expenses/settings_home.html:262
 #, fuzzy
 #| msgid "You are free to cancel your subscription at any time."
 msgid "Upgrade or change your subscription plan."
 msgstr "आप किसी भी समय अपनी सदस्यता रद्द करने के लिए स्वतंत्र हैं।"
 
-#: templates/expenses/settings_home.html:240
+#: templates/expenses/settings_home.html:273
 msgid "View and download your past payment receipts."
 msgstr ""
 
-#: templates/expenses/settings_home.html:247
+#: templates/expenses/settings_home.html:280
 msgid "Data & Tools"
 msgstr ""
 
-#: templates/expenses/settings_home.html:256
+#: templates/expenses/settings_home.html:289
 msgid "Manage your banks, wallets and investment portfolios."
 msgstr ""
 
-#: templates/expenses/settings_home.html:267
+#: templates/expenses/settings_home.html:300
 msgid "Track and manage your various income sources."
 msgstr ""
 
-#: templates/expenses/settings_home.html:278
+#: templates/expenses/settings_home.html:311
 msgid "Plan and monitor your spending limits and goals."
 msgstr ""
 
-#: templates/expenses/settings_home.html:289
+#: templates/expenses/settings_home.html:322
 msgid "Customize your expense and income categories."
 msgstr ""
 
-#: templates/expenses/settings_home.html:299
+#: templates/expenses/settings_home.html:332
 msgid "Bulk Upload"
 msgstr ""
 
-#: templates/expenses/settings_home.html:300
+#: templates/expenses/settings_home.html:333
 msgid "Import your transactions from CSV or Excel files."
 msgstr ""
 
-#: templates/expenses/settings_home.html:311
+#: templates/expenses/settings_home.html:344
 msgid "Backup your financial records for offline use."
 msgstr ""
 
-#: templates/expenses/settings_home.html:318
+#: templates/expenses/settings_home.html:351
 #, fuzzy
 #| msgid "Save Preference"
 msgid "App Preferences"
 msgstr "पसंद सहेजें"
 
-#: templates/expenses/settings_home.html:327
+#: templates/expenses/settings_home.html:360
 msgid "Update your personal details and avatar."
 msgstr ""
 
-#: templates/expenses/settings_home.html:338
+#: templates/expenses/settings_home.html:371
 msgid "Change your primary currency and viewing options."
 msgstr ""
 
-#: templates/expenses/settings_home.html:349
+#: templates/expenses/settings_home.html:382
 #, fuzzy
 #| msgid "Select your preferred language to be used across the application."
 msgid "Select your preferred language for the interface."
 msgstr "एप्लिकेशन में उपयोग की जाने वाली आपकी पसंदीदा भाषा चुनें।"
 
-#: templates/expenses/settings_home.html:356
+#: templates/expenses/settings_home.html:389
 #, fuzzy
 #| msgid "Support Us"
 msgid "Support & Help"
 msgstr "हमारा समर्थन करें"
 
-#: templates/expenses/settings_home.html:365
+#: templates/expenses/settings_home.html:398
 msgid "Start the guided tour to learn how to use the app."
 msgstr ""
 
-#: templates/expenses/settings_home.html:376
+#: templates/expenses/settings_home.html:409
 msgid "Get help with any issues or suggest new features."
 msgstr ""
 
-#: templates/expenses/settings_home.html:392
+#: templates/expenses/settings_home.html:425
+msgid "View a summary of the personal and account data we process."
+msgstr ""
+
+#: templates/expenses/settings_home.html:436
+msgid "Update your profile details, currency, language, and settings."
+msgstr ""
+
+#: templates/expenses/settings_home.html:447
+msgid "Download all your transaction, budget, and account records."
+msgstr ""
+
+#: templates/expenses/settings_home.html:463
+msgid "Withdraw your data consent and request permanent account/data deletion."
+msgstr ""
+
+#: templates/expenses/settings_home.html:474
 msgid "Permanently remove your account and all your data."
 msgstr ""
+
+#: templates/expenses/settings_home.html:487
+msgid "Your Data Summary (DPDPA)"
+msgstr ""
+
+#: templates/expenses/settings_home.html:492
+msgid ""
+"Here is a summary of the personal and application data we process for your "
+"account as per DPDPA guidelines."
+msgstr ""
+
+#: templates/expenses/settings_home.html:496
+msgid "Username"
+msgstr ""
+
+#: templates/expenses/settings_home.html:504
+#, fuzzy
+#| msgid "Account Deletion"
+msgid "Account Created"
+msgstr "खाता हटाना"
+
+#: templates/expenses/settings_home.html:508
+#, fuzzy
+#| msgid "Subscription"
+msgid "Subscription Plan"
+msgstr "सदस्यता"
+
+#: templates/expenses/settings_home.html:512
+#, fuzzy
+#| msgid "Active Accounts"
+msgid "Number of Accounts"
+msgstr "सक्रिय खाते"
+
+#: templates/expenses/settings_home.html:516
+#, fuzzy
+#| msgid "Transactions"
+msgid "Number of Transactions"
+msgstr "लेन-देन"
 
 #: templates/expenses/transfer_confirm_delete.html:13
 #, fuzzy
@@ -8211,6 +8488,48 @@ msgstr ""
 msgid "Make a Transfer"
 msgstr "व्यवसाय स्थानांतरण (Business Transfers)"
 
+#: templates/expenses/withdraw_consent_confirm.html:9
+msgid "Withdraw Data Consent"
+msgstr ""
+
+#: templates/expenses/withdraw_consent_confirm.html:16
+msgid "Withdraw Consent & Delete Data?"
+msgstr ""
+
+#: templates/expenses/withdraw_consent_confirm.html:18
+msgid ""
+"Under the Digital Personal Data Protection (DPDP) Act of India, you have the "
+"right to withdraw your consent to data processing at any time. Doing so will "
+"immediately and permanently delete your account, settings, and all recorded "
+"financial transactions."
+msgstr ""
+
+#: templates/expenses/withdraw_consent_confirm.html:22
+msgid "What will be deleted permanently:"
+msgstr ""
+
+#: templates/expenses/withdraw_consent_confirm.html:24
+msgid "Your login credentials and email registry."
+msgstr ""
+
+#: templates/expenses/withdraw_consent_confirm.html:25
+msgid "All income records, expense ledger lines, and categories."
+msgstr ""
+
+#: templates/expenses/withdraw_consent_confirm.html:26
+#, fuzzy
+#| msgid "Based on recurring transactions"
+msgid "Bank account balances, transfers, and recurring transactions."
+msgstr "आवर्ती लेन-देन के आधार पर"
+
+#: templates/expenses/withdraw_consent_confirm.html:27
+msgid "Active savings goals, loan schedules, and payment history."
+msgstr ""
+
+#: templates/expenses/withdraw_consent_confirm.html:38
+msgid "Withdraw & Delete"
+msgstr ""
+
 #: templates/features.html:8 templates/features.html:326
 #, fuzzy
 #| msgid "Features"
@@ -8221,624 +8540,684 @@ msgstr "सुविधाएँ"
 msgid "Comprehensive tools designed to transform your personal finance."
 msgstr ""
 
-#: templates/home.html:454 templates/home.html:500
+#: templates/home.html:551 templates/home.html:597
 msgid "Financial Intelligence"
 msgstr ""
 
-#: templates/home.html:521
+#: templates/home.html:618
 msgid "Select Date Range"
 msgstr "तिथि सीमा चुनें"
 
-#: templates/home.html:531
+#: templates/home.html:628
 msgid "Yesterday"
 msgstr "कल"
 
-#: templates/home.html:532
+#: templates/home.html:629
 msgid "Last 7 days"
 msgstr "पिछले 7 दिन"
 
-#: templates/home.html:533
+#: templates/home.html:630
 msgid "Last 30 days"
 msgstr "पिछले 30 दिन"
 
-#: templates/home.html:534 templates/mom_analysis.html:90
+#: templates/home.html:631 templates/mom_analysis.html:90
 #, fuzzy
 #| msgid "Renewing This Month"
 msgid "This month"
 msgstr "इस महीने नवीनीकरण"
 
-#: templates/home.html:535
+#: templates/home.html:632
 #, fuzzy
 #| msgid "Last 12 Months"
 msgid "Last month"
 msgstr "पिछले 12 महीने"
 
-#: templates/home.html:536
+#: templates/home.html:633
 msgid "Last 90 days"
 msgstr "पिछले 90 दिन"
 
-#: templates/home.html:537
+#: templates/home.html:634
 msgid "Quarter to date"
 msgstr "तिमाही से अब तक"
 
-#: templates/home.html:538
+#: templates/home.html:635
 msgid "This year"
 msgstr "इस साल"
 
-#: templates/home.html:552
+#: templates/home.html:649
 #, fuzzy
 #| msgid "Date"
 msgid "End Date"
 msgstr "दिनांक"
 
-#: templates/home.html:562
+#: templates/home.html:659
 #, fuzzy
 #| msgid "Apply"
 msgid "Apply Range"
 msgstr "लागू करें"
 
-#: templates/home.html:599
+#: templates/home.html:696
 #, fuzzy
 #| msgid "Monthly"
 msgid "Salary cycle:"
 msgstr "मासिक"
 
-#: templates/home.html:640
+#: templates/home.html:737
 #, fuzzy
 #| msgid "Clear Filters"
 msgid "Apply Filters"
 msgstr "फ़िल्टर साफ़ करें"
 
-#: templates/home.html:657
+#: templates/home.html:754
 #, fuzzy
 #| msgid "Business Transfers"
 msgid "Never Miss an Expense!"
 msgstr "व्यवसाय स्थानांतरण (Business Transfers)"
 
-#: templates/home.html:658
+#: templates/home.html:755
 msgid "Install the app to get daily reminders to add your spends."
 msgstr "दैनिक अनुस्मारक प्राप्त करने के लिए ऐप इंस्टॉल करें।"
 
-#: templates/home.html:661
+#: templates/home.html:758
 msgid "Install"
 msgstr "इंस्टॉल"
 
-#: templates/home.html:699
+#: templates/home.html:796
 msgid "Your Financial Insights"
 msgstr ""
 
-#: templates/home.html:714
+#: templates/home.html:811
 msgid "Financial Intelligence Hub"
 msgstr "वित्तीय बुद्धिमत्ता केंद्र"
 
-#: templates/home.html:715
+#: templates/home.html:812
 msgid ""
 "Unlock advanced spending analysis, personalized savings recommendations, and "
 "AI-powered insights with TrackMyRupee Pro."
 msgstr ""
 
-#: templates/home.html:729
+#: templates/home.html:826
 msgid ""
 "Overview of how your income is distributed between categorised spending and "
 "savings."
 msgstr ""
 
-#: templates/home.html:730
+#: templates/home.html:827
 msgid "Where Did My Salary Go?"
 msgstr "मेरी सैलरी कहाँ गई?"
 
-#: templates/home.html:749
+#: templates/home.html:846
 msgid "Your Financial Story"
 msgstr ""
 
-#: templates/home.html:757
+#: templates/home.html:854
 msgid "Your story is still being written for this period."
 msgstr "इस अवधि के लिए आपकी कहानी अभी भी लिखी जा रही है।"
 
-#: templates/home.html:768
+#: templates/home.html:865
 #, fuzzy
 #| msgid "No data available"
 msgid "No data available yet."
 msgstr "कोई डेटा उपलब्ध नहीं"
 
-#: templates/home.html:788
+#: templates/home.html:885
 msgid "Analysis of your spending trends and notable financial habits."
 msgstr "आपके खर्च करने के रुझान और उल्लेखनीय वित्तीय आदतों का विश्लेषण।"
 
-#: templates/home.html:789
+#: templates/home.html:886
 msgid "Money Flow Analysis"
 msgstr "धन प्रवाह विश्लेषण"
 
-#: templates/home.html:802
+#: templates/home.html:899
 msgid "Trend Alert"
 msgstr "ट्रेंड अलर्ट"
 
-#: templates/home.html:826
+#: templates/home.html:923
 msgid "Fun Fact"
 msgstr "मज़ेदार तथ्य"
 
-#: templates/home.html:837
+#: templates/home.html:934
 msgid "Keep tracking to unlock personalized AI insights."
 msgstr "व्यक्तिगत एआई अंतर्दृष्टि अनलॉक करने के लिए ट्रैक करते रहें।"
 
-#: templates/home.html:854
+#: templates/home.html:951
 msgid "Urgent notifications regarding budget overruns or unusual spending."
 msgstr "बजट से अधिक खर्च या असामान्य खर्च के संबंध में तत्काल सूचनाएं।"
 
-#: templates/home.html:855
+#: templates/home.html:952
 msgid "Actionable Alerts"
 msgstr "कार्रवाई योग्य अलर्ट"
 
-#: templates/home.html:879
+#: templates/home.html:976
 msgid "You're all set! No urgent alerts right now."
 msgstr "सब ठीक है! अभी कोई तत्काल अलर्ट नहीं है।"
 
-#: templates/home.html:892
+#: templates/home.html:989
 msgid "Share Your Financial Snapshot"
 msgstr "अपना वित्तीय स्नैपशॉट साझा करें"
 
-#: templates/home.html:896
+#: templates/home.html:993
 #, fuzzy
 #| msgid "Save Category"
 msgid "Save Image Report"
 msgstr "श्रेणी सहेजें"
 
-#: templates/home.html:899
+#: templates/home.html:996
 msgid "Share to WhatsApp"
 msgstr "WhatsApp पर शेयर करें"
 
-#: templates/home.html:902
+#: templates/home.html:999
 msgid "Generates a beautiful summary card of your financial health."
 msgstr "आपके वित्तीय स्वास्थ्य का एक सुंदर सारांश कार्ड बनाता है।"
 
-#: templates/home.html:920
+#: templates/home.html:1017
 msgid "My salary journey"
 msgstr "मेरी वेतन यात्रा"
 
-#: templates/home.html:934
+#: templates/home.html:1031
 msgid "Top Spending"
 msgstr "शीर्ष खर्च"
 
-#: templates/home.html:951
+#: templates/home.html:1048
 msgid "AI Insight"
 msgstr "एआई इनसाइट"
 
-#: templates/home.html:955
+#: templates/home.html:1052
 #, python-format
 msgid ""
 "%(month)s was a tough month — %(cat1)s and %(cat2)s ran over. Next month is "
 "a fresh start."
 msgstr ""
 
-#: templates/home.html:957
+#: templates/home.html:1054
 #, python-format
 msgid ""
 "%(month)s was a tough month — %(cat1)s ran over. Next month is a fresh start."
 msgstr ""
 
-#: templates/home.html:959
+#: templates/home.html:1056
 #, python-format
 msgid ""
 "%(month)s was a tough month — spending ran over. Next month is a fresh start."
 msgstr ""
 
-#: templates/home.html:965
+#: templates/home.html:1062
 msgid ""
 "You're consistently building wealth with a positive savings rate. That's a "
 "huge win!"
 msgstr ""
 
-#: templates/home.html:973 templates/mom_analysis.html:240
+#: templates/home.html:1070 templates/mom_analysis.html:240
 msgid "Daily Burn Rate"
 msgstr "दैनिक बर्न दर"
 
-#: templates/home.html:979
+#: templates/home.html:1076
 msgid "MASTER YOUR MONEY"
 msgstr "अपने पैसे को नियंत्रित करें"
 
-#: templates/home.html:998
+#: templates/home.html:1095
 #, python-format
 msgid "Your %(year_in_review_year)s in Review is Ready ✨"
 msgstr "आपका %(year_in_review_year)s इन रिव्यू तैयार है ✨"
 
-#: templates/home.html:999
+#: templates/home.html:1096
 msgid "See your financial year wrapped and discover your top spending habits."
 msgstr "अपना वित्तीय वर्ष रैप्ड देखें और अपनी शीर्ष खर्च करने की आदतों को खोजें।"
 
-#: templates/home.html:1002
+#: templates/home.html:1099
 msgid "View Now"
 msgstr "अभी देखें"
 
-#: templates/home.html:1314
+#: templates/home.html:1460
 msgid ""
 "The combined balance of all your accounts (Savings, Cash, Investments minus "
 "Credit Card debt)."
 msgstr ""
 
-#: templates/home.html:1315
+#: templates/home.html:1461
 msgid "Total Net Worth"
 msgstr "कुल शुद्ध संपत्ति"
 
-#: templates/home.html:1330
+#: templates/home.html:1476
 #, fuzzy
 #| msgid "Active Accounts"
 msgid "New Account"
 msgstr "सक्रिय खाते"
 
-#: templates/home.html:1342
+#: templates/home.html:1488
 msgid "Track Your Net Worth"
 msgstr "अपनी कुल संपत्ति ट्रैक करें"
 
-#: templates/home.html:1343
+#: templates/home.html:1489
 msgid ""
 "Unlock live net worth tracking, historical trends, and asset allocation with "
 "TrackMyRupee Plus."
 msgstr ""
 
-#: templates/home.html:1352
+#: templates/home.html:1498
 msgid "All accounts"
 msgstr "सभी खाते"
 
-#: templates/home.html:1354
+#: templates/home.html:1500
 msgid "Calculated as"
 msgstr ""
 
-#: templates/home.html:1358
+#: templates/home.html:1504
 #, fuzzy
 #| msgid "Eligibility"
 msgid "liabilities"
 msgstr "पात्रता (Eligibility)"
 
-#: templates/home.html:1377
+#: templates/home.html:1523
 msgid "this month"
 msgstr "इस महीने"
 
-#: templates/home.html:1386
+#: templates/home.html:1532
 msgid "Projected 3-month growth based on recent savings"
 msgstr "हाल की बचत के आधार पर अनुमानित 3 महीने की वृद्धि"
 
-#: templates/home.html:1388
+#: templates/home.html:1534
 msgid "3M GOAL"
 msgstr "3M लक्ष्य"
 
-#: templates/home.html:1418
+#: templates/home.html:1564
 msgid ""
 "AI-generated observations about your spending patterns and financial trends."
 msgstr ""
 
-#: templates/home.html:1419
+#: templates/home.html:1565
 msgid "Smart Insights"
 msgstr "स्मार्ट अंतर्दृष्टि"
 
-#: templates/home.html:1466
+#: templates/home.html:1612
 #, fuzzy
 #| msgid "No data available"
 msgid "No insights available yet."
 msgstr "कोई डेटा उपलब्ध नहीं"
 
-#: templates/home.html:1485
+#: templates/home.html:1631
 msgid ""
 "Tracks how fast you are spending your budget relative to the days passed in "
 "the month."
 msgstr ""
 
-#: templates/home.html:1486
+#: templates/home.html:1632
 msgid "Spending Pace"
 msgstr "खर्च की गति"
 
-#: templates/home.html:1492
+#: templates/home.html:1641
 #, fuzzy
 #| msgid "On Track"
 msgid "On track"
 msgstr "सही रास्ते पर"
 
-#: templates/home.html:1494
+#: templates/home.html:1643
 #, fuzzy
 #| msgid "Edit Limit"
 msgid "Near limit"
 msgstr "सीमा संपादित करें"
 
-#: templates/home.html:1496
+#: templates/home.html:1645
 #, fuzzy
 #| msgid "over budget"
 msgid "Over budget"
 msgstr "बजट से अधिक"
 
-#: templates/home.html:1499
+#: templates/home.html:1648
 #, fuzzy
 #| msgid "Set Budget"
 msgid "No budget"
 msgstr "बजेट सेट करें"
 
-#: templates/home.html:1510
+#: templates/home.html:1661
+msgid "Pace"
+msgstr ""
+
+#: templates/home.html:1666
+#, fuzzy
+#| msgid "Communications"
+msgid "Spend Ratio"
+msgstr "संचार (Communications)"
+
+#: templates/home.html:1682
 #, fuzzy
 #| msgid "Your highest spending categories for the selected period."
 msgid "Average daily spend for the selected period."
 msgstr "चयनित अवधि के लिए आपकी उच्चतम व्यय श्रेणियां।"
 
-#: templates/home.html:1511
+#: templates/home.html:1683
 #, fuzzy
 #| msgid "Your Burn Rate"
 msgid "Burn rate"
 msgstr "आपका बर्न रेट"
 
-#: templates/home.html:1527
+#: templates/home.html:1699
 #, fuzzy
 #| msgid "Set Budget"
 msgid "budget"
 msgstr "बजेट सेट करें"
 
-#: templates/home.html:1534
+#: templates/home.html:1706
 msgid ""
 "Estimated month-end spend = current spent + daily pace × remaining days."
 msgstr ""
 
-#: templates/home.html:1535
+#: templates/home.html:1707
 #, fuzzy
 #| msgid "Projected Monthly Spend"
 msgid "Projected total spend"
 msgstr "अनुमानित मासिक खर्च"
 
-#: templates/home.html:1541
+#: templates/home.html:1713
 #, fuzzy
 #| msgid "Set Budget"
 msgid "Projected under budget"
 msgstr "बजेट सेट करें"
 
-#: templates/home.html:1544
+#: templates/home.html:1716
 #, fuzzy
 #| msgid "over budget"
 msgid "Projected over budget"
 msgstr "बजट से अधिक"
 
-#: templates/home.html:1547
+#: templates/home.html:1719
 #, fuzzy
 #| msgid "Projected Spend"
 msgid "Projected on budget"
 msgstr "अनुमानित खर्च"
 
-#: templates/home.html:1553
+#: templates/home.html:1725
 #, fuzzy
 #| msgid "Projected Monthly Spend"
 msgid "Projected monthly spend"
 msgstr "अनुमानित मासिक खर्च"
 
-#: templates/home.html:1555
+#: templates/home.html:1727
 #, fuzzy
 #| msgid "Set a budget to track pace"
 msgid "Set budget to track pace"
 msgstr "गति ट्रैक करने के लिए बजट निर्धारित करें"
 
-#: templates/home.html:1562
+#: templates/home.html:1734
 msgid "Set a budget to monitor your spending pace."
 msgstr "अपने खर्च की गति की निगरानी के लिए एक बजट सेट करें।"
 
-#: templates/home.html:1563 templates/partials/daily_dashboard.html:140
+#: templates/home.html:1735 templates/partials/daily_dashboard.html:140
 msgid "Set Budget"
-msgstr "बजट निर्धारित करें"
+msgstr "बजेट सेट करें"
 
-#: templates/home.html:1574
+#: templates/home.html:1748
+msgid "Impulse vs planned spend ratio"
+msgstr ""
+
+#: templates/home.html:1759
+msgid "Planned"
+msgstr ""
+
+#: templates/home.html:1766
+msgid "Impulse"
+msgstr ""
+
+#: templates/home.html:1773
+msgid ""
+"Planned: expenses matching your active recurring transactions. Impulse: "
+"everything else."
+msgstr ""
+
+#: templates/home.html:1775
+#, fuzzy
+#| msgid "Last 12 Months"
+msgid "Last month was"
+msgstr "पिछले 12 महीने"
+
+#: templates/home.html:1775
+msgid "impulse"
+msgstr ""
+
+#: templates/home.html:1777
+msgid "slight uptick this month."
+msgstr ""
+
+#: templates/home.html:1779
+#, fuzzy
+#| msgid "this month"
+msgid "improvement this month."
+msgstr "इस महीने"
+
+#: templates/home.html:1781
+#, fuzzy
+#| msgid "than last month"
+msgid "same as last month."
+msgstr "पिछले महीने की तुलना में"
+
+#: templates/home.html:1792
+#, fuzzy
+#| msgid "No expense data available"
+msgid "No impulse data available for this period."
+msgstr "कोई व्यय डेटा उपलब्ध नहीं"
+
+#: templates/home.html:1805
 msgid "Log your first expense for this month to see your pace."
 msgstr "अपनी गति देखने के लिए इस महीने का अपना पहला खर्च दर्ज करें।"
 
-#: templates/home.html:1593
+#: templates/home.html:1824
 msgid ""
 "Distribution of your total wealth across different account types like Cash, "
 "Bank, and Investments."
 msgstr ""
 
-#: templates/home.html:1594
+#: templates/home.html:1825
 msgid "Asset Allocation"
 msgstr "संपत्ति आवंटन"
 
-#: templates/home.html:1673
+#: templates/home.html:1904
 msgid "Add accounts to see your allocation."
 msgstr "अपना आवंटन देखने के लिए खाते जोड़ें।"
 
-#: templates/home.html:1690
+#: templates/home.html:1921
 msgid ""
 "A summary of your savings rate and overall financial performance for the "
 "period."
 msgstr ""
 
-#: templates/home.html:1696 templates/mom_analysis.html:76
+#: templates/home.html:1927 templates/mom_analysis.html:76
 msgid "Excellent"
 msgstr "उत्कृष्ट"
 
-#: templates/home.html:1698 templates/mom_analysis.html:76
+#: templates/home.html:1929 templates/mom_analysis.html:76
 msgid "Good"
 msgstr "अच्छा"
 
-#: templates/home.html:1700
+#: templates/home.html:1931
 #, fuzzy
 #| msgid "Needs Attention"
 msgid "Needs attention"
 msgstr "ध्यान देने की आवश्यकता है"
 
-#: templates/home.html:1710
+#: templates/home.html:1941
 #, fuzzy
 #| msgid "Percentage of income kept as balance/savings"
 msgid "Percent of income left after operating spend."
 msgstr "शेष/बचत के रूप में रखी गई आय का प्रतिशत"
 
-#: templates/home.html:1710 templates/landing.html:954
+#: templates/home.html:1941 templates/landing.html:954
 #, fuzzy
 #| msgid "Savings Goals"
 msgid "Savings rate"
 msgstr "बचत लक्ष्य"
 
-#: templates/home.html:1715
+#: templates/home.html:1946
 msgid "saved"
 msgstr "बचाया"
 
-#: templates/home.html:1716
+#: templates/home.html:1947
 msgid "income"
 msgstr "आय"
 
-#: templates/home.html:1720
+#: templates/home.html:1951
 msgid "Visual progress of your savings rate toward healthier levels."
 msgstr ""
 
-#: templates/home.html:1721
+#: templates/home.html:1952
 #, fuzzy
 #| msgid "Savings Goals"
 msgid "Savings progress"
 msgstr "बचत लक्ष्य"
 
-#: templates/home.html:1733
+#: templates/home.html:1964
 msgid "Total money received during the selected period."
 msgstr "चयनित अवधि के दौरान प्राप्त कुल धन।"
 
-#: templates/home.html:1744 templates/home.html:3003 templates/home.html:3052
+#: templates/home.html:1975 templates/home.html:3287 templates/home.html:3336
 msgid "Spent"
 msgstr "खर्च"
 
-#: templates/home.html:1745
+#: templates/home.html:1976
 msgid "Operating spend excludes internal transfers and investments."
 msgstr ""
 
-#: templates/home.html:1762
+#: templates/home.html:1993
 msgid "Your financial overview will appear here."
 msgstr "आपका वित्तीय अवलोकन यहां दिखाई देगा।"
 
-#: templates/home.html:1773
+#: templates/home.html:2004
 msgid "Spending Analysis"
 msgstr "व्यय विश्लेषण"
 
-#: templates/home.html:1785
+#: templates/home.html:2016
 msgid "A visualization of your spending over time (Daily or Monthly view)."
 msgstr "समय के साथ आपके खर्च का दृश्य (दैनिक या मासिक)।"
 
-#: templates/home.html:1817
+#: templates/home.html:2048
 #, fuzzy
 #| msgid "Start tracking to see your spending trends!"
 msgid "Start tracking to see your spending trends."
 msgstr "अपने खर्च के रुझान देखने के लिए ट्रैकिंग शुरू करें!"
 
-#: templates/home.html:1832
+#: templates/home.html:2063
 msgid "Your highest spending categories for the selected period."
 msgstr "चयनित अवधि के लिए आपकी उच्चतम व्यय श्रेणियां।"
 
-#: templates/home.html:1833
+#: templates/home.html:2064
 msgid "Top Categories"
-msgstr "शीर्ष श्रेणियां"
+msgstr "शीर्ष श्रेणियाँ"
 
-#: templates/home.html:1888
+#: templates/home.html:2119
 msgid "Add an expense to watch your breakdown appear."
 msgstr "अपना ब्रेकडाउन देखने के लिए खर्च जोड़ें।"
 
-#: templates/home.html:1907
+#: templates/home.html:2138
 msgid "A percentage breakdown of your expenses across all categories."
 msgstr "सभी श्रेणियों में आपके खर्च का प्रतिशत ब्रेकडाउन।"
 
-#: templates/home.html:1922
+#: templates/home.html:2153
 msgid "Your categories will appear as you track."
 msgstr "ट्रैक करते ही आपकी श्रेणियां दिखाई देंगी।"
 
-#: templates/home.html:1937
+#: templates/home.html:2168
 msgid "Your most recent transactions across all accounts and categories."
 msgstr "सभी खातों और श्रेणियों में आपके सबसे हाल के लेन-देन।"
 
-#: templates/home.html:1938
+#: templates/home.html:2169
 msgid "Recent Activity"
 msgstr "हाल की गतिविधि"
 
-#: templates/home.html:2002
+#: templates/home.html:2233
 msgid "Your transactions will show up here."
 msgstr "आपके लेन-देन यहां दिखाई देंगे।"
 
-#: templates/home.html:2014
+#: templates/home.html:2245
 msgid "Cashflow & Commitments"
 msgstr "नकदी प्रवाह और प्रतिबद्धताएं"
 
-#: templates/home.html:2026
+#: templates/home.html:2257
 msgid "Fixed monthly obligations like rent, bills, and subscriptions."
 msgstr "निश्चित मासिक दायित्व जैसे किराया, बिल और सदस्यताएं।"
 
-#: templates/home.html:2027
+#: templates/home.html:2258
 msgid "Recurring Commitments"
 msgstr "आवर्ती प्रतिबद्धताएं"
 
-#: templates/home.html:2045
+#: templates/home.html:2276
 msgid "Invest"
 msgstr "निवेश करें"
 
-#: templates/home.html:2056
+#: templates/home.html:2287
 msgid "Recurring Net Commitment"
 msgstr "आवर्ती शुद्ध प्रतिबद्धता"
 
-#: templates/home.html:2057
+#: templates/home.html:2288
 msgid "Based on recurring transactions"
 msgstr "आवर्ती लेन-देन के आधार पर"
 
-#: templates/home.html:2070
+#: templates/home.html:2301
 msgid ""
 "No recurring income configured. Add salary as a recurring item to track "
 "monthly cashflow."
 msgstr ""
 
-#: templates/home.html:2080
+#: templates/home.html:2311
 #, fuzzy
 #| msgid "Recent Transactions"
 msgid "Recurring Items"
 msgstr "हाल के लेनदेन"
 
-#: templates/home.html:2110
+#: templates/home.html:2341
 msgid "committed to future monthly"
 msgstr "भविष्य के मासिक के लिए प्रतिबद्ध"
 
-#: templates/home.html:2119
+#: templates/home.html:2350
 #, fuzzy
 #| msgid "Recent Transactions"
 msgid "No Recurring Bills"
 msgstr "हाल के लेनदेन"
 
-#: templates/home.html:2120
+#: templates/home.html:2351
 msgid "Auto-generate transactions by adding recurring bills."
 msgstr "आवर्ती बिल जोड़कर स्वतः लेन-देन उत्पन्न करें।"
 
-#: templates/home.html:2121 templates/partials/savings_modal.html:775
+#: templates/home.html:2352 templates/partials/savings_modal.html:775
 #, fuzzy
 #| msgid "Unlimited Recurring Txs"
 msgid "Add Recurring"
 msgstr "असीमित आवर्ती लेनदेन"
 
-#: templates/home.html:2134
+#: templates/home.html:2365
 msgid ""
 "Breakdown of your spending by how you paid (Cash, UPI, Credit Card, etc.)."
 msgstr ""
 
-#: templates/home.html:2148
+#: templates/home.html:2379
 msgid "Your transaction payment methods will appear here."
 msgstr "आपके लेन-देन भुगतान विधियां यहां दिखाई देंगी।"
 
-#: templates/home.html:2159
+#: templates/home.html:2390
 msgid "Future Forecast"
 msgstr "भविष्य का पूर्वानुमान"
 
-#: templates/home.html:2173
+#: templates/home.html:2404
 msgid ""
 "A forecast of your future spending based on your historical 6-month average."
 msgstr ""
 
-#: templates/home.html:2174
+#: templates/home.html:2405
 msgid "Expense Projection"
 msgstr "व्यय अनुमान"
 
-#: templates/home.html:2178
+#: templates/home.html:2409
 msgid "Based on last 6 months"
 msgstr "पिछले 6 महीनों के आधार पर"
 
-#: templates/home.html:2191
+#: templates/home.html:2422
 msgid ""
 "Not enough data yet to generate a projection. Keep tracking for a few months!"
 msgstr ""
 
-#: templates/home.html:2202
+#: templates/home.html:2433
 msgid "How is this forecast calculated?"
 msgstr "इस पूर्वानुमान की गणना कैसे की जाती है?"
 
-#: templates/home.html:2204
+#: templates/home.html:2435
 msgid ""
 "The projection is based on your average monthly spending over the last 6 "
 "months. It assumes a consistent spending pattern to help you plan for future "
@@ -8847,71 +9226,71 @@ msgstr ""
 "यह अनुमान पिछले 6 महीनों में आपके औसत मासिक खर्च पर आधारित है। यह भविष्य के महीनों के "
 "लिए आपकी योजना बनाने में मदद करने के लिए एक सुसंगत खर्च पैटर्न मानकर चलता है।"
 
-#: templates/home.html:2508
+#: templates/home.html:2669
 #, fuzzy
 #| msgid "Projected Savings"
 msgid "Projected"
 msgstr "अनुमानित"
 
-#: templates/home.html:2582
+#: templates/home.html:2865
 msgid "Daily Spend"
 msgstr "दैनिक खर्च"
 
-#: templates/home.html:2598
+#: templates/home.html:2881
 msgid "7-Day Average"
 msgstr "7-दिवसीय औसत"
 
-#: templates/home.html:2732 templates/home.html:2803
+#: templates/home.html:3016 templates/home.html:3087
 msgid "Lifestyle"
 msgstr "जीवनशैली"
 
-#: templates/home.html:2811
+#: templates/home.html:3095
 msgid "Unallocated"
 msgstr "अनावंटित"
 
-#: templates/home.html:3056 templates/partials/daily_dashboard.html:96
+#: templates/home.html:3340 templates/partials/daily_dashboard.html:96
 #, fuzzy
 #| msgid "Edit Limit"
 msgid "Limit"
 msgstr "सीमा"
 
-#: templates/home.html:3235
+#: templates/home.html:3523
 msgid "Actual Spend"
 msgstr "वास्तविक खर्च"
 
-#: templates/home.html:3246
+#: templates/home.html:3534
 msgid "Projected Spend"
 msgstr "अनुमानित खर्च"
 
-#: templates/home.html:3309
+#: templates/home.html:3592
 #, fuzzy
 #| msgid "Recent Transactions"
 msgid "Scanning transactions..."
 msgstr "हाल के लेनदेन"
 
-#: templates/home.html:3310
+#: templates/home.html:3593
 #, fuzzy
 #| msgid "Categories..."
 msgid "Categorizing expenses..."
 msgstr "श्रेणियाँ..."
 
-#: templates/home.html:3311
+#: templates/home.html:3594
 msgid "Calculating savings rate..."
 msgstr "बचत दर की गणना हो रही है..."
 
-#: templates/home.html:3312
+#: templates/home.html:3595
 msgid "Comparing with past trends..."
 msgstr "पिछले रुझानों के साथ तुलना हो रही है..."
 
-#: templates/home.html:3313
+#: templates/home.html:3596
 msgid "Generating AI insights..."
 msgstr "एआई अंतर्दृष्टि उत्पन्न हो रही है..."
 
-#: templates/home.html:3361
+#: templates/home.html:3644
 msgid "Sharing engine still loading, please wait a second..."
 msgstr "शेयरिंग इंजन अभी लोड हो रहा है, कृपया एक सेकंड प्रतीक्षा करें..."
 
-#: templates/home.html:3382
+#: templates/home.html:3665
 msgid ""
 "I just analyzed where my salary went using TrackMyRupee! 🚀 Check out your "
 "financial story too: "
@@ -9045,7 +9424,7 @@ msgid "Salary credited."
 msgstr ""
 
 #: templates/landing.html:1071
-msgid "Three weeks later - where did it go?."
+msgid "Three weeks later... where did it go?"
 msgstr ""
 
 #: templates/landing.html:1072
@@ -10772,51 +11151,55 @@ msgstr ""
 msgid "Table of Contents"
 msgstr ""
 
-#: templates/privacy_policy.html:26 templates/privacy_policy.html:40
+#: templates/privacy_policy.html:26 templates/privacy_policy.html:41
 msgid "1. Information We Collect"
 msgstr ""
 
-#: templates/privacy_policy.html:27 templates/privacy_policy.html:81
+#: templates/privacy_policy.html:27 templates/privacy_policy.html:82
 msgid "2. How We Use Your Information"
 msgstr ""
 
-#: templates/privacy_policy.html:28 templates/privacy_policy.html:115
+#: templates/privacy_policy.html:28 templates/privacy_policy.html:116
 msgid "3. Cookies & Tracking Technologies"
 msgstr ""
 
-#: templates/privacy_policy.html:29 templates/privacy_policy.html:136
+#: templates/privacy_policy.html:29 templates/privacy_policy.html:137
 msgid "4. Information Sharing"
 msgstr ""
 
-#: templates/privacy_policy.html:30 templates/privacy_policy.html:166
+#: templates/privacy_policy.html:30 templates/privacy_policy.html:167
 msgid "5. Data Security"
 msgstr ""
 
-#: templates/privacy_policy.html:31 templates/privacy_policy.html:203
-msgid "6. Your Rights & Choices"
+#: templates/privacy_policy.html:31 templates/privacy_policy.html:204
+msgid "5a. Data Breach Notification"
 msgstr ""
 
-#: templates/privacy_policy.html:32 templates/privacy_policy.html:238
+#: templates/privacy_policy.html:32 templates/privacy_policy.html:230
+msgid "6. Your Rights Under DPDP Act 2023"
+msgstr ""
+
+#: templates/privacy_policy.html:33 templates/privacy_policy.html:245
 msgid "7. Data Retention"
 msgstr ""
 
-#: templates/privacy_policy.html:33 templates/privacy_policy.html:261
+#: templates/privacy_policy.html:34 templates/privacy_policy.html:274
 msgid "8. Children's Privacy"
 msgstr ""
 
-#: templates/privacy_policy.html:34 templates/privacy_policy.html:271
+#: templates/privacy_policy.html:35 templates/privacy_policy.html:284
 #, fuzzy
 #| msgid "Privacy Policy"
 msgid "9. Changes to Privacy Policy"
 msgstr "गोपनीयता नीति"
 
-#: templates/privacy_policy.html:35 templates/privacy_policy.html:281
+#: templates/privacy_policy.html:36
 #, fuzzy
 #| msgid "Contact Support"
 msgid "10. Contact Us"
 msgstr "सहायता से संपर्क करें"
 
-#: templates/privacy_policy.html:42
+#: templates/privacy_policy.html:43
 msgid ""
 "\n"
 "                            We collect information you provide directly to "
@@ -10825,63 +11208,89 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/privacy_policy.html:48
+#: templates/privacy_policy.html:49
 msgid "Account Information"
 msgstr ""
 
-#: templates/privacy_policy.html:49
+#: templates/privacy_policy.html:50
 #, fuzzy
 #| msgid ""
 #| "\n"
-#| "                                Regular backups and security "
-#| "assessments.\n"
+#| "                                Send important notifications, such as "
+#| "password resets or account alerts.\n"
 #| "                                "
 msgid ""
 "\n"
-"                                Your username, email address, and password "
-"(securely hashed — never stored in plain text).\n"
+"                                Email & Username &rarr; Account "
+"identification and communication &rarr; Consent &rarr; Until account "
+"deletion.\n"
 "                                "
 msgstr ""
 "\n"
-"                                नियमित बैकअप और सुरक्षा मूल्यांकन।\n"
+"                                महत्वपूर्ण सूचनाएं भेजना, जैसे पासवर्ड रीसेट या खाता "
+"अलर्ट।\n"
 "                                "
 
-#: templates/privacy_policy.html:54
+#: templates/privacy_policy.html:55
 msgid "Financial Data"
 msgstr "वित्तीय डेटा"
 
-#: templates/privacy_policy.html:55
+#: templates/privacy_policy.html:56
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Send important notifications, such as "
+#| "password resets or account alerts.\n"
+#| "                                "
 msgid ""
 "\n"
-"                                Incomes, expenses, categories, budgets, and "
-"subscriptions you manually enter.\n"
+"                                Manually entered transactions (incomes, "
+"expenses, budgets) &rarr; Dashboard processing and visualization &rarr; "
+"Consent &rarr; Until account deletion.\n"
 "                                "
 msgstr ""
+"\n"
+"                                महत्वपूर्ण सूचनाएं भेजना, जैसे पासवर्ड रीसेट या खाता "
+"अलर्ट।\n"
+"                                "
 
-#: templates/privacy_policy.html:60
+#: templates/privacy_policy.html:61
 msgid "Profile Preferences"
 msgstr "प्रोफ़ाइल प्राथमिकताएं"
 
-#: templates/privacy_policy.html:61
+#: templates/privacy_policy.html:62
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Currency settings, theme preferences "
+#| "(light/dark mode).\n"
+#| "                                "
 msgid ""
 "\n"
-"                                Currency settings, theme preferences (light/"
-"dark mode).\n"
+"                                Currency and theme preferences &rarr; "
+"Interface personalization &rarr; Consent &rarr; Until account deletion.\n"
 "                                "
 msgstr ""
 "\n"
 "                                मुद्रा सेटिंग्स, थीम प्राथमिकताएं (लाइट/डार्क मोड)।\n"
 "                                "
 
-#: templates/privacy_policy.html:66
+#: templates/privacy_policy.html:67
 msgid "Usage Data"
 msgstr "उपयोग डेटा"
 
-#: templates/privacy_policy.html:67
+#: templates/privacy_policy.html:68
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Device information, IP address, browser "
+#| "type, and interaction logs to help us improve the service.\n"
+#| "                                "
 msgid ""
 "\n"
-"                                Device information, IP address, browser "
-"type, and interaction logs to help us improve the service.\n"
+"                                Device & Browser Info, IP address &rarr; "
+"Verification of authentic sessions and bot prevention &rarr; Consent &rarr; "
+"Until account deletion.\n"
 "                                "
 msgstr ""
 "\n"
@@ -10889,13 +11298,13 @@ msgstr ""
 "और इंटरैक्शन लॉग, जो हमें सेवा को बेहतर बनाने में मदद करते हैं।\n"
 "                                "
 
-#: templates/privacy_policy.html:72
+#: templates/privacy_policy.html:73
 #, fuzzy
 #| msgid "No recent transactions"
 msgid "Payment Information"
 msgstr "कोई हालिया लेनदेन नहीं"
 
-#: templates/privacy_policy.html:73
+#: templates/privacy_policy.html:74
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -10904,15 +11313,16 @@ msgstr "कोई हालिया लेनदेन नहीं"
 #| "                                "
 msgid ""
 "\n"
-"                                Payment information is processed by Razorpay "
-"— we do not store card details or UPI IDs.\n"
+"                                Payment details (handled by Razorpay) &rarr; "
+"Subscription processing &rarr; Contractual necessity &rarr; 5 years as "
+"required by Indian tax law.\n"
 "                                "
 msgstr ""
 "\n"
 "                                अपने वित्तीय डेटा को प्रोसेस और विज़ुअलाइज़ करना।\n"
 "                                "
 
-#: templates/privacy_policy.html:83
+#: templates/privacy_policy.html:84
 msgid ""
 "\n"
 "                            We use the information we collect to provide, "
@@ -10924,7 +11334,7 @@ msgstr ""
 "के लिए एकत्र की गई जानकारी का उपयोग करते हैं।\n"
 "                            "
 
-#: templates/privacy_policy.html:89
+#: templates/privacy_policy.html:90
 msgid ""
 "\n"
 "                                Provide the TrackMyRupee dashboard, expense "
@@ -10936,7 +11346,7 @@ msgstr ""
 "रिपोर्ट प्रदान करना।\n"
 "                                "
 
-#: templates/privacy_policy.html:94
+#: templates/privacy_policy.html:95
 msgid ""
 "\n"
 "                                Process and visualize your financial data.\n"
@@ -10946,7 +11356,7 @@ msgstr ""
 "                                अपने वित्तीय डेटा को प्रोसेस और विज़ुअलाइज़ करना।\n"
 "                                "
 
-#: templates/privacy_policy.html:99
+#: templates/privacy_policy.html:100
 msgid ""
 "\n"
 "                                Send important notifications, such as "
@@ -10958,7 +11368,7 @@ msgstr ""
 "अलर्ट।\n"
 "                                "
 
-#: templates/privacy_policy.html:104
+#: templates/privacy_policy.html:105
 msgid ""
 "\n"
 "                                Analyze usage patterns to fix bugs and "
@@ -10970,7 +11380,7 @@ msgstr ""
 "उपयोग पैटर्न का विश्लेषण करना।\n"
 "                                "
 
-#: templates/privacy_policy.html:109
+#: templates/privacy_policy.html:110
 msgid ""
 "\n"
 "                                Prevent abuse and enforce our Terms of "
@@ -10982,7 +11392,7 @@ msgstr ""
 "करना।\n"
 "                                "
 
-#: templates/privacy_policy.html:117
+#: templates/privacy_policy.html:118
 msgid ""
 "\n"
 "                            We use cookies and similar tracking technologies "
@@ -10994,11 +11404,11 @@ msgstr ""
 "रखने के लिए कुकीज़ और इसी तरह की ट्रैकिंग तकनीकों का उपयोग करते हैं।\n"
 "                            "
 
-#: templates/privacy_policy.html:121
+#: templates/privacy_policy.html:122
 msgid "Google Analytics"
 msgstr "गूगल एनालिटिक्स (Google Analytics)"
 
-#: templates/privacy_policy.html:123
+#: templates/privacy_policy.html:124
 msgid ""
 "\n"
 "                            We use Google Analytics to monitor and analyze "
@@ -11015,7 +11425,7 @@ msgstr ""
 "करता है।\n"
 "                            "
 
-#: templates/privacy_policy.html:128
+#: templates/privacy_policy.html:129
 msgid ""
 "\n"
 "                            You can opt-out of having your activity "
@@ -11029,11 +11439,11 @@ msgstr ""
 "लिए उपलब्ध होने से रोक सकते हैं।\n"
 "                            "
 
-#: templates/privacy_policy.html:138
+#: templates/privacy_policy.html:139
 msgid "We do not sell your personal information."
 msgstr "हम आपकी व्यक्तिगत जानकारी नहीं बेचते हैं।"
 
-#: templates/privacy_policy.html:139
+#: templates/privacy_policy.html:140
 msgid ""
 "\n"
 "                            We only share data in limited circumstances:\n"
@@ -11043,11 +11453,11 @@ msgstr ""
 "                            हम केवल सीमित परिस्थितियों में डेटा साझा करते हैं:\n"
 "                            "
 
-#: templates/privacy_policy.html:145
+#: templates/privacy_policy.html:146
 msgid "Service Providers"
 msgstr "सेवा प्रदाता (Service Providers)"
 
-#: templates/privacy_policy.html:146
+#: templates/privacy_policy.html:147
 msgid ""
 "\n"
 "                                With trusted third-party vendors (e.g., "
@@ -11059,11 +11469,11 @@ msgstr ""
 "प्रदाता, ईमेल सेवाएं, एनालिटिक्स) के साथ जो हमारे संचालन में सहायता करते हैं।\n"
 "                                "
 
-#: templates/privacy_policy.html:151
+#: templates/privacy_policy.html:152
 msgid "Legal Compliance"
 msgstr "कानूनी अनुपालन (Legal Compliance)"
 
-#: templates/privacy_policy.html:152
+#: templates/privacy_policy.html:153
 msgid ""
 "\n"
 "                                If required by law, regulation, or legal "
@@ -11076,11 +11486,11 @@ msgstr ""
 "सुरक्षा की रक्षा के लिए कानून, विनियमन या कानूनी प्रक्रिया द्वारा आवश्यक हो।\n"
 "                                "
 
-#: templates/privacy_policy.html:157
+#: templates/privacy_policy.html:158
 msgid "Business Transfers"
 msgstr "व्यावसायिक स्थानांतरण"
 
-#: templates/privacy_policy.html:158
+#: templates/privacy_policy.html:159
 msgid ""
 "\n"
 "                                In connection with, or during negotiations "
@@ -11094,7 +11504,7 @@ msgstr ""
 "दौरान।\n"
 "                                "
 
-#: templates/privacy_policy.html:168
+#: templates/privacy_policy.html:169
 msgid ""
 "\n"
 "                            We implement appropriate technical and "
@@ -11106,7 +11516,7 @@ msgstr ""
 "संगठनात्मक उपाय लागू करते हैं।\n"
 "                            "
 
-#: templates/privacy_policy.html:174
+#: templates/privacy_policy.html:175
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11124,7 +11534,7 @@ msgstr ""
 "उपयोग पैटर्न का विश्लेषण करना।\n"
 "                                "
 
-#: templates/privacy_policy.html:179
+#: templates/privacy_policy.html:180
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11142,7 +11552,7 @@ msgstr ""
 "SSL)।\n"
 "                                "
 
-#: templates/privacy_policy.html:184
+#: templates/privacy_policy.html:185
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11152,7 +11562,7 @@ msgstr ""
 msgid ""
 "\n"
 "                                Payment processing is handled entirely by "
-"Razorpay — we never store your card numbers, UPI IDs, or banking "
+"Razorpay. We never store your card numbers, UPI IDs, or banking "
 "credentials.\n"
 "                                "
 msgstr ""
@@ -11160,7 +11570,7 @@ msgstr ""
 "                                अपने वित्तीय डेटा को प्रोसेस और विज़ुअलाइज़ करना।\n"
 "                                "
 
-#: templates/privacy_policy.html:189
+#: templates/privacy_policy.html:190
 msgid ""
 "\n"
 "                                Access controls to limit internal access to "
@@ -11172,11 +11582,7 @@ msgstr ""
 "पहुंच नियंत्रण (Access controls)।\n"
 "                                "
 
-#: templates/privacy_policy.html:195 templates/upload.html:25
-msgid "Note"
-msgstr "नोट"
-
-#: templates/privacy_policy.html:196
+#: templates/privacy_policy.html:197
 msgid ""
 "\n"
 "                            Your financial data (expenses, incomes, "
@@ -11187,58 +11593,52 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/privacy_policy.html:205
+#: templates/privacy_policy.html:206
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                            You have control over your personal "
+#| "information.\n"
+#| "                            "
 msgid ""
 "\n"
-"                            You have control over your personal "
-"information.\n"
+"                            In the event of a personal data breach, "
+"TrackMyRupee will:\n"
 "                            "
 msgstr ""
 "\n"
 "                            आपकी अपनी व्यक्तिगत जानकारी पर नियंत्रण है।\n"
 "                            "
 
-#: templates/privacy_policy.html:211
-msgid "Access & Correction"
-msgstr "पहुंच और सुधार"
-
 #: templates/privacy_policy.html:212
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Data is retained while your account "
+#| "remains active.\n"
+#| "                                "
 msgid ""
 "\n"
-"                                You can view and edit your profile and "
-"financial data directly within the application.\n"
+"                                Notify the Data Protection Board of India "
+"within 72 hours of becoming aware of the breach.\n"
 "                                "
 msgstr ""
 "\n"
-"                                आप सीधे एप्लिकेशन के भीतर अपनी प्रोफ़ाइल और वित्तीय "
-"डेटा देख और संपादित कर सकते हैं।\n"
+"                                जब तक आपका खाता सक्रिय रहता है, डेटा सुरक्षित रखा "
+"जाता है।\n"
 "                                "
 
 #: templates/privacy_policy.html:217
-msgid "Data Export"
-msgstr "डेटा निर्यात (Export)"
-
-#: templates/privacy_policy.html:218
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                You can request to delete your account "
+#| "and all associated data permanently.\n"
+#| "                                "
 msgid ""
 "\n"
-"                                You can export your data (e.g., to CSV/"
-"Excel) at any time.\n"
-"                                "
-msgstr ""
-"\n"
-"                                आप किसी भी समय अपना डेटा (जैसे, CSV/Excel में) "
-"निर्यात कर सकते हैं।\n"
-"                                "
-
-#: templates/privacy_policy.html:223
-msgid "Account Deletion"
-msgstr "खाता हटाना"
-
-#: templates/privacy_policy.html:224
-msgid ""
-"\n"
-"                                You can request to delete your account and "
-"all associated data permanently.\n"
+"                                Notify affected users by email within 72 "
+"hours describing what data was affected and what steps are being taken.\n"
 "                                "
 msgstr ""
 "\n"
@@ -11246,23 +11646,59 @@ msgstr ""
 "हटाने का अनुरोध कर सकते हैं।\n"
 "                                "
 
-#: templates/privacy_policy.html:229
-msgid "Communications"
-msgstr "संचार (Communications)"
-
-#: templates/privacy_policy.html:230
+#: templates/privacy_policy.html:222
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Data is retained while your account "
+#| "remains active.\n"
+#| "                                "
 msgid ""
 "\n"
-"                                You can manage your email preferences or "
-"unsubscribe from non-essential emails.\n"
+"                                Maintain an internal record of all breaches "
+"and our response actions.\n"
 "                                "
 msgstr ""
 "\n"
-"                                आप अपनी ईमेल प्राथमिकताओं को प्रबंधित कर सकते हैं या "
-"अनावश्यक ईमेल से अनसब्सक्राइब कर सकते हैं।\n"
+"                                जब तक आपका खाता सक्रिय रहता है, डेटा सुरक्षित रखा "
+"जाता है।\n"
 "                                "
 
-#: templates/privacy_policy.html:240
+#: templates/privacy_policy.html:232
+msgid ""
+"\n"
+"                            Under India's Digital Personal Data Protection "
+"Act 2023, you have the right to: (1) Access your personal data. (2) Correct "
+"inaccurate data. (3) Request erasure of your data. (4) Withdraw consent at "
+"any time by deleting your account from Settings -> My Data -> Delete "
+"Account. Withdrawal of consent will result in account termination as the "
+"service cannot be provided without processing your data. (5) File a "
+"complaint with the Data Protection Board of India at dpboard.gov.in.\n"
+"                            "
+msgstr ""
+
+#: templates/privacy_policy.html:237
+msgid "Note on Erasure Requests"
+msgstr ""
+
+#: templates/privacy_policy.html:238
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Process and visualize your financial "
+#| "data.\n"
+#| "                                "
+msgid ""
+"\n"
+"                            Payment records are retained for 5 years as "
+"required by Indian tax law and cannot be deleted on request.\n"
+"                            "
+msgstr ""
+"\n"
+"                                अपने वित्तीय डेटा को प्रोसेस और विज़ुअलाइज़ करना।\n"
+"                                "
+
+#: templates/privacy_policy.html:247
 msgid ""
 "\n"
 "                            We retain your information only as long as "
@@ -11274,11 +11710,11 @@ msgstr ""
 "कि हमारी सेवाएं प्रदान करने और कानूनी दायित्वों का पालन करने के लिए आवश्यक हो।\n"
 "                            "
 
-#: templates/privacy_policy.html:246
+#: templates/privacy_policy.html:253
 msgid "Active Accounts"
 msgstr "सक्रिय खाते"
 
-#: templates/privacy_policy.html:247
+#: templates/privacy_policy.html:254
 msgid ""
 "\n"
 "                                Data is retained while your account remains "
@@ -11290,11 +11726,11 @@ msgstr ""
 "जाता है।\n"
 "                                "
 
-#: templates/privacy_policy.html:252
+#: templates/privacy_policy.html:259
 msgid "Deleted Accounts"
 msgstr "हटाए गए खाते"
 
-#: templates/privacy_policy.html:253
+#: templates/privacy_policy.html:260
 msgid ""
 "\n"
 "                                If you delete your account, your personal "
@@ -11308,7 +11744,28 @@ msgstr ""
 "दी जाती है।\n"
 "                                "
 
-#: templates/privacy_policy.html:263
+#: templates/privacy_policy.html:265
+msgid "Exception for Payment Records"
+msgstr ""
+
+#: templates/privacy_policy.html:266
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Process and visualize your financial "
+#| "data.\n"
+#| "                                "
+msgid ""
+"\n"
+"                                Payment records are retained for 5 years as "
+"required by Indian tax law and cannot be deleted on request.\n"
+"                                "
+msgstr ""
+"\n"
+"                                अपने वित्तीय डेटा को प्रोसेस और विज़ुअलाइज़ करना।\n"
+"                                "
+
+#: templates/privacy_policy.html:276
 msgid ""
 "\n"
 "                            TrackMyRupee is not intended for children under "
@@ -11323,7 +11780,7 @@ msgstr ""
 "कम उम्र के बच्चे से व्यक्तिगत जानकारी एकत्र की है, तो हम उसे हटा देंगे।\n"
 "                            "
 
-#: templates/privacy_policy.html:273
+#: templates/privacy_policy.html:286
 msgid ""
 "\n"
 "                            We may update this privacy policy from time to "
@@ -11339,7 +11796,11 @@ msgstr ""
 "करेंगे। सेवा का आपका निरंतर उपयोग परिवर्तनों की स्वीकृति माना जाएगा।\n"
 "                            "
 
-#: templates/privacy_policy.html:283
+#: templates/privacy_policy.html:294
+msgid "10. Contact Us & Grievance Officer"
+msgstr ""
+
+#: templates/privacy_policy.html:296
 msgid ""
 "\n"
 "                            If you have questions about this privacy policy "
@@ -11351,7 +11812,30 @@ msgstr ""
 "कोई प्रश्न हैं, तो कृपया हमसे यहाँ संपर्क करें:\n"
 "                            "
 
-#: templates/refund_policy.html:8 templates/terms_of_service.html:126
+#: templates/privacy_policy.html:301
+msgid "Grievance Officer"
+msgstr ""
+
+#: templates/privacy_policy.html:303
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "                                Provide the TrackMyRupee dashboard, "
+#| "expense tracking, and financial reports.\n"
+#| "                                "
+msgid ""
+"\n"
+"                            Grievance Officer: Omkar Pathak, TrackMyRupee, "
+"Email: support@trackmyrupee.com. We will respond to all grievances within 30 "
+"days.\n"
+"                            "
+msgstr ""
+"\n"
+"                                TrackMyRupee डैशबोर्ड, खर्च ट्रैकिंग और वित्तीय "
+"रिपोर्ट प्रदान करना।\n"
+"                                "
+
+#: templates/refund_policy.html:8 templates/terms_of_service.html:132
 msgid "Refund and Cancellation Policy"
 msgstr "धनवापसी और रद्दीकरण नीति"
 
@@ -11650,8 +12134,8 @@ msgid ""
 "You are about to sign in using a third-party account from %(provider_name)s."
 msgstr ""
 
-#: templates/socialaccount/login.html:19
-msgid "Continue"
+#: templates/socialaccount/signup.html:9
+msgid "Sign Up"
 msgstr ""
 
 #: templates/socialaccount/signup.html:11
@@ -11679,47 +12163,47 @@ msgstr "2. सेवा का उपयोग"
 msgid "3. User Content & Data Ownership"
 msgstr "3. उपयोगकर्ता सामग्री (User Content)"
 
-#: templates/terms_of_service.html:23 templates/terms_of_service.html:75
+#: templates/terms_of_service.html:23 templates/terms_of_service.html:81
 msgid "4. Subscription Plans & Payments"
 msgstr ""
 
-#: templates/terms_of_service.html:24 templates/terms_of_service.html:116
+#: templates/terms_of_service.html:24 templates/terms_of_service.html:122
 #, fuzzy
 #| msgid "1. Cancellation Policy"
 msgid "5. Cancellations & Refunds"
 msgstr "1. रद्दीकरण नीति"
 
-#: templates/terms_of_service.html:25 templates/terms_of_service.html:131
+#: templates/terms_of_service.html:25 templates/terms_of_service.html:137
 msgid "6. Intellectual Property"
 msgstr ""
 
-#: templates/terms_of_service.html:26 templates/terms_of_service.html:145
+#: templates/terms_of_service.html:26 templates/terms_of_service.html:151
 #, fuzzy
 #| msgid "Account Deletion"
 msgid "7. Account Termination"
 msgstr "खाता हटाना"
 
-#: templates/terms_of_service.html:27 templates/terms_of_service.html:164
+#: templates/terms_of_service.html:27 templates/terms_of_service.html:170
 msgid "8. Service Availability"
 msgstr ""
 
-#: templates/terms_of_service.html:28 templates/terms_of_service.html:178
+#: templates/terms_of_service.html:28 templates/terms_of_service.html:184
 #, fuzzy
 #| msgid "4. Limitation of Liability and Disclaimer"
 msgid "9. Limitation of Liability"
 msgstr "4. दायित्व की सीमा और अस्वीकरण"
 
-#: templates/terms_of_service.html:29 templates/terms_of_service.html:202
+#: templates/terms_of_service.html:29 templates/terms_of_service.html:208
 msgid "10. Governing Law & Dispute Resolution"
 msgstr ""
 
-#: templates/terms_of_service.html:30 templates/terms_of_service.html:221
+#: templates/terms_of_service.html:30 templates/terms_of_service.html:227
 #, fuzzy
 #| msgid "5. Changes to Terms"
 msgid "11. Changes to Terms"
 msgstr "5. शर्तों में परिवर्तन"
 
-#: templates/terms_of_service.html:31 templates/terms_of_service.html:230
+#: templates/terms_of_service.html:31 templates/terms_of_service.html:236
 #, fuzzy
 #| msgid "Contact Support"
 msgid "12. Contact Us"
@@ -11830,7 +12314,17 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/terms_of_service.html:77
+#: templates/terms_of_service.html:73
+msgid ""
+"\n"
+"                            Your rights regarding your personal data are "
+"governed by India's Digital Personal Data Protection (DPDP) Act 2023. For "
+"details on how to exercise your rights (such as access, correction, erasure, "
+"and consent withdrawal), please refer to Section 6 of our\n"
+"                            "
+msgstr "आपके व्यक्तिगत डेटा से संबंधित अधिकार भारत के डिजिटल व्यक्तिगत डेटा संरक्षण (DPDP) अधिनियम 2023 द्वारा शासित होते हैं। अपने अधिकारों (जैसे पहुंच, सुधार, मिटाना और सहमति वापस लेना) का प्रयोग करने के विवरण के लिए, कृपया हमारे"
+
+#: templates/terms_of_service.html:83
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11848,13 +12342,13 @@ msgstr ""
 "संगठनात्मक उपाय लागू करते हैं।\n"
 "                            "
 
-#: templates/terms_of_service.html:83
+#: templates/terms_of_service.html:89
 #, fuzzy
 #| msgid "Free"
 msgid "Free Tier"
 msgstr "मुफ्त"
 
-#: templates/terms_of_service.html:84
+#: templates/terms_of_service.html:90
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11872,11 +12366,11 @@ msgstr ""
 "करना।\n"
 "                                "
 
-#: templates/terms_of_service.html:89
+#: templates/terms_of_service.html:95
 msgid "Paid Plans"
 msgstr ""
 
-#: templates/terms_of_service.html:90
+#: templates/terms_of_service.html:96
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11895,13 +12389,13 @@ msgstr ""
 "और इंटरैक्शन लॉग, जो हमें सेवा को बेहतर बनाने में मदद करते हैं।\n"
 "                                "
 
-#: templates/terms_of_service.html:95
+#: templates/terms_of_service.html:101
 #, fuzzy
 #| msgid "3. Refund Processing"
 msgid "Payment Processing"
 msgstr "3. धनवापसी प्रक्रिया"
 
-#: templates/terms_of_service.html:96
+#: templates/terms_of_service.html:102
 msgid ""
 "\n"
 "                                All payments are securely processed by "
@@ -11911,11 +12405,11 @@ msgid ""
 "                                "
 msgstr ""
 
-#: templates/terms_of_service.html:101
+#: templates/terms_of_service.html:107
 msgid "Billing Cycle"
 msgstr ""
 
-#: templates/terms_of_service.html:102
+#: templates/terms_of_service.html:108
 msgid ""
 "\n"
 "                                Subscriptions are billed at the start of "
@@ -11924,11 +12418,11 @@ msgid ""
 "                                "
 msgstr ""
 
-#: templates/terms_of_service.html:107
+#: templates/terms_of_service.html:113
 msgid "Downgrade on Expiry"
 msgstr ""
 
-#: templates/terms_of_service.html:108
+#: templates/terms_of_service.html:114
 msgid ""
 "\n"
 "                                If a paid subscription expires and is not "
@@ -11938,7 +12432,7 @@ msgid ""
 "                                "
 msgstr ""
 
-#: templates/terms_of_service.html:118
+#: templates/terms_of_service.html:124
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11958,7 +12452,7 @@ msgstr ""
 "सक्रिय रहेगी। आपसे अगले चक्र के लिए शुल्क नहीं लिया जाएगा।\n"
 "                        "
 
-#: templates/terms_of_service.html:123
+#: templates/terms_of_service.html:129
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -11976,7 +12470,7 @@ msgstr ""
 "अलर्ट।\n"
 "                                "
 
-#: templates/terms_of_service.html:133
+#: templates/terms_of_service.html:139
 msgid ""
 "\n"
 "                            The Service, its original content (excluding "
@@ -11987,7 +12481,7 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/terms_of_service.html:138
+#: templates/terms_of_service.html:144
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12004,7 +12498,7 @@ msgstr ""
 "                            आपकी अपनी व्यक्तिगत जानकारी पर नियंत्रण है।\n"
 "                            "
 
-#: templates/terms_of_service.html:147
+#: templates/terms_of_service.html:153
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12022,20 +12516,20 @@ msgstr ""
 "के मामलों में धनवापसी से इनकार करने का अधिकार सुरक्षित रखते हैं।\n"
 "                        "
 
-#: templates/terms_of_service.html:152
+#: templates/terms_of_service.html:158
 msgid "You have violated these Terms of Service."
 msgstr ""
 
-#: templates/terms_of_service.html:153
+#: templates/terms_of_service.html:159
 msgid ""
 "Your account is being used for fraudulent, abusive, or illegal activity."
 msgstr ""
 
-#: templates/terms_of_service.html:154
+#: templates/terms_of_service.html:160
 msgid "You have created multiple accounts to circumvent feature limits."
 msgstr ""
 
-#: templates/terms_of_service.html:157
+#: templates/terms_of_service.html:163
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12054,7 +12548,7 @@ msgstr ""
 "हटाने का अनुरोध कर सकते हैं।\n"
 "                                "
 
-#: templates/terms_of_service.html:166
+#: templates/terms_of_service.html:172
 msgid ""
 "\n"
 "                            We strive to keep TrackMyRupee available at all "
@@ -12064,7 +12558,7 @@ msgid ""
 "                            "
 msgstr ""
 
-#: templates/terms_of_service.html:171
+#: templates/terms_of_service.html:177
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12084,7 +12578,7 @@ msgstr ""
 "उत्तरदायी नहीं हैं।\n"
 "                            "
 
-#: templates/terms_of_service.html:180
+#: templates/terms_of_service.html:186
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12105,7 +12599,7 @@ msgstr ""
 "या उपलब्धता के संबंध में कोई वारंटी नहीं देता है।\n"
 "                        "
 
-#: templates/terms_of_service.html:186
+#: templates/terms_of_service.html:192
 msgid ""
 "\n"
 "                            We are not liable for any data loss, service "
@@ -12119,7 +12613,7 @@ msgstr ""
 "उत्तरदायी नहीं हैं।\n"
 "                            "
 
-#: templates/terms_of_service.html:190
+#: templates/terms_of_service.html:196
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12142,7 +12636,7 @@ msgstr ""
 "डेटा, उपयोग, सद्भावना (goodwill), या अन्य अमूर्त नुकसान शामिल हैं।\n"
 "                        "
 
-#: templates/terms_of_service.html:195
+#: templates/terms_of_service.html:201
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12161,7 +12655,7 @@ msgstr ""
 "डेटा देख और संपादित कर सकते हैं।\n"
 "                                "
 
-#: templates/terms_of_service.html:204
+#: templates/terms_of_service.html:210
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12180,7 +12674,7 @@ msgstr ""
 "कि हमारी सेवाएं प्रदान करने और कानूनी दायित्वों का पालन करने के लिए आवश्यक हो।\n"
 "                            "
 
-#: templates/terms_of_service.html:209
+#: templates/terms_of_service.html:215
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12201,7 +12695,7 @@ msgstr ""
 "उत्तरदायी नहीं हैं।\n"
 "                            "
 
-#: templates/terms_of_service.html:214
+#: templates/terms_of_service.html:220
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12220,7 +12714,7 @@ msgstr ""
 "के लिए एकत्र की गई जानकारी का उपयोग करते हैं।\n"
 "                            "
 
-#: templates/terms_of_service.html:223
+#: templates/terms_of_service.html:229
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12244,7 +12738,7 @@ msgstr ""
 "नोटिस प्रदान करने का प्रयास करेंगे।\n"
 "                        "
 
-#: templates/terms_of_service.html:232
+#: templates/terms_of_service.html:238
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -12394,6 +12888,73 @@ msgstr "अपलोड और प्रोसेस करें"
 msgid "Supported formats: .xlsx, .xls, .csv"
 msgstr "समर्थित फॉर्मेट: .xlsx, .xls"
 
+#~ msgid ""
+#~ "Turn financial chaos into clarity. TrackMyRupee gives you a precision "
+#~ "dashboard to visualize your spending, spot trends, and master your "
+#~ "monthly budget."
+#~ msgstr ""
+#~ "वित्तीय अराजकता को स्पष्टता में बदलें। TrackMyRupee आपको अपने खर्च की कल्पना करने, "
+#~ "रुझानों को पहचानने और अपने मासिक बजट में महारत हासिल करने के लिए एक सटीक डैशबोर्ड "
+#~ "देता है।"
+
+#, fuzzy
+#~| msgid ""
+#~| "\n"
+#~| "                                Regular backups and security "
+#~| "assessments.\n"
+#~| "                                "
+#~ msgid ""
+#~ "\n"
+#~ "                                Your username, email address, and "
+#~ "password (securely hashed — never stored in plain text).\n"
+#~ "                                "
+#~ msgstr ""
+#~ "\n"
+#~ "                                नियमित बैकअप और सुरक्षा मूल्यांकन।\n"
+#~ "                                "
+
+#~ msgid "Access & Correction"
+#~ msgstr "पहुंच और सुधार"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                You can view and edit your profile and "
+#~ "financial data directly within the application.\n"
+#~ "                                "
+#~ msgstr ""
+#~ "\n"
+#~ "                                आप सीधे एप्लिकेशन के भीतर अपनी प्रोफ़ाइल और "
+#~ "वित्तीय डेटा देख और संपादित कर सकते हैं।\n"
+#~ "                                "
+
+#~ msgid "Data Export"
+#~ msgstr "डेटा निर्यात (Export)"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                You can export your data (e.g., to CSV/"
+#~ "Excel) at any time.\n"
+#~ "                                "
+#~ msgstr ""
+#~ "\n"
+#~ "                                आप किसी भी समय अपना डेटा (जैसे, CSV/Excel में) "
+#~ "निर्यात कर सकते हैं।\n"
+#~ "                                "
+
+#~ msgid "Communications"
+#~ msgstr "संचार (Communications)"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                You can manage your email preferences or "
+#~ "unsubscribe from non-essential emails.\n"
+#~ "                                "
+#~ msgstr ""
+#~ "\n"
+#~ "                                आप अपनी ईमेल प्राथमिकताओं को प्रबंधित कर सकते हैं "
+#~ "या अनावश्यक ईमेल से अनसब्सक्राइब कर सकते हैं।\n"
+#~ "                                "
+
 #, fuzzy
 #~| msgid "Last updated: January 24, 2026"
 #~ msgid "Last updated: February 22, 2026"
@@ -12419,9 +12980,6 @@ msgstr "समर्थित फॉर्मेट: .xlsx, .xls"
 
 #~ msgid "lower"
 #~ msgstr "कम"
-
-#~ msgid "than last month"
-#~ msgstr "पिछले महीने की तुलना में"
 
 #, fuzzy
 #~| msgid "Set Budget"
@@ -12604,9 +13162,6 @@ msgstr "समर्थित फॉर्मेट: .xlsx, .xls"
 
 #~ msgid "No categories to display"
 #~ msgstr "प्रदर्शित करने के लिए कोई श्रेणी नहीं"
-
-#~ msgid "No expense data available"
-#~ msgstr "कोई व्यय डेटा उपलब्ध नहीं"
 
 #, fuzzy
 #~ msgid "Preferred Language"

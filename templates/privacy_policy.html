@@ -28,6 +28,7 @@
                             <li><a href="#section-3" class="text-decoration-none">{% trans "3. Cookies & Tracking Technologies" %}</a></li>
                             <li><a href="#section-4" class="text-decoration-none">{% trans "4. Information Sharing" %}</a></li>
                             <li><a href="#section-5" class="text-decoration-none">{% trans "5. Data Security" %}</a></li>
+                            <li><a href="#section-5a" class="text-decoration-none">{% trans "5a. Data Breach Notification" %}</a></li>
                             <li><a href="#section-6" class="text-decoration-none">{% trans "6. Your Rights Under DPDP Act 2023" %}</a></li>
                             <li><a href="#section-7" class="text-decoration-none">{% trans "7. Data Retention" %}</a></li>
                             <li><a href="#section-8" class="text-decoration-none">{% trans "8. Children's Privacy" %}</a></li>
@@ -199,11 +200,37 @@
                         </p>
                     </div>
 
+                    <div id="section-5a" class="mb-5">
+                        <h3 class="h4 fw-bold mb-3">{% trans "5a. Data Breach Notification" %}</h3>
+                        <p class="text-muted">
+                            {% blocktrans %}
+                            In the event of a personal data breach, TrackMyRupee will:
+                            {% endblocktrans %}
+                        </p>
+                        <ul class="text-muted">
+                            <li class="mb-2">
+                                {% blocktrans %}
+                                Notify the Data Protection Board of India within 72 hours of becoming aware of the breach.
+                                {% endblocktrans %}
+                            </li>
+                            <li class="mb-2">
+                                {% blocktrans %}
+                                Notify affected users by email within 72 hours describing what data was affected and what steps are being taken.
+                                {% endblocktrans %}
+                            </li>
+                            <li class="mb-2">
+                                {% blocktrans %}
+                                Maintain an internal record of all breaches and our response actions.
+                                {% endblocktrans %}
+                            </li>
+                        </ul>
+                    </div>
+
                     <div id="section-6" class="mb-5">
                         <h3 class="h4 fw-bold mb-3">{% trans "6. Your Rights Under DPDP Act 2023" %}</h3>
                         <p class="text-muted">
                             {% blocktrans %}
-                            Under India's Digital Personal Data Protection Act 2023, you have the right to: (1) Access your personal data. (2) Correct inaccurate data. (3) Request erasure of your data. (4) Withdraw consent at any time. (5) File a complaint with the Data Protection Board of India at dpboard.gov.in.
+                            Under India's Digital Personal Data Protection Act 2023, you have the right to: (1) Access your personal data. (2) Correct inaccurate data. (3) Request erasure of your data. (4) Withdraw consent at any time by deleting your account from Settings -> My Data -> Delete Account. Withdrawal of consent will result in account termination as the service cannot be provided without processing your data. (5) File a complaint with the Data Protection Board of India at dpboard.gov.in.
                             {% endblocktrans %}
                         </p>
                         <p class="text-muted small">

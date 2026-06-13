@@ -324,7 +324,7 @@ COMMON_HI = {
     "You've saved %(savings)s so far. Keep it up!": "आपने अब तक %(savings)s बचाए हैं। इसे जारी रखें!",
     "Fresh Start": "नई शुरुआत",
     "Small steps today lead to big results tomorrow. Let's track some expenses!": "आज के छोटे कदम कल बड़े परिणाम लाते हैं। आइए कुछ खर्च ट्रैक करें!",
-    "Turn financial chaos into clarity. TrackMyRupee gives you a precision dashboard to visualize your spending, spot trends, and master your monthly budget.": "वित्तीय अराजकता को स्पष्टता में बदलें। TrackMyRupee आपको अपने खर्च की कल्पना करने, रुझानों को पहचानने और अपने मासिक बजट में महारत हासिल करने के लिए एक सटीक डैशबोर्ड देता है।",
+    "A privacy-first personal finance system for Indian salaried professionals. Built by a founder in Pune, India.": "भारतीय वेतनभोगी पेशेवरों के लिए एक गोपनीयता-प्रथम व्यक्तिगत वित्त प्रणाली। पुणे, भारत में एक संस्थापक द्वारा निर्मित।",
     "Simple, Transparent Pricing": "सरल, पारदर्शी मूल्य निर्धारण",
     "Choose the plan that fits your financial goals": "वह योजना चुनें जो आपके वित्तीय लक्ष्यों के अनुकूल हो",
     "Start for free, upgrade when you need more power. No hidden fees.": "मुफ्त में शुरू करें, अधिक शक्ति की आवश्यकता होने पर अपग्रेड करें। कोई छुपा हुआ शुल्क नहीं।",
@@ -672,7 +672,7 @@ COMMON_MR = {
     "You've saved %(savings)s so far. Keep it up!": "तुम्ही आतापर्यंत %(savings)s वाचवले आहेत. असेच चालू ठेवा!",
     "Fresh Start": "नवीन सुरुवात",
     "Small steps today lead to big results tomorrow. Let's track some expenses!": "आजची छोटी पावले उद्या मोठे परिणाम आणतात. चला काही खर्च ट्रॅक करूया!",
-    "Turn financial chaos into clarity. TrackMyRupee gives you a precision dashboard to visualize your spending, spot trends, and master your monthly budget.": "आर्थिक गोंधळाचे स्पष्टतेमध्ये रूपांतर करा. तुमचा खर्च पाहण्यासाठी, ट्रेंड ओळखण्यासाठी आणि तुमच्या मासिक बजेटवर प्रभुत्व मिळवण्यासाठी TrackMyRupee तुम्हाला एक अचूक डॅशबोर्ड देते।",
+    "A privacy-first personal finance system for Indian salaried professionals. Built by a founder in Pune, India.": "भारतीय पगारदार व्यावसायिकांसाठी एक गोपनीयता-प्रथम वैयक्तिक वित्त प्रणाली. पुणे, भारत येथील एका संस्थापकाद्वारे निर्मित.",
     "Simple, Transparent Pricing": "सोपी, पारदर्शक किंमत",
     "Choose the plan that fits your financial goals": "तुमच्या आर्थिक उद्दिष्टांशी जुळणारा प्लॅन निवडा",
     "Start for free, upgrade when you need more power. No hidden fees.": "विनामूल्य प्रारंभ करा, आपल्याला अधिक वैशिष्ट्यांची आवश्यकता असल्यास अपग्रेड करा. कोणतेही छुपे शुल्क नाही.",
@@ -722,18 +722,22 @@ COMMON_MR = {
     "South Korean Won (₩)": "दक्षिण कोरियन वॉन (₩)",
 }
 
-COMPLEX_FOOTER_MSGID = 'msgid ""\n"Turn financial chaos into clarity. TrackMyRupee gives you a precision "\n"dashboard to visualize your spending, spot trends, and master your monthly "\n"budget."'
+COMPLEX_NEW_TAGLINE_MSGID = 'msgid ""\n"A privacy-first personal finance system for Indian salaried professionals. "\n"Built by a founder in Pune, India."'
 
 COMPLEX_EXPENSE_MSGID = 'msgid ""\n"<span class=\\"fw-bold text-body-emphasis\\">%(currency_symbol)s%(expense)s</"\n"span> of %(currency_symbol)s%(income)s used"'
 
+COMPLEX_TOS_DPDP_MSGID = 'msgid ""\n"\\n"\n"                            Your rights regarding your personal data are "\n"governed by India\'s Digital Personal Data Protection (DPDP) Act 2023. For "\n"details on how to exercise your rights (such as access, correction, erasure, "\n"and consent withdrawal), please refer to Section 6 of our\\n"\n"                            "'
+
 if __name__ == "__main__":
     COMPLEX_HI = {
-        COMPLEX_FOOTER_MSGID: "वित्तीय अराजकता को स्पष्टता में बदलें। TrackMyRupee आपको अपने खर्च की कल्पना करने, रुझानों को पहचानने और अपने मासिक बजट में महारत हासिल करने के लिए एक सटीक डैशबोर्ड देता है।",
-        COMPLEX_EXPENSE_MSGID: '<span class=\\"fw-bold text-body-emphasis\\">%(currency_symbol)s%(expense)s</span> %(currency_symbol)s%(income)s में से उपयोग किया गया'
+        COMPLEX_NEW_TAGLINE_MSGID: "भारतीय वेतनभोगी पेशेवरों के लिए एक गोपनीयता-प्रथम व्यक्तिगत वित्त प्रणाली। पुणे, भारत में एक संस्थापक द्वारा निर्मित।",
+        COMPLEX_EXPENSE_MSGID: '<span class=\\"fw-bold text-body-emphasis\\">%(currency_symbol)s%(expense)s</span> %(currency_symbol)s%(income)s में से उपयोग किया गया',
+        COMPLEX_TOS_DPDP_MSGID: "आपके व्यक्तिगत डेटा से संबंधित अधिकार भारत के डिजिटल व्यक्तिगत डेटा संरक्षण (DPDP) अधिनियम 2023 द्वारा शासित होते हैं। अपने अधिकारों (जैसे पहुंच, सुधार, मिटाना और सहमति वापस लेना) का प्रयोग करने के विवरण के लिए, कृपया हमारे"
     }
     COMPLEX_MR = {
-        COMPLEX_FOOTER_MSGID: "आर्थिक गोंधळाला स्पष्टतेमध्ये बदला. TrackMyRupee तुम्हाला तुमचे खर्च पाहण्यासाठी, कल ओळखण्यासाठी आणि तुमच्या मासिक बजेटवर प्रभुत्व मिळवण्यासाठी एक अचूक डॅशबोर्ड देते।",
-        COMPLEX_EXPENSE_MSGID: '<span class=\\"fw-bold text-body-emphasis\\">%(currency_symbol)s%(expense)s</span> %(currency_symbol)s%(income)s पैकी वापरले'
+        COMPLEX_NEW_TAGLINE_MSGID: "भारतीय पगारदार व्यावसायिकांसाठी एक गोपनीयता-प्रथम वैयक्तिक वित्त प्रणाली. पुणे, भारत येथील एका संस्थापकाद्वारे निर्मित.",
+        COMPLEX_EXPENSE_MSGID: '<span class=\\"fw-bold text-body-emphasis\\">%(currency_symbol)s%(expense)s</span> %(currency_symbol)s%(income)s पैकी वापरले',
+        COMPLEX_TOS_DPDP_MSGID: "तुमच्या वैयक्तिक डेटाशी संबंधित अधिकार भारताच्या डिजिटल वैयक्तिक डेटा संरक्षण (DPDP) कायदा 2023 द्वारे नियंत्रित केले जातात. तुमच्या अधिकारांचा (जसे की प्रवेश, सुधारणा, मिटवणे आणि संमती मागे घेणे) वापर कसा करावा याच्या तपशिलांसाठी, कृपया आमच्या"
     }
 
     update_po_file('locale/hi/LC_MESSAGES/django.po', COMMON_HI, COMPLEX_HI)
