@@ -1,6 +1,221 @@
 {% load currency_filters i18n digit_filters humanize %}
 
 <div id="daily-mode-view" class="daily-mode-container" style="display: none;">
+  <!-- CSS Styles for Trends & Predictions Widgets -->
+  <style>
+    /* Trends Grid Layout */
+    .trends-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    @media (min-width: 768px) {
+        .trends-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+    }
+    
+    /* Trend Card Design */
+    .trend-card {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid var(--bs-border-color, rgba(0,0,0,0.08));
+        border-radius: 1rem;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .trend-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    }
+    
+    [data-bs-theme="dark"] .trend-card {
+        background: var(--bs-tertiary-bg, #212529);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+    [data-bs-theme="dark"] .trend-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Trend Card Header */
+    .trend-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-bottom: 0.75rem;
+    }
+    .trend-icon-safe {
+        color: #0f9f75;
+    }
+    .trend-icon-runway {
+        color: #3b82f6;
+    }
+    .trend-icon-velocity {
+        color: #65a30d;
+    }
+    [data-bs-theme="dark"] .trend-icon-velocity.text-success {
+        color: #10b981;
+    }
+    [data-bs-theme="dark"] .trend-icon-velocity.text-danger {
+        color: #ef4444;
+    }
+    
+    /* Value */
+    .trend-card-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--bs-body-color, #212529);
+        line-height: 1.2;
+        margin-bottom: 0.35rem;
+    }
+    [data-bs-theme="dark"] .trend-card-value {
+        color: #f8f9fa;
+    }
+    .trend-card-value.text-success {
+        color: #0f9f75 !important;
+    }
+    [data-bs-theme="dark"] .trend-card-value.text-success {
+        color: #10b981 !important;
+    }
+    .trend-card-value.text-danger {
+        color: #dc3545 !important;
+    }
+    [data-bs-theme="dark"] .trend-card-value.text-danger {
+        color: #ef4444 !important;
+    }
+    
+    /* Subtext */
+    .trend-card-subtext {
+        font-size: 0.8rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-bottom: 1rem;
+        min-height: 1.2rem;
+    }
+    
+    /* Divider */
+    .trend-card-divider {
+        border: 0;
+        border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.08));
+        margin: 0 0 1rem 0;
+        opacity: 1;
+    }
+    [data-bs-theme="dark"] .trend-card-divider {
+        border-top-color: rgba(255, 255, 255, 0.06);
+    }
+    
+    /* Footer */
+    .trend-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: auto;
+    }
+    .trend-footer-value {
+        font-weight: 600;
+        color: var(--bs-body-color, #212529);
+    }
+    [data-bs-theme="dark"] .trend-footer-value {
+        color: #f8f9fa;
+    }
+    
+    .trend-badge {
+        padding: 0.35em 0.75em;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+    }
+  </style>
+
+  <!-- Trends & Predictions Section -->
+  <div class="mb-4 fade-in">
+    <div class="trends-predictions-header text-uppercase text-body-secondary fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 0.08em;">
+      {% trans "Trends & Predictions" %} — {{ daily_mode.today|date:"F Y"|upper }}
+    </div>
+    
+    <div class="trends-grid">
+      <!-- Card 1: Safe to Spend Today -->
+      <div class="trend-card">
+        <div class="trend-card-header">
+          <i class="bi bi-bullseye trend-icon-safe"></i>
+          <span>{% trans "Safe to spend today" %}</span>
+        </div>
+        <div class="trend-card-value text-success">
+          {{ currency_symbol }}{{ daily_mode.safe_to_spend|ind_comma:currency_symbol|translate_digits }}
+        </div>
+        <div class="trend-card-subtext">
+          {% trans "After rent, SIPs & subscriptions" %}
+        </div>
+        <hr class="trend-card-divider">
+        <div class="trend-card-footer">
+          <span class="trend-footer-label">{% trans "Raw burn rate" %}</span>
+          <span class="trend-footer-value">{{ currency_symbol }}{{ daily_mode.avg_daily_spend|ind_comma:currency_symbol|translate_digits }}/{% trans "day" %}</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Salary Runway -->
+      <div class="trend-card">
+        <div class="trend-card-header">
+          <i class="bi bi-calendar-event trend-icon-runway"></i>
+          <span>{% trans "Salary runway" %}</span>
+        </div>
+        <div class="trend-card-value">
+          {{ daily_mode.runway.days_left|translate_digits }} {% trans "days left" %}
+        </div>
+        <div class="trend-card-subtext">
+          {{ currency_symbol }}{{ daily_mode.runway.remaining_in_cycle|ind_comma:currency_symbol|translate_digits }} {% trans "remaining in cycle" %}
+        </div>
+        <hr class="trend-card-divider">
+        <div class="trend-card-footer align-items-center">
+          {% if daily_mode.runway.status == 'running_short' %}
+            <span class="badge trend-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-10">{% trans "Running short" %}</span>
+          {% else %}
+            <span class="badge trend-badge bg-success bg-opacity-10 text-success border border-success border-opacity-10">{% trans "On track" %}</span>
+          {% endif %}
+          <span class="trend-footer-value">{% trans "At current pace: day" %} {{ daily_mode.runway.runs_out_day|translate_digits }}</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Net Worth Velocity -->
+      <div class="trend-card">
+        <div class="trend-card-header">
+          <i class="bi bi-graph-up-arrow trend-icon-velocity {% if daily_mode.velocity.is_positive %}text-success{% else %}text-danger{% endif %}"></i>
+          <span>{% trans "Net worth velocity" %}</span>
+        </div>
+        <div class="trend-card-value {% if daily_mode.velocity.is_positive %}text-success{% else %}text-danger{% endif %}">
+          {{ daily_mode.velocity.formatted }}
+        </div>
+        <div class="trend-card-subtext">
+          {% if daily_mode.velocity.months_to_hit %}
+            {% if daily_mode.velocity.target_name %}
+              {% blocktrans with target=daily_mode.velocity.target_formatted months=daily_mode.velocity.months_to_hit goal_name=daily_mode.velocity.target_name %}Hit {{ target }} for {{ goal_name }} in ~{{ months }} months{% endblocktrans %}
+            {% else %}
+              {% blocktrans with target=daily_mode.velocity.target_formatted months=daily_mode.velocity.months_to_hit %}Hit {{ target }} in ~{{ months }} months{% endblocktrans %}
+            {% endif %}
+          {% else %}
+            {% if daily_mode.velocity.is_positive %}
+              {% trans "Milestones achieved!" %}
+            {% else %}
+              {% trans "No progress (negative velocity)" %}
+            {% endif %}
+          {% endif %}
+        </div>
+        <hr class="trend-card-divider">
+        <div class="trend-card-footer">
+          <span class="trend-footer-label">{% trans "Current net worth" %}</span>
+          <span class="trend-footer-value">{{ currency_symbol }}{{ daily_mode.net_worth_compact }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="daily-mode-grid">
     <!-- LEFT COLUMN — Main Content -->
     <div class="daily-left-col">

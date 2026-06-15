@@ -30,6 +30,7 @@ from ..models import (
     UserProfile,
 )
 from ..services import FinancialService, LoanService, SalaryAnalysisService
+from ..daily_predictions_service import DailyPredictionsService
 from ..templatetags.digit_filters import compact_amount
 from ..utils import (
     format_indian_number,
@@ -2267,6 +2268,20 @@ def home_view(request):
         and daily_budget_status != 'over'
     )
 
+    predictions_ctx = DailyPredictionsService.get_predictions_context(
+        user=request.user,
+        today=today,
+        net_worth=net_worth,
+        avg_monthly_savings=avg_monthly_savings,
+        total_monthly_budget=total_monthly_budget,
+        month_spent_so_far=month_spent_so_far,
+        days_in_current_month=days_in_current_month,
+        currency_symbol=currency_symbol,
+        salary_cycle_active=salary_cycle_active,
+        salary_cycle_start=salary_cycle_start,
+        salary_cycle_end=salary_cycle_end
+    )
+
     context['daily_mode'] = {
         'today': today,
         'today_expenses': today_expenses_list,
@@ -2291,6 +2306,7 @@ def home_view(request):
         'avg_daily_spend': round(Decimal(str(avg_daily_spend_month)), 0),
         'month_transaction_count': month_transaction_count,
         'total_monthly_budget': round(Decimal(str(total_monthly_budget)), 0),
+        **predictions_ctx
     }
     return render(request, 'home.html', context)
 
