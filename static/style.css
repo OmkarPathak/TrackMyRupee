@@ -1106,6 +1106,10 @@ a:hover {
     color: var(--bs-primary-text-emphasis);
 }
 
+[data-bs-theme="dark"] .dropdown-item:hover {
+    color: #fff !important;
+}
+
 /* Accent Text Utility */
 .text-gradient-primary {
   color: #1D9E75 !important;
