@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 
 from .models import (
     Account,
+    CapitalEvent,
     Category,
     DeletionRequestAuditLog,
     EmailLog,
@@ -231,3 +232,12 @@ class DeletionRequestAuditLogAdmin(admin.ModelAdmin):
     readonly_fields = ('username', 'email', 'requested_at')
     ordering = ('-requested_at',)
 
+
+@admin.register(CapitalEvent)
+class CapitalEventAdmin(admin.ModelAdmin):
+    list_display = ('date', 'get_subtype_display', 'amount', 'currency', 'linked_loan', 'exclude_from_averages', 'exclude_from_budget', 'user')
+    list_select_related = ('user', 'account', 'linked_loan')
+    list_filter = ('subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth', 'date')
+    search_fields = ('note', 'user__username')
+    ordering = ('-date',)
+    raw_id_fields = ('linked_loan',)

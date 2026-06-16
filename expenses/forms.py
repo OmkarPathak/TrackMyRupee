@@ -14,6 +14,7 @@ from finance_tracker.plans import get_limit
 
 from .models import (
     Account,
+    CapitalEvent,
     Category,
     Expense,
     GoalContribution,
@@ -753,3 +754,41 @@ class LoanRepaymentForm(forms.ModelForm):
         return cleaned_data
 
 
+
+class CapitalEventForm(forms.ModelForm):
+    class Meta:
+        model = CapitalEvent
+        fields = [
+            'date', 'amount', 'currency', 'account', 'subtype',
+            'linked_loan', 'note',
+            'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth',
+        ]
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'currency': forms.Select(attrs={'class': 'form-select'}),
+            'account': forms.Select(attrs={'class': 'form-select'}),
+            'subtype': forms.Select(attrs={'class': 'form-select', 'id': 'id_subtype'}),
+            'linked_loan': forms.Select(attrs={'class': 'form-select', 'id': 'id_linked_loan'}),
+            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'exclude_from_averages': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'exclude_from_budget': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'include_in_net_worth': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.fields['date'].initial = date.today
+        if user:
+            self.fields['currency'].initial = user.profile.currency
+            self.fields['account'].queryset = Account.objects.filter(user=user, is_active=True).order_by('name')
+            self.fields['linked_loan'].queryset = Loan.objects.filter(user=user, is_active=True).order_by('name')
+            self.fields['linked_loan'].required = False
+            self.fields['linked_loan'].empty_label = _('— No linked loan —')
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is not None and amount <= 0:
+            raise forms.ValidationError(_("Amount must be greater than zero."))
+        return amount

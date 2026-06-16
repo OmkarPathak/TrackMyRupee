@@ -137,5 +137,12 @@ urlpatterns = [
 
     # Sentry Debug
     path('sentry-debug/', lambda request: 1 / 0),
+    # Capital Events
+    path('capital-events/', views.CapitalEventListView.as_view(), name='capital-event-list'),
+    path('capital-events/add/', views.CapitalEventCreateView.as_view(), name='capital-event-create'),
+    path('capital-events/<int:pk>/edit/', views.CapitalEventUpdateView.as_view(), name='capital-event-edit'),
+    path('capital-events/<int:pk>/delete/', views.CapitalEventDeleteView.as_view(), name='capital-event-delete'),
+    path('capital-events/<int:pk>/convert-to-expense/', views.CapitalEventConvertToExpenseView.as_view(), name='capital-event-convert'),
+    path('api/capital-events/loans/', views.capital_event_loans_ajax, name='capital-event-loans-ajax'),
 ]
 

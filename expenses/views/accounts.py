@@ -19,7 +19,7 @@ from finance_tracker.plans import get_limit
 
 from ..forms import AccountForm, TransferForm
 from ..ledger_read_service import LedgerReadService
-from ..models import Account, Expense, GoalContribution, Income, LoanRepayment, Transfer, _run_ledger_shadow
+from ..models import Account, Expense, GoalContribution, Income, LoanRepayment, Transfer, _run_ledger_shadow, CapitalEvent
 from ..utils import get_exchange_rate
 from .mixins import RecurringTransactionMixin
 
@@ -363,6 +363,7 @@ class AccountDetailView(LoginRequiredMixin, View):
         transfers_to = Transfer.objects.filter(user=request.user, to_account=account).select_related('from_account')
         contributions = GoalContribution.objects.filter(goal__user=request.user, account=account).select_related('goal')
         loan_repayments = LoanRepayment.objects.filter(loan__user=request.user, from_account=account).select_related('loan')
+        capital_events = CapitalEvent.objects.filter(user=request.user, account=account).select_related('linked_loan')
 
         if query:
             expenses = expenses.filter(Q(description__icontains=query) | Q(category__icontains=query))
@@ -371,9 +372,11 @@ class AccountDetailView(LoginRequiredMixin, View):
             transfers_to = transfers_to.filter(Q(description__icontains=query))
             contributions = contributions.filter(Q(goal__name__icontains=query))
             loan_repayments = loan_repayments.filter(Q(loan__name__icontains=query))
+            capital_events = capital_events.filter(Q(note__icontains=query) | Q(subtype__icontains=query))
 
         expenses = expenses.order_by('-date')
         incomes = incomes.order_by('-date')
+        capital_events = capital_events.order_by('-date')
         
         base_currency = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
         
@@ -425,7 +428,17 @@ class AccountDetailView(LoginRequiredMixin, View):
             else:
                 loan_total += lr.amount
 
-        filtered_net_total = inc_total + in_total - exp_total - out_total - sav_total - loan_total
+        # Capital events are in the event's currency
+        cap_total = Decimal('0.00')
+        for ce in capital_events:
+            if ce.include_in_net_worth:
+                if ce.currency != account.currency:
+                    rate = get_exchange_rate(ce.currency, account.currency)
+                    cap_total += (ce.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    cap_total += ce.amount
+
+        filtered_net_total = inc_total + in_total - exp_total - out_total - sav_total - loan_total - cap_total
 
         # Combine everything and sort by date descending
         # We'll add 'transaction_type', 'display_currency', and 'base_amount_display' to each for the template
@@ -476,8 +489,14 @@ class AccountDetailView(LoginRequiredMixin, View):
                 lr.base_amount_display = None
             lr.description = _("Loan Repayment: %(loan)s") % {'loan': lr.loan.name}
 
+        for ce in capital_events:
+            ce.transaction_type = 'CAPITAL_EVENT'
+            ce.display_currency = ce.currency
+            ce.base_amount_display = ce.base_amount if ce.currency != account.currency else None
+            ce.description = ce.note if ce.note else ce.get_subtype_display()
+
         ledger = sorted(
-            chain(expenses, incomes, transfers_from, transfers_to, contributions, loan_repayments),
+            chain(expenses, incomes, transfers_from, transfers_to, contributions, loan_repayments, capital_events),
             key=lambda x: x.date,
             reverse=True
         )
@@ -578,6 +597,7 @@ class AccountDetailView(LoginRequiredMixin, View):
         transfers_in = Transfer.objects.filter(user=user, to_account=account).select_related('from_account')
         contributions = GoalContribution.objects.filter(goal__user=user, account=account).select_related('goal')
         loan_repayments = LoanRepayment.objects.filter(loan__user=user, from_account=account).select_related('loan')
+        capital_events = CapitalEvent.objects.filter(user=user, account=account, include_in_net_worth=True)
         
         if start_date:
             expenses = expenses.filter(date__gte=start_date)
@@ -586,6 +606,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             transfers_in = transfers_in.filter(date__gte=start_date)
             contributions = contributions.filter(date__gte=start_date)
             loan_repayments = loan_repayments.filter(date__gte=start_date)
+            capital_events = capital_events.filter(date__gte=start_date)
             
         # For simplicity, we'll manually handle the currency conversion logic in Python 
         # because doing it in SQL with exchange rates is complex and might be slow for few records.
@@ -629,6 +650,13 @@ class AccountDetailView(LoginRequiredMixin, View):
                 rate = get_exchange_rate(lr.loan.currency, account.currency)
                 amt = (amt * rate).quantize(Decimal('0.01'))
             all_tx.append({'date': lr.date, 'net_amount': -amt})
+
+        for ce in capital_events.values('date', 'amount', 'currency'):
+            amt = ce['amount']
+            if ce['currency'] != account.currency:
+                rate = get_exchange_rate(ce['currency'], account.currency)
+                amt = (amt * rate).quantize(Decimal('0.01'))
+            all_tx.append({'date': ce['date'], 'net_amount': -amt})
             
         # Return as a simple list of dicts
         # Sort it if needed, but the grouping logic handles it

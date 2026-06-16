@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from .models import (
     Account,
+    CapitalEvent,
     Expense,
     GoalContribution,
     Income,
@@ -928,6 +929,152 @@ class LedgerPostingService:
             metadata={"shadow_action": "DELETE_REVERSE", "version": version_token},
         )
 
+
+    # ------------------------------------------------------------------ #
+    #  Capital Event ledger helpers                                        #
+    # ------------------------------------------------------------------ #
+
+    @classmethod
+    def _get_or_create_capital_event_ledger(cls, user, subtype, currency):
+        normalized = cls._normalize_code(subtype or "OTHER")
+        code = f"USR:{user.id}:EXPENSE:CAPITAL_EVENT:{normalized}"
+        defaults = {
+            "user": user,
+            "name": f"Capital Event - {subtype or 'Other'}",
+            "account_type": "EXPENSE",
+            "currency": currency,
+            "is_active": True,
+        }
+        ledger_account, _ = LedgerAccount.objects.get_or_create(code=code, defaults=defaults)
+        return ledger_account
+
+    @classmethod
+    def post_capital_event(cls, *, event, idempotency_key, metadata=None):
+        user = event.user
+        if event.account is None:
+            raise ValidationError("Capital event must be linked to an account for ledger posting.")
+        capital_ledger = cls._get_or_create_capital_event_ledger(user, event.subtype, event.currency)
+        asset_ledger = cls._get_or_create_account_ledger(user, event.account)
+        lines = [
+            cls._build_line(
+                entry=None,
+                ledger_account=capital_ledger,
+                direction="DEBIT",
+                amount=event.amount,
+                currency=event.currency,
+                user=user,
+            ),
+            cls._build_line(
+                entry=None,
+                ledger_account=asset_ledger,
+                direction="CREDIT",
+                amount=event.amount,
+                currency=event.currency,
+                user=user,
+                account_ref=event.account,
+            ),
+        ]
+        return cls._create_entry(
+            user=user,
+            source_type="CAPITAL_EVENT",
+            source_id=event.id,
+            idempotency_key=idempotency_key,
+            description=event.note or event.get_subtype_display(),
+            metadata=metadata,
+            lines=lines,
+        )
+
+    @classmethod
+    def _post_capital_event_reversal(cls, *, event, idempotency_key, metadata=None):
+        user = event.user
+        if event.account is None:
+            return None, False
+        capital_ledger = cls._get_or_create_capital_event_ledger(user, event.subtype, event.currency)
+        asset_ledger = cls._get_or_create_account_ledger(user, event.account)
+        lines = [
+            cls._build_line(
+                entry=None,
+                ledger_account=asset_ledger,
+                direction="DEBIT",
+                amount=event.amount,
+                currency=event.currency,
+                user=user,
+                account_ref=event.account,
+            ),
+            cls._build_line(
+                entry=None,
+                ledger_account=capital_ledger,
+                direction="CREDIT",
+                amount=event.amount,
+                currency=event.currency,
+                user=user,
+            ),
+        ]
+        return cls._create_entry(
+            user=user,
+            source_type="CAPITAL_EVENT",
+            source_id=event.id,
+            idempotency_key=idempotency_key,
+            description=f"Reversal: {event.note or event.get_subtype_display()}",
+            metadata=metadata,
+            lines=lines,
+            status="POSTED",
+        )
+
+    @classmethod
+    def shadow_post_capital_event_create(cls, *, event, version_token):
+        if not cls._has_fk(event, "account"):
+            return None, False
+        return cls.post_capital_event(
+            event=event,
+            idempotency_key=cls._idempotency_key("CAPITAL_EVENT", event.id, f"{version_token}-POST"),
+            metadata={"shadow_action": "CREATE", "version": version_token},
+        )
+
+    @classmethod
+    def shadow_post_capital_event_update(cls, *, event, previous_event, version_token):
+        cls._post_capital_event_reversal(
+            event=previous_event,
+            idempotency_key=cls._idempotency_key("CAPITAL_EVENT", event.id, f"{version_token}-REV"),
+            metadata={"shadow_action": "UPDATE_REVERSE", "version": version_token},
+        )
+        if not cls._has_fk(event, "account"):
+            return None, False
+        return cls.post_capital_event(
+            event=event,
+            idempotency_key=cls._idempotency_key("CAPITAL_EVENT", event.id, f"{version_token}-POST"),
+            metadata={"shadow_action": "UPDATE_POST", "version": version_token},
+        )
+
+    @classmethod
+    def shadow_post_capital_event_delete(cls, *, event, version_token):
+        return cls._post_capital_event_reversal(
+            event=event,
+            idempotency_key=cls._idempotency_key("CAPITAL_EVENT", event.id, f"{version_token}-REV"),
+            metadata={"shadow_action": "DELETE_REVERSE", "version": version_token},
+        )
+
+    @staticmethod
+    def _capital_event_like(data):
+        from django.contrib.auth.models import User as _User
+        user = _User.objects.get(pk=data["user_id"])
+        account = Account.objects.filter(pk=data.get("account_id")).first() if data.get("account_id") else None
+        linked_loan = Loan.objects.filter(pk=data.get("linked_loan_id")).first() if data.get("linked_loan_id") else None
+        subtype = data.get("subtype", "other")
+        subtype_map = dict(CapitalEvent.SUBTYPE_CHOICES)
+        obj = SimpleNamespace(
+            id=data["source_id"],
+            user=user,
+            amount=Decimal(data["amount"]),
+            currency=data["currency"],
+            subtype=subtype,
+            note=data.get("note", ""),
+            account=account,
+            linked_loan=linked_loan,
+        )
+        obj.get_subtype_display = lambda: subtype_map.get(subtype, subtype)
+        return obj
+
     @staticmethod
     def _expense_like(data):
         user = Expense._meta.get_field("user").remote_field.model.objects.get(pk=data["user_id"])
@@ -1075,6 +1222,21 @@ class LedgerPostingService:
         if handler == "goal_contribution_delete":
             contribution = cls._goal_contribution_like(payload["goal_contribution"])
             cls.shadow_post_goal_contribution_delete(contribution=contribution, version_token=version_token)
+            return
+
+
+        if handler == "capital_event_create":
+            event = cls._capital_event_like(payload["capital_event"])
+            cls.shadow_post_capital_event_create(event=event, version_token=version_token)
+            return
+        if handler == "capital_event_update":
+            event = cls._capital_event_like(payload["capital_event"])
+            previous = cls._capital_event_like(payload.get("previous_capital_event") or payload["capital_event"])
+            cls.shadow_post_capital_event_update(event=event, previous_event=previous, version_token=version_token)
+            return
+        if handler == "capital_event_delete":
+            event = cls._capital_event_like(payload["capital_event"])
+            cls.shadow_post_capital_event_delete(event=event, version_token=version_token)
             return
 
         raise ValidationError(f"Unsupported retry handler: {handler}")

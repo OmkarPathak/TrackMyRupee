@@ -1334,6 +1334,87 @@
             }
         });
     }
+
+    // ---- Large Expense Smart Prompt ----
+    // If user types an amount above the threshold, show a non-blocking suggestion
+    // to log it as a Capital Event instead.
+    (function initLargeExpensePrompt() {
+        const THRESHOLD = 100000; // ₹1,00,000 — matches configurable default in requirements
+        const PROMPT_ID = 'capital-event-prompt-banner';
+
+        function removeBanner() {
+            const el = document.getElementById(PROMPT_ID);
+            if (el) el.remove();
+        }
+
+        function showBanner(amount, amountInput) {
+            if (document.getElementById(PROMPT_ID)) return; // already shown
+            const banner = document.createElement('div');
+            banner.id = PROMPT_ID;
+            banner.className = 'alert alert-warning border-warning rounded-3 d-flex align-items-start gap-3 mt-2 fade-in';
+            banner.setAttribute('role', 'alert');
+            banner.style.animation = 'none';
+
+            const formattedAmount = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+            banner.innerHTML = `
+                <i class="bi bi-flag-fill text-warning flex-shrink-0 mt-1"></i>
+                <div class="flex-grow-1">
+                    <strong>{% trans "Large payment detected" %}</strong>
+                    <p class="mb-2 small">{% trans "This looks like a large one-time payment. Logging it as a Capital Event will keep your monthly trends and averages accurate." %}</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a id="${PROMPT_ID}-convert"
+                           class="btn btn-sm btn-warning rounded-3 fw-semibold">
+                           <i class="bi bi-flag me-1"></i>{% trans "Log as Capital Event" %}
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-3" onclick="document.getElementById('${PROMPT_ID}').remove()">
+                            {% trans "Keep as Expense" %}
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn-close ms-auto" onclick="document.getElementById('${PROMPT_ID}').remove()" aria-label="Close"></button>
+            `;
+
+            // Update the convert link with current amount
+            const convertLink = banner.querySelector(`#${PROMPT_ID}-convert`);
+            function updateConvertHref() {
+                const val = parseFloat(amountInput.value) || 0;
+                convertLink.href = "{% url 'capital-event-create' %}?amount=" + val;
+            }
+            updateConvertHref();
+            amountInput.addEventListener('input', updateConvertHref);
+
+            // Insert below the amount input
+            const parent = amountInput.closest('.mb-3') || amountInput.parentElement;
+            parent.insertAdjacentElement('afterend', banner);
+        }
+
+        // Attach to all amount inputs (multi-row bulk form + single form)
+        function attachToInput(input) {
+            let timer;
+            input.addEventListener('input', function () {
+                clearTimeout(timer);
+                const val = parseFloat(this.value) || 0;
+                if (val >= THRESHOLD) {
+                    timer = setTimeout(() => showBanner(val, input), 600);
+                } else {
+                    removeBanner();
+                }
+            });
+        }
+
+        document.querySelectorAll('.expense-amount-input').forEach(attachToInput);
+
+        // Also watch for dynamically added rows in bulk-add forms
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(m => m.addedNodes.forEach(node => {
+                if (node.nodeType === 1) {
+                    node.querySelectorAll && node.querySelectorAll('.expense-amount-input').forEach(attachToInput);
+                }
+            }));
+        });
+        const formContainer = document.getElementById('expense-rows-container') || document.querySelector('form');
+        if (formContainer) observer.observe(formContainer, { childList: true, subtree: true });
+    })();
 </script>
 {% endblock %}
 
