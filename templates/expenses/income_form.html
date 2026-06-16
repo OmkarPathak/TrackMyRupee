@@ -65,6 +65,9 @@
                         <div class="col-12 mb-3">
                             <label for="{{ form.source.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.source.label }}</label>
                             {{ form.source }}
+                            <div class="form-text small">
+                                {% trans "For generic cashback credited to bank/card, use source: Cashback and select the credited account." %}
+                            </div>
                             {% if form.source.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.source.errors.0 }}

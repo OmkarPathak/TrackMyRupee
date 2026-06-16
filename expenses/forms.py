@@ -155,7 +155,7 @@ class IncomeForm(forms.ModelForm):
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
-            'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Salary, Freelance')}),
+            'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Salary, Freelance, Cashback')}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
     
