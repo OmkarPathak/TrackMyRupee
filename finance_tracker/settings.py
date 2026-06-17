@@ -60,7 +60,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
     'ALLOWED_HOSTS',
-    'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'
+    'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1,192.168.1.251'
 ).split(',') if host.strip()]
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com,https://django-finance-tracker-fr1u.onrender.com').split(',')
