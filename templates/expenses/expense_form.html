@@ -1119,6 +1119,7 @@
                     // Fill fields
                     if (amountInput && result.amount) {
                         amountInput.value = result.amount;
+                        amountInput.dispatchEvent(new Event('input', { bubbles: true }));
                         amountInput.classList.add('parse-highlight');
                         setTimeout(() => amountInput.classList.remove('parse-highlight'), 1500);
                     }
@@ -1339,49 +1340,79 @@
     // If user types an amount above the threshold, show a non-blocking suggestion
     // to log it as a Capital Event instead.
     (function initLargeExpensePrompt() {
-        const THRESHOLD = 100000; // ₹1,00,000 — matches configurable default in requirements
-        const PROMPT_ID = 'capital-event-prompt-banner';
+        const THRESHOLD = 30000; // ₹1,00,000 — matches configurable default in requirements
 
-        function removeBanner() {
-            const el = document.getElementById(PROMPT_ID);
+        function removeBanner(amountInput) {
+            const promptId = 'capital-prompt-' + (amountInput.id || Math.random().toString(36).substr(2, 9));
+            if (!amountInput.dataset.promptId) return;
+            const el = document.getElementById(amountInput.dataset.promptId);
             if (el) el.remove();
         }
 
         function showBanner(amount, amountInput) {
-            if (document.getElementById(PROMPT_ID)) return; // already shown
+            if (amountInput.dataset.promptDismissed === 'true') return;
+            
+            let promptId = amountInput.dataset.promptId;
+            if (!promptId) {
+                promptId = 'capital-prompt-' + (amountInput.id || Math.random().toString(36).substr(2, 9));
+                amountInput.dataset.promptId = promptId;
+            }
+            
+            if (document.getElementById(promptId)) return; // already shown
+            
             const banner = document.createElement('div');
-            banner.id = PROMPT_ID;
-            banner.className = 'alert alert-warning border-warning rounded-3 d-flex align-items-start gap-3 mt-2 fade-in';
+            banner.id = promptId;
+            banner.className = 'p-3 rounded-3 d-flex align-items-start gap-3 mt-3 mb-2';
+            banner.style.backgroundColor = 'rgba(29, 158, 117, 0.1)';
+            banner.style.border = '1px solid rgba(29, 158, 117, 0.2)';
             banner.setAttribute('role', 'alert');
-            banner.style.animation = 'none';
 
             const formattedAmount = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
             banner.innerHTML = `
-                <i class="bi bi-flag-fill text-warning flex-shrink-0 mt-1"></i>
+                <i class="bi bi-flag-fill flex-shrink-0 mt-1" style="color: #1D9E75; font-size: 1.2rem;"></i>
                 <div class="flex-grow-1">
                     <strong>{% trans "Large payment detected" %}</strong>
                     <p class="mb-2 small">{% trans "This looks like a large one-time payment. Logging it as a Capital Event will keep your monthly trends and averages accurate." %}</p>
                     <div class="d-flex flex-wrap gap-2">
-                        <a id="${PROMPT_ID}-convert"
-                           class="btn btn-sm btn-warning rounded-3 fw-semibold">
+                        <a class="btn btn-sm btn-primary text-white rounded-3 fw-semibold prompt-convert-btn">
                            <i class="bi bi-flag me-1"></i>{% trans "Log as Capital Event" %}
                         </a>
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-3" onclick="document.getElementById('${PROMPT_ID}').remove()">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 prompt-dismiss-btn">
                             {% trans "Keep as Expense" %}
                         </button>
                     </div>
                 </div>
-                <button type="button" class="btn-close ms-auto" onclick="document.getElementById('${PROMPT_ID}').remove()" aria-label="Close"></button>
+                <button type="button" class="btn-close ms-auto prompt-dismiss-btn" aria-label="Close"></button>
             `;
 
+            // Setup dismiss buttons
+            banner.querySelectorAll('.prompt-dismiss-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    banner.remove();
+                    amountInput.dataset.promptDismissed = 'true';
+                });
+            });
+
             // Update the convert link with current amount
-            const convertLink = banner.querySelector(`#${PROMPT_ID}-convert`);
+            const convertLink = banner.querySelector('.prompt-convert-btn');
             function updateConvertHref() {
                 const val = parseFloat(amountInput.value) || 0;
                 convertLink.href = "{% url 'capital-event-create' %}?amount=" + val;
             }
             updateConvertHref();
-            amountInput.addEventListener('input', updateConvertHref);
+            
+            // We don't need to add another input listener here, 
+            // since the main input listener will call showBanner again if value is >= THRESHOLD,
+            // but since the banner already exists, it would just return early.
+            // Wait, we DO need to update the href if the amount changes and the banner is STILL showing.
+            const hrefUpdater = () => {
+                if (document.getElementById(promptId)) {
+                    updateConvertHref();
+                } else {
+                    amountInput.removeEventListener('input', hrefUpdater);
+                }
+            };
+            amountInput.addEventListener('input', hrefUpdater);
 
             // Insert below the amount input
             const parent = amountInput.closest('.mb-3') || amountInput.parentElement;
@@ -1390,16 +1421,27 @@
 
         // Attach to all amount inputs (multi-row bulk form + single form)
         function attachToInput(input) {
+            if (input.dataset.largeExpensePromptAttached) return;
+            input.dataset.largeExpensePromptAttached = 'true';
+            
             let timer;
-            input.addEventListener('input', function () {
+            function checkValue() {
                 clearTimeout(timer);
-                const val = parseFloat(this.value) || 0;
+                const val = parseFloat(input.value) || 0;
                 if (val >= THRESHOLD) {
                     timer = setTimeout(() => showBanner(val, input), 600);
                 } else {
-                    removeBanner();
+                    removeBanner(input);
                 }
-            });
+            }
+            
+            input.addEventListener('input', checkValue);
+            input.addEventListener('change', checkValue);
+            
+            // Check initial value
+            if (input.value) {
+                checkValue();
+            }
         }
 
         document.querySelectorAll('.expense-amount-input').forEach(attachToInput);
@@ -1408,7 +1450,11 @@
         const observer = new MutationObserver(mutations => {
             mutations.forEach(m => m.addedNodes.forEach(node => {
                 if (node.nodeType === 1) {
-                    node.querySelectorAll && node.querySelectorAll('.expense-amount-input').forEach(attachToInput);
+                    if (node.classList && node.classList.contains('expense-amount-input')) {
+                        attachToInput(node);
+                    }
+                    const inputs = node.querySelectorAll ? node.querySelectorAll('.expense-amount-input') : [];
+                    inputs.forEach(attachToInput);
                 }
             }));
         });

@@ -56,6 +56,12 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
                 }
             except Expense.DoesNotExist:
                 pass
+        
+        if 'amount' in request.GET:
+            initial['amount'] = request.GET.get('amount')
+        if 'subtype' in request.GET:
+            initial['subtype'] = request.GET.get('subtype')
+
         form = CapitalEventForm(initial=initial, user=request.user)
         return render(request, self.template_name, {
             'form': form,
