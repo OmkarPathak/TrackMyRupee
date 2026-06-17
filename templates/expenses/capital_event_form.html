@@ -20,15 +20,19 @@
 
     <!-- What is a Capital Event? explainer -->
     {% if not event %}
-    <div class="alert alert-info border-0 rounded-4 mb-4 d-flex gap-3 align-items-start" role="alert">
-        <i class="bi bi-info-circle-fill fs-5 mt-1 flex-shrink-0"></i>
-        <div>
-            <strong>{% trans "What is a Capital Event?" %}</strong>
-            {% blocktrans %}
-            A Capital Event is a large, one-off payment (like a home loan down payment, a lump-sum medical bill, or a big purchase)
-            that you don't want distorting your regular monthly spending charts and averages.
-            It will still appear in your cash flow and net worth calculations.
-            {% endblocktrans %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="alert alert-info border-0 rounded-4 mb-4 d-flex gap-3 align-items-start" role="alert">
+                <i class="bi bi-info-circle-fill fs-5 mt-1 flex-shrink-0"></i>
+                <div>
+                    <strong>{% trans "What is a Capital Event?" %}</strong>
+                    {% blocktrans %}
+                    A Capital Event is a large, one-off payment (like a home loan down payment, a lump-sum medical bill, or a big purchase)
+                    that you don't want distorting your regular monthly spending charts and averages.
+                    It will still appear in your cash flow and net worth calculations.
+                    {% endblocktrans %}
+                </div>
+            </div>
         </div>
     </div>
     {% endif %}
