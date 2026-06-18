@@ -336,8 +336,10 @@
                                         </div>
                                         {% if event.linked_loan %}
                                         <div>
-                                            <span class="text-primary small" style="font-size: 0.7rem;">
-                                                <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name|truncatechars:30 }}
+                                            <span class="text-primary" style="font-size: 0.7rem;">
+                                                <a href="{% url 'loan-detail' event.linked_loan.pk %}">
+                                                    <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name }}
+                                                </a>
                                             </span>
                                         </div>
                                         {% endif %}
