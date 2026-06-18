@@ -146,7 +146,7 @@
                         <i class="bi bi-list-ul"></i>
                     </button>
                     <button class="view-toggle-btn" id="mobileGridToggle" title="{% trans 'Card View' %}">
-                        <i class="bi bi-grid-fill" style="font-size: 0.85rem;"></i>
+                        <i class="bi bi-grid" style="font-size: 0.85rem;"></i>
                     </button>
                 </div>
                 <a href="{% url 'capital-event-create' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
@@ -310,11 +310,11 @@
                                     <div class="category-icon-container" title="{{ event.get_subtype_display }}">
                                         <i class="bi
                                             {% if event.subtype == 'loan_down_payment' or event.subtype == 'loan_prepayment' %}bi-bank
-                                            {% elif event.subtype == 'large_purchase' %}bi-cart-fill
-                                            {% elif event.subtype == 'medical_lump_sum' %}bi-heart-pulse-fill
-                                            {% elif event.subtype == 'gift_given' or event.subtype == 'gift_received' %}bi-gift-fill
+                                            {% elif event.subtype == 'large_purchase' %}bi-cart
+                                            {% elif event.subtype == 'medical_lump_sum' %}bi-heart-pulse
+                                            {% elif event.subtype == 'gift_given' or event.subtype == 'gift_received' %}bi-gift
                                             {% elif event.subtype == 'investment_lump_sum' %}bi-graph-up-arrow
-                                            {% else %}bi-flag-fill{% endif %}
+                                            {% else %}bi-flag{% endif %}
                                         "></i>
                                     </div>
 
@@ -418,11 +418,11 @@
                                 <div class="category-icon-container" title="{{ event.get_subtype_display }}">
                                     <i class="bi
                                         {% if event.subtype == 'loan_down_payment' or event.subtype == 'loan_prepayment' %}bi-bank
-                                        {% elif event.subtype == 'large_purchase' %}bi-cart-fill
-                                        {% elif event.subtype == 'medical_lump_sum' %}bi-heart-pulse-fill
-                                        {% elif event.subtype == 'gift_given' or event.subtype == 'gift_received' %}bi-gift-fill
+                                        {% elif event.subtype == 'large_purchase' %}bi-cart
+                                        {% elif event.subtype == 'medical_lump_sum' %}bi-heart-pulse
+                                        {% elif event.subtype == 'gift_given' or event.subtype == 'gift_received' %}bi-gift
                                         {% elif event.subtype == 'investment_lump_sum' %}bi-graph-up-arrow
-                                        {% else %}bi-flag-fill{% endif %}
+                                        {% else %}bi-flag{% endif %}
                                     "></i>
                                 </div>
 

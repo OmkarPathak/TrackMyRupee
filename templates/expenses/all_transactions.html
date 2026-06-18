@@ -304,6 +304,14 @@
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                         {% if tx.type == 'EXPENSE' %}
                                             <li><a class="dropdown-item py-2" href="{% url 'expense-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
+                                            <li>
+                                                <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                        <i class="bi bi-flag me-2"></i>{% trans "Convert to Capital Event" %}
+                                                    </button>
+                                                </form>
+                                            </li>
                                             <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'expense-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this expense?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                         {% elif tx.type == 'INCOME' %}
                                             <li><a class="dropdown-item py-2" href="{% url 'income-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
@@ -363,6 +371,14 @@
                                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                                     {% if tx.type == 'EXPENSE' %}
                                                         <li><a class="dropdown-item py-2" href="{% url 'expense-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
+                                                        <li>
+                                                            <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="dropdown-item py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                                    <i class="bi bi-flag me-2"></i>{% trans "Convert to Capital Event" %}
+                                                                </button>
+                                                            </form>
+                                                        </li>
                                                         <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'expense-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this expense?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                                     {% elif tx.type == 'INCOME' %}
                                                         <li><a class="dropdown-item py-2" href="{% url 'income-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
@@ -429,6 +445,14 @@
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                             {% if tx.type == 'EXPENSE' %}
                                                 <li><a class="dropdown-item py-2" href="{% url 'expense-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
+                                                <li>
+                                                    <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="dropdown-item py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                            <i class="bi bi-flag me-2"></i>{% trans "Convert to Capital Event" %}
+                                                        </button>
+                                                    </form>
+                                                </li>
                                                 <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'expense-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this expense?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                             {% elif tx.type == 'INCOME' %}
                                                 <li><a class="dropdown-item py-2" href="{% url 'income-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>

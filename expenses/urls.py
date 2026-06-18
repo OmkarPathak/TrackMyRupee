@@ -26,6 +26,7 @@ urlpatterns = [
     path('expenses/bulk-delete/', views.ExpenseBulkDeleteView.as_view(), name='expense-bulk-delete'),
     path('expenses/bulk-edit/', views.ExpenseBulkUpdateView.as_view(), name='expense-bulk-edit'),
     path('expenses/<int:pk>/delete/', views.ExpenseDeleteView.as_view(), name='expense-delete'),
+    path('expenses/<int:pk>/convert-to-capital-event/', views.ExpenseConvertToCapitalEventView.as_view(), name='expense-convert'),
     path('category/create/ajax/', views.create_category_ajax, name='category-create-ajax'),
     path('category/list/', views.CategoryListView.as_view(), name='category-list'),
     path('category/add/', views.CategoryCreateView.as_view(), name='category-create'),
