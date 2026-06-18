@@ -8,6 +8,7 @@ from django.db.models import Sum
 
 from expenses.models import (
     Account,
+    CapitalEvent,
     Category,
     Expense,
     GoalContribution,
@@ -483,5 +484,46 @@ class Command(BaseCommand):
         )
 
         self.stdout.write(self.style.SUCCESS('Created Complex Recurring Transactions'))
+
+        # 9. Capital Events
+        # Adding some sample capital events but excluding them from net worth to keep current logic stable.
+        CapitalEvent.objects.create(
+            user=user,
+            amount=Decimal('500000.00'),
+            date=today - timedelta(days=240),
+            subtype='loan_down_payment',
+            note='Home Loan Down Payment',
+            account=acc_main,
+            linked_loan=home_loan,
+            exclude_from_averages=True,
+            exclude_from_budget=True,
+            include_in_net_worth=False
+        )
+
+        CapitalEvent.objects.create(
+            user=user,
+            amount=Decimal('85000.00'),
+            date=today - timedelta(days=60),
+            subtype='medical_lump_sum',
+            note='Dad\'s Surgery Out-of-pocket',
+            account=acc_savings,
+            exclude_from_averages=True,
+            exclude_from_budget=True,
+            include_in_net_worth=False
+        )
+
+        CapitalEvent.objects.create(
+            user=user,
+            amount=Decimal('150000.00'),
+            date=today - timedelta(days=10),
+            subtype='investment_lump_sum',
+            note='Lump Sum in Parag Parikh Flexi Cap',
+            account=acc_invest,
+            exclude_from_averages=True,
+            exclude_from_budget=True,
+            include_in_net_worth=False
+        )
+        
+        self.stdout.write(self.style.SUCCESS('Created Capital Events (Excluded from Net Worth)'))
 
         self.stdout.write(self.style.SUCCESS('--- DEMO SETUP COMPLETE ---'))
