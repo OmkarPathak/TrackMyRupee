@@ -930,6 +930,15 @@
                                             </a>
                                         </li>
                                         <li>
+                                            <form method="post" action="{% url 'expense-convert' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                    <i class="bi bi-flag"></i>
+                                                    <span>{% trans "Convert to Capital Event" %}</span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
                                             <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button" 
                                                     data-bs-toggle="modal" data-bs-target="#deleteModal" 
                                                     data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
@@ -1016,6 +1025,15 @@
                                                     <i class="bi bi-pencil-square text-primary"></i>
                                                     <span>{% trans "Edit" %}</span>
                                                 </a>
+                                            </li>
+                                            <li>
+                                                <form method="post" action="{% url 'expense-convert' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                        <i class="bi bi-flag"></i>
+                                                        <span>{% trans "Convert to Capital Event" %}</span>
+                                                    </button>
+                                                </form>
                                             </li>
                                             <li>
                                                 <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button" 
@@ -1107,6 +1125,15 @@
                                                 <i class="bi bi-pencil-square text-primary"></i>
                                                 <span>{% trans "Edit" %}</span>
                                             </a>
+                                        </li>
+                                        <li>
+                                            <form method="post" action="{% url 'expense-convert' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                    <i class="bi bi-flag"></i>
+                                                    <span>{% trans "Convert to Capital Event" %}</span>
+                                                </button>
+                                            </form>
                                         </li>
                                         <li>
                                             <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button"

@@ -422,6 +422,10 @@
                 <span>{% trans "Loans (Plus/Pro)" %}</span>
             </a>
             {% endif %}
+            <a href="{% url 'capital-event-list' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-gem text-info"></i>
+                <span>{% trans "Capital Events" %}</span>
+            </a>
             <a href="{% url 'recurring-list' %}" class="list-group-item list-group-item-action">
                 <i class="bi bi-arrow-repeat text-primary"></i>
                 <span>{% trans "Subscriptions" %}</span>

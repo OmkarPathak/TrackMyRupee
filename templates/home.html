@@ -784,6 +784,9 @@
 </script>
 
 <!-- FINANCIAL INTELLIGENCE HUB -->
+
+
+
 <div class="accordion mb-4" id="insightsAccordion">
     <div class="accordion-item border-0 rounded-4 overflow-hidden">
         <h2 class="accordion-header d-none" id="headingInsights">
@@ -2463,6 +2466,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {{ proj_forecast|json_script:"proj-forecast" }}
 {{ net_worth_trend|json_script:"net-worth-trend" }}
 {{ net_worth_labels|json_script:"net-worth-labels" }}
+{{ capital_event_annotations|json_script:"capital-event-annotations" }}
 
 <script>
 
@@ -3000,6 +3004,95 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+
+    // --- Capital Event Annotations on trend chart ---
+    (function renderCapitalEventMarkers() {
+        const annotationsRaw = document.getElementById('capital-event-annotations');
+        if (!annotationsRaw) return;
+        let annotations;
+        try { annotations = JSON.parse(annotationsRaw.textContent); } catch(e) { return; }
+        if (!annotations || annotations.length === 0) return;
+
+        const trendCanvas = document.getElementById('trendChart');
+        if (!trendCanvas) return;
+
+        const container = trendCanvas.parentElement;
+        // Build a date->xPct map from trendLabels vs trendIsoDates
+        const trendIsoDates = JSON.parse(document.getElementById('trend-iso-dates').textContent || '[]');
+        if (!trendIsoDates.length) return;
+
+        // Overlay a transparent absolutely-positioned div for markers
+        if (!container.style.position || container.style.position === 'static') {
+            container.style.position = 'relative';
+        }
+
+        function drawMarkers() {
+            // Remove old markers
+            container.querySelectorAll('.capital-event-marker').forEach(el => el.remove());
+            if (!charts.trend) return;
+
+            const chartArea = charts.trend.chartArea;
+            if (!chartArea) return;
+            const canvasRect = trendCanvas.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+
+            annotations.forEach(ann => {
+                const idx = trendIsoDates.indexOf(ann.date);
+                if (idx === -1) return;
+
+                // Calculate x position using Chart.js scale
+                const xScale = charts.trend.scales.x;
+                const x = xScale.getPixelForIndex(idx);
+
+                // Create marker line
+                const marker = document.createElement('div');
+                marker.className = 'capital-event-marker';
+                marker.style.cssText = `
+                    position:absolute;
+                    left:${x}px;
+                    top:${chartArea.top}px;
+                    height:${chartArea.bottom - chartArea.top}px;
+                    width:2px;
+                    background: repeating-linear-gradient(to bottom, #f59e0b 0px, #f59e0b 6px, transparent 6px, transparent 10px);
+                    pointer-events: none;
+                    transform: translateX(-1px);
+                `;
+
+                // Flag icon at top
+                const flag = document.createElement('div');
+                flag.title = ann.subtype + (ann.note ? ': ' + ann.note : '') + ' (' + ann.currency + ann.amount.toLocaleString('en-IN') + ')';
+                flag.style.cssText = `
+                    position:absolute;
+                    top:-18px;
+                    left:-9px;
+                    width:18px;
+                    height:18px;
+                    background:#f59e0b;
+                    border-radius:50%;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:9px;
+                    color:#fff;
+                    pointer-events:auto;
+                    cursor:pointer;
+                    box-shadow:0 1px 4px rgba(0,0,0,.2);
+                `;
+                flag.innerHTML = '⚑';
+                flag.setAttribute('data-bs-toggle','tooltip');
+                flag.setAttribute('data-bs-placement','top');
+                flag.setAttribute('title', flag.title);
+                marker.appendChild(flag);
+                container.appendChild(marker);
+                // Re-init tooltip for the new element
+                new bootstrap.Tooltip(flag);
+            });
+        }
+
+        // Draw after chart renders
+        setTimeout(drawMarkers, 300);
+        window.addEventListener('resize', () => setTimeout(drawMarkers, 300));
+    })();
 
     // --- 2. Money Flow Chart (Layer 2) ---
         const moneyFlowCanvas = document.getElementById('moneyFlowChart');

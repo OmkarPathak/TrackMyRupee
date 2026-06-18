@@ -1,0 +1,601 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters humanize %}
+
+{% block title %}{% trans "Capital Events" %}{% endblock %}
+
+{% block content %}
+<style>
+    /* Remove bottom border from last row to keep the card bottom clean */
+    .table tbody tr:last-child td {
+        border-bottom: 0 !important;
+    }
+    .table {
+        border-bottom: 0 !important;
+    }
+    /* Soften table row borders for premium look */
+    .table th, .table td {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+    [data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* Card View Styles */
+    .expense-card {
+        border-radius: 16px !important;
+        border: 1px solid var(--bs-border-color-translucent) !important;
+        background-color: var(--bs-body-bg);
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+        line-height: 1.25;
+        max-height: 2.5em;
+    }
+    .view-toggle-btn {
+        height: 36px;
+        width: 36px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px !important;
+        transition: all 0.2s ease;
+        border: 1px solid var(--bs-border-color);
+        background: transparent;
+        color: var(--bs-secondary);
+    }
+    .view-toggle-btn.active {
+        background: rgba(var(--bs-primary-rgb), 0.1) !important;
+        color: var(--bs-primary) !important;
+        border-color: rgba(var(--bs-primary-rgb), 0.3) !important;
+        box-shadow: none !important;
+    }
+    [data-bs-theme="dark"] .view-toggle-btn.active {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    /* Category Icon Alignment */
+    .category-icon-container {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        color: var(--bs-secondary-color);
+        border-radius: 12px;
+        background-color: transparent;
+    }
+    .expense-card:hover .category-icon-container {
+        background-color: var(--bs-tertiary-bg);
+        transform: scale(1.08);
+        color: var(--bs-primary);
+    }
+    
+    @media (max-width: 576px) {
+        .category-icon-container {
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .card-body.p-0 {
+            overflow: hidden;
+        }
+        .table-responsive {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        .table-responsive table {
+            min-width: 700px;
+        }
+        #mobileGridView .expense-card .card-body > .mobile-card-inner {
+            display: grid !important;
+            grid-template-columns: 38px minmax(0, 1fr) 110px 30px !important;
+            grid-template-areas: "icon info amount menu" !important;
+            align-items: center !important;
+            gap: 0 !important;
+        }
+        #mobileGridView .expense-card .category-icon-container { 
+            grid-area: icon; 
+            margin: 0 !important; 
+            width: 32px !important;
+            height: 32px !important;
+            justify-self: center;
+        }
+        #mobileGridView .expense-card .flex-grow-1 { 
+            grid-area: info; 
+            margin: 0 !important; 
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            overflow: hidden;
+        }
+        #mobileGridView .expense-card .flex-shrink-0.text-end { 
+            grid-area: amount; 
+            margin: 0 !important; 
+            width: 100% !important;
+            padding-right: 4px;
+        }
+        #mobileGridView .expense-card .dropdown { 
+            grid-area: menu; 
+            margin: 0 !important; 
+            justify-self: center;
+        }
+    }
+</style>
+<div class="fade-in">
+    <!-- Mobile Header -->
+    <div class="d-md-none pb-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
+            <div class="d-flex align-items-center gap-2">
+                <!-- View Toggle -->
+                <div class="d-flex gap-1 me-1">
+                    <button class="view-toggle-btn active" id="mobileTableToggle" title="{% trans 'Table View' %}">
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                    <button class="view-toggle-btn" id="mobileGridToggle" title="{% trans 'Card View' %}">
+                        <i class="bi bi-grid" style="font-size: 0.85rem;"></i>
+                    </button>
+                </div>
+                <a href="{% url 'capital-event-create' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                    <i class="bi bi-plus-lg"></i> <span>{% trans "Add" %}<span class="d-none d-sm-inline"> {% trans "Event" %}</span></span>
+                </a>
+            </div>
+        </div>
+        <p class="text-muted small mb-0 mt-1">{% trans "Large one-off payments excluded from monthly averages & budget tracking." %}</p>
+    </div>
+
+    <!-- Desktop Header -->
+    <div class="d-none d-md-block pt-1 pb-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
+            <div class="d-flex gap-3 align-items-center">
+                <!-- Desktop view filter (select dropdown) -->
+                <form method="get" class="d-flex align-items-center gap-2 mb-0">
+                    <label class="text-muted small fw-semibold mb-0 text-nowrap" for="subtype-filter-select-desktop">{% trans "Filter by type:" %}</label>
+                    <select name="subtype" id="subtype-filter-select-desktop" class="form-select form-select-sm rounded-3 py-1" style="width: 180px;" onchange="this.form.submit()">
+                        <option value="">{% trans "All" %}</option>
+                        {% for val, label in subtype_choices %}
+                            <option value="{{ val }}" {% if selected_subtype == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                <!-- View Toggle -->
+                <div class="d-flex gap-1">
+                    <button class="view-toggle-btn active" id="desktopTableToggle" title="{% trans 'Table View' %}">
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                    <button class="view-toggle-btn" id="desktopGridToggle" title="{% trans 'Card View' %}">
+                        <i class="bi bi-grid-fill" style="font-size: 0.85rem;"></i>
+                    </button>
+                </div>
+
+                <a href="{% url 'capital-event-create' %}" class="btn btn-primary btn-sm d-inline-flex align-items-center text-nowrap">
+                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Capital Event" %}
+                </a>
+            </div>
+        </div>
+        <p class="text-muted small mb-0 mt-1">{% trans "Large one-off payments excluded from monthly averages & budget tracking." %}</p>
+    </div>
+
+    <!-- Mobile Filter bar -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 d-md-none">
+        <div class="card-body py-2">
+            <form method="get" class="d-flex align-items-center gap-2">
+                <label class="text-muted small fw-semibold mb-0 text-nowrap" for="subtype-filter-select-mobile">{% trans "Filter by type:" %}</label>
+                <select name="subtype" id="subtype-filter-select-mobile" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
+                    <option value="">{% trans "All" %}</option>
+                    {% for val, label in subtype_choices %}
+                        <option value="{{ val }}" {% if selected_subtype == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    {% if events %}
+    <div class="card border-0 shadow-sm rounded-4" id="mainCardContainer">
+        <div class="card-body p-0">
+            <!-- 1. Table View -->
+            <div id="tableView" class="table-responsive">
+                <table class="table table-hover table-striped mb-0 text-start align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Note" %}</th>
+                            <th>{% trans "Account" %}</th>
+                            <th>{% trans "Linked Loan" %}</th>
+                            <th class="text-center">{% trans "Flags" %}</th>
+                            <th class="pe-4 text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td class="ps-4 text-nowrap">{{ event.date|date:"d M Y"|translate_digits }}</td>
+                            <td>
+                                <span class="badge-soft badge-soft-primary align-items-center gap-1">
+                                    <i class="bi bi-flag me-1"></i>{{ event.get_subtype_display }}
+                                </span>
+                            </td>
+                            <td class="fw-bold">
+                                {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
+                            </td>
+                            <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ event.note|default:'' }}">
+                                {{ event.note|default:"—"|truncatechars:40 }}
+                            </td>
+                            <td class="text-secondary small">{{ event.account.name|default:"—" }}</td>
+                            <td>
+                                {% if event.linked_loan %}
+                                    <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none small">
+                                        <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name }}
+                                    </a>
+                                {% else %}
+                                    <span class="opacity-40">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if event.exclude_from_averages %}
+                                    <span class="badge-soft badge-soft-info" title="{% trans 'Excluded from averages & trends' %}">
+                                        <i class="bi bi-graph-down-arrow me-1"></i>{% trans "excl. avg" %}
+                                    </span>
+                                {% endif %}
+                                {% if not event.include_in_net_worth %}
+                                    <span class="badge-soft badge-soft-danger mt-1" title="{% trans 'Not counted in net worth / cash flow' %}">
+                                        <i class="bi bi-x-circle me-1"></i>{% trans "excl. NW" %}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4 text-nowrap">
+                                <div class="dropdown hstack gap-3 justify-content-end">
+                                    <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
+                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-pencil-square text-primary"></i>
+                                                <span>{% trans "Edit" %}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <form method="post" action="{% url 'capital-event-convert' event.pk %}?next={{ request.get_full_path|urlencode }}"
+                                                  class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                                    <i class="bi bi-arrow-left-right text-warning"></i>
+                                                    <span>{% trans "Convert to Expense" %}</span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-trash"></i>
+                                                <span>{% trans "Delete" %}</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 2. Grid/Card View (Desktop Only) -->
+            <div id="gridView" class="py-3 px-1 d-none">
+                <div class="row g-3">
+                    {% for event in events %}
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card expense-card h-100 shadow-sm border-0 position-relative">
+                            <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <!-- Left-Mid: Category Icon -->
+                                    <div class="category-icon-container" title="{{ event.get_subtype_display }}">
+                                        <i class="bi
+                                            {% if event.subtype == 'loan_down_payment' or event.subtype == 'loan_prepayment' %}bi-bank
+                                            {% elif event.subtype == 'large_purchase' %}bi-cart
+                                            {% elif event.subtype == 'medical_lump_sum' %}bi-heart-pulse
+                                            {% elif event.subtype == 'gift_given' or event.subtype == 'gift_received' %}bi-gift
+                                            {% elif event.subtype == 'investment_lump_sum' %}bi-graph-up-arrow
+                                            {% else %}bi-flag{% endif %}
+                                        "></i>
+                                    </div>
+
+                                    <!-- Middle: Info -->
+                                    <div class="flex-grow-1 min-width-0 px-1">
+                                        <div class="fw-semibold text-body-emphasis line-clamp-2 mb-0" style="font-size: 0.95rem;" 
+                                             data-bs-toggle="tooltip" data-bs-placement="top" title="{{ event.note|default:event.get_subtype_display }}">
+                                            {{ event.note|default:event.get_subtype_display }}
+                                        </div>
+                                        <div class="text-body-secondary d-flex align-items-center gap-1 mt-1 flex-nowrap" style="font-size: 0.72rem;">
+                                            <span class="text-nowrap">{{ event.date|date:"d M 'y"|translate_digits }}</span>
+                                            <span class="opacity-50 mx-1 flex-shrink-0">|</span>
+                                            <span class="text-truncate" title="{{ event.get_subtype_display }}">{{ event.get_subtype_display }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted" style="font-size: 0.7rem; opacity: 0.55;">
+                                                {{ event.account.name|default:"—"|truncatechars:30 }}
+                                            </span>
+                                        </div>
+                                        {% if event.linked_loan %}
+                                        <div>
+                                            <span class="text-primary" style="font-size: 0.7rem;">
+                                                <a href="{% url 'loan-detail' event.linked_loan.pk %}">
+                                                    <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name }}
+                                                </a>
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Right: Amount + Flags -->
+                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1 ms-1">
+                                        <div class="fw-bold text-body-emphasis" style="font-size: 1.1rem; line-height: 1.2; letter-spacing: 0.02rem;">
+                                            {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end gap-1">
+                                            {% if event.exclude_from_averages %}
+                                                <span class="badge-soft badge-soft-info" style="font-size: 0.65rem;" title="{% trans 'Excluded from averages & trends' %}">{% trans "excl. avg" %}</span>
+                                            {% endif %}
+                                            {% if not event.include_in_net_worth %}
+                                                <span class="badge-soft badge-soft-danger" style="font-size: 0.65rem;" title="{% trans 'Not counted in net worth / cash flow' %}">{% trans "excl. NW" %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Far Right: Menu -->
+                                    <div class="dropdown flex-shrink-0 position-relative ms-1" style="z-index: 10;">
+                                        <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                            <i class="bi bi-three-dots-vertical text-muted opacity-50"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                    <i class="bi bi-pencil-square text-primary"></i>
+                                                    <span>{% trans "Edit" %}</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form method="post" action="{% url 'capital-event-convert' event.pk %}?next={{ request.get_full_path|urlencode }}"
+                                                      class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                                        <i class="bi bi-arrow-left-right text-warning"></i>
+                                                        <span>{% trans "Convert to Expense" %}</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                    <i class="bi bi-trash"></i>
+                                                    <span>{% trans "Delete" %}</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 3. Mobile Grid View -->
+            <div id="mobileGridView" class="py-2 px-1 d-none">
+                {% regroup events by date as events_by_date %}
+                {% for group in events_by_date %}
+                <div class="mb-3">
+                    <!-- Day Header -->
+                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                        <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                            {{ group.grouper|date:"d M, Y"|translate_digits }}
+                        </div>
+                    </div>
+                    <!-- Day's Events -->
+                    {% for event in group.list %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-3">
+                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                            <div class="mobile-card-inner">
+                                <!-- Left-Mid: Category Icon -->
+                                <div class="category-icon-container" title="{{ event.get_subtype_display }}">
+                                    <i class="bi
+                                        {% if event.subtype == 'loan_down_payment' or event.subtype == 'loan_prepayment' %}bi-bank
+                                        {% elif event.subtype == 'large_purchase' %}bi-cart
+                                        {% elif event.subtype == 'medical_lump_sum' %}bi-heart-pulse
+                                        {% elif event.subtype == 'gift_given' or event.subtype == 'gift_received' %}bi-gift
+                                        {% elif event.subtype == 'investment_lump_sum' %}bi-graph-up-arrow
+                                        {% else %}bi-flag{% endif %}
+                                    "></i>
+                                </div>
+
+                                <!-- Middle: Info -->
+                                <div class="flex-grow-1 min-width-0 px-1">
+                                    <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
+                                         data-bs-toggle="tooltip" data-bs-placement="top" title="{{ event.note|default:event.get_subtype_display }}">
+                                        {{ event.note|default:event.get_subtype_display }}
+                                    </div>
+                                    <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                        <span class="text-truncate">{{ event.get_subtype_display }}{% if event.account.name is not null %} • {{ event.account.name|truncatechars:18 }}{% endif %}</span>
+                                    </div>
+                                    {% if event.linked_loan %}
+                                    <div class="text-primary mt-1" style="font-size: 0.7rem;">
+                                        <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name|truncatechars:18 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Right: Amount + Flags -->
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
+                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
+                                        {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end gap-1">
+                                        {% if event.exclude_from_averages %}
+                                            <span class="badge-soft badge-soft-info" style="font-size: 0.65rem;" title="{% trans 'Excluded from averages & trends' %}">{% trans "excl. avg" %}</span>
+                                        {% endif %}
+                                        {% if not event.include_in_net_worth %}
+                                            <span class="badge-soft badge-soft-danger" style="font-size: 0.65rem;" title="{% trans 'Not counted in net worth / cash flow' %}">{% trans "excl. NW" %}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Far Right: Menu -->
+                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
+                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-pencil-square text-primary"></i>
+                                                <span>{% trans "Edit" %}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <form method="post" action="{% url 'capital-event-convert' event.pk %}?next={{ request.get_full_path|urlencode }}"
+                                                  class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                                    <i class="bi bi-arrow-left-right text-warning"></i>
+                                                    <span>{% trans "Convert to Expense" %}</span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-trash"></i>
+                                                <span>{% trans "Delete" %}</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="card-footer bg-transparent py-3">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">{% trans "Previous" %}</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">{% trans "Page" %} {{ page_obj.number|translate_digits }} {% trans "of" %} {{ page_obj.paginator.num_pages|translate_digits }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">{% trans "Next" %}</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-flag display-4 text-muted opacity-50"></i>
+            <h5 class="mt-3 fw-semibold">{% trans "No capital events yet" %}</h5>
+            <p class="text-muted">{% trans "Capital events are large one-off payments (e.g. a home loan down payment) that are excluded from your regular analytics so they don't distort your monthly trends." %}</p>
+            <a href="{% url 'capital-event-create' %}" class="btn btn-primary rounded-3 mt-2">
+                <i class="bi bi-plus-lg me-1"></i>{% trans "Record your first capital event" %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Tooltips and View Toggles
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl, {
+                boundary: document.body 
+            });
+        });
+
+        // View Toggle Persistence
+        const tableToggles = [document.getElementById('mobileTableToggle'), document.getElementById('desktopTableToggle')];
+        const gridToggles = [document.getElementById('mobileGridToggle'), document.getElementById('desktopGridToggle')];
+        
+        function setViewMode(mode) {
+            localStorage.setItem('capital_event_view_mode', mode);
+            const tableView = document.getElementById('tableView');
+            const gridView = document.getElementById('gridView');
+            const mobileGridView = document.getElementById('mobileGridView');
+            const mainCard = document.getElementById('mainCardContainer');
+            
+            if (mode === 'grid') {
+                if (mainCard) mainCard.classList.remove('card', 'shadow-sm', 'rounded-4');
+                if (tableView) tableView.classList.add('d-none');
+                if (window.innerWidth < 768) {
+                    if (gridView) gridView.classList.add('d-none');
+                    if (mobileGridView) mobileGridView.classList.remove('d-none');
+                } else {
+                    if (gridView) gridView.classList.remove('d-none');
+                    if (mobileGridView) mobileGridView.classList.add('d-none');
+                }
+                gridToggles.forEach(t => t && t.classList.add('active'));
+                tableToggles.forEach(t => t && t.classList.remove('active'));
+            } else {
+                if (mainCard) mainCard.classList.add('card', 'shadow-sm', 'rounded-4');
+                if (tableView) tableView.classList.remove('d-none');
+                if (gridView) gridView.classList.add('d-none');
+                if (mobileGridView) mobileGridView.classList.add('d-none');
+                tableToggles.forEach(t => t && t.classList.add('active'));
+                gridToggles.forEach(t => t && t.classList.remove('active'));
+            }
+        }
+
+        // Load view mode preference
+        const savedMode = localStorage.getItem('capital_event_view_mode');
+        if (savedMode) {
+            setViewMode(savedMode);
+        } else {
+            // Default logic: grid on mobile, table on desktop
+            if (window.innerWidth < 768) {
+                setViewMode('grid');
+            } else {
+                setViewMode('table');
+            }
+        }
+
+        tableToggles.forEach(btn => btn && btn.addEventListener('click', () => setViewMode('table')));
+        gridToggles.forEach(btn => btn && btn.addEventListener('click', () => setViewMode('grid')));
+    });
+</script>
+{% endblock %}

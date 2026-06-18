@@ -36,7 +36,10 @@
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body p-3">
                     <p class="text-muted small mb-1">{% trans "Principal Paid" %}</p>
-                    <h4 class="fw-bold mb-0 text-success">{{ loan.currency }}{{ summary.principal_paid|ind_comma:loan.currency|translate_digits }}</h4>
+                    <h4 class="fw-bold mb-0 text-success">{{ loan.currency }}{% widthratio summary.principal_paid|add:summary.capital_prepaid 1 1 %}</h4>
+                    {% if summary.capital_prepaid > 0 %}
+                    <p class="text-muted mb-0" style="font-size:0.72rem;">{% trans "incl." %} {{ loan.currency }}{{ summary.capital_prepaid|ind_comma:loan.currency|translate_digits }} {% trans "capital events" %}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -201,6 +204,43 @@
             </div>
 
             <!-- Extra EMI Savings Insight -->
+            {% if linked_capital_events %}
+            <!-- Linked Capital Events Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-3 border-primary">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-flag-fill text-primary"></i>
+                        <h6 class="fw-bold mb-0">{% trans "Capital Events" %}</h6>
+                    </div>
+                    <p class="text-muted small mb-3">{% trans "Down payments, prepayments, and other lump-sum contributions linked to this loan." %}</p>
+                    {% for ev in linked_capital_events %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
+                        <div>
+                            <span class="small fw-semibold">{{ ev.get_subtype_display }}</span>
+                            <span class="d-block text-muted" style="font-size:0.75rem">{{ ev.date }}</span>
+                        </div>
+                        <span class="fw-bold text-primary-emphasis">{{ loan.currency }}{{ ev.amount|ind_comma:loan.currency|translate_digits }}</span>
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border border-primary border-opacity-25 bg-primary bg-opacity-10 mt-2">
+                        <span class="small fw-semibold">{% trans "Total Capital Committed" %}</span>
+                        <span class="fw-bold">{{ loan.currency }}{{ linked_capital_total|ind_comma:loan.currency|translate_digits }}</span>
+                    </div>
+                    <div class="mt-2 d-flex justify-content-between text-muted" style="font-size:0.78rem">
+                        <span>{% trans "EMIs Paid" %}</span>
+                        <span>{{ loan.currency }}{{ summary.total_paid|ind_comma:loan.currency|translate_digits }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between fw-semibold small mt-1">
+                        <span>{% trans "Grand Total Paid to Bank" %}</span>
+                        <span>{{ loan.currency }}{% widthratio linked_capital_total|add:summary.total_paid 1 1 %}</span>
+                    </div>
+                    <a href="{% url 'capital-event-create' %}?subtype=loan_down_payment" class="btn btn-sm btn-primary text-white rounded-3 mt-3 w-100 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Capital Event for this Loan" %}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
             {% if extra_emi_savings and extra_emi_savings.months_saved > 0 %}
             <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, rgba(13,110,253,0.06), rgba(111,66,193,0.10));">
                 <div class="card-body p-4">

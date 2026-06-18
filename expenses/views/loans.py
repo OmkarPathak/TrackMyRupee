@@ -10,7 +10,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 from finance_tracker.plans import get_limit
 
 from ..forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
-from ..models import Loan, LoanInterestRate, LoanRepayment, RecurringTransaction
+from ..models import CapitalEvent, Loan, LoanInterestRate, LoanRepayment, RecurringTransaction
 from ..services import LoanService
 
 
@@ -50,6 +50,20 @@ class LoanListView(LoginRequiredMixin, LoanFeatureGateMixin, ListView):
         )
         repayment_map = {r['loan_id']: r for r in repayment_totals}
 
+        # Bulk-aggregate capital event prepayments per loan in a single query
+        from ..models import CapitalEvent
+        from django.db.models import Sum as _Sum
+        capital_prepayment_totals = (
+            CapitalEvent.objects
+            .filter(linked_loan__user=self.request.user, subtype__in=['loan_down_payment', 'loan_prepayment'])
+            .values('linked_loan_id')
+            .annotate(total_prepaid=_Sum('amount'))
+        )
+        capital_prepayment_map = {
+            r['linked_loan_id']: float(r['total_prepaid'] or 0)
+            for r in capital_prepayment_totals
+        }
+
         loan_summaries = []
         total_debt = 0
         for loan in loans:
@@ -57,14 +71,18 @@ class LoanListView(LoginRequiredMixin, LoanFeatureGateMixin, ListView):
             principal_paid = float(r.get('total_principal') or 0)
             interest_paid = float(r.get('total_interest') or 0)
             total_paid = float(r.get('total_amount') or 0)
-            remaining_principal = max(float(loan.initial_principal) - principal_paid, 0)
+            capital_prepaid = capital_prepayment_map.get(loan.id, 0)
+            remaining_principal = max(float(loan.initial_principal) - principal_paid - capital_prepaid, 0)
+            initial = float(loan.initial_principal)
+            progress = min((1 - remaining_principal / initial) * 100, 100) if initial > 0 else 0
             summary = {
                 'loan': loan,
                 'principal_paid': principal_paid,
+                'capital_prepaid': capital_prepaid,
                 'interest_paid': interest_paid,
                 'total_paid': total_paid,
                 'remaining_principal': remaining_principal,
-                'progress': (principal_paid / float(loan.initial_principal) * 100) if loan.initial_principal > 0 else 0,
+                'progress': progress,
             }
             loan_summaries.append(summary)
             total_debt += remaining_principal
@@ -151,7 +169,14 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         repayment_form = LoanRepaymentForm(user=request.user, loan=loan)
         rate_form = LoanInterestRateForm()
         extra_emi_savings = LoanService.calculate_extra_emi_savings(loan)
-        
+
+        # Capital events linked to this loan (down payments, prepayments, etc.)
+        # Single query, no N+1
+        linked_capital_events = CapitalEvent.objects.filter(
+            linked_loan=loan
+        ).select_related('account').order_by('date')
+        linked_capital_total = sum(float(e.base_amount) for e in linked_capital_events)
+
         context = {
             'loan': loan,
             'summary': summary,
@@ -160,6 +185,8 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             'repayment_form': repayment_form,
             'rate_form': rate_form,
             'extra_emi_savings': extra_emi_savings,
+            'linked_capital_events': linked_capital_events,
+            'linked_capital_total': linked_capital_total,
         }
         return render(request, self.template_name, context)
 

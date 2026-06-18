@@ -19,6 +19,7 @@ from django.views.generic import TemplateView
 from ..ledger_read_service import LedgerReadService
 from ..models import (
     Account,
+    CapitalEvent,
     Category,
     Expense,
     GoalContribution,
@@ -211,12 +212,16 @@ def home_view(request):
     years = sorted(list(set([d.year for d in all_dates] + [datetime.now().year])), reverse=True)
     all_categories = Expense.objects.filter(user=request.user).values_list('category', flat=True).distinct().order_by('category')
 
+    # Optimization: Pre-fetch all categories for the user to avoid N+1 queries in the loop
+    user_categories = {c.name: c for c in Category.objects.filter(user=request.user)}
+
     # --- PERFORMANCE OPTIMIZATION: BATCH MONTHLY TOTALS ---
     # Fetch 2 years of monthly totals in one go to avoid multiple N+1 aggregations in loops
     hist_start = (timezone.now().replace(day=1) - timedelta(days=730)).date()
     batch_inc = Income.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     batch_exp = Expense.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     batch_loan = LoanRepayment.objects.filter(loan__user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total_interest=Sum(F('interest_portion') * F('exchange_rate')))
+    batch_cap_exp = CapitalEvent.objects.filter(user=request.user, date__gte=hist_start, exclude_from_averages=False).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     
     monthly_summary_map = {} # (year, month) -> {'income': 0, 'expense': 0}
     for item in batch_inc:
@@ -232,6 +237,11 @@ def home_view(request):
         if (dt.year, dt.month) not in monthly_summary_map:
             monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
         monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total_interest'] or 0)
+    for item in batch_cap_exp:
+        dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
+        if (dt.year, dt.month) not in monthly_summary_map:
+            monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
+        monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total'] or 0)
 
 
     # 1. Category Chart Data (Distribution) & Summary Table
@@ -249,6 +259,31 @@ def home_view(request):
             merged_category_map[cat_name] += amount
         else:
             merged_category_map[cat_name] = amount
+
+    # Fetch capital events in the viewed period with exclude_from_budget=False
+    budget_events = CapitalEvent.objects.filter(user=request.user, exclude_from_budget=False)
+    if effective_start_date or effective_end_date:
+        if effective_start_date:
+            budget_events = budget_events.filter(date__gte=effective_start_date)
+        if effective_end_date:
+            budget_events = budget_events.filter(date__lte=effective_end_date)
+    else:
+        if selected_years:
+            budget_events = budget_events.filter(date__year__in=selected_years)
+        if selected_months:
+            budget_events = budget_events.filter(date__month__in=selected_months)
+            
+    for e in budget_events:
+        cat_name = e.get_subtype_display()
+        matched_cat = None
+        for uc_name in user_categories.keys():
+            if uc_name.lower() in cat_name.lower() or cat_name.lower() in uc_name.lower():
+                matched_cat = uc_name
+                break
+        if matched_cat:
+            cat_name = matched_cat
+            
+        merged_category_map[cat_name] = merged_category_map.get(cat_name, 0.0) + float(e.base_amount)
     
     # Add Loan Interest to breakdown
     if total_loan_interest > 0:
@@ -265,8 +300,6 @@ def home_view(request):
 
     # Compute limits and usage per category for chart display
     category_limits = []
-    # Optimization: Pre-fetch all categories for the user to avoid N+1 queries in the loop
-    user_categories = {c.name: c for c in Category.objects.filter(user=request.user)}
 
     is_current_month_view = (len(selected_months) == 1 and str(now.month) in selected_months and str(now.year) in selected_years)
 
@@ -441,8 +474,26 @@ def home_view(request):
 
     # 4. Summary Stats
     total_expenses_base = expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-    total_expenses = total_expenses_base + total_loan_interest
-    transaction_count = expenses.count() + loan_repayments_selected.count()
+    
+    # Include capital events that are NOT excluded from averages (i.e. exclude_from_averages=False)
+    included_capital_events_total = Decimal('0.00')
+    included_events_qs = CapitalEvent.objects.filter(user=request.user, exclude_from_averages=False)
+    if effective_start_date or effective_end_date:
+        if effective_start_date:
+            included_events_qs = included_events_qs.filter(date__gte=effective_start_date)
+        if effective_end_date:
+            included_events_qs = included_events_qs.filter(date__lte=effective_end_date)
+    else:
+        if selected_years:
+            included_events_qs = included_events_qs.filter(date__year__in=selected_years)
+        if selected_months:
+            included_events_qs = included_events_qs.filter(date__month__in=selected_months)
+            
+    for e in included_events_qs:
+        included_capital_events_total += e.base_amount
+        
+    total_expenses = total_expenses_base + total_loan_interest + included_capital_events_total
+    transaction_count = expenses.count() + loan_repayments_selected.count() + included_events_qs.count()
     
     # Savings for display = Income - Operating Expenses - Interest Paid
     # (Does NOT include principal repayment, since principal is returning borrowed money, not spending)
@@ -1408,8 +1459,90 @@ def home_view(request):
         if year_in_review_year:
             show_year_in_review = Expense.objects.filter(user=request.user, date__year=year_in_review_year).exists()
 
+    # --- Capital Events for the current period ---
+    # Fetch all capital events for the viewed period in a single query (no N+1).
+    capital_events_qs = CapitalEvent.objects.filter(user=request.user).select_related('account', 'linked_loan')
+    if effective_start_date or effective_end_date:
+        if effective_start_date:
+            capital_events_qs = capital_events_qs.filter(date__gte=effective_start_date)
+        if effective_end_date:
+            capital_events_qs = capital_events_qs.filter(date__lte=effective_end_date)
+    else:
+        if selected_years:
+            capital_events_qs = capital_events_qs.filter(date__year__in=selected_years)
+        if selected_months:
+            capital_events_qs = capital_events_qs.filter(date__month__in=selected_months)
+
+    capital_events_list = list(capital_events_qs)
+
+    # Aggregate totals for excluded-from-averages events (the vast majority)
+    capital_event_total = sum(float(e.base_amount) for e in capital_events_list if e.exclude_from_averages)
+    capital_event_count = len([e for e in capital_events_list if e.exclude_from_averages])
+
+    # Build chart annotation data: one marker per event, sorted by date
+    capital_event_annotations = [
+        {
+            'date': e.date.strftime('%Y-%m-%d'),
+            'amount': float(e.base_amount),
+            'subtype': e.get_subtype_display(),
+            'note': e.note or '',
+            'currency': e.currency,
+        }
+        for e in capital_events_list
+        if e.exclude_from_averages
+    ]
+
+    # Dashboard callout: aggregate multiple events into a single card message
+    capital_event_callout = None
+    if capital_events_list:
+        excluded_events = [e for e in capital_events_list if e.exclude_from_averages]
+        if excluded_events:
+            if len(excluded_events) == 1:
+                ev = excluded_events[0]
+                capital_event_callout = {
+                    'count': 1,
+                    'total': float(ev.base_amount),
+                    'label': ev.get_subtype_display(),
+                    'regular_spent': float(total_expenses),
+                    'events': excluded_events,
+                }
+            else:
+                capital_event_callout = {
+                    'count': len(excluded_events),
+                    'total': sum(float(e.base_amount) for e in excluded_events),
+                    'label': _('Capital Events'),
+                    'regular_spent': float(total_expenses),
+                    'events': excluded_events,
+                }
+
     # --- Smart Insights Bullets (New Card) ---
     raw_insights = []
+
+    # Capital Event Insight
+    if capital_event_callout:
+        list_url = reverse('capital-event-list')
+        if capital_event_callout['count'] == 1:
+            title_text = _("<b>{} this month</b>").format(capital_event_callout['label'])
+        else:
+            title_text = _("<b>{} Capital Events this month</b>").format(capital_event_callout['count'])
+        
+        curr_symbol = capital_event_callout['events'][0].currency
+        event_text = format_html(
+            _("{title}"
+              " You made a one-off payment of {curr}{total}. Your regular spending was {curr}{regular} - that's your true monthly pace. "
+              "<a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>View Capital Events &rarr;</a>"),
+            title=mark_safe(title_text),
+            curr=curr_symbol,
+            total=compact_amount(capital_event_callout['total'], curr_symbol),
+            regular=compact_amount(capital_event_callout['regular_spent'], curr_symbol),
+            url=list_url
+        )
+        raw_insights.append({
+            'text': event_text,
+            'icon': 'bi-flag',
+            'theme': 'primary',
+            'score': 5
+        })
     
     # 0. Power AI Insight (Positive/Proactive)
     if total_income > 0 and total_expenses > 0 and top_5_categories:
@@ -1896,6 +2029,8 @@ def home_view(request):
     # Summary 3M Growth for the badge
     projected_3m_growth = float(avg_monthly_savings * 3)
 
+
+
     context = {
         'net_worth': net_worth,
         'net_worth_change': net_worth_change,
@@ -1984,6 +2119,12 @@ def home_view(request):
         'proj_labels': proj_labels,
         'proj_historical': proj_historical,
         'proj_forecast': proj_forecast,
+        # Capital Events
+        'capital_events': capital_events_list,
+        'capital_event_total': capital_event_total,
+        'capital_event_count': capital_event_count,
+        'capital_event_annotations': capital_event_annotations,
+        'capital_event_callout': capital_event_callout,
     }
 
     # --- DAILY MODE DATA ---
@@ -2351,6 +2492,37 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         context['available_years'] = available_years
         context['selected_year'] = selected_year
         context['is_current_year'] = (selected_year == today.year)
+
+        # Capital Events toggle (off by default — capital events are excluded from averages)
+        include_capital_events = self.request.GET.get('include_capital_events') == '1'
+        context['include_capital_events'] = include_capital_events
+
+        # Fetch capital events for the selected year in one query (used for both toggle and annotations)
+        capital_events_year = list(
+            CapitalEvent.objects.filter(
+                user=user,
+                date__year=selected_year,
+                exclude_from_averages=True,
+            ).values('date', 'subtype', 'base_amount', 'note')
+        )
+        # Build per-month capital event map for potential injection into expense totals
+        capital_event_monthly_map = {}
+        for ev in capital_events_year:
+            ev_date = ev['date'] if isinstance(ev['date'], date) else ev['date'].date()
+            key = date(ev_date.year, ev_date.month, 1)
+            capital_event_monthly_map[key] = capital_event_monthly_map.get(key, 0.0) + float(ev['base_amount'])
+
+        # Chart annotations: one marker per capital event (always shown regardless of toggle)
+        analytics_capital_annotations = [
+            {
+                'date': (ev['date'].strftime('%Y-%m-%d') if hasattr(ev['date'], 'strftime') else str(ev['date'])),
+                'amount': float(ev['base_amount']),
+                'subtype': ev['subtype'],
+                'note': ev['note'] or '',
+            }
+            for ev in capital_events_year
+        ]
+        context['analytics_capital_annotations'] = analytics_capital_annotations
         
         # 1. Monthly Trends (Selected Year)
         labels = []
@@ -2418,6 +2590,9 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             labels.append(date_format(k, 'M Y'))
             inc = data_map[k]['income']
             exp = data_map[k]['expense']
+            # If the "include capital events" toggle is on, add their totals to the expense bars
+            if include_capital_events:
+                exp += capital_event_monthly_map.get(k, 0.0)
             income_data.append(inc)
             expense_data.append(exp)
             

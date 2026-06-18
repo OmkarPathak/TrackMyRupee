@@ -1,6 +1,8 @@
+
 from finance_tracker.ai_utils import predict_category_ai as predict_category_ai
 
 from .accounts import *
+from .capital_events import *
 from .all_transactions import *
 from .auth import *
 from .categories import *

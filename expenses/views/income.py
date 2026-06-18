@@ -6,11 +6,10 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
-
+from django.db import IntegrityError
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
 from .mixins import RecurringTransactionMixin
-
 
 class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = Income
@@ -108,6 +107,9 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
         form.instance.user = self.request.user
         try:
             response = super().form_valid(form)
+        except IntegrityError:
+            messages.error(self.request, _("This income entry already exists for the same date, amount, currency, and source."))
+            return self.form_invalid(form)
         except (RuntimeError, ValidationError):
             messages.error(self.request, _("Unable to save income because currency conversion failed or data is invalid."))
             return self.form_invalid(form)

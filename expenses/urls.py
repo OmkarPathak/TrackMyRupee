@@ -26,6 +26,7 @@ urlpatterns = [
     path('expenses/bulk-delete/', views.ExpenseBulkDeleteView.as_view(), name='expense-bulk-delete'),
     path('expenses/bulk-edit/', views.ExpenseBulkUpdateView.as_view(), name='expense-bulk-edit'),
     path('expenses/<int:pk>/delete/', views.ExpenseDeleteView.as_view(), name='expense-delete'),
+    path('expenses/<int:pk>/convert-to-capital-event/', views.ExpenseConvertToCapitalEventView.as_view(), name='expense-convert'),
     path('category/create/ajax/', views.create_category_ajax, name='category-create-ajax'),
     path('category/list/', views.CategoryListView.as_view(), name='category-list'),
     path('category/add/', views.CategoryCreateView.as_view(), name='category-create'),
@@ -84,6 +85,7 @@ urlpatterns = [
     path('goals/contribution/<int:pk>/delete/', views.GoalContributionDeleteView.as_view(), name='goal-contribution-delete'),
     
     # Static Pages
+    path('tutorial/', TemplateView.as_view(template_name='trackmyrupee-tutorial.html'), name='tutorial'),
     path('privacy-policy/', TemplateView.as_view(template_name='privacy_policy.html'), name='privacy-policy'),
     path('terms-of-service/', TemplateView.as_view(template_name='terms_of_service.html'), name='terms-of-service'),
     path('refund-policy/', TemplateView.as_view(template_name='refund_policy.html'), name='refund-policy'),
@@ -137,5 +139,12 @@ urlpatterns = [
 
     # Sentry Debug
     path('sentry-debug/', lambda request: 1 / 0),
+    # Capital Events
+    path('capital-events/', views.CapitalEventListView.as_view(), name='capital-event-list'),
+    path('capital-events/add/', views.CapitalEventCreateView.as_view(), name='capital-event-create'),
+    path('capital-events/<int:pk>/edit/', views.CapitalEventUpdateView.as_view(), name='capital-event-edit'),
+    path('capital-events/<int:pk>/delete/', views.CapitalEventDeleteView.as_view(), name='capital-event-delete'),
+    path('capital-events/<int:pk>/convert-to-expense/', views.CapitalEventConvertToExpenseView.as_view(), name='capital-event-convert'),
+    path('api/capital-events/loans/', views.capital_event_loans_ajax, name='capital-event-loans-ajax'),
 ]
 

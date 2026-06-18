@@ -2,13 +2,12 @@ import calendar
 from datetime import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import CharField, F, Q, Sum, Value
+from django.db.models import CharField, F, Q, Sum, Value, Case, When
 from django.db.models.functions import Cast
 from django.db.models.functions import Concat
 from django.views.generic import ListView
 
-from ..models import Expense, Income, LoanRepayment, Transfer
-
+from ..models import Expense, Income, LoanRepayment, Transfer, CapitalEvent
 
 class AllTransactionsListView(LoginRequiredMixin, ListView):
     template_name = 'expenses/all_transactions.html'
@@ -59,6 +58,20 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             loan_pk=Cast(F('loan_id'), output_field=CharField()),
         ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk')
 
+        # 5. Normalize Capital Events
+        capital_events = CapitalEvent.objects.filter(user=user).annotate(
+            type=Value('CAPITAL_EVENT', output_field=CharField()),
+            cat=Case(
+                *[When(subtype=k, then=Value(str(v))) for k, v in CapitalEvent.SUBTYPE_CHOICES],
+                default=Value('Other'),
+                output_field=CharField()
+            ),
+            acc=F('account__name'),
+            unified_amount=F('base_amount'),
+            tx_description=F('note'),
+            loan_pk=Cast(F('linked_loan_id'), output_field=CharField()),
+        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk')
+
         # Handle filtering
         search_query = self.request.GET.get('search')
         start_date = self.request.GET.get('start_date')
@@ -74,17 +87,20 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query))
             transfers = transfers.filter(description__icontains=search_query)
             loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
+            capital_events = capital_events.filter(Q(note__icontains=search_query) | Q(subtype__icontains=search_query))
 
         if start_date:
             expenses = expenses.filter(date__gte=start_date)
             incomes = incomes.filter(date__gte=start_date)
             transfers = transfers.filter(date__gte=start_date)
             loan_repayments = loan_repayments.filter(date__gte=start_date)
+            capital_events = capital_events.filter(date__gte=start_date)
         if end_date:
             expenses = expenses.filter(date__lte=end_date)
             incomes = incomes.filter(date__lte=end_date)
             transfers = transfers.filter(date__lte=end_date)
             loan_repayments = loan_repayments.filter(date__lte=end_date)
+            capital_events = capital_events.filter(date__lte=end_date)
 
         if not (start_date or end_date):
             if not (selected_years or selected_months or search_query):
@@ -105,12 +121,13 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         # Filter by Transaction Type
         active_qs = []
         if not selected_types:
-            active_qs = [expenses, incomes, transfers, loan_repayments]
+            active_qs = [expenses, incomes, transfers, loan_repayments, capital_events]
         else:
             if 'EXPENSE' in selected_types: active_qs.append(expenses)
             if 'INCOME' in selected_types: active_qs.append(incomes)
             if 'TRANSFER' in selected_types: active_qs.append(transfers)
             if 'LOAN' in selected_types: active_qs.append(loan_repayments)
+            if 'CAPITAL_EVENT' in selected_types: active_qs.append(capital_events)
 
         if not active_qs:
             return Expense.objects.none()
@@ -145,23 +162,27 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         incomes = Income.objects.filter(user=user)
         transfers = Transfer.objects.filter(user=user)
         loan_repayments = LoanRepayment.objects.filter(loan__user=user)
+        capital_events = CapitalEvent.objects.filter(user=user)
 
         if search_query:
             expenses = expenses.filter(Q(description__icontains=search_query) | Q(category__icontains=search_query))
             incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query))
             transfers = transfers.filter(description__icontains=search_query)
             loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
+            capital_events = capital_events.filter(Q(note__icontains=search_query) | Q(subtype__icontains=search_query))
 
         if start_date:
             expenses = expenses.filter(date__gte=start_date)
             incomes = incomes.filter(date__gte=start_date)
             transfers = transfers.filter(date__gte=start_date)
             loan_repayments = loan_repayments.filter(date__gte=start_date)
+            capital_events = capital_events.filter(date__gte=start_date)
         if end_date:
             expenses = expenses.filter(date__lte=end_date)
             incomes = incomes.filter(date__lte=end_date)
             transfers = transfers.filter(date__lte=end_date)
             loan_repayments = loan_repayments.filter(date__lte=end_date)
+            capital_events = capital_events.filter(date__lte=end_date)
 
         if not (start_date or end_date):
             if not (selected_years or selected_months or search_query):
@@ -173,24 +194,28 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
                 incomes = incomes.filter(date__year__in=selected_years)
                 transfers = transfers.filter(date__year__in=selected_years)
                 loan_repayments = loan_repayments.filter(date__year__in=selected_years)
+                capital_events = capital_events.filter(date__year__in=selected_years)
             if selected_months:
                 expenses = expenses.filter(date__month__in=selected_months)
                 incomes = incomes.filter(date__month__in=selected_months)
                 transfers = transfers.filter(date__month__in=selected_months)
                 loan_repayments = loan_repayments.filter(date__month__in=selected_months)
+                capital_events = capital_events.filter(date__month__in=selected_months)
 
         context['expense_count'] = expenses.count()
         context['income_count'] = incomes.count()
         context['transfer_count'] = transfers.count()
         context['loan_count'] = loan_repayments.count()
-        context['filtered_count'] = context['expense_count'] + context['income_count'] + context['transfer_count'] + context['loan_count']
+        context['capital_event_count'] = capital_events.count()
+        context['filtered_count'] = context['expense_count'] + context['income_count'] + context['transfer_count'] + context['loan_count'] + context['capital_event_count']
 
         # Total amount (Base Currency)
         context['filtered_amount'] = (
             (expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or 0) +
             (incomes.aggregate(Sum('base_amount'))['base_amount__sum'] or 0) +
             (transfers.aggregate(Sum('converted_amount'))['converted_amount__sum'] or 0) +
-            (loan_repayments.aggregate(Sum('base_amount'))['base_amount__sum'] or 0)
+            (loan_repayments.aggregate(Sum('base_amount'))['base_amount__sum'] or 0) +
+            (capital_events.aggregate(Sum('base_amount'))['base_amount__sum'] or 0)
         )
 
         # Filter options
@@ -198,7 +223,8 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         income_years = {d.year for d in Income.objects.filter(user=user).dates('date', 'year', order='DESC')}
         transfer_years = {d.year for d in Transfer.objects.filter(user=user).dates('date', 'year', order='DESC')}
         loan_years = {d.year for d in LoanRepayment.objects.filter(loan__user=user).dates('date', 'year', order='DESC')}
-        all_years = expense_years.union(income_years).union(transfer_years).union(loan_years)
+        capital_event_years = {d.year for d in CapitalEvent.objects.filter(user=user).dates('date', 'year', order='DESC')}
+        all_years = expense_years.union(income_years).union(transfer_years).union(loan_years).union(capital_event_years)
         context['years'] = sorted(list(all_years.union({datetime.now().year})), reverse=True)
         context['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
         

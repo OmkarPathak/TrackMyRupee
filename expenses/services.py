@@ -6,7 +6,7 @@ from django.db.models import F, Sum
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 
-from .models import Expense, Income, Loan, LoanRepayment
+from .models import CapitalEvent, Expense, Income, Loan, LoanRepayment
 
 
 class FinancialService:
@@ -216,7 +216,8 @@ class LoanService:
     @staticmethod
     def get_loan_summary(loan):
         """
-        Calculates total paid and remaining principal based on actual repayments.
+        Calculates total paid and remaining principal based on actual repayments
+        and any capital event prepayments linked to the loan.
         """
         repayments = loan.repayments.aggregate(
             total_principal=Sum('principal_portion'),
@@ -227,13 +228,21 @@ class LoanService:
         principal_paid = repayments['total_principal'] or Decimal('0.00')
         interest_paid = repayments['total_interest'] or Decimal('0.00')
         total_paid = repayments['total_amount'] or Decimal('0.00')
+
+        # Factor in lump-sum payments recorded as CapitalEvents (down payments and prepayments)
+        capital_prepaid = (
+            CapitalEvent.objects
+            .filter(linked_loan=loan, subtype__in=['loan_down_payment', 'loan_prepayment'])
+            .aggregate(total=Sum('amount'))['total']
+        ) or Decimal('0.00')
         
-        remaining_principal = loan.initial_principal - principal_paid
+        remaining_principal = loan.initial_principal - principal_paid - capital_prepaid
         if remaining_principal < 0:
             remaining_principal = Decimal('0.00')
             
         return {
             'principal_paid': float(principal_paid),
+            'capital_prepaid': float(capital_prepaid),
             'interest_paid': float(interest_paid),
             'total_paid': float(total_paid),
             'remaining_principal': float(remaining_principal)

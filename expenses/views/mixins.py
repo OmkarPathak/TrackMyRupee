@@ -4,7 +4,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.db.models import Sum
 
-from ..models import Expense, Income, LoanRepayment, RecurringTransaction, Transfer, UserProfile
+from ..models import CapitalEvent, Expense, Income, LoanRepayment, RecurringTransaction, Transfer, UserProfile
 from ..services import LoanService
 from ..utils import get_exchange_rate
 
@@ -53,6 +53,19 @@ def process_user_recurring_transactions(user):
             row['loan_id']: Decimal(str(row['total_principal'] or 0))
             for row in repayment_totals
         }
+        # Add capital event prepayments so recurring EMI scheduling sees the correct balance
+        capital_prepayment_totals = (
+            CapitalEvent.objects
+            .filter(linked_loan_id__in=loan_ids, subtype__in=['loan_down_payment', 'loan_prepayment'])
+            .values('linked_loan_id')
+            .annotate(total_prepaid=Sum('amount'))
+        )
+        for row in capital_prepayment_totals:
+            lid = row['linked_loan_id']
+            loan_principal_paid_map[lid] = (
+                loan_principal_paid_map.get(lid, Decimal('0.00'))
+                + Decimal(str(row['total_prepaid'] or 0))
+            )
 
     for rt in recurring_txs:
         if not rt.last_processed_date:

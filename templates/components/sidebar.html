@@ -142,6 +142,18 @@
             </a>
             {% endif %}
 
+            <!-- Capital Events -->
+            <div class="d-flex align-items-center position-relative px-0">
+                <a href="{% url 'capital-event-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'capital_event' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Capital Events' %}">
+                    <i class="bi bi-gem fs-5"></i>
+                    <span class="nav-text">{% trans "Capital Events" %}</span>
+                </a>
+                <a href="{% url 'capital-event-create' %}" class="btn-sidebar-add nav-text me-2" title="{% trans 'Add Capital Event' %}">
+                    <i class="bi bi-plus-lg"></i>
+                    <span>{% trans "Add" %}</span>
+                </a>
+            </div>
+
             <!-- Settings -->
             <a href="{% url 'settings-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'settings' in request.resolver_match.url_name or 'settings' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Settings' %}">
                 <i class="bi bi-gear fs-5"></i>

@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% if event %}{% trans "Edit Capital Event" %}{% else %}{% trans "Add Capital Event" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center gap-3">
+                <div>
+                    <h1 class="h4 fw-bold mb-0">
+                        {% if event %}{% trans "Edit Capital Event" %}{% else %}{% trans "Add Capital Event" %}{% endif %}
+                    </h1>
+                    <p class="text-muted small mb-0">{% trans "Large one-off payments excluded from monthly averages & budget tracking." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- What is a Capital Event? explainer -->
+    {% if not event %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="alert alert-info border-0 rounded-4 mb-4 d-flex gap-3 align-items-start" role="alert">
+                <i class="bi bi-info-circle-fill fs-5 mt-1 flex-shrink-0"></i>
+                <div>
+                    <strong>{% trans "What is a Capital Event?" %}</strong>
+                    {% blocktrans %}
+                    A Capital Event is a large, one-off payment (like a home loan down payment, a lump-sum medical bill, or a big purchase)
+                    that you don't want distorting your regular monthly spending charts and averages.
+                    It will still appear in your cash flow and net worth calculations.
+                    {% endblocktrans %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if from_expense_id %}
+    <div class="alert alert-warning border-0 rounded-4 mb-4">
+        <i class="bi bi-arrow-left-right me-2"></i>
+        {% trans "You're converting a regular expense into a Capital Event. You can optionally delete the original expense after saving." %}
+    </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% if next_url %}
+                        <input type="hidden" name="next" value="{{ next_url }}">
+                        {% endif %}
+                        {% if from_expense_id %}
+                        <input type="hidden" name="from_expense_id" value="{{ from_expense_id }}">
+                        {% endif %}
+
+                        <!-- Row 1: Amount + Currency + Date -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">{{ form.amount.label }} <span class="text-danger">*</span></label>
+                                {{ form.amount }}
+                                {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">{{ form.currency.label }}</label>
+                                {{ form.currency }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">{{ form.date.label }} <span class="text-danger">*</span></label>
+                                {{ form.date }}
+                                {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Subtype + Account -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ form.subtype.label }} <span class="text-danger">*</span></label>
+                                {{ form.subtype }}
+                                {% if form.subtype.errors %}<div class="text-danger small mt-1">{{ form.subtype.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ form.account.label }}</label>
+                                {{ form.account }}
+                                <div class="form-text">{% trans "Used to update your account balance." %}</div>
+                            </div>
+                        </div>
+
+                        <!-- Loan link (shown only for relevant subtypes) -->
+                        <div class="mb-3" id="loan-link-row">
+                            <label class="form-label fw-semibold">{{ form.linked_loan.label }}</label>
+                            {{ form.linked_loan }}
+                            <div class="form-text">
+                                {% trans "Optionally link to an existing loan so the Loan Detail page shows total capital committed." %}
+                                <a href="{% url 'loan-create' %}" target="_blank" class="ms-1">{% trans "+ Create loan" %}</a>
+                            </div>
+                            {% if form.linked_loan.errors %}<div class="text-danger small mt-1">{{ form.linked_loan.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <!-- Note -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ form.note.label }}</label>
+                            {{ form.note }}
+                        </div>
+
+                        <!-- Flags -->
+                        <div class="card bg-light border-0 rounded-3 p-3 mb-4">
+                            <p class="fw-semibold small mb-2 text-muted text-uppercase letter-spacing-1">{% trans "Analytics Flags" %}</p>
+                            <div class="form-check mb-2">
+                                {{ form.exclude_from_averages }}
+                                <label class="form-check-label" for="{{ form.exclude_from_averages.id_for_label }}">
+                                    {{ form.exclude_from_averages.label }}
+                                    <span class="text-muted small d-block">{% trans "Keeps monthly trend charts and category averages accurate." %}</span>
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ form.exclude_from_budget }}
+                                <label class="form-check-label" for="{{ form.exclude_from_budget.id_for_label }}">
+                                    {{ form.exclude_from_budget.label }}
+                                    <span class="text-muted small d-block">{% trans "Does not count against your monthly category budgets." %}</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.include_in_net_worth }}
+                                <label class="form-check-label" for="{{ form.include_in_net_worth.id_for_label }}">
+                                    {{ form.include_in_net_worth.label }}
+                                    <span class="text-muted small d-block">{% trans "The money still left your account - keep it in cash flow." %}</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {% if from_expense_id %}
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="delete_source_expense" value="1" id="delete_source_expense">
+                            <label class="form-check-label text-danger" for="delete_source_expense">
+                                {% trans "Delete the original expense after conversion" %}
+                            </label>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'capital-event-list' %}{% endif %}" class="btn btn-outline-secondary rounded-3">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary rounded-3 fw-semibold px-4">
+                                {% if event %}<i class="bi bi-check-lg me-1"></i>{% trans "Update" %}{% else %}<i class="bi bi-plus-lg me-1"></i>{% trans "Save Capital Event" %}{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+    const subtypeEl = document.getElementById('id_subtype');
+    const loanRow = document.getElementById('loan-link-row');
+    const LOAN_SUBTYPES = ['loan_down_payment', 'loan_prepayment'];
+
+    function toggleLoanRow() {
+        if (!subtypeEl || !loanRow) return;
+        const show = LOAN_SUBTYPES.includes(subtypeEl.value);
+        loanRow.style.display = show ? '' : 'none';
+    }
+
+    if (subtypeEl) {
+        subtypeEl.addEventListener('change', toggleLoanRow);
+        toggleLoanRow(); // run on page load
+    }
+})();
+</script>
+{% endblock %}

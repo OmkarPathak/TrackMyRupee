@@ -17,8 +17,9 @@ from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView, ListView, UpdateView, View
 
 from ..forms import ExpenseForm
-from ..models import Account, Category, Expense
+from ..models import Account, Category, Expense, CapitalEvent
 from ..parser import parse_expense_nl
+from django.shortcuts import redirect, render, get_object_or_404
 from .mixins import RecurringTransactionMixin, process_user_recurring_transactions
 
 
@@ -441,6 +442,38 @@ class ExpenseBulkUpdateView(LoginRequiredMixin, View):
             messages.warning(request, _('No valid expenses found to update.'))
             
         return redirect('expense-list')
+
+class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
+    """Convert an Expense into a CapitalEvent."""
+
+    def post(self, request, pk):
+        expense = get_object_or_404(Expense, pk=pk, user=request.user)
+        with transaction.atomic():
+            # Match the category to a CapitalEvent subtype if possible, otherwise use 'other'
+            subtype = 'other'
+            category_lower = expense.category.lower()
+            for key, display in CapitalEvent.SUBTYPE_CHOICES:
+                if key.replace('_', ' ') in category_lower or display.lower() in category_lower:
+                    subtype = key
+                    break
+            
+            event = CapitalEvent(
+                user=request.user,
+                date=expense.date,
+                amount=expense.amount,
+                currency=expense.currency,
+                note=expense.description,
+                subtype=subtype,
+                account=expense.account,
+            )
+            event.save()
+            expense.delete()
+        messages.success(request, _("Expense converted to a capital event."))
+        
+        next_url = request.GET.get('next') or request.POST.get('next')
+        if next_url:
+            return redirect(next_url)
+        return redirect('capital-event-list')
 
 @require_POST
 @login_required

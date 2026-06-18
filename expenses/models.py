@@ -173,6 +173,7 @@ class JournalEntry(models.Model):
         ('LOAN_REPAYMENT', _('Loan Repayment')),
         ('GOAL_CONTRIBUTION', _('Goal Contribution')),
         ('ADJUSTMENT', _('Adjustment')),
+        ('CAPITAL_EVENT', _('Capital Event')),
     ]
     STATUS_CHOICES = [
         ('POSTED', _('Posted')),
@@ -1520,7 +1521,15 @@ class LoanRepayment(models.Model):
         prior_paid = self.loan.repayments.exclude(pk=self.pk).aggregate(
             total_principal=models.Sum('principal_portion')
         )['total_principal'] or Decimal('0.00')
-        remaining_principal = self.loan.initial_principal - prior_paid
+        capital_prepaid = (
+            self.loan.capital_events
+            .filter(subtype__in=['loan_down_payment', 'loan_prepayment'])
+            .aggregate(total=models.Sum('amount'))['total']
+        ) or Decimal('0.00')
+        remaining_principal = max(
+            self.loan.initial_principal - prior_paid - capital_prepaid,
+            Decimal('0.00'),
+        )
         if self.principal_portion > remaining_principal:
             raise ValidationError({'principal_portion': _('Principal portion cannot exceed remaining principal.')})
 
@@ -1657,4 +1666,190 @@ class DeletionRequestAuditLog(models.Model):
 
     def __str__(self):
         return f"Deletion request for {self.username} ({self.email}) at {self.requested_at}"
+
+class CapitalEvent(models.Model):
+    """
+    A large, one-off financial event (e.g., home-loan down payment, big medical bill)
+    that is intentionally excluded from regular analytics / budget tracking by default
+    so it doesn't distort monthly spending trends, while still being reflected in
+    cash flow and net-worth calculations.
+
+    Schema decision: separate table (not a flag on Expense) so that:
+      - analytics / budget exclusion logic stays clean without per-query branching;
+      - distinct fields (subtype, linked_loan, exclude_* flags) never pollute Expense;
+      - tier limits on Expense.can_add_expense() are unaffected;
+      - type conversion between CapitalEvent <-> Expense is a clear data copy, not a flag flip.
+    """
+
+    SUBTYPE_CHOICES = [
+        ('loan_down_payment', _('Loan Down Payment')),
+        ('loan_prepayment', _('Loan Prepayment')),
+        ('large_purchase', _('Large Purchase')),
+        ('medical_lump_sum', _('Medical Lump Sum')),
+        ('gift_given', _('Gift Given')),
+        ('gift_received', _('Gift Received')),
+        ('investment_lump_sum', _('Investment Lump Sum')),
+        ('other', _('Other')),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='capital_events')
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))
+    date = models.DateField(verbose_name=_('Date'))
+    subtype = models.CharField(
+        max_length=30,
+        choices=SUBTYPE_CHOICES,
+        default='other',
+        verbose_name=_('Subtype'),
+    )
+    note = models.TextField(blank=True, default='', verbose_name=_('Note'))
+
+    # Optional link to an existing Loan record
+    linked_loan = models.ForeignKey(
+        Loan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='capital_events',
+        verbose_name=_('Linked Loan'),
+    )
+
+    currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
+    exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=Decimal('1.0'), verbose_name=_('Exchange Rate'))
+    base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'), verbose_name=_('Amount in Base Currency'))
+
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='capital_events',
+        verbose_name=_('Account'),
+    )
+
+    # Analytical flags (default: excluded from averages / budget, included in cash flow)
+    exclude_from_averages = models.BooleanField(default=True, verbose_name=_('Exclude from Averages & Trends'))
+    exclude_from_budget = models.BooleanField(default=True, verbose_name=_('Exclude from Budget'))
+    include_in_net_worth = models.BooleanField(default=True, verbose_name=_('Include in Cash Flow / Net Worth'))
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', 'subtype']),
+            models.Index(fields=['linked_loan']),
+        ]
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.date} – {self.get_subtype_display()} – {self.currency}{self.amount}"
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            old_instance = None
+            if self.pk:
+                old_instance = CapitalEvent.objects.select_related('account').select_for_update().get(pk=self.pk)
+                if old_instance.account_id and old_instance.include_in_net_worth:
+                    old_account = Account.objects.select_for_update().get(pk=old_instance.account_id)
+                    reversal_amount = old_instance.amount
+                    if old_instance.currency != old_account.currency:
+                        rate = get_exchange_rate(old_instance.currency, old_account.currency)
+                        reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
+                    old_account.balance += reversal_amount
+                    old_account.save(update_fields=['balance', 'updated_at'])
+
+            # Multi-currency normalisation
+            base_currency = self.user.profile.currency
+            if self.currency == base_currency:
+                self.exchange_rate = Decimal('1.0')
+                self.base_amount = self.amount
+            else:
+                self.exchange_rate = get_exchange_rate(self.currency, base_currency)
+                self.base_amount = (self.amount * self.exchange_rate).quantize(Decimal('0.01'))
+
+            super().save(*args, **kwargs)
+
+            if self.account and self.include_in_net_worth:
+                locked_account = Account.objects.select_for_update().get(pk=self.account_id)
+                apply_amount = self.amount
+                if self.currency != locked_account.currency:
+                    rate = get_exchange_rate(self.currency, locked_account.currency)
+                    apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                locked_account.balance -= apply_amount
+                locked_account.save(update_fields=['balance', 'updated_at'])
+
+            def _post_shadow_entry():
+                from .ledger_service import LedgerPostingService
+
+                version_token = _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE')
+                if old_instance is None:
+                    LedgerPostingService.shadow_post_capital_event_create(
+                        event=self,
+                        version_token=version_token,
+                    )
+                else:
+                    LedgerPostingService.shadow_post_capital_event_update(
+                        event=self,
+                        previous_event=old_instance,
+                        version_token=version_token,
+                    )
+
+            _run_ledger_shadow(
+                _post_shadow_entry,
+                source_type='CAPITAL_EVENT',
+                source_id=self.id,
+                action='CREATE' if old_instance is None else 'UPDATE',
+                payload={
+                    'handler': 'capital_event_create' if old_instance is None else 'capital_event_update',
+                    'version_token': _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE'),
+                    'capital_event': {
+                        'user_id': self.user_id,
+                        'amount': str(self.amount),
+                        'currency': self.currency,
+                        'subtype': self.subtype,
+                        'account_id': self.account_id,
+                        'source_id': self.id,
+                    },
+                },
+            )
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.account and self.include_in_net_worth:
+                locked_account = Account.objects.select_for_update().get(pk=self.account_id)
+                apply_amount = self.amount
+                if self.currency != locked_account.currency:
+                    rate = get_exchange_rate(self.currency, locked_account.currency)
+                    apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                locked_account.balance += apply_amount
+                locked_account.save(update_fields=['balance', 'updated_at'])
+
+            def _post_shadow_entry():
+                from .ledger_service import LedgerPostingService
+
+                LedgerPostingService.shadow_post_capital_event_delete(
+                    event=self,
+                    version_token=_build_ledger_version(self, 'DELETE'),
+                )
+
+            _run_ledger_shadow(
+                _post_shadow_entry,
+                source_type='CAPITAL_EVENT',
+                source_id=self.id,
+                action='DELETE',
+                payload={
+                    'handler': 'capital_event_delete',
+                    'version_token': _build_ledger_version(self, 'DELETE'),
+                    'capital_event': {
+                        'user_id': self.user_id,
+                        'amount': str(self.amount),
+                        'currency': self.currency,
+                        'subtype': self.subtype,
+                        'account_id': self.account_id,
+                        'source_id': self.id,
+                    },
+                },
+            )
+            super().delete(*args, **kwargs)
 
