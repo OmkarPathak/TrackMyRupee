@@ -311,21 +311,6 @@
 
 </style>
 
-<!-- Daily Mode / Full Report Toggle (Mobile Only) -->
-<div class="d-md-none d-flex justify-content-center mb-4 fade-in">
-    <div class="dashboard-mode-container" role="group">
-        <button type="button" class="btn btn-sm mode-btn daily-mode-btn active" id="btn-daily-mode" onclick="switchToDailyMode()">
-            {% trans "Daily Mode" %}
-        </button>
-        <button type="button" class="btn btn-sm mode-btn full-report-btn" id="btn-full-report" onclick="switchToFullReport()">
-            {% trans "Full Report" %}
-        </button>
-        <button type="button" class="btn btn-sm mode-btn" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'">
-            {% trans "Trends" %}
-        </button>
-    </div>
-</div>
-
 <style>
     /* Dashboard Mode Toggle Styles */
     #dashboard-mode-toggle .active {
@@ -1547,6 +1532,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         {% endif %}
                     </div>
+                </div>
+
+                <!-- Mobile Period Summary (filter-aware) — hidden on desktop -->
+                <div class="d-lg-none border-top mx-1 mt-2 pt-3 pb-1">
+                    <p class="text-center mb-0 fw-medium" style="font-size: 0.8rem; line-height: 1.6;">
+                        <span class="fw-bold text-success">{{ currency_symbol }}{{ total_income|compact_amount:currency_symbol|translate_digits }}</span>
+                        <span class="text-muted opacity-60 mx-1">{% trans "income" %}</span>
+                        <span class="text-muted opacity-30 mx-1">&middot;</span>
+                        <span class="fw-bold text-danger">{{ currency_symbol }}{{ total_expenses|compact_amount:currency_symbol|translate_digits }}</span>
+                        <span class="text-muted opacity-60 mx-1">{% trans "spent" %}</span>
+                        <span class="text-muted opacity-30 mx-1">&middot;</span>
+                        <span class="fw-bold {% if savings >= 0 %}text-primary{% else %}text-danger{% endif %}">{{ currency_symbol }}{{ savings|abs_val|compact_amount:currency_symbol|translate_digits }}</span>
+                        <span class="text-muted opacity-60 mx-1">{% if savings >= 0 %}{% trans "saved" %}{% else %}{% trans "over" %}{% endif %}</span>
+                    </p>
                 </div>
             </div>
         </div>
