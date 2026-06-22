@@ -300,7 +300,7 @@ class Command(BaseCommand):
                     source='Performance Bonus',
                     amount=top_up_income,
                     date=max(month_start + timedelta(days=2), today - timedelta(days=1)),
-                    description='Demo adjustment to keep financial health score stable',
+                    description='Q2 Performance Bonus',
                     account=acc_main,
                 )
                 self.stdout.write(
