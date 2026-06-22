@@ -6,8 +6,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TrackMyRupee Tutorial – Learn to Track Expenses, Income &amp; Net Worth | TrackMyRupee</title>
-  <meta name="description" content="Interactive step-by-step guide to using TrackMyRupee. Learn how to add expenses, subscriptions, income, internal transfers, set up accounts, and understand your net worth — built from the real live demo.">
-  <meta name="keywords" content="trackmyrupee tutorial, how to track expenses india, expense tracker guide, personal finance app tutorial, net worth tracker india, subscription tracker, income tracker india">
+  <meta name="description" content="Interactive step-by-step guide to using TrackMyRupee. Learn how to add expenses, subscriptions, income, internal transfers, capital events, set up accounts, and understand your net worth — built from the real live demo.">
+  <meta name="keywords" content="trackmyrupee tutorial, how to track expenses india, expense tracker guide, personal finance app tutorial, net worth tracker india, subscription tracker, income tracker india, capital events tracker">
   <meta name="author" content="Omkar Pathak">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -26,7 +26,7 @@
   <meta property="og:site_name" content="TrackMyRupee">
   <meta property="og:url" content="https://trackmyrupee.com/tutorial/">
   <meta property="og:title" content="TrackMyRupee Tutorial – Learn to Master Your Finances">
-  <meta property="og:description" content="Interactive walkthrough covering expenses, subscriptions, income, transfers, accounts and net worth — built directly from the real TrackMyRupee demo.">
+  <meta property="og:description" content="Interactive walkthrough covering expenses, subscriptions, income, transfers, capital events, accounts and net worth — built directly from the real TrackMyRupee demo.">
   <meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -37,7 +37,7 @@
   <meta name="twitter:site" content="@trackmyrupee">
   <meta name="twitter:creator" content="@omkar_pathak">
   <meta name="twitter:title" content="TrackMyRupee Tutorial – Learn to Master Your Finances">
-  <meta name="twitter:description" content="8-section interactive guide: expenses, subscriptions, income, transfers, accounts, net worth, quiz and cheat sheet. Free for everyone.">
+  <meta name="twitter:description" content="9-section interactive guide: expenses, subscriptions, income, transfers, capital events, accounts, net worth, quiz and cheat sheet. Free for everyone.">
   <meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
   <meta name="twitter:url" content="https://trackmyrupee.com/tutorial/">
 
@@ -52,13 +52,13 @@
     "@type": "LearningResource",
     "name": "TrackMyRupee Tutorial",
     "url": "https://trackmyrupee.com/tutorial/",
-    "description": "Interactive step-by-step tutorial for TrackMyRupee — covering expenses, income, subscriptions, transfers, accounts and net worth tracking.",
+    "description": "Interactive step-by-step tutorial for TrackMyRupee — covering expenses, income, subscriptions, transfers, capital events, accounts and net worth tracking.",
     "inLanguage": "en-IN",
     "educationalLevel": "Beginner",
     "learningResourceType": "Tutorial",
     "author": { "@type": "Person", "name": "Omkar Pathak", "url": "https://trackmyrupee.com" },
     "provider": { "@type": "Organization", "name": "TrackMyRupee", "url": "https://trackmyrupee.com", "logo": "https://trackmyrupee.com/static/img/logo.svg" },
-    "teaches": ["Expense tracking", "Income tracking", "Net worth calculation", "Subscription management", "Internal transfers", "Account management"]
+    "teaches": ["Expense tracking", "Income tracking", "Net worth calculation", "Subscription management", "Internal transfers", "Capital events management", "Account management"]
   }
   </script>
 
@@ -94,6 +94,11 @@
         "@type": "Question",
         "name": "Does an Internal Transfer change my net worth?",
         "acceptedAnswer": { "@type": "Answer", "text": "No. Moving money from one of your accounts to another doesn't increase or decrease your total — it's the same money, just held differently. Net worth only changes from real income, expenses, or value changes in investments." }
+      },
+      {
+        "@type": "Question",
+        "name": "Why use a Capital Event instead of a normal Expense?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Capital Events are large, one-off costs. By tracking them as Capital Events, they are excluded from your monthly spending averages and budgets by default, preventing them from skewing your normal monthly trends while still updating your net worth." }
       },
       {
         "@type": "Question",
@@ -877,7 +882,7 @@
     <div class="row align-items-center g-4">
       <div class="col-lg-7">
         <h1 class="mb-3" id="hero-title">Learn to use <span style="color: var(--tmr-teal-400);">TrackMyRupee</span> efficiently</h1>
-        <p class="mb-4" id="hero-desc">An 8-section walkthrough built directly from the real app — covering every feature you need to take control of your money.</p>
+        <p class="mb-4" id="hero-desc">A 9-section walkthrough built directly from the real app — covering every feature you need to take control of your money.</p>
         <div class="d-flex gap-3 flex-wrap align-items-center">
           <a href="{% url 'account_signup' %}" class="btn px-4 py-2 fw-bold text-white" style="background: var(--tmr-teal-400); border-radius: 10px;" id="hero-btn-start">
             Start Free
@@ -899,7 +904,7 @@
               <div class="tut-stat-icon"><i class="bi bi-collection"></i></div>
               <div>
                 <div class="tut-stat-label" id="stat-sec-lbl">Sections</div>
-                <div class="tut-stat-value" id="stat-sec-val">8 topics</div>
+                <div class="tut-stat-value" id="stat-sec-val">9 topics</div>
               </div>
             </div>
           </div>
@@ -957,6 +962,9 @@
         </button>
         <button class="tut-nav-btn" data-panel="p-transfer" role="tab">
           <i class="ti ti-arrows-exchange"></i>Transfers
+        </button>
+        <button class="tut-nav-btn" data-panel="p-capitalevent" role="tab">
+          <i class="ti ti-flag"></i>Capital Events
         </button>
         <button class="tut-nav-btn" data-panel="p-accounts" role="tab">
           <i class="ti ti-building-bank"></i>Accounts
@@ -1050,6 +1058,19 @@
           </div>
           <div class="tut-stepper" id="stepper-transfer"></div>
           <div class="tut-step-card" id="stepcard-transfer"></div>
+        </div>
+
+        <!-- Capital Event panel -->
+        <div class="tut-panel" id="p-capitalevent" role="tabpanel">
+          <div class="tut-panel-header">
+            <div class="tut-panel-icon"><i class="ti ti-flag"></i></div>
+            <div>
+              <h2 id="ph-capitalevent"></h2>
+              <p class="tut-sub" id="ps-capitalevent"></p>
+            </div>
+          </div>
+          <div class="tut-stepper" id="stepper-capitalevent"></div>
+          <div class="tut-step-card" id="stepcard-capitalevent"></div>
         </div>
 
         <!-- Accounts panel -->
@@ -1179,20 +1200,21 @@
     en: {
       lang_attr: 'en',
       ui: {
-        progress: function(n){ return n + ' of 8 sections viewed'; },
+        progress: function(n){ return n + ' of 9 sections viewed'; },
         back: '← Back', next: 'Next step →', done: '✓ Done',
         score_outof: 'out of 10',
         score_cta: 'Start using TrackMyRupee →',
         score_msgs: ['Keep practicing! 💪','Not bad! 👍','Great work! 🎉','You\'re a TrackMyRupee pro! 🏆'],
         faq_heading: 'FAQ',
       },
-      tabs: { intro:'Start Here', expense:'Expenses', subscription:'Subscriptions', income:'Income', transfer:'Transfers', accounts:'Accounts', networth:'Net Worth', quiz:'Quiz', cheat:'Cheat Sheet' },
+      tabs: { intro:'Start Here', expense:'Expenses', subscription:'Subscriptions', income:'Income', transfer:'Transfers', capitalevent:'Capital Events', accounts:'Accounts', networth:'Net Worth', quiz:'Quiz', cheat:'Cheat Sheet' },
       panels: {
         intro:        { h2:'Start Here',                 sub:'Recommended path for beginners', body:'New to TrackMyRupee? Here\'s the best order to follow:<br><br><b>Step 1 — Accounts</b> (set up where your money lives)<br><b>Step 2 — Income</b> (tell the app your salary)<br><b>Step 3 — Expenses</b> (start tracking what you spend)<br><br>The other sections can wait until you\'re comfortable.', btn:'Go to Step 1: Accounts →' },
         expense:      { h2:'Adding an expense',         sub:'Verified from the real New Expense screen - step through it below' },
         subscription: { h2:'Adding a subscription',     sub:'Verified from the real Add Subscription screen - how recurring expenses are set up' },
         income:       { h2:'Adding income',             sub:'Verified from the real Add Income screen' },
         transfer:     { h2:'Internal transfers',        sub:'Verified from the real Internal Transfer screen' },
+        capitalevent: { h2:'Adding a capital event',     sub:'Verified from the real Add Capital Event screen — managing large, one-off transactions' },
         accounts:     { h2:'Setting up accounts',       sub:'Verified from the real Accounts list and the in-app "How It Works" explainer' },
         networth:     { h2:'Understanding net worth',   sub:'Verified from the real Net Worth card on the dashboard' },
         quiz:         { h2:'Quick quiz',                sub:'Every question is grounded in a screen confirmed above' },
@@ -1203,6 +1225,7 @@
         subscription: ['Subscriptions', 'Handling recurring payments.'],
         income: ['Income', 'Logging salaries, freelance pay, and refunds.'],
         transfer: ['Transfers', 'Moving money between accounts.'],
+        capitalevent: ['Capital Events', 'Large, one-off financial transactions.'],
         accounts: ['Accounts', 'Managing banks, wallets, and investments.'],
         networth: ['Net Worth', 'Understanding your overall financial health.'],
         quiz: ['Quiz', 'Test your knowledge!'],
@@ -1210,10 +1233,10 @@
       },
       hero: {
         title: 'Learn to use <span style="color: var(--tmr-teal-400);">TrackMyRupee</span> efficiently',
-        desc: 'An 8-section walkthrough built directly from the real app — covering every feature you need to take control of your money.',
+        desc: 'A 9-section walkthrough built directly from the real app — covering every feature you need to take control of your money.',
         start: 'Start Free',
         demo: 'See Live Demo',
-        stat_sec_lbl: 'Sections', stat_sec_val: '8 topics',
+        stat_sec_lbl: 'Sections', stat_sec_val: '9 topics',
         stat_time_lbl: 'Read time', stat_time_val: '~10 min',
         stat_quiz_lbl: 'Quiz', stat_quiz_val: '10 questions',
         stat_src_lbl: 'Source', stat_src_val: 'Live demo',
@@ -1223,7 +1246,7 @@
         cta_desc: 'Join thousands of Indians tracking their finances with TrackMyRupee. Free forever for core features.',
         signup_btn: 'Create Free Account',
         learn_title: "What you'll learn",
-        learn_items: ['Add expenses with Quick Add (voice & text)','Set up recurring subscriptions & income','Move money between accounts correctly','Understand your net worth formula','Test your knowledge with a 10-question quiz'],
+        learn_items: ['Add expenses with Quick Add (voice & text)','Set up recurring subscriptions & income','Track large one-off capital events','Move money between accounts correctly','Understand your net worth formula','Test your knowledge with a 10-question quiz'],
         tip_title: 'Pro tip',
         tip_text: 'Always assign an <b>Account</b> when adding expenses. Without it, the entry won\'t affect your balance or net worth.',
       },
@@ -1292,6 +1315,17 @@
         { title:'Read the trend line', body:'A sparkline chart shows the trend — solid line for history, dashed for projection — with a small <b>+</b> button to add a new account directly from this card.',
           callout:{ type:'tip', text:"Liabilities include loan balances from the Loans section — paying down a loan increases net worth even if your bank balance doesn't move." } },
       ],
+      capitalevent_steps: [
+        { title:'Select a subtype', body:'Open <b>Add Capital Event</b>. Select a <b>Subtype</b> that describes the event, such as a Loan Prepayment, Large Purchase, or Medical Lump Sum.',
+          visual:'<div class="tut-mock"><div class="tut-mock-label">Add Capital Event</div><div class="tut-field"><label>Subtype</label><div class="val filled">Large Purchase</div></div></div>' },
+        { title:'Enter Amount, Account & Date', body:'Enter the <b>Amount</b>, confirm the <b>Currency</b>, set the <b>Date</b>, and select the <b>Account</b> this transaction belongs to.',
+          visual:'<div class="tut-mock"><div class="tut-row2"><div class="tut-field"><label>Amount</label><div class="val filled">50,000.00</div></div><div class="tut-field"><label>Account</label><div class="val filled">HDFC Bank</div></div></div></div>' },
+        { title:'Link a Loan & add notes', body:'If this capital event is a down payment or prepayment for a loan, pick the <b>Linked Loan</b> to connect them. Write a detailed <b>Note</b> for reference.',
+          visual:'<div class="tut-mock"><div class="tut-field"><label>Linked Loan</label><div class="val">Home Loan</div></div><div class="tut-field"><label>Note</label><div class="val filled">Down payment for home purchase</div></div></div>' },
+        { title:'Configure analytical flags', body:'Use checkboxes to exclude this large transaction from monthly budgets or averages so it does not distort your monthly trends, while keeping it in net worth.',
+          visual:'<div class="tut-mock"><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:var(--tmr-teal-400);border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">EXCLUDE FROM BUDGETS</span></div><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:var(--tmr-teal-400);border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">INCLUDE IN NET WORTH</span></div></div>',
+          callout:{ type:'tip', text:'This keeps your daily budgets accurate even when you make large, one-off purchases.' } }
+      ],
       quiz: [
         { q:'In the real New Expense screen, what does the Quick Add box do?', opts:['Sends an SMS to your bank','Auto-fills the form below from natural text like "swiggy 320"','Deletes the last expense'], correct:1, explain:'Confirmed by the badge text "Auto-fills form below" next to the Quick Add box.' },
         { q:'Which field is unique to Add Income but not present on Add Expense?', opts:['Amount','Source (e.g. Salary, Freelance)','Currency'], correct:1, explain:'Add Income has a free-text Source field with that exact placeholder; Add Expense uses Category and Description instead.' },
@@ -1309,6 +1343,7 @@
         { icon:'bi-arrow-repeat text-primary', label:'Subscription (recurring expense or income)', text:'Add Subscription → set Type, Frequency, Amount, Start Date, Account, Category, Payment Source Method → toggle Active → Save.' },
         { icon:'bi-cash-coin text-success', label:'Income', text:'Add Income → Date, Account, Amount, Source (e.g. Salary, Freelance), optional Description → toggle recurring if it repeats → Save.' },
         { icon:'bi-arrow-left-right text-info', label:'Internal Transfer', text:'Internal Transfer → Amount, Date, From Account, To Account, optional Description → Execute Transfer. Does not change your net worth, only which account holds the money.' },
+        { icon:'bi-flag text-secondary', label:'Capital Event (large one-off)', text:'Add Capital Event → Date, Amount, Currency, Account, Subtype (e.g. Loan Prepayment, Medical), Linked Loan, Note → check analytical flags (exclude from budgets/averages by default) → Save.' },
         { icon:'bi-bank text-warning', label:'Accounts', text:'Accounts page lists all wallets/banks/investments with filters for Active and Type. + Add to create one. Net worth = Bank + Cash + Investment − Credit Card.' },
         { icon:'bi-graph-up-arrow text-success', label:'Net Worth', text:'Shown as Assets − Liabilities on the dashboard card, with month-over-month change and a 3-month projection goal.' },
       ],
@@ -1316,6 +1351,7 @@
         { q:'What happens if I save an expense without picking an Account?', a:"The form lets you save with the Account dropdown left blank. Pick an account so the expense is reflected in that account's balance and in net worth." },
         { q:"What's the difference between an Expense and a Subscription?", a:'A regular Expense is a one-time entry. A Subscription is the same kind of entry but recurring — set a Frequency and it repeats automatically without you re-entering it.' },
         { q:'Does an Internal Transfer change my net worth?', a:"No. Moving money from one of your accounts to another doesn't increase or decrease your total — it's the same money, just held differently." },
+        { q:'Why use a Capital Event instead of a normal Expense?', a:'Capital Events are large, one-off costs. By tracking them as Capital Events, they are excluded from your monthly spending averages and budgets by default, preventing them from skewing your normal monthly trends while still updating your net worth.' },
         { q:'How is net worth calculated?', a:'Confirmed from the app: Bank + Cash + Investment − Credit Card. The dashboard shows this as Assets − Liabilities with the exact rupee figures.' },
       ],
     },
@@ -1324,20 +1360,21 @@
     hi: {
       lang_attr: 'hi',
       ui: {
-        progress: function(n){ return n + ' में से 8 अनुभाग देखे'; },
+        progress: function(n){ return n + ' में से 9 अनुभाग देखे'; },
         back: '← वापस', next: 'अगला चरण →', done: '✓ पूरा हुआ',
         score_outof: '10 में से',
         score_cta: 'TrackMyRupee शुरू करें →',
         score_msgs: ['अभ्यास जारी रखें! 💪','बुरा नहीं! 👍','शानदार! 🎉','आप TrackMyRupee के विशेषज्ञ हैं! 🏆'],
         faq_heading: 'अक्सर पूछे जाने वाले प्रश्न',
       },
-      tabs: { intro:'यहाँ शुरू करें', expense:'खर्च', subscription:'सदस्यता', income:'आय', transfer:'स्थानांतरण', accounts:'खाते', networth:'नेट वर्थ', quiz:'प्रश्नोत्तरी', cheat:'संदर्भ पत्रक' },
+      tabs: { intro:'यहाँ शुरू करें', expense:'खर्च', subscription:'सदस्यता', income:'आय', transfer:'स्थानांतरण', capitalevent:'पूंजीगत घटनाएं', accounts:'खाते', networth:'नेट वर्थ', quiz:'प्रश्नोत्तरी', cheat:'संदर्भ पत्रक' },
       panels: {
         intro:        { h2:'यहाँ शुरू करें',               sub:'शुरुआती लोगों के लिए अनुशंसित मार्ग', body:'TrackMyRupee में नए हैं? पालन करने के लिए यहाँ सबसे अच्छा क्रम है:<br><br><b>चरण 1 — Accounts (खाते)</b> (सेट करें कि आपका पैसा कहाँ रहता है)<br><b>चरण 2 — Income (आय)</b> (ऐप को अपना वेतन बताएं)<br><b>चरण 3 — Expenses (खर्च)</b> (आप जो खर्च करते हैं उसे ट्रैक करना शुरू करें)<br><br>जब तक आप सहज न हों तब तक अन्य अनुभाग प्रतीक्षा कर सकते हैं।', btn:'चरण 1 पर जाएँ: Accounts →' },
         expense:      { h2:'खर्च जोड़ना',          sub:'वास्तविक New Expense स्क्रीन से सत्यापित — नीचे इसे समझें' },
         subscription: { h2:'सदस्यता जोड़ना',       sub:'वास्तविक Add Subscription स्क्रीन से सत्यापित — आवर्ती खर्च कैसे सेट करें' },
         income:       { h2:'आय जोड़ना',            sub:'वास्तविक Add Income स्क्रीन से सत्यापित' },
         transfer:     { h2:'आन्तरिक स्थानान्तरण',  sub:'वास्तविक Internal Transfer स्क्रीन से सत्यापित' },
+        capitalevent: { h2:'पूंजीगत घटना (Capital Event) जोड़ना', sub:'वास्तविक Add Capital Event स्क्रीन से सत्यापित — बड़े, एक बार के लेन-देन को संभालना' },
         accounts:     { h2:'खाते स्थापित करना',    sub:'वास्तविक Accounts सूची और इन-ऐप "How It Works" से सत्यापित' },
         networth:     { h2:'नेट वर्थ समझना',       sub:'डैशबोर्ड के वास्तविक Net Worth कार्ड से सत्यापित' },
         quiz:         { h2:'त्वरित प्रश्नोत्तरी', sub:'प्रत्येक प्रश्न ऊपर की पुष्टि की गई स्क्रीन पर आधारित है' },
@@ -1348,6 +1385,7 @@
         subscription: ['सदस्यता (Subscriptions)', 'आवर्ती भुगतान कैसे संभालें।'],
         income: ['आय (Income)', 'वेतन और फ्रीलांस भुगतान दर्ज करें।'],
         transfer: ['स्थानांतरण (Transfers)', 'खातों के बीच पैसे ले जाना।'],
+        capitalevent: ['पूंजीगत घटनाएं (Capital Events)', 'बड़े, एक बार के वित्तीय लेनदेन।'],
         accounts: ['खाते (Accounts)', 'बैंक और वॉलेट प्रबंधित करें।'],
         networth: ['नेट वर्थ (Net Worth)', 'अपनी वित्तीय स्थिति समझें।'],
         quiz: ['प्रश्नमंजुषा (Quiz)', 'अपने ज्ञान का परीक्षण करें!'],
@@ -1355,10 +1393,10 @@
       },
       hero: {
         title: '<span style="color: var(--tmr-teal-400);">TrackMyRupee</span> का प्रभावी ढंग से उपयोग करना सीखें',
-        desc: 'वास्तविक ऐप से सीधा 8-अनुभाग का वॉकथ्रू — आपके पैसे को नियंत्रित करने के लिए आवश्यक हर सुविधा को कवर करता है।',
+        desc: 'वास्तविक ऐप से सीधा 9-अनुभाग का वॉकथ्रू — आपके पैसे को नियंत्रित करने के लिए आवश्यक हर सुविधा को कवर करता है।',
         start: 'मुफ़्त शुरू करें',
         demo: 'लाइव डेमो देखें',
-        stat_sec_lbl: 'अनुभाग', stat_sec_val: '8 विषय',
+        stat_sec_lbl: 'अनुभाग', stat_sec_val: '9 विषय',
         stat_time_lbl: 'पढ़ने का समय', stat_time_val: '~10 मिनट',
         stat_quiz_lbl: 'प्रश्नोत्तरी', stat_quiz_val: '10 प्रश्न',
         stat_src_lbl: 'स्रोत', stat_src_val: 'लाइव डेमो',
@@ -1368,7 +1406,7 @@
         cta_desc: 'TrackMyRupee के साथ अपने वित्त को ट्रैक करने वाले हजारों भारतीयों से जुड़ें। मूल सुविधाएँ हमेशा मुफ़्त।',
         signup_btn: 'मुफ़्त खाता बनाएँ',
         learn_title: 'आप क्या सीखेंगे',
-        learn_items: ['Quick Add (आवाज़ और टेक्स्ट) से खर्च जोड़ें','आवर्ती सदस्यता और आय सेट करें','खातों के बीच सही तरीके से पैसे ट्रांसफर करें','नेट वर्थ फ़ॉर्मूला समझें','10-प्रश्न प्रश्नोत्तरी से अपना ज्ञान जाँचें'],
+        learn_items: ['Quick Add (आवाज़ और टेक्स्ट) से खर्च जोड़ें','आवर्ती सदस्यता और आय सेट करें','बड़े एकमुश्त पूंजीगत इवेंट ट्रैक करें','खातों के बीच सही तरीके से पैसे ट्रांसफर करें','नेट वर्थ फ़ॉर्मूला समझें','10-प्रश्न प्रश्नोत्तरी से अपना ज्ञान जाँचें'],
         tip_title: 'विशेषज्ञ सुझाव',
         tip_text: 'खर्च जोड़ते समय हमेशा <b>खाता</b> चुनें। बिना खाते के, एंट्री आपके बैलेंस या नेट वर्थ को प्रभावित नहीं करेगी।',
       },
@@ -1419,70 +1457,84 @@
           visual:'<div class="tut-mock"><div class="tut-mock-label">पुष्टि</div><div class="val filled" style="background:var(--tmr-teal-400);color:#fff;text-align:center;font-weight:700;border-radius:10px;">⇄ Execute Transfer</div></div>',
           callout:{ type:'tip', text:'स्थानांतरण आपके अपने खातों के बीच पैसे ले जाता है — यह आपका नेट वर्थ नहीं बदलता।' } },
       ],
+      capitalevent_steps: [
+        { title:'उप-प्रकार चुनें', body:'<b>Add Capital Event</b> खोलें। लेन-देन का वर्णन करने वाला <b>Subtype</b> चुनें, जैसे Loan Prepayment, Large Purchase, या Medical Lump Sum।',
+          visual:'<div class="tut-mock"><div class="tut-mock-label">पूंजीगत घटना जोड़ें</div><div class="tut-field"><label>Subtype</label><div class="val filled">Large Purchase</div></div></div>' },
+        { title:'राशि, खाता और तिथि भरें', body:'<b>राशि (Amount)</b> दर्ज करें, <b>मुद्रा (Currency)</b> की पुष्टि करें, <b>तिथि</b> सेट करें, और वह <b>खाता (Account)</b> चुनें जिससे यह लेन-देन जुड़ा है।',
+          visual:'<div class="tut-mock"><div class="tut-row2"><div class="tut-field"><label>राशि</label><div class="val filled">50,000.00</div></div><div class="tut-field"><label>खाता</label><div class="val filled">HDFC Bank</div></div></div></div>' },
+        { title:'Loan लिंक करें और नोट लिखें', body:'यदि यह पूंजीगत घटना किसी लोन की डाउन पेमेंट या प्रीपेमेंट है, तो उन्हें जोड़ने के लिए <b>Linked Loan</b> चुनें। संदर्भ के लिए विस्तृत <b>Note</b> लिखें।',
+          visual:'<div class="tut-mock"><div class="tut-field"><label>Linked Loan</label><div class="val">Home Loan</div></div><div class="tut-field"><label>Note</label><div class="val filled">घर खरीदने के लिए डाउन पेमेंट</div></div></div>' },
+        { title:'विश्लेषणात्मक फ़्लैग सेट करें', body:'चेकबॉक्स का उपयोग करके इस बड़े लेन-देन को मासिक बजट या औसत से बाहर रखें, ताकि यह आपकी नियमित मासिक प्रवृत्तियों को न बिगाड़े, जबकि नेट वर्थ में बना रहे।',
+          visual:'<div class="tut-mock"><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:var(--tmr-teal-400);border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">EXCLUDE FROM BUDGETS</span></div><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:var(--tmr-teal-400);border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">INCLUDE IN NET WORTH</span></div></div>',
+          callout:{ type:'tip', text:'इससे बड़े, एकबारगी ख़र्च होने पर भी आपके रोज़मर्रा के बजट सटीक रहते हैं।' } }
+      ],
       accounts_steps: [
         { title:'खातों की सूची देखें', body:'<b>Accounts</b> पेज Active/Inactive और All Types फ़िल्टर के साथ सभी खाते दिखाता है।',
           visual:'<div class="tut-mock"><div class="tut-mock-label">खाते — वास्तविक डेमो डेटा</div><div class="tut-diagram"><div class="tut-nw-row"><span>HDFC Bank (Main) · बैंक खाता</span><span>₹7,92,783</span></div><div class="tut-nw-row"><span>SBI Savings · बैंक खाता</span><span>₹0</span></div><div class="tut-nw-row"><span>Cash Wallet · नकद</span><span>₹36,445</span></div><div class="tut-nw-row"><span>Zerodha Demat · निवेश खाता</span><span>₹60,000</span></div></div></div>',
           callout:{ type:'tip', text:"आप बस ऐप को बता रहे हैं कि आपका पैसा पहले से कहाँ है। जब तक आप नहीं कहेंगे तब तक कुछ भी नहीं हिलेगा।" } },
-        { title:'नया खाता जोड़ें', body:'नया खाता बनाने के लिए ऊपर-दाईं ओर <b>+ Add</b> टैप करें। <b>History</b> पिछले बैलेंस बदलाव दिखाती है।',
-          callout:{ type:'unverified', text:'इस वॉकथ्रू में सत्यापित नहीं: Add Account फ़ॉर्म के सटीक फ़ील्ड — केवल सूची और प्रवेश बिंदु सत्यापित हैं।' } },
-        { title:'खाते नेट वर्थ को कैसे प्रभावित करते हैं', body:'ऐप का "How It Works" गाइड फ़ॉर्मूला बताता है: <b>Bank + Cash + Investment − Credit Card = Net Worth</b>।',
-          visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>Bank + Cash + Investment</span><span style="color:var(--tmr-teal-400);font-weight:600;">संपत्ति</span></div><div class="tut-nw-row"><span>− Credit Card</span><span style="color:#E24B4A;font-weight:600;">देनदारी</span></div><div class="tut-nw-row"><span>= Net Worth</span><span></span></div></div>' },
+        { title:'नया खाता जोड़ें', body:'नया खाता बनाने के लिए ऊपर-दाईं ओर <b>+ Add</b> टैप करें। <b>History</b> पुराने बैलेंस बदलाव दिखाता है।',
+          callout:{ type:'unverified', text:'इस वॉकथ्रू में सत्यापित नहीं: Add Account फ़ॉर्म के सटीक फ़ील्ड्स — केवल Accounts सूची और प्रवेश बिंदु सत्यापित किए गए हैं।' } },
+        { title:'समझें कि खाते नेट वर्थ को कैसे प्रभावित करते हैं', body:'इन-ऐप "How It Works" गाइड सूत्र सीधे बताती है: <b>Bank + Cash + Investment − Credit Card = Net Worth</b>.',
+          visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>Bank + Cash + Investment</span><span style="color:var(--tmr-teal-400);font-weight:600;">संपत्तियाँ</span></div><div class="tut-nw-row"><span>− Credit Card</span><span style="color:#E24B4A;font-weight:600;">देनदारी</span></div><div class="tut-nw-row"><span>= Net Worth</span><span></span></div></div>' },
       ],
       networth_steps: [
-        { title:'नेट वर्थ क्या है?', body:"नेट वर्थ इस सवाल का ईमानदार जवाब है कि 'मैं वास्तव में कितने पैसे का मालिक हूँ?' यह आपके पास मौजूद हर चीज को जोड़ता है — आपका बैंक बैलेंस, नकद, निवेश — और आपके ऊपर जो भी कर्ज (लोन, क्रेडिट कार्ड का कर्ज) है, उसे घटाता है। जो संख्या बचती है वही आपका नेट वर्थ है।",
-          visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>संपत्ति (जो आपके पास है)</span><span style="color:var(--tmr-teal-400);font-weight:600;">+ ₹9.6L</span></div><div class="tut-nw-row"><span>कर्ज/देनदारी (जो आपको चुकाना है)</span><span style="color:#E24B4A;font-weight:600;">- ₹3.8L</span></div><div class="tut-nw-row"><span>नेट वर्थ (वास्तविक मूल्य)</span><span style="font-weight:700;">= ₹5.8L</span></div></div>' },
-        { title:'मुख्य संख्या पढ़ें', body:'Net Worth कार्ड गणना स्पष्ट दिखाता है: <b>₹9.6L − ₹3.8L (देनदारी) = ₹5.8L</b>।',
-          visual:'<div class="tut-diagram"><div class="tut-mock-label">नेट वर्थ — जून 2026 डेमो</div><div class="tut-nw-row"><span>कुल संपत्ति</span><span>₹9.6L</span></div><div class="tut-nw-row"><span>कुल देनदारी</span><span>− ₹3.8L</span></div><div class="tut-nw-row"><span>नेट वर्थ</span><span style="color:var(--tmr-teal-400);">₹5.8L</span></div></div>' },
-        { title:'महीने-दर-महीने बदलाव देखें', body:'मुख्य संख्या के नीचे <b>+₹17,912 इस महीने (+3.2%)</b> और 3-महीने का लक्ष्य <b>+₹27,297</b> दिखाता है।' },
-        { title:'ट्रेंड लाइन पढ़ें', body:'स्पार्कलाइन चार्ट ट्रेंड दिखाता है — इतिहास के लिए ठोस रेखा, अनुमान के लिए धुंधली। छोटे <b>+</b> बटन से नया खाता जोड़ें।',
-          callout:{ type:'tip', text:'देनदारियों में Loans सेक्शन के ऋण शामिल हैं — ऋण चुकाने से नेट वर्थ बढ़ता है।' } },
+        { title:'नेट वर्थ क्या है?', body:"नेट वर्थ इस सवाल का ईमानदार जवाब है: 'मैं वास्तव में कितना हूँ?' यह आपकी सारी संपत्तियाँ जोड़ता है — बैंक बैलेंस, नकद, निवेश — और आपकी सारी देनदारियाँ घटाता है — लोन, क्रेडिट कार्ड का कर्ज। जो संख्या बचती है वही आपका नेट वर्थ है।",
+          visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>संपत्तियाँ (जो आपके पास है)</span><span style="color:var(--tmr-teal-400);font-weight:600;">+ ₹9.6L</span></div><div class="tut-nw-row"><span>देनदारियाँ (जो आपको चुकानी हैं)</span><span style="color:#E24B4A;font-weight:600;">- ₹3.8L</span></div><div class="tut-nw-row"><span>नेट वर्थ (वास्तविक मूल्य)</span><span style="font-weight:700;">= ₹5.8L</span></div></div>' },
+        { title:'मुख्य संख्या पढ़ें', body:'Net Worth कार्ड गणना साफ़ दिखाता है: <b>₹9.6L − ₹3.8L (देनदारी) = ₹5.8L</b>.',
+          visual:'<div class="tut-diagram"><div class="tut-mock-label">नेट वर्थ — जून 2026 डेमो</div><div class="tut-nw-row"><span>कुल संपत्तियाँ</span><span>₹9.6L</span></div><div class="tut-nw-row"><span>कुल देनदारियाँ</span><span>− ₹3.8L</span></div><div class="tut-nw-row"><span>नेट वर्थ</span><span style="color:var(--tmr-teal-400);">₹5.8L</span></div></div>' },
+        { title:'महीना-दर-महीना बदलाव देखें', body:'मुख्य संख्या के नीचे <b>+₹17,912 इस महीने (+3.2%)</b> और 3-महीने का लक्ष्य <b>+₹27,297</b> दिखाया जाता है।' },
+        { title:'ट्रेंड लाइन समझें', body:'स्पार्कलाइन चार्ट ट्रेंड दिखाता है — इतिहास के लिए ठोस रेखा, प्रोजेक्शन के लिए बिंदु। छोटा <b>+</b> बटन नया खाता जोड़ता है।',
+          callout:{ type:'tip', text:'देनदारियों में Loans सेक्शन के लोन बैलेंस शामिल होते हैं — लोन चुकाने से नेट वर्थ बढ़ता है।' } },
       ],
       quiz: [
-        { q:'New Expense स्क्रीन में Quick Add बॉक्स क्या करता है?', opts:['बैंक को SMS भेजता है','"swiggy 320" जैसे प्राकृतिक टेक्स्ट से फ़ॉर्म अपने आप भरता है','अंतिम खर्च हटाता है'], correct:1, explain:'Quick Add बॉक्स के पास "Auto-fills form below" बैज से पुष्टि।' },
-        { q:'Add Income में कौन सा फ़ील्ड है जो Add Expense में नहीं है?', opts:['राशि','Source (जैसे Salary, Freelance)','मुद्रा'], correct:1, explain:'Add Income में वह प्लेसहोल्डर वाला Source फ़ील्ड है; Add Expense में Category और Description होता है।' },
-        { q:'Add Subscription में पाँच Payment Source Method में से कौन सा नहीं है?', opts:['UPI','NetBanking','Bank Transfer'], correct:2, explain:'पाँच विकल्प हैं: Cash, Credit Card, Debit Card, UPI, NetBanking — Bank Transfer नहीं।' },
-        { q:'ऐप के अनुसार नेट वर्थ कैसे गणना होती है?', opts:['Bank + Cash + Investment − Credit Card','कुल आय माइनस कुल खर्च','बचत दर × 12'], correct:0, explain:'यह सटीक फ़ॉर्मूला ऐप के "How It Works" गाइड में बताया गया है।' },
-        { q:'डेमो Accounts सूची में Zerodha Demat किस प्रकार का खाता है?', opts:['नकद','बैंक खाता','निवेश खाता'], correct:2, explain:'Accounts स्क्रीनशॉट से पुष्टि — Zerodha Demat Investment Account है।' },
-        { q:'क्या Internal Transfer आपका नेट वर्थ बदलता है?', opts:['हाँ, हमेशा बढ़ाता है','नहीं — केवल अपने खातों के बीच पैसे ले जाता है','केवल ₹10,000 से अधिक होने पर'], correct:1, explain:'स्थानांतरण से पैसे आपके ही रहते हैं — कुल संपत्ति नहीं बदलती।' },
-        { q:'Internal Transfer स्क्रीन पर फ़ॉर्म छोड़े बिना खाता जोड़ने का बटन कौन सा है?', opts:['+ Add Account','New Category','+ Add'], correct:0, explain:'वास्तविक Internal Transfer स्क्रीन पर ऊपर-दाईं ओर "+ Add Account" है।' },
-        { q:'Add Subscription फ़ॉर्म में सदस्यता हटाए बिना रोकने का टॉगल कौन सा है?', opts:['Active','Recurring','Frequency'], correct:0, explain:'Active चेकबॉक्स डिफ़ॉल्ट चालू है — बंद करने से सदस्यता रुक जाती है।' },
-        { q:'चार वास्तविक डेमो खातों में से कौन सा पुष्टि किया गया है?', opts:['ICICI Credit Card','SBI Savings','Paytm Wallet'], correct:1, explain:'चार खाते हैं: HDFC Bank (Main), SBI Savings, Cash Wallet, Zerodha Demat।' },
-        { q:'Internal Transfer फ़ॉर्म पर दो खाता ड्रॉपडाउन क्या कहलाते हैं?', opts:['Source और Destination','From Account और To Account','Sender और Receiver'], correct:1, explain:'वास्तविक स्क्रीन से पुष्टि: "From Account" और "To Account"।' },
+        { q:'वास्तविक New Expense स्क्रीन में Quick Add बॉक्स क्या करता है?', opts:['आपके बैंक को SMS भेजता है','नीचे वाले फ़ॉर्म को अपने आप भरता है','आखिरी खर्च हटा देता है'], correct:1, explain:'Quick Add बॉक्स के पास "Auto-fills form below" बैज से पुष्टि होती है।' },
+        { q:'कौन-सा फ़ील्ड Add Income में है लेकिन Add Expense में नहीं?', opts:['Amount','Source (जैसे Salary, Freelance)','Currency'], correct:1, explain:'Add Income में Source फ़ील्ड होता है; Add Expense में Category और Description होते हैं।' },
+        { q:'Add Subscription पर इनमें से कौन-सा पाँच Payment Source Method विकल्पों में से नहीं है?', opts:['UPI','NetBanking','Bank Transfer'], correct:2, explain:'पुष्टि किए गए पाँच विकल्प हैं Cash, Credit Card, Debit Card, UPI, और NetBanking।' },
+        { q:'ऐप के अनुसार नेट वर्थ कैसे निकाला जाता है?', opts:['Bank + Cash + Investment − Credit Card','कुल आय माइनस कुल खर्च','बचत दर गुणा 12'], correct:0, explain:'यह सटीक सूत्र इन-ऐप "How It Works" गाइड में दिया गया है।' },
+        { q:'वास्तविक डेमो Accounts सूची में Zerodha Demat किस प्रकार का खाता है?', opts:['Cash','Bank Account','Investment Account'], correct:2, explain:'Accounts स्क्रीनशॉट से पुष्टि होती है कि Zerodha Demat एक Investment Account है।' },
+        { q:'क्या Internal Transfer आपके नेट वर्थ को बदलता है?', opts:['हाँ, यह हमेशा बढ़ाता है','नहीं — यह सिर्फ आपके अपने खातों के बीच पैसे ले जाता है','केवल तब जब राशि ₹10,000 से ज़्यादा हो'], correct:1, explain:'स्थानांतरण में वही पैसा एक खाते से दूसरे खाते में जाता है — कुल संपत्ति नहीं बदलती।' },
+        { q:'Internal Transfer स्क्रीन पर कौन-सा बटन आपको फ़ॉर्म छोड़े बिना खाता जोड़ने देता है?', opts:['+ Add Account','New Category','+ Add'], correct:0, explain:'वास्तविक Internal Transfer स्क्रीन के ऊपर-दाईं ओर "+ Add Account" है।' },
+        { q:'Add Subscription फ़ॉर्म पर कौन-सा टॉगल है जिससे आप उसे हटाए बिना रोक सकते हैं?', opts:['Active','Recurring','Frequency'], correct:0, explain:'Active चेकबॉक्स डिफ़ॉल्ट रूप से चालू होता है — इसे बंद करने से सदस्यता रुक जाती है।' },
+        { q:'इनमें से कौन-सा चार वास्तविक डेमो खातों में से एक है?', opts:['ICICI Credit Card','SBI Savings','Paytm Wallet'], correct:1, explain:'चार पुष्टि किए गए डेमो खाते हैं HDFC Bank (Main), SBI Savings, Cash Wallet, और Zerodha Demat।' },
+        { q:'Internal Transfer फ़ॉर्म के दो खाते वाले ड्रॉपडाउन क्या कहलाते हैं?', opts:['Source और Destination','From Account और To Account','Sender और Receiver'], correct:1, explain:'वास्तविक स्क्रीन से पुष्टि: "From Account" और "To Account".' },
       ],
       cheat: [
-        { icon:'bi-dash-circle text-danger', label:'खर्च (Expense)', text:'New Expense → Quick Add ("swiggy 320") या राशि, श्रेणी, विवरण, खाता मैन्युअल भरें → Save या + Add।' },
-        { icon:'bi-arrow-repeat text-primary', label:'सदस्यता (आवर्ती खर्च/आय)', text:'Add Subscription → प्रकार, Frequency, राशि, प्रारंभ तिथि, खाता, श्रेणी, भुगतान विधि → Active टॉगल → Save।' },
-        { icon:'bi-cash-coin text-success', label:'आय (Income)', text:'Add Income → तिथि, खाता, राशि, स्रोत (जैसे Salary, Freelance), वैकल्पिक विवरण → आवर्ती टॉगल → Save।' },
-        { icon:'bi-arrow-left-right text-info', label:'आंतरिक स्थानांतरण', text:'Internal Transfer → राशि, तिथि, From Account, To Account, वैकल्पिक विवरण → Execute Transfer। नेट वर्थ नहीं बदलता।' },
-        { icon:'bi-bank text-warning', label:'खाते (Accounts)', text:'Accounts पेज सभी वॉलेट/बैंक/निवेश को Active और Type फ़िल्टर के साथ दिखाता है। Net worth = Bank + Cash + Investment − Credit Card।' },
-        { icon:'bi-graph-up-arrow text-success', label:'नेट वर्थ', text:'डैशबोर्ड कार्ड पर Assets − Liabilities के रूप में दिखता है, महीने-दर-महीने बदलाव और 3-महीने के लक्ष्य के साथ।' },
+        { icon:'bi-dash-circle text-danger', label:'खर्च (Expense)', text:'New Expense → Quick Add (जैसे "swiggy 320") या Amount, Category, Description, Account मैन्युअली भरें → Save या + Add.' },
+        { icon:'bi-arrow-repeat text-primary', label:'सदस्यता (Subscription)', text:'Add Subscription → Type, Frequency, Amount, Start Date, Account, Category, Payment Source Method सेट करें → Active टॉगल करें → Save.' },
+        { icon:'bi-cash-coin text-success', label:'आय (Income)', text:'Add Income → Date, Account, Amount, Source (जैसे Salary, Freelance), वैकल्पिक Description → यदि दोहराता है तो recurring करें → Save.' },
+        { icon:'bi-arrow-left-right text-info', label:'आंतरिक स्थानांतरण (Internal Transfer)', text:'Internal Transfer → Amount, Date, From Account, To Account, वैकल्पिक Description भरें → Execute Transfer. नेट वर्थ नहीं बदलता, केवल पैसा किस खाते में है यह बदलता है।' },
+        { icon:'bi-flag text-secondary', label:'पूंजीगत घटना (Capital Event)', text:'Add Capital Event → Date, Amount, Currency, Account, Subtype (जैसे Loan Prepayment, Medical), Linked Loan, Note → विश्लेषणात्मक फ़्लैग सेट करें → Save.' },
+        { icon:'bi-bank text-warning', label:'खाते (Accounts)', text:'Accounts पेज सभी वॉलेट, बैंक और निवेश खाते दिखाता है। + Add से नया खाता बनाएँ। Net Worth = Bank + Cash + Investment − Credit Card.' },
+        { icon:'bi-graph-up-arrow text-success', label:'नेट वर्थ (Net Worth)', text:'डैशबोर्ड कार्ड पर Assets − Liabilities के रूप में दिखता है, साथ में महीने-दर-महीने बदलाव और 3-महीने का लक्ष्य भी।' },
       ],
       faq: [
-        { q:'बिना खाते के खर्च सेव करने पर क्या होता है?', a:'फ़ॉर्म खाली खाते के साथ सेव की अनुमति देता है। खाता चुनें ताकि खर्च उस बैलेंस और नेट वर्थ में दर्ज हो।' },
-        { q:'Expense और Subscription में क्या अंतर है?', a:'Expense एक बार की एंट्री है। Subscription उसी प्रकार की आवर्ती एंट्री है — Frequency सेट करें और यह अपने आप दोहराती है।' },
-        { q:'क्या Internal Transfer नेट वर्थ बदलता है?', a:'नहीं। एक खाते से दूसरे में पैसे ले जाना कुल में वृद्धि या कमी नहीं करता — वही पैसे हैं, बस अलग खाते में।' },
-        { q:'नेट वर्थ कैसे गणना होती है?', a:'ऐप से पुष्टि: Bank + Cash + Investment − Credit Card। डैशबोर्ड इसे Assets − Liabilities के रूप में दिखाता है।' },
+        { q:'अगर मैं खाता चुने बिना खर्च सेव कर दूँ तो क्या होगा?', a:"फ़ॉर्म आपको Account ड्रॉपडाउन खाली छोड़कर भी सेव करने देता है। लेकिन खाता चुनने पर ही वह खर्च उस खाते के बैलेंस और नेट वर्थ में दिखेगा।" },
+        { q:'खर्च और सदस्यता में क्या अंतर है?', a:'साधारण Expense एक बार की एंट्री होती है। Subscription वही प्रकार की एंट्री है लेकिन आवर्ती — Frequency सेट करें और वह अपने आप दोहराई जाएगी।' },
+        { q:'क्या Internal Transfer मेरा नेट वर्थ बदलता है?', a:"नहीं। अपने एक खाते से दूसरे में पैसे ले जाने से आपका कुल पैसा न बढ़ता है न घटता है — बस वह अलग जगह रखा जाता है।" },
+        { q:'साधारण खर्च की जगह Capital Event क्यों उपयोग करें?', a:'Capital Events बड़े, एकबारगी खर्च होते हैं। इन्हें Capital Event के रूप में ट्रैक करने से वे डिफ़ॉल्ट रूप से आपकी मासिक औसत और बजट से बाहर रहते हैं, इसलिए आपकी सामान्य मासिक प्रवृत्तियाँ नहीं बिगड़तीं, जबकि नेट वर्थ सही तरह अपडेट होता रहता है।' },
+        { q:'नेट वर्थ कैसे निकाला जाता है?', a:'ऐप से पुष्टि: Bank + Cash + Investment − Credit Card. डैशबोर्ड इसे Assets − Liabilities के रूप में सटीक राशि के साथ दिखाता है।' },
       ],
     },
 
-    /* ─── MARATHI ─── */
+      /* ─── MARATHI ─── */
     mr: {
       lang_attr: 'mr',
       ui: {
-        progress: function(n){ return '8 पैकी ' + n + ' विभाग पाहिले'; },
+        progress: function(n){ return '9 पैकी ' + n + ' विभाग पाहिले'; },
         back: '← मागे', next: 'पुढील चरण →', done: '✓ पूर्ण',
         score_outof: '10 पैकी',
         score_cta: 'TrackMyRupee सुरू करा →',
         score_msgs: ['सराव सुरू ठेवा! 💪','वाईट नाही! 👍','उत्तम! 🎉','तुम्ही TrackMyRupee तज्ञ आहात! 🏆'],
         faq_heading: 'वारंवार विचारले जाणारे प्रश्न',
       },
-      tabs: { intro:'इथून सुरुवात करा', expense:'खर्च', subscription:'सदस्यता', income:'उत्पन्न', transfer:'हस्तांतरण', accounts:'खाती', networth:'नेटवर्थ', quiz:'प्रश्नमंजुषा', cheat:'संदर्भ पत्रक' },
+      tabs: { intro:'इथून सुरुवात करा', expense:'खर्च', subscription:'सदस्यता', income:'उत्पन्न', transfer:'हस्तांतरण', capitalevent:'पूंजीगत घटना', accounts:'खाती', networth:'नेटवर्थ', quiz:'प्रश्नमंजुषा', cheat:'संदर्भ पत्रक' },
       panels: {
         intro:        { h2:'इथून सुरुवात करा',             sub:'नवशिक्यांसाठी शिफारस केलेला मार्ग', body:'TrackMyRupee मध्ये नवीन आहात? अनुसरण करण्यासाठी खालील सर्वोत्तम क्रम आहे:<br><br><b>पायरी १ — Accounts (खाती)</b> (तुमचे पैसे कुठे आहेत ते सेट करा)<br><b>पायरी २ — Income (उत्पन्न)</b> (अॅपला तुमचे वेतन सांगा)<br><b>पायरी ३ — Expenses (खर्च)</b> (तुम्ही काय खर्च करता ते ट्रॅक करण्यास सुरुवात करा)<br><br>इतर विभाग तुम्ही सोयीस्कर होईपर्यंत वाट पाहू शकतात.', btn:'पायरी १ वर जा: Accounts →' },
         expense:      { h2:'खर्च जोडणे',           sub:'वास्तविक New Expense स्क्रीनवरून सत्यापित — खाली पायरीने समजून घ्या' },
         subscription: { h2:'सदस्यता जोडणे',        sub:'वास्तविक Add Subscription स्क्रीनवरून सत्यापित — आवर्ती खर्च कसा सेट करायचा' },
         income:       { h2:'उत्पन्न जोडणे',         sub:'वास्तविक Add Income स्क्रीनवरून सत्यापित' },
         transfer:     { h2:'अंतर्गत हस्तांतरण',    sub:'वास्तविक Internal Transfer स्क्रीनवरून सत्यापित' },
+        capitalevent: { h2:'पूंजीगत घटना (Capital Event) जोडणे', sub:'वास्तविक Add Capital Event स्क्रीनवरून सत्यापित — मोठ्या, एकवेळच्या व्यवहारांचे व्यवस्थापन' },
         accounts:     { h2:'खाती उघडणे',            sub:'वास्तविक Accounts यादी आणि इन-ऑ्प "How It Works" वरून सत्यापित' },
         networth:     { h2:'नेटवर्थ समजून घेणे',   sub:'डॅशबोर्डवरील वास्तविक Net Worth कार्डवरून सत्यापित' },
         quiz:         { h2:'जलद प्रश्नमंजुषा',     sub:'प्रत्येक प्रश्न वरील पुष्टी केलेल्या स्क्रीनवर आधारित आहे' },
@@ -1493,6 +1545,7 @@
         subscription: ['सदस्यता (Subscriptions)', 'आवर्ती पेमेंट्स हाताळणे.'],
         income: ['उत्पन्न (Income)', 'पगार आणि फ्रीलान्स पेमेंट्स नोंदवणे.'],
         transfer: ['हस्तांतरण (Transfers)', 'खात्यांमध्ये पैसे हलवणे.'],
+        capitalevent: ['पूंजीगत घटना (Capital Events)', 'मोठ्या, एकवेळच्या आर्थिक व्यवहारांचे व्यवस्थापन.'],
         accounts: ['खाती (Accounts)', 'बँक आणि वॉलेट व्यवस्थापित करणे.'],
         networth: ['नेटवर्थ (Net Worth)', 'तुमची आर्थिक स्थिती समजून घ्या.'],
         quiz: ['प्रश्नमंजुषा (Quiz)', 'तुमच्या ज्ञानाची चाचणी घ्या!'],
@@ -1500,10 +1553,10 @@
       },
       hero: {
         title: '<span style="color: var(--tmr-teal-400);">TrackMyRupee</span> चा प्रभावीपणे वापर करायला शिका',
-        desc: 'वास्तविक ऑ्पवरून थेट तयार केलेला 8-विभागांचा वॉकथ्रू — तुमच्या पैशांवर नियंत्रण ठेवण्यासाठी आवश्यक असलेल्या प्रत्येक वैशिष्ट्याचा समावेश.',
+        desc: 'वास्तविक ऑ्पवरून थेट तयार केलेला 9-विभागांचा वॉकथ्रू — तुमच्या पैशांवर नियंत्रण ठेवण्यासाठी आवश्यक असलेल्या प्रत्येक वैशिष्ट्याचा समावेश.',
         start: 'मोफत सुरू करा',
         demo: 'लाइव्ह डेमो पाहा',
-        stat_sec_lbl: 'विभाग', stat_sec_val: '8 विषय',
+        stat_sec_lbl: 'विभाग', stat_sec_val: '9 विषय',
         stat_time_lbl: 'वाचण्याची वेळ', stat_time_val: '~10 मिनिटे',
         stat_quiz_lbl: 'प्रश्नमंजुषा', stat_quiz_val: '10 प्रश्न',
         stat_src_lbl: 'स्रोत', stat_src_val: 'लाइव्ह डेमो',
@@ -1513,7 +1566,7 @@
         cta_desc: 'TrackMyRupee सोबत त्यांचे वित्त ट्रॅक करणाऱ्या हजारो भारतीयांमध्ये सामील व्हा. मुख्य वैशिष्ट्ये नेहमीच मोफत.',
         signup_btn: 'मोफत खाते तयार करा',
         learn_title: 'तुम्ही काय शिकाल',
-        learn_items: ['Quick Add (आवाज आणि मजकूर) ने खर्च जोडा','आवर्ती सदस्यता आणि उत्पन्न सेट करा','खात्यांमध्ये योग्यरित्या पैसे हस्तांतरित करा','नेटवर्थ सूत्र समजून घ्या','10 प्रश्नांच्या प्रश्नमंजुषेने ज्ञान तपासा'],
+        learn_items: ['Quick Add (आवाज आणि मजकूर) ने खर्च जोडा','आवर्ती सदस्यता आणि उत्पन्न सेट करा','मोठ्या एकवेळच्या भांडवली/पूंजीगत घटना ट्रॅक करा','खात्यांमध्ये योग्यरित्या पैसे हस्तांतरित करा','नेटवर्थ सूत्र समजून घ्या','10 प्रश्नांच्या प्रश्नमंजुषेने ज्ञान तपासा'],
         tip_title: 'तज्ञ टीप',
         tip_text: 'खर्च जोडताना नेहमी <b>खाते</b> निवडा. त्याशिवाय, नोंद तुमच्या शिल्लक किंवा नेटवर्थवर परिणाम करणार नाही.',
       },
@@ -1552,7 +1605,7 @@
           visual:'<div class="tut-mock"><div class="tut-mock-label">आवर्ती टॉगल</div><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:#ccc;border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">MAKE THIS A RECURRING INCOME</span></div></div>' },
       ],
       transfer_steps: [
-        { title:'हस्तांतरण म्हणजे काय?', body:"जेव्हा तुम्ही तुमच्याच दोन खात्यांमध्ये पैसे हलवता, त्याला हस्तांतरण म्हणतात. उदाहरणार्थ, तुम्ही तुमच्या Cash Wallet मधून ₹10,000 तुमच्या HDFC Bank खात्यात हलवू शकता. किंवा तुम्ही तुमच्या बचतीमधून क्रेडिट कार्डचे बिल भरू शकता. तुम्ही पैसे खर्च करत नाही आहात — तुम्ही फक्त ते एका खिशातून दुसऱ्या खिशात ठेवत आहात. तुमची एकूण संपत्ती तितकीच राहते.",
+        { title:'हस्तांतरण म्हणजे काय?', body:"जेव्हा तुम्ही तुमच्याच दोन खात्यांमध्ये पैसे हलवता, त्याला हस्तांतरण म्हणतात. उदाहरणार्थ, तुम्ही तुमच्या Cash Wallet मधून ₹10,000 तुमच्या HDFC Bank खात्यात हलवू शकता. या तुम्ही तुमच्या बचतीमधून क्रेडिट कार्डचे बिल भरू शकता. तुम्ही पैसे खर्च करत नाही आहात — तुम्ही फक्त ते एका खिशातून दुसऱ्या खिशात ठेवत आहात. तुमची एकूण संपत्ती तितकीच राहते.",
           visual:'<div class="tut-mock"><div class="tut-mock-label">हस्तांतरण संकल्पना</div><div class="tut-diagram"><div class="tut-nw-row"><span>Cash Wallet</span><span style="color:var(--tmr-teal-600);">- ₹10,000</span></div><div class="tut-transfer-arrow"><i class="bi bi-arrow-down-circle-fill"></i></div><div class="tut-nw-row"><span>HDFC Bank</span><span style="color:var(--tmr-teal-400);">+ ₹10,000</span></div></div></div>',
           callout:{ type:'tip', text:"काहीही तुमच्या नियंत्रणाबाहेर जात नाही — दोन्ही खाती तुमच्याच मालकीची आहेत।" } },
         { title:'अंतर्गत हस्तांतरण उघडा', body:'डॅशबोर्डवरून <b>Internal Transfer</b> उघडा. खाते नसल्यास <b>+ Add Account</b> टॅप करा.',
@@ -1563,6 +1616,17 @@
         { title:'वर्णन जोडा आणि पुष्टी करा', body:'वैकल्पिक <b>वर्णन</b> जोडा, नंतर <b>Execute Transfer</b> टॅप करून पैसे हस्तांतरित करा. \'Execute\' (अंमलबजावणी) या शब्दाची काळजी करू नका — याचा अर्थ फक्त \'करा\' असा आहे. हे टॅप करणे पूर्णपणे सुरक्षित आहे आणि फक्त तुमच्या स्वतःच्या खात्यांमध्ये पैसे हलवते.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">पुष्टी</div><div class="val filled" style="background:var(--tmr-teal-400);color:#fff;text-align:center;font-weight:700;border-radius:10px;">⇄ Execute Transfer</div></div>',
           callout:{ type:'tip', text:'हस्तांतरण तुमच्याच खात्यांमध्ये पैसे हलवते — नेटवर्थ बदलत नाही.' } },
+      ],
+      capitalevent_steps: [
+        { title:'उप-प्रकार (Subtype) निवडा', body:'<b>Add Capital Event</b> उघडा. व्यवहाराचे वर्णन करणारा एक <b>Subtype</b> निवडा, जसे की Loan Prepayment (कर्जाचे पूर्वपेमेंट), Large Purchase (मोठी खरेदी), किंवा Medical Lump Sum (वैद्यकीय खर्च).',
+          visual:'<div class="tut-mock"><div class="tut-mock-label">पूंजीगत घटना जोडा</div><div class="tut-field"><label>Subtype</label><div class="val filled">Large Purchase</div></div></div>' },
+        { title:'रक्कम, खाते आणि तारीख भरा', body:'<b>रक्कम (Amount)</b> प्रविष्ट करा, <b>चलन (Currency)</b> तपासा, <b>तारीख</b> सेट करा आणि हा व्यवहार ज्या खात्याशी जोडायचा आहे ते <b>खाते (Account)</b> निवडा.',
+          visual:'<div class="tut-mock"><div class="tut-row2"><div class="tut-field"><label>रक्कम</label><div class="val filled">50,000.00</div></div><div class="tut-field"><label>खाते</label><div class="val filled">HDFC Bank</div></div></div></div>' },
+        { title:'कर्जाशी (Loan) जोडा आणि टीप लिहा', body:'जर ही पूंजीगत घटना एखाद्या कर्जाचे पूर्वपेमेंट किंवा डाऊन पेमेंट असेल, तर ते जोडण्यासाठी <b>Linked Loan</b> निवडा. संदर्भासाठी सविस्तर <b>Note (टीप)</b> लिहा.',
+          visual:'<div class="tut-mock"><div class="tut-field"><label>Linked Loan</label><div class="val">Home Loan</div></div><div class="tut-field"><label>टीप</label><div class="val filled">घर खरेदीसाठी डाउन पेमेंट</div></div></div>' },
+        { title:'विश्लेषणात्मक फ्लॅग सेट करा', body:'हा मोठा व्यवहार मासिक बजेट किंवा सरासरीमधून वगळण्यासाठी चेकबॉक्स वापरा, जेणेकरून तो तुमच्या सामान्य मासिक खर्चाचे आकडे बिघडवणार नाही, पण तरीही नेटवर्थमध्ये समाविष्ट राईल.',
+          visual:'<div class="tut-mock"><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:var(--tmr-teal-400);border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">बजेटमधून वगळा (EXCLUDE FROM BUDGET)</span></div><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:var(--tmr-teal-400);border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">नेटवर्थमध्ये समाविष्ट करा</span></div></div>',
+          callout:{ type:'tip', text:'यामुळे मोठे, एकवेळचे खर्च असूनही तुमचे दैनंदिन बजेट अचूक राहते.' } }
       ],
       accounts_steps: [
         { title:'खात्यांची यादी पाहा', body:'<b>Accounts</b> पान Active/Inactive आणि All Types फिल्टरसह सर्व खाती दाखवते.',
@@ -1599,6 +1663,7 @@
         { icon:'bi-arrow-repeat text-primary', label:'सदस्यता (Subscription)', text:'Add Subscription → प्रकार, वारंवारता, रक्कम, खाते, श्रेणी सेट करा → Active टॉगल करा → Save करा.' },
         { icon:'bi-cash-coin text-success', label:'उत्पन्न (Income)', text:'Add Income → तारीख, खाते, रक्कम, स्रोत (उदा. पगार) भरा → नियमित असल्यास आवर्ती करा → Save करा.' },
         { icon:'bi-arrow-left-right text-info', label:'अंतर्गत हस्तांतरण (Internal Transfer)', text:'Internal Transfer → रक्कम, From Account, To Account भरा → Execute करा. नेटवर्थ बदलत नाही.' },
+        { icon:'bi-flag text-secondary', label:'पूंजीगत घटना (Capital Event)', text:'Add Capital Event → तारीख, रक्कम, चलन, खाते, Subtype (उदा. कर्जाचे पूर्वपेमेंट, वैद्यकीय खर्च), Linked Loan, Note → विश्लेषणात्मक फ्लॅग सेट करा → Save करा.' },
         { icon:'bi-bank text-warning', label:'खाती (Accounts)', text:'खाती पृष्ठ सर्व बँक/गुंतवणूक दाखवते. + Add वरून नवीन जोडा. नेटवर्थ = मालमत्ता - देणे.' },
         { icon:'bi-graph-up-arrow text-success', label:'नेटवर्थ (Net Worth)', text:'मालमत्ता - देणे म्हणून डॅशबोर्डवर दिसते, महिन्यातील बदल आणि 3-महिन्याचे लक्ष्य दाखवते.' },
       ],
@@ -1606,6 +1671,7 @@
         { q:'जर मी खाते न निवडता खर्च सेव्ह केला तर काय होईल?', a:"तुम्ही खाते रिकामे ठेवून सेव्ह करू शकता. पण खाते निवडले तरच खर्चाचा परिणाम त्या खात्याच्या शिल्लक रकमेवर आणि नेटवर्थवर दिसेल." },
         { q:"खर्च आणि सदस्यता मध्ये काय फरक आहे?", a:'सामान्य खर्च हा एकवेळचा असतो. सदस्यता हा आवर्ती खर्च असतो — वारंवारता सेट करा आणि तो आपोआप रिपीट होईल.' },
         { q:'अंतर्गत हस्तांतरणामुळे माझी नेटवर्थ बदलते का?', a:"नाही. तुमच्या एका खात्यातून दुसऱ्या खात्यात पैसे हलवल्याने एकूण रक्कम बदलत नाही." },
+        { q:'सामान्य खर्च आणि पूंजीगत घटना (Capital Event) मध्ये काय फरक आहे?', a:'पूंजीगत घटना हे मोठे आणि एकवेळचे खर्च असतात. हे ट्रॅक केल्याने ते मासिक बजेट किंवा सरासरीमधून वगळले जातात, जेणेकरून तुमच्या नेहमीच्या मासिक खर्चाचे आकडे बिघडत नाहीत, पण तरीही नेटवर्थमध्ये योग्य गणना होते.' },
         { q:'नेटवर्थ कशी मोजली जाते?', a:'Bank + Cash + Investment − Credit Card. डॅशबोर्डवर हे Assets − Liabilities म्हणून दिसते.' },
       ]
     }
@@ -1665,7 +1731,7 @@
 
 
     // Update Panel Headers and Tab Buttons
-    var navKeys = ['intro', 'expense','subscription','income','transfer','accounts','networth','quiz','cheat'];
+  var navKeys = ['intro', 'expense','subscription','income','transfer','capitalevent','accounts','networth','quiz','cheat'];
     navKeys.forEach(function(k) {
       var ph = document.getElementById('ph-' + k);
       var ps = document.getElementById('ps-' + k);
@@ -1698,14 +1764,20 @@
     if (heroBtnDemo) heroBtnDemo.textContent = L.hero.demo;
     var statSecLbl = document.getElementById('stat-sec-lbl');
     if (statSecLbl) statSecLbl.textContent = L.hero.stat_sec_lbl;
-    var statValLbl = document.getElementById('stat-val-lbl');
-    if (statValLbl) statValLbl.textContent = L.hero.stat_sec_val;
+    var statSecVal = document.getElementById('stat-sec-val');
+    if (statSecVal) statSecVal.textContent = L.hero.stat_sec_val;
     var statTimeLbl = document.getElementById('stat-time-lbl');
     if (statTimeLbl) statTimeLbl.textContent = L.hero.stat_time_lbl;
+    var statTimeVal = document.getElementById('stat-time-val');
+    if (statTimeVal) statTimeVal.textContent = L.hero.stat_time_val;
     var statQuizLbl = document.getElementById('stat-quiz-lbl');
     if (statQuizLbl) statQuizLbl.textContent = L.hero.stat_quiz_lbl;
+    var statQuizVal = document.getElementById('stat-quiz-val');
+    if (statQuizVal) statQuizVal.textContent = L.hero.stat_quiz_val;
     var statSrcLbl = document.getElementById('stat-src-lbl');
     if (statSrcLbl) statSrcLbl.textContent = L.hero.stat_src_lbl;
+    var statSrcVal = document.getElementById('stat-src-val');
+    if (statSrcVal) statSrcVal.textContent = L.hero.stat_src_val;
 
     // 2. Headings and Nav
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
@@ -1725,7 +1797,7 @@
     renderSidebar(L.sidebar);
 
     // 4. Steppers
-    var panels = ['expense', 'subscription', 'income', 'transfer', 'accounts', 'networth'];
+    var panels = ['expense', 'subscription', 'income', 'transfer', 'capitalevent', 'accounts', 'networth'];
     panels.forEach(function(p) {
       buildStepper(p, L[p+'_steps']);
     });
