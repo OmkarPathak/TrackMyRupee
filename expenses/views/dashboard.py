@@ -1419,22 +1419,44 @@ def home_view(request):
     future_total_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_wealth_contribution, currency_symbol)}</b>")
     
     # Narrative Structure
-    monthly_story = format_html(
-        _("In {month}, you earned {income}. You spent {lifestyle} on lifestyle, and invested {invest} toward future wealth."),
-        month=story_month_name,
-        income=income_bold,
-        lifestyle=lifestyle_bold,
-        invest=invest_bold
-    )
-
     if total_wealth_contribution > 0:
-        monthly_story += format_html(
-            _(" That means {future_total} ({future_pct}%) went toward your future, while {lifestyle} ({life_pct}%) funded your lifestyle."),
-            future_total=future_total_bold,
-            future_pct=future_growth_pct,
-            lifestyle=lifestyle_bold,
-            life_pct=lifestyle_pct
-        )
+        if total_investments > 0:
+            monthly_story = format_html(
+                _("In {month}, you earned {income}. You spent {lifestyle} ({life_pct}%) on lifestyle, and saved {future_total} ({future_pct}%) for your future (including {invest} invested)."),
+                month=story_month_name,
+                income=income_bold,
+                lifestyle=lifestyle_bold,
+                life_pct=lifestyle_pct,
+                future_total=future_total_bold,
+                future_pct=future_growth_pct,
+                invest=invest_bold
+            )
+        else:
+            monthly_story = format_html(
+                _("In {month}, you earned {income}. You spent {lifestyle} ({life_pct}%) on lifestyle, and saved {future_total} ({future_pct}%) for your future."),
+                month=story_month_name,
+                income=income_bold,
+                lifestyle=lifestyle_bold,
+                life_pct=lifestyle_pct,
+                future_total=future_total_bold,
+                future_pct=future_growth_pct
+            )
+    else:
+        if total_investments > 0:
+            monthly_story = format_html(
+                _("In {month}, you earned {income}. You spent {lifestyle} on lifestyle, and invested {invest} toward future wealth."),
+                month=story_month_name,
+                income=income_bold,
+                lifestyle=lifestyle_bold,
+                invest=invest_bold
+            )
+        else:
+            monthly_story = format_html(
+                _("In {month}, you earned {income}. You spent {lifestyle} on lifestyle."),
+                month=story_month_name,
+                income=income_bold,
+                lifestyle=lifestyle_bold
+            )
     
     if projected_savings > 0:
         proj_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(projected_savings, currency_symbol)}</b>")
@@ -1522,7 +1544,11 @@ def home_view(request):
     if capital_event_callout:
         list_url = reverse('capital-event-list')
         if capital_event_callout['count'] == 1:
-            title_text = _("<b>{} this month</b>").format(capital_event_callout['label'])
+            ev = capital_event_callout['events'][0]
+            if ev.note and ev.note.strip():
+                title_text = _("<b>Capital Event — {} this month</b>").format(ev.note.strip())
+            else:
+                title_text = _("<b>One-off Capital Event</b>")
         else:
             title_text = _("<b>{} Capital Events this month</b>").format(capital_event_callout['count'])
         
