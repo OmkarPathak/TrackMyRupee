@@ -1,0 +1,32 @@
+<svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background horizontal streaks -->
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+
+  <!-- Capital Event Flag / Milestone Illustration -->
+  <g transform="translate(65, 15)">
+    <!-- Flagpole -->
+    <line x1="20" y1="10" x2="20" y2="105" stroke="#1D9E75" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Flag fabric (curved premium look) -->
+    <path d="M20 15C35 10 45 25 65 15V50C45 60 35 45 20 50V15Z" fill="white" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>
+    
+    <!-- Star / milestone emblem inside the flag -->
+    <path d="M42.5 25.5L44 28.5L47.5 29L45 31.5L45.5 35L42.5 33L39.5 35L40 31.5L37.5 29L41 28.5L42.5 25.5Z" fill="#1D9E75" fill-opacity="0.3" stroke="#1D9E75" stroke-width="1"/>
+    
+    <!-- Base stand of the flagpole -->
+    <path d="M5 105H35" stroke="#1D9E75" stroke-width="3" stroke-linecap="round"/>
+    <path d="M10 100H30" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  </g>
+
+  <!-- Sparkle accents -->
+  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+    <path d="M148 18L151 21M151 18L148 21"/>
+    <path d="M42 118L44 120M44 118L42 120"/>
+    <circle cx="158" cy="105" r="2" fill="#1D9E75" fill-opacity="0.15"/>
+    <circle cx="38" cy="22" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+  </g>
+</svg>

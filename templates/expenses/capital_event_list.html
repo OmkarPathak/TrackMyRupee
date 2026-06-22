@@ -525,7 +525,9 @@
     {% else %}
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body text-center py-5">
-            <i class="bi bi-flag display-4 text-muted opacity-50"></i>
+            <div class="mb-3">
+                {% include 'illustrations/empty_capital_events.svg' %}
+            </div>
             <h5 class="mt-3 fw-semibold">{% trans "No capital events yet" %}</h5>
             <p class="text-muted">{% trans "Capital events are large one-off payments (e.g. a home loan down payment) that are excluded from your regular analytics so they don't distort your monthly trends." %}</p>
             <a href="{% url 'capital-event-create' %}" class="btn btn-primary rounded-3 mt-2">
