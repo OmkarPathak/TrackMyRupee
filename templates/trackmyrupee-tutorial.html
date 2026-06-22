@@ -943,7 +943,10 @@
   <div class="container">
     <div class="tut-nav-wrap">
       <div class="tut-nav" id="tmr-nav" role="tablist">
-        <button class="tut-nav-btn active" data-panel="p-expense" role="tab">
+        <button class="tut-nav-btn active" data-panel="p-intro" role="tab">
+          <i class="ti ti-star"></i>Start Here
+        </button>
+        <button class="tut-nav-btn" data-panel="p-expense" role="tab">
           <i class="ti ti-receipt"></i>Expenses
         </button>
         <button class="tut-nav-btn" data-panel="p-subscription" role="tab">
@@ -980,8 +983,25 @@
       <!-- Panels -->
       <div class="col-12 col-lg-8">
 
+        <!-- Start Here panel -->
+        <div class="tut-panel active" id="p-intro" role="tabpanel">
+          <div class="tut-panel-header">
+            <div class="tut-panel-icon"><i class="ti ti-star"></i></div>
+            <div>
+              <h2 id="ph-intro"></h2>
+              <p class="tut-sub" id="ps-intro"></p>
+            </div>
+          </div>
+          <div class="tut-step-card">
+            <div class="tut-step-body" id="tut-intro-body"></div>
+            <div class="tut-step-nav mt-3">
+              <button class="primary" id="tut-intro-btn" onclick="showPanel('p-accounts')"></button>
+            </div>
+          </div>
+        </div>
+
         <!-- Expense panel -->
-        <div class="tut-panel active" id="p-expense" role="tabpanel">
+        <div class="tut-panel" id="p-expense" role="tabpanel">
           <div class="tut-panel-header">
             <div class="tut-panel-icon"><i class="ti ti-receipt"></i></div>
             <div>
@@ -1166,8 +1186,9 @@
         score_msgs: ['Keep practicing! 💪','Not bad! 👍','Great work! 🎉','You\'re a TrackMyRupee pro! 🏆'],
         faq_heading: 'FAQ',
       },
-      tabs: { expense:'Expenses', subscription:'Subscriptions', income:'Income', transfer:'Transfers', accounts:'Accounts', networth:'Net Worth', quiz:'Quiz', cheat:'Cheat Sheet' },
+      tabs: { intro:'Start Here', expense:'Expenses', subscription:'Subscriptions', income:'Income', transfer:'Transfers', accounts:'Accounts', networth:'Net Worth', quiz:'Quiz', cheat:'Cheat Sheet' },
       panels: {
+        intro:        { h2:'Start Here',                 sub:'Recommended path for beginners', body:'New to TrackMyRupee? Here\'s the best order to follow:<br><br><b>Step 1 — Accounts</b> (set up where your money lives)<br><b>Step 2 — Income</b> (tell the app your salary)<br><b>Step 3 — Expenses</b> (start tracking what you spend)<br><br>The other sections can wait until you\'re comfortable.', btn:'Go to Step 1: Accounts →' },
         expense:      { h2:'Adding an expense',         sub:'Verified from the real New Expense screen - step through it below' },
         subscription: { h2:'Adding a subscription',     sub:'Verified from the real Add Subscription screen - how recurring expenses are set up' },
         income:       { h2:'Adding income',             sub:'Verified from the real Add Income screen' },
@@ -1217,10 +1238,11 @@
           callout:{ type:'warn', text:"Common mistake: leaving Account on the dashes. Pick one or the expense won't be tied to any balance." } },
         { title:'Add a category if needed', body:'If nothing in the Category dropdown fits, tap <b>+ New Category</b> top-right to create one inline without leaving the form.' },
         { title:'Save it', body:'Tap <b>Save</b> to log the expense and close the form, or <b>+ Add</b> to save and immediately start logging another one.',
-          visual:'<div class="tut-mock"><div class="tut-mock-label">Footer actions</div><div class="val filled" style="text-align:center;background:var(--tmr-teal-400);color:#fff;font-weight:700;">✓ Save</div></div>' },
+          visual:'<div class="tut-mock"><div class="tut-mock-label">Footer actions</div><div class="val filled" style="text-align:center;background:var(--tmr-teal-400);color:#fff;font-weight:700;">✓ Save</div></div>',
+          callout:{ type:'tip', text:"Don't worry if you make a mistake — you can always edit or delete an expense later." } },
       ],
       subscription_steps: [
-        { title:'Choose Type and Frequency', body:'Open <b>Add Subscription</b>. Choose <b>Type</b> — Expense or Income — and set <b>Frequency</b> from the dropdown.',
+        { title:'Choose Type and Frequency', body:'Open <b>Add Subscription</b>. Choose <b>Type</b> — Expense or Income — and set the <b>Frequency</b>. For rent you\'d choose Monthly. For a Netflix subscription that bills every month, also Monthly. For something that comes annually like insurance, choose Yearly.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">Add Subscription</div><div class="tut-row2"><div class="tut-field"><label>Type</label><div class="val filled">Expense</div></div><div class="tut-field"><label>Frequency</label><div class="val">----------</div></div></div></div>' },
         { title:'Set Amount, Currency, Start Date, Account', body:'Fill in the <b>Amount</b>, confirm <b>Currency</b> (defaults to Indian Rupee), set the <b>Start Date</b>, and pick the <b>Account</b> it will be paid from.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">Form fields</div><div class="tut-row2"><div class="tut-field"><label>Amount</label><div class="val"></div></div><div class="tut-field"><label>Currency</label><div class="val filled">Indian Rupee (₹)</div></div></div><div class="tut-row2"><div class="tut-field"><label>Start Date</label><div class="val filled">17/06/2026</div></div><div class="tut-field"><label>Account</label><div class="val">----------</div></div></div></div>' },
@@ -1240,24 +1262,30 @@
           visual:'<div class="tut-mock"><div class="tut-mock-label">Recurring toggle</div><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:#ccc;border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">MAKE THIS A RECURRING INCOME</span></div></div>' },
       ],
       transfer_steps: [
+        { title:'What is a transfer?', body:"A transfer is when you move money between two accounts that both belong to you. For example, you might move ₹10,000 from your Cash Wallet to your HDFC Bank account. Or you might pay off your credit card from your savings. You're not spending money — you're just moving it from one pocket to another. Your total wealth stays exactly the same.",
+          visual:'<div class="tut-mock"><div class="tut-mock-label">Transfer Concept</div><div class="tut-diagram"><div class="tut-nw-row"><span>Cash Wallet</span><span style="color:var(--tmr-teal-600);">- ₹10,000</span></div><div class="tut-transfer-arrow"><i class="bi bi-arrow-down-circle-fill"></i></div><div class="tut-nw-row"><span>HDFC Bank</span><span style="color:var(--tmr-teal-400);">+ ₹10,000</span></div></div></div>',
+          callout:{ type:'tip', text:"Nothing leaves your control — both accounts belong to you." } },
         { title:'Open Internal Transfer', body:"Open <b>Internal Transfer</b> from the dashboard. If the account you need doesn't exist yet, tap <b>+ Add Account</b> top-right without leaving the form.",
           visual:'<div class="tut-mock"><div class="tut-mock-label">Internal Transfer</div><div class="tut-row2"><div class="tut-field"><label>Amount</label><div class="val"></div></div><div class="tut-field"><label>Date</label><div class="val filled">17/06/2026</div></div></div></div>' },
         { title:'Pick From Account and To Account', body:'Select <b>From Account</b> (where the money currently is) and <b>To Account</b> (where it should end up) from the two dropdowns.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">From → To (tap a chip to fill)</div><div class="tut-row2"><div class="tut-field"><label>From Account</label><div class="val" id="t-from">----------</div></div><div class="tut-field"><label>To Account</label><div class="val" id="t-to">----------</div></div></div><div class="tut-transfer-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+ ['Cash Wallet','HDFC Bank','SBI Savings','Zerodha Demat'].map(function(a){return '<span class="tut-opt" style="display:inline-block;width:auto;padding:6px 12px;" data-acc="'+a+'">'+a+'</span>';}).join('')+'</div></div>',
           callout:{ type:'tip', text:'Tap an account chip above to see it fill in From or To, alternating each click.' } },
-        { title:'Add a description and confirm', body:'Add an optional <b>Description</b>, then tap <b>Execute Transfer</b> to move the money.',
+        { title:'Add a description and confirm', body:'Add an optional <b>Description</b>, then tap <b>Execute Transfer</b> to move the money. Don\'t worry about the word \'Execute\' — it just means \'do it.\' Tapping this is safe and simply moves your money between your own accounts.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">Confirm</div><div class="val filled" style="background:var(--tmr-teal-400);color:#fff;text-align:center;font-weight:700;border-radius:10px;">⇄ Execute Transfer</div></div>',
           callout:{ type:'tip', text:"A transfer moves money between your own accounts — it does not change your net worth, since the same money is still yours either way." } },
       ],
       accounts_steps: [
         { title:'Browse the Accounts list', body:'The <b>Accounts</b> page lists every account with filters for <b>Active/Inactive</b> and <b>All Types</b>. A green summary bar shows the filtered total balance.',
-          visual:'<div class="tut-mock"><div class="tut-mock-label">Accounts — real demo data</div><div class="tut-diagram"><div class="tut-nw-row"><span>HDFC Bank (Main) · Bank Account</span><span>₹7,92,783</span></div><div class="tut-nw-row"><span>SBI Savings · Bank Account</span><span>₹0</span></div><div class="tut-nw-row"><span>Cash Wallet · Cash</span><span>₹36,445</span></div><div class="tut-nw-row"><span>Zerodha Demat · Investment Account</span><span>₹60,000</span></div></div></div>' },
+          visual:'<div class="tut-mock"><div class="tut-mock-label">Accounts — real demo data</div><div class="tut-diagram"><div class="tut-nw-row"><span>HDFC Bank (Main) · Bank Account</span><span>₹7,92,783</span></div><div class="tut-nw-row"><span>SBI Savings · Bank Account</span><span>₹0</span></div><div class="tut-nw-row"><span>Cash Wallet · Cash</span><span>₹36,445</span></div><div class="tut-nw-row"><span>Zerodha Demat · Investment Account</span><span>₹60,000</span></div></div></div>',
+          callout:{ type:'tip', text:"You're just telling the app where your money already lives. Nothing moves until you say so." } },
         { title:'Add a new account', body:'Tap <b>+ Add</b> top-right to create a new account. <b>History</b> shows past balance changes for auditing.',
           callout:{ type:'unverified', text:'Not confirmed in this walkthrough: the exact fields on the Add Account form itself — only the Accounts list and the entry point were verified.' } },
         { title:'Understand how accounts feed net worth', body:'The in-app "How It Works" guide states the formula directly: <b>Bank + Cash + Investment − Credit Card = Net Worth</b>. Credit cards are tracked as negative balances representing debt.',
           visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>Bank + Cash + Investment</span><span style="color:var(--tmr-teal-400);font-weight:600;">assets</span></div><div class="tut-nw-row"><span>− Credit Card</span><span style="color:#E24B4A;font-weight:600;">debt</span></div><div class="tut-nw-row"><span>= Net Worth</span><span></span></div></div>' },
       ],
       networth_steps: [
+        { title:'What is Net Worth?', body:"Net worth is the honest answer to 'how much am I really worth?' It adds up everything you own — your bank balance, cash, investments — and subtracts everything you owe — loans, credit card debt. The number left is your net worth.",
+          visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>Assets (What you own)</span><span style="color:var(--tmr-teal-400);font-weight:600;">+ ₹9.6L</span></div><div class="tut-nw-row"><span>Liabilities/Debt (What you owe)</span><span style="color:#E24B4A;font-weight:600;">- ₹3.8L</span></div><div class="tut-nw-row"><span>Net Worth (Your real worth)</span><span style="font-weight:700;">= ₹5.8L</span></div></div>' },
         { title:'Read the headline number', body:'The Net Worth card shows the calculation explicitly: <b>Calculated as ₹9.6L − ₹3.8L (liabilities)</b>, giving a final figure of <b>₹5.8L</b>.',
           visual:'<div class="tut-diagram"><div class="tut-mock-label">Net worth — real demo, June 2026</div><div class="tut-nw-row"><span>Total assets</span><span>₹9.6L</span></div><div class="tut-nw-row"><span>Total liabilities</span><span>− ₹3.8L</span></div><div class="tut-nw-row"><span>Net worth</span><span style="color:var(--tmr-teal-400);">₹5.8L</span></div></div>' },
         { title:'Check the month-over-month change', body:'Below the headline number, a change indicator shows <b>+₹17,912 this month (+3.2%)</b>, and a <b>3-month goal</b> badge projects <b>+₹27,297</b>.' },
@@ -1303,12 +1331,13 @@
         score_msgs: ['अभ्यास जारी रखें! 💪','बुरा नहीं! 👍','शानदार! 🎉','आप TrackMyRupee के विशेषज्ञ हैं! 🏆'],
         faq_heading: 'अक्सर पूछे जाने वाले प्रश्न',
       },
-      tabs: { expense:'खर्च', subscription:'सदस्यता', income:'आय', transfer:'स्थानांतरण', accounts:'खाते', networth:'नेट वर्थ', quiz:'प्रश्नोत्तरी', cheat:'संदर्भ पत्रक' },
+      tabs: { intro:'यहाँ शुरू करें', expense:'खर्च', subscription:'सदस्यता', income:'आय', transfer:'स्थानांतरण', accounts:'खाते', networth:'नेट वर्थ', quiz:'प्रश्नोत्तरी', cheat:'संदर्भ पत्रक' },
       panels: {
+        intro:        { h2:'यहाँ शुरू करें',               sub:'शुरुआती लोगों के लिए अनुशंसित मार्ग', body:'TrackMyRupee में नए हैं? पालन करने के लिए यहाँ सबसे अच्छा क्रम है:<br><br><b>चरण 1 — Accounts (खाते)</b> (सेट करें कि आपका पैसा कहाँ रहता है)<br><b>चरण 2 — Income (आय)</b> (ऐप को अपना वेतन बताएं)<br><b>चरण 3 — Expenses (खर्च)</b> (आप जो खर्च करते हैं उसे ट्रैक करना शुरू करें)<br><br>जब तक आप सहज न हों तब तक अन्य अनुभाग प्रतीक्षा कर सकते हैं।', btn:'चरण 1 पर जाएँ: Accounts →' },
         expense:      { h2:'खर्च जोड़ना',          sub:'वास्तविक New Expense स्क्रीन से सत्यापित — नीचे इसे समझें' },
         subscription: { h2:'सदस्यता जोड़ना',       sub:'वास्तविक Add Subscription स्क्रीन से सत्यापित — आवर्ती खर्च कैसे सेट करें' },
         income:       { h2:'आय जोड़ना',            sub:'वास्तविक Add Income स्क्रीन से सत्यापित' },
-        transfer:     { h2:'आंतरिक स्थानांतरण',   sub:'वास्तविक Internal Transfer स्क्रीन से सत्यापित' },
+        transfer:     { h2:'आन्तरिक स्थानान्तरण',  sub:'वास्तविक Internal Transfer स्क्रीन से सत्यापित' },
         accounts:     { h2:'खाते स्थापित करना',    sub:'वास्तविक Accounts सूची और इन-ऐप "How It Works" से सत्यापित' },
         networth:     { h2:'नेट वर्थ समझना',       sub:'डैशबोर्ड के वास्तविक Net Worth कार्ड से सत्यापित' },
         quiz:         { h2:'त्वरित प्रश्नोत्तरी', sub:'प्रत्येक प्रश्न ऊपर की पुष्टि की गई स्क्रीन पर आधारित है' },
@@ -1354,10 +1383,11 @@
           callout:{ type:'warn', text:'आम गलती: खाता खाली छोड़ना। खाता चुनें वरना खर्च किसी बैलेंस से नहीं जुड़ेगा।' } },
         { title:'ज़रूरत हो तो नई श्रेणी जोड़ें', body:'यदि श्रेणी ड्रॉपडाउन में कुछ उचित नहीं है, तो ऊपर-दाईं ओर <b>+ New Category</b> टैप करें।' },
         { title:'सेव करें', body:'खर्च दर्ज करने के लिए <b>Save</b> टैप करें, या <b>+ Add</b> टैप करके तुरंत दूसरा खर्च जोड़ें।',
-          visual:'<div class="tut-mock"><div class="tut-mock-label">फ़ुटर क्रियाएँ</div><div class="val filled" style="text-align:center;background:var(--tmr-teal-400);color:#fff;font-weight:700;">✓ सेव</div></div>' },
+          visual:'<div class="tut-mock"><div class="tut-mock-label">फ़ुटर क्रियाएँ</div><div class="val filled" style="text-align:center;background:var(--tmr-teal-400);color:#fff;font-weight:700;">✓ सेव</div></div>',
+          callout:{ type:'tip', text:"चिंता न करें यदि आपसे कोई गलती हो जाती है — आप बाद में कभी भी किसी भी खर्च को संपादित (edit) या हटा (delete) सकते हैं।" } },
       ],
       subscription_steps: [
-        { title:'प्रकार और आवृत्ति चुनें', body:'<b>Add Subscription</b> खोलें। <b>प्रकार</b> — खर्च या आय — और <b>Frequency</b> ड्रॉपडाउन से चुनें।',
+        { title:'प्रकार और आवृत्ति चुनें', body:'<b>Add Subscription</b> खोलें। <b>प्रकार</b> — खर्च या आय — और <b>Frequency</b> ड्रॉपडाउन से चुनें। उदाहरण के लिए, किराए के लिए आप Monthly (मासिक) चुनेंगे। नेटफ्लिक्स जैसे हर महीने बिल होने वाले सब्सक्रिप्शन के लिए भी Monthly। बीमा जैसी सालाना आने वाली चीज़ों के लिए, Yearly (वार्षिक) चुनें।',
           visual:'<div class="tut-mock"><div class="tut-mock-label">सदस्यता जोड़ें</div><div class="tut-row2"><div class="tut-field"><label>प्रकार</label><div class="val filled">Expense</div></div><div class="tut-field"><label>आवृत्ति</label><div class="val">----------</div></div></div></div>' },
         { title:'राशि, मुद्रा, प्रारंभ तिथि, खाता सेट करें', body:'<b>राशि</b> भरें, <b>मुद्रा</b> की पुष्टि करें (डिफ़ॉल्ट भारतीय रुपया), <b>प्रारंभ तिथि</b> सेट करें और <b>खाता</b> चुनें।',
           visual:'<div class="tut-mock"><div class="tut-mock-label">फ़ॉर्म फ़ील्ड</div><div class="tut-row2"><div class="tut-field"><label>राशि</label><div class="val"></div></div><div class="tut-field"><label>मुद्रा</label><div class="val filled">Indian Rupee (₹)</div></div></div><div class="tut-row2"><div class="tut-field"><label>प्रारंभ तिथि</label><div class="val filled">17/06/2026</div></div><div class="tut-field"><label>खाता</label><div class="val">----------</div></div></div></div>' },
@@ -1377,24 +1407,30 @@
           visual:'<div class="tut-mock"><div class="tut-mock-label">आवर्ती टॉगल</div><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:#ccc;border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">MAKE THIS A RECURRING INCOME</span></div></div>' },
       ],
       transfer_steps: [
+        { title:'स्थानांतरण क्या है?', body:"जब आप अपने ही दो खातों के बीच पैसे ले जाते हैं, तो उसे स्थानांतरण कहते हैं। उदाहरण के लिए, आप अपने Cash Wallet से ₹10,000 अपने HDFC Bank खाते में ले जा सकते हैं। या आप अपनी बचत से क्रेडिट कार्ड का भुगतान कर सकते हैं। आप पैसे खर्च नहीं कर रहे हैं — आप बस उन्हें एक जेब से दूसरी जेब में ले जा रहे हैं। आपकी कुल संपत्ति बिल्कुल वही रहती है।",
+          visual:'<div class="tut-mock"><div class="tut-mock-label">स्थानांतरण की अवधारणा</div><div class="tut-diagram"><div class="tut-nw-row"><span>Cash Wallet</span><span style="color:var(--tmr-teal-600);">- ₹10,000</span></div><div class="tut-transfer-arrow"><i class="bi bi-arrow-down-circle-fill"></i></div><div class="tut-nw-row"><span>HDFC Bank</span><span style="color:var(--tmr-teal-400);">+ ₹10,000</span></div></div></div>',
+          callout:{ type:'tip', text:"कुछ भी आपके नियंत्रण से बाहर नहीं जाता है — दोनों खाते आपके ही हैं।" } },
         { title:'आंतरिक स्थानांतरण खोलें', body:'डैशबोर्ड से <b>Internal Transfer</b> खोलें। यदि खाता नहीं है, तो <b>+ Add Account</b> टैप करें।',
           visual:'<div class="tut-mock"><div class="tut-mock-label">Internal Transfer</div><div class="tut-row2"><div class="tut-field"><label>राशि</label><div class="val"></div></div><div class="tut-field"><label>तिथि</label><div class="val filled">17/06/2026</div></div></div></div>' },
         { title:'From Account और To Account चुनें', body:'<b>From Account</b> (जहाँ पैसे हैं) और <b>To Account</b> (जहाँ जाने हैं) दो ड्रॉपडाउन से चुनें।',
           visual:'<div class="tut-mock"><div class="tut-mock-label">From → To (चिप टैप करें)</div><div class="tut-row2"><div class="tut-field"><label>From Account</label><div class="val" id="t-from">----------</div></div><div class="tut-field"><label>To Account</label><div class="val" id="t-to">----------</div></div></div><div class="tut-transfer-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+ ['Cash Wallet','HDFC Bank','SBI Savings','Zerodha Demat'].map(function(a){return '<span class="tut-opt" style="display:inline-block;width:auto;padding:6px 12px;" data-acc="'+a+'">'+a+'</span>';}).join('')+'</div></div>',
           callout:{ type:'tip', text:'ऊपर खाते की चिप टैप करें — From या To में बारी-बारी से भरता है।' } },
-        { title:'विवरण जोड़ें और पुष्टि करें', body:'वैकल्पिक <b>विवरण</b> जोड़ें, फिर <b>Execute Transfer</b> टैप करके पैसे स्थानांतरित करें।',
+        { title:'विवरण जोड़ें और पुष्टि करें', body:'वैकल्पिक <b>विवरण</b> जोड़ें, फिर <b>Execute Transfer</b> टैप करके पैसे स्थानांतरित करें। \'Execute\' (निष्पादित) शब्द से घबराएं नहीं — इसका मतलब सिर्फ \'काम को करना\' है। इसे टैप करना पूरी तरह सुरक्षित है और यह केवल आपके अपने खातों के बीच पैसे ले जाता है।',
           visual:'<div class="tut-mock"><div class="tut-mock-label">पुष्टि</div><div class="val filled" style="background:var(--tmr-teal-400);color:#fff;text-align:center;font-weight:700;border-radius:10px;">⇄ Execute Transfer</div></div>',
           callout:{ type:'tip', text:'स्थानांतरण आपके अपने खातों के बीच पैसे ले जाता है — यह आपका नेट वर्थ नहीं बदलता।' } },
       ],
       accounts_steps: [
         { title:'खातों की सूची देखें', body:'<b>Accounts</b> पेज Active/Inactive और All Types फ़िल्टर के साथ सभी खाते दिखाता है।',
-          visual:'<div class="tut-mock"><div class="tut-mock-label">खाते — वास्तविक डेमो डेटा</div><div class="tut-diagram"><div class="tut-nw-row"><span>HDFC Bank (Main) · बैंक खाता</span><span>₹7,92,783</span></div><div class="tut-nw-row"><span>SBI Savings · बैंक खाता</span><span>₹0</span></div><div class="tut-nw-row"><span>Cash Wallet · नकद</span><span>₹36,445</span></div><div class="tut-nw-row"><span>Zerodha Demat · निवेश खाता</span><span>₹60,000</span></div></div></div>' },
+          visual:'<div class="tut-mock"><div class="tut-mock-label">खाते — वास्तविक डेमो डेटा</div><div class="tut-diagram"><div class="tut-nw-row"><span>HDFC Bank (Main) · बैंक खाता</span><span>₹7,92,783</span></div><div class="tut-nw-row"><span>SBI Savings · बैंक खाता</span><span>₹0</span></div><div class="tut-nw-row"><span>Cash Wallet · नकद</span><span>₹36,445</span></div><div class="tut-nw-row"><span>Zerodha Demat · निवेश खाता</span><span>₹60,000</span></div></div></div>',
+          callout:{ type:'tip', text:"आप बस ऐप को बता रहे हैं कि आपका पैसा पहले से कहाँ है। जब तक आप नहीं कहेंगे तब तक कुछ भी नहीं हिलेगा।" } },
         { title:'नया खाता जोड़ें', body:'नया खाता बनाने के लिए ऊपर-दाईं ओर <b>+ Add</b> टैप करें। <b>History</b> पिछले बैलेंस बदलाव दिखाती है।',
           callout:{ type:'unverified', text:'इस वॉकथ्रू में सत्यापित नहीं: Add Account फ़ॉर्म के सटीक फ़ील्ड — केवल सूची और प्रवेश बिंदु सत्यापित हैं।' } },
         { title:'खाते नेट वर्थ को कैसे प्रभावित करते हैं', body:'ऐप का "How It Works" गाइड फ़ॉर्मूला बताता है: <b>Bank + Cash + Investment − Credit Card = Net Worth</b>।',
           visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>Bank + Cash + Investment</span><span style="color:var(--tmr-teal-400);font-weight:600;">संपत्ति</span></div><div class="tut-nw-row"><span>− Credit Card</span><span style="color:#E24B4A;font-weight:600;">देनदारी</span></div><div class="tut-nw-row"><span>= Net Worth</span><span></span></div></div>' },
       ],
       networth_steps: [
+        { title:'नेट वर्थ क्या है?', body:"नेट वर्थ इस सवाल का ईमानदार जवाब है कि 'मैं वास्तव में कितने पैसे का मालिक हूँ?' यह आपके पास मौजूद हर चीज को जोड़ता है — आपका बैंक बैलेंस, नकद, निवेश — और आपके ऊपर जो भी कर्ज (लोन, क्रेडिट कार्ड का कर्ज) है, उसे घटाता है। जो संख्या बचती है वही आपका नेट वर्थ है।",
+          visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>संपत्ति (जो आपके पास है)</span><span style="color:var(--tmr-teal-400);font-weight:600;">+ ₹9.6L</span></div><div class="tut-nw-row"><span>कर्ज/देनदारी (जो आपको चुकाना है)</span><span style="color:#E24B4A;font-weight:600;">- ₹3.8L</span></div><div class="tut-nw-row"><span>नेट वर्थ (वास्तविक मूल्य)</span><span style="font-weight:700;">= ₹5.8L</span></div></div>' },
         { title:'मुख्य संख्या पढ़ें', body:'Net Worth कार्ड गणना स्पष्ट दिखाता है: <b>₹9.6L − ₹3.8L (देनदारी) = ₹5.8L</b>।',
           visual:'<div class="tut-diagram"><div class="tut-mock-label">नेट वर्थ — जून 2026 डेमो</div><div class="tut-nw-row"><span>कुल संपत्ति</span><span>₹9.6L</span></div><div class="tut-nw-row"><span>कुल देनदारी</span><span>− ₹3.8L</span></div><div class="tut-nw-row"><span>नेट वर्थ</span><span style="color:var(--tmr-teal-400);">₹5.8L</span></div></div>' },
         { title:'महीने-दर-महीने बदलाव देखें', body:'मुख्य संख्या के नीचे <b>+₹17,912 इस महीने (+3.2%)</b> और 3-महीने का लक्ष्य <b>+₹27,297</b> दिखाता है।' },
@@ -1440,8 +1476,9 @@
         score_msgs: ['सराव सुरू ठेवा! 💪','वाईट नाही! 👍','उत्तम! 🎉','तुम्ही TrackMyRupee तज्ञ आहात! 🏆'],
         faq_heading: 'वारंवार विचारले जाणारे प्रश्न',
       },
-      tabs: { expense:'खर्च', subscription:'सदस्यता', income:'उत्पन्न', transfer:'हस्तांतरण', accounts:'खाती', networth:'नेटवर्थ', quiz:'प्रश्नमंजुषा', cheat:'संदर्भ पत्रक' },
+      tabs: { intro:'इथून सुरुवात करा', expense:'खर्च', subscription:'सदस्यता', income:'उत्पन्न', transfer:'हस्तांतरण', accounts:'खाती', networth:'नेटवर्थ', quiz:'प्रश्नमंजुषा', cheat:'संदर्भ पत्रक' },
       panels: {
+        intro:        { h2:'इथून सुरुवात करा',             sub:'नवशिक्यांसाठी शिफारस केलेला मार्ग', body:'TrackMyRupee मध्ये नवीन आहात? अनुसरण करण्यासाठी खालील सर्वोत्तम क्रम आहे:<br><br><b>पायरी १ — Accounts (खाती)</b> (तुमचे पैसे कुठे आहेत ते सेट करा)<br><b>पायरी २ — Income (उत्पन्न)</b> (अॅपला तुमचे वेतन सांगा)<br><b>पायरी ३ — Expenses (खर्च)</b> (तुम्ही काय खर्च करता ते ट्रॅक करण्यास सुरुवात करा)<br><br>इतर विभाग तुम्ही सोयीस्कर होईपर्यंत वाट पाहू शकतात.', btn:'पायरी १ वर जा: Accounts →' },
         expense:      { h2:'खर्च जोडणे',           sub:'वास्तविक New Expense स्क्रीनवरून सत्यापित — खाली पायरीने समजून घ्या' },
         subscription: { h2:'सदस्यता जोडणे',        sub:'वास्तविक Add Subscription स्क्रीनवरून सत्यापित — आवर्ती खर्च कसा सेट करायचा' },
         income:       { h2:'उत्पन्न जोडणे',         sub:'वास्तविक Add Income स्क्रीनवरून सत्यापित' },
@@ -1491,10 +1528,11 @@
           callout:{ type:'warn', text:'सामान्य चूक: खाते रिकामे सोडणे. खाते निवडा नाहीतर खर्च कोणत्याही शिल्लकशी जोडला जाणार नाही.' } },
         { title:'आवश्यक असल्यास नवीन श्रेणी जोडा', body:'श्रेणी ड्रॉपडाउनमध्ये योग्य पर्याय नसल्यास, उजव्या बाजूस <b>+ New Category</b> टॅप करा.' },
         { title:'जतन करा', body:'खर्च नोंदवण्यासाठी <b>Save</b> टॅप करा किंवा <b>+ Add</b> टॅप करून लगेच दुसरा खर्च जोडा.',
-          visual:'<div class="tut-mock"><div class="tut-mock-label">फूटर क्रिया</div><div class="val filled" style="text-align:center;background:var(--tmr-teal-400);color:#fff;font-weight:700;">✓ जतन</div></div>' },
+          visual:'<div class="tut-mock"><div class="tut-mock-label">फूटर क्रिया</div><div class="val filled" style="text-align:center;background:var(--tmr-teal-400);color:#fff;font-weight:700;">✓ जतन</div></div>',
+          callout:{ type:'tip', text:"चुकून काही चुकीचे नोंदवले गेल्यास काळजी करू नका — तुम्ही नंतर कधीही तो खर्च बदलू (edit) किंवा कट (delete) करू शकता।" } },
       ],
       subscription_steps: [
-        { title:'प्रकार आणि वारंवारता निवडा', body:'<b>Add Subscription</b> उघडा. <b>प्रकार</b> — खर्च किंवा उत्पन्न — आणि <b>Frequency</b> ड्रॉपडाउनमधून निवडा.',
+        { title:'प्रकार आणि वारंवारता निवडा', body:'<b>Add Subscription</b> उघडा. <b>प्रकार</b> — खर्च किंवा उत्पन्न — आणि <b>Frequency</b> ड्रॉपडाउनमधून निवडा. उदाहरणार्थ, भाड्यासाठी तुम्ही Monthly (मासिक) निवडाल. दरमहा बिल येणाऱ्या नेटफ्लिक्स वर्गणीसाठी देखील Monthly. विम्यासारख्या वार्षिक येणाऱ्या गोष्टींसाठी Yearly (वार्षिक) निवडा.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">सदस्यता जोडा</div><div class="tut-row2"><div class="tut-field"><label>प्रकार</label><div class="val filled">Expense</div></div><div class="tut-field"><label>वारंवारता</label><div class="val">----------</div></div></div></div>' },
         { title:'रक्कम, चलन, प्रारंभ तारीख, खाते सेट करा', body:'<b>रक्कम</b> भरा, <b>चलन</b> तपासा (डीफॉल्ट भारतीय रुपया), <b>प्रारंभ तारीख</b> सेट करा आणि <b>खाते</b> निवडा.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">फॉर्म फील्ड</div><div class="tut-row2"><div class="tut-field"><label>रक्कम</label><div class="val"></div></div><div class="tut-field"><label>चलन</label><div class="val filled">Indian Rupee (₹)</div></div></div><div class="tut-row2"><div class="tut-field"><label>प्रारंभ तारीख</label><div class="val filled">17/06/2026</div></div><div class="tut-field"><label>खाते</label><div class="val">----------</div></div></div></div>' },
@@ -1514,24 +1552,30 @@
           visual:'<div class="tut-mock"><div class="tut-mock-label">आवर्ती टॉगल</div><div class="tut-field" style="display:flex;align-items:center;gap:8px;"><span style="width:34px;height:18px;background:#ccc;border-radius:10px;display:inline-block;"></span><span style="font-size: 13px;font-weight:700;">MAKE THIS A RECURRING INCOME</span></div></div>' },
       ],
       transfer_steps: [
+        { title:'हस्तांतरण म्हणजे काय?', body:"जेव्हा तुम्ही तुमच्याच दोन खात्यांमध्ये पैसे हलवता, त्याला हस्तांतरण म्हणतात. उदाहरणार्थ, तुम्ही तुमच्या Cash Wallet मधून ₹10,000 तुमच्या HDFC Bank खात्यात हलवू शकता. किंवा तुम्ही तुमच्या बचतीमधून क्रेडिट कार्डचे बिल भरू शकता. तुम्ही पैसे खर्च करत नाही आहात — तुम्ही फक्त ते एका खिशातून दुसऱ्या खिशात ठेवत आहात. तुमची एकूण संपत्ती तितकीच राहते.",
+          visual:'<div class="tut-mock"><div class="tut-mock-label">हस्तांतरण संकल्पना</div><div class="tut-diagram"><div class="tut-nw-row"><span>Cash Wallet</span><span style="color:var(--tmr-teal-600);">- ₹10,000</span></div><div class="tut-transfer-arrow"><i class="bi bi-arrow-down-circle-fill"></i></div><div class="tut-nw-row"><span>HDFC Bank</span><span style="color:var(--tmr-teal-400);">+ ₹10,000</span></div></div></div>',
+          callout:{ type:'tip', text:"काहीही तुमच्या नियंत्रणाबाहेर जात नाही — दोन्ही खाती तुमच्याच मालकीची आहेत।" } },
         { title:'अंतर्गत हस्तांतरण उघडा', body:'डॅशबोर्डवरून <b>Internal Transfer</b> उघडा. खाते नसल्यास <b>+ Add Account</b> टॅप करा.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">Internal Transfer</div><div class="tut-row2"><div class="tut-field"><label>रक्कम</label><div class="val"></div></div><div class="tut-field"><label>तारीख</label><div class="val filled">17/06/2026</div></div></div></div>' },
         { title:'From Account आणि To Account निवडा', body:'<b>From Account</b> (पैसे कुठे आहेत) आणि <b>To Account</b> (कुठे जायचे) दोन ड्रॉपडाउनमधून निवडा.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">From → To (चिप टॅप करा)</div><div class="tut-row2"><div class="tut-field"><label>From Account</label><div class="val" id="t-from">----------</div></div><div class="tut-field"><label>To Account</label><div class="val" id="t-to">----------</div></div></div><div class="tut-transfer-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+ ['Cash Wallet','HDFC Bank','SBI Savings','Zerodha Demat'].map(function(a){return '<span class="tut-opt" style="display:inline-block;width:auto;padding:6px 12px;" data-acc="'+a+'">'+a+'</span>';}).join('')+'</div></div>',
           callout:{ type:'tip', text:'वरील खाते चिप टॅप करा — From किंवा To मध्ये आळीपाळीने भरते.' } },
-        { title:'वर्णन जोडा आणि पुष्टी करा', body:'वैकल्पिक <b>वर्णन</b> जोडा, नंतर <b>Execute Transfer</b> टॅप करून पैसे हस्तांतरित करा.',
+        { title:'वर्णन जोडा आणि पुष्टी करा', body:'वैकल्पिक <b>वर्णन</b> जोडा, नंतर <b>Execute Transfer</b> टॅप करून पैसे हस्तांतरित करा. \'Execute\' (अंमलबजावणी) या शब्दाची काळजी करू नका — याचा अर्थ फक्त \'करा\' असा आहे. हे टॅप करणे पूर्णपणे सुरक्षित आहे आणि फक्त तुमच्या स्वतःच्या खात्यांमध्ये पैसे हलवते.',
           visual:'<div class="tut-mock"><div class="tut-mock-label">पुष्टी</div><div class="val filled" style="background:var(--tmr-teal-400);color:#fff;text-align:center;font-weight:700;border-radius:10px;">⇄ Execute Transfer</div></div>',
           callout:{ type:'tip', text:'हस्तांतरण तुमच्याच खात्यांमध्ये पैसे हलवते — नेटवर्थ बदलत नाही.' } },
       ],
       accounts_steps: [
         { title:'खात्यांची यादी पाहा', body:'<b>Accounts</b> पान Active/Inactive आणि All Types फिल्टरसह सर्व खाती दाखवते.',
-          visual:'<div class="tut-mock"><div class="tut-mock-label">खाती — वास्तविक डेमो डेटा</div><div class="tut-diagram"><div class="tut-nw-row"><span>HDFC Bank (Main) · बँक खाते</span><span>₹7,92,783</span></div><div class="tut-nw-row"><span>SBI Savings · बँक खाते</span><span>₹0</span></div><div class="tut-nw-row"><span>Cash Wallet · रोख</span><span>₹36,445</span></div><div class="tut-nw-row"><span>Zerodha Demat · गुंतवणूक खाते</span><span>₹60,000</span></div></div></div>' },
+          visual:'<div class="tut-mock"><div class="tut-mock-label">खाती — वास्तविक डेमो डेटा</div><div class="tut-diagram"><div class="tut-nw-row"><span>HDFC Bank (Main) · बँक खाते</span><span>₹7,92,783</span></div><div class="tut-nw-row"><span>SBI Savings · बँक खाते</span><span>₹0</span></div><div class="tut-nw-row"><span>Cash Wallet · रोख</span><span>₹36,445</span></div><div class="tut-nw-row"><span>Zerodha Demat · गुंतवणूक खाते</span><span>₹60,000</span></div></div></div>',
+          callout:{ type:'tip', text:"तुम्ही फक्त अॅपला सांगत आहात की तुमचे पैसे आधीपासून कुठे आहेत. तुम्ही सांगितल्याशिवाय काहीही हलणार नाही।" } },
         { title:'नवीन खाते जोडा', body:'नवीन खाते तयार करण्यासाठी उजव्या बाजूस <b>+ Add</b> टॅप करा. <b>History</b> मागील शिल्लक बदल दाखवते.',
           callout:{ type:'unverified', text:'या वॉकथ्रूमध्ये सत्यापित नाही: Add Account फॉर्मचे नेमके फील्ड — फक्त यादी आणि प्रवेश बिंदू सत्यापित आहे.' } },
         { title:'खाती नेटवर्थवर कसा परिणाम करतात', body:'इन-ऑ्प "How It Works" गाइड सूत्र थेट सांगते: <b>Bank + Cash + Investment − Credit Card = Net Worth</b>.',
           visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>Bank + Cash + Investment</span><span style="color:var(--tmr-teal-400);font-weight:600;">मालमत्ता</span></div><div class="tut-nw-row"><span>− Credit Card</span><span style="color:#E24B4A;font-weight:600;">देणे</span></div><div class="tut-nw-row"><span>= Net Worth</span><span></span></div></div>' },
       ],
       networth_steps: [
+        { title:'नेटवर्थ म्हणजे काय?', body:"नेटवर्थ म्हणजे 'माझ्याकडे एकूण किती संपत्ती आहे?' याचे प्रामाणिक उत्तर. हे तुमच्या मालकीच्या सर्व गोष्टींची (बँक शिल्लक, रोख रक्कम, गुंतवणूक) बेरीज करते आणि तुमच्यावरील सर्व कर्जे (बँक कर्ज, क्रेडिट कार्डचे देणे) वजा करते. शिल्लक राहणारी रक्कम म्हणजेच तुमचे नेटवर्थ होय.",
+          visual:'<div class="tut-diagram"><div class="tut-nw-row"><span>मालमत्ता (तुमच्या मालकीचे)</span><span style="color:var(--tmr-teal-400);font-weight:600;">+ ₹9.6L</span></div><div class="tut-nw-row"><span>देणे/कर्ज (तुम्हाला भरायचे आहे)</span><span style="color:#E24B4A;font-weight:600;">- ₹3.8L</span></div><div class="tut-nw-row"><span>नेटवर्थ (वास्तविक मूल्य)</span><span style="font-weight:700;">= ₹5.8L</span></div></div>' },
         { title:'मुख्य आकडा वाचा', body:'Net Worth कार्ड गणना स्पष्टपणे दाखवते: <b>₹9.6L − ₹3.8L (देणे) = ₹5.8L</b>.',
           visual:'<div class="tut-diagram"><div class="tut-mock-label">नेटवर्थ — जून 2026 डेमो</div><div class="tut-nw-row"><span>एकूण मालमत्ता</span><span>₹9.6L</span></div><div class="tut-nw-row"><span>एकूण देणे</span><span>− ₹3.8L</span></div><div class="tut-nw-row"><span>नेटवर्थ</span><span style="color:var(--tmr-teal-400);">₹5.8L</span></div></div>' },
         { title:'महिना-दर-महिना बदल पाहा', body:'मुख्य आकड्याखाली <b>+₹17,912 या महिन्यात (+3.2%)</b> आणि 3-महिन्याचे ध्येय <b>+₹27,297</b> दाखवते.' },
@@ -1621,7 +1665,7 @@
 
 
     // Update Panel Headers and Tab Buttons
-    var navKeys = ['expense','subscription','income','transfer','accounts','networth','quiz','cheat'];
+    var navKeys = ['intro', 'expense','subscription','income','transfer','accounts','networth','quiz','cheat'];
     navKeys.forEach(function(k) {
       var ph = document.getElementById('ph-' + k);
       var ps = document.getElementById('ps-' + k);
@@ -1636,6 +1680,11 @@
         tb.appendChild(document.createTextNode(L.tabs[k]));
       }
     });
+
+    var introBody = document.getElementById('tut-intro-body');
+    if (introBody && L.panels.intro) introBody.innerHTML = L.panels.intro.body;
+    var introBtn = document.getElementById('tut-intro-btn');
+    if (introBtn && L.panels.intro) introBtn.textContent = L.panels.intro.btn;
 
     // 1. Hero
 
