@@ -69,7 +69,7 @@
     </div>
 
     <!-- Transaction Ledger -->
-    <div class="card shadow-sm border-0 rounded-4">
+    <div class="card shadow-sm border-0 rounded-4 transaction-ledger-card">
         <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div class="d-flex align-items-center gap-2">
                 <h5 class="mb-0 fw-bold">{% trans "Transaction History" %}</h5>
@@ -100,7 +100,8 @@
             </div>
         </div>
         {% endif %}
-        <div class="table-responsive">
+        <!-- Desktop Table View -->
+        <div class="table-responsive d-none d-md-block">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-body-tertiary">
                     <tr>
@@ -272,6 +273,215 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Mobile Grid View -->
+        <div id="mobileGridView" class="py-2 d-md-none px-3">
+            {% regroup ledger by date as ledger_by_date %}
+            {% for group in ledger_by_date %}
+            <div class="mb-3">
+                <!-- Day Header -->
+                <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                    <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                        {{ group.grouper|date:"d M Y"|translate_digits }}
+                    </div>
+                </div>
+                <!-- Day's Ledger Items -->
+                {% for item in group.list %}
+                <div class="card expense-card shadow-sm border-0 position-relative mb-3">
+                    <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                        <div class="mobile-card-inner">
+                            <!-- Left-Mid: Icon (Vertically Centered) -->
+                            <div class="category-icon-container">
+                                {% if item.transaction_type == 'EXPENSE' or item.transaction_type == 'INCOME' %}
+                                    <i class="bi {% category_icon item.category user %}"></i>
+                                {% elif item.transaction_type == 'TRANSFER_OUT' or item.transaction_type == 'TRANSFER_IN' %}
+                                    <i class="bi bi-arrow-left-right text-info"></i>
+                                {% elif item.transaction_type == 'SAVINGS' %}
+                                    <i class="bi bi-piggy-bank text-warning"></i>
+                                {% elif item.transaction_type == 'LOAN_REPAYMENT' %}
+                                    <i class="bi bi-cash-coin text-dark"></i>
+                                {% elif item.transaction_type == 'CAPITAL_EVENT' %}
+                                    <i class="bi bi-flag text-primary"></i>
+                                {% else %}
+                                    <i class="bi bi-tag"></i>
+                                {% endif %}
+                            </div>
+
+                            <!-- Middle: Info -->
+                            <div class="flex-grow-1 min-width-0 px-1">
+                                {% trans "No description" as no_desc %}
+                                <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
+                                     data-bs-toggle="tooltip" data-bs-placement="top" title="{{ item.description|default:no_desc }}">
+                                    {{ item.description|default:no_desc }}
+                                </div>
+                                <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                    {% if item.category %}
+                                        <span class="text-truncate">{{ item.category }}</span>
+                                    {% else %}
+                                        <span class="text-truncate">
+                                            {% if item.transaction_type == 'TRANSFER_OUT' %}
+                                                {% trans "Transfer to" %} {{ item.to_account.name }}
+                                            {% elif item.transaction_type == 'TRANSFER_IN' %}
+                                                {% trans "Transfer from" %} {{ item.from_account.name }}
+                                            {% elif item.transaction_type == 'SAVINGS' %}
+                                                {% trans "Savings" %}
+                                            {% elif item.transaction_type == 'LOAN_REPAYMENT' %}
+                                                {% trans "Loan Repayment" %}
+                                            {% elif item.transaction_type == 'CAPITAL_EVENT' %}
+                                                {% trans "Capital Event" %}
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Right: Amount + Type Badge -->
+                            <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
+                                <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
+                                    {% if item.transaction_type == 'CAPITAL_EVENT' and not item.include_in_net_worth %}
+                                        <span class="signed-amount text-secondary">
+                                            {{ item.display_currency }}{{ item.amount|ind_comma:item.display_currency|translate_digits }}
+                                        </span>
+                                    {% else %}
+                                        <span class="signed-amount {% if item.transaction_type == 'INCOME' or item.transaction_type == 'TRANSFER_IN' %}text-success{% elif item.transaction_type == 'EXPENSE' or item.transaction_type == 'TRANSFER_OUT' or item.transaction_type == 'SAVINGS' or item.transaction_type == 'LOAN_REPAYMENT' or item.transaction_type == 'CAPITAL_EVENT' %}text-danger{% endif %}">
+                                            {% if item.transaction_type == 'INCOME' or item.transaction_type == 'TRANSFER_IN' %}+{% else %}-{% endif %}
+                                            {{ item.display_currency }}{{ item.amount|ind_comma:item.display_currency|translate_digits }}
+                                        </span>
+                                    {% endif %}
+                                    {% if item.base_amount_display %}
+                                        <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">
+                                             ≈ {{ base_currency_symbol }}{{ item.base_amount_display|ind_comma:base_currency_symbol|translate_digits }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% if item.transaction_type == 'INCOME' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Income" %}</span>
+                                {% elif item.transaction_type == 'EXPENSE' %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Expense" %}</span>
+                                {% elif item.transaction_type == 'TRANSFER_OUT' %}
+                                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Transfer Out" %}</span>
+                                {% elif item.transaction_type == 'TRANSFER_IN' %}
+                                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Transfer In" %}</span>
+                                {% elif item.transaction_type == 'SAVINGS' %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Savings" %}</span>
+                                {% elif item.transaction_type == 'LOAN_REPAYMENT' %}
+                                    <span class="badge bg-dark bg-opacity-10 text-dark rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Repayment" %}</span>
+                                {% elif item.transaction_type == 'CAPITAL_EVENT' %}
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Capital Event" %}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Far Right: Menu -->
+                            <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
+                                <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                    <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
+                                    {% if item.transaction_type == 'EXPENSE' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'expense-edit' item.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                        <li>
+                                            <a class="dropdown-item py-2 px-3 text-danger cursor-pointer" 
+                                               href="#" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#deleteModal" 
+                                               data-url="{% url 'expense-delete' item.pk %}?next={{ request.get_full_path|urlencode }}"
+                                               data-message="{% trans 'Are you sure you want to delete this expense?' %}">
+                                                <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    {% elif item.transaction_type == 'INCOME' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'income-edit' item.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                        <li>
+                                            <a class="dropdown-item py-2 px-3 text-danger cursor-pointer" 
+                                               href="#" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#deleteModal" 
+                                               data-url="{% url 'income-delete' item.pk %}?next={{ request.get_full_path|urlencode }}"
+                                               data-message="{% trans 'Are you sure you want to delete this income record?' %}">
+                                                <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    {% elif item.transaction_type == 'TRANSFER_OUT' or item.transaction_type == 'TRANSFER_IN' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'transfer-edit' item.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                        <li>
+                                            <a class="dropdown-item py-2 px-3 text-danger cursor-pointer" 
+                                               href="#" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#deleteModal" 
+                                               data-url="{% url 'transfer-delete' item.pk %}?next={{ request.get_full_path|urlencode }}"
+                                               data-message="{% trans 'Are you sure you want to delete this transfer?' %}">
+                                                <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    {% elif item.transaction_type == 'SAVINGS' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'goal-detail' item.goal.pk %}"><i class="bi bi-eye me-2"></i> {% trans "View Goal" %}</a></li>
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'goal-contribution-edit' item.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit Contribution" %}</a></li>
+                                        <li>
+                                            <a class="dropdown-item py-2 px-3 text-danger cursor-pointer" 
+                                               href="#" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#deleteModal" 
+                                               data-url="{% url 'goal-contribution-delete' item.pk %}?next={{ request.get_full_path|urlencode }}"
+                                               data-message="{% trans 'Are you sure you want to delete this contribution? The amount will be refunded to your account balance.' %}">
+                                                <i class="bi bi-trash me-2"></i> {% trans "Delete Contribution" %}
+                                            </a>
+                                        </li>
+                                    {% elif item.transaction_type == 'LOAN_REPAYMENT' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'loan-detail' item.loan.pk %}"><i class="bi bi-eye me-2"></i> {% trans "View Loan" %}</a></li>
+                                        <li>
+                                            <a class="dropdown-item py-2 px-3 text-danger cursor-pointer" 
+                                               href="#" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#deleteModal" 
+                                               data-url="{% url 'loan-repayment-delete' item.pk %}?next={{ request.get_full_path|urlencode }}"
+                                               data-message="{% trans 'Are you sure you want to delete this loan repayment? The amount will be added back to your account balance and the loan balance will increase.' %}">
+                                                <i class="bi bi-trash me-2"></i> {% trans "Delete Repayment" %}
+                                            </a>
+                                        </li>
+                                    {% elif item.transaction_type == 'CAPITAL_EVENT' %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'capital-event-edit' item.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                        <li>
+                                            <a class="dropdown-item py-2 px-3 text-danger cursor-pointer" 
+                                               href="#" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#deleteModal" 
+                                               data-url="{% url 'capital-event-delete' item.pk %}?next={{ request.get_full_path|urlencode }}"
+                                               data-message="{% trans 'Are you sure you want to delete this capital event?' %}">
+                                                <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <div class="py-4">
+                    <div class="mb-4 text-muted">
+                        {% include 'illustrations/empty_accounts.svg' %}
+                    </div>
+                    <h5 class="fw-bold text-muted">
+                        {% if search_query %}
+                            {% trans "No results found for" %} "{{ search_query }}"
+                        {% else %}
+                            {% trans "No Transactions Found" %}
+                        {% endif %}
+                    </h5>
+                    <p class="text-muted mb-0">
+                        {% if search_query %}
+                            {% trans "Try adjusting your search terms or clearing the filter." %}
+                        {% else %}
+                            {% trans "There are no activities recorded for this account yet." %}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
         {% if is_paginated %}
         <div class="card-footer bg-transparent py-3 border-top">
             <nav>
@@ -324,6 +534,117 @@
 [data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .table td {
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
+
+@media (max-width: 767.98px) {
+    .transaction-ledger-card {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .transaction-ledger-card .card-header {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        border-bottom: none !important;
+    }
+    .transaction-ledger-card .card-header form {
+        max-width: 100% !important;
+    }
+    .transaction-ledger-card .card-footer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        border-top: none !important;
+    }
+    #mobileGridView {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    #mobileGridView .expense-card .card-body > .mobile-card-inner {
+        display: grid !important;
+        /* Precise widths for card components: icon: 38px info: 1fr amount: 95px menu: 30px */
+        grid-template-columns: 38px minmax(0, 1fr) 95px 30px !important;
+        grid-template-areas: "icon info amount menu" !important;
+        align-items: center !important;
+        gap: 0 !important;
+        transition: all 0.3s ease;
+    }
+
+    #mobileGridView .expense-card .category-icon-container { 
+        grid-area: icon; 
+        margin: 0 !important; 
+        width: 32px !important;
+        height: 32px !important;
+        justify-self: center;
+    }
+    #mobileGridView .expense-card .flex-grow-1 { 
+        grid-area: info; 
+        margin: 0 !important; 
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        overflow: hidden;
+    }
+    #mobileGridView .expense-card .flex-shrink-0.text-end { 
+        grid-area: amount; 
+        margin: 0 !important; 
+        width: 100% !important;
+        padding-right: 4px; /* Space before menu */
+    }
+    #mobileGridView .expense-card .dropdown { 
+        grid-area: menu; 
+        margin: 0 !important; 
+        justify-self: center;
+    }
+}
+
+/* Card View Styles */
+.expense-card {
+    border-radius: 16px !important;
+    border: 1px solid var(--bs-border-color-translucent) !important;
+    background-color: var(--bs-body-bg);
+}
+
+[data-bs-theme="dark"] .expense-card {
+    border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* Category Icon Alignment */
+.category-icon-container {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--bs-secondary-color);
+    border-radius: 12px;
+    background-color: transparent;
+}
+.expense-card:hover .category-icon-container {
+    background-color: var(--bs-tertiary-bg);
+    transform: scale(1.08);
+    color: var(--bs-primary);
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    line-height: 1.25;
+    max-height: 2.5em;
+}
+
+@media (max-width: 576px) {
+    .category-icon-container {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+}
 </style>
 
 {{ trend_data.labels|json_script:"trend-labels" }}
@@ -333,6 +654,19 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Prevent autofocus from opening the keyboard on mobile
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.blur();
+        const preventAutoKeyboard = function() {
+            searchInput.blur();
+            searchInput.removeEventListener('focus', preventAutoKeyboard);
+        };
+        searchInput.addEventListener('focus', preventAutoKeyboard);
+        setTimeout(function() {
+            searchInput.removeEventListener('focus', preventAutoKeyboard);
+        }, 1000);
+    }
     const ctx = document.getElementById('accountTrendChart');
     if (!ctx) return;
 
