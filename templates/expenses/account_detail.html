@@ -73,7 +73,7 @@
         <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div class="d-flex align-items-center gap-2">
                 <h5 class="mb-0 fw-bold">{% trans "Transaction History" %}</h5>
-                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{{ ledger|length }} {% trans "Items" %}</span>
+                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{{ ledger.paginator.count|translate_digits }} {% trans "Items" %}</span>
             </div>
             
             <form method="GET" class="d-flex align-items-center gap-2 w-100" style="max-width: 300px;">
@@ -328,7 +328,11 @@
                                             {% elif item.transaction_type == 'LOAN_REPAYMENT' %}
                                                 {% trans "Loan Repayment" %}
                                             {% elif item.transaction_type == 'CAPITAL_EVENT' %}
-                                                {% trans "Capital Event" %}
+                                                {% trans "Capital Event" %}{% if item.get_subtype_display %} • {{ item.get_subtype_display }}{% endif %}
+                                            {% elif item.transaction_type == 'EXPENSE' %}
+                                                {% trans "Expense" %}
+                                            {% elif item.transaction_type == 'INCOME' %}
+                                                {% trans "Income" %}
                                             {% endif %}
                                         </span>
                                     {% endif %}
