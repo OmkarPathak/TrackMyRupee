@@ -18,3 +18,5 @@ from .mom_view import *
 from .notifications import *
 from .recurring import *
 from .settings import *
+from .alternatives import *
+

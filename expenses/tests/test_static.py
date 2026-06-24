@@ -161,4 +161,52 @@ class StaticPageTest(TestCase):
         token_count = int(response_md['X-Markdown-Tokens'])
         self.assertEqual(token_count, len(md_body) // 4)
 
+    def test_axio_alternative_page(self):
+        url = reverse('axio-alternative')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'alternative_landing.html')
+        content = response.content.decode('utf-8')
+        self.assertIn('Axio', content)
+        self.assertIn('Expense tracker India without SMS permission', content)
+        self.assertIn('Best secure manual budgeting app India', content)
+
+    def test_walnut_alternative_page(self):
+        url = reverse('walnut-alternative-no-sms')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'alternative_landing.html')
+        content = response.content.decode('utf-8')
+        self.assertIn('Walnut', content)
+        self.assertIn('Expense tracker India without SMS permission', content)
+        self.assertIn('Best secure manual budgeting app India', content)
+
+    def test_indmoney_alternative_page(self):
+        url = reverse('indmoney-alternative-privacy')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'alternative_landing.html')
+        content = response.content.decode('utf-8')
+        self.assertIn('INDmoney', content)
+        self.assertIn('Best secure manual budgeting app India', content)
+        self.assertIn('INDmoney alternative privacy', content)
+
+    def test_alternative_pages_redirect_authenticated_user(self):
+        from django.contrib.auth.models import User
+        user = User.objects.create_user(username='testuser', password='password')
+        profile = user.profile
+        profile.consent_granted = True
+        profile.has_seen_tutorial = True
+        profile.save()
+        
+        self.client.login(username='testuser', password='password')
+        
+        for url_name in ['axio-alternative', 'walnut-alternative-no-sms', 'indmoney-alternative-privacy']:
+            url = reverse(url_name)
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 302)
+            self.assertRedirects(response, reverse('home'))
+
+
+
  

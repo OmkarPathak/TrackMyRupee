@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{{ meta_title }}{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="{{ meta_description }}">
+<meta name="keywords" content="{{ meta_keywords }}">
+<meta name="author" content="Omkar Pathak">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="article">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:title" content="{{ meta_title }}">
+<meta property="og:description" content="{{ meta_description }}">
+<meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="{{ request.build_absolute_uri }}">
+<meta name="twitter:title" content="{{ meta_title }}">
+<meta name="twitter:description" content="{{ meta_description }}">
+<meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumbs -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/" class="text-decoration-none">{% trans "Home" %}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ competitor_name }} {% trans "Alternative" %}</li>
+                </ol>
+            </nav>
+
+            <article class="blog-content fs-blog-content text-break">
+                <!-- Hero / Heading -->
+                <h1 class="display-6 fw-bold mb-3">{{ h1_title }}</h1>
+                <p class="lead text-muted mb-4">{{ subtitle }}</p>
+
+                <!-- Comparison Table -->
+                <h3 class="fw-bold mt-5 mb-3">{% trans "Feature Comparison Matrix" %}</h3>
+                <div class="table-responsive mb-5">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" style="width: 45%;">{% trans "Feature / Parameter" %}</th>
+                                <th scope="col" class="text-center" style="width: 25%;">{{ competitor_name }}</th>
+                                <th scope="col" class="text-center table-primary-header" style="width: 30%; background-color: rgba(29, 158, 117, 0.08); border-color: rgba(29, 158, 117, 0.15);">
+                                    TrackMyRupee
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div>{% trans "SMS Permission Required" %}</div>
+                                    <small class="text-muted fw-normal">{% trans "App requests read access to your mobile text messages." %}</small>
+                                </td>
+                                <td class="text-center">
+                                    {% if competitor_id == 'axio' or competitor_id == 'walnut' %}
+                                        <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> {% trans "Yes (Mandatory)" %}</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center table-primary-cell" style="background-color: rgba(29, 158, 117, 0.03);">
+                                    <span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i> {% trans "No (100% Private)" %}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div>{% trans "Gmail & Bank Credentials Access" %}</div>
+                                    <small class="text-muted fw-normal">{% trans "Scrapes emails or bank logs to aggregate portfolios automatically." %}</small>
+                                </td>
+                                <td class="text-center">
+                                    {% if competitor_id == 'indmoney' %}
+                                        <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> {% trans "Yes (Invasive)" %}</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center table-primary-cell" style="background-color: rgba(29, 158, 117, 0.03);">
+                                    <span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i> {% trans "No (Zero Access)" %}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div>{% trans "Ad-Free Experience" %}</div>
+                                    <small class="text-muted fw-normal">{% trans "No popups, credit card ads, loan banners, or cross-selling." %}</small>
+                                </td>
+                                <td class="text-center text-danger fw-semibold">
+                                    <i class="bi bi-x-circle-fill me-1"></i> {% trans "No" %}
+                                </td>
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                    <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div>{% trans "Open Source Codebase" %}</div>
+                                    <small class="text-muted fw-normal">{% trans "Code transparency to verify how your data is handled." %}</small>
+                                </td>
+                                <td class="text-center text-muted">
+                                    <i class="bi bi-x-circle me-1"></i> {% trans "No (Closed Source)" %}
+                                </td>
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                    <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div>{% trans "Subscription-Funded Business" %}</div>
+                                    <small class="text-muted fw-normal">{% trans "Your personal data is not farmed or sold to advertisers." %}</small>
+                                </td>
+                                <td class="text-center text-muted">
+                                    <i class="bi bi-x-circle me-1"></i> {% trans "No" %}
+                                </td>
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                    <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div>{% trans "100% Data Sovereignty" %}</div>
+                                    <small class="text-muted fw-normal">{% trans "Free, single-click CSV data export anytime." %}</small>
+                                </td>
+                                <td class="text-center text-muted">
+                                    <i class="bi bi-dash-circle me-1"></i> {% trans "Restricted" %}
+                                </td>
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                    <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div>{% trans "Precision Net Worth Tracking" %}</div>
+                                    <small class="text-muted fw-normal">{% trans "Aggregates mutual funds, stocks, FDs, PPF, and loans." %}</small>
+                                </td>
+                                <td class="text-center text-success fw-semibold">
+                                    <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes (Auto)" %}
+                                </td>
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                    <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes (Manual)" %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div>{% trans "AI-Powered Budget Insights" %}</div>
+                                    <small class="text-muted fw-normal">{% trans "Identifies spending leaks and categorizes trends." %}</small>
+                                </td>
+                                <td class="text-center text-muted">
+                                    <i class="bi bi-dash-circle me-1"></i> {% trans "Basic" %}
+                                </td>
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                    <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Deep Dive Content -->
+                <h2 class="fw-bold mt-5 mb-3">{{ problem_title }}</h2>
+                <p class="text-muted" style="line-height: 1.8; font-size: 16px;">
+                    {{ problem_text }}
+                </p>
+
+                <h2 class="fw-bold mt-5 mb-3">{{ solution_title }}</h2>
+                <p class="text-muted" style="line-height: 1.8; font-size: 16px;">
+                    {{ solution_text }}
+                </p>
+
+                <!-- Core Pillars / Why Switch -->
+                <h3 class="fw-bold mt-5 mb-3">{% trans "Why Switch to TrackMyRupee?" %}</h3>
+                <ul class="list-unstyled d-flex flex-column gap-4 mt-3">
+                    <li class="d-flex flex-column gap-1">
+                        <h5 class="fw-bold mb-1">{% trans "3-Second Rapid Logging" %}</h5>
+                        <p class="text-muted mb-0" style="font-size: 15px;">{% trans "Just type what you spent. Our natural language processing engine automatically extracts the amount, categorizes the expense, and logs it instantly." %}</p>
+                    </li>
+                    <li class="d-flex flex-column gap-1">
+                        <h5 class="fw-bold mb-1">{% trans "Double-Entry Ledger" %}</h5>
+                        <p class="text-muted mb-0" style="font-size: 15px;">{% trans "Bank-grade data integrity. Every rupee is balanced between accounts, preventing records from drifting out of sync. Fully reconcilable." %}</p>
+                    </li>
+                    <li class="d-flex flex-column gap-1">
+                        <h5 class="fw-bold mb-1">{% trans "Unified Net Worth Dashboard" %}</h5>
+                        <p class="text-muted mb-0" style="font-size: 15px;">{% trans "Monitor your mutual funds, stock values, fixed deposits, and loans manually in a single view. Real-time net worth calculation and trend charts." %}</p>
+                    </li>
+                </ul>
+
+                <!-- FAQs -->
+                <h3 class="fw-bold mt-5 mb-3">{% trans "Frequently Asked Questions" %}</h3>
+                <div class="d-flex flex-column gap-4 mt-3 mb-5">
+                    {% for faq in faqs %}
+                        <div>
+                            <h5 class="fw-bold text-body mb-2">Q: {{ faq.question }}</h5>
+                            <p class="text-muted mb-0" style="line-height: 1.7; font-size: 15px;">{{ faq.answer }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- CTA Box -->
+                <div class="card my-5 bg-light border-0 rounded-4">
+                    <div class="card-body p-4 p-md-5 text-center bg-body-tertiary">
+                        <h3 class="fw-bold mb-3">{% trans "Ready for a cleaner budgeting experience?" %}</h3>
+                        <p class="text-muted mb-4" style="font-size: 15px;">
+                            {% trans "Join thousands of privacy-conscious Indian professionals tracking their salaries securely and ad-free." %}
+                        </p>
+                        <div class="d-flex flex-wrap justify-content-center gap-3">
+                            <a href="{% url 'account_signup' %}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold">
+                                {% trans "Create Free Account" %}
+                            </a>
+                            <a href="{% url 'pricing' %}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold">
+                                {% trans "View Subscriptions" %}
+                            </a>
+                        </div>
+                        <div class="mt-4 text-muted small">
+                            {% trans "Keywords:" %}
+                            {% for kw in keywords_used %}
+                                <span class="badge bg-secondary-subtle text-secondary mx-1 py-1 px-2 fw-normal">{{ kw }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>
+{% endblock %}

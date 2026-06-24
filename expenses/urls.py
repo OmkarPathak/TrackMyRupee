@@ -94,6 +94,12 @@ urlpatterns = [
     path('offline/', TemplateView.as_view(template_name='offline.html'), name='offline'),
     path('contact/', views.ContactView.as_view(), name='contact'),
 
+    # Alternatives Landing Pages
+    path('alternatives/axio-alternative/', views.AlternativePageView.as_view(competitor='axio'), name='axio-alternative'),
+    path('alternatives/walnut-alternative-no-sms/', views.AlternativePageView.as_view(competitor='walnut'), name='walnut-alternative-no-sms'),
+    path('alternatives/indmoney-alternative-privacy/', views.AlternativePageView.as_view(competitor='indmoney'), name='indmoney-alternative-privacy'),
+
+
     # to keep alive on render
     path('ping/', views.ping, name='ping'),
 

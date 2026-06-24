@@ -119,6 +119,9 @@ class DPDPAConsentMiddleware:
                 'ping',
                 'user-delete',
                 'withdraw-consent',
+                'axio-alternative',
+                'walnut-alternative-no-sms',
+                'indmoney-alternative-privacy',
             ]
 
             is_static_or_media = (

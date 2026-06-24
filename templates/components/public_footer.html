@@ -3,7 +3,7 @@
 <footer class="landing-footer pt-5 pb-3">
     <div class="container">
         <div class="row g-4 justify-content-between">
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="footer-brand">
                     <a class="mb-3 d-inline-flex align-items-center gap-2 text-decoration-none fw-bold fs-5 text-dark" href="{% url 'landing' %}">
                         <img src="{% static 'icon.svg' %}" alt="TrackMyRupee Logo" width="24" height="24">
@@ -38,7 +38,15 @@
                     <li><a href="https://rzp.io/rzp/AP7kBG2" class="text-decoration-none text-muted">{% trans "Support Us" %}</a></li>
                 </ul>
             </div>
-            <div class="col-md-6 col-lg-3">
+            <div class="col-6 col-md-3 col-lg-2">
+                <h4 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px;">{% trans "Alternatives" %}</h4>
+                <ul class="list-unstyled d-flex flex-column gap-2" style="font-size: 14px;">
+                    <li><a href="{% url 'axio-alternative' %}" class="text-decoration-none text-muted">{% trans "Axio Alternative" %}</a></li>
+                    <li><a href="{% url 'walnut-alternative-no-sms' %}" class="text-decoration-none text-muted">{% trans "Walnut Alternative" %}</a></li>
+                    <li><a href="{% url 'indmoney-alternative-privacy' %}" class="text-decoration-none text-muted">{% trans "INDmoney Alternative" %}</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-md-3 col-lg-3">
                 <h4 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px;">{% trans "Legal" %}</h4>
                 <ul class="list-unstyled d-flex flex-column gap-2" style="font-size: 14px;">
                     <li><a href="{% url 'privacy-policy' %}" class="text-decoration-none text-muted">{% trans "Privacy" %}</a></li>

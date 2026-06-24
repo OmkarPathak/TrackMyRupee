@@ -790,7 +790,7 @@
                     <div class="row g-4 justify-content-lg-end">
 
                         <!-- Product Column -->
-                        <div class="col-6 col-sm-4">
+                        <div class="col-6 col-sm-3">
                             <h5 class="fw-bold mb-3 small text-uppercase tracking-wider">{% trans "Product" %}</h5>
                             <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                                 <li><a href="{% if not user.is_authenticated %}{% url 'landing' %}#features{% else %}{% url 'home' %}{% endif %}"
@@ -805,19 +805,31 @@
                         </div>
 
                         <!-- Company Column -->
-                        <div class="col-6 col-sm-4">
+                        <div class="col-6 col-sm-3">
                             <h5 class="fw-bold mb-3 small text-uppercase tracking-wider">{% trans "Company" %}</h5>
                             <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                                 <li><a href="{% url 'about' %}"
                                         class="text-decoration-none text-muted small hover-primary">{% trans "About" %}</a></li>
                                 <li><a href="{% url 'contact' %}"
                                         class="text-decoration-none text-muted small hover-primary">{% trans "Contact" %}</a></li>
-                                <!-- <li><a href="#" class="text-decoration-none text-muted small hover-primary">FAQs</a></li> -->
+                            </ul>
+                        </div>
+
+                        <!-- Alternatives Column -->
+                        <div class="col-6 col-sm-3">
+                            <h5 class="fw-bold mb-3 small text-uppercase tracking-wider">{% trans "Alternatives" %}</h5>
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                                <li><a href="{% url 'axio-alternative' %}"
+                                        class="text-decoration-none text-muted small hover-primary">{% trans "Axio Alternative" %}</a></li>
+                                <li><a href="{% url 'walnut-alternative-no-sms' %}"
+                                        class="text-decoration-none text-muted small hover-primary">{% trans "Walnut Alternative" %}</a></li>
+                                <li><a href="{% url 'indmoney-alternative-privacy' %}"
+                                        class="text-decoration-none text-muted small hover-primary">{% trans "INDmoney Alternative" %}</a></li>
                             </ul>
                         </div>
 
                         <!-- Legal Column -->
-                        <div class="col-6 col-sm-4">
+                        <div class="col-6 col-sm-3">
                             <h5 class="fw-bold mb-3 small text-uppercase tracking-wider">{% trans "Legal" %}</h5>
                             <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                                 <li><a href="{% url 'privacy-policy' %}"
