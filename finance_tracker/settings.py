@@ -110,6 +110,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -123,7 +124,6 @@ MIDDLEWARE = [
     'expenses.middleware.LocaleMiddlewareByProfile',
     'expenses.middleware.DemoReadOnlyMiddleware',
     'expenses.middleware.AgentMarkdownMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'finance_tracker.urls'
@@ -227,6 +227,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Whitenoise optimization settings
+WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds
 
 if 'test' in sys.argv:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
