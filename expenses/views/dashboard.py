@@ -2086,6 +2086,7 @@ def home_view(request):
         'total_expenses_base': total_expenses_base,
         'total_loan_interest': total_loan_interest,
         'savings': savings,
+        'remaining_savings': savings - total_investments,
         'recent_activity': recent_activity,
         'categories': categories,
         'category_amounts': category_amounts,

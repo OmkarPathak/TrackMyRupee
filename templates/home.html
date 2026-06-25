@@ -1535,17 +1535,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <!-- Mobile Period Summary (filter-aware) — hidden on desktop -->
-                <div class="d-lg-none border-top mx-1 mt-2 pt-3 pb-1">
-                    <p class="text-center mb-0 fw-medium" style="font-size: 0.8rem; line-height: 1.6;">
-                        <span class="fw-bold text-success">{{ currency_symbol }}{{ total_income|compact_amount:currency_symbol|translate_digits }}</span>
-                        <span class="text-muted opacity-60 mx-1">{% trans "income" %}</span>
-                        <span class="text-muted opacity-30 mx-1">&middot;</span>
-                        <span class="fw-bold text-danger">{{ currency_symbol }}{{ total_expenses|compact_amount:currency_symbol|translate_digits }}</span>
-                        <span class="text-muted opacity-60 mx-1">{% trans "spent" %}</span>
-                        <span class="text-muted opacity-30 mx-1">&middot;</span>
-                        <span class="fw-bold {% if savings >= 0 %}text-primary{% else %}text-danger{% endif %}">{{ currency_symbol }}{{ savings|abs_val|compact_amount:currency_symbol|translate_digits }}</span>
-                        <span class="text-muted opacity-60 mx-1">{% if savings >= 0 %}{% trans "saved" %}{% else %}{% trans "over" %}{% endif %}</span>
-                    </p>
+                <div class="d-lg-none border-top mt-2 pt-3 pb-1">
+                    <div class="row g-0 text-center">
+                        <div class="col-3">
+                            <div class="fw-bold text-success" style="font-size: 0.9rem;">
+                                {{ currency_symbol }}{{ total_income|compact_amount:currency_symbol|translate_digits }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.7rem;">{% trans "income" %}</div>
+                        </div>
+                        <div class="col-3 border-start">
+                            <div class="fw-bold text-danger" style="font-size: 0.9rem;">
+                                {{ currency_symbol }}{{ total_expenses|compact_amount:currency_symbol|translate_digits }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.7rem;">{% trans "spent" %}</div>
+                        </div>
+                        <div class="col-3 border-start">
+                            <div class="fw-bold" style="font-size: 0.9rem; color: #378ADD;">
+                                {{ currency_symbol }}{{ total_investments|compact_amount:currency_symbol|translate_digits }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.7rem;">{% trans "invested" %}</div>
+                        </div>
+                        <div class="col-3 border-start">
+                            <div class="fw-bold {% if remaining_savings >= 0 %}text-primary{% else %}text-danger{% endif %}" style="font-size: 0.9rem;">
+                                {{ currency_symbol }}{{ remaining_savings|compact_amount:currency_symbol|translate_digits }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.7rem;">{% trans "remaining" %}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
