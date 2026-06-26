@@ -54,15 +54,22 @@ def robots_txt(request):
 
         f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml",
     ]
-    return HttpResponse("\n".join(lines), content_type="text/plain")
+    response = HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")
+    response["Access-Control-Allow-Origin"] = "*"
+    return response
 
 @require_GET
 def llms_txt(request):
     file_path = os.path.join(settings.BASE_DIR, 'llms.txt')
     if os.path.exists(file_path):
-        with open(file_path) as f:
-            content = f.read()
-        return HttpResponse(content, content_type="text/plain")
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            response = HttpResponse(content, content_type="text/plain; charset=utf-8")
+            response["Access-Control-Allow-Origin"] = "*"
+            return response
+        except Exception:
+            pass
     return HttpResponse("llms.txt not found", status=404)
 
 urlpatterns = [

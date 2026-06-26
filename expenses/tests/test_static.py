@@ -57,12 +57,15 @@ class StaticPageTest(TestCase):
          url = reverse('robots_txt')
          response = self.client.get(url)
          self.assertEqual(response.status_code, 200)
+         self.assertTrue(response['Content-Type'].startswith('text/plain'))
+         self.assertEqual(response['Access-Control-Allow-Origin'], '*')
          self.assertIn("Content-Signal: ai-train=no, search=yes, ai-input=no", response.content.decode('utf-8'))
 
     def test_llms_txt(self):
          response = self.client.get('/llms.txt')
          self.assertEqual(response.status_code, 200)
-         self.assertEqual(response['Content-Type'], 'text/plain')
+         self.assertTrue(response['Content-Type'].startswith('text/plain'))
+         self.assertEqual(response['Access-Control-Allow-Origin'], '*')
          self.assertIn('# TrackMyRupee', response.content.decode('utf-8'))
 
     def test_doh_json_get(self):
