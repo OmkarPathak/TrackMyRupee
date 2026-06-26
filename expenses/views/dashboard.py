@@ -2055,7 +2055,11 @@ def home_view(request):
     # Summary 3M Growth for the badge
     projected_3m_growth = float(avg_monthly_savings * 3)
 
-
+    # Calculate Spent and Remaining values specifically for the mobile Net Worth card
+    # including all capital events.
+    excluded_capital_events_total = sum(e.base_amount for e in capital_events_list if e.exclude_from_averages)
+    mobile_spent = Decimal(str(total_expenses)) + excluded_capital_events_total
+    mobile_remaining = Decimal(str(total_income)) - mobile_spent - Decimal(str(total_investments))
 
     context = {
         'net_worth': net_worth,
@@ -2083,6 +2087,8 @@ def home_view(request):
         'monthly_story': monthly_story,
         'total_income': total_income,
         'total_expenses': total_expenses,
+        'mobile_spent': mobile_spent,
+        'mobile_remaining': mobile_remaining,
         'total_expenses_base': total_expenses_base,
         'total_loan_interest': total_loan_interest,
         'savings': savings,

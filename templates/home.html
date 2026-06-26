@@ -1537,27 +1537,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- Mobile Period Summary (filter-aware) — hidden on desktop -->
                 <div class="d-lg-none border-top mt-2 pt-3 pb-1">
                     <div class="row g-0 text-center">
-                        <div class="col-3">
+                        <div class="col-3" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Income: Includes all logged income sources (salary, gifts, interest, etc.). Excludes internal transfers.' %}">
                             <div class="fw-bold text-success" style="font-size: 0.9rem;">
                                 {{ currency_symbol }}{{ total_income|compact_amount:currency_symbol|translate_digits }}
                             </div>
                             <div class="text-muted" style="font-size: 0.7rem;">{% trans "income" %}</div>
                         </div>
-                        <div class="col-3 border-start">
+                        <div class="col-3 border-start" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Spent: Includes regular expenses, loan interest, and all capital events (like down payments, prepayments, large purchases). Excludes loan principal payments, investments, and internal transfers.' %}">
                             <div class="fw-bold text-danger" style="font-size: 0.9rem;">
-                                {{ currency_symbol }}{{ total_expenses|compact_amount:currency_symbol|translate_digits }}
+                                {{ currency_symbol }}{{ mobile_spent|compact_amount:currency_symbol|translate_digits }}
                             </div>
                             <div class="text-muted" style="font-size: 0.7rem;">{% trans "spent" %}</div>
                         </div>
-                        <div class="col-3 border-start">
+                        <div class="col-3 border-start" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Invested: Includes money transferred to investment accounts and fixed deposits. Excludes regular expenses, loan payments, and capital events.' %}">
                             <div class="fw-bold" style="font-size: 0.9rem; color: #378ADD;">
                                 {{ currency_symbol }}{{ total_investments|compact_amount:currency_symbol|translate_digits }}
                             </div>
                             <div class="text-muted" style="font-size: 0.7rem;">{% trans "invested" %}</div>
                         </div>
-                        <div class="col-3 border-start">
-                            <div class="fw-bold {% if remaining_savings >= 0 %}text-primary{% else %}text-danger{% endif %}" style="font-size: 0.9rem;">
-                                {{ currency_symbol }}{{ remaining_savings|compact_amount:currency_symbol|translate_digits }}
+                        <div class="col-3 border-start" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Remaining: Net surplus/deficit calculated as Income - Spent - Invested. Represents cash savings remaining after all expenditures, investments, and capital events.' %}">
+                            <div class="fw-bold {% if mobile_remaining >= 0 %}text-primary{% else %}text-danger{% endif %}" style="font-size: 0.9rem;">
+                                {{ currency_symbol }}{{ mobile_remaining|compact_amount:currency_symbol|translate_digits }}
                             </div>
                             <div class="text-muted" style="font-size: 0.7rem;">{% trans "remaining" %}</div>
                         </div>

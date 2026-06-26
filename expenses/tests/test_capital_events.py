@@ -1110,3 +1110,36 @@ class CapitalEventAnalyticsFlagsTest(TestCase):
         response = self.client.get(reverse('account-detail', kwargs={'pk': self.account.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['filtered_net_total'], Decimal('0.00'))
+
+    def test_mobile_spent_and_remaining_includes_capital_events(self):
+        # Create a regular expense
+        Expense.objects.create(
+            user=self.user, amount=Decimal('500.00'),
+            date=date.today(), category='Food',
+            account=self.account, currency='₹',
+        )
+        # Create an excluded capital event
+        CapitalEvent.objects.create(
+            user=self.user, amount=Decimal('1000.00'),
+            date=date.today(), subtype='large_purchase',
+            exclude_from_averages=True,
+        )
+        # Create an included capital event
+        CapitalEvent.objects.create(
+            user=self.user, amount=Decimal('300.00'),
+            date=date.today(), subtype='medical_lump_sum',
+            exclude_from_averages=False,
+        )
+
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        
+        # total_expenses should only include regular expense + included capital event = 500 + 300 = 800
+        self.assertEqual(response.context['total_expenses'], Decimal('800.00'))
+        
+        # mobile_spent should include all capital events = 500 + 300 + 1000 = 1800
+        self.assertEqual(response.context['mobile_spent'], Decimal('1800.00'))
+        
+        # mobile_remaining should be total_income - mobile_spent - total_investments
+        expected_remaining = Decimal('0.00') - Decimal('1800.00') - Decimal('0.00')
+        self.assertEqual(response.context['mobile_remaining'], expected_remaining)
