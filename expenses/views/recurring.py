@@ -28,7 +28,7 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
             'loan',
         )
         if self.filter_expenses_only:
-            queryset = queryset.filter(transaction_type__in=['EXPENSE', 'TRANSFER', 'LOAN'])
+            queryset = queryset.filter(transaction_type__in=['EXPENSE', 'TRANSFER', 'LOAN', 'CAPITAL'])
         queryset = queryset.order_by('-created_at')
         
         # Filter by Category
@@ -151,7 +151,7 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
             
             # Determine urgency
             is_renewing = False
-            if sub.transaction_type in ('EXPENSE', 'TRANSFER'):
+            if sub.transaction_type in ('EXPENSE', 'TRANSFER', 'CAPITAL'):
                 if sub.annotated_days_until <= 30: # Show mostly anything coming up soon
                      is_renewing = True
             

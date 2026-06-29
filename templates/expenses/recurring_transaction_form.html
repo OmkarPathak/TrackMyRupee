@@ -144,6 +144,51 @@
                     {% endif %}
                 </div>
 
+                <!-- Capital Event Specific Fields -->
+                <div class="col-12" id="capitalEventGroup" style="display: none;">
+                    <div class="card border-warning border-opacity-25 shadow-sm mb-3">
+                        <div class="card-header bg-warning bg-opacity-10 border-warning border-opacity-25 py-3">
+                            <h6 class="fw-bold mb-0 text-warning-emphasis d-flex align-items-center gap-2">
+                                <i class="bi bi-wallet2 fs-5"></i> {% trans "Capital Event Details" %}
+                            </h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-bold">{% trans "Subtype" %}</label>
+                                    {{ form.capital_subtype }}
+                                    {% if form.capital_subtype.errors %}
+                                        <div class="text-danger small mt-1">{{ form.capital_subtype.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 mt-3 pt-2 border-top">
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.exclude_from_averages }}
+                                        <label class="form-check-label fw-semibold text-dark" for="{{ form.exclude_from_averages.id_for_label }}">
+                                            {{ form.exclude_from_averages.label }}
+                                        </label>
+                                        <div class="form-text text-muted">{% trans "Exclude this event from normal monthly averages and trends so it doesn't skew your regular patterns." %}</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.exclude_from_budget }}
+                                        <label class="form-check-label fw-semibold text-dark" for="{{ form.exclude_from_budget.id_for_label }}">
+                                            {{ form.exclude_from_budget.label }}
+                                        </label>
+                                        <div class="form-text text-muted">{% trans "Do not count this event towards your monthly budget limits." %}</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        {{ form.include_in_net_worth }}
+                                        <label class="form-check-label fw-semibold text-dark" for="{{ form.include_in_net_worth.id_for_label }}">
+                                            {{ form.include_in_net_worth.label }}
+                                        </label>
+                                        <div class="form-text text-muted">{% trans "Include this event in cash flow summaries and deduct from the linked account balance." %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Row 5: Description -->
                 <div class="col-12">
                     <label class="form-label">{% trans "Description" %}</label>
@@ -182,6 +227,7 @@
         const loanGroup = document.getElementById('loanGroup');
         const fromAccountGroup = document.getElementById('fromAccountGroup');
         const toAccountGroup = document.getElementById('toAccountGroup');
+        const capitalEventGroup = document.getElementById('capitalEventGroup');
 
         if (typeSelect.value === 'EXPENSE') {
             categoryGroup.style.display = 'block';
@@ -191,6 +237,7 @@
             loanGroup.style.display = 'none';
             fromAccountGroup.style.display = 'none';
             toAccountGroup.style.display = 'none';
+            capitalEventGroup.style.display = 'none';
         } else if (typeSelect.value === 'LOAN') {
             categoryGroup.style.display = 'none';
             paymentMethodGroup.style.display = 'none';
@@ -199,6 +246,7 @@
             loanGroup.style.display = 'block';
             fromAccountGroup.style.display = 'none';
             toAccountGroup.style.display = 'none';
+            capitalEventGroup.style.display = 'none';
         } else if (typeSelect.value === 'TRANSFER') {
             categoryGroup.style.display = 'none';
             paymentMethodGroup.style.display = 'none';
@@ -207,6 +255,16 @@
             loanGroup.style.display = 'none';
             fromAccountGroup.style.display = 'block';
             toAccountGroup.style.display = 'block';
+            capitalEventGroup.style.display = 'none';
+        } else if (typeSelect.value === 'CAPITAL') {
+            categoryGroup.style.display = 'none';
+            paymentMethodGroup.style.display = 'none';
+            sourceGroup.style.display = 'none';
+            accountGroup.style.display = 'block';
+            loanGroup.style.display = 'block';
+            fromAccountGroup.style.display = 'none';
+            toAccountGroup.style.display = 'none';
+            capitalEventGroup.style.display = 'block';
         } else {
             categoryGroup.style.display = 'none';
             paymentMethodGroup.style.display = 'none';
@@ -215,6 +273,7 @@
             loanGroup.style.display = 'none';
             fromAccountGroup.style.display = 'none';
             toAccountGroup.style.display = 'none';
+            capitalEventGroup.style.display = 'none';
         }
     }
 

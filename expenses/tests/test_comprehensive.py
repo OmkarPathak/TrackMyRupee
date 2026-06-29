@@ -19,6 +19,7 @@ from django.urls import reverse
 
 from expenses.models import (
     Account,
+    CapitalEvent,
     Category,
     Expense,
     Income,
@@ -642,6 +643,32 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         self.assertEqual(
             Expense.objects.filter(user=self.user, description__contains="Cancelled gym").count(), 0
         )
+
+    def test_recurring_capital_event_created(self):
+        """A recurring capital event should spawn CapitalEvent rows when processed."""
+        account = Account.objects.create(user=self.user, name="Investment Account", account_type="INVESTMENT", balance=Decimal("100000.00"), currency="₹")
+        start = date.today() - timedelta(days=35)  # ~1 month ago
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="CAPITAL", amount=Decimal("10000.00"),
+            description="SIP Investment", frequency="MONTHLY", start_date=start,
+            account=account, capital_subtype="investment_lump_sum",
+            exclude_from_averages=True, exclude_from_budget=True, include_in_net_worth=True,
+        )
+        process_user_recurring_transactions(self.user)
+
+        # Capital event should have been created
+        events = CapitalEvent.objects.filter(user=self.user, subtype="investment_lump_sum")
+        self.assertGreaterEqual(events.count(), 1)
+        event = events.first()
+        self.assertEqual(float(event.amount), 10000.0)
+        self.assertEqual(event.account, account)
+        self.assertTrue(event.exclude_from_averages)
+        self.assertTrue(event.exclude_from_budget)
+        self.assertTrue(event.include_in_net_worth)
+
+        # RT should be updated
+        rt.refresh_from_db()
+        self.assertIsNotNone(rt.last_processed_date)
 
     def test_idempotent_processing(self):
         """Running processing twice should not duplicate records."""

@@ -212,6 +212,12 @@
                                                 </span>
                                             {% endif %}
 
+                                            {% if sub.transaction_type == 'CAPITAL' %}
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill text-truncate" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">
+                                                    {% trans "Capital Event" %}
+                                                </span>
+                                            {% endif %}
+
                                             {% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}
                                                 <span class="badge bg-danger text-white rounded-pill px-2" style="font-size: 0.65rem;">
                                                     {% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}

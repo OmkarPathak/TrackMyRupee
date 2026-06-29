@@ -1777,6 +1777,7 @@ def home_view(request):
         'INVESTMENT': {'items': [], 'total': Decimal('0.00'), 'icon': '📈', 'label': _('Investments')},
         'TRANSFER': {'items': [], 'total': Decimal('0.00'), 'icon': '🔄', 'label': _('Transfers')},
         'LOAN': {'items': [], 'total': Decimal('0.00'), 'icon': '🏦', 'label': _('Loan Repayments')},
+        'CAPITAL': {'items': [], 'total': Decimal('0.00'), 'icon': '💼', 'label': _('Capital Events')},
     }
     
     total_recurring_commitment = Decimal('0.00')
@@ -1823,7 +1824,7 @@ def home_view(request):
         group['items'].sort(key=lambda x: x['date'])
 
     # Calculate Net Recurring Balance (Positive if surplus, Negative if deficit)
-    recurring_net_balance = recurring_groups['INCOME']['total'] - recurring_groups['EXPENSE']['total'] - recurring_groups['INVESTMENT']['total'] - recurring_groups['LOAN']['total']
+    recurring_net_balance = recurring_groups['INCOME']['total'] - recurring_groups['EXPENSE']['total'] - recurring_groups['INVESTMENT']['total'] - recurring_groups['LOAN']['total'] - recurring_groups['CAPITAL']['total']
 
     # --- Expense Projection Chart Logic ---
     proj_labels = []
@@ -3085,7 +3086,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             if r.frequency == 'MONTHLY':
                 if r.transaction_type == 'INCOME':
                     monthly_rec_income_baseline += float(r.amount)
-                else:
+                elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
                     monthly_rec_expense_baseline += float(r.amount)
         
         for i in range(1, 7):
@@ -3105,14 +3106,14 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
                 if r.frequency == 'MONTHLY':
                     if r.transaction_type == 'INCOME':
                         rec_income_for_month += float(r.amount)
-                    elif r.transaction_type == 'EXPENSE':
+                    elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
                         rec_expense_for_month += float(r.amount)
                 elif r.frequency == 'YEARLY':
                     # Only add if it happens in this specific month
                     if r.start_date.month == forecast_month:
                         if r.transaction_type == 'INCOME':
                             rec_income_for_month += float(r.amount)
-                        elif r.transaction_type == 'EXPENSE':
+                        elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
                             rec_expense_for_month += float(r.amount)
             
             # Combine Historical Avg (minus recurring) + Specific Month's Recurring

@@ -202,7 +202,8 @@ class RecurringTransactionForm(forms.ModelForm):
         fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
                   'loan',
                   'from_account', 'to_account',
-                  'frequency', 'start_date', 'description', 'is_active', 'payment_method']
+                  'frequency', 'start_date', 'description', 'is_active', 'payment_method',
+                  'capital_subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth']
         widgets = {
             'transaction_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleFields()'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -218,6 +219,10 @@ class RecurringTransactionForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'payment_method': forms.Select(attrs={'class': 'form-select'}),
+            'capital_subtype': forms.Select(attrs={'class': 'form-select'}),
+            'exclude_from_averages': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'exclude_from_budget': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'include_in_net_worth': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -229,10 +234,14 @@ class RecurringTransactionForm(forms.ModelForm):
             ('INCOME', _('Income')),
             ('TRANSFER', _('Transfer')),
             ('LOAN', _('Loan Repayment')),
+            ('CAPITAL', _('Capital Event')),
         ]
         self.fields['transaction_type'].choices = allowed_types
         if self.instance and self.instance.pk and self.instance.transaction_type == 'LOAN':
             self.fields['transaction_type'].disabled = True
+
+        self.fields['capital_subtype'].choices = [('', '---------')] + CapitalEvent.SUBTYPE_CHOICES
+        self.fields['capital_subtype'].required = False
 
         if user:
             self.fields['currency'].initial = user.profile.currency
@@ -311,6 +320,11 @@ class RecurringTransactionForm(forms.ModelForm):
                 self.add_error('loan', _('Loan is required for recurring loan repayments.'))
             if not account:
                 self.add_error('account', _('Account is required for recurring loan repayments.'))
+
+        if transaction_type == 'CAPITAL':
+            capital_subtype = cleaned_data.get('capital_subtype')
+            if not capital_subtype:
+                self.add_error('capital_subtype', _('Subtype is required for capital events.'))
 
         return cleaned_data
 

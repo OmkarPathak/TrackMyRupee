@@ -28,6 +28,17 @@ CURRENCY_CHOICES = [
     ('₩', _('South Korean Won (₩)')),
 ]
 
+CAPITAL_SUBTYPE_CHOICES = [
+    ('loan_down_payment', _('Loan Down Payment')),
+    ('loan_prepayment', _('Loan Prepayment')),
+    ('large_purchase', _('Large Purchase')),
+    ('medical_lump_sum', _('Medical Lump Sum')),
+    ('gift_given', _('Gift Given')),
+    ('gift_received', _('Gift Received')),
+    ('investment_lump_sum', _('Investment Lump Sum')),
+    ('other', _('Other')),
+]
+
 logger = logging.getLogger(__name__)
 
 
@@ -840,6 +851,7 @@ class RecurringTransaction(models.Model):
         ('INCOME', _('Income')),
         ('TRANSFER', _('Transfer')),
         ('LOAN', _('Loan Repayment')),
+        ('CAPITAL', _('Capital Event')),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -857,6 +869,18 @@ class RecurringTransaction(models.Model):
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('Account'))
     loan = models.ForeignKey('Loan', on_delete=models.CASCADE, null=True, blank=True, related_name='recurring_schedules', verbose_name=_('Loan'))
+
+    # Capital event-specific fields
+    capital_subtype = models.CharField(
+        max_length=30,
+        choices=CAPITAL_SUBTYPE_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name=_('Capital Event Subtype'),
+    )
+    exclude_from_averages = models.BooleanField(default=True, verbose_name=_('Exclude from Averages & Trends'))
+    exclude_from_budget = models.BooleanField(default=True, verbose_name=_('Exclude from Budget'))
+    include_in_net_worth = models.BooleanField(default=True, verbose_name=_('Include in Cash Flow / Net Worth'))
 
     # Transfer-specific fields
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_out', verbose_name=_('From Account'))
@@ -1681,16 +1705,7 @@ class CapitalEvent(models.Model):
       - type conversion between CapitalEvent <-> Expense is a clear data copy, not a flag flip.
     """
 
-    SUBTYPE_CHOICES = [
-        ('loan_down_payment', _('Loan Down Payment')),
-        ('loan_prepayment', _('Loan Prepayment')),
-        ('large_purchase', _('Large Purchase')),
-        ('medical_lump_sum', _('Medical Lump Sum')),
-        ('gift_given', _('Gift Given')),
-        ('gift_received', _('Gift Received')),
-        ('investment_lump_sum', _('Investment Lump Sum')),
-        ('other', _('Other')),
-    ]
+    SUBTYPE_CHOICES = CAPITAL_SUBTYPE_CHOICES
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='capital_events')
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))

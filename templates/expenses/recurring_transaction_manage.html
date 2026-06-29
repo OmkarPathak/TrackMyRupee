@@ -47,6 +47,8 @@
                                     <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">{% trans "Loan" %}</span>
                                 {% elif sub.transaction_type == 'TRANSFER' %}
                                     <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill">{% trans "Transfer" %}</span>
+                                {% elif sub.transaction_type == 'CAPITAL' %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">{% trans "Capital Event" %}</span>
                                 {% else %}
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">{% trans "Income" %}</span>
                                 {% endif %}
@@ -101,6 +103,8 @@
                                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">{% trans "Loan" %}</span>
                                 {% elif sub.transaction_type == 'TRANSFER' %}
                                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">{% trans "Transfer" %}</span>
+                                {% elif sub.transaction_type == 'CAPITAL' %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">{% trans "Capital Event" %}</span>
                                 {% else %}
                                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">{% trans "Income" %}</span>
                                 {% endif %}

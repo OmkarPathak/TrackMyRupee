@@ -352,3 +352,82 @@ class SubscriptionTierTest(TestCase):
         repayment = LoanRepayment.objects.get(loan=loan)
         self.assertEqual(float(repayment.amount), 10000.0)
         self.assertEqual(repayment.loan_id, loan.pk)
+
+    def test_recurring_capital_event_create_view_posts_successfully(self):
+        """Creating a CAPITAL subscription view posts successfully."""
+        self.setup_tier('PLUS')
+        account = Account.objects.create(user=self.user, name='Cash Box', account_type='CASH', balance=10000, currency='₹')
+
+        response = self.client.post(reverse('recurring-create'), {
+            'transaction_type': 'CAPITAL',
+            'amount': '25000.00',
+            'currency': '₹',
+            'account': account.pk,
+            'capital_subtype': 'loan_prepayment',
+            'frequency': 'YEARLY',
+            'start_date': date.today().isoformat(),
+            'description': 'Yearly loan prepayment',
+            'is_active': 'on',
+            'exclude_from_averages': 'on',
+            'exclude_from_budget': 'on',
+            'include_in_net_worth': 'on',
+            'payment_method': 'Cash',
+            'category': '',
+            'source': '',
+            'from_account': '',
+            'to_account': '',
+            'loan': '',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        rt = RecurringTransaction.objects.get(user=self.user, transaction_type='CAPITAL')
+        self.assertEqual(float(rt.amount), 25000.0)
+        self.assertEqual(rt.capital_subtype, 'loan_prepayment')
+        self.assertTrue(rt.exclude_from_averages)
+        self.assertTrue(rt.exclude_from_budget)
+        self.assertTrue(rt.include_in_net_worth)
+
+    def test_recurring_capital_event_edit_works(self):
+        """Editing a CAPITAL subscription works."""
+        self.setup_tier('PLUS')
+        account = Account.objects.create(user=self.user, name='Cash Box', account_type='CASH', balance=10000, currency='₹')
+
+        rt = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='CAPITAL',
+            amount=5000,
+            currency='₹',
+            account=account,
+            capital_subtype='large_purchase',
+            frequency='MONTHLY',
+            start_date=date.today(),
+            description='Recurring large purchase',
+            is_active=True,
+        )
+
+        response = self.client.post(reverse('recurring-edit', kwargs={'pk': rt.pk}), {
+            'transaction_type': 'CAPITAL',
+            'amount': '6000.00',
+            'currency': '₹',
+            'account': account.pk,
+            'capital_subtype': 'medical_lump_sum',
+            'frequency': 'MONTHLY',
+            'start_date': date.today().isoformat(),
+            'description': 'Updated description',
+            'is_active': 'on',
+            'exclude_from_averages': 'on',
+            'exclude_from_budget': 'on',
+            'include_in_net_worth': 'on',
+            'payment_method': 'Cash',
+            'category': '',
+            'source': '',
+            'from_account': '',
+            'to_account': '',
+            'loan': '',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        rt.refresh_from_db()
+        self.assertEqual(float(rt.amount), 6000.0)
+        self.assertEqual(rt.capital_subtype, 'medical_lump_sum')
+        self.assertEqual(rt.description, 'Updated description')

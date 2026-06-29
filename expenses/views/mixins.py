@@ -184,6 +184,29 @@ def process_user_recurring_transactions(user):
                         else:
                             posted_successfully = True
 
+            elif rt.transaction_type == 'CAPITAL':
+                subtype = rt.capital_subtype or 'other'
+                exists = CapitalEvent.objects.filter(
+                    user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype
+                ).exists()
+                if not exists:
+                    try:
+                        CapitalEvent(
+                            user=user, date=current_date, amount=rt.amount,
+                            currency=rt.currency, subtype=subtype,
+                            note=description, account=rt.account,
+                            linked_loan=rt.loan,
+                            exclude_from_averages=rt.exclude_from_averages,
+                            exclude_from_budget=rt.exclude_from_budget,
+                            include_in_net_worth=rt.include_in_net_worth,
+                        ).save()
+                        posted_successfully = True
+                    except Exception as exc:
+                        logger.warning("Recurring capital event posting failed", exc_info=exc)
+                        break
+                else:
+                    posted_successfully = True
+
             else:
                 source = rt.source or 'Other'
                 exists = Income.objects.filter(user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source).exists()
