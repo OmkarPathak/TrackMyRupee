@@ -670,6 +670,59 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         rt.refresh_from_db()
         self.assertIsNotNone(rt.last_processed_date)
 
+    def test_recurring_transfer_created(self):
+        """A recurring transfer should spawn Transfer rows when processed."""
+        from_acc = Account.objects.create(user=self.user, name="Idempotent Savings From", account_type="SAVINGS", balance=Decimal("50000.00"), currency="₹")
+        to_acc = Account.objects.create(user=self.user, name="Idempotent Investment To", account_type="INVESTMENT", balance=Decimal("10000.00"), currency="₹")
+        start = date.today() - timedelta(days=35)
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="TRANSFER", amount=Decimal("5000.00"),
+            description="Monthly savings transfer", frequency="MONTHLY", start_date=start,
+            from_account=from_acc, to_account=to_acc,
+        )
+        process_user_recurring_transactions(self.user)
+
+        # Transfer should be created
+        transfers = Transfer.objects.filter(user=self.user, from_account=from_acc, to_account=to_acc)
+        self.assertGreaterEqual(transfers.count(), 1)
+        transfer = transfers.first()
+        self.assertEqual(float(transfer.amount), 5000.0)
+
+    def test_recurring_capital_event_idempotency(self):
+        """Processing capital event subscription twice should not duplicate CapitalEvent rows."""
+        account = Account.objects.create(user=self.user, name="Idempotent Investment Account", account_type="INVESTMENT", balance=Decimal("100000.00"), currency="₹")
+        start = date.today() - timedelta(days=35)
+        RecurringTransaction.objects.create(
+            user=self.user, transaction_type="CAPITAL", amount=Decimal("10000.00"),
+            description="Idempotent SIP", frequency="MONTHLY", start_date=start,
+            account=account, capital_subtype="investment_lump_sum",
+        )
+        process_user_recurring_transactions(self.user)
+        count_first = CapitalEvent.objects.filter(user=self.user, note__contains="Idempotent SIP").count()
+        self.assertGreaterEqual(count_first, 1)
+
+        process_user_recurring_transactions(self.user)
+        count_second = CapitalEvent.objects.filter(user=self.user, note__contains="Idempotent SIP").count()
+        self.assertEqual(count_first, count_second)
+
+    def test_recurring_transfer_idempotency(self):
+        """Processing transfer subscription twice should not duplicate Transfer rows."""
+        from_acc = Account.objects.create(user=self.user, name="Idempotent Savings Transfer From", account_type="SAVINGS", balance=Decimal("50000.00"), currency="₹")
+        to_acc = Account.objects.create(user=self.user, name="Idempotent Investment Transfer To", account_type="INVESTMENT", balance=Decimal("10000.00"), currency="₹")
+        start = date.today() - timedelta(days=35)
+        RecurringTransaction.objects.create(
+            user=self.user, transaction_type="TRANSFER", amount=Decimal("5000.00"),
+            description="Idempotent savings transfer", frequency="MONTHLY", start_date=start,
+            from_account=from_acc, to_account=to_acc,
+        )
+        process_user_recurring_transactions(self.user)
+        count_first = Transfer.objects.filter(user=self.user, description__contains="Idempotent savings transfer").count()
+        self.assertGreaterEqual(count_first, 1)
+
+        process_user_recurring_transactions(self.user)
+        count_second = Transfer.objects.filter(user=self.user, description__contains="Idempotent savings transfer").count()
+        self.assertEqual(count_first, count_second)
+
     def test_idempotent_processing(self):
         """Running processing twice should not duplicate records."""
         RecurringTransaction.objects.create(
