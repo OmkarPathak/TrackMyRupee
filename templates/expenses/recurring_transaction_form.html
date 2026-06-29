@@ -54,7 +54,7 @@
                     {% endif %}
                 </div>
 
-                <!-- Row 3: Start Date and Account -->
+                <!-- Row 3: Start Date and End Date -->
                 <div class="col-6">
                     <label class="form-label">{% trans "Start Date" %}</label>
                     <input type="date" name="{{ form.start_date.name }}" class="form-control" 
@@ -63,21 +63,21 @@
                         <div class="text-danger small">{{ form.start_date.errors|first }}</div>
                     {% endif %}
                 </div>
-                <div class="col-6" id="accountGroup">
-                    <label class="form-label">{% trans "Account" %}</label>
-                    {{ form.account }}
-                    {% if form.account.errors %}
-                        <div class="text-danger small">{{ form.account.errors|first }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Row: End Date -->
                 <div class="col-6">
                     <label class="form-label">{% trans "End Date (Optional)" %}</label>
                     <input type="date" name="{{ form.end_date.name }}" class="form-control" 
                         value="{{ form.end_date.value|date:'Y-m-d'|default:'' }}" id="{{ form.end_date.id_for_label }}">
                     {% if form.end_date.errors %}
                         <div class="text-danger small">{{ form.end_date.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Row 4: Account / Loan -->
+                <div class="col-6" id="accountGroup">
+                    <label class="form-label">{% trans "Account" %}</label>
+                    {{ form.account }}
+                    {% if form.account.errors %}
+                        <div class="text-danger small">{{ form.account.errors|first }}</div>
                     {% endif %}
                 </div>
                 <div class="col-6" id="loanGroup" style="display: none;">
