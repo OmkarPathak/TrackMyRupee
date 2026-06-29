@@ -75,7 +75,7 @@ def sidebar_badges(request):
     upcoming_subscriptions_count = 0
     active_recurring = RecurringTransaction.objects.filter(user=request.user, is_active=True)
     for rt in active_recurring:
-        if today <= rt.next_due_date <= next_week:
+        if rt.next_due_date and today <= rt.next_due_date <= next_week:
             upcoming_subscriptions_count += 1
 
     # 3. Calendar: Events this week (reusing subscription count for now as they are the primary scheduled events)

@@ -743,6 +743,27 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
 
         self.assertEqual(count_after_first, count_after_second)
 
+    def test_recurring_end_date_processing(self):
+        """Scheduler should process up to end_date and automatically deactivate the subscription."""
+        start = date.today() - timedelta(days=5)
+        end = date.today() - timedelta(days=2)
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="EXPENSE", amount=Decimal("20.00"),
+            description="Daily test", frequency="DAILY",
+            start_date=start, end_date=end,
+            category="Bills",
+        )
+        process_user_recurring_transactions(self.user)
+
+        # Should have generated exactly 4 expenses: start (day -5), day -4, day -3, day -2 (end)
+        expenses = Expense.objects.filter(user=self.user, description__contains="Daily test")
+        self.assertEqual(expenses.count(), 4)
+
+        # The schedule must be deactivated automatically
+        rt.refresh_from_db()
+        self.assertFalse(rt.is_active)
+        self.assertIsNone(rt.next_due_date)
+
     def test_free_tier_respects_recurring_limit(self):
         """FREE tier should process up to its recurring transaction limit."""
         self.profile.tier = "FREE"

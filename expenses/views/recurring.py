@@ -146,12 +146,16 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
                     next_date = date(today.year, 2, 28)
 
             # Annotate object
-            sub.annotated_next_date = next_date
-            sub.annotated_days_until = (next_date - today).days
+            if sub.end_date and next_date > sub.end_date:
+                sub.annotated_next_date = None
+                sub.annotated_days_until = 999999
+            else:
+                sub.annotated_next_date = next_date
+                sub.annotated_days_until = (next_date - today).days
             
             # Determine urgency
             is_renewing = False
-            if sub.transaction_type in ('EXPENSE', 'TRANSFER', 'CAPITAL'):
+            if sub.annotated_next_date and sub.transaction_type in ('EXPENSE', 'TRANSFER', 'CAPITAL'):
                 if sub.annotated_days_until <= 30: # Show mostly anything coming up soon
                      is_renewing = True
             

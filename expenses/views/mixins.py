@@ -73,6 +73,11 @@ def process_user_recurring_transactions(user):
         else:
             current_date = rt.get_next_date(rt.last_processed_date, rt.frequency)
 
+        if rt.end_date and current_date > rt.end_date:
+            rt.is_active = False
+            rt.save(update_fields=['is_active'])
+            continue
+
         if current_date > today:
             continue
 
@@ -82,7 +87,13 @@ def process_user_recurring_transactions(user):
         
         base_amount = (rt.amount * exchange_rate).quantize(Decimal('0.01'))
 
+        deactivated = False
         while current_date <= today:
+            if rt.end_date and current_date > rt.end_date:
+                rt.is_active = False
+                deactivated = True
+                break
+
             description = f"{rt.description} (Recurring)"
             posted_successfully = False
             
@@ -231,7 +242,10 @@ def process_user_recurring_transactions(user):
             rt.last_processed_date = current_date
             current_date = rt.get_next_date(current_date, rt.frequency)
         
-        updates_needed.append(rt)
+        if deactivated:
+            rt.save()
+        else:
+            updates_needed.append(rt)
 
     if updates_needed:
         RecurringTransaction.objects.bulk_update(updates_needed, ['last_processed_date'])

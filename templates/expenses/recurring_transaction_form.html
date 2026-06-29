@@ -70,6 +70,16 @@
                         <div class="text-danger small">{{ form.account.errors|first }}</div>
                     {% endif %}
                 </div>
+
+                <!-- Row: End Date -->
+                <div class="col-6">
+                    <label class="form-label">{% trans "End Date (Optional)" %}</label>
+                    <input type="date" name="{{ form.end_date.name }}" class="form-control" 
+                        value="{{ form.end_date.value|date:'Y-m-d'|default:'' }}" id="{{ form.end_date.id_for_label }}">
+                    {% if form.end_date.errors %}
+                        <div class="text-danger small">{{ form.end_date.errors|first }}</div>
+                    {% endif %}
+                </div>
                 <div class="col-6" id="loanGroup" style="display: none;">
                     <label class="form-label">{% trans "Loan" %}</label>
                     {{ form.loan }}

@@ -202,7 +202,7 @@ class RecurringTransactionForm(forms.ModelForm):
         fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
                   'loan',
                   'from_account', 'to_account',
-                  'frequency', 'start_date', 'description', 'is_active', 'payment_method',
+                  'frequency', 'start_date', 'end_date', 'description', 'is_active', 'payment_method',
                   'capital_subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth']
         widgets = {
             'transaction_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleFields()'}),
@@ -216,6 +216,7 @@ class RecurringTransactionForm(forms.ModelForm):
             'to_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'frequency': forms.Select(attrs={'class': 'form-select'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'payment_method': forms.Select(attrs={'class': 'form-select'}),
@@ -325,6 +326,11 @@ class RecurringTransactionForm(forms.ModelForm):
             capital_subtype = cleaned_data.get('capital_subtype')
             if not capital_subtype:
                 self.add_error('capital_subtype', _('Subtype is required for capital events.'))
+
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        if start_date and end_date and end_date < start_date:
+            self.add_error('end_date', _('End date must be after or equal to start date.'))
 
         return cleaned_data
 

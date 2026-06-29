@@ -161,9 +161,9 @@ class DataExportView(LoginRequiredMixin, TemplateView):
         if 'recurring' in selected_entities:
             output = io.StringIO()
             writer = csv.writer(output)
-            writer.writerow([_('Description'), _('Amount'), _('Type'), _('Frequency'), _('Next Due Date'), _('Active')])
+            writer.writerow([_('Description'), _('Amount'), _('Type'), _('Frequency'), _('Next Due Date'), _('End Date'), _('Active')])
             for r in RecurringTransaction.objects.filter(user=request.user).order_by('start_date'):
-                writer.writerow([r.description, r.amount, r.transaction_type, r.frequency, r.next_due_date, r.is_active])
+                writer.writerow([r.description, r.amount, r.transaction_type, r.frequency, r.next_due_date, r.end_date, r.is_active])
             files_to_zip['recurring_transactions.csv'] = output.getvalue()
 
         # 6. Savings Goals

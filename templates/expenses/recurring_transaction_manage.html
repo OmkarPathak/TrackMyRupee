@@ -62,14 +62,23 @@
                                 {% endif %}
                             </td>
                             <td class="d-none d-md-table-cell">{{ sub.get_frequency_display }}</td>
-                            <td>
-                                <div class="text-nowrap">{{ sub.annotated_next_date|date:"M d, Y"|translate_digits }}</div>
-                                {% if sub.annotated_days_until <= 30 and sub.transaction_type != 'INCOME' %}
-                                    <div class="small fw-bold {% if sub.annotated_days_until <= 3 %}text-danger{% elif sub.annotated_days_until <= 7 %}text-warning{% else %}text-muted{% endif %}">
-                                        {% if sub.annotated_days_until == 0 %}{% trans "Today" %}{% elif sub.annotated_days_until == 1 %}{% trans "Tomorrow" %}{% else %}{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} days{% endblocktrans %}{% endif %}
-                                    </div>
-                                {% endif %}
-                            </td>
+                             <td>
+                                 {% if sub.annotated_next_date %}
+                                     <div class="text-nowrap">{{ sub.annotated_next_date|date:"M d, Y"|translate_digits }}</div>
+                                     {% if sub.annotated_days_until <= 30 and sub.transaction_type != 'INCOME' %}
+                                         <div class="small fw-bold {% if sub.annotated_days_until <= 3 %}text-danger{% elif sub.annotated_days_until <= 7 %}text-warning{% else %}text-muted{% endif %}">
+                                             {% if sub.annotated_days_until == 0 %}{% trans "Today" %}{% elif sub.annotated_days_until == 1 %}{% trans "Tomorrow" %}{% else %}{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }} days{% endblocktrans %}{% endif %}
+                                         </div>
+                                     {% endif %}
+                                 {% else %}
+                                     <div class="text-muted small">{% trans "None / Ended" %}</div>
+                                 {% endif %}
+                                 {% if sub.end_date %}
+                                     <div class="text-muted text-nowrap mt-1" style="font-size: 0.72rem;">
+                                         <i class="bi bi-calendar-event text-danger"></i> {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                     </div>
+                                 {% endif %}
+                             </td>
                             <td class="d-none d-lg-table-cell">
                                 <span class="badge bg-success rounded-pill px-3">{% trans "Active" %}</span>
                             </td>
@@ -118,7 +127,15 @@
                                 {% endif %}
                             </td>
                             <td class="d-none d-md-table-cell">{{ sub.get_frequency_display }}</td>
-                            <td>-</td>
+                             <td>
+                                 {% if sub.end_date %}
+                                     <div class="text-muted text-nowrap" style="font-size: 0.72rem;">
+                                         <i class="bi bi-calendar-event text-danger"></i> {% trans "Ended" %}: {{ sub.end_date|date:"M d, Y" }}
+                                     </div>
+                                 {% else %}
+                                     -
+                                 {% endif %}
+                             </td>
                             <td class="d-none d-lg-table-cell">
                                 <span class="badge bg-secondary rounded-pill px-3">{% trans "Cancelled" %}</span>
                             </td>

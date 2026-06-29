@@ -888,6 +888,7 @@ class RecurringTransaction(models.Model):
 
     frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, verbose_name=_('Frequency'))
     start_date = models.DateField(verbose_name=_('Start Date'))
+    end_date = models.DateField(null=True, blank=True, verbose_name=_('End Date'))
     last_processed_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -917,6 +918,12 @@ class RecurringTransaction(models.Model):
 
     @property
     def next_due_date(self):
+        due = self._calculate_next_due_date()
+        if self.end_date and due and due > self.end_date:
+            return None
+        return due
+
+    def _calculate_next_due_date(self):
         if not self.last_processed_date or self.last_processed_date < self.start_date:
             return self.start_date
 

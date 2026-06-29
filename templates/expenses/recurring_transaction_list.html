@@ -195,6 +195,11 @@
                                     <div class="d-flex justify-content-between align-items-center mt-1">
                                         <div class="text-muted small d-flex flex-wrap align-items-center gap-2 min-width-0">
                                             <span class="text-nowrap">{{ sub.get_frequency_display }}</span>
+                                            {% if sub.end_date %}
+                                                <span class="text-nowrap text-danger bg-danger bg-opacity-10 border border-danger border-opacity-10 rounded px-1.5 py-0.5" style="font-size: 0.65rem;">
+                                                    <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                </span>
+                                            {% endif %}
                                             
                                             {% if sub.is_locked %}
                                                 <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25" style="font-size: 0.65rem;">{% trans "Locked" %}</span>
@@ -307,6 +312,11 @@
                                                 <span class="badge bg-danger text-white">{% trans "Renewing This Month" %}</span>
                                             {% endif %}
                                             <span class="text-nowrap">{{ sub.get_frequency_display }}</span>
+                                            {% if sub.end_date %}
+                                                <span class="text-nowrap text-danger bg-danger bg-opacity-10 border border-danger border-opacity-10 rounded px-1.5 py-0.5" style="font-size: 0.65rem;">
+                                                    <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                </span>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -366,6 +376,11 @@
                                                 <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25" style="font-size: 0.65rem;">{% trans "Locked" %}</span>
                                             {% endif %}
                                             <span class="text-nowrap">{{ sub.get_frequency_display }}</span>
+                                            {% if sub.end_date %}
+                                                <span class="text-nowrap text-danger bg-danger bg-opacity-10 border border-danger border-opacity-10 rounded px-1.5 py-0.5" style="font-size: 0.65rem;">
+                                                    <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                </span>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>

@@ -431,3 +431,52 @@ class SubscriptionTierTest(TestCase):
         self.assertEqual(float(rt.amount), 6000.0)
         self.assertEqual(rt.capital_subtype, 'medical_lump_sum')
         self.assertEqual(rt.description, 'Updated description')
+
+    def test_recurring_end_date_validation(self):
+        """Form validation should fail if end_date is before start_date."""
+        self.setup_tier('PLUS')
+        account = Account.objects.create(user=self.user, name='Cash Box', account_type='CASH', balance=10000, currency='₹')
+
+        # 1. Invalid end date (before start date)
+        response = self.client.post(reverse('recurring-create'), {
+            'transaction_type': 'EXPENSE',
+            'amount': '100.00',
+            'currency': '₹',
+            'account': account.pk,
+            'category': 'Bills',
+            'frequency': 'MONTHLY',
+            'start_date': date(2026, 6, 15).isoformat(),
+            'end_date': date(2026, 6, 14).isoformat(),  # 1 day before start
+            'description': 'Temporary expense',
+            'is_active': 'on',
+            'payment_method': 'Cash',
+            'source': '',
+            'from_account': '',
+            'to_account': '',
+            'loan': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertIn('end_date', form.errors)
+
+        # 2. Valid end date (after start date)
+        response = self.client.post(reverse('recurring-create'), {
+            'transaction_type': 'EXPENSE',
+            'amount': '100.00',
+            'currency': '₹',
+            'account': account.pk,
+            'category': 'Bills',
+            'frequency': 'MONTHLY',
+            'start_date': date(2026, 6, 15).isoformat(),
+            'end_date': date(2026, 6, 16).isoformat(),  # 1 day after start
+            'description': 'Temporary expense',
+            'is_active': 'on',
+            'payment_method': 'Cash',
+            'source': '',
+            'from_account': '',
+            'to_account': '',
+            'loan': '',
+        })
+        self.assertEqual(response.status_code, 302)
+        rt = RecurringTransaction.objects.get(user=self.user, description='Temporary expense')
+        self.assertEqual(rt.end_date, date(2026, 6, 16))

@@ -122,13 +122,19 @@ class CalendarView(LoginRequiredMixin, TemplateView):
         
         for rt in recurring_configs:
             check_date = rt.next_due_date
+            if not check_date:
+                continue
             
             # Project forward if the next due date is before the viewing month
             while check_date < view_month_start:
+                if rt.end_date and check_date > rt.end_date:
+                    break
                 check_date = rt.get_next_date(check_date, rt.frequency)
             
             # Collect all occurrences within the month
             while check_date <= view_month_end:
+                if rt.end_date and check_date > rt.end_date:
+                    break
                 # Only show if not yet processed
                 if check_date > (rt.last_processed_date or date(1900, 1, 1)):
                     pending_recurring_map[check_date.day].append({
