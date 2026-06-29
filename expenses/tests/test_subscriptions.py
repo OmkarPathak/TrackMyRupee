@@ -480,3 +480,67 @@ class SubscriptionTierTest(TestCase):
         self.assertEqual(response.status_code, 302)
         rt = RecurringTransaction.objects.get(user=self.user, description='Temporary expense')
         self.assertEqual(rt.end_date, date(2026, 6, 16))
+
+    def test_active_recurring_transaction_uniqueness(self):
+        """Form validation should block duplicate active transactions but allow duplicates if older ones are inactive."""
+        self.setup_tier('PLUS')
+        account = Account.objects.create(user=self.user, name='Cash Box', account_type='CASH', balance=10000, currency='₹')
+
+        # Create first active subscription
+        rt_first = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='EXPENSE',
+            amount='150.00',
+            currency='₹',
+            account=account,
+            category='Bills',
+            frequency='MONTHLY',
+            start_date=date(2026, 6, 15),
+            description='Unique Sub',
+            is_active=True,
+        )
+
+        # Attempt to create second active subscription with identical details
+        response = self.client.post(reverse('recurring-create'), {
+            'transaction_type': 'EXPENSE',
+            'amount': '150.00',
+            'currency': '₹',
+            'account': account.pk,
+            'category': 'Bills',
+            'frequency': 'MONTHLY',
+            'start_date': date(2026, 6, 15).isoformat(),
+            'description': 'Unique Sub',
+            'is_active': 'on',
+            'payment_method': 'Cash',
+            'source': '',
+            'from_account': '',
+            'to_account': '',
+            'loan': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertTrue(len(form.non_field_errors()) > 0)
+
+        # Deactivate first subscription
+        rt_first.is_active = False
+        rt_first.save()
+
+        # Try again - should succeed since the first one is now inactive
+        response = self.client.post(reverse('recurring-create'), {
+            'transaction_type': 'EXPENSE',
+            'amount': '150.00',
+            'currency': '₹',
+            'account': account.pk,
+            'category': 'Bills',
+            'frequency': 'MONTHLY',
+            'start_date': date(2026, 6, 15).isoformat(),
+            'description': 'Unique Sub',
+            'is_active': 'on',
+            'payment_method': 'Cash',
+            'source': '',
+            'from_account': '',
+            'to_account': '',
+            'loan': '',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(RecurringTransaction.objects.filter(user=self.user, description='Unique Sub').count(), 2)

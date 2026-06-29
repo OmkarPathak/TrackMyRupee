@@ -227,8 +227,9 @@ class RecurringTransactionForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        user = self.user
 
         allowed_types = [
             ('EXPENSE', _('Expense')),
@@ -331,6 +332,29 @@ class RecurringTransactionForm(forms.ModelForm):
         end_date = cleaned_data.get('end_date')
         if start_date and end_date and end_date < start_date:
             self.add_error('end_date', _('End date must be after or equal to start date.'))
+
+        user = getattr(self, 'user', None) or (self.instance.user if self.instance else None)
+        is_active = cleaned_data.get('is_active', False)
+        if user and is_active and transaction_type:
+            amount = cleaned_data.get('amount')
+            currency = cleaned_data.get('currency')
+            description = cleaned_data.get('description', '')
+            frequency = cleaned_data.get('frequency')
+            
+            qs = RecurringTransaction.objects.filter(
+                user=user,
+                transaction_type=transaction_type,
+                amount=amount,
+                currency=currency,
+                description=description,
+                frequency=frequency,
+                start_date=start_date,
+                is_active=True
+            )
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                self.add_error(None, _('An active recurring transaction with these exact details already exists.'))
 
         return cleaned_data
 

@@ -983,6 +983,7 @@ class RecurringTransaction(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'transaction_type', 'amount', 'currency', 'description', 'frequency', 'start_date'],
+                condition=models.Q(is_active=True),
                 name='unique_recurring_transaction'
             )
         ]
