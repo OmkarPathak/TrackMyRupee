@@ -454,20 +454,9 @@
         </div>
 
         <div class="list-group list-group-flush pb-1 mt-2">
-            <!-- Notifications Item -->
-            <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
-                <a href="{% url 'notification-list' %}" class="text-decoration-none text-body d-flex align-items-center gap-3 flex-grow-1">
-                    <i class="bi bi-bell-fill text-warning"></i>
-                    <span>{% trans "Notifications" %}</span>
-                    {% if has_unread_notifications %}
-                        <span class="badge rounded-pill bg-danger border border-light">
-                            {{ unread_notifications_count }}
-                        </span>
-                    {% endif %}
-                </a>
-                <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">
-                    <i class="bi bi-bell-fill me-1"></i> {% trans "Enable Push" %}
-                </button>
+            <!-- Cash Flow Section -->
+            <div class="px-4 pt-2 pb-1 text-uppercase fw-bold text-secondary" style="font-size: 0.7rem; letter-spacing: 0.08em; opacity: 0.6; padding-left: 1.75rem !important;">
+                {% trans "Cash Flow" %}
             </div>
 
             <a href="{% url 'all-transactions' %}" class="list-group-item list-group-item-action">
@@ -478,6 +467,24 @@
                 <i class="bi bi-cash-coin text-success"></i>
                 <span>{% trans "Income" %}</span>
             </a>
+            <a href="{% url 'budget' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-wallet2 text-warning"></i>
+                <span>{% trans "Budgets" %}</span>
+            </a>
+            <a href="{% url 'recurring-list' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-arrow-repeat text-primary"></i>
+                <span>{% trans "Subscriptions" %}</span>
+            </a>
+            <a href="{% url 'calendar' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-calendar3 text-info"></i>
+                <span>{% trans "Calendar" %}</span>
+            </a>
+
+            <!-- Net Worth Section -->
+            <div class="px-4 pt-3 pb-1 text-uppercase fw-bold text-secondary" style="font-size: 0.7rem; letter-spacing: 0.08em; opacity: 0.6; padding-left: 1.75rem !important;">
+                {% trans "Net Worth" %}
+            </div>
+
             <a href="{% url 'account-list' %}" class="list-group-item list-group-item-action">
                 <i class="bi bi-bank text-info"></i>
                 <span>{% trans "Accounts" %}</span>
@@ -497,24 +504,34 @@
                 <i class="bi bi-gem text-info"></i>
                 <span>{% trans "Capital Events" %}</span>
             </a>
-            <a href="{% url 'recurring-list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-arrow-repeat text-primary"></i>
-                <span>{% trans "Subscriptions" %}</span>
-            </a>
-            <a href="{% url 'budget' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-wallet2 text-warning"></i>
-                <span>{% trans "Budgets" %}</span>
-            </a>
             {% if user.profile.active_tier == 'PRO' %}
             <a href="{% url 'goal-list' %}" class="list-group-item list-group-item-action">
                 <i class="bi bi-bullseye text-success"></i>
                 <span>{% trans "Goals" %}</span>
             </a>
             {% endif %}
-            <a href="{% url 'calendar' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-calendar3 text-info"></i>
-                <span>{% trans "Calendar" %}</span>
-            </a>
+
+            <!-- System Section -->
+            <div class="px-4 pt-3 pb-1 text-uppercase fw-bold text-secondary" style="font-size: 0.7rem; letter-spacing: 0.08em; opacity: 0.6; padding-left: 1.75rem !important;">
+                {% trans "System" %}
+            </div>
+
+            <!-- Notifications Item -->
+            <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
+                <a href="{% url 'notification-list' %}" class="text-decoration-none text-body d-flex align-items-center gap-3 flex-grow-1">
+                    <i class="bi bi-bell-fill text-warning"></i>
+                    <span>{% trans "Notifications" %}</span>
+                    {% if has_unread_notifications %}
+                        <span class="badge rounded-pill bg-danger border border-light">
+                            {{ unread_notifications_count }}
+                        </span>
+                    {% endif %}
+                </a>
+                <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">
+                    <i class="bi bi-bell-fill me-1"></i> {% trans "Enable Push" %}
+                </button>
+            </div>
+
             <a href="{% url 'settings-home' %}" class="list-group-item list-group-item-action">
                 <i class="bi bi-gear text-secondary"></i>
                 <span>{% trans "Settings" %}</span>
