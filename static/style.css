@@ -536,7 +536,7 @@ body.demo-mode .sidebar {
 .sidebar-section-title {
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   font-weight: 700;
   color: var(--bs-secondary-color);
   opacity: 0.6;

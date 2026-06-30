@@ -24,10 +24,28 @@
     <!-- Sidebar Navigation -->
     <div class="sidebar-content flex-grow-1 overflow-y-auto px-0">
         <div class="nav flex-column gap-1">
+            <!-- Overview Section -->
+            <div class="sidebar-section sidebar-section-title px-3 mt-2 mb-2">{% trans "Overview" %}</div>
+
             <!-- Dashboard -->
             <a href="{% url 'home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'home' %}active{% endif %}" title="{% trans 'Dashboard' %}">
                 <i class="bi bi-speedometer2 fs-5"></i>
                 <span class="nav-text">{% trans "Dashboard" %}</span>
+            </a>
+
+            <!-- Analytics -->
+            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name or 'mom' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
+                <i class="bi bi-graph-up-arrow fs-5"></i>
+                <span class="nav-text">{% trans "Analytics" %}</span>
+            </a>
+
+            <!-- Cash Flow Section -->
+            <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Cash Flow" %}</div>
+
+            <!-- Transactions -->
+            <a href="{% url 'all-transactions' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'all-transactions' %}active{% endif %}" title="{% trans 'All Transactions' %}">
+                <i class="bi bi-list-columns-reverse fs-5"></i>
+                <span class="nav-text">{% trans "Transactions" %}</span>
             </a>
 
             <!-- Expenses -->
@@ -54,25 +72,19 @@
                 </a>
             </div>
 
-            <!-- All Transactions -->
-            <a href="{% url 'all-transactions' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'all-transactions' %}active{% endif %}" title="{% trans 'All Transactions' %}">
-                <i class="bi bi-list-columns-reverse fs-5"></i>
-                <span class="nav-text">{% trans "Transactions" %}</span>
-            </a>
-
             <!-- Budgets -->
             <a href="{% url 'budget' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'budget' %}active{% endif %}" title="{% trans 'Budgets' %}">
                 <i class="bi bi-wallet2 fs-5"></i>
                 <span class="nav-text">{% trans "Budgets" %}</span>
             </a>
 
-            <!-- Goals -->
-            <a href="{% url 'goal-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'goal' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Goals' %}">
-                <i class="bi bi-bullseye fs-5"></i>
-                <span class="nav-text">{% trans "Goals" %}</span>
-                {% if active_goals_count > 0 %}
-                <span class="badge badge-soft-success ms-auto nav-text" style="font-size: 0.65rem;">
-                    {{ active_goals_count }} {% trans "active" %}
+            <!-- Subscriptions -->
+            <a href="{% url 'recurring-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'recurring' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Subscriptions' %}">
+                <i class="bi bi-arrow-repeat fs-5"></i>
+                <span class="nav-text">{% trans "Subscriptions" %}</span>
+                {% if upcoming_subscriptions_count > 0 %}
+                <span class="badge badge-soft-danger ms-auto nav-text" style="font-size: 0.65rem;">
+                    {% trans "due soon" %}
                 </span>
                 {% endif %}
             </a>
@@ -88,22 +100,8 @@
                 {% endif %}
             </a>
 
-            <!-- Subscriptions -->
-            <a href="{% url 'recurring-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'recurring' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Subscriptions' %}">
-                <i class="bi bi-arrow-repeat fs-5"></i>
-                <span class="nav-text">{% trans "Subscriptions" %}</span>
-                {% if upcoming_subscriptions_count > 0 %}
-                <span class="badge badge-soft-danger ms-auto nav-text" style="font-size: 0.65rem;">
-                    {% trans "due soon" %}
-                </span>
-                {% endif %}
-            </a>
-
-            <!-- Analytics -->
-            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name or 'mom' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
-                <i class="bi bi-graph-up-arrow fs-5"></i>
-                <span class="nav-text">{% trans "Analytics" %}</span>
-            </a>
+            <!-- Net Worth Section -->
+            <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Net Worth" %}</div>
 
             <!-- Accounts -->
             <div class="d-flex align-items-center position-relative px-0">
@@ -153,6 +151,21 @@
                     <span>{% trans "Add" %}</span>
                 </a>
             </div>
+
+            <!-- Goals -->
+            <a href="{% url 'goal-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'goal' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Goals' %}">
+                <i class="bi bi-bullseye fs-5"></i>
+                <span class="nav-text">{% trans "Goals" %}</span>
+                {% if active_goals_count > 0 %}
+                <span class="badge badge-soft-success ms-auto nav-text" style="font-size: 0.65rem;">
+                    {{ active_goals_count }} {% trans "active" %}
+                </span>
+                {% endif %}
+            </a>
+
+            <!-- Divider -->
+            <!-- <hr class="my-2"> -->
+            <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Settings" %}</div>
 
             <!-- Settings -->
             <a href="{% url 'settings-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'settings' in request.resolver_match.url_name or 'settings' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Settings' %}">
