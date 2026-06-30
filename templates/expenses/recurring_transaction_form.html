@@ -86,7 +86,9 @@
                     {% if form.loan.errors %}
                         <div class="text-danger small">{{ form.loan.errors|first }}</div>
                     {% endif %}
-                    <p class="small text-muted mt-2 mb-0">
+                </div>
+                <div class="col-12" id="loanHelpGroup" style="display: none;">
+                    <p class="small text-muted mb-0">
                         {% trans "For loan repayments, the amount you enter is used as-is for every occurrence. We calculate the principal and interest split at the time each repayment is posted so the values stay aligned with the current loan balance." %}
                     </p>
                 </div>
@@ -235,6 +237,7 @@
         const paymentMethodGroup = document.getElementById('paymentMethodGroup');
         const accountGroup = document.getElementById('accountGroup');
         const loanGroup = document.getElementById('loanGroup');
+        const loanHelpGroup = document.getElementById('loanHelpGroup');
         const fromAccountGroup = document.getElementById('fromAccountGroup');
         const toAccountGroup = document.getElementById('toAccountGroup');
         const capitalEventGroup = document.getElementById('capitalEventGroup');
@@ -245,6 +248,7 @@
             sourceGroup.style.display = 'none';
             accountGroup.style.display = 'block';
             loanGroup.style.display = 'none';
+            loanHelpGroup.style.display = 'none';
             fromAccountGroup.style.display = 'none';
             toAccountGroup.style.display = 'none';
             capitalEventGroup.style.display = 'none';
@@ -254,6 +258,7 @@
             sourceGroup.style.display = 'none';
             accountGroup.style.display = 'block';
             loanGroup.style.display = 'block';
+            loanHelpGroup.style.display = 'block';
             fromAccountGroup.style.display = 'none';
             toAccountGroup.style.display = 'none';
             capitalEventGroup.style.display = 'none';
@@ -263,6 +268,7 @@
             sourceGroup.style.display = 'none';
             accountGroup.style.display = 'none';
             loanGroup.style.display = 'none';
+            loanHelpGroup.style.display = 'none';
             fromAccountGroup.style.display = 'block';
             toAccountGroup.style.display = 'block';
             capitalEventGroup.style.display = 'none';
@@ -272,6 +278,7 @@
             sourceGroup.style.display = 'none';
             accountGroup.style.display = 'block';
             loanGroup.style.display = 'block';
+            loanHelpGroup.style.display = 'block';
             fromAccountGroup.style.display = 'none';
             toAccountGroup.style.display = 'none';
             capitalEventGroup.style.display = 'block';
@@ -281,6 +288,7 @@
             sourceGroup.style.display = 'block';
             accountGroup.style.display = 'block';
             loanGroup.style.display = 'none';
+            loanHelpGroup.style.display = 'none';
             fromAccountGroup.style.display = 'none';
             toAccountGroup.style.display = 'none';
             capitalEventGroup.style.display = 'none';
