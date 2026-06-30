@@ -166,6 +166,9 @@ class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin
             # Sort renewing soon by days until
             renewing_soon.sort(key=lambda x: x.annotated_days_until)
 
+        # Sort active subs by days until next occurrence (upcoming first)
+        active_subs.sort(key=lambda x: x.annotated_days_until)
+
         context.update({
             'active_subs': active_subs,
             'cancelled_subs': cancelled_subs,

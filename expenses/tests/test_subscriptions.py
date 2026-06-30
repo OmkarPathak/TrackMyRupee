@@ -544,3 +544,45 @@ class SubscriptionTierTest(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(RecurringTransaction.objects.filter(user=self.user, description='Unique Sub').count(), 2)
+
+    def test_active_recurring_transaction_sorting(self):
+        """Active subscriptions on the list view should be sorted by next due date (upcoming first)."""
+        self.setup_tier('PLUS')
+        account = Account.objects.create(user=self.user, name='Bank Account', account_type='BANK', balance=10000, currency='₹')
+
+        # Sub 1: Next due date in 20 days
+        rt_far = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='EXPENSE',
+            amount='100.00',
+            currency='₹',
+            account=account,
+            category='Bills',
+            frequency='MONTHLY',
+            start_date=date.today() + timedelta(days=20),
+            description='Far Subscription',
+            is_active=True,
+        )
+
+        # Sub 2: Next due date in 10 days
+        rt_near = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='EXPENSE',
+            amount='200.00',
+            currency='₹',
+            account=account,
+            category='Bills',
+            frequency='MONTHLY',
+            start_date=date.today() + timedelta(days=10),
+            description='Near Subscription',
+            is_active=True,
+        )
+
+        response = self.client.get(reverse('recurring-list'))
+        self.assertEqual(response.status_code, 200)
+        active_subs = list(response.context['active_subs'])
+        
+        # Verify that "Near Subscription" comes before "Far Subscription"
+        near_index = next(i for i, sub in enumerate(active_subs) if sub.description == 'Near Subscription')
+        far_index = next(i for i, sub in enumerate(active_subs) if sub.description == 'Far Subscription')
+        self.assertLess(near_index, far_index)
