@@ -23,6 +23,7 @@
     // Detail pages (must come before list patterns)
     { pattern: /^\/accounts\/\d+\/?$/,             type: 'detail' },
     { pattern: /^\/goals\/\d+\/?$/,                type: 'detail' },
+    { pattern: /^\/loans\/\d+\/?$/,                type: 'detail' },
 
     // Form pages (create / edit)
     { pattern: /^\/expenses\/add/,                 type: 'form' },
@@ -47,6 +48,12 @@
     { pattern: /^\/onboarding/,                    type: 'form' },
     { pattern: /^\/upload/,                        type: 'form' },
     { pattern: /^\/account\/delete/,               type: 'form' },
+    { pattern: /^\/loans\/add/,                    type: 'form' },
+    { pattern: /^\/loans\/\d+\/edit/,              type: 'form' },
+    { pattern: /^\/loans\/\d+\/repayment/,         type: 'form' },
+    { pattern: /^\/loans\/\d+\/rate-update/,       type: 'form' },
+    { pattern: /^\/capital-events\/add/,           type: 'form' },
+    { pattern: /^\/capital-events\/\d+\/edit/,     type: 'form' },
 
     // Card grid pages
     { pattern: /^\/goals\/?$/,                     type: 'card-grid' },
@@ -66,6 +73,9 @@
     { pattern: /^\/notifications/,                 type: 'table-list' },
     { pattern: /^\/recurring\/manage/,             type: 'table-list' },
     { pattern: /^\/export/,                        type: 'table-list' },
+    { pattern: /^\/transactions\/?$/,              type: 'table-list' },
+    { pattern: /^\/capital-events\/?$/,            type: 'table-list' },
+    { pattern: /^\/loans\/?$/,                     type: 'table-list' },
   ];
 
   function getSkeletonType(url) {
@@ -87,38 +97,270 @@
   }
 
   function buildDashboard() {
-    return '' +
-      // Toggle bar
-      '<div class="sk-toggle-bar">' +
-        '<div class="sk-toggle-inner">' +
-          b('sk-h-38 sk-rounded-pill" style="width:120px') + 
-          b('sk-h-38 sk-rounded-pill" style="width:120px') + 
-          b('sk-h-38 sk-rounded-pill" style="width:120px') + 
-        '</div>' +
-      '</div>' +
-      // 4 stat cards
-      '<div class="sk-grid-4 mb-4">' +
-        buildStatCard() + buildStatCard() + buildStatCard() + buildStatCard() +
-      '</div>' +
-      // Large chart
-      '<div class="sk-chart mb-4">' +
-        '<div class="sk-chart-header">' +
-          b('sk-h-14 sk-w-30') +
-          b('sk-h-12 sk-rounded-pill" style="width:60px') +
-        '</div>' +
-        b('sk-h-250 sk-w-100') +
-      '</div>' +
-      // 2 smaller charts
-      '<div class="sk-grid-2">' +
-        '<div class="sk-chart">' +
-          '<div class="sk-chart-header">' + b('sk-h-14 sk-w-40') + '</div>' +
-          b('sk-h-200 sk-w-100') +
-        '</div>' +
-        '<div class="sk-chart">' +
-          '<div class="sk-chart-header">' + b('sk-h-14 sk-w-40') + '</div>' +
-          b('sk-h-200 sk-w-100') +
-        '</div>' +
+    var isMobile = window.innerWidth < 992;
+    var mode = 'daily';
+    try {
+      var savedMode = localStorage.getItem('tmr_dashboard_mode');
+      if (savedMode === 'full') {
+        mode = 'full';
+      }
+      var urlParams = new URLSearchParams(window.location.search);
+      var urlMode = urlParams.get('mode');
+      if (urlMode === 'full' || urlMode === 'daily') {
+        mode = urlMode;
+      }
+    } catch (e) {}
+
+    if (mode === 'full') {
+      return buildFullDashboard(isMobile);
+    } else {
+      return buildDailyDashboard(isMobile);
+    }
+  }
+
+  function buildDailyDashboard(isMobile) {
+    var trendsHtml = '';
+    if (isMobile) {
+      trendsHtml = '<div class="mb-4">' +
+        buildTrendCard() + buildTrendCard() + buildTrendCard() +
       '</div>';
+    } else {
+      trendsHtml = '<div class="sk-grid-3 mb-4">' +
+        buildTrendCard() + buildTrendCard() + buildTrendCard() +
+      '</div>';
+    }
+
+    var insightCard = '<div class="sk-card mb-4" style="padding:12px 16px">' +
+      '<div style="display:flex;align-items:center;gap:12px">' +
+        b('sk-h-32 sk-rounded-circle" style="width:32px;flex-shrink:0') +
+        '<div style="flex:1">' + b('sk-h-12 sk-w-60" style="margin-bottom:6px') + b('sk-h-10 sk-w-80') + '</div>' +
+      '</div>' +
+    '</div>';
+
+    var activityCard = '<div class="sk-card mb-4" style="padding:0">' +
+      '<div style="padding:14px 20px;border-bottom:1px solid rgba(0,0,0,0.05);display:flex;justify-content:space-between">' +
+        b('sk-h-16" style="width:120px') +
+        b('sk-h-12" style="width:80px') +
+      '</div>' +
+      '<div style="padding:0 20px">' +
+        buildListItem() + buildListItem() + buildListItem() +
+      '</div>' +
+    '</div>';
+
+    var categoryCard = '<div class="sk-card mb-4">' +
+      b('sk-h-16" style="width:110px;margin-bottom:16px') +
+      buildProgressItem() + buildProgressItem() + buildProgressItem() +
+    '</div>';
+
+    if (isMobile) {
+      return '' +
+        trendsHtml +
+        insightCard +
+        activityCard +
+        categoryCard +
+        '<div style="text-align:center;margin-top:20px;margin-bottom:20px">' +
+          b('sk-h-38 sk-rounded-pill" style="width:180px;display:inline-block') +
+        '</div>';
+    } else {
+      return '' +
+        trendsHtml +
+        '<div style="display:grid;grid-template-columns:3fr 2fr;gap:1.5rem;align-items:start">' +
+          '<div>' +
+            insightCard +
+            activityCard +
+            '<div style="text-align:center;margin-top:20px;margin-bottom:20px">' +
+              b('sk-h-38 sk-rounded-pill" style="width:220px;display:inline-block') +
+            '</div>' +
+          '</div>' +
+          '<div>' +
+            categoryCard +
+          '</div>' +
+        '</div>';
+    }
+  }
+
+  function buildFullDashboard(isMobile) {
+    var topBar = '<div class="sk-filter-bar mb-4" style="justify-content:space-between">' +
+      b('sk-h-32" style="width:130px') +
+      '<div style="display:flex;gap:8px">' +
+        b('sk-h-32" style="width:32px') +
+        b('sk-h-32" style="width:32px') +
+        b('sk-h-32 sk-rounded-pill" style="width:100px') +
+      '</div>' +
+    '</div>';
+
+    var netWorthCard = '<div class="sk-card h-100">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+        '<div>' + b('sk-h-14" style="width:120px;margin-bottom:6px') + b('sk-h-10" style="width:200px') + '</div>' +
+        b('sk-h-10" style="width:60px') +
+      '</div>' +
+      b('sk-h-38 sk-w-60" style="margin-bottom:12px') +
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">' +
+        b('sk-h-10" style="width:80px') +
+        b('sk-h-12 sk-rounded-pill" style="width:40px') +
+      '</div>' +
+      b('sk-h-50 sk-w-100') +
+      (isMobile ? 
+        '<div style="border-top:1px solid rgba(0,0,0,0.05);margin-top:16px;padding-top:16px;display:flex;justify-content:space-around;text-align:center">' +
+          '<div>' + b('sk-h-14" style="width:50px;margin-bottom:4px') + b('sk-h-8" style="width:40px') + '</div>' +
+          '<div>' + b('sk-h-14" style="width:50px;margin-bottom:4px') + b('sk-h-8" style="width:40px') + '</div>' +
+          '<div>' + b('sk-h-14" style="width:50px;margin-bottom:4px') + b('sk-h-8" style="width:40px') + '</div>' +
+          '<div>' + b('sk-h-14" style="width:50px;margin-bottom:4px') + b('sk-h-8" style="width:40px') + '</div>' +
+        '</div>' : '') +
+    '</div>';
+
+    var smartInsightsCard = '<div class="sk-card h-100">' +
+      b('sk-h-14" style="width:140px;margin-bottom:20px') +
+      buildListItem() + buildListItem() +
+    '</div>';
+
+    var layer2 = '';
+    if (isMobile) {
+      layer2 = '<div class="mb-4">' + netWorthCard + '</div>' +
+               '<div class="mb-4">' + smartInsightsCard + '</div>';
+    } else {
+      layer2 = '<div class="sk-grid-2 mb-4">' + netWorthCard + smartInsightsCard + '</div>';
+    }
+
+    var spendingPaceCard = '<div class="sk-card h-100">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:16px">' +
+        b('sk-h-14" style="width:110px') +
+        b('sk-h-12 sk-rounded-pill" style="width:65px') +
+      '</div>' +
+      '<div style="display:flex;gap:12px;margin-bottom:16px;border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:8px">' +
+        b('sk-h-10" style="width:40px') + b('sk-h-10" style="width:40px') +
+      '</div>' +
+      b('sk-h-24 sk-w-50" style="margin-bottom:6px') +
+      b('sk-h-10 sk-w-70" style="margin-bottom:16px') +
+      b('sk-h-8 sk-rounded-pill sk-w-100" style="margin-bottom:16px') +
+      '<div class="sk-grid-2">' +
+        '<div class="sk-card" style="padding:10px;background:rgba(0,0,0,0.02)">' + b('sk-h-16 sk-w-50" style="margin-bottom:4px') + b('sk-h-8" style="width:70px') + '</div>' +
+        '<div class="sk-card" style="padding:10px;background:rgba(0,0,0,0.02)">' + b('sk-h-16 sk-w-50" style="margin-bottom:4px') + b('sk-h-8" style="width:70px') + '</div>' +
+      '</div>' +
+    '</div>';
+
+    var assetAllocationCard = '<div class="sk-card h-100">' +
+      b('sk-h-14" style="width:120px;margin-bottom:16px') +
+      '<div style="display:flex;justify-content:center;margin-bottom:16px">' +
+        b('sk-h-120 sk-rounded-circle" style="width:120px') +
+      '</div>' +
+      '<div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap">' +
+        '<div>' + b('sk-h-8" style="width:40px;margin-bottom:4px') + b('sk-h-10" style="width:60px') + '</div>' +
+        '<div>' + b('sk-h-8" style="width:40px;margin-bottom:4px') + b('sk-h-10" style="width:60px') + '</div>' +
+        '<div>' + b('sk-h-8" style="width:40px;margin-bottom:4px') + b('sk-h-10" style="width:60px') + '</div>' +
+      '</div>' +
+    '</div>';
+
+    var financialHealthCard = '<div class="sk-card h-100">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:16px">' +
+        b('sk-h-14" style="width:130px') +
+        b('sk-h-12 sk-rounded-pill" style="width:60px') +
+      '</div>' +
+      b('sk-h-24 sk-w-40" style="margin-bottom:4px') +
+      b('sk-h-10 sk-w-60" style="margin-bottom:16px') +
+      b('sk-h-8 sk-rounded-pill sk-w-100" style="margin-bottom:16px') +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:8px">' +
+        b('sk-h-10" style="width:80px') + b('sk-h-10" style="width:60px') +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between">' +
+        b('sk-h-10" style="width:80px') + b('sk-h-10" style="width:60px') +
+      '</div>' +
+    '</div>';
+
+    var layer3 = '';
+    if (isMobile) {
+      layer3 = '<div class="mb-4">' + spendingPaceCard + '</div>' +
+               '<div class="mb-4">' + assetAllocationCard + '</div>' +
+               '<div class="mb-4">' + financialHealthCard + '</div>';
+    } else {
+      layer3 = '<div class="sk-grid-3 mb-4">' + spendingPaceCard + assetAllocationCard + financialHealthCard + '</div>';
+    }
+
+    var analysisHeader = '<div style="margin-top:24px;margin-bottom:16px">' +
+      b('sk-h-16" style="width:160px') +
+    '</div>';
+
+    var trendChartCard = '<div class="sk-card h-100">' +
+      b('sk-h-14" style="width:100px;margin-bottom:16px') +
+      b('sk-h-200 sk-w-100') +
+    '</div>';
+
+    var topCategoriesCard = '<div class="sk-card h-100">' +
+      b('sk-h-14" style="width:120px;margin-bottom:16px') +
+      buildProgressItem() + buildProgressItem() + buildProgressItem() + buildProgressItem() +
+    '</div>';
+
+    var layer4 = '';
+    if (isMobile) {
+      layer4 = '<div class="mb-4">' + trendChartCard + '</div>' +
+               '<div class="mb-4">' + topCategoriesCard + '</div>';
+    } else {
+      layer4 = '<div class="sk-grid-2 mb-4">' + trendChartCard + topCategoriesCard + '</div>';
+    }
+
+    var categoryDistributionCard = '<div class="sk-card h-100">' +
+      b('sk-h-14" style="width:150px;margin-bottom:16px') +
+      b('sk-h-200 sk-w-100') +
+    '</div>';
+
+    var recentActivityCard = '<div class="sk-card h-100">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:16px">' +
+        b('sk-h-14" style="width:110px') +
+        b('sk-h-12" style="width:30px') +
+      '</div>' +
+      buildListItem() + buildListItem() + buildListItem() + buildListItem() +
+    '</div>';
+
+    var layer5 = '';
+    if (isMobile) {
+      layer5 = '<div class="mb-4">' + categoryDistributionCard + '</div>' +
+               '<div class="mb-4">' + recentActivityCard + '</div>';
+    } else {
+      layer5 = '<div class="sk-grid-2 mb-4">' + categoryDistributionCard + recentActivityCard + '</div>';
+    }
+
+    return '' +
+      topBar +
+      layer2 +
+      layer3 +
+      analysisHeader +
+      layer4 +
+      layer5;
+  }
+
+  function buildTrendCard() {
+    return '<div class="sk-card" style="margin-bottom: 12px; min-height: 140px; display:flex; flex-direction:column; justify-content:space-between">' +
+      '<div>' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+          b('sk-h-12 sk-rounded-circle" style="width:12px;flex-shrink:0') +
+          b('sk-h-10" style="width:100px') +
+        '</div>' +
+        b('sk-h-24 sk-w-50" style="margin-bottom:8px') +
+        b('sk-h-10 sk-w-70') +
+      '</div>' +
+      '<div style="border-top:1px solid rgba(0,0,0,0.05);padding-top:8px;display:flex;justify-content:space-between;align-items:center">' +
+        b('sk-h-8" style="width:80px') +
+        b('sk-h-8" style="width:50px') +
+      '</div>' +
+    '</div>';
+  }
+
+  function buildListItem() {
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.03)">' +
+      b('sk-h-40 sk-rounded-circle" style="width:40px;flex-shrink:0') +
+      '<div style="flex:1">' + b('sk-h-12 sk-w-40" style="margin-bottom:6px') + b('sk-h-10 sk-w-60') + '</div>' +
+      b('sk-h-12" style="width:50px') +
+    '</div>';
+  }
+
+  function buildProgressItem() {
+    return '<div style="margin-bottom:16px">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px">' +
+        b('sk-h-10" style="width:60px') +
+        b('sk-h-10" style="width:30px') +
+      '</div>' +
+      b('sk-h-8 sk-rounded-pill sk-w-100" style="margin-bottom:4px') +
+    '</div>';
   }
 
   function buildStatCard() {
