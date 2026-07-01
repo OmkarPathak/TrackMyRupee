@@ -2041,10 +2041,13 @@ a:hover {
   border: none;
   background: transparent;
   padding: 0;
+  margin: 0;
+  outline: none;
+  box-sizing: border-box;
 }
 
-.mobile-nav-item i {
-  font-size: 1.35rem;
+.mobile-nav-item > i:not(.position-absolute) {
+  font-size: 1.55rem;
   height: 24px; /* Fixed height for consistent alignment */
   display: flex;
   align-items: center;
@@ -2054,16 +2057,18 @@ a:hover {
 }
 
 .mobile-nav-item span {
-  font-size: 0.625rem;
+  font-size: 0.635rem;
   font-weight: 600;
   letter-spacing: 0.2px;
+  margin-top: 4px;
+  line-height: 1;
 }
 
 .mobile-nav-item.active {
   color: var(--color-success); /* Forest Green to match desktop */
 }
 
-.mobile-nav-item.active i {
+.mobile-nav-item.active > i:not(.position-absolute) {
   transform: translateY(-2px);
   color: inherit;
 }

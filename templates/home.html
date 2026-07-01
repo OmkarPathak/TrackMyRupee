@@ -1120,11 +1120,11 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Quick Links (Mobile Only) -->
 <div class="d-md-none mb-3 fade-in p-0">
     <div class="d-flex justify-content-between align-items-center px-1">
-        <a href="{% url 'all-transactions' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
+        <a href="{% url 'expense-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
             <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
-                <i class="bi bi-receipt fs-5 text-body-secondary"></i>
+                <i class="bi bi-credit-card fs-5 text-body-secondary"></i>
             </div>
-            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Transactions" %}</span>
+            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Expenses" %}</span>
         </a>
         <a href="{% url 'goal-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
             <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">

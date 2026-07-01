@@ -312,9 +312,9 @@
         <span>{% trans "Dashboard" %}</span>
     </a>
     {% endif %}
-    <a href="{% url 'expense-list' %}" class="mobile-nav-item {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
-        <i class="bi bi-credit-card{% if 'expense' in request.resolver_match.url_name %}-fill{% endif %}"></i>
-        <span>{% trans "Expenses" %}</span>
+    <a href="{% url 'all-transactions' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'all-transactions' %}active{% endif %}">
+        <i class="bi bi-receipt"></i>
+        <span>{% trans "Transactions" %}</span>
     </a>
     
     <!-- Floating Action Button -->
@@ -459,9 +459,9 @@
                 {% trans "Cash Flow" %}
             </div>
 
-            <a href="{% url 'all-transactions' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-list-columns-reverse text-primary"></i>
-                <span>{% trans "All Transactions" %}</span>
+            <a href="{% url 'expense-list' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-credit-card text-danger"></i>
+                <span>{% trans "Expenses" %}</span>
             </a>
             <a href="{% url 'income-list' %}" class="list-group-item list-group-item-action">
                 <i class="bi bi-cash-coin text-success"></i>
