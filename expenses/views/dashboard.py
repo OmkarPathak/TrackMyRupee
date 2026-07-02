@@ -1546,7 +1546,7 @@ def home_view(request):
         if capital_event_callout['count'] == 1:
             ev = capital_event_callout['events'][0]
             if ev.note and ev.note.strip():
-                title_text = _("<b>Capital Event — {} this month</b>").format(ev.note.strip())
+                title_text = _("Capital Event: <b>{}</b> this month").format(ev.note.strip())
             else:
                 title_text = _("<b>One-off Capital Event</b>")
         else:
