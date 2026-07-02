@@ -381,15 +381,6 @@
                 {% endif %}
             </h3>
             <div class="d-flex align-items-center gap-2">
-                <!-- View Toggle -->
-                <div class="d-flex gap-1 me-1">
-                    <button class="view-toggle-btn active" id="mobileTableToggle" title="{% trans 'Table View' %}">
-                        <i class="bi bi-list-ul"></i>
-                    </button>
-                    <button class="view-toggle-btn" id="mobileGridToggle" title="{% trans 'Card View' %}">
-                        <i class="bi bi-grid-fill" style="font-size: 0.85rem;"></i>
-                    </button>
-                </div>
                 <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
                 </button>
@@ -439,15 +430,6 @@
                 {% endif %}
             </p>
             <div class="d-flex align-items-center gap-2">
-                <!-- View Toggle -->
-                <div class="d-flex gap-1">
-                    <button class="view-toggle-btn active" id="desktopTableToggle" title="{% trans 'Table View' %}">
-                        <i class="bi bi-list-ul"></i>
-                    </button>
-                    <button class="view-toggle-btn" id="desktopGridToggle" title="{% trans 'Card View' %}">
-                        <i class="bi bi-grid-fill" style="font-size: 0.85rem;"></i>
-                    </button>
-                </div>
                 <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
                 </button>
@@ -584,7 +566,6 @@
         // Bulk Delete Logic
         document.addEventListener('DOMContentLoaded', function() {
             const selectAllTable = document.getElementById('selectAll');
-            const selectAllGrid = document.getElementById('selectAllGrid');
             const selectAllMobile = document.getElementById('selectAllMobile');
             const expenseCheckboxes = document.querySelectorAll('.expense-checkbox');
             const bulkDeleteBtns = document.querySelectorAll('.bulk-delete-btn');
@@ -617,14 +598,12 @@
                 });
                 // Keep all selectAll checkboxes in sync
                 if (selectAllTable) selectAllTable.checked = isChecked;
-                if (selectAllGrid) selectAllGrid.checked = isChecked;
                 if (selectAllMobile) selectAllMobile.checked = isChecked;
                 updateBulkButtonsState();
             }
 
             // Handle Select All (Table and Grid)
             if (selectAllTable) selectAllTable.addEventListener('change', handleSelectAll);
-            if (selectAllGrid) selectAllGrid.addEventListener('change', handleSelectAll);
             if (selectAllMobile) selectAllMobile.addEventListener('change', handleSelectAll);
 
             // Handle Individual Checkboxes
@@ -634,7 +613,6 @@
                     // Update Select All state
                     const allChecked = Array.from(expenseCheckboxes).every(cb => cb.checked);
                     if (selectAllTable) selectAllTable.checked = allChecked;
-                    if (selectAllGrid) selectAllGrid.checked = allChecked;
                     if (selectAllMobile) selectAllMobile.checked = allChecked;
                 });
             });
@@ -692,42 +670,6 @@
                 });
             }
 
-            // View Toggle Persistence
-            const tableToggles = [document.getElementById('mobileTableToggle'), document.getElementById('desktopTableToggle')];
-            const gridToggles = [document.getElementById('mobileGridToggle'), document.getElementById('desktopGridToggle')];
-            const tableView = document.getElementById('tableView');
-            const gridView = document.getElementById('gridView');
-            const mobileGridView = document.getElementById('mobileGridView');
-            const storageKey = 'trackmyrupee_expense_view_mode';
-            const defaultMode = 'grid';
-
-            function setViewMode(mode) {
-                const isMobile = window.innerWidth < 768;
-                if (mode === 'grid') {
-                    tableView.classList.add('d-none');
-                    if (isMobile) {
-                        gridView.classList.add('d-none');
-                        if (mobileGridView) mobileGridView.classList.remove('d-none');
-                    } else {
-                        gridView.classList.remove('d-none');
-                        if (mobileGridView) mobileGridView.classList.add('d-none');
-                    }
-                    gridToggles.forEach(t => t.classList.add('active'));
-                    tableToggles.forEach(t => t.classList.remove('active'));
-                    checkDescriptionOverflow();
-                } else {
-                    gridView.classList.add('d-none');
-                    if (mobileGridView) mobileGridView.classList.add('d-none');
-                    tableView.classList.remove('d-none');
-                    tableToggles.forEach(t => t.classList.add('active'));
-                    gridToggles.forEach(t => t.classList.remove('active'));
-                }
-                localStorage.setItem(storageKey, mode);
-            }
-
-            tableToggles.forEach(btn => btn && btn.addEventListener('click', () => setViewMode('table')));
-            gridToggles.forEach(btn => btn && btn.addEventListener('click', () => setViewMode('grid')));
-
             // Mobile Selection Mode Toggle
             const mobileSelectToggle = document.getElementById('mobileSelectToggle');
             const mobileSelectAllRow = document.getElementById('mobileSelectAllRow');
@@ -741,20 +683,13 @@
                         expenseCheckboxes.forEach(cb => cb.checked = false);
                         if (selectAllMobile) selectAllMobile.checked = false;
                         if (selectAllTable) selectAllTable.checked = false;
-                        if (selectAllGrid) selectAllGrid.checked = false;
                         updateBulkButtonsState();
                     }
                 });
             }
 
-            // Initial Load
-            const savedMode = localStorage.getItem(storageKey);
-            setViewMode(savedMode || defaultMode);
-            
-            // Check overflow on initial load if grid is default
-            if ((savedMode || defaultMode) === 'grid') {
-                checkDescriptionOverflow();
-            }
+            // Initial Load - Check description overflows for grid cards
+            checkDescriptionOverflow();
 
             // Filters are hidden by default via HTML classes ('collapse' without 'show').
             // No auto-expand logic to ensure they stay hidden until explicitly toggled by the user.
@@ -859,203 +794,109 @@
             </div>
 
             <!-- 1. Table View -->
-            <div id="tableView" class="table-responsive">
-                <table class="table table-hover table-striped mb-0 text-start align-middle">
-                    <thead>
-                        <tr>
-                            <th class="ps-4" style="width: 40px;">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="selectAll">
-                                </div>
-                            </th>
-                            <th>{% trans "Date" %}</th>
-                            <th>{% trans "Description" %}</th>
-                            <th>{% trans "Category" %}</th>
-                            <th>{% trans "Payment Method" %}</th>
-                            <th>{% trans "Account" %}</th>
-                            {% load expense_extras %}
-                            {% if request.GET.sort == 'amount_asc' %}
-                                <th style="cursor: pointer;" onclick="window.location.href='?{% url_replace sort='amount_desc' %}'">
-                            {% else %}
-                                <th style="cursor: pointer;" onclick="window.location.href='?{% url_replace sort='amount_asc' %}'">
-                            {% endif %}
-                                {% trans "Amount" %}
-                                {% if request.GET.sort == 'amount_asc' %}
-                                    <i class="bi bi-arrow-up-short"></i>
-                                {% elif request.GET.sort == 'amount_desc' %}
-                                    <i class="bi bi-arrow-down-short"></i>
-                                {% else %}
-                                    <i class="bi bi-arrow-down-up text-muted opacity-25" style="font-size: 0.8em;"></i>
-                                {% endif %}
-                            </th>
-                            <th class="text-end pe-4">{% trans "Actions" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for expense in expenses %}
-                        <tr>
-                            <td class="ps-4">
-                                <div class="form-check">
-                                    <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}">
-                                </div>
-                            </td>
-                            <td class="text-nowrap">{{ expense.date|date:"d M Y"|translate_digits }}</td>
-                            <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">{{ expense.description|truncatechars:40 }}</td>
-                            <td>
-                                <span class="badge-soft badge-soft-success align-items-center gap-1">
-                                    <i class="bi {% category_icon expense.category user %}"></i>
-                                    {{ expense.category }}
-                                </span>
-                            </td>
-                            <td>{{ expense.payment_method }}</td>
-                            <td>{{ expense.account.name }}</td>
-                            <td class="fw-bold">
-                                {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
-                                {% if expense.currency != user.profile.currency %}
-                                <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
-                                    ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
-                                </div>
-                                {% endif %}
-                            </td>
-                            <td class="text-end pe-4 text-nowrap">
-                                <div class="dropdown hstack gap-3 justify-content-end">
-                                    <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
-                                        <i class="bi bi-three-dots-vertical text-muted"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}">
-                                                <i class="bi bi-pencil-square text-primary"></i>
-                                                <span>{% trans "Edit" %}</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <form method="post" action="{% url 'expense-convert' expense.pk %}?next={{ request.get_full_path|urlencode }}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
-                                                    <i class="bi bi-flag"></i>
-                                                    <span>{% trans "Convert to Capital Event" %}</span>
-                                                </button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button" 
-                                                    data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                    data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
-                                                    data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
-                                                <i class="bi bi-trash"></i>
-                                                <span>{% trans "Delete" %}</span>
+            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block">
+                <div class="card-body p-0">
+                    <div id="tableView" class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 text-start align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 40px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                        </div>
+                                    </th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Payment Method" %}</th>
+                                    <th>{% trans "Account" %}</th>
+                                    {% load expense_extras %}
+                                    {% if request.GET.sort == 'amount_asc' %}
+                                        <th style="cursor: pointer;" onclick="window.location.href='?{% url_replace sort='amount_desc' %}'">
+                                    {% else %}
+                                        <th style="cursor: pointer;" onclick="window.location.href='?{% url_replace sort='amount_asc' %}'">
+                                    {% endif %}
+                                        {% trans "Amount" %}
+                                        {% if request.GET.sort == 'amount_asc' %}
+                                            <i class="bi bi-arrow-up-short"></i>
+                                        {% elif request.GET.sort == 'amount_desc' %}
+                                            <i class="bi bi-arrow-down-short"></i>
+                                        {% else %}
+                                            <i class="bi bi-arrow-down-up text-muted opacity-25" style="font-size: 0.8em;"></i>
+                                        {% endif %}
+                                    </th>
+                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in expenses %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}">
+                                        </div>
+                                    </td>
+                                    <td class="text-nowrap">{{ expense.date|date:"d M Y"|translate_digits }}</td>
+                                    <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">{{ expense.description|truncatechars:40 }}</td>
+                                    <td>
+                                        <span class="badge-soft badge-soft-success align-items-center gap-1">
+                                            <i class="bi {% category_icon expense.category user %}"></i>
+                                            {{ expense.category }}
+                                        </span>
+                                    </td>
+                                    <td>{{ expense.payment_method }}</td>
+                                    <td>{{ expense.account.name }}</td>
+                                    <td class="fw-bold">
+                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                        {% if expense.currency != user.profile.currency %}
+                                        <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
+                                            ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 text-nowrap">
+                                        <div class="dropdown hstack gap-3 justify-content-end">
+                                            <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
+                                                <i class="bi bi-three-dots-vertical text-muted"></i>
                                             </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 2. Grid/Card View (Desktop Only) -->
-            <div id="gridView" class="py-3 d-none">
-                <div class="row g-3 mb-3 align-items-center">
-                    <div class="col-12 d-flex justify-content-between align-items-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAllGrid">
-                            <label class="form-check-label small text-muted" for="selectAllGrid"> {% trans "Select All" %}</label>
-                        </div>
-                        <div class="small text-muted">{{ expenses|length|translate_digits }} {% trans "items" %}</div>
-                    </div>
-                </div>
-                <div class="row g-3">
-                    {% for expense in expenses %}
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="card expense-card h-100 shadow-sm border-0 position-relative">
-                            <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
-                                <div class="d-flex align-items-center gap-2">
-                                    <!-- Left: Checkbox -->
-                                    <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
-                                        <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
-                                    </div>
-
-                                    <!-- Left-Mid: Category Icon (Vertically Centered) -->
-                                    <div class="category-icon-container" title="{{ expense.category }}">
-                                        <i class="bi {% category_icon expense.category user %}"></i>
-                                    </div>
-
-                                    <!-- Middle: Info -->
-                                    <div class="flex-grow-1 min-width-0 px-1">
-                                        <div class="fw-semibold text-body-emphasis line-clamp-2 mb-0" style="font-size: 0.95rem;" 
-                                             data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
-                                            {{ expense.description }}
-                                        </div>
-                                        <div class="text-body-secondary d-flex align-items-center gap-1 mt-1 flex-nowrap" style="font-size: 0.72rem;">
-                                            <span class="text-nowrap">{{ expense.date|date:"d M 'y"|translate_digits }}</span>
-                                            <span class="opacity-50 mx-1 flex-shrink-0">|</span>
-                                            <span class="text-truncate" title="{{ expense.category }}">{{ expense.category }}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-muted" style="font-size: 0.7rem; opacity: 0.55;">
-                                                {{ expense.account.name|truncatechars:30 }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Right: Amount + Payment Badge -->
-                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1 ms-1">
-                                        <div class="fw-bold text-body-emphasis" style="font-size: 1.1rem; line-height: 1.2; letter-spacing: 0.02rem;">
-                                            {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
-                                            {% if expense.currency != user.profile.currency %}
-                                            <div class="text-muted fw-normal" style="font-size: 0.7rem;">
-                                                ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                        <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
-                                    </div>
-
-                                    <!-- Far Right: Menu -->
-                                    <div class="dropdown flex-shrink-0 position-relative ms-1" style="z-index: 10;">
-                                        <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
-                                            <i class="bi bi-three-dots-vertical text-muted opacity-50"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
-                                            <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}">
-                                                    <i class="bi bi-pencil-square text-primary"></i>
-                                                    <span>{% trans "Edit" %}</span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <form method="post" action="{% url 'expense-convert' expense.pk %}?next={{ request.get_full_path|urlencode }}">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
-                                                        <i class="bi bi-flag"></i>
-                                                        <span>{% trans "Convert to Capital Event" %}</span>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                        <i class="bi bi-pencil-square text-primary"></i>
+                                                        <span>{% trans "Edit" %}</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <form method="post" action="{% url 'expense-convert' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                            <i class="bi bi-flag"></i>
+                                                            <span>{% trans "Convert to Capital Event" %}</span>
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button" 
+                                                            data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                                            data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
+                                                            data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
+                                                        <i class="bi bi-trash"></i>
+                                                        <span>{% trans "Delete" %}</span>
                                                     </button>
-                                                </form>
-                                            </li>
-                                            <li>
-                                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button" 
-                                                        data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                        data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
-                                                        data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
-                                                    <i class="bi bi-trash"></i>
-                                                    <span>{% trans "Delete" %}</span>
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    {% endfor %}
                 </div>
             </div>
 
-            <!-- 3. Mobile Grid View (Daily Grouped) -->
-            <div id="mobileGridView" class="py-2 d-none">
+            <!-- 2. Mobile Grid View (Daily Grouped) -->
+            <div id="mobileGridView" class="py-2 d-md-none">
                 <div class="d-flex align-items-center mb-2 px-1 mobile-selection-header">
                     <div id="mobileSelectAllRow" class="d-flex align-items-center gap-2">
                         <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
