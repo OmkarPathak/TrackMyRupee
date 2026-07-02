@@ -348,6 +348,11 @@
         transform: scale(1.08);
         color: var(--bs-primary);
     }
+
+    /* Clean bottom border of the last row in desktop table */
+    #tableView table tbody tr:last-child td {
+        border-bottom: 0 !important;
+    }
     
     @media (max-width: 576px) {
         .category-icon-container {
@@ -391,7 +396,7 @@
                 {% endif %}
             </div>
         </div>
-        <p class="text-muted text-center small mb-0 mt-4 fw-medium">
+        <p class="text-muted text-center small mb-0 mt-4 fw-medium py-1 lh-base">
             <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot; 
             <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
             {% if days_left is not None %}
@@ -422,7 +427,7 @@
                     </a>
                 {% endif %}
             </h2>
-            <p class="text-muted text-center small mb-0 mt-2 fw-medium">
+            <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
                 <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot; 
                 <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
                 {% if days_left is not None %}

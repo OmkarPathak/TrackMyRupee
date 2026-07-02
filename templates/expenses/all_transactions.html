@@ -9,6 +9,11 @@
         -webkit-overflow-scrolling: touch;
     }
 
+    /* Clean bottom border of the last row in desktop table */
+    #tableView table tbody tr:last-child td {
+        border-bottom: 0 !important;
+    }
+
     @media (max-width: 767.98px) {
         .table-responsive table {
             min-width: 800px;
@@ -152,6 +157,34 @@
                     </a>
                 {% endif %}
             </h2>
+
+            <!-- Stats Line (Desktop Center) -->
+            <div class="text-muted text-center small mb-0 fw-medium d-none d-md-flex align-items-center justify-content-center flex-wrap gap-2 py-1 lh-base">
+                <span class="text-nowrap">
+                    <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "transactions" %}
+                </span>
+                <span class="opacity-50">•</span>
+                <span class="text-nowrap">
+                    <span class="fw-bold text-danger">{{ expense_count|translate_digits }}</span> {% trans "expenses" %}
+                </span>
+                <span class="opacity-50">•</span>
+                <span class="text-nowrap">
+                    <span class="fw-bold text-info">{{ transfer_count|translate_digits }}</span> {% trans "transfers" %}
+                </span>
+                <span class="opacity-50">•</span>
+                <span class="text-nowrap">
+                    <span class="fw-bold text-success">{{ income_count|translate_digits }}</span> {% trans "incomes" %}
+                </span>
+                <span class="opacity-50">•</span>
+                <span class="text-nowrap">
+                    <span class="fw-bold text-warning">{{ loan_count|translate_digits }}</span> {% trans "loan repayments" %}
+                </span>
+                <span class="opacity-50">•</span>
+                <span class="text-nowrap">
+                    <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "capital events" %}
+                </span>
+            </div>
+
             <div class="d-flex align-items-center gap-2">
                 <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#transactionFilters" aria-expanded="false" aria-controls="transactionFilters">
                     <i class="bi bi-funnel"></i>
@@ -169,7 +202,9 @@
                 </div>
             </div>
         </div>
-        <div class="text-muted small mb-0 mt-2 d-flex align-items-center justify-content-center justify-content-md-start flex-wrap gap-2">
+
+        <!-- Stats Line (Mobile View) -->
+        <div class="text-muted small mb-0 mt-3 d-flex d-md-none align-items-center justify-content-center flex-wrap gap-2 py-1 lh-base">
             <span class="text-nowrap">
                 <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "transactions" %}
             </span>

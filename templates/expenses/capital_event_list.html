@@ -80,6 +80,11 @@
         transform: scale(1.08);
         color: var(--bs-primary);
     }
+
+    /* Clean bottom border of the last row in desktop table */
+    #tableView table tbody tr:last-child td {
+        border-bottom: 0 !important;
+    }
     
     @media (max-width: 576px) {
         .category-icon-container {
