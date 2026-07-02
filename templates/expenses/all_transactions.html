@@ -75,10 +75,25 @@
         padding: 0;
         color: var(--bs-secondary);
     }
+    .header-action-btn {
+        padding: 0 0.75rem;
+        font-size: 0.875rem;
+        text-decoration: none;
+        color: var(--bs-body-color);
+    }
+    .header-action-btn.btn-primary {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+        border: none !important;
+    }
     .view-toggle-btn.active, .filter-toggle-btn[aria-expanded="true"] {
         background: rgba(var(--bs-primary-rgb), 0.1) !important;
         color: var(--bs-primary) !important;
         border-color: rgba(var(--bs-primary-rgb), 0.3) !important;
+        box-shadow: none !important;
+    }
+    .filter-toggle-btn:hover, .header-action-btn:hover {
+        opacity: 0.9;
     }
 
     .category-icon-container {
@@ -186,12 +201,12 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#transactionFilters" aria-expanded="false" aria-controls="transactionFilters">
+                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#transactionFilters" aria-expanded="false" aria-controls="transactionFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
                 </button>
                 
                 <div class="dropdown d-none d-md-block">
-                    <button class="btn btn-primary btn-sm rounded-pill px-3 fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <button class="header-action-btn btn-primary fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         {% trans "Add" %}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">

@@ -93,13 +93,7 @@
     <!-- TOOLS -->
     <small class="text-muted text-uppercase fw-bold px-1 mb-2 d-block" style="font-size: 0.75rem;">{% trans "Tools" %}</small>
     <div class="list-group mb-4 shadow-sm rounded-3 overflow-hidden border-0">
-        <a href="{% url 'income-list' %}" class="list-group-item list-group-item-action border-0 d-flex justify-content-between align-items-center py-3">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-wallet2 me-3 text-primary fs-5"></i>
-                <span class="fw-medium">{% trans "Income" %}</span>
-            </div>
-            <i class="bi bi-chevron-right text-muted small"></i>
-        </a>
+
         <a href="{% url 'budget' %}" class="list-group-item list-group-item-action border-0 d-flex justify-content-between align-items-center py-3">
             <div class="d-flex align-items-center">
                 <i class="bi bi-pie-chart me-3 text-info fs-5"></i>
@@ -290,17 +284,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-4">
-            <a href="{% url 'income-list' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
-                <div class="card-body p-4">
-                    <div class="bg-success bg-opacity-10 text-success rounded-3 d-flex align-items-center justify-content-center mb-3" style="width: 44px; height: 44px;">
-                        <i class="bi bi-cash-stack fs-5"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">{% trans "Income" %}</h6>
-                    <p class="text-muted smaller mb-0">{% trans "Track and manage your various income sources." %}</p>
-                </div>
-            </a>
-        </div>
+
         <div class="col-md-4">
             <a href="{% url 'budget' %}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none settings-card-hover">
                 <div class="card-body p-4">

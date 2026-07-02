@@ -15,6 +15,8 @@ body {
     color 0.3s ease;
   background-color: #faf9f6; /* Warm Parchment Background */
   color: #1a1a18;
+  line-height: 1.5;
+  font-synthesis: none; /* Disable browser's faux bold/italic synthesis to prevent top/bottom font clipping */
 }
 
 /* --- Premium Form & Input Refinements --- */
