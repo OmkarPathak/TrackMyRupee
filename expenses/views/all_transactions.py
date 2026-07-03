@@ -31,7 +31,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         # 2. Normalize Incomes
         incomes = Income.objects.filter(user=user).annotate(
             type=Value('INCOME', output_field=CharField()),
-            cat=F('source'),
+            cat=F('source_type'),
             acc=F('account__name'),
             unified_amount=F('base_amount'),
             tx_description=F('description'),
@@ -84,7 +84,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         # Filtering individual querysets is more efficient
         if search_query:
             expenses = expenses.filter(Q(description__icontains=search_query) | Q(category__icontains=search_query))
-            incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query))
+            incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query) | Q(source_type__icontains=search_query))
             transfers = transfers.filter(description__icontains=search_query)
             loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
             capital_events = capital_events.filter(Q(note__icontains=search_query) | Q(subtype__icontains=search_query))
@@ -112,11 +112,13 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
                 incomes = incomes.filter(date__year__in=selected_years)
                 transfers = transfers.filter(date__year__in=selected_years)
                 loan_repayments = loan_repayments.filter(date__year__in=selected_years)
+                capital_events = capital_events.filter(date__year__in=selected_years)
             if selected_months:
                 expenses = expenses.filter(date__month__in=selected_months)
                 incomes = incomes.filter(date__month__in=selected_months)
                 transfers = transfers.filter(date__month__in=selected_months)
                 loan_repayments = loan_repayments.filter(date__month__in=selected_months)
+                capital_events = capital_events.filter(date__month__in=selected_months)
 
         # Filter by Transaction Type
         active_qs = []
