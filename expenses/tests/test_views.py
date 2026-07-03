@@ -187,7 +187,7 @@ class IncomeCRUDTest(BaseViewTest):
         data = {
             'date': date.today(),
             'amount': 5000,
-            'source': 'Salary',
+            'source_type': 'Salary',
             'description': 'Jan Salary',
             'currency': '₹'
         }
@@ -200,12 +200,12 @@ class IncomeCRUDTest(BaseViewTest):
         self.assertEqual(Income.objects.first().amount, 5000)
 
     def test_update_income(self):
-        income = Income.objects.create(user=self.user, date=date.today(), amount=1000, source='Bonus', description='Old', currency='₹')
+        income = Income.objects.create(user=self.user, date=date.today(), amount=1000, source_type='Salary', source='Salary', description='Old', currency='₹')
         url = reverse('income-edit', kwargs={'pk': income.pk})
         data = {
             'date': date.today(),
             'amount': 2000,
-            'source': 'Bonus',
+            'source_type': 'Salary',
             'description': 'New',
             'currency': '₹'
         }
@@ -220,7 +220,8 @@ class IncomeCRUDTest(BaseViewTest):
             user=self.user,
             date=date.today(),
             amount=1000,
-            source='Bonus',
+            source_type='Salary',
+            source='Salary',
             description='Old without account',
             currency='₹',
             account=None,
@@ -229,7 +230,7 @@ class IncomeCRUDTest(BaseViewTest):
         data = {
             'date': date.today(),
             'amount': 2200,
-            'source': 'Bonus',
+            'source_type': 'Salary',
             'description': 'Updated without account',
             'currency': '₹',
             'account': '',
