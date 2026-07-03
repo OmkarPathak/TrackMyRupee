@@ -78,3 +78,21 @@ class IncomeSourceTypeTest(TestCase):
         
         self.assertEqual(income.source, 'Business')
         self.assertEqual(income.description, 'Sales revenue')
+
+    def test_income_list_source_type_filter(self):
+        # Create different source_type incomes
+        Income.objects.create(user=self.user, date=date(2026, 7, 10), amount=Decimal('100.00'), source_type='Salary', source='Salary', account=self.account)
+        Income.objects.create(user=self.user, date=date(2026, 7, 11), amount=Decimal('200.00'), source_type='Business', source='Business', account=self.account)
+        
+        self.client.force_login(self.user)
+        from django.urls import reverse
+        url = reverse('income-list')
+        
+        # Test default (both returned)
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['incomes']), 2)
+        
+        # Test filtered by source_type=Business
+        response = self.client.get(url, {'source_type': 'Business'})
+        self.assertEqual(len(response.context['incomes']), 1)
+        self.assertEqual(response.context['incomes'][0].source_type, 'Business')

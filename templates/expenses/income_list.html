@@ -192,17 +192,31 @@
     <div class="collapse" id="incomeFilters">
         <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm border-0 mt-3">
             <div class="row g-3 align-items-end">
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
                     <label for="date_from" class="form-label small text-muted">{% trans "Date From" %}</label>
                     <input type="date" class="form-control form-control-sm" id="date_from" name="date_from" value="{{ filter_form.date_from }}">
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
                     <label for="date_to" class="form-label small text-muted">{% trans "Date To" %}</label>
                     <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ filter_form.date_to }}">
                 </div>
                 <div class="col-md-3">
                     <label for="source" class="form-label small text-muted">{% trans "Source" %}</label>
                     <input type="text" class="form-control form-control-sm" id="source" name="source" value="{{ filter_form.source }}" placeholder="{% trans 'Search source...' %}">
+                </div>
+                <div class="col-md-3">
+                    <label for="source_type" class="form-label small text-muted">{% trans "Source Type" %}</label>
+                    <select class="form-select form-select-sm" id="source_type" name="source_type">
+                        <option value="">{% trans "All" %}</option>
+                        <option value="Salary" {% if filter_form.source_type == "Salary" %}selected{% endif %}>{% trans "Salary" %}</option>
+                        <option value="Freelance / Consulting" {% if filter_form.source_type == "Freelance / Consulting" %}selected{% endif %}>{% trans "Freelance / Consulting" %}</option>
+                        <option value="Business" {% if filter_form.source_type == "Business" %}selected{% endif %}>{% trans "Business" %}</option>
+                        <option value="Investment Returns" {% if filter_form.source_type == "Investment Returns" %}selected{% endif %}>{% trans "Investment Returns" %}</option>
+                        <option value="Rental Income" {% if filter_form.source_type == "Rental Income" %}selected{% endif %}>{% trans "Rental Income" %}</option>
+                        <option value="Cashback & Rewards" {% if filter_form.source_type == "Cashback & Rewards" %}selected{% endif %}>{% trans "Cashback & Rewards" %}</option>
+                        <option value="Refund / Reimbursement" {% if filter_form.source_type == "Refund / Reimbursement" %}selected{% endif %}>{% trans "Refund / Reimbursement" %}</option>
+                        <option value="Other" {% if filter_form.source_type == "Other" %}selected{% endif %}>{% trans "Other" %}</option>
+                    </select>
                 </div>
                 <div class="col-auto d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm">

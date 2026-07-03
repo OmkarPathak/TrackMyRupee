@@ -26,6 +26,7 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
         selected_years = self.request.GET.getlist('year')
         selected_months = self.request.GET.getlist('month')
         source = self.request.GET.get('source')
+        source_type = self.request.GET.get('source_type')
 
         # Remove empty strings from lists
         selected_years = [y for y in selected_years if y]
@@ -53,7 +54,7 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
             self.date_to = ''
         else:
             # No filters at all — default to current year
-            if not source:
+            if not source and not source_type:
                 queryset = queryset.filter(date__gte=default_from, date__lte=default_to)
             self.date_from = default_from
             self.date_to = default_to
@@ -61,6 +62,10 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
         # Source Filter
         if source:
             queryset = queryset.filter(source__icontains=source)
+            
+        # Source Type Filter
+        if source_type:
+            queryset = queryset.filter(source_type=source_type)
             
         return queryset
 
@@ -90,6 +95,7 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
             'date_from': getattr(self, 'date_from', ''),
             'date_to': getattr(self, 'date_to', ''),
             'source': self.request.GET.get('source', ''),
+            'source_type': self.request.GET.get('source_type', ''),
         }
         return context
 
