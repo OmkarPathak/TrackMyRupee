@@ -61,16 +61,13 @@
                             {% endif %}
                         </div>
 
-                        <!-- Row 3: Source -->
+                        <!-- Row 3: Source Type -->
                         <div class="col-12 mb-3">
-                            <label for="{{ form.source.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.source.label }}</label>
-                            {{ form.source }}
-                            <div class="form-text small">
-                                {% trans "For generic cashback credited to bank/card, use source: Cashback and select the credited account." %}
-                            </div>
-                            {% if form.source.errors %}
+                            <label for="{{ form.source_type.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.source_type.label }}</label>
+                            {{ form.source_type }}
+                            {% if form.source_type.errors %}
                                 <div class="text-danger small mt-1">
-                                    {{ form.source.errors.0 }}
+                                    {{ form.source_type.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>

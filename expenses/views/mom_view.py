@@ -61,6 +61,10 @@ def mom_analysis_view(request):
     history_start = months_data[0]['start']
     
     batch_inc = Income.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+    batch_cb_rf = Income.objects.filter(
+        user=user, date__gte=history_start,
+        source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']
+    ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     batch_exp = Expense.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     batch_inv = Transfer.objects.filter(
         user=user, date__gte=history_start, 
@@ -68,6 +72,7 @@ def mom_analysis_view(request):
     ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('converted_amount'))
     
     mo_inc_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inc}
+    mo_cb_rf_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_cb_rf}
     mo_exp_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_exp}
     mo_inv_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inv}
 
@@ -169,7 +174,13 @@ def mom_analysis_view(request):
     
     # Savings Rate
     curr_income = inc_data[-1] if inc_data[-1] is not None else 0
-    savings_rate = (curr_savings / curr_income * 100) if curr_income > 0 else 0
+    # Exclude cashback and refund from savings rate denominator
+    curr_cb_rf = 0.0
+    if months_data:
+        latest_month_item = months_data[-1]
+        curr_cb_rf = mo_cb_rf_map.get((latest_month_item['year'], latest_month_item['month']), 0.0)
+    curr_savings_rate_denominator = curr_income - curr_cb_rf
+    savings_rate = (curr_savings / curr_savings_rate_denominator * 100) if curr_savings_rate_denominator > 0 else 0
     
     # Streak Calculation
     savings_streak = 0

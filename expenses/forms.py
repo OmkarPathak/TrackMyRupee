@@ -150,14 +150,14 @@ class ExpenseForm(forms.ModelForm):
 class IncomeForm(forms.ModelForm):
     class Meta:
         model = Income
-        fields = ['date', 'amount', 'currency', 'account', 'source', 'description']
+        fields = ['date', 'amount', 'currency', 'account', 'source_type', 'description']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
-            'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Salary, Freelance, Cashback')}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'source_type': forms.Select(attrs={'class': 'form-select'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('e.g. Salary from company, Freelance project details')}),
         }
     
     add_to_recurring = forms.BooleanField(required=False, label=_("Make this a recurring income"))
@@ -172,6 +172,10 @@ class IncomeForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['date'].initial = date.today
+        self.fields['source_type'].required = True
+        self.fields['source_type'].label = _("Source Type")
+        self.fields['description'].required = False
+        self.fields['description'].label = _("Description")
         if self.user:
             self.fields['currency'].initial = self.user.profile.currency
             
@@ -194,7 +198,7 @@ class IncomeForm(forms.ModelForm):
         source = self.cleaned_data.get('source')
         if source:
             return source.strip()
-        return source
+        return source or ""
 
 class RecurringTransactionForm(forms.ModelForm):
     class Meta:

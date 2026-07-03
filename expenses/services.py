@@ -475,8 +475,11 @@ class SalaryAnalysisService:
         
         # Calculate totals in base currency
         total_income = Decimal('0')
+        savings_rate_denominator = Decimal('0')
         for inc in income_list:
             total_income += inc.base_amount or Decimal('0')
+            if inc.source_type not in ['Cashback & Rewards', 'Refund / Reimbursement']:
+                savings_rate_denominator += inc.base_amount or Decimal('0')
         
         total_expenses = Decimal('0')
         for exp in expense_list:
@@ -511,7 +514,7 @@ class SalaryAnalysisService:
         daily_burn = total_expenses / num_days if num_days > 0 else Decimal('0')
         
         # Calculate savings rate
-        savings_rate = (savings / total_income * 100) if total_income > 0 else Decimal('0')
+        savings_rate = (savings / savings_rate_denominator * 100) if savings_rate_denominator > 0 else Decimal('0')
         
         return {
             'cycle_start': cycle_start,

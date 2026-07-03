@@ -227,7 +227,7 @@
                             <thead>
                                 <tr>
                                     <th class="ps-4">{% trans "Date" %}</th>
-                                    <th>{% trans "Source" %}</th>
+                                    <th>{% trans "Source Type" %}</th>
                                     <th>{% trans "Description" %}</th>
                                     <th>{% trans "Amount" %}</th>
                                     <th class="text-end pe-4">{% trans "Actions" %}</th>
@@ -238,11 +238,11 @@
                                 <tr>
                                     <td class="ps-4 text-nowrap">{{ income.date|date:"d M Y"|translate_digits }}</td>
                                     <td>
-                                        <span class="badge-soft badge-soft-success">{{ income.source }}</span>
+                                        <span class="badge-soft badge-soft-success">{{ income.source_type }}</span>
                                     </td>
                                     <td>{{ income.description|default:"-"|truncatechars:30 }}</td>
                                     <td class="fw-bold text-success">
-                                        {{ user.profile.currency }}{{ income.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                        {{ user.profile.currency}}{{ income.base_amount|compact_amount:user.profile.currency|translate_digits }}
                                         {% if income.currency != user.profile.currency %}
                                         <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
                                             ({{ income.currency }}{{ income.amount|compact_amount:income.currency|translate_digits }})
@@ -256,6 +256,7 @@
                                                     data-url="{% url 'income-edit' income.pk %}"
                                                     data-date="{{ income.date|date:'Y-m-d' }}"
                                                     data-source="{{ income.source }}"
+                                                    data-source-type="{{ income.source_type }}"
                                                     data-description="{{ income.description|default_if_none:'' }}"
                                                     data-amount="{{ income.amount }}"
                                                     data-currency="{{ income.currency }}"
@@ -268,7 +269,7 @@
                                             <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
                                                     data-bs-toggle="modal" data-bs-target="#deleteModal" 
                                                     data-url="{% url 'income-delete' income.pk %}"
-                                                    data-message="{% blocktrans with source=income.source %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
+                                                    data-message="{% blocktrans with source=income.source_type %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
                                                 <i class="bi bi-trash text-danger fs-6"></i>
                                             </button>
                                         </div>
@@ -298,12 +299,12 @@
                         <div class="card-body p-3">
                             <div class="mobile-card-inner">
                                 <!-- Left-Mid: Icon -->
-                                <div class="category-icon-container" title="{{ income.source }}">
+                                <div class="category-icon-container" title="{{ income.source_type }}">
                                     <i class="bi bi-wallet2 text-success"></i>
                                 </div>
                                 <!-- Center: Source & Description -->
                                 <div class="flex-grow-1 min-width-0 ps-3">
-                                    <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.95rem;">{{ income.source }}</h6>
+                                    <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.95rem;">{{ income.source_type }}</h6>
                                     <p class="text-muted small mb-0 text-truncate" style="font-size: 0.78rem;">
                                         {{ income.description|default:"-" }}
                                     </p>
@@ -326,6 +327,7 @@
                                                     data-url="{% url 'income-edit' income.pk %}"
                                                     data-date="{{ income.date|date:'Y-m-d' }}"
                                                     data-source="{{ income.source }}"
+                                                    data-source-type="{{ income.source_type }}"
                                                     data-description="{{ income.description|default_if_none:'' }}"
                                                     data-amount="{{ income.amount }}"
                                                     data-currency="{{ income.currency }}"
@@ -339,7 +341,7 @@
                                             <button type="button" class="dropdown-item py-2 text-danger" 
                                                     data-bs-toggle="modal" data-bs-target="#deleteModal" 
                                                     data-url="{% url 'income-delete' income.pk %}"
-                                                    data-message="{% blocktrans with source=income.source %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
+                                                    data-message="{% blocktrans with source=income.source_type %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
                                                 <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
                                             </button>
                                         </li>
@@ -459,8 +461,17 @@
                                 </div>
                             </div>
                             <div class="col-6">
-                                <label for="edit_source" class="form-label text-muted small text-uppercase">{% trans "Source" %}</label>
-                                <input type="text" class="form-control" id="edit_source" name="source" required>
+                                <label for="edit_source_type" class="form-label text-muted small text-uppercase">{% trans "Source Type" %}</label>
+                                <select class="form-select" id="edit_source_type" name="source_type" required>
+                                    <option value="Salary">{% trans "Salary" %}</option>
+                                    <option value="Freelance / Consulting">{% trans "Freelance / Consulting" %}</option>
+                                    <option value="Business">{% trans "Business" %}</option>
+                                    <option value="Investment Returns">{% trans "Investment Returns" %}</option>
+                                    <option value="Rental Income">{% trans "Rental Income" %}</option>
+                                    <option value="Cashback & Rewards">{% trans "Cashback & Rewards" %}</option>
+                                    <option value="Refund / Reimbursement">{% trans "Refund / Reimbursement" %}</option>
+                                    <option value="Other">{% trans "Other" %}</option>
+                                </select>
                             </div>
                         </div>
                         
@@ -514,15 +525,15 @@
                     var button = event.relatedTarget;
                     var url = button.getAttribute('data-url');
                     var date = button.getAttribute('data-date');
-                    var source = button.getAttribute('data-source');
                     var description = button.getAttribute('data-description');
+                    var sourceType = button.getAttribute('data-source-type');
                     var amount = button.getAttribute('data-amount');
                     var currency = button.getAttribute('data-currency');
                     
                     var form = editModal.querySelector('#editIncomeForm');
                     var dateInput = editModal.querySelector('#edit_date');
-                    var sourceInput = editModal.querySelector('#edit_source');
                     var descInput = editModal.querySelector('#edit_description');
+                    var sourceTypeInput = editModal.querySelector('#edit_source_type');
                     var amountInput = editModal.querySelector('#edit_amount');
                     var currencyInput = editModal.querySelector('#edit_currency');
                     var accountInput = editModal.querySelector('#edit_account');
@@ -550,8 +561,12 @@
 
                     dateInput.value = date;
 
-                    sourceInput.value = source;
-                    descInput.value = description !== 'None' ? description : '';
+                    if (descInput) {
+                        descInput.value = description !== 'None' ? description : '';
+                    }
+                    if (sourceTypeInput) {
+                        sourceTypeInput.value = sourceType || 'Salary';
+                    }
                     amountInput.value = amount;
                     currencyInput.value = currency;
                     accountInput.value = button.getAttribute('data-account');

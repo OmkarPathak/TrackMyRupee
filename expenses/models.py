@@ -501,11 +501,28 @@ class Category(models.Model):
         return self.name
 
 class Income(models.Model):
+    SOURCE_TYPE_CHOICES = [
+        ('Salary', _('Salary')),
+        ('Freelance / Consulting', _('Freelance / Consulting')),
+        ('Business', _('Business')),
+        ('Investment Returns', _('Investment Returns')),
+        ('Rental Income', _('Rental Income')),
+        ('Cashback & Rewards', _('Cashback & Rewards')),
+        ('Refund / Reimbursement', _('Refund / Reimbursement')),
+        ('Other', _('Other')),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField(verbose_name=_('Date'))
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_('Amount'))
     description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
     source = models.CharField(max_length=255, verbose_name=_('Source')) # e.g. Salary, Freelance, Dividend
+    source_type = models.CharField(
+        max_length=50,
+        choices=SOURCE_TYPE_CHOICES,
+        default='Salary',
+        verbose_name=_('Source Type')
+    )
     
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
@@ -535,6 +552,8 @@ class Income(models.Model):
                     old_account.balance -= reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
+            if not self.source:
+                self.source = self.source_type or 'Salary'
             if self.source:
                 self.source = self.source.strip()
                 

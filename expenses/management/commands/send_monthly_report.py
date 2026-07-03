@@ -100,13 +100,15 @@ class Command(BaseCommand):
         exp_qs = Expense.objects.filter(user=user, date__range=[start_date, end_date])
         
         total_income = inc_qs.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
+        cb_rf_income = inc_qs.filter(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
+        savings_rate_denominator = total_income - cb_rf_income
         total_expense = exp_qs.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
         
         if total_income == 0 and total_expense == 0:
             return {'has_data': False}
 
         savings = total_income - total_expense
-        savings_rate = round((savings / total_income * 100), 1) if total_income > 0 else 0
+        savings_rate = round((savings / savings_rate_denominator * 100), 1) if savings_rate_denominator > 0 else 0
         
         # 2. Top 3 Categories
         top_categories = exp_qs.values('category').annotate(
