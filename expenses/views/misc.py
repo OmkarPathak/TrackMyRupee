@@ -84,16 +84,22 @@ class CalendarView(LoginRequiredMixin, TemplateView):
             # Filter income by source or description
             income_filters &= (Q(source__icontains=search_query) | Q(description__icontains=search_query))
 
-        # Get Expense and Income Data for the month
+        # Get Expense Data for the month
         expenses = Expense.objects.filter(expense_filters).values('date').annotate(
             total=Sum('base_amount'),
             count=Count('id')
         )
         
-        incomes = Income.objects.filter(income_filters).values('date').annotate(
-            total=Sum('base_amount'),
-            count=Count('id')
-        )
+        # Get individual income records to identify Salary day
+        incomes_list = Income.objects.filter(income_filters)
+        from collections import defaultdict
+        income_map = defaultdict(lambda: {'total': 0, 'count': 0, 'has_salary': False})
+        for inc in incomes_list:
+            day = inc.date.day
+            income_map[day]['total'] += inc.base_amount
+            income_map[day]['count'] += 1
+            if inc.source_type == 'Salary' or 'salary' in (inc.description or '').lower() or 'salary' in (inc.source or '').lower():
+                income_map[day]['has_salary'] = True
 
         # Get investment data (Transfers to investment/FD accounts)
         investment_filters = Q(user=self.request.user, date__year=year, date__month=month, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
@@ -108,8 +114,11 @@ class CalendarView(LoginRequiredMixin, TemplateView):
         # Map data for easy lookup by day
         # Keys are integers (day of month)
         expense_map = {e['date'].day: {'total': e['total'], 'count': e['count']} for e in expenses}
-        income_map = {i['date'].day: {'total': i['total'], 'count': i['count']} for i in incomes}
         investment_map = {inv['date'].day: {'total': inv['total'], 'count': inv['count']} for inv in investments}
+        
+        # Calculate average daily expense for non-zero expense days
+        expense_days = [float(e['total']) for e in expenses if float(e['total']) > 0]
+        avg_expense = sum(expense_days) / len(expense_days) if expense_days else 0
         
         # Get pending recurring transactions for the month
         from collections import defaultdict
@@ -158,10 +167,34 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                     week_data.append(None) # Empty slot
                 else:
                     expense_info = expense_map.get(day, {'total': 0, 'count': 0})
-                    income_info = income_map.get(day, {'total': 0, 'count': 0})
+                    income_info = income_map.get(day, {'total': 0, 'count': 0, 'has_salary': False})
                     investment_info = investment_map.get(day, {'total': 0, 'count': 0})
                     
                     total_activity = float(income_info['total'] or 0) + float(expense_info['total'] or 0) + float(investment_info['total'] or 0)
+                    pending_recurring = pending_recurring_map.get(day, [])
+                    
+                    # Highlight salary day
+                    has_pending_salary = any(pr['type'] == 'INCOME' and 'salary' in pr['description'].lower() for pr in pending_recurring)
+                    is_salary_day = income_info['has_salary'] or has_pending_salary
+                    
+                    # Add is_high_spend flag
+                    is_high_spend = False
+                    if expense_info['total'] > 0:
+                        if avg_expense > 0:
+                            is_high_spend = float(expense_info['total']) >= avg_expense and float(expense_info['total']) >= 500
+                        else:
+                            is_high_spend = float(expense_info['total']) >= 500
+                            
+                    # Check if this day is a subscription date with a 3-day warning
+                    subscription_warning = False
+                    if pending_recurring:
+                        try:
+                            cell_date = date(year, month, day)
+                            today_date = date.today()
+                            if 0 <= (cell_date - today_date).days <= 3:
+                                subscription_warning = True
+                        except ValueError:
+                            pass
                     
                     week_data.append({
                         'day': day,
@@ -173,7 +206,10 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                         'investment_count': investment_info['count'],
                         'total_count': income_info['count'] + expense_info['count'] + investment_info['count'],
                         'total_activity': total_activity,
-                        'pending_recurring': pending_recurring_map.get(day, [])
+                        'pending_recurring': pending_recurring,
+                        'is_salary_day': is_salary_day,
+                        'is_high_spend': is_high_spend,
+                        'subscription_warning': subscription_warning
                     })
             calendar_data.append(week_data)
         
@@ -196,18 +232,10 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                         intensity = 0
                     day_data['intensity'] = intensity
 
-        # Calculate totals for the month to show net savings
-        total_monthly_expense = sum(item['total'] for item in expenses) or 0
-        total_monthly_income = sum(item['total'] for item in incomes) or 0
-        total_monthly_investment = sum(item['total'] for item in investments) or 0
-        month_net_savings = total_monthly_income - total_monthly_expense - total_monthly_investment
-
         context['calendar_data'] = calendar_data
         context['current_year'] = year
         context['current_month'] = month
         context['month_name'] = date_format(date(year, month, 1), 'F')
-        context['month_net_savings'] = month_net_savings
-        context['total_monthly_investment'] = total_monthly_investment
         context['prev_year'] = prev_month_date.year
         context['prev_month'] = prev_month_date.month
         context['next_year'] = next_month_date.year

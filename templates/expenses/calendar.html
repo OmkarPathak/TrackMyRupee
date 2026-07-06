@@ -63,6 +63,12 @@
             <div class="d-flex align-items-center gap-1">
                 <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #6c757d;"></span> {% trans "Pending" %}
             </div>
+            <div class="d-flex align-items-center gap-1">
+                <i class="bi bi-star-fill text-warning" style="font-size: 0.85rem;"></i> {% trans "Salary Day" %}
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                <span class="d-inline-block border border-2 border-warning rounded-circle" style="width: 10px; height: 10px;"></span> {% trans "Upcoming Sub (3d)" %}
+            </div>
         </div>
 
         <div class="d-flex align-items-center gap-2 ms-sm-auto small text-muted heatmap-legend" title="{% trans 'Intensity based on total volume of Income + Expenses + Investments' %}" data-bs-toggle="tooltip">
@@ -94,7 +100,7 @@
         <div class="d-grid" style="grid-template-columns: repeat(7, minmax(0, 1fr));">
             {% for day_data in week %}
                 {% if day_data %}
-                    <div class="border-end border-bottom p-2 day-cell heatmap-{{ day_data.intensity }} d-flex flex-column align-items-center align-items-md-stretch" 
+                    <div class="border-end border-bottom p-2 day-cell heatmap-{{ day_data.intensity }} {% if day_data.subscription_warning %}subscription-warning-ring{% endif %} {% if day_data.is_salary_day %}salary-day-highlight{% endif %} d-flex flex-column align-items-center align-items-md-stretch" 
                          style="min-height: 100px; position: relative; cursor: pointer;"
                          tabindex="0"
                          data-bs-toggle="popover"
@@ -107,8 +113,19 @@
                         
                         <!-- Date Number & Link -->
                         <div class="d-flex justify-content-between w-100 px-1 mb-1 mb-md-2">
-                            <span class="small fw-bold">{{ day_data.day|translate_digits }}</span>
-                                     <a href="{% url 'all-transactions' %}?start_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}&end_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}" 
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="small fw-bold">{{ day_data.day|translate_digits }}</span>
+                                {% if day_data.is_salary_day %}
+                                    <i class="bi bi-star-fill text-warning" style="font-size: 0.75rem;" title="{% trans 'Salary Day' %}"></i>
+                                {% endif %}
+                                {% if day_data.is_high_spend %}
+                                    <span class="d-inline-block rounded-circle bg-danger" style="width: 5px; height: 5px;" title="{% trans 'High Spend Day' %}"></span>
+                                {% endif %}
+                                {% if day_data.income > 0 %}
+                                    <span class="d-inline-block rounded-circle bg-success" style="width: 5px; height: 5px;" title="{% trans 'Income Day' %}"></span>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'all-transactions' %}?start_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}&end_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}" 
                                class="text-decoration-none text-muted d-none d-md-inline" 
                                          title="{% trans 'View transactions for this day' %}"
                                onclick="event.stopPropagation();">
@@ -156,22 +173,29 @@
 
                         <!-- Mobile Financials (Graceful Badge) -->
                         <div class="d-flex d-md-none flex-column align-items-center mt-auto w-100">
+                            {% if day_data.expense > 0 %}
+                                <span class="text-danger fw-bold" style="font-size: 0.72rem;">{{ currency_symbol }}{{ day_data.expense|compact_amount:currency_symbol|translate_digits }}</span>
+                            {% elif day_data.investment > 0 %}
+                                <span class="text-primary fw-bold" style="font-size: 0.72rem;">{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</span>
+                            {% elif day_data.income > 0 %}
+                                <span class="text-success fw-bold" style="font-size: 0.72rem;">+{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</span>
+                            {% elif day_data.pending_recurring %}
+                                <span class="text-muted" style="font-size: 0.65rem;">{{ currency_symbol }}0</span>
+                            {% endif %}
+                            
                             {% if day_data.total_count > 0 or day_data.pending_recurring %}
-                                <div class="badge rounded-pill bg-light border text-dark fw-bold px-2 py-1 mb-1" style="font-size: 0.65rem;">
-                                    {{ day_data.total_count|translate_digits }}
-                                </div>
-                                <div class="d-flex gap-1">
+                                <div class="d-flex gap-1 mt-1">
                                     {% if day_data.income > 0 %}
-                                        <div class="rounded-circle bg-success" style="width: 5px; height: 5px;"></div>
+                                        <div class="rounded-circle bg-success" style="width: 4px; height: 4px;"></div>
                                     {% endif %}
                                     {% if day_data.expense > 0 %}
-                                        <div class="rounded-circle bg-danger" style="width: 5px; height: 5px;"></div>
+                                        <div class="rounded-circle bg-danger" style="width: 4px; height: 4px;"></div>
                                     {% endif %}
                                     {% if day_data.investment > 0 %}
-                                        <div class="rounded-circle bg-primary" style="width: 5px; height: 5px;"></div>
+                                        <div class="rounded-circle bg-primary" style="width: 4px; height: 4px;"></div>
                                     {% endif %}
                                     {% if day_data.pending_recurring %}
-                                        <div class="rounded-circle" style="width: 5px; height: 5px; background-color: #6c757d;"></div>
+                                        <div class="rounded-circle" style="width: 4px; height: 4px; background-color: #6c757d;"></div>
                                     {% endif %}
                                 </div>
                             {% endif %}
@@ -190,6 +214,20 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Prevent autofocus from opening the keyboard on mobile
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.blur();
+            const preventAutoKeyboard = function() {
+                searchInput.blur();
+                searchInput.removeEventListener('focus', preventAutoKeyboard);
+            };
+            searchInput.addEventListener('focus', preventAutoKeyboard);
+            setTimeout(function() {
+                searchInput.removeEventListener('focus', preventAutoKeyboard);
+            }, 1000);
+        }
+
         // Initialize Popovers
         var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
         var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
@@ -221,6 +259,18 @@
 
     .day-cell:hover {
         background-color: rgba(var(--bs-primary-rgb), 0.03);
+    }
+
+    .subscription-warning-ring {
+        outline: 2px solid #fd7e14 !important;
+        outline-offset: -2px;
+    }
+
+    .salary-day-highlight {
+        background-color: rgba(255, 193, 7, 0.08) !important;
+    }
+    [data-bs-theme="dark"] .salary-day-highlight {
+        background-color: rgba(255, 193, 7, 0.15) !important;
     }
 
     /* Heatmap Intensities - Using the theme's teal color #1D9E75 (approx RGB: 29, 158, 117) */
