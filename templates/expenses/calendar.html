@@ -54,7 +54,7 @@
                 <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #6c757d;"></span> {% trans "Pending" %}
             </div>
             <div class="d-flex align-items-center gap-1">
-                <i class="bi bi-star-fill text-warning" style="font-size: 0.85rem;"></i> {% trans "Salary Day" %}
+                <i class="bi bi-star-fill salary-star" style="font-size: 0.85rem;"></i> {% trans "Salary Day" %}
             </div>
             <div class="d-flex align-items-center gap-1">
                 <span class="d-inline-block border border-2 border-warning rounded-circle" style="width: 10px; height: 10px;"></span> {% trans "Upcoming Sub (3d)" %}
@@ -106,7 +106,7 @@
                             <div class="d-flex align-items-center gap-1">
                                 <span class="small fw-bold">{{ day_data.day|translate_digits }}</span>
                                 {% if day_data.is_salary_day %}
-                                    <i class="bi bi-star-fill text-warning" style="font-size: 0.75rem;" title="{% trans 'Salary Day' %}"></i>
+                                    <i class="bi bi-star-fill salary-star" style="font-size: 0.75rem;" title="{% trans 'Salary Day' %}"></i>
                                 {% endif %}
                                 {% if day_data.is_high_spend %}
                                     <span class="d-inline-block rounded-circle bg-danger" style="width: 5px; height: 5px;" title="{% trans 'High Spend Day' %}"></span>
@@ -257,10 +257,17 @@
     }
 
     .salary-day-highlight {
-        background-color: rgba(255, 193, 7, 0.08) !important;
+        background-color: rgba(108, 117, 125, 0.08) !important;
     }
     [data-bs-theme="dark"] .salary-day-highlight {
-        background-color: rgba(255, 193, 7, 0.15) !important;
+        background-color: rgba(173, 181, 189, 0.12) !important;
+    }
+
+    .salary-star {
+        color: #6c757d !important;
+    }
+    [data-bs-theme="dark"] .salary-star {
+        color: #adb5bd !important;
     }
 
     /* Heatmap Intensities - Using the theme's teal color #1D9E75 (approx RGB: 29, 158, 117) */

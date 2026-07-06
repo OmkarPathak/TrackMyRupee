@@ -2,7 +2,7 @@ import calendar
 from datetime import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import CharField, F, Q, Sum, Value, Case, When, IntegerField
+from django.db.models import CharField, F, Q, Sum, Value, Case, When, IntegerField, DecimalField, BigIntegerField
 from django.db.models.functions import Cast
 from django.db.models.functions import Concat
 from django.views.generic import ListView
@@ -19,71 +19,72 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user
-        loan_pk_field = Value(None, output_field=CharField())
-        null_int_field = Value(None, output_field=IntegerField())
         
         # 1. Normalize Expenses
         expenses = Expense.objects.filter(user=user).annotate(
-            type=Value('EXPENSE', output_field=CharField()),
-            cat=F('category'),
-            acc=F('account__name'),
-            unified_amount=F('base_amount'),
-            tx_description=F('description'),
-            loan_pk=loan_pk_field,
-            source_account_id=F('account_id'),
-            target_account_id=null_int_field,
+            type=Cast(Value('EXPENSE'), output_field=CharField()),
+            cat=Cast(F('category'), output_field=CharField()),
+            acc=Cast(F('account__name'), output_field=CharField()),
+            unified_amount=Cast(F('base_amount'), output_field=DecimalField(max_digits=15, decimal_places=2)),
+            tx_description=Cast(F('description'), output_field=CharField()),
+            loan_pk=Cast(Value(None), output_field=CharField()),
+            source_account_id=Cast(F('account_id'), output_field=BigIntegerField()),
+            target_account_id=Cast(Value(None), output_field=BigIntegerField()),
         ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # 2. Normalize Incomes
         incomes = Income.objects.filter(user=user).annotate(
-            type=Value('INCOME', output_field=CharField()),
-            cat=F('source_type'),
-            acc=F('account__name'),
-            unified_amount=F('base_amount'),
-            tx_description=F('description'),
-            loan_pk=loan_pk_field,
-            source_account_id=F('account_id'),
-            target_account_id=null_int_field,
+            type=Cast(Value('INCOME'), output_field=CharField()),
+            cat=Cast(F('source_type'), output_field=CharField()),
+            acc=Cast(F('account__name'), output_field=CharField()),
+            unified_amount=Cast(F('base_amount'), output_field=DecimalField(max_digits=15, decimal_places=2)),
+            tx_description=Cast(F('description'), output_field=CharField()),
+            loan_pk=Cast(Value(None), output_field=CharField()),
+            source_account_id=Cast(F('account_id'), output_field=BigIntegerField()),
+            target_account_id=Cast(Value(None), output_field=BigIntegerField()),
         ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # 3. Normalize Transfers
         transfers = Transfer.objects.filter(user=user).annotate(
-            type=Value('TRANSFER', output_field=CharField()),
-            cat=Value('Transfer', output_field=CharField()),
-            acc=Concat(F('from_account__name'), Value(' → '), F('to_account__name'), output_field=CharField()),
-            unified_amount=F('converted_amount'),
-            tx_description=F('description'),
-            loan_pk=loan_pk_field,
-            source_account_id=F('from_account_id'),
-            target_account_id=F('to_account_id'),
+            type=Cast(Value('TRANSFER'), output_field=CharField()),
+            cat=Cast(Value('Transfer'), output_field=CharField()),
+            acc=Cast(Concat(F('from_account__name'), Value(' → '), F('to_account__name'), output_field=CharField()), output_field=CharField()),
+            unified_amount=Cast(F('converted_amount'), output_field=DecimalField(max_digits=15, decimal_places=2)),
+            tx_description=Cast(F('description'), output_field=CharField()),
+            loan_pk=Cast(Value(None), output_field=CharField()),
+            source_account_id=Cast(F('from_account_id'), output_field=BigIntegerField()),
+            target_account_id=Cast(F('to_account_id'), output_field=BigIntegerField()),
         ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # 4. Normalize Loan Repayments
         loan_repayments = LoanRepayment.objects.filter(loan__user=user).annotate(
-            type=Value('LOAN', output_field=CharField()),
-            cat=F('loan__name'),
-            acc=F('from_account__name'),
-            unified_amount=F('base_amount'),
-            tx_description=Concat(Value('Loan repayment - '), F('loan__name'), output_field=CharField()),
+            type=Cast(Value('LOAN'), output_field=CharField()),
+            cat=Cast(F('loan__name'), output_field=CharField()),
+            acc=Cast(F('from_account__name'), output_field=CharField()),
+            unified_amount=Cast(F('base_amount'), output_field=DecimalField(max_digits=15, decimal_places=2)),
+            tx_description=Cast(Concat(Value('Loan repayment - '), F('loan__name'), output_field=CharField()), output_field=CharField()),
             loan_pk=Cast(F('loan_id'), output_field=CharField()),
-            source_account_id=F('from_account_id'),
-            target_account_id=null_int_field,
+            source_account_id=Cast(F('from_account_id'), output_field=BigIntegerField()),
+            target_account_id=Cast(Value(None), output_field=BigIntegerField()),
         ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # 5. Normalize Capital Events
         capital_events = CapitalEvent.objects.filter(user=user).annotate(
-            type=Value('CAPITAL_EVENT', output_field=CharField()),
-            cat=Case(
-                *[When(subtype=k, then=Value(str(v))) for k, v in CapitalEvent.SUBTYPE_CHOICES],
-                default=Value('Other'),
+            type=Cast(Value('CAPITAL_EVENT'), output_field=CharField()),
+            cat=Cast(
+                Case(
+                    *[When(subtype=k, then=Value(str(v))) for k, v in CapitalEvent.SUBTYPE_CHOICES],
+                    default=Value('Other'),
+                    output_field=CharField()
+                ),
                 output_field=CharField()
             ),
-            acc=F('account__name'),
-            unified_amount=F('base_amount'),
-            tx_description=F('note'),
+            acc=Cast(F('account__name'), output_field=CharField()),
+            unified_amount=Cast(F('base_amount'), output_field=DecimalField(max_digits=15, decimal_places=2)),
+            tx_description=Cast(F('note'), output_field=CharField()),
             loan_pk=Cast(F('linked_loan_id'), output_field=CharField()),
-            source_account_id=F('account_id'),
-            target_account_id=null_int_field,
+            source_account_id=Cast(F('account_id'), output_field=BigIntegerField()),
+            target_account_id=Cast(Value(None), output_field=BigIntegerField()),
         ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # Handle filtering

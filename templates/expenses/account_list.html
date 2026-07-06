@@ -1,7 +1,7 @@
-{% extends 'expenses/settings_base.html' %}
+{% extends 'base.html' %}
 {% load i18n digit_filters %}
 
-{% block settings_content %}
+{% block content %}
 <style>
     .nav-pills-custom .nav-link.active {
         background-color: #1D9E75 !important;
@@ -167,7 +167,7 @@
                     {% for group in grouped_accounts %}
                     <div class="accordion-item {% if forloop.last %}rounded-bottom-4 overflow-hidden{% endif %} {% if forloop.first %}rounded-top-4 overflow-hidden{% endif %}">
                         <h2 class="accordion-header" id="heading-{{ group.type }}">
-                            <button class="accordion-button collapsed px-3 py-3 d-flex justify-content-between align-items-center bg-transparent border-bottom border-light" 
+                            <button class="accordion-button collapsed px-3 py-3 d-flex justify-content-between align-items-center bg-transparent border-bottom" 
                                     type="button" 
                                     data-bs-toggle="collapse" 
                                     data-bs-target="#collapse-{{ group.type }}" 

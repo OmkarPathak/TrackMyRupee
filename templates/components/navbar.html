@@ -324,10 +324,9 @@
         </div>
     </a>
 
-    <a href="{% url 'analytics' %}" class="mobile-nav-item {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}">
-        {% if not request.user.profile.has_ai_access %}<i class="bi bi-lock-fill position-absolute text-primary" style="font-size: 0.65rem; top: 12px; right: 28%;"></i>{% endif %}
-        <i class="bi bi-graph-up-arrow"></i>
-        <span>{% trans "Analytics" %}</span>
+    <a href="{% url 'account-list' %}" class="mobile-nav-item {% if 'account' in request.resolver_match.url_name or 'transfer' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-bank"></i>
+        <span>{% trans "Accounts" %}</span>
     </a>
     <button class="mobile-nav-item mobile-nav-item-more position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet" aria-controls="moreMenuSheet">
         <i class="bi bi-grid"></i>

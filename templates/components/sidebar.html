@@ -105,7 +105,7 @@
 
             <!-- Accounts -->
             <div class="d-flex align-items-center position-relative px-0">
-                <a href="{% url 'account-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'account' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Accounts' %}">
+                <a href="{% url 'account-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'account' in request.resolver_match.url_name or 'transfer' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Accounts' %}">
                     <i class="bi bi-bank fs-5"></i>
                     <span class="nav-text">{% trans "Accounts" %}</span>
                 </a>
