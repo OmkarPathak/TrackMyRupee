@@ -170,7 +170,7 @@
                             {% elif day_data.income > 0 %}
                                 <span class="text-success fw-bold" style="font-size: 0.72rem;">+{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</span>
                             {% elif day_data.pending_recurring %}
-                                <span class="text-muted" style="font-size: 0.65rem;">{{ currency_symbol }}0</span>
+                                <span class="text-muted" style="font-size: 0.65rem;">{{ currency_symbol }}{{ day_data.pending_total|compact_amount:currency_symbol|translate_digits }}</span>
                             {% endif %}
                             
                             {% if day_data.total_count > 0 or day_data.pending_recurring %}

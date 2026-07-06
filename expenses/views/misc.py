@@ -172,6 +172,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                     
                     total_activity = float(income_info['total'] or 0) + float(expense_info['total'] or 0) + float(investment_info['total'] or 0)
                     pending_recurring = pending_recurring_map.get(day, [])
+                    pending_total = sum(pr['amount'] for pr in pending_recurring)
                     
                     # Highlight salary day
                     has_pending_salary = any(pr['type'] == 'INCOME' and 'salary' in pr['description'].lower() for pr in pending_recurring)
@@ -207,6 +208,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                         'total_count': income_info['count'] + expense_info['count'] + investment_info['count'],
                         'total_activity': total_activity,
                         'pending_recurring': pending_recurring,
+                        'pending_total': pending_total,
                         'is_salary_day': is_salary_day,
                         'is_high_spend': is_high_spend,
                         'subscription_warning': subscription_warning

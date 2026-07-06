@@ -4,6 +4,7 @@ from decimal import Decimal
 from itertools import chain
 
 from django.conf import settings
+from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
@@ -71,11 +72,16 @@ class AccountListView(LoginRequiredMixin, ListView):
             except Exception:
                 display_balances = {}
 
+        now = timezone.now()
+
         for account in accounts:
             if current_status == 'active':
                 account.display_balance = display_balances.get(account.id, account.balance)
             else:
                 account.display_balance = account.balance
+
+            delta = now - account.updated_at
+            account.days_since_update = delta.days
 
             try:
                 rate = get_exchange_rate(account.currency, user_currency)
@@ -83,6 +89,33 @@ class AccountListView(LoginRequiredMixin, ListView):
                 rate = Decimal('1.0')
             total_balance += Decimal(account.display_balance) * Decimal(str(rate))
 
+        # Group accounts
+        group_order = ['BANK', 'CASH', 'INVESTMENT', 'FIXED_DEPOSIT', 'CREDIT_CARD', 'OTHER']
+        group_labels = dict(Account.ACCOUNT_TYPES)
+        grouped_accounts = []
+        for g_type in group_order:
+            group_accs = [a for a in accounts if a.account_type == g_type]
+            if not group_accs:
+                continue
+            
+            # Calculate group total balance in user currency
+            group_total = Decimal('0.00')
+            for acc in group_accs:
+                try:
+                    rate = get_exchange_rate(acc.currency, user_currency)
+                except Exception:
+                    rate = Decimal('1.0')
+                group_total += Decimal(acc.display_balance) * Decimal(str(rate))
+                
+            grouped_accounts.append({
+                'type': g_type,
+                'label': group_labels.get(g_type, g_type),
+                'accounts': group_accs,
+                'count': len(group_accs),
+                'total': group_total.quantize(Decimal('0.01')),
+            })
+
+        context['grouped_accounts'] = grouped_accounts
         context['account_types'] = Account.ACCOUNT_TYPES
         context['selected_type'] = self.request.GET.get('type', '')
         context['selected_type_label'] = dict(Account.ACCOUNT_TYPES).get(context['selected_type'], '')

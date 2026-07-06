@@ -187,6 +187,38 @@ class AccountListViewTest(BaseComprehensiveTest):
         ]
         self.assertEqual(len(opening_lookup_queries), 1)
 
+    def test_account_list_grouping_and_days_since_update(self):
+        """Test that accounts are grouped by type and days_since_update is set."""
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        # Modify updated_at of self.account to be 31 days ago
+        Account.objects.filter(pk=self.account.pk).update(
+            updated_at=timezone.now() - timedelta(days=31)
+        )
+        
+        response = self.client.get(reverse('account-list'))
+        self.assertEqual(response.status_code, 200)
+        
+        # Check days_since_update
+        accounts = response.context['accounts']
+        acc_dict = {a.id: a for a in accounts}
+        self.assertIn(self.account.id, acc_dict)
+        self.assertEqual(acc_dict[self.account.id].days_since_update, 31)
+        
+        # Check grouped_accounts
+        grouped_accounts = response.context['grouped_accounts']
+        self.assertIsNotNone(grouped_accounts)
+        
+        # Since self.account is BANK and self.other_account is CASH, we should have groups for BANK and CASH
+        group_types = [g['type'] for g in grouped_accounts]
+        self.assertIn('BANK', group_types)
+        self.assertIn('CASH', group_types)
+        
+        bank_group = next(g for g in grouped_accounts if g['type'] == 'BANK')
+        self.assertEqual(bank_group['count'], 1)
+        self.assertEqual(bank_group['total'], self.account.balance)
+
 
 class AccountCreateViewTest(BaseComprehensiveTest):
     """Test account creation."""
