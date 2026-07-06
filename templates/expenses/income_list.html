@@ -138,6 +138,12 @@
     #tableView table tbody tr:last-child td {
         border-bottom: 0 !important;
     }
+
+    @media (min-width: 768px) {
+        .border-end-md {
+            border-right: 1px solid var(--bs-border-color) !important;
+        }
+    }
 </style>
 
 <div class="fade-in">
@@ -200,14 +206,19 @@
                     <label for="date_to" class="form-label small text-muted">{% trans "Date To" %}</label>
                     <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ filter_form.date_to }}">
                 </div>
-                <div class="col-md-3">
-                    <label for="source" class="form-label small text-muted">{% trans "Source" %}</label>
-                    <input type="text" class="form-control form-control-sm" id="source" name="source" value="{{ filter_form.source }}" placeholder="{% trans 'Search source...' %}">
+                <div class="col-6 col-md-2">
+                    <label for="income_group" class="form-label small text-muted">{% trans "Group Type" %}</label>
+                    <select class="form-select form-select-sm" id="income_group" name="income_group">
+                        <option value="">{% trans "All Groups" %}</option>
+                        <option value="EARNED" {% if filter_form.income_group == "EARNED" %}selected{% endif %}>{% trans "Earned" %}</option>
+                        <option value="PASSIVE" {% if filter_form.income_group == "PASSIVE" %}selected{% endif %}>{% trans "Passive" %}</option>
+                        <option value="ONE_OFF" {% if filter_form.income_group == "ONE_OFF" %}selected{% endif %}>{% trans "One-off" %}</option>
+                    </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <label for="source_type" class="form-label small text-muted">{% trans "Source Type" %}</label>
                     <select class="form-select form-select-sm" id="source_type" name="source_type">
-                        <option value="">{% trans "All" %}</option>
+                        <option value="">{% trans "All types" %}</option>
                         <option value="Salary" {% if filter_form.source_type == "Salary" %}selected{% endif %}>{% trans "Salary" %}</option>
                         <option value="Freelance / Consulting" {% if filter_form.source_type == "Freelance / Consulting" %}selected{% endif %}>{% trans "Freelance / Consulting" %}</option>
                         <option value="Business" {% if filter_form.source_type == "Business" %}selected{% endif %}>{% trans "Business" %}</option>
@@ -217,6 +228,10 @@
                         <option value="Refund / Reimbursement" {% if filter_form.source_type == "Refund / Reimbursement" %}selected{% endif %}>{% trans "Refund / Reimbursement" %}</option>
                         <option value="Other" {% if filter_form.source_type == "Other" %}selected{% endif %}>{% trans "Other" %}</option>
                     </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label for="source" class="form-label small text-muted">{% trans "Source" %}</label>
+                    <input type="text" class="form-control form-control-sm" id="source" name="source" value="{{ filter_form.source }}" placeholder="{% trans 'Search source...' %}">
                 </div>
                 <div class="col-auto d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm">
@@ -228,6 +243,77 @@
                 </div>
             </div>
         </form>
+    </div>
+
+    <!-- Summary & Sparkline Widget -->
+    <div class="row g-2 mb-3 mt-1">
+        <!-- Summary Cards -->
+        <div class="col-7 col-md-8">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 bg-body h-100">
+                <div class="row text-center text-md-start align-items-center h-100 g-0">
+                    <div class="col-4 border-end">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "Earned" %}</div>
+                        <h5 class="fw-bold text-success mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                            {{ user.profile.currency }}{{ earned_total|compact_amount:user.profile.currency|translate_digits }}
+                        </h5>
+                    </div>
+                    <div class="col-4 border-end ps-1 ps-md-3">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "Passive" %}</div>
+                        <h5 class="fw-bold text-primary mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                            {{ user.profile.currency }}{{ passive_total|compact_amount:user.profile.currency|translate_digits }}
+                        </h5>
+                    </div>
+                    <div class="col-4 ps-1 ps-md-3">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "One-off" %}</div>
+                        <h5 class="fw-bold text-secondary mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                            {{ user.profile.currency }}{{ one_off_total|compact_amount:user.profile.currency|translate_digits }}
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sparkline Card -->
+        <div class="col-5 col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 bg-body h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">{% trans "Trend" %}</div>
+                    {% if sparkline_data %}
+                        {% with last_point=sparkline_data|last %}
+                        <div class="fw-bold text-success" style="font-size: 0.75rem;">
+                            {{ user.profile.currency }}{{ last_point.amount|compact_amount:user.profile.currency|translate_digits }}
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                </div>
+                <div class="d-flex align-items-end justify-content-between gap-1 pt-1">
+                    <!-- Sparkline SVG -->
+                    <div class="flex-grow-1" style="height: 25px; min-width: 50px;">
+                        <svg class="w-100 h-100" viewBox="0 0 120 30" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="sparklineGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="var(--bs-success)" stop-opacity="0.25"></stop>
+                                    <stop offset="100%" stop-color="var(--bs-success)" stop-opacity="0.00"></stop>
+                                </linearGradient>
+                            </defs>
+                            {% if sparkline_path %}
+                                <path d="{{ sparkline_path }}" fill="none" stroke="var(--bs-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="{{ sparkline_path }} L 120,30 L 0,30 Z" fill="url(#sparklineGrad)"></path>
+                            {% endif %}
+                        </svg>
+                    </div>
+                    <!-- Month Labels -->
+                    {% if sparkline_data %}
+                        {% with last_point=sparkline_data|last %}
+                        <div class="d-flex flex-column justify-content-between text-end text-muted" style="font-size: 0.55rem; height: 25px; min-width: 30px;">
+                            <span>{{ sparkline_data.0.month_name }}</span>
+                            <span>{{ last_point.month_name }}</span>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Views Container -->

@@ -96,3 +96,43 @@ class IncomeSourceTypeTest(TestCase):
         response = self.client.get(url, {'source_type': 'Business'})
         self.assertEqual(len(response.context['incomes']), 1)
         self.assertEqual(response.context['incomes'][0].source_type, 'Business')
+
+    def test_income_list_group_filtering_and_sparkline(self):
+        # Create incomes of different high-level groups
+        # 1. Earned
+        Income.objects.create(user=self.user, date=date(2026, 7, 1), amount=Decimal('1000.00'), source_type='Salary', source='Salary', account=self.account)
+        # 2. Passive
+        Income.objects.create(user=self.user, date=date(2026, 7, 2), amount=Decimal('500.00'), source_type='Investment Returns', source='Dividends', account=self.account)
+        # 3. One-off
+        Income.objects.create(user=self.user, date=date(2026, 7, 3), amount=Decimal('100.00'), source_type='Cashback & Rewards', source='Cashback', account=self.account)
+        
+        self.client.force_login(self.user)
+        from django.urls import reverse
+        url = reverse('income-list')
+        
+        # Test default load and category totals in context
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['earned_total'], Decimal('1000.00'))
+        self.assertEqual(response.context['passive_total'], Decimal('500.00'))
+        self.assertEqual(response.context['one_off_total'], Decimal('100.00'))
+        
+        # Test sparkline data presence
+        self.assertIn('sparkline_path', response.context)
+        self.assertIn('sparkline_data', response.context)
+        self.assertEqual(len(response.context['sparkline_data']), 6)
+        
+        # Test filtering by group = EARNED
+        response = self.client.get(url, {'income_group': 'EARNED'})
+        self.assertEqual(len(response.context['incomes']), 1)
+        self.assertEqual(response.context['incomes'][0].source_type, 'Salary')
+        
+        # Test filtering by group = PASSIVE
+        response = self.client.get(url, {'income_group': 'PASSIVE'})
+        self.assertEqual(len(response.context['incomes']), 1)
+        self.assertEqual(response.context['incomes'][0].source_type, 'Investment Returns')
+        
+        # Test filtering by group = ONE_OFF
+        response = self.client.get(url, {'income_group': 'ONE_OFF'})
+        self.assertEqual(len(response.context['incomes']), 1)
+        self.assertEqual(response.context['incomes'][0].source_type, 'Cashback & Rewards')

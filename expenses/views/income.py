@@ -7,6 +7,9 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.db import IntegrityError
+import calendar
+from decimal import Decimal
+
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
 from .mixins import RecurringTransactionMixin
@@ -27,6 +30,7 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
         selected_months = self.request.GET.getlist('month')
         source = self.request.GET.get('source')
         source_type = self.request.GET.get('source_type')
+        income_group = self.request.GET.get('income_group')
 
         # Remove empty strings from lists
         selected_years = [y for y in selected_years if y]
@@ -54,7 +58,7 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
             self.date_to = ''
         else:
             # No filters at all — default to current year
-            if not source and not source_type:
+            if not source and not source_type and not income_group:
                 queryset = queryset.filter(date__gte=default_from, date__lte=default_to)
             self.date_from = default_from
             self.date_to = default_to
@@ -66,6 +70,15 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
         # Source Type Filter
         if source_type:
             queryset = queryset.filter(source_type=source_type)
+            
+        # Income Group Filter
+        if income_group:
+            if income_group == 'EARNED':
+                queryset = queryset.filter(source_type__in=['Salary', 'Freelance / Consulting', 'Business'])
+            elif income_group == 'PASSIVE':
+                queryset = queryset.filter(source_type__in=['Investment Returns', 'Rental Income'])
+            elif income_group == 'ONE_OFF':
+                queryset = queryset.filter(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement', 'Other'])
             
         return queryset
 
@@ -91,11 +104,74 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
         context['filtered_count'] = filtered_queryset.count()
         context['filtered_amount'] = filtered_queryset.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
         
+        # Calculate sums by group type
+        context['earned_total'] = filtered_queryset.filter(
+            source_type__in=['Salary', 'Freelance / Consulting', 'Business']
+        ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+        
+        context['passive_total'] = filtered_queryset.filter(
+            source_type__in=['Investment Returns', 'Rental Income']
+        ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+        
+        context['one_off_total'] = filtered_queryset.filter(
+            source_type__in=['Cashback & Rewards', 'Refund / Reimbursement', 'Other']
+        ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+
+        # Calculate monthly earned income for the last 6 months (chronological)
+        current_date = timezone.now().date()
+        months = []
+        y, m = current_date.year, current_date.month
+        for _ in range(6):
+            months.append((y, m))
+            m -= 1
+            if m == 0:
+                m = 12
+                y -= 1
+        months.reverse()
+        
+        sparkline_data = []
+        for year, month in months:
+            total = Income.objects.filter(
+                user=self.request.user,
+                source_type__in=['Salary', 'Freelance / Consulting', 'Business'],
+                date__year=year,
+                date__month=month
+            ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+            month_name = calendar.month_name[month][:3]
+            sparkline_data.append({
+                'month_name': f"{month_name} '{str(year)[2:]}",
+                'amount': float(total)
+            })
+            
+        width = 120
+        height = 30
+        max_amount = max(item['amount'] for item in sparkline_data)
+        min_amount = min(item['amount'] for item in sparkline_data)
+        
+        points = []
+        for idx, item in enumerate(sparkline_data):
+            x = idx * (width / 5.0)
+            if max_amount == min_amount:
+                y = height / 2.0
+            else:
+                y = height - ((item['amount'] - min_amount) / (max_amount - min_amount)) * (height - 4) - 2
+            points.append((x, y))
+            item['x'] = x
+            item['y'] = y
+            
+        path_d = ""
+        if points:
+            path_d = "M " + " L ".join(f"{x:.1f},{y:.1f}" for x, y in points)
+            
+        context['sparkline_path'] = path_d
+        context['sparkline_data'] = sparkline_data
+
         context['filter_form'] = {
             'date_from': getattr(self, 'date_from', ''),
             'date_to': getattr(self, 'date_to', ''),
             'source': self.request.GET.get('source', ''),
             'source_type': self.request.GET.get('source_type', ''),
+            'income_group': self.request.GET.get('income_group', ''),
         }
         return context
 
