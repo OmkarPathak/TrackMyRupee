@@ -2,12 +2,15 @@ import calendar
 from datetime import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import CharField, F, Q, Sum, Value, Case, When
+from django.db.models import CharField, F, Q, Sum, Value, Case, When, IntegerField
 from django.db.models.functions import Cast
 from django.db.models.functions import Concat
 from django.views.generic import ListView
+from decimal import Decimal
 
-from ..models import Expense, Income, LoanRepayment, Transfer, CapitalEvent
+from ..models import Expense, Income, LoanRepayment, Transfer, CapitalEvent, Account
+from ..utils import get_exchange_rate
+from ..ledger_read_service import LedgerReadService
 
 class AllTransactionsListView(LoginRequiredMixin, ListView):
     template_name = 'expenses/all_transactions.html'
@@ -17,6 +20,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         loan_pk_field = Value(None, output_field=CharField())
+        null_int_field = Value(None, output_field=IntegerField())
         
         # 1. Normalize Expenses
         expenses = Expense.objects.filter(user=user).annotate(
@@ -26,7 +30,9 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             unified_amount=F('base_amount'),
             tx_description=F('description'),
             loan_pk=loan_pk_field,
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk')
+            source_account_id=F('account_id'),
+            target_account_id=null_int_field,
+        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # 2. Normalize Incomes
         incomes = Income.objects.filter(user=user).annotate(
@@ -36,7 +42,9 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             unified_amount=F('base_amount'),
             tx_description=F('description'),
             loan_pk=loan_pk_field,
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk')
+            source_account_id=F('account_id'),
+            target_account_id=null_int_field,
+        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # 3. Normalize Transfers
         transfers = Transfer.objects.filter(user=user).annotate(
@@ -46,7 +54,9 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             unified_amount=F('converted_amount'),
             tx_description=F('description'),
             loan_pk=loan_pk_field,
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk')
+            source_account_id=F('from_account_id'),
+            target_account_id=F('to_account_id'),
+        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # 4. Normalize Loan Repayments
         loan_repayments = LoanRepayment.objects.filter(loan__user=user).annotate(
@@ -56,7 +66,9 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             unified_amount=F('base_amount'),
             tx_description=Concat(Value('Loan repayment - '), F('loan__name'), output_field=CharField()),
             loan_pk=Cast(F('loan_id'), output_field=CharField()),
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk')
+            source_account_id=F('from_account_id'),
+            target_account_id=null_int_field,
+        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # 5. Normalize Capital Events
         capital_events = CapitalEvent.objects.filter(user=user).annotate(
@@ -70,7 +82,9 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             unified_amount=F('base_amount'),
             tx_description=F('note'),
             loan_pk=Cast(F('linked_loan_id'), output_field=CharField()),
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk')
+            source_account_id=F('account_id'),
+            target_account_id=null_int_field,
+        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
 
         # Handle filtering
         search_query = self.request.GET.get('search')
@@ -137,7 +151,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         # Combine using Union
         # Django union() requires all querysets to have exactly the same fields in the same order.
         # Let's ensure the fields list in values() is identical.
-        fields = ('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk')
+        fields = ('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
         
         # Re-apply values to ensure order and fields match perfectly
         # SQLite disallows ORDER BY inside UNION subqueries, so clear ordering first.
@@ -210,6 +224,155 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         context['loan_count'] = loan_repayments.count()
         context['capital_event_count'] = capital_events.count()
         context['filtered_count'] = context['expense_count'] + context['income_count'] + context['transfer_count'] + context['loan_count'] + context['capital_event_count']
+
+        context['expense_amount'] = expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+        context['income_amount'] = incomes.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+        context['transfer_amount'] = transfers.aggregate(Sum('converted_amount'))['converted_amount__sum'] or 0
+        context['loan_amount'] = loan_repayments.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+        context['capital_event_amount'] = capital_events.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+
+        # Convert transactions to list and calculate CC running balance
+        tx_list = list(context.get('transactions', []))
+        
+        # 1. Identify CREDIT_CARD accounts of this user
+        cc_accounts = Account.objects.filter(user=user, account_type='CREDIT_CARD')
+        cc_account_ids = set(cc_accounts.values_list('id', flat=True))
+        cc_accounts_dict = {acc.id: acc for acc in cc_accounts}
+        
+        # 2. Check if there are any transfers to credit card accounts in the page's transactions
+        target_cc_ids = set()
+        for tx in tx_list:
+            if tx.get('type') == 'TRANSFER' and tx.get('target_account_id') in cc_account_ids:
+                target_cc_ids.add(tx.get('target_account_id'))
+                
+        # 3. Calculate running balances for those credit card accounts in bulk
+        if target_cc_ids:
+            cc_balances_map = {}
+            target_cc_accounts = cc_accounts.filter(id__in=target_cc_ids)
+            current_balances = LedgerReadService.get_account_balances(target_cc_accounts)
+            
+            # Fetch all transactions for target CCs in bulk
+            acc_expenses = Expense.objects.filter(user=user, account_id__in=target_cc_ids).values('pk', 'date', 'created_at', 'amount', 'currency', 'account_id')
+            acc_incomes = Income.objects.filter(user=user, account_id__in=target_cc_ids).values('pk', 'date', 'created_at', 'amount', 'currency', 'account_id')
+            acc_transfers_out = Transfer.objects.filter(user=user, from_account_id__in=target_cc_ids).values('pk', 'date', 'created_at', 'amount', 'from_account_id')
+            acc_transfers_in = Transfer.objects.filter(user=user, to_account_id__in=target_cc_ids).select_related('from_account')
+            acc_loan_repayments = LoanRepayment.objects.filter(loan__user=user, from_account_id__in=target_cc_ids).select_related('loan')
+            acc_capital_events = CapitalEvent.objects.filter(user=user, account_id__in=target_cc_ids, include_in_net_worth=True).values('pk', 'date', 'created_at', 'amount', 'currency', 'account_id')
+            
+            # Group transactions by CC account in memory
+            tx_by_cc = {cc_id: [] for cc_id in target_cc_ids}
+            
+            for e in acc_expenses:
+                cc_id = e['account_id']
+                cc_account = cc_accounts_dict[cc_id]
+                amt = e['amount']
+                if e['currency'] != cc_account.currency:
+                    rate = get_exchange_rate(e['currency'], cc_account.currency)
+                    amt = (amt * rate).quantize(Decimal('0.01'))
+                tx_by_cc[cc_id].append({
+                    'pk': e['pk'],
+                    'type': 'EXPENSE',
+                    'date': e['date'],
+                    'created_at': e['created_at'],
+                    'net_change': -amt
+                })
+                
+            for i in acc_incomes:
+                cc_id = i['account_id']
+                cc_account = cc_accounts_dict[cc_id]
+                amt = i['amount']
+                if i['currency'] != cc_account.currency:
+                    rate = get_exchange_rate(i['currency'], cc_account.currency)
+                    amt = (amt * rate).quantize(Decimal('0.01'))
+                tx_by_cc[cc_id].append({
+                    'pk': i['pk'],
+                    'type': 'INCOME',
+                    'date': i['date'],
+                    'created_at': i['created_at'],
+                    'net_change': amt
+                })
+                
+            for t in acc_transfers_out:
+                cc_id = t['from_account_id']
+                tx_by_cc[cc_id].append({
+                    'pk': t['pk'],
+                    'type': 'TRANSFER_OUT',
+                    'date': t['date'],
+                    'created_at': t['created_at'],
+                    'net_change': -t['amount']
+                })
+                
+            for t in acc_transfers_in:
+                cc_id = t.to_account_id
+                cc_account = cc_accounts_dict[cc_id]
+                amt = t.amount
+                if t.from_account.currency != cc_account.currency:
+                    rate = get_exchange_rate(t.from_account.currency, cc_account.currency)
+                    amt = (amt * rate).quantize(Decimal('0.01'))
+                tx_by_cc[cc_id].append({
+                    'pk': t.pk,
+                    'type': 'TRANSFER',
+                    'date': t.date,
+                    'created_at': t.created_at,
+                    'net_change': amt
+                })
+                
+            for lr in acc_loan_repayments:
+                cc_id = lr.from_account_id
+                cc_account = cc_accounts_dict[cc_id]
+                amt = lr.amount
+                if lr.loan.currency != cc_account.currency:
+                    rate = get_exchange_rate(lr.loan.currency, cc_account.currency)
+                    amt = (amt * rate).quantize(Decimal('0.01'))
+                tx_by_cc[cc_id].append({
+                    'pk': lr.pk,
+                    'type': 'LOAN',
+                    'date': lr.date,
+                    'created_at': lr.created_at,
+                    'net_change': -amt
+                })
+                
+            for ce in acc_capital_events:
+                cc_id = ce['account_id']
+                cc_account = cc_accounts_dict[cc_id]
+                amt = ce['amount']
+                if ce['currency'] != cc_account.currency:
+                    rate = get_exchange_rate(ce['currency'], cc_account.currency)
+                    amt = (amt * rate).quantize(Decimal('0.01'))
+                tx_by_cc[cc_id].append({
+                    'pk': ce['pk'],
+                    'type': 'CAPITAL_EVENT',
+                    'date': ce['date'],
+                    'created_at': ce['created_at'],
+                    'net_change': -amt
+                })
+                
+            # Calculate running balances chronologically backward for each account
+            for cc_id in target_cc_ids:
+                current_balance = current_balances.get(cc_id, Decimal('0.00'))
+                all_cc_tx = tx_by_cc[cc_id]
+                
+                # Sort chronologically descending
+                all_cc_tx.sort(key=lambda x: (x['date'], x['created_at'] or x['date'], x['pk']), reverse=True)
+                
+                running = current_balance
+                for tx_item in all_cc_tx:
+                    cc_balances_map[(cc_id, tx_item['type'], tx_item['pk'])] = running
+                    running -= tx_item['net_change']
+            
+            # Enrich tx_list with running balances
+            for tx in tx_list:
+                if tx.get('type') == 'TRANSFER' and tx.get('target_account_id') in target_cc_ids:
+                    cc_id = tx.get('target_account_id')
+                    cc_account = cc_accounts_dict.get(cc_id)
+                    if cc_account:
+                        balance_key = (cc_id, 'TRANSFER', tx.get('pk'))
+                        if balance_key in cc_balances_map:
+                            tx['cc_balance_after_payment'] = cc_balances_map[balance_key]
+                            tx['to_account_name'] = cc_account.name
+                            tx['to_account_currency'] = cc_account.currency
+                            
+        context['transactions'] = tx_list
 
         # Total amount (Base Currency)
         context['filtered_amount'] = (

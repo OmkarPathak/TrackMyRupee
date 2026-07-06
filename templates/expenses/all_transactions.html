@@ -178,26 +178,36 @@
                 <span class="text-nowrap">
                     <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "transactions" %}
                 </span>
+                {% if expense_count > 0 %}
                 <span class="opacity-50">•</span>
                 <span class="text-nowrap">
-                    <span class="fw-bold text-danger">{{ expense_count|translate_digits }}</span> {% trans "expenses" %}
+                    <span class="fw-bold text-danger">{{ expense_count|translate_digits }}</span> {% trans "expenses" %} · <span class="fw-bold text-danger">{{ user.profile.currency }}{{ expense_amount|compact_amount:user.profile.currency|translate_digits }}</span>
                 </span>
+                {% endif %}
+                {% if transfer_count > 0 %}
                 <span class="opacity-50">•</span>
                 <span class="text-nowrap">
-                    <span class="fw-bold text-info">{{ transfer_count|translate_digits }}</span> {% trans "transfers" %}
+                    <span class="fw-bold text-info">{{ transfer_count|translate_digits }}</span> {% trans "transfers" %} · <span class="fw-bold text-info">{{ user.profile.currency }}{{ transfer_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "moved" %}
                 </span>
+                {% endif %}
+                {% if income_count > 0 %}
                 <span class="opacity-50">•</span>
                 <span class="text-nowrap">
-                    <span class="fw-bold text-success">{{ income_count|translate_digits }}</span> {% trans "incomes" %}
+                    <span class="fw-bold text-success">{{ income_count|translate_digits }}</span> {% trans "incomes" %} · <span class="fw-bold text-success">{{ user.profile.currency }}{{ income_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
                 </span>
+                {% endif %}
+                {% if loan_count > 0 %}
                 <span class="opacity-50">•</span>
                 <span class="text-nowrap">
-                    <span class="fw-bold text-warning">{{ loan_count|translate_digits }}</span> {% trans "loan repayments" %}
+                    <span class="fw-bold text-warning">{{ loan_count|translate_digits }}</span> {% trans "loan repayments" %} · <span class="fw-bold text-warning">{{ user.profile.currency }}{{ loan_amount|compact_amount:user.profile.currency|translate_digits }}</span>
                 </span>
+                {% endif %}
+                {% if capital_event_count > 0 %}
                 <span class="opacity-50">•</span>
                 <span class="text-nowrap">
-                    <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "capital events" %}
+                    <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "capital events" %} · <span class="fw-bold text-secondary">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</span>
                 </span>
+                {% endif %}
             </div>
 
             <div class="d-flex align-items-center gap-2">
@@ -223,26 +233,36 @@
             <span class="text-nowrap">
                 <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "transactions" %}
             </span>
-            <span class="opacity-50 d-none d-sm-inline">•</span>
+            {% if expense_count > 0 %}
+            <span class="opacity-50">•</span>
             <span class="text-nowrap">
-                <span class="fw-bold text-danger">{{ expense_count|translate_digits }}</span> {% trans "expenses" %}
+                <span class="fw-bold text-danger">{{ expense_count|translate_digits }}</span> {% trans "expenses" %} · <span class="fw-bold text-danger">{{ user.profile.currency }}{{ expense_amount|compact_amount:user.profile.currency|translate_digits }}</span>
             </span>
-            <span class="opacity-50 d-none d-sm-inline">•</span>
+            {% endif %}
+            {% if transfer_count > 0 %}
+            <span class="opacity-50">•</span>
             <span class="text-nowrap">
-                <span class="fw-bold text-info">{{ transfer_count|translate_digits }}</span> {% trans "transfers" %}
+                <span class="fw-bold text-info">{{ transfer_count|translate_digits }}</span> {% trans "transfers" %} · <span class="fw-bold text-info">{{ user.profile.currency }}{{ transfer_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "moved" %}
             </span>
-            <span class="opacity-50 d-none d-sm-inline">•</span>
+            {% endif %}
+            {% if income_count > 0 %}
+            <span class="opacity-50">•</span>
             <span class="text-nowrap">
-                <span class="fw-bold text-success">{{ income_count|translate_digits }}</span> {% trans "incomes" %}
+                <span class="fw-bold text-success">{{ income_count|translate_digits }}</span> {% trans "incomes" %} · <span class="fw-bold text-success">{{ user.profile.currency }}{{ income_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
             </span>
-            <span class="opacity-50 d-none d-sm-inline">•</span>
+            {% endif %}
+            {% if loan_count > 0 %}
+            <span class="opacity-50">•</span>
             <span class="text-nowrap">
-                <span class="fw-bold text-warning">{{ loan_count|translate_digits }}</span> {% trans "loan repayments" %}
+                <span class="fw-bold text-warning">{{ loan_count|translate_digits }}</span> {% trans "loan repayments" %} · <span class="fw-bold text-warning">{{ user.profile.currency }}{{ loan_amount|compact_amount:user.profile.currency|translate_digits }}</span>
             </span>
-            <span class="opacity-50 d-none d-sm-inline">•</span>
+            {% endif %}
+            {% if capital_event_count > 0 %}
+            <span class="opacity-50">•</span>
             <span class="text-nowrap">
-                <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "capital events" %}
+                <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "capital events" %} · <span class="fw-bold text-secondary">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</span>
             </span>
+            {% endif %}
         </div>
     </div>
 
@@ -320,7 +340,14 @@
                                             {% else %}{% trans "Transfer" %}{% endif %}
                                         </span>
                                     </td>
-                                    <td>{{ tx.tx_description|default:"-"|truncatechars:40 }}</td>
+                                    <td>
+                                        <div>{{ tx.tx_description|default:"-"|truncatechars:40 }}</div>
+                                        {% if tx.cc_balance_after_payment is not None %}
+                                            <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                                {{ tx.to_account_name }} · {% trans "Balance after payment" %}: {{ tx.to_account_currency }}{{ tx.cc_balance_after_payment|compact_amount:tx.to_account_currency|translate_digits }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if tx.type == 'EXPENSE' %}
                                             <span class="badge-soft badge-soft-danger"><i class="bi {% category_icon tx.cat user %} me-1"></i>{{ tx.cat }}</span>
@@ -408,6 +435,11 @@
                                 <div class="flex-grow-1 min-width-0">
                                     <div class="fw-semibold mb-1" style="font-size: 0.93rem;">{{ tx.tx_description|default:tx.cat }}</div>
                                     <div class="text-muted" style="font-size: 0.65rem;">{{ tx.acc|truncatechars:40 }}</div>
+                                    {% if tx.cc_balance_after_payment is not None %}
+                                        <div class="text-muted mt-1" style="font-size: 0.65rem;">
+                                            {{ tx.to_account_name }} · {% trans "Balance after payment" %}: {{ tx.to_account_currency }}{{ tx.cc_balance_after_payment|compact_amount:tx.to_account_currency|translate_digits }}
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 <div class="text-end d-flex align-items-center gap-2">
                                     <div class="fw-bold amount-{{ tx.type|lower }} signed-amount">

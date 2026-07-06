@@ -1190,6 +1190,47 @@ class AllTransactionsViewTest(BaseComprehensiveTest):
         self.assertEqual(len(transactions), 1)
         self.assertEqual(transactions[0]['cat'], 'Food')
 
+    def test_all_transactions_cc_balances_and_summary_bar(self):
+        """Test summary amounts and CC balance after payment calculations."""
+        # 1. Create a Credit Card account
+        cc_account = Account.objects.create(
+            user=self.user,
+            name='My CC',
+            account_type='CREDIT_CARD',
+            balance=Decimal('-1000.00'),
+            is_active=True
+        )
+        
+        # 2. Create an expense and a transfer (which is the CC payment)
+        Expense.objects.create(
+            user=self.user,
+            amount=300,
+            category='Food',
+            date=date.today()
+        )
+        transfer = Transfer.objects.create(
+            user=self.user,
+            from_account=self.account,
+            to_account=cc_account,
+            amount=Decimal('500.00'),
+            date=date.today()
+        )
+        
+        response = self.client.get(reverse('all-transactions'))
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify summary amounts in context
+        self.assertEqual(response.context['expense_amount'], Decimal('300.00'))
+        self.assertEqual(response.context['transfer_amount'], Decimal('500.00'))
+        
+        # Verify transaction list has CC balance after payment
+        transactions = response.context['transactions']
+        transfer_tx = [t for t in transactions if t['type'] == 'TRANSFER'][0]
+        self.assertIsNotNone(transfer_tx.get('cc_balance_after_payment'))
+        # Current balance of cc_account is -1000 (initial) + 500 (transfer) = -500.
+        # So balance after payment is -500.00.
+        self.assertEqual(transfer_tx['cc_balance_after_payment'], Decimal('-500.00'))
+
 
 class ExportViewTest(BaseComprehensiveTest):
     """Test export functionality."""
