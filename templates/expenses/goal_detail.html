@@ -26,10 +26,10 @@
                             <i class="bi bi-unlock"></i>
                         </a>
                     {% endif %}
-                    <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-sm btn-outline-primary" aria-label="{% trans 'Edit Goal' %}" title="{% trans 'Edit Goal' %}">
+                    <a href="{% url 'goal-edit' goal.uuid %}" class="btn btn-sm btn-outline-primary" aria-label="{% trans 'Edit Goal' %}" title="{% trans 'Edit Goal' %}">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <a href="{% url 'goal-delete' goal.pk %}" class="btn btn-sm btn-outline-danger" aria-label="{% trans 'Delete Goal' %}" title="{% trans 'Delete Goal' %}">
+                    <a href="{% url 'goal-delete' goal.uuid %}" class="btn btn-sm btn-outline-danger" aria-label="{% trans 'Delete Goal' %}" title="{% trans 'Delete Goal' %}">
                         <i class="bi bi-trash"></i>
                     </a>
                 </div>
@@ -68,10 +68,10 @@
                     <i class="bi bi-unlock me-1"></i> {% trans "Upgrade to Unlock" %}
                 </a>
             {% endif %}
-            <a href="{% url 'goal-edit' goal.pk %}" class="btn btn-primary fw-bold goal-action-btn">
+            <a href="{% url 'goal-edit' goal.uuid %}" class="btn btn-primary fw-bold goal-action-btn">
                 <i class="bi bi-pencil me-1"></i> {% trans "Edit Goal" %}
             </a>
-            <a href="{% url 'goal-delete' goal.pk %}" class="btn btn-outline-danger fw-bold goal-action-btn">
+            <a href="{% url 'goal-delete' goal.uuid %}" class="btn btn-outline-danger fw-bold goal-action-btn">
                 <i class="bi bi-trash me-1"></i> {% trans "Delete Goal" %}
             </a>
         </div>
@@ -181,7 +181,7 @@
                     <span class="input-group-text bg-body-tertiary border-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" name="q" class="form-control border-0 bg-body-tertiary ps-0" placeholder="{% trans 'Search contributions...' %}" value="{{ search_query }}">
                     {% if search_query %}
-                        <a href="{% url 'goal-detail' goal.pk %}" class="btn btn-link text-muted border-0 d-flex align-items-center px-3" data-bs-toggle="tooltip" title="{% trans 'Clear search' %}">
+                        <a href="{% url 'goal-detail' goal.uuid %}" class="btn btn-link text-muted border-0 d-flex align-items-center px-3" data-bs-toggle="tooltip" title="{% trans 'Clear search' %}">
                             <i class="bi bi-x-lg small"></i>
                         </a>
                     {% endif %}
@@ -242,15 +242,15 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
                                     {% if contrib.account %}
-                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'account-detail' contrib.account.pk %}"><i class="bi bi-eye me-2"></i> {% trans "View Account" %}</a></li>
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'account-detail' contrib.account.uuid %}"><i class="bi bi-eye me-2"></i> {% trans "View Account" %}</a></li>
                                     {% endif %}
-                                    <li><a class="dropdown-item py-2 px-3" href="{% url 'goal-contribution-edit' contrib.pk %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                    <li><a class="dropdown-item py-2 px-3" href="{% url 'goal-contribution-edit' contrib.uuid %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
                                     <li>
                                         <a class="dropdown-item py-2 px-3 text-danger cursor-pointer"
                                            href="#"
                                            data-bs-toggle="modal"
                                            data-bs-target="#deleteModal"
-                                           data-url="{% url 'goal-contribution-delete' contrib.pk %}?next={{ request.get_full_path|urlencode }}"
+                                           data-url="{% url 'goal-contribution-delete' contrib.uuid %}?next={{ request.get_full_path|urlencode }}"
                                            data-message="{% trans 'Are you sure you want to delete this contribution? The amount will be refunded to your account balance.' %}">
                                             <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
                                         </a>
@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }));
                 }, 250);
 
-                fetch('{% url "goal-detail" goal.pk %}', {
+                fetch('{% url "goal-detail" goal.uuid %}', {
                         method: 'POST',
                         headers: {
                                 'Content-Type': 'application/json',
@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <div class="modal-body pt-3">
-                <form method="post" action="{% url 'goal-detail' goal.pk %}" class="row g-3">
+                <form method="post" action="{% url 'goal-detail' goal.uuid %}" class="row g-3">
                     {% csrf_token %}
                     <div class="col-12">
                         <label class="form-label text-muted small fw-bold">{% trans "Amount" %}</label>

@@ -215,7 +215,7 @@
                                                         <i class="bi bi-lock-fill me-1 small"></i>{{ account.name }}
                                                     </span>
                                                 {% else %}
-                                                    <a href="{% url 'account-detail' account.pk %}" class="fw-bold text-decoration-none text-body d-block text-truncate mb-0" style="font-size: 0.95rem; letter-spacing: -0.2px;">
+                                                    <a href="{% url 'account-detail' account.uuid %}" class="fw-bold text-decoration-none text-body d-block text-truncate mb-0" style="font-size: 0.95rem; letter-spacing: -0.2px;">
                                                         {{ account.name }}
                                                     </a>
                                                 {% endif %}
@@ -252,7 +252,7 @@
                                                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-1">
                                                         {% if current_status == 'inactive' %}
                                                             <li>
-                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-success fw-bold" href="{% url 'account-restore' account.pk %}">
+                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-success fw-bold" href="{% url 'account-restore' account.uuid %}">
                                                                     <i class="bi bi-arrow-counterclockwise"></i>
                                                                     <span>{% trans "Restore Account" %}</span>
                                                                 </a>
@@ -266,14 +266,14 @@
                                                             </li>
                                                         {% else %}
                                                             <li>
-                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small" href="{% url 'account-edit' account.pk %}">
+                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small" href="{% url 'account-edit' account.uuid %}">
                                                                     <i class="bi bi-pencil-square text-primary"></i>
                                                                     <span>{% trans "Edit" %}</span>
                                                                 </a>
                                                             </li>
                                                             <li><hr class="dropdown-divider my-1"></li>
                                                             <li>
-                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small" href="{% url 'account-delete' account.pk %}">
+                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small" href="{% url 'account-delete' account.uuid %}">
                                                                     <i class="bi bi-trash"></i>
                                                                     <span>{% trans "Delete" %}</span>
                                                                 </a>

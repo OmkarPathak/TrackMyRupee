@@ -97,7 +97,7 @@
                                         </h5>
                                         <i class="bi bi-box-arrow-up-right small text-muted opacity-0 link-arrow" style="font-size: 0.75rem;"></i>
                                     </a>
-                                    <a href="{% url 'category-edit' data.category.pk %}?next={{ request.path }}" class="text-secondary small text-decoration-none ms-1 position-relative z-3" title="{% trans 'Edit Limit' %}" style="font-size: 0.9rem;">
+                                    <a href="{% url 'category-edit' data.category.uuid %}?next={{ request.path }}" class="text-secondary small text-decoration-none ms-1 position-relative z-3" title="{% trans 'Edit Limit' %}" style="font-size: 0.9rem;">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                 </div>
@@ -145,7 +145,7 @@
                         {% else %}
                             <div class="alert alert-light py-2 px-3 mb-0 small border-0 bg-body-tertiary">
                                 <i class="bi bi-info-circle me-1"></i> {% trans "No limit set" %}
-                                <a href="{% url 'category-edit' data.category.pk %}" class="btn-link ms-1">{% trans "Set limit" %}</a>
+                                <a href="{% url 'category-edit' data.category.uuid %}" class="btn-link ms-1">{% trans "Set limit" %}</a>
                             </div>
                         {% endif %}
                     </div>

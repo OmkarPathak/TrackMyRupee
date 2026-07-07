@@ -866,13 +866,13 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                         <i class="bi bi-pencil-square text-primary"></i>
                                                         <span>{% trans "Edit" %}</span>
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <form method="post" action="{% url 'expense-convert' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                                    <form method="post" action="{% url 'expense-convert' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                         {% csrf_token %}
                                                         <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
                                                             <i class="bi bi-flag"></i>
@@ -883,7 +883,7 @@
                                                 <li>
                                                     <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button" 
                                                             data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                            data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
+                                                            data-url="{% url 'expense-delete' expense.uuid %}?{{ request.GET.urlencode }}"
                                                             data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
                                                         <i class="bi bi-trash"></i>
                                                         <span>{% trans "Delete" %}</span>
@@ -967,13 +967,13 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
                                         <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                 <i class="bi bi-pencil-square text-primary"></i>
                                                 <span>{% trans "Edit" %}</span>
                                             </a>
                                         </li>
                                         <li>
-                                            <form method="post" action="{% url 'expense-convert' expense.pk %}?next={{ request.get_full_path|urlencode }}">
+                                             <form method="post" action="{% url 'expense-convert' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                 {% csrf_token %}
                                                 <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
                                                     <i class="bi bi-flag"></i>
@@ -984,7 +984,7 @@
                                         <li>
                                             <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button"
                                                     data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                    data-url="{% url 'expense-delete' expense.pk %}?{{ request.GET.urlencode }}"
+                                                    data-url="{% url 'expense-delete' expense.uuid %}?{{ request.GET.urlencode }}"
                                                     data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
                                                 <i class="bi bi-trash"></i>
                                                 <span>{% trans "Delete" %}</span>

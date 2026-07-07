@@ -1,8 +1,11 @@
-from django.urls import path
+from django.urls import path, register_converter
 from django.views.generic import RedirectView, TemplateView
 
 from . import views, views_payment
 from .views.mom_view import mom_analysis_view
+from .converters import UUIDOrIntConverter
+
+register_converter(UUIDOrIntConverter, 'uuid_or_int')
 
 urlpatterns = [
     path('signup/', RedirectView.as_view(pattern_name='account_signup', permanent=True), name='signup'),
@@ -22,37 +25,37 @@ urlpatterns = [
     path('transactions/', views.AllTransactionsListView.as_view(), name='all-transactions'),
     path('expenses/', views.ExpenseListView.as_view(), name='expense-list'),
     path('expenses/add/', views.ExpenseCreateView.as_view(), name='expense-create'),
-    path('expenses/<int:pk>/edit/', views.ExpenseUpdateView.as_view(), name='expense-edit'),
+    path('expenses/<uuid_or_int:pk>/edit/', views.ExpenseUpdateView.as_view(), name='expense-edit'),
     path('expenses/bulk-delete/', views.ExpenseBulkDeleteView.as_view(), name='expense-bulk-delete'),
     path('expenses/bulk-edit/', views.ExpenseBulkUpdateView.as_view(), name='expense-bulk-edit'),
-    path('expenses/<int:pk>/delete/', views.ExpenseDeleteView.as_view(), name='expense-delete'),
-    path('expenses/<int:pk>/convert-to-capital-event/', views.ExpenseConvertToCapitalEventView.as_view(), name='expense-convert'),
+    path('expenses/<uuid_or_int:pk>/delete/', views.ExpenseDeleteView.as_view(), name='expense-delete'),
+    path('expenses/<uuid_or_int:pk>/convert-to-capital-event/', views.ExpenseConvertToCapitalEventView.as_view(), name='expense-convert'),
     path('category/create/ajax/', views.create_category_ajax, name='category-create-ajax'),
     path('category/list/', views.CategoryListView.as_view(), name='category-list'),
     path('category/add/', views.CategoryCreateView.as_view(), name='category-create'),
-    path('category/<int:pk>/edit/', views.CategoryUpdateView.as_view(), name='category-edit'),
-    path('category/<int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category-delete'),
+    path('category/<uuid_or_int:pk>/edit/', views.CategoryUpdateView.as_view(), name='category-edit'),
+    path('category/<uuid_or_int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category-delete'),
     
     # Income
     path('income/list/', views.IncomeListView.as_view(), name='income-list'),
     path('income/add/', views.IncomeCreateView.as_view(), name='income-create'),
-    path('income/<int:pk>/edit/', views.IncomeUpdateView.as_view(), name='income-edit'),
-    path('income/<int:pk>/delete/', views.IncomeDeleteView.as_view(), name='income-delete'),
+    path('income/<uuid_or_int:pk>/edit/', views.IncomeUpdateView.as_view(), name='income-edit'),
+    path('income/<uuid_or_int:pk>/delete/', views.IncomeDeleteView.as_view(), name='income-delete'),
     
     # Accounts
     path('accounts/list/', views.AccountListView.as_view(), name='account-list'),
     path('accounts/add/', views.AccountCreateView.as_view(), name='account-create'),
-    path('accounts/<int:pk>/edit/', views.AccountUpdateView.as_view(), name='account-edit'),
-    path('accounts/<int:pk>/delete/', views.AccountDeleteView.as_view(), name='account-delete'),
-    path('accounts/<int:pk>/restore/', views.AccountRestoreView.as_view(), name='account-restore'),
-    path('accounts/<int:pk>/', views.AccountDetailView.as_view(), name='account-detail'),
+    path('accounts/<uuid_or_int:pk>/edit/', views.AccountUpdateView.as_view(), name='account-edit'),
+    path('accounts/<uuid_or_int:pk>/delete/', views.AccountDeleteView.as_view(), name='account-delete'),
+    path('accounts/<uuid_or_int:pk>/restore/', views.AccountRestoreView.as_view(), name='account-restore'),
+    path('accounts/<uuid_or_int:pk>/', views.AccountDetailView.as_view(), name='account-detail'),
     path('accounts/quick-add/', views.AccountQuickCreateView.as_view(), name='account-quick-create'),
     
     # Transfers
     path('transfers/', views.TransferListView.as_view(), name='transfer-list'), 
     path('transfers/add/', views.TransferCreateView.as_view(), name='transfer-create'),
-    path('transfers/<int:pk>/edit/', views.TransferUpdateView.as_view(), name='transfer-edit'),
-    path('transfers/<int:pk>/delete/', views.TransferDeleteView.as_view(), name='transfer-delete'),
+    path('transfers/<uuid_or_int:pk>/edit/', views.TransferUpdateView.as_view(), name='transfer-edit'),
+    path('transfers/<uuid_or_int:pk>/delete/', views.TransferDeleteView.as_view(), name='transfer-delete'),
 
     # Calendar
     path('calendar/', views.CalendarView.as_view(), name='calendar'),
@@ -62,8 +65,8 @@ urlpatterns = [
     path('pricing/', views.PricingView.as_view(), name='pricing'),
     path('onboarding/', views.OnboardingView.as_view(), name='onboarding'),
     path('recurring/create/', views.RecurringTransactionCreateView.as_view(), name='recurring-create'),
-    path('recurring/<int:pk>/edit/', views.RecurringTransactionUpdateView.as_view(), name='recurring-edit'),
-    path('recurring/<int:pk>/delete/', views.RecurringTransactionDeleteView.as_view(), name='recurring-delete'),
+    path('recurring/<uuid_or_int:pk>/edit/', views.RecurringTransactionUpdateView.as_view(), name='recurring-edit'),
+    path('recurring/<uuid_or_int:pk>/delete/', views.RecurringTransactionDeleteView.as_view(), name='recurring-delete'),
     path('settings/currency/', views.CurrencyUpdateView.as_view(), name='currency-settings'),
     path('settings/language/', views.LanguageUpdateView.as_view(), name='language-settings'),
     path('settings/profile/', views.ProfileUpdateView.as_view(), name='profile-settings'),
@@ -77,11 +80,11 @@ urlpatterns = [
     # Savings Goals
     path('goals/', views.SavingsGoalListView.as_view(), name='goal-list'),
     path('goals/add/', views.SavingsGoalCreateView.as_view(), name='goal-create'),
-    path('goals/<int:pk>/edit/', views.SavingsGoalUpdateView.as_view(), name='goal-edit'),
-    path('goals/<int:pk>/delete/', views.SavingsGoalDeleteView.as_view(), name='goal-delete'),
-    path('goals/<int:pk>/', views.SavingsGoalDetailView.as_view(), name='goal-detail'),
-    path('goals/contribution/<int:pk>/edit/', views.GoalContributionUpdateView.as_view(), name='goal-contribution-edit'),
-    path('goals/contribution/<int:pk>/delete/', views.GoalContributionDeleteView.as_view(), name='goal-contribution-delete'),
+    path('goals/<uuid_or_int:pk>/edit/', views.SavingsGoalUpdateView.as_view(), name='goal-edit'),
+    path('goals/<uuid_or_int:pk>/delete/', views.SavingsGoalDeleteView.as_view(), name='goal-delete'),
+    path('goals/<uuid_or_int:pk>/', views.SavingsGoalDetailView.as_view(), name='goal-detail'),
+    path('goals/contribution/<uuid_or_int:pk>/edit/', views.GoalContributionUpdateView.as_view(), name='goal-contribution-edit'),
+    path('goals/contribution/<uuid_or_int:pk>/delete/', views.GoalContributionDeleteView.as_view(), name='goal-contribution-delete'),
     
     # Static Pages
     path('tutorial/', TemplateView.as_view(template_name='trackmyrupee-tutorial.html'), name='tutorial'),
@@ -116,8 +119,8 @@ urlpatterns = [
     # Notification URLs
     path('notifications/', views.NotificationListView.as_view(), name='notification-list'),
     path('notifications/mark-all-read/', views.mark_notifications_read, name='mark-all-read'),
-    path('notifications/<int:pk>/read/', views.mark_single_notification_read, name='mark-single-notification-read'),
-    path('notifications/<int:pk>/redirect/', views.notification_redirect, name='notification-redirect'),
+    path('notifications/<uuid_or_int:pk>/read/', views.mark_single_notification_read, name='mark-single-notification-read'),
+    path('notifications/<uuid_or_int:pk>/redirect/', views.notification_redirect, name='notification-redirect'),
     path('api/cron/send-notifications/', views.trigger_notifications, name='cron-send-notifications'),
     path('api/cron/send-lifecycle-emails/', views.trigger_lifecycle_emails, name='cron-send-lifecycle-emails'),
     path('api/cron/send-monthly-reports/', views.trigger_monthly_reports_view, name='cron-send-monthly-reports'),
@@ -129,12 +132,12 @@ urlpatterns = [
     # Loans
     path('loans/', views.LoanListView.as_view(), name='loan-list'),
     path('loans/add/', views.LoanCreateView.as_view(), name='loan-create'),
-    path('loans/<int:pk>/edit/', views.LoanUpdateView.as_view(), name='loan-edit'),
-    path('loans/<int:pk>/delete/', views.LoanDeleteView.as_view(), name='loan-delete'),
-    path('loans/<int:pk>/', views.LoanDetailView.as_view(), name='loan-detail'),
-    path('loans/<int:pk>/repayment/', views.LoanRepaymentCreateView.as_view(), name='loan-repayment-create'),
-    path('loans/repayment/<int:pk>/delete/', views.LoanRepaymentDeleteView.as_view(), name='loan-repayment-delete'),
-    path('loans/<int:pk>/rate-update/', views.LoanInterestRateCreateView.as_view(), name='loan-rate-update'),
+    path('loans/<uuid_or_int:pk>/edit/', views.LoanUpdateView.as_view(), name='loan-edit'),
+    path('loans/<uuid_or_int:pk>/delete/', views.LoanDeleteView.as_view(), name='loan-delete'),
+    path('loans/<uuid_or_int:pk>/', views.LoanDetailView.as_view(), name='loan-detail'),
+    path('loans/<uuid_or_int:pk>/repayment/', views.LoanRepaymentCreateView.as_view(), name='loan-repayment-create'),
+    path('loans/repayment/<uuid_or_int:pk>/delete/', views.LoanRepaymentDeleteView.as_view(), name='loan-repayment-delete'),
+    path('loans/<uuid_or_int:pk>/rate-update/', views.LoanInterestRateCreateView.as_view(), name='loan-rate-update'),
 
     # DNS-over-HTTPS (DoH) resolver endpoints for DNS-AID
     path('dns-query', views.doh_handler_view, name='dns-query-short'),
@@ -147,9 +150,9 @@ urlpatterns = [
     # Capital Events
     path('capital-events/', views.CapitalEventListView.as_view(), name='capital-event-list'),
     path('capital-events/add/', views.CapitalEventCreateView.as_view(), name='capital-event-create'),
-    path('capital-events/<int:pk>/edit/', views.CapitalEventUpdateView.as_view(), name='capital-event-edit'),
-    path('capital-events/<int:pk>/delete/', views.CapitalEventDeleteView.as_view(), name='capital-event-delete'),
-    path('capital-events/<int:pk>/convert-to-expense/', views.CapitalEventConvertToExpenseView.as_view(), name='capital-event-convert'),
+    path('capital-events/<uuid_or_int:pk>/edit/', views.CapitalEventUpdateView.as_view(), name='capital-event-edit'),
+    path('capital-events/<uuid_or_int:pk>/delete/', views.CapitalEventDeleteView.as_view(), name='capital-event-delete'),
+    path('capital-events/<uuid_or_int:pk>/convert-to-expense/', views.CapitalEventConvertToExpenseView.as_view(), name='capital-event-convert'),
     path('api/capital-events/loans/', views.capital_event_loans_ajax, name='capital-event-loans-ajax'),
 ]
 

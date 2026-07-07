@@ -22,6 +22,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         
         # 1. Normalize Expenses
         expenses = Expense.objects.filter(user=user).annotate(
+            uuid_str=Cast(F('uuid'), output_field=CharField()),
             type=Cast(Value('EXPENSE'), output_field=CharField()),
             cat=Cast(F('category'), output_field=CharField()),
             acc=Cast(F('account__name'), output_field=CharField()),
@@ -30,10 +31,11 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             loan_pk=Cast(Value(None), output_field=CharField()),
             source_account_id=Cast(F('account_id'), output_field=BigIntegerField()),
             target_account_id=Cast(Value(None), output_field=BigIntegerField()),
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
+        )
 
         # 2. Normalize Incomes
         incomes = Income.objects.filter(user=user).annotate(
+            uuid_str=Cast(F('uuid'), output_field=CharField()),
             type=Cast(Value('INCOME'), output_field=CharField()),
             cat=Cast(F('source_type'), output_field=CharField()),
             acc=Cast(F('account__name'), output_field=CharField()),
@@ -42,10 +44,11 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             loan_pk=Cast(Value(None), output_field=CharField()),
             source_account_id=Cast(F('account_id'), output_field=BigIntegerField()),
             target_account_id=Cast(Value(None), output_field=BigIntegerField()),
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
+        )
 
         # 3. Normalize Transfers
         transfers = Transfer.objects.filter(user=user).annotate(
+            uuid_str=Cast(F('uuid'), output_field=CharField()),
             type=Cast(Value('TRANSFER'), output_field=CharField()),
             cat=Cast(Value('Transfer'), output_field=CharField()),
             acc=Cast(Concat(F('from_account__name'), Value(' → '), F('to_account__name'), output_field=CharField()), output_field=CharField()),
@@ -54,22 +57,24 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             loan_pk=Cast(Value(None), output_field=CharField()),
             source_account_id=Cast(F('from_account_id'), output_field=BigIntegerField()),
             target_account_id=Cast(F('to_account_id'), output_field=BigIntegerField()),
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
+        )
 
         # 4. Normalize Loan Repayments
         loan_repayments = LoanRepayment.objects.filter(loan__user=user).annotate(
+            uuid_str=Cast(F('uuid'), output_field=CharField()),
             type=Cast(Value('LOAN'), output_field=CharField()),
             cat=Cast(F('loan__name'), output_field=CharField()),
             acc=Cast(F('from_account__name'), output_field=CharField()),
             unified_amount=Cast(F('base_amount'), output_field=DecimalField(max_digits=15, decimal_places=2)),
             tx_description=Cast(Concat(Value('Loan repayment - '), F('loan__name'), output_field=CharField()), output_field=CharField()),
-            loan_pk=Cast(F('loan_id'), output_field=CharField()),
+            loan_pk=Cast(F('loan__uuid'), output_field=CharField()),
             source_account_id=Cast(F('from_account_id'), output_field=BigIntegerField()),
             target_account_id=Cast(Value(None), output_field=BigIntegerField()),
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
+        )
 
         # 5. Normalize Capital Events
         capital_events = CapitalEvent.objects.filter(user=user).annotate(
+            uuid_str=Cast(F('uuid'), output_field=CharField()),
             type=Cast(Value('CAPITAL_EVENT'), output_field=CharField()),
             cat=Cast(
                 Case(
@@ -82,10 +87,10 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             acc=Cast(F('account__name'), output_field=CharField()),
             unified_amount=Cast(F('base_amount'), output_field=DecimalField(max_digits=15, decimal_places=2)),
             tx_description=Cast(F('note'), output_field=CharField()),
-            loan_pk=Cast(F('linked_loan_id'), output_field=CharField()),
+            loan_pk=Cast(F('linked_loan__uuid'), output_field=CharField()),
             source_account_id=Cast(F('account_id'), output_field=BigIntegerField()),
             target_account_id=Cast(Value(None), output_field=BigIntegerField()),
-        ).values('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
+        )
 
         # Handle filtering
         search_query = self.request.GET.get('search')
@@ -151,12 +156,15 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
 
         # Combine using Union
         # Django union() requires all querysets to have exactly the same fields in the same order.
-        # Let's ensure the fields list in values() is identical.
-        fields = ('pk', 'date', 'tx_description', 'type', 'cat', 'acc', 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id')
-        
-        # Re-apply values to ensure order and fields match perfectly
         # SQLite disallows ORDER BY inside UNION subqueries, so clear ordering first.
-        normalized_qs = [qs.values(*fields).order_by() for qs in active_qs]
+        normalized_qs = [
+            qs.values(
+                'date', 'tx_description', 'type', 'cat', 'acc', 
+                'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id', 
+                pk=F('uuid_str')
+            ).order_by() 
+            for qs in active_qs
+        ]
         
         queryset = normalized_qs[0].union(*normalized_qs[1:]).order_by('-date')
         
@@ -253,12 +261,12 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             current_balances = LedgerReadService.get_account_balances(target_cc_accounts)
             
             # Fetch all transactions for target CCs in bulk
-            acc_expenses = Expense.objects.filter(user=user, account_id__in=target_cc_ids).values('pk', 'date', 'created_at', 'amount', 'currency', 'account_id')
-            acc_incomes = Income.objects.filter(user=user, account_id__in=target_cc_ids).values('pk', 'date', 'created_at', 'amount', 'currency', 'account_id')
-            acc_transfers_out = Transfer.objects.filter(user=user, from_account_id__in=target_cc_ids).values('pk', 'date', 'created_at', 'amount', 'from_account_id')
+            acc_expenses = Expense.objects.filter(user=user, account_id__in=target_cc_ids).values('uuid', 'date', 'created_at', 'amount', 'currency', 'account_id')
+            acc_incomes = Income.objects.filter(user=user, account_id__in=target_cc_ids).values('uuid', 'date', 'created_at', 'amount', 'currency', 'account_id')
+            acc_transfers_out = Transfer.objects.filter(user=user, from_account_id__in=target_cc_ids).values('uuid', 'date', 'created_at', 'amount', 'from_account_id')
             acc_transfers_in = Transfer.objects.filter(user=user, to_account_id__in=target_cc_ids).select_related('from_account')
             acc_loan_repayments = LoanRepayment.objects.filter(loan__user=user, from_account_id__in=target_cc_ids).select_related('loan')
-            acc_capital_events = CapitalEvent.objects.filter(user=user, account_id__in=target_cc_ids, include_in_net_worth=True).values('pk', 'date', 'created_at', 'amount', 'currency', 'account_id')
+            acc_capital_events = CapitalEvent.objects.filter(user=user, account_id__in=target_cc_ids, include_in_net_worth=True).values('uuid', 'date', 'created_at', 'amount', 'currency', 'account_id')
             
             # Group transactions by CC account in memory
             tx_by_cc = {cc_id: [] for cc_id in target_cc_ids}
@@ -271,7 +279,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
                     rate = get_exchange_rate(e['currency'], cc_account.currency)
                     amt = (amt * rate).quantize(Decimal('0.01'))
                 tx_by_cc[cc_id].append({
-                    'pk': e['pk'],
+                    'pk': str(e['uuid']).replace('-', ''),
                     'type': 'EXPENSE',
                     'date': e['date'],
                     'created_at': e['created_at'],
@@ -286,7 +294,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
                     rate = get_exchange_rate(i['currency'], cc_account.currency)
                     amt = (amt * rate).quantize(Decimal('0.01'))
                 tx_by_cc[cc_id].append({
-                    'pk': i['pk'],
+                    'pk': str(i['uuid']).replace('-', ''),
                     'type': 'INCOME',
                     'date': i['date'],
                     'created_at': i['created_at'],
@@ -296,7 +304,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             for t in acc_transfers_out:
                 cc_id = t['from_account_id']
                 tx_by_cc[cc_id].append({
-                    'pk': t['pk'],
+                    'pk': str(t['uuid']).replace('-', ''),
                     'type': 'TRANSFER_OUT',
                     'date': t['date'],
                     'created_at': t['created_at'],
@@ -311,7 +319,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
                     rate = get_exchange_rate(t.from_account.currency, cc_account.currency)
                     amt = (amt * rate).quantize(Decimal('0.01'))
                 tx_by_cc[cc_id].append({
-                    'pk': t.pk,
+                    'pk': str(t.uuid).replace('-', ''),
                     'type': 'TRANSFER',
                     'date': t.date,
                     'created_at': t.created_at,
@@ -326,7 +334,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
                     rate = get_exchange_rate(lr.loan.currency, cc_account.currency)
                     amt = (amt * rate).quantize(Decimal('0.01'))
                 tx_by_cc[cc_id].append({
-                    'pk': lr.pk,
+                    'pk': str(lr.uuid).replace('-', ''),
                     'type': 'LOAN',
                     'date': lr.date,
                     'created_at': lr.created_at,
@@ -341,7 +349,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
                     rate = get_exchange_rate(ce['currency'], cc_account.currency)
                     amt = (amt * rate).quantize(Decimal('0.01'))
                 tx_by_cc[cc_id].append({
-                    'pk': ce['pk'],
+                    'pk': str(ce['uuid']).replace('-', ''),
                     'type': 'CAPITAL_EVENT',
                     'date': ce['date'],
                     'created_at': ce['created_at'],
@@ -367,7 +375,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
                     cc_id = tx.get('target_account_id')
                     cc_account = cc_accounts_dict.get(cc_id)
                     if cc_account:
-                        balance_key = (cc_id, 'TRANSFER', tx.get('pk'))
+                        balance_key = (cc_id, 'TRANSFER', str(tx.get('pk')).replace('-', ''))
                         if balance_key in cc_balances_map:
                             tx['cc_balance_after_payment'] = cc_balances_map[balance_key]
                             tx['to_account_name'] = cc_account.name

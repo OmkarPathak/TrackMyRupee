@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import DeleteView, ListView, View
+from .mixins import UUIDOrIntLookupMixin
+from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 from ..forms import CapitalEventForm
 from ..models import CapitalEvent, Expense, Loan
@@ -100,10 +102,13 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
     template_name = 'expenses/capital_event_form.html'
 
     def get_object(self, pk, user):
-        return get_object_or_404(CapitalEvent, pk=pk, user=user)
+        return get_object_by_uuid_or_pk(CapitalEvent, pk, user=user)
 
     def get(self, request, pk):
         event = self.get_object(pk, request.user)
+        redirect_response = redirect_to_uuid_url_if_needed(request, event)
+        if redirect_response:
+            return redirect_response
         form = CapitalEventForm(instance=event, user=request.user)
         next_url = request.GET.get('next', '')
         return render(request, self.template_name, {
@@ -134,7 +139,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
         })
 
 
-class CapitalEventDeleteView(LoginRequiredMixin, DeleteView):
+class CapitalEventDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = CapitalEvent
     template_name = 'expenses/capital_event_confirm_delete.html'
     success_url = reverse_lazy('capital-event-list')
@@ -157,7 +162,7 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
     """Convert a CapitalEvent back to a regular Expense (type conversion without data loss)."""
 
     def post(self, request, pk):
-        event = get_object_or_404(CapitalEvent, pk=pk, user=request.user)
+        event = get_object_by_uuid_or_pk(CapitalEvent, pk, user=request.user)
         with transaction.atomic():
             expense = Expense(
                 user=request.user,

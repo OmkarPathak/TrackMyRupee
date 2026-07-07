@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
-from .mixins import RecurringTransactionMixin
+from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
 
 class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = Income
@@ -237,7 +237,7 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
         context['next_url'] = self.request.POST.get('next') or self.request.GET.get('next') or ''
         return context
 
-class IncomeUpdateView(LoginRequiredMixin, UpdateView):
+class IncomeUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Income
     form_class = IncomeForm
     template_name = 'expenses/income_form.html'
@@ -298,7 +298,7 @@ class IncomeUpdateView(LoginRequiredMixin, UpdateView):
         context['next_url'] = self.request.POST.get('next') or self.request.GET.get('next') or ''
         return context
 
-class IncomeDeleteView(LoginRequiredMixin, DeleteView):
+class IncomeDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = Income
     def get_queryset(self): return Income.objects.filter(user=self.request.user)
 

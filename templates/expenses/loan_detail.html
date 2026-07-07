@@ -100,7 +100,7 @@
                                         <!-- No edit for now to keep it simple, just delete and re-log if error -->
                                         <button type="button" class="btn btn-outline-danger btn-sm rounded-circle icon-btn" 
                                                 data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                data-url="{% url 'loan-repayment-delete' r.pk %}?next={{ request.get_full_path|urlencode }}"
+                                                data-url="{% url 'loan-repayment-delete' r.uuid %}?next={{ request.get_full_path|urlencode }}"
                                                 data-message="{% trans 'Delete this repayment record? The account balance will be restored.' %}">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -319,7 +319,7 @@
                     <h5 class="modal-title fw-bold">{% trans "Record Repayment" %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{% url 'loan-repayment-create' loan.pk %}" method="post">
+                <form action="{% url 'loan-repayment-create' loan.uuid %}" method="post">
                     {% csrf_token %}
                     <div class="modal-body p-4">
                         <div class="mb-3">
@@ -379,7 +379,7 @@
                     <h5 class="modal-title fw-bold">{% trans "Update Interest Rate" %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{% url 'loan-rate-update' loan.pk %}" method="post">
+                <form action="{% url 'loan-rate-update' loan.uuid %}" method="post">
                     {% csrf_token %}
                     <div class="modal-body p-4">
                         <p class="text-muted small mb-4">{% trans "Changing the rate will update all future projections in the amortization schedule." %}</p>

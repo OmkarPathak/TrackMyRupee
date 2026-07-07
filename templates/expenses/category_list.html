@@ -46,7 +46,7 @@
                                 <div class="hstack gap-3 justify-content-end">
                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" 
                                             data-bs-toggle="modal" data-bs-target="#editCategoryModal"
-                                            data-url="{% url 'category-edit' category.pk %}"
+                                            data-url="{% url 'category-edit' category.uuid %}"
                                             data-name="{{ category.name }}"
                                             data-icon="{{ category.icon }}"
                                             data-limit="{{ category.limit|default_if_none:'' }}"
@@ -55,7 +55,7 @@
                                     </button>
                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
                                             data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                            data-url="{% url 'category-delete' category.pk %}"
+                                            data-url="{% url 'category-delete' category.uuid %}"
                                             data-message="{% blocktrans with name=category.name %}Are you sure you want to delete category '{{ name }}'? This will NOT delete expenses in this category, but they will be unlinked or require update.{% endblocktrans %}">
                                         <i class="bi bi-trash text-danger fs-6"></i>
                                     </button>

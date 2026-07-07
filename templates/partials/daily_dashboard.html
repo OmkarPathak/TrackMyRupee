@@ -292,7 +292,7 @@
                         </div>
                         <!-- Hover Actions (desktop only) -->
                         <div class="daily-txn-actions d-none d-md-flex">
-                            <a href="{% url 'expense-edit' exp.id %}?next={% url 'home' %}" class="btn btn-sm btn-light rounded-circle daily-txn-action-btn" title="{% trans 'Quick edit' %}">
+                            <a href="{% url 'expense-edit' exp.uuid|default:exp.pk %}?next={% url 'home' %}" class="btn btn-sm btn-light rounded-circle daily-txn-action-btn" title="{% trans 'Quick edit' %}">
                                 <i class="bi bi-pencil-fill"></i>
                             </a>
                             <a href="{% url 'expense-create' %}?duplicate={{ exp.id }}&next={% url 'home' %}" class="btn btn-sm btn-light rounded-circle daily-txn-action-btn" title="{% trans 'Duplicate' %}">

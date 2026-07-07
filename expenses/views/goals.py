@@ -13,6 +13,8 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
+from .mixins import UUIDOrIntLookupMixin
+from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed, get_redirect_pk_or_uuid
 
 from finance_tracker.plans import get_limit
 
@@ -64,7 +66,7 @@ class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
         return kwargs
 
-class SavingsGoalUpdateView(LoginRequiredMixin, UpdateView):
+class SavingsGoalUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = SavingsGoal
     form_class = SavingsGoalForm
     template_name = 'expenses/goal_form.html'
@@ -97,7 +99,7 @@ class SavingsGoalUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, _("Savings goal updated successfully!"))
         return super().form_valid(form)
 
-class SavingsGoalDeleteView(LoginRequiredMixin, DeleteView):
+class SavingsGoalDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = SavingsGoal
     success_url = reverse_lazy('goal-list')
     def get_queryset(self): return SavingsGoal.objects.filter(user=self.request.user)
@@ -400,11 +402,14 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         }
 
     def get(self, request, pk):
-        goal = get_object_or_404(SavingsGoal, pk=pk, user=request.user)
+        goal = get_object_by_uuid_or_pk(SavingsGoal, pk, user=request.user)
+        redirect_response = redirect_to_uuid_url_if_needed(request, goal)
+        if redirect_response:
+            return redirect_response
         return render(request, self.template_name, self._get_context_data(request, goal))
 
     def post(self, request, pk):
-        goal = get_object_or_404(SavingsGoal, pk=pk, user=request.user)
+        goal = get_object_by_uuid_or_pk(SavingsGoal, pk, user=request.user)
         if request.content_type == 'application/json':
             try:
                 if json.loads(request.body).get('clear_confetti'):
@@ -428,11 +433,11 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             c = form.save(commit=False); c.goal = goal; c.save()
             messages.success(request, _("Contribution added successfully!"))
             request.session['trigger_confetti'] = True
-            return redirect('goal-detail', pk=goal.pk)
+            return redirect('goal-detail', pk=get_redirect_pk_or_uuid(goal))
 
         return render(request, self.template_name, self._get_context_data(request, goal, form=form))
-
-class GoalContributionUpdateView(LoginRequiredMixin, UpdateView):
+ 
+class GoalContributionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = GoalContribution
     form_class = GoalContributionForm
     template_name = 'expenses/contribution_form.html'
@@ -446,13 +451,13 @@ class GoalContributionUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
 
     def get_success_url(self):
-        return reverse_lazy('goal-detail', kwargs={'pk': self.object.goal.pk})
+        return reverse_lazy('goal-detail', kwargs={'pk': get_redirect_pk_or_uuid(self.object.goal)})
 
     def form_valid(self, form):
         messages.success(self.request, _("Contribution updated successfully!"))
         return super().form_valid(form)
 
-class GoalContributionDeleteView(LoginRequiredMixin, DeleteView):
+class GoalContributionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = GoalContribution
     
     def get_queryset(self):
@@ -462,7 +467,7 @@ class GoalContributionDeleteView(LoginRequiredMixin, DeleteView):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
         if next_url:
             return next_url
-        return reverse_lazy('goal-detail', kwargs={'pk': self.object.goal.pk})
+        return reverse_lazy('goal-detail', kwargs={'pk': get_redirect_pk_or_uuid(self.object.goal)})
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _("Contribution deleted successfully!"))

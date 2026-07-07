@@ -262,13 +262,13 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                         <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                 <i class="bi bi-pencil-square text-primary"></i>
                                                 <span>{% trans "Edit" %}</span>
                                             </a>
                                         </li>
                                         <li>
-                                            <form method="post" action="{% url 'capital-event-convert' event.pk %}?next={{ request.get_full_path|urlencode }}"
+                                            <form method="post" action="{% url 'capital-event-convert' event.uuid %}?next={{ request.get_full_path|urlencode }}"
                                                   class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
                                                 {% csrf_token %}
                                                 <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
@@ -278,7 +278,7 @@
                                             </form>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                 <i class="bi bi-trash"></i>
                                                 <span>{% trans "Delete" %}</span>
                                             </a>
@@ -358,13 +358,13 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
                                         <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                 <i class="bi bi-pencil-square text-primary"></i>
                                                 <span>{% trans "Edit" %}</span>
                                             </a>
                                         </li>
                                         <li>
-                                            <form method="post" action="{% url 'capital-event-convert' event.pk %}?next={{ request.get_full_path|urlencode }}"
+                                            <form method="post" action="{% url 'capital-event-convert' event.uuid %}?next={{ request.get_full_path|urlencode }}"
                                                   class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
                                                 {% csrf_token %}
                                                 <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
@@ -374,7 +374,7 @@
                                             </form>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.pk %}?next={{ request.get_full_path|urlencode }}">
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                 <i class="bi bi-trash"></i>
                                                 <span>{% trans "Delete" %}</span>
                                             </a>

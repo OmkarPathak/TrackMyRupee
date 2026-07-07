@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
+from .mixins import UUIDOrIntLookupMixin
+from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 from finance_tracker.plans import get_limit
 
@@ -120,7 +122,7 @@ class LoanCreateView(LoginRequiredMixin, LoanFeatureGateMixin, CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
-class LoanUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, UpdateView):
+class LoanUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Loan
     form_class = LoanForm
     template_name = 'expenses/loan_form.html'
@@ -146,7 +148,7 @@ class LoanUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, UpdateView):
         kwargs['user'] = self.request.user
         return kwargs
 
-class LoanDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, DeleteView):
+class LoanDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMixin, DeleteView):
     model = Loan
     success_url = reverse_lazy('loan-list')
 
@@ -161,7 +163,10 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     template_name = 'expenses/loan_detail.html'
 
     def get(self, request, pk):
-        loan = get_object_or_404(Loan, pk=pk, user=request.user)
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        redirect_response = redirect_to_uuid_url_if_needed(request, loan)
+        if redirect_response:
+            return redirect_response
         summary = LoanService.get_loan_summary(loan)
         schedule = LoanService.generate_amortization_schedule(loan)
         repayments = loan.repayments.select_related('from_account').order_by('-date')
@@ -192,7 +197,7 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
 
 class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     def post(self, request, pk):
-        loan = get_object_or_404(Loan, pk=pk, user=request.user)
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
         form = LoanRepaymentForm(request.POST, user=request.user, loan=loan)
         if form.is_valid():
             try:
@@ -234,11 +239,11 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 messages.error(request, _("Unable to record repayment because currency conversion failed or repayment data is invalid."))
         else:
             messages.error(request, _("Error recording repayment. Please check the form."))
-        return redirect('loan-detail', pk=pk)
+        return redirect('loan-detail', pk=loan.uuid)
 
 class LoanInterestRateCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     def post(self, request, pk):
-        loan = get_object_or_404(Loan, pk=pk, user=request.user)
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
         form = LoanInterestRateForm(request.POST)
         if form.is_valid():
             rate = form.save(commit=False)
@@ -247,8 +252,8 @@ class LoanInterestRateCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View)
             messages.success(request, _("Interest rate updated successfully!"))
         else:
             messages.error(request, _("Error updating interest rate."))
-        return redirect('loan-detail', pk=pk)
-class LoanRepaymentDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, DeleteView):
+        return redirect('loan-detail', pk=loan.uuid)
+class LoanRepaymentDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMixin, DeleteView):
     model = LoanRepayment
 
     def get_queryset(self):
@@ -262,4 +267,4 @@ class LoanRepaymentDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, DeleteVi
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
         if next_url:
             return next_url
-        return reverse_lazy('loan-detail', kwargs={'pk': self.object.loan.pk})
+        return reverse_lazy('loan-detail', kwargs={'pk': self.object.loan.uuid})

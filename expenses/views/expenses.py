@@ -20,7 +20,8 @@ from ..forms import ExpenseForm
 from ..models import Account, Category, Expense, CapitalEvent
 from ..parser import parse_expense_nl
 from django.shortcuts import redirect, render, get_object_or_404
-from .mixins import RecurringTransactionMixin, process_user_recurring_transactions
+from .mixins import RecurringTransactionMixin, process_user_recurring_transactions, UUIDOrIntLookupMixin
+from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
 class ExpenseListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
@@ -321,7 +322,7 @@ class ExpenseCreateView(LoginRequiredMixin, View):
                 return render(request, self.template_name, {'formset': formset})
         return render(request, self.template_name, {'formset': formset})
 
-class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
+class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Expense
     form_class = ExpenseForm
     template_name = 'expenses/expense_form.html'
@@ -360,7 +361,7 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
         
         return context
 
-class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
+class ExpenseDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = Expense
     template_name = 'expenses/expense_confirm_delete.html'
     success_url = reverse_lazy('expense-list')
@@ -447,7 +448,7 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
     """Convert an Expense into a CapitalEvent."""
 
     def post(self, request, pk):
-        expense = get_object_or_404(Expense, pk=pk, user=request.user)
+        expense = get_object_by_uuid_or_pk(Expense, pk, user=request.user)
         with transaction.atomic():
             # Match the category to a CapitalEvent subtype if possible, otherwise use 'other'
             subtype = 'other'

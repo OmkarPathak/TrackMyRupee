@@ -9,7 +9,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from ..forms import RecurringTransactionForm
 from ..models import RecurringTransaction
-from .mixins import RecurringTransactionMixin
+from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
 
 
 class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
@@ -268,7 +268,7 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
         context['next_url'] = self.request.POST.get('next') or self.request.GET.get('next') or ''
         return context
 
-class RecurringTransactionUpdateView(LoginRequiredMixin, UpdateView):
+class RecurringTransactionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = RecurringTransaction
     form_class = RecurringTransactionForm
     template_name = 'expenses/recurring_transaction_form.html'
@@ -309,7 +309,7 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UpdateView):
             return super().get_queryset().none()
         return super().get_queryset().filter(user=self.request.user)
 
-class RecurringTransactionDeleteView(LoginRequiredMixin, DeleteView):
+class RecurringTransactionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = RecurringTransaction
     success_url = reverse_lazy('recurring-list')
     def get_queryset(self): 

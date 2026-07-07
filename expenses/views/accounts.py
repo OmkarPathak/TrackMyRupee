@@ -22,7 +22,8 @@ from ..forms import AccountForm, TransferForm
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, Expense, GoalContribution, Income, LoanRepayment, Transfer, _run_ledger_shadow, CapitalEvent
 from ..utils import get_exchange_rate
-from .mixins import RecurringTransactionMixin
+from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
 class AccountListView(LoginRequiredMixin, ListView):
@@ -144,7 +145,7 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, _("Account created successfully!"))
         return super().form_valid(form)
 
-class AccountUpdateView(LoginRequiredMixin, UpdateView):
+class AccountUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Account
     form_class = AccountForm
     template_name = 'expenses/account_form.html'
@@ -228,7 +229,7 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
 
         return response
 
-class AccountDeleteView(LoginRequiredMixin, DeleteView):
+class AccountDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = Account
     template_name = 'expenses/account_delete_confirm.html'
     success_url = reverse_lazy('account-list')
@@ -256,7 +257,10 @@ class AccountDeleteView(LoginRequiredMixin, DeleteView):
 
 class AccountRestoreView(LoginRequiredMixin, View):
     def get(self, request, pk):
-        account = get_object_or_404(Account, pk=pk, user=request.user, is_active=False)
+        account = get_object_by_uuid_or_pk(Account, pk, user=request.user, is_active=False)
+        redirect_response = redirect_to_uuid_url_if_needed(request, account)
+        if redirect_response:
+            return redirect_response
         if not request.user.profile.can_add_account():
             limit = get_limit(request.user.profile.active_tier, 'accounts')
             messages.error(request, _("You have reached the limit of %(limit)s accounts for your current plan. Please upgrade to restore this account.") % {'limit': limit})
@@ -326,7 +330,7 @@ class TransferListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
     def get_queryset(self):
         return Transfer.objects.filter(user=self.request.user).select_related('from_account', 'to_account').order_by('-date')
 
-class TransferUpdateView(LoginRequiredMixin, UpdateView):
+class TransferUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Transfer
     form_class = TransferForm
     template_name = 'expenses/transfer_form.html'
@@ -349,7 +353,7 @@ class TransferUpdateView(LoginRequiredMixin, UpdateView):
             messages.error(self.request, _("Unable to update transfer because currency conversion failed or transfer data is invalid."))
             return self.form_invalid(form)
 
-class TransferDeleteView(LoginRequiredMixin, DeleteView):
+class TransferDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = Transfer
     template_name = 'expenses/transfer_confirm_delete.html'
     success_url = reverse_lazy('transfer-list')
@@ -374,7 +378,10 @@ class AccountDetailView(LoginRequiredMixin, View):
         if request.user.is_authenticated:
             process_user_recurring_transactions(request.user)
             
-        account = get_object_or_404(Account, pk=pk, user=request.user)
+        account = get_object_by_uuid_or_pk(Account, pk, user=request.user)
+        redirect_response = redirect_to_uuid_url_if_needed(request, account)
+        if redirect_response:
+            return redirect_response
         if request.user.is_authenticated and request.user.profile.is_account_locked(account):
             messages.error(request, _("This account is locked. Please upgrade your plan to view its history."))
             return redirect('pricing')

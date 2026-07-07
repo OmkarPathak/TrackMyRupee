@@ -353,7 +353,7 @@
                                         <div class="hstack gap-3 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" 
                                                     data-bs-toggle="modal" data-bs-target="#editIncomeModal"
-                                                    data-url="{% url 'income-edit' income.pk %}"
+                                                    data-url="{% url 'income-edit' income.uuid %}"
                                                     data-date="{{ income.date|date:'Y-m-d' }}"
                                                     data-source="{{ income.source }}"
                                                     data-source-type="{{ income.source_type }}"
@@ -368,7 +368,7 @@
                                             </button>
                                             <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
                                                     data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                    data-url="{% url 'income-delete' income.pk %}"
+                                                    data-url="{% url 'income-delete' income.uuid %}"
                                                     data-message="{% blocktrans with source=income.source_type %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
                                                 <i class="bi bi-trash text-danger fs-6"></i>
                                             </button>
@@ -424,7 +424,7 @@
                                         <li>
                                             <button type="button" class="dropdown-item py-2" 
                                                     data-bs-toggle="modal" data-bs-target="#editIncomeModal"
-                                                    data-url="{% url 'income-edit' income.pk %}"
+                                                    data-url="{% url 'income-edit' income.uuid %}"
                                                     data-date="{{ income.date|date:'Y-m-d' }}"
                                                     data-source="{{ income.source }}"
                                                     data-source-type="{{ income.source_type }}"
@@ -440,7 +440,7 @@
                                         <li>
                                             <button type="button" class="dropdown-item py-2 text-danger" 
                                                     data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                    data-url="{% url 'income-delete' income.pk %}"
+                                                    data-url="{% url 'income-delete' income.uuid %}"
                                                     data-message="{% blocktrans with source=income.source_type %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
                                                 <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
                                             </button>

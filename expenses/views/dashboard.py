@@ -1823,6 +1823,8 @@ def home_view(request):
                 
             item = {
                 'id': rt.id,
+                'pk': rt.uuid,
+                'uuid': rt.uuid,
                 'description': rt.description,
                 'amount': rt.base_amount,
                 'date': due_date,
@@ -2279,6 +2281,8 @@ def home_view(request):
 
         today_expenses_list.append({
             'id': exp.id,
+            'pk': exp.uuid,
+            'uuid': exp.uuid,
             'description': exp.description,
             'category': exp.category,
             'amount': exp.base_amount,
@@ -2293,6 +2297,8 @@ def home_view(request):
     for con in today_contributions:
         today_expenses_list.append({
             'id': con.id,
+            'pk': con.uuid,
+            'uuid': con.uuid,
             'description': _("Contribution: %(goal)s") % {'goal': con.goal.name},
             'category': _("Savings"),
             'amount': con.amount,

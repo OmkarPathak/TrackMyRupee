@@ -5,8 +5,8 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Sum
 
 from ..models import CapitalEvent, Expense, Income, LoanRepayment, RecurringTransaction, Transfer, UserProfile
-from ..services import LoanService
 from ..utils import get_exchange_rate
+from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 logger = logging.getLogger(__name__)
 
@@ -249,3 +249,24 @@ def process_user_recurring_transactions(user):
 
     if updates_needed:
         RecurringTransaction.objects.bulk_update(updates_needed, ['last_processed_date'])
+
+
+class UUIDOrIntLookupMixin:
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+        pk = self.kwargs.get(self.pk_url_kwarg or 'pk')
+        
+        return get_object_by_uuid_or_pk(queryset, pk)
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == 'GET' and (self.pk_url_kwarg or 'pk') in kwargs:
+            try:
+                obj = self.get_object()
+                
+                redirect_response = redirect_to_uuid_url_if_needed(request, obj, lookup_kwarg=self.pk_url_kwarg or 'pk')
+                if redirect_response:
+                    return redirect_response
+            except Exception:
+                pass
+        return super().dispatch(request, *args, **kwargs)

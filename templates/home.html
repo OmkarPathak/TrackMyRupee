@@ -2236,11 +2236,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         <!-- Clickable Stretched Link -->
                         {% if item.transaction_type == 'EXPENSE' %}
-                            <a href="{% url 'expense-edit' item.pk %}" class="stretched-link"></a>
+                            <a href="{% url 'expense-edit' item.uuid|default:item.pk %}" class="stretched-link"></a>
                         {% elif item.transaction_type == 'INCOME' %}
-                            <a href="{% url 'income-edit' item.pk %}" class="stretched-link"></a>
+                            <a href="{% url 'income-edit' item.uuid|default:item.pk %}" class="stretched-link"></a>
                         {% elif item.transaction_type == 'TRANSFER' %}
-                            <a href="{% url 'transfer-edit' item.pk %}" class="stretched-link"></a>
+                            <a href="{% url 'transfer-edit' item.uuid|default:item.pk %}" class="stretched-link"></a>
                         {% endif %}
                     </div>
                     {% empty %}
@@ -2333,7 +2333,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="list-group list-group-flush">
                             {% for type, group in recurring_groups.items %}
                                 {% for item in group.items %}
-                                <a href="{% url 'recurring-edit' item.id %}" class="list-group-item list-group-item-action bg-transparent border-0 d-flex align-items-center py-2 px-3 hover-bg-light transition-all text-decoration-none text-inherit">
+                                <a href="{% url 'recurring-edit' item.uuid|default:item.pk %}" class="list-group-item list-group-item-action bg-transparent border-0 d-flex align-items-center py-2 px-3 hover-bg-light transition-all text-decoration-none text-inherit">
                                     <div class="d-flex flex-column flex-grow-1 min-w-0">
                                         <h6 class="mb-0 text-truncate fw-bold text-inherit" style="font-size: 0.85rem;">{{ item.description }}</h6>
                                         <small class="text-muted opacity-75" style="font-size: 0.85rem; font-weight: 400;">

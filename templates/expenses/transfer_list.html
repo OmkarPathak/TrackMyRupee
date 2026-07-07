@@ -61,10 +61,10 @@
                             </td>
                             <td class="text-end pe-4 text-nowrap">
                                 <div class="hstack gap-3 justify-content-end">
-                                    <a href="{% url 'transfer-edit' transfer.pk %}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Edit' %}">
+                                    <a href="{% url 'transfer-edit' transfer.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Edit' %}">
                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
                                     </a>
-                                    <a href="{% url 'transfer-delete' transfer.pk %}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Delete' %}">
+                                    <a href="{% url 'transfer-delete' transfer.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Delete' %}">
                                         <i class="bi bi-trash text-danger fs-6"></i>
                                     </a>
                                 </div>

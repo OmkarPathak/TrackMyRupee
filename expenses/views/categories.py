@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from .mixins import UUIDOrIntLookupMixin
 
 from ..forms import CategoryForm
 from ..models import Category
@@ -109,7 +110,7 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
         context['category_limit'] = limit if limit != -1 else _('Unlimited')
         return context
 
-class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+class CategoryUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Category
     form_class = CategoryForm
     template_name = 'expenses/category_form.html'
@@ -165,7 +166,7 @@ class CategoryUpdateView(LoginRequiredMixin, UpdateView):
             messages.error(self.request, "This category already exists.")
             return self.form_invalid(form)
 
-class CategoryDeleteView(LoginRequiredMixin, DeleteView):
+class CategoryDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = Category
     success_url = reverse_lazy('category-list')
     def get_queryset(self): return Category.objects.filter(user=self.request.user)

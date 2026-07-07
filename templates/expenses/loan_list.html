@@ -77,16 +77,16 @@
 
                     <!-- Actions Layout -->
                     <div class="d-flex justify-content-between align-items-center">
-                        <a href="{% url 'loan-detail' summary.loan.pk %}" class="btn btn-primary btn-sm px-3 fw-bold rounded-3 shadow-sm" onclick="window.showLoader()">
+                        <a href="{% url 'loan-detail' summary.loan.uuid %}" class="btn btn-primary btn-sm px-3 fw-bold rounded-3 shadow-sm" onclick="window.showLoader()">
                             <i class="bi bi-eye me-1"></i>{% trans "View Details" %}
                         </a>
                         <div class="d-flex gap-2">
-                            <a href="{% url 'loan-edit' summary.loan.pk %}" class="btn btn-outline-secondary btn-sm rounded-3 icon-btn" title="{% trans 'Edit' %}">
+                            <a href="{% url 'loan-edit' summary.loan.uuid %}" class="btn btn-outline-secondary btn-sm rounded-3 icon-btn" title="{% trans 'Edit' %}">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <button type="button" class="btn btn-outline-danger btn-sm rounded-3 icon-btn" 
                                     data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                    data-url="{% url 'loan-delete' summary.loan.pk %}"
+                                    data-url="{% url 'loan-delete' summary.loan.uuid %}"
                                     data-message="{% blocktrans with name=summary.loan.name %}Are you sure you want to delete the loan '{{ name }}'? This will remove all associated records.{% endblocktrans %}"
                                     title="{% trans 'Delete' %}">
                                 <i class="bi bi-trash"></i>

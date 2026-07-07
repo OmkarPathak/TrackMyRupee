@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 
 from ..models import Notification
+from .utils import get_object_by_uuid_or_pk
 
 
 def _cron_authorized(request):
@@ -74,10 +75,25 @@ def mark_notifications_read(request):
         return redirect('notification-list')
     return redirect('notification-list')
 
+def get_notification_by_uuid_or_pk(pk, user):
+    import uuid
+    is_uuid = False
+    if isinstance(pk, uuid.UUID):
+        is_uuid = True
+    elif isinstance(pk, str):
+        try:
+            uuid.UUID(pk)
+            is_uuid = True
+        except ValueError:
+            pass
+    if is_uuid:
+        return Notification.objects.get(uuid=pk, user=user)
+    return Notification.objects.get(pk=pk, user=user)
+
 @login_required
 def mark_single_notification_read(request, pk):
     try:
-        notification = Notification.objects.get(pk=pk, user=request.user)
+        notification = get_notification_by_uuid_or_pk(pk, request.user)
         notification.is_read = True
         notification.save()
         return JsonResponse({'success': True})
@@ -90,7 +106,7 @@ def notification_redirect(request, pk):
     Mark notification as read and redirect to its link.
     """
     try:
-        notification = Notification.objects.get(pk=pk, user=request.user)
+        notification = get_notification_by_uuid_or_pk(pk, request.user)
         notification.is_read = True
         notification.save()
         

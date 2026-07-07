@@ -371,12 +371,12 @@
                                                 </a>
                                             {% else %}
                                                 <div class="hstack gap-3 justify-content-end">
-                                                    <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" title="{% trans 'Edit' %}">
+                                                    <a href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}" title="{% trans 'Edit' %}">
                                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
                                                     </a>
                                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
                                                             data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                            data-url="{% url 'recurring-delete' sub.pk %}"
+                                                            data-url="{% url 'recurring-delete' sub.uuid %}"
                                                             data-message="{% trans 'Are you sure?' %}">
                                                         <i class="bi bi-trash text-danger fs-6"></i>
                                                     </button>
@@ -440,14 +440,14 @@
                                             </li>
                                         {% else %}
                                             <li>
-                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}">
+                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
                                                     <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}
                                                 </a>
                                             </li>
                                             <li>
                                                 <button type="button" class="dropdown-item py-2 text-danger delete-btn" 
                                                         data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                        data-url="{% url 'recurring-delete' sub.pk %}"
+                                                        data-url="{% url 'recurring-delete' sub.uuid %}"
                                                         data-message="{% trans 'Are you sure?' %}">
                                                     <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
                                                 </button>
@@ -549,7 +549,7 @@
                                             {% if sub.is_locked %}
                                                 <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary mt-2 rounded-pill fw-bold" style="font-size: 0.8rem;">{% trans "Unlock" %}</a>
                                             {% else %}
-                                                <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary mt-2 rounded-pill" style="font-size: 0.8rem;">{% trans "Manage" %}</a>
+                                                 <a href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary mt-2 rounded-pill" style="font-size: 0.8rem;">{% trans "Manage" %}</a>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -603,7 +603,7 @@
                                             </li>
                                         {% else %}
                                             <li>
-                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}">
+                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
                                                     <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Manage" %}
                                                 </a>
                                             </li>
@@ -688,7 +688,7 @@
                                             {% if sub.is_locked %}
                                                 <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary mt-2 rounded-pill fw-bold" style="font-size: 0.8rem;">{% trans "Unlock" %}</a>
                                             {% else %}
-                                                <a href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-primary mt-2" style="font-size: 0.8rem;">{% trans "Reactivate" %}</a>
+                                                <a href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}" class="btn btn-sm btn-outline-primary mt-2" style="font-size: 0.8rem;">{% trans "Reactivate" %}</a>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -738,7 +738,7 @@
                                             </li>
                                         {% else %}
                                             <li>
-                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.pk %}?next={{ request.path }}">
+                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
                                                     <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Reactivate" %}
                                                 </a>
                                             </li>

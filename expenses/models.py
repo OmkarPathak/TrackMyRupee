@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -114,6 +115,7 @@ class GoalContributionManager(models.Manager):
 
 
 class Account(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     ACCOUNT_TYPES = [
         ('CASH', _('Cash')),
         ('BANK', _('Bank Account')),
@@ -305,6 +307,7 @@ class LedgerReconciliationReport(models.Model):
         return f"{self.user_id}:{self.account_id}:{self.as_of_date} ({self.status})"
 
 class Expense(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField(verbose_name=_('Date'))
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_('Amount'))
@@ -478,6 +481,7 @@ class Expense(models.Model):
         return f"{self.date} - {self.description} - {self.amount}"
 
 class Category(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, verbose_name=_('Category Name'))
     icon = models.CharField(max_length=50, default='bi-tag', verbose_name=_('Icon'))
@@ -501,6 +505,7 @@ class Category(models.Model):
         return self.name
 
 class Income(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     SOURCE_TYPE_CHOICES = [
         ('Salary', _('Salary')),
         ('Freelance / Consulting', _('Freelance / Consulting')),
@@ -683,6 +688,7 @@ class Income(models.Model):
         return f"{self.date} - {self.source} - {self.amount}"
 
 class Transfer(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     from_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transfers_out', verbose_name=_('From Account'))
     to_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transfers_in', verbose_name=_('To Account'))
@@ -859,6 +865,7 @@ class Transfer(models.Model):
         return f"{self.date} - Transfer {self.amount} from {self.from_account.name} to {self.to_account.name}"
 
 class RecurringTransaction(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     FREQUENCY_CHOICES = [
         ('DAILY', _('Daily')),
         ('WEEKLY', _('Weekly')),
@@ -1251,6 +1258,7 @@ class SubscriptionPlan(models.Model):
         return f"{self.name} ({self.get_duration_display()}) - ₹{self.price}"
 
 class Notification(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     NOTIFICATION_TYPES = [
         ('RECURRING', _('Recurring Transaction')),
         ('ANALYTICS', _('AI Analytics/Insights')),
@@ -1275,6 +1283,7 @@ class Notification(models.Model):
         return f"Notification for {self.user.username}: {self.title} ({self.notification_type})"
 
 class SavingsGoal(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='savings_goals')
     name = models.CharField(max_length=255, verbose_name=_('Goal Name'))
     target_amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Target Amount'))
@@ -1345,6 +1354,7 @@ class SavingsGoal(models.Model):
         return self.name
 
 class GoalContribution(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     goal = models.ForeignKey(SavingsGoal, on_delete=models.CASCADE, related_name='contributions')
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='goal_contributions', verbose_name=_('From Account'))
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Contribution Amount'))
@@ -1498,6 +1508,7 @@ class EmailLog(models.Model):
         return f"{self.to_email}: {self.subject}"
 
 class Loan(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     LOAN_TYPES = [
         ('HOME', _('Home Loan')),
         ('CAR', _('Car Loan')),
@@ -1533,6 +1544,7 @@ class LoanInterestRate(models.Model):
         return f"{self.loan.name} - {self.interest_rate}% from {self.effective_date}"
 
 class LoanRepayment(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='repayments')
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_repayments', verbose_name=_('Paid From Account'))
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Total Amount Paid (EMI)'))
@@ -1731,6 +1743,7 @@ class CapitalEvent(models.Model):
       - tier limits on Expense.can_add_expense() are unaffected;
       - type conversion between CapitalEvent <-> Expense is a clear data copy, not a flag flip.
     """
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
 
     SUBTYPE_CHOICES = CAPITAL_SUBTYPE_CHOICES
 
