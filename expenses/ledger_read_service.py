@@ -38,19 +38,19 @@ class LedgerReadService:
         if random.random() > max(0.0, min(1.0, cls._compare_sample_rate())):
             return
 
-        logger.info(
-            "ledger_read_compare",
-            extra={
-                "user_id": account.user_id,
-                "account_id": account.id,
-                "account_currency": account.currency,
-                "model_balance": str(account.balance),
-                "ledger_delta": str(ledger_delta),
-                "selected_balance": str(selected_balance),
-                "used_fallback": used_fallback,
-                "has_opening_entry": has_opening_entry,
-            },
-        )
+        # logger.info(
+        #     "ledger_read_compare",
+        #     extra={
+        #         "user_id": account.user_id,
+        #         "account_id": account.id,
+        #         "account_currency": account.currency,
+        #         "model_balance": str(account.balance),
+        #         "ledger_delta": str(ledger_delta),
+        #         "selected_balance": str(selected_balance),
+        #         "used_fallback": used_fallback,
+        #         "has_opening_entry": has_opening_entry,
+        #     },
+        # )
 
     @classmethod
     def _line_amount_in_account_currency(cls, line, account):

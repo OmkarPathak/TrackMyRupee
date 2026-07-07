@@ -294,6 +294,8 @@ RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET')
 # Email Backend Configuration (SMTP)
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # Email Backend Configuration
+# Note: During tests, Django's setup_test_environment() overrides this to
+# 'django.core.mail.backends.locmem.EmailBackend' automatically.
 EMAIL_BACKEND = 'expenses.email_backends.LoggedEmailBackend'
 
 # Helper to load key from environment

@@ -9,6 +9,8 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.db import IntegrityError
 import calendar
 from decimal import Decimal
+from datetime import date
+from django.db.models.functions import TruncMonth
 
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
@@ -129,14 +131,30 @@ class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
                 y -= 1
         months.reverse()
         
+        start_year, start_month = months[0]
+        end_year, end_month = months[-1]
+        start_dt = date(start_year, start_month, 1)
+        end_dt = date(end_year, end_month, calendar.monthrange(end_year, end_month)[1])
+
+        monthly_totals_qs = Income.objects.filter(
+            user=self.request.user,
+            source_type__in=['Salary', 'Freelance / Consulting', 'Business'],
+            date__gte=start_dt,
+            date__lte=end_dt
+        ).annotate(
+            month_trunc=TruncMonth('date')
+        ).values('month_trunc').annotate(
+            total=Sum('base_amount')
+        )
+        
+        monthly_totals_map = {}
+        for item in monthly_totals_qs:
+            dt = item['month_trunc'].date() if hasattr(item['month_trunc'], 'date') else item['month_trunc']
+            monthly_totals_map[(dt.year, dt.month)] = item['total'] or Decimal('0.00')
+
         sparkline_data = []
         for year, month in months:
-            total = Income.objects.filter(
-                user=self.request.user,
-                source_type__in=['Salary', 'Freelance / Consulting', 'Business'],
-                date__year=year,
-                date__month=month
-            ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+            total = monthly_totals_map.get((year, month), Decimal('0.00'))
             month_name = calendar.month_name[month][:3]
             sparkline_data.append({
                 'month_name': f"{month_name} '{str(year)[2:]}",
