@@ -45,7 +45,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block modals %}
 <!-- Manual Email Entry Modal -->
 <div class="modal fade" id="emailInputModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -66,7 +68,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const resendLink = document.getElementById('resend-link');
@@ -87,8 +91,8 @@
                 const response = await fetch("{% url 'resend-verification' %}", {
                      method: 'POST',
                      headers: {
-                         'Content-Type': 'application/json',
-                         'X-CSRFToken': '{{ csrf_token }}'
+                          'Content-Type': 'application/json',
+                          'X-CSRFToken': '{{ csrf_token }}'
                      },
                      body: JSON.stringify({ email: email })
                 });
