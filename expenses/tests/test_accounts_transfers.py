@@ -2,10 +2,10 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.test import Client, TestCase, override_settings
-from django.urls import reverse
-from django.test.utils import CaptureQueriesContext
 from django.db import connection
+from django.test import Client, TestCase, override_settings
+from django.test.utils import CaptureQueriesContext
+from django.urls import reverse
 
 from expenses.models import Account, Category, Expense, Income, JournalEntry, Transfer
 

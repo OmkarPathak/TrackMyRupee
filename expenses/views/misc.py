@@ -8,13 +8,11 @@ import traceback
 from datetime import date, datetime
 from decimal import Decimal
 
+import dns.flags
 import dns.message
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
-import dns.flags
-from django.views.decorators.csrf import csrf_exempt
-
 import openpyxl
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -26,12 +24,13 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View
 
 from ..forms import ContactForm
 from ..models import (
-    Account,
     CURRENCY_CHOICES,
+    Account,
     Expense,
     Income,
     RecurringTransaction,

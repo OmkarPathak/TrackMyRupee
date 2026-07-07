@@ -19,7 +19,6 @@ from expenses.models import (
 )
 from expenses.services import LoanService
 
-
 # ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------

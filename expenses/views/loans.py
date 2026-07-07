@@ -2,18 +2,25 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
-from .mixins import UUIDOrIntLookupMixin
-from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
+from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
-from ..models import CapitalEvent, Loan, LoanInterestRate, LoanRepayment, RecurringTransaction
+from ..models import (
+    CapitalEvent,
+    Loan,
+    LoanInterestRate,
+    LoanRepayment,
+    RecurringTransaction,
+)
 from ..services import LoanService
+from .mixins import UUIDOrIntLookupMixin
+from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
 class LoanFeatureGateMixin:
@@ -53,8 +60,9 @@ class LoanListView(LoginRequiredMixin, LoanFeatureGateMixin, ListView):
         repayment_map = {r['loan_id']: r for r in repayment_totals}
 
         # Bulk-aggregate capital event prepayments per loan in a single query
-        from ..models import CapitalEvent
         from django.db.models import Sum as _Sum
+
+        from ..models import CapitalEvent
         capital_prepayment_totals = (
             CapitalEvent.objects
             .filter(linked_loan__user=self.request.user, subtype__in=['loan_down_payment', 'loan_prepayment'])
@@ -265,6 +273,7 @@ class LoanRepaymentDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIn
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        fallback = reverse_lazy('loan-detail', kwargs={'pk': self.object.loan.uuid})
         if next_url:
-            return next_url
-        return reverse_lazy('loan-detail', kwargs={'pk': self.object.loan.uuid})
+            return get_safe_redirect_url(self.request, next_url, fallback)
+        return fallback

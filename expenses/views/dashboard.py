@@ -16,6 +16,7 @@ from django.utils.html import escape, format_html, format_html_join, mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
+from ..daily_predictions_service import DailyPredictionsService
 from ..ledger_read_service import LedgerReadService
 from ..models import (
     Account,
@@ -31,7 +32,6 @@ from ..models import (
     UserProfile,
 )
 from ..services import FinancialService, LoanService, SalaryAnalysisService
-from ..daily_predictions_service import DailyPredictionsService
 from ..templatetags.digit_filters import compact_amount
 from ..utils import (
     format_indian_number,

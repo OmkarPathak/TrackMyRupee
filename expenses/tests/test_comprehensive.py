@@ -11,8 +11,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.db import connection
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
 from django.test import Client, TestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse

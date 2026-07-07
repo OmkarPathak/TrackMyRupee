@@ -9,9 +9,8 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from ..ledger_read_service import LedgerReadService
-from ..models import Expense, Income, Transfer, Account
+from ..models import Account, Expense, Income, Transfer
 from ..templatetags.digit_filters import compact_amount
-from ..models import Category
 from ..utils import get_exchange_rate
 
 
@@ -248,9 +247,9 @@ def mom_analysis_view(request):
                         if projected > limit and e3 <= limit:
                             subtext = f"3-month trend — will breach {currency_symbol}{compact_amount(limit, currency_symbol)} budget next month at this pace"
                         else:
-                            subtext = f"Mild uptick — within budget but consistent upward movement"
+                            subtext = "Mild uptick — within budget but consistent upward movement"
                     else:
-                        subtext = f"Growing steadily — consistent upward movement month-over-month"
+                        subtext = "Growing steadily — consistent upward movement month-over-month"
                     
                     creep_categories.append({
                         'name': cat,

@@ -12,7 +12,14 @@ from django.shortcuts import redirect
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
-from ..models import Expense, Income, LoanRepayment, RecurringTransaction, SavingsGoal, Transfer
+from ..models import (
+    Expense,
+    Income,
+    LoanRepayment,
+    RecurringTransaction,
+    SavingsGoal,
+    Transfer,
+)
 
 
 class DataExportView(LoginRequiredMixin, TemplateView):

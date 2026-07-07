@@ -1,20 +1,24 @@
+import calendar
+from datetime import date
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.db.models import Sum
+from django.db.models.functions import TruncMonth
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
-from django.db import IntegrityError
-import calendar
-from decimal import Decimal
-from datetime import date
-from django.db.models.functions import TruncMonth
+
+from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
 from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
+
 
 class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = Income
@@ -247,7 +251,7 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, super().get_success_url())
         return super().get_success_url()
 
     def get_context_data(self, **kwargs):
@@ -270,7 +274,7 @@ class IncomeUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, super().get_success_url())
         return super().get_success_url()
 
     def form_valid(self, form):

@@ -1,8 +1,9 @@
+import re
+
+from bs4 import BeautifulSoup, NavigableString
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
-import re
-from bs4 import BeautifulSoup, NavigableString
 
 
 class DemoReadOnlyMiddleware:
@@ -87,7 +88,7 @@ class DPDPAConsentMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated and request.user.username != 'demo':
-            from django.urls import resolve, Resolver404
+            from django.urls import Resolver404, resolve
             
             try:
                 resolver_match = resolve(request.path_info)
@@ -187,7 +188,7 @@ class AgentMarkdownMiddleware:
 
             if tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
                 level = int(tag[1])
-                return f'\n\n' + '#' * level + f' {inner_content.strip()}\n\n'
+                return '\n\n' + '#' * level + f' {inner_content.strip()}\n\n'
             elif tag == 'p':
                 return f'\n\n{inner_content.strip()}\n\n'
             elif tag == 'br':
@@ -217,7 +218,7 @@ class AgentMarkdownMiddleware:
                 return f'\n```\n{inner_content}\n```\n'
             elif tag == 'blockquote':
                 lines = [f'> {line}' for line in inner_content.strip().split('\n')]
-                return f'\n\n' + '\n'.join(lines) + '\n\n'
+                return '\n\n' + '\n'.join(lines) + '\n\n'
             return inner_content
 
         body = soup.find('body') or soup

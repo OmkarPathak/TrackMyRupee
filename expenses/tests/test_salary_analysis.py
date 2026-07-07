@@ -1,11 +1,9 @@
-from datetime import date, timedelta
-from decimal import Decimal
+from datetime import date
 
 from django.contrib.auth.models import User
 from django.test import TestCase
-from django.utils import timezone
 
-from expenses.models import Expense, Income, LoanRepayment, Loan, UserProfile
+from expenses.models import Expense, Income, Loan, LoanRepayment, UserProfile
 from expenses.services import SalaryAnalysisService
 
 

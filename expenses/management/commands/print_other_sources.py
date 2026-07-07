@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
+
 from expenses.models import Income
+
 
 class Command(BaseCommand):
     help = 'Print all distinct source strings mapped to Other'

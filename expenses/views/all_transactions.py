@@ -1,16 +1,26 @@
 import calendar
 from datetime import datetime
-
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import CharField, F, Q, Sum, Value, Case, When, IntegerField, DecimalField, BigIntegerField
-from django.db.models.functions import Cast
-from django.db.models.functions import Concat
-from django.views.generic import ListView
 from decimal import Decimal
 
-from ..models import Expense, Income, LoanRepayment, Transfer, CapitalEvent, Account
-from ..utils import get_exchange_rate
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import (
+    BigIntegerField,
+    Case,
+    CharField,
+    DecimalField,
+    F,
+    Q,
+    Sum,
+    Value,
+    When,
+)
+from django.db.models.functions import Cast, Concat
+from django.views.generic import ListView
+
 from ..ledger_read_service import LedgerReadService
+from ..models import Account, CapitalEvent, Expense, Income, LoanRepayment, Transfer
+from ..utils import get_exchange_rate
+
 
 class AllTransactionsListView(LoginRequiredMixin, ListView):
     template_name = 'expenses/all_transactions.html'

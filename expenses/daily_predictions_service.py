@@ -1,9 +1,10 @@
-from decimal import Decimal
 from datetime import date
-from django.utils.translation import gettext as _
-from .services import SalaryAnalysisService
+from decimal import Decimal
+
 from .models import SavingsGoal
+from .services import SalaryAnalysisService
 from .templatetags.digit_filters import compact_amount
+
 
 class DailyPredictionsService:
     @staticmethod

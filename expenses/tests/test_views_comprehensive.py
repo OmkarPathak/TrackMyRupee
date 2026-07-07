@@ -2,20 +2,25 @@
 Comprehensive view tests for accounts, transactions, loans, goals, export/import.
 Tests CRUD operations, data isolation, permissions, and edge cases.
 """
-import json
 from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.db import connection
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
-from django.test import override_settings
 from django.urls import reverse
 
 from expenses.models import (
-    Account, Category, Expense, SavingsGoal, GoalContribution, Income, 
-    Loan, LoanRepayment, RecurringTransaction, Transfer
+    Account,
+    Category,
+    Expense,
+    Income,
+    Loan,
+    LoanRepayment,
+    RecurringTransaction,
+    SavingsGoal,
+    Transfer,
 )
 
 
@@ -190,6 +195,7 @@ class AccountListViewTest(BaseComprehensiveTest):
     def test_account_list_grouping_and_days_since_update(self):
         """Test that accounts are grouped by type and days_since_update is set."""
         from datetime import timedelta
+
         from django.utils import timezone
         
         # Modify updated_at of self.account to be 31 days ago
@@ -1367,7 +1373,6 @@ class ImportViewTest(BaseComprehensiveTest):
 2026-05-27,100,Food,Lunch
 2026-05-26,200,Transport,Taxi"""
         
-        from io import BytesIO
         from django.core.files.uploadedfile import SimpleUploadedFile
         
         csv_file = SimpleUploadedFile(

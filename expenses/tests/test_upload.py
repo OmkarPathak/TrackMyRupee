@@ -6,8 +6,7 @@ from unittest.mock import patch
 
 import openpyxl
 from django.contrib.auth.models import User
-from django.test import override_settings
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from expenses.models import Account, Expense, JournalEntry

@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Sum
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.utils.html import mark_safe
+from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext as _
 
 from expenses.models import Account, Expense, Income
@@ -140,11 +140,11 @@ class Command(BaseCommand):
         ai_insight = None
         if top_categories:
             top_cat = top_categories[0]
-            top_pct = round((float(top_cat['total']) / float(total_expense) * 100)) if total_expense > 0 else 0
+            top_pct = round(float(top_cat['total']) / float(total_expense) * 100) if total_expense > 0 else 0
             potential = float(top_cat['total']) * 0.15 # Suggest 15% saving
             
             ai_insight = _("You spent <b>{pct}%</b> of your total budget on <b>{cat}</b>. Reducing this by 15% next month could save you <b>{sym}{savings}</b>!").format(
-                cat=top_cat['category'],
+                cat=escape(top_cat['category']),
                 pct=top_pct,
                 sym=currency_symbol,
                 savings=compact_amount(potential, currency_symbol)

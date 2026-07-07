@@ -1,12 +1,16 @@
+import importlib
 from datetime import date
 from decimal import Decimal
+
 from django.contrib.auth.models import User
 from django.test import TestCase
-from expenses.models import Income, Account, Expense
-import importlib
+
+from expenses.models import Account, Expense, Income
+
 migration_module = importlib.import_module('expenses.migrations.0064_map_income_sources')
 map_source_to_type = migration_module.map_source_to_type
 from expenses.services import SalaryAnalysisService
+
 
 class IncomeSourceTypeTest(TestCase):
     def setUp(self):

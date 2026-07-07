@@ -212,8 +212,9 @@ class SavingsGoalTests(TestCase):
         self.assertNotIn('trigger_confetti', self.client.session)
 
     def test_savings_goal_estimated_completion_date(self):
+        from datetime import timedelta
+
         from django.utils import timezone
-        from datetime import date, timedelta
         
         # When no contributions exist, it should return None
         self.assertIsNone(self.goal.estimated_completion_date)
@@ -239,8 +240,9 @@ class SavingsGoalTests(TestCase):
         self.assertEqual(est_date, expected_date)
 
     def test_goal_detail_framing_and_needed_monthly(self):
+        from datetime import timedelta
+
         from django.utils import timezone
-        from datetime import date, timedelta
         
         self.client.login(username='testuser', password='testpassword')
         

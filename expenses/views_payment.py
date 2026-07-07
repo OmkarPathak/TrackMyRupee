@@ -17,7 +17,6 @@ from .models import PaymentHistory, SubscriptionPlan, UserProfile
 
 logger = logging.getLogger(__name__)
 
-@csrf_exempt
 @login_required
 def start_trial(request):
     if request.method == "POST":
@@ -127,7 +126,6 @@ def create_order(request):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
-@csrf_exempt
 @login_required
 def verify_payment(request):
     if request.method == "POST":
@@ -166,6 +164,11 @@ def verify_payment(request):
 
             # Payment Successful
             payment_record = PaymentHistory.objects.get(order_id=target_id)
+            
+            # Prevent capture-replay attack
+            if payment_record.status == 'SUCCESS':
+                return JsonResponse({'error': 'Payment already verified'}, status=400)
+                
             payment_record.payment_id = razorpay_payment_id
             payment_record.status = 'SUCCESS'
             payment_record.save()
@@ -257,7 +260,6 @@ def razorpay_webhook(request):
             return JsonResponse({'status': 'error'}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
-@csrf_exempt
 @login_required
 def cancel_subscription(request):
     if request.method == "POST":

@@ -1,13 +1,21 @@
-from datetime import date
-from decimal import Decimal
 import io
 import zipfile
+from datetime import date
+from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from expenses.models import Account, Category, Expense, Loan, LoanRepayment, Notification, RecurringTransaction
+from expenses.models import (
+    Account,
+    Category,
+    Expense,
+    Loan,
+    LoanRepayment,
+    Notification,
+    RecurringTransaction,
+)
 
 
 class BaseFeatureTest(TestCase):

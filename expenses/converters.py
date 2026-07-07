@@ -1,5 +1,6 @@
 import uuid
 
+
 class UUIDOrIntConverter:
     regex = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|[0-9a-fA-F]{32}|[0-9]+'
 

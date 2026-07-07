@@ -5,21 +5,26 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
-from django.core.paginator import Paginator
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
-from .mixins import UUIDOrIntLookupMixin
-from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed, get_redirect_pk_or_uuid
 
+from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..forms import GoalContributionForm, SavingsGoalForm
 from ..models import GoalContribution, SavingsGoal
+from .mixins import UUIDOrIntLookupMixin
+from .utils import (
+    get_object_by_uuid_or_pk,
+    get_redirect_pk_or_uuid,
+    redirect_to_uuid_url_if_needed,
+)
 
 
 class SavingsGoalListView(LoginRequiredMixin, ListView):
@@ -465,9 +470,10 @@ class GoalContributionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, Delet
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        fallback = reverse_lazy('goal-detail', kwargs={'pk': get_redirect_pk_or_uuid(self.object.goal)})
         if next_url:
-            return next_url
-        return reverse_lazy('goal-detail', kwargs={'pk': get_redirect_pk_or_uuid(self.object.goal)})
+            return get_safe_redirect_url(self.request, next_url, fallback)
+        return fallback
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _("Contribution deleted successfully!"))

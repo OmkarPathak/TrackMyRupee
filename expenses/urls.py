@@ -2,8 +2,8 @@ from django.urls import path, register_converter
 from django.views.generic import RedirectView, TemplateView
 
 from . import views, views_payment
-from .views.mom_view import mom_analysis_view
 from .converters import UUIDOrIntConverter
+from .views.mom_view import mom_analysis_view
 
 register_converter(UUIDOrIntConverter, 'uuid_or_int')
 

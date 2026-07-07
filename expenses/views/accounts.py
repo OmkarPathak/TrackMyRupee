@@ -4,23 +4,33 @@ from decimal import Decimal
 from itertools import chain
 
 from django.conf import settings
-from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
+from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..forms import AccountForm, TransferForm
 from ..ledger_read_service import LedgerReadService
-from ..models import Account, Expense, GoalContribution, Income, LoanRepayment, Transfer, _run_ledger_shadow, CapitalEvent
+from ..models import (
+    Account,
+    CapitalEvent,
+    Expense,
+    GoalContribution,
+    Income,
+    LoanRepayment,
+    Transfer,
+    _run_ledger_shadow,
+)
 from ..utils import get_exchange_rate
 from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
@@ -368,7 +378,7 @@ class TransferDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, reverse_lazy('transfer-list'))
         return reverse_lazy('transfer-list')
 
 class AccountDetailView(LoginRequiredMixin, View):

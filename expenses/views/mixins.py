@@ -1,10 +1,18 @@
 import logging
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.db.models import Sum
 
-from ..models import CapitalEvent, Expense, Income, LoanRepayment, RecurringTransaction, Transfer, UserProfile
+from ..models import (
+    CapitalEvent,
+    Expense,
+    Income,
+    LoanRepayment,
+    RecurringTransaction,
+    Transfer,
+    UserProfile,
+)
 from ..utils import get_exchange_rate
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 

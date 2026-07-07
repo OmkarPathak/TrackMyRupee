@@ -5,7 +5,16 @@ from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
 from expenses.ledger_read_service import LedgerReadService
-from expenses.models import Account, Expense, Loan, LoanRepayment, SavingsGoal, GoalContribution, Income, Transfer
+from expenses.models import (
+    Account,
+    Expense,
+    GoalContribution,
+    Income,
+    Loan,
+    LoanRepayment,
+    SavingsGoal,
+    Transfer,
+)
 
 
 class LedgerReadServiceTest(TestCase):
@@ -279,8 +288,9 @@ class LedgerReadServiceTest(TestCase):
 
     @override_settings(LEDGER_READ_ENABLED=True, LEDGER_WRITE_ENABLED=True)
     def test_ledger_balance_with_fluctuating_exchange_rates(self):
-        from expenses.ledger_service import LedgerPostingService
         from unittest.mock import patch
+
+        from expenses.ledger_service import LedgerPostingService
         
         # Mock exchange rate first returns 80.00 on creation, then 85.00 on deletion.
         with patch('expenses.models.get_exchange_rate') as mock_model_rate, \
@@ -323,8 +333,9 @@ class LedgerReadServiceTest(TestCase):
     @override_settings(LEDGER_READ_ENABLED=True, LEDGER_WRITE_ENABLED=True)
     def test_reconciliation_report_captures_drift(self):
         from django.core.management import call_command
-        from expenses.models import LedgerReconciliationReport
+
         from expenses.ledger_service import LedgerPostingService
+        from expenses.models import LedgerReconciliationReport
         
         # 1. Enable ledger on cash
         LedgerPostingService.post_opening_balance(account=self.cash)

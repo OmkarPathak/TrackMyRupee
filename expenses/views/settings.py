@@ -1,3 +1,5 @@
+import logging
+
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.contrib import messages
@@ -11,12 +13,14 @@ from django.utils.translation import gettext as _
 from django.views.generic import DeleteView, TemplateView, UpdateView
 
 from ..forms import LanguageUpdateForm, ProfileUpdateForm
-from ..models import Expense, Income, RecurringTransaction, UserProfile
-from ..models import DeletionRequestAuditLog
-from ..models import Account, Expense, Income
-
-import logging
-
+from ..models import (
+    Account,
+    DeletionRequestAuditLog,
+    Expense,
+    Income,
+    RecurringTransaction,
+    UserProfile,
+)
 
 logger = logging.getLogger(__name__)
 

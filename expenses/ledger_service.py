@@ -10,7 +10,6 @@ from .models import (
     Account,
     CapitalEvent,
     Expense,
-    GoalContribution,
     Income,
     JournalEntry,
     JournalLine,

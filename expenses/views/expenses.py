@@ -16,12 +16,17 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView, ListView, UpdateView, View
 
+from expenses.views.utils import get_safe_redirect_url
+
 from ..forms import ExpenseForm
-from ..models import Account, Category, Expense, CapitalEvent
+from ..models import Account, CapitalEvent, Category, Expense
 from ..parser import parse_expense_nl
-from django.shortcuts import redirect, render, get_object_or_404
-from .mixins import RecurringTransactionMixin, process_user_recurring_transactions, UUIDOrIntLookupMixin
-from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
+from .mixins import (
+    RecurringTransactionMixin,
+    UUIDOrIntLookupMixin,
+    process_user_recurring_transactions,
+)
+from .utils import get_object_by_uuid_or_pk
 
 
 class ExpenseListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
@@ -348,7 +353,7 @@ class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, super().get_success_url())
         return super().get_success_url()
 
     def get_context_data(self, **kwargs):
@@ -513,5 +518,5 @@ def parse_expense_view(request):
             
             return JsonResponse({'success': True, 'data': result})
         return JsonResponse({'success': False, 'error': 'No input text provided.'})
-    except Exception as e:
+    except Exception:
         return JsonResponse({'success': False, 'error': _('Unable to parse expense right now.')}, status=400)

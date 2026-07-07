@@ -1,10 +1,11 @@
 from datetime import date
+
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.utils import timezone
-from expenses.models import UserProfile, Expense
+
 from expenses.forms import CustomSignupForm
+from expenses.models import Expense, UserProfile
 
 
 class DPDPAComplianceTestCase(TestCase):
@@ -107,6 +108,7 @@ class DPDPAComplianceTestCase(TestCase):
     def test_withdraw_consent_deletes_account(self):
         """Test that withdrawing consent deletes the user account, logs audit record, sends confirmation email, and redirects."""
         from django.core import mail
+
         from expenses.models import DeletionRequestAuditLog
 
         self.client.login(username='consentuser', password='password123')
@@ -145,6 +147,7 @@ class DPDPAComplianceTestCase(TestCase):
     def test_account_delete_logs_audit_and_sends_email(self):
         """Test that deleting account logs audit record, sends confirmation email, and redirects."""
         from django.core import mail
+
         from expenses.models import DeletionRequestAuditLog
 
         self.client.login(username='consentuser', password='password123')

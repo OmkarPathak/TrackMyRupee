@@ -6,13 +6,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.management import call_command
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, resolve_url
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 
+from expenses.views.utils import get_safe_redirect_url
+
 from ..models import Notification
-from .utils import get_object_by_uuid_or_pk
 
 
 def _cron_authorized(request):
@@ -111,7 +112,15 @@ def notification_redirect(request, pk):
         notification.save()
         
         target_link = notification.link or 'notification-list'
-        return redirect(target_link)
+
+        
+        try:
+            resolved_url = resolve_url(target_link)
+        except Exception:
+            resolved_url = target_link
+            
+        safe_link = get_safe_redirect_url(request, resolved_url, resolve_url('notification-list'))
+        return redirect(safe_link)
     except Notification.DoesNotExist:
         messages.error(request, "Notification not found.")
         return redirect('notification-list')

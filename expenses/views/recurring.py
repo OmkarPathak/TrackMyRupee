@@ -7,6 +7,8 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
+from expenses.views.utils import get_safe_redirect_url
+
 from ..forms import RecurringTransactionForm
 from ..models import RecurringTransaction
 from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
@@ -260,7 +262,7 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, super().get_success_url())
         return super().get_success_url()
 
     def get_context_data(self, **kwargs):
@@ -294,7 +296,7 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, U
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, super().get_success_url())
         return super().get_success_url()
 
     def get_context_data(self, **kwargs):

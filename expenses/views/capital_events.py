@@ -1,18 +1,19 @@
-from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import DeleteView, ListView, View
-from .mixins import UUIDOrIntLookupMixin
-from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
+
+from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import CapitalEventForm
 from ..models import CapitalEvent, Expense, Loan
+from .mixins import UUIDOrIntLookupMixin
+from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
 class CapitalEventListView(LoginRequiredMixin, ListView):
@@ -154,7 +155,7 @@ class CapitalEventDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteVie
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, reverse_lazy('capital-event-list'))
         return reverse_lazy('capital-event-list')
 
 

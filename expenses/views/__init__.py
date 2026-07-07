@@ -2,9 +2,10 @@
 from finance_tracker.ai_utils import predict_category_ai as predict_category_ai
 
 from .accounts import *
-from .capital_events import *
 from .all_transactions import *
+from .alternatives import *
 from .auth import *
+from .capital_events import *
 from .categories import *
 from .dashboard import *
 from .expenses import *
@@ -18,6 +19,5 @@ from .mom_view import *
 from .notifications import *
 from .recurring import *
 from .settings import *
-from .alternatives import *
 from .utils import *
 

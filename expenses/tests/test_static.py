@@ -1,8 +1,9 @@
 import base64
 import json
+
+import dns.flags
 import dns.message
 import dns.rdatatype
-import dns.flags
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 

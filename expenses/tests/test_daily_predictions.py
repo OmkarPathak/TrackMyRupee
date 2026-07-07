@@ -1,9 +1,12 @@
 from datetime import date
 from decimal import Decimal
+
 from django.contrib.auth.models import User
 from django.test import TestCase
-from expenses.models import UserProfile, SavingsGoal, Expense, Income
+
 from expenses.daily_predictions_service import DailyPredictionsService
+from expenses.models import SavingsGoal, UserProfile
+
 
 class DailyPredictionsServiceTest(TestCase):
     def setUp(self):
