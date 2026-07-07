@@ -68,6 +68,17 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarContent">
+            {% if user.is_authenticated %}
+                <!-- Desktop Greeting -->
+                <div class="d-none d-lg-flex align-items-center gap-2 py-2 px-3 rounded-pill navbar-greeting-pill me-auto">
+                    <span class="text-body-secondary small">{{ personalized_greeting }},</span>
+                    <span class="fw-bold text-body" style="font-size: 0.95rem;">{{ greeting_user_name }}</span>
+                    {% if month_progress_encouragement %}
+                        <span class="mx-2 text-body-tertiary">|</span>
+                        <span class="text-success small fw-medium">{{ month_progress_encouragement }}</span>
+                    {% endif %}
+                </div>
+            {% endif %}
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
                 
                 <!-- Authenticated User Links (Hidden on desktop because moved to sidebar) -->
@@ -296,7 +307,18 @@
     
     /* Extra padding for mobile app / PWA mode */
     .is-mobile-app body {
-        padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(130px + env-safe-area-inset-bottom) !important;
+    }
+
+    /* Navbar Greeting Pill */
+    .navbar-greeting-pill {
+        background: rgba(29, 158, 117, 0.05);
+        border: 1px solid rgba(29, 158, 117, 0.12) !important;
+        transition: all 0.3s ease;
+    }
+    [data-bs-theme="dark"] .navbar-greeting-pill {
+        background: rgba(93, 202, 165, 0.05);
+        border: 1px solid rgba(93, 202, 165, 0.12) !important;
     }
 </style>
 <!-- Mobile Bottom Navigation -->
