@@ -12,14 +12,7 @@
         </button>
     </div>
     
-    <!-- Sidebar Greeting -->
-    <div class="sidebar-greeting-container">
-        <div class="sidebar-greeting-box">
-            <div class="greeting-text">{{ personalized_greeting }}</div>
-            <div class="user-name">{{ greeting_user_name }}</div>
-            <div class="encouragement-text">{{ month_progress_encouragement }}</div>
-        </div>
-    </div>
+
 
     <!-- Sidebar Navigation -->
     <div class="sidebar-content flex-grow-1 overflow-y-auto px-0">
@@ -105,7 +98,7 @@
 
             <!-- Accounts -->
             <div class="d-flex align-items-center position-relative px-0">
-                <a href="{% url 'account-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'account' in request.resolver_match.url_name or 'transfer' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Accounts' %}">
+                <a href="{% url 'account-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'account' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Accounts' %}">
                     <i class="bi bi-bank fs-5"></i>
                     <span class="nav-text">{% trans "Accounts" %}</span>
                 </a>
