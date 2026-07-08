@@ -311,11 +311,36 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
     template_name = 'expenses/transfer_form.html'
     success_url = reverse_lazy('transfer-list')
 
+    def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        if next_url:
+            return next_url
+        return super().get_success_url()
+
     def dispatch(self, request, *args, **kwargs):
         if request.user.username == 'demo':
             messages.warning(request, _("Inter-account transfers are disabled in the demo to keep things simple. Please use Goal Contributions instead!"))
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        from_account_val = self.request.GET.get('from_account')
+        if from_account_val:
+            import uuid
+            try:
+                # Try to parse as UUID first
+                uuid.UUID(from_account_val)
+                account = Account.objects.get(uuid=from_account_val, user=self.request.user)
+                initial['from_account'] = account.pk
+            except (ValueError, TypeError, Account.DoesNotExist):
+                # Fallback to pk just in case
+                try:
+                    account = Account.objects.get(pk=int(from_account_val), user=self.request.user)
+                    initial['from_account'] = account.pk
+                except (ValueError, TypeError, Account.DoesNotExist):
+                    pass
+        return initial
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -345,6 +370,12 @@ class TransferUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     form_class = TransferForm
     template_name = 'expenses/transfer_form.html'
     success_url = reverse_lazy('transfer-list')
+
+    def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        if next_url:
+            return next_url
+        return super().get_success_url()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

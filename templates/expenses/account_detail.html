@@ -23,7 +23,7 @@
         <div class="d-flex gap-2">
             {% if user.username != 'demo' %}
                 {% if account.is_active %}
-                <a href="{% url 'transfer-create' %}?from_account={{ account.id }}" class="btn btn-outline-primary fw-bold">
+                <a href="{% url 'transfer-create' %}?from_account={{ account.uuid }}" class="btn btn-outline-primary fw-bold">
                     <i class="bi bi-arrow-left-right me-1"></i> {% trans "Transfer" %}
                 </a>
                 {% else %}
