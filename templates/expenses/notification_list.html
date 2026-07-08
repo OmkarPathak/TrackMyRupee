@@ -18,54 +18,130 @@
             {% endif %}
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="list-group list-group-flush rounded-3">
-                {% for notification in notifications %}
-                <div class="list-group-item p-4 d-flex gap-3 {% if not notification.is_read %}bg-body-tertiary{% endif %} position-relative hover-lift" id="notification-{{ notification.id }}">
-                    <div class="flex-shrink-0">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center
-                            {% if notification.notification_type == 'RECURRING' %}bg-info-subtle text-info
-                            {% elif notification.notification_type == 'ANALYTICS' %}bg-warning-subtle text-warning
-                            {% elif notification.notification_type == 'MILESTONE' %}bg-success-subtle text-success
-                            {% else %}bg-primary-subtle text-primary{% endif %}" style="width: 48px; height: 48px;">
-                            <i class="bi 
-                                {% if notification.notification_type == 'RECURRING' %}bi-arrow-repeat
-                                {% elif notification.notification_type == 'ANALYTICS' %}bi-lightning-charge
-                                {% elif notification.notification_type == 'MILESTONE' %}bi-trophy
-                                {% else %}bi-bell{% endif %} fs-5">
-                            </i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="d-flex flex-column flex-sm-row w-100 justify-content-between align-items-start align-items-sm-center mb-2 gap-2">
-                            <h6 class="mb-0 fw-bold {% if not notification.is_read %}text-primary{% endif %}">
-                                {% if notification.link %}
-                                    <a href="{% url 'notification-redirect' notification.pk %}" class="stretched-link text-decoration-none color-inherit">{{ notification.title }}</a>
-                                {% else %}
-                                    {{ notification.title }}
-                                {% endif %}
-                            </h6>
-                            <small class="text-muted text-nowrap">{{ notification.created_at|timesince|translate_digits }} ago</small>
-                        </div>
-                        <p class="mb-1 text-muted">{{ notification.message }}</p>
+        <div class="card shadow-sm border-0 notification-list-card">
+            <div class="card-body p-0">
+                <!-- Desktop Table View -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-hover mb-0 text-start align-middle">
+                        <thead class="text-muted small text-uppercase" style="letter-spacing: 0.05em;">
+                            <tr>
+                                <th class="ps-4 py-3 fw-semibold border-bottom-0">{% trans "Notification" %}</th>
+                                <th class="py-3 fw-semibold border-bottom-0">{% trans "Time" %}</th>
+                                <th class="text-end pe-4 py-3 fw-semibold border-bottom-0"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in notifications %}
+                            <tr class="{% if not notification.is_read %}bg-primary bg-opacity-10{% endif %}">
+                                <td class="ps-4 py-3 border-bottom-0 border-top">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="flex-shrink-0 rounded-circle d-flex align-items-center justify-content-center
+                                            {% if notification.notification_type == 'RECURRING' %}bg-info-subtle text-info
+                                            {% elif notification.notification_type == 'ANALYTICS' %}bg-warning-subtle text-warning
+                                            {% elif notification.notification_type == 'MILESTONE' %}bg-success-subtle text-success
+                                            {% else %}bg-primary-subtle text-primary{% endif %}" style="width: 42px; height: 42px;">
+                                            <i class="bi 
+                                                {% if notification.notification_type == 'RECURRING' %}bi-arrow-repeat
+                                                {% elif notification.notification_type == 'ANALYTICS' %}bi-lightning-charge
+                                                {% elif notification.notification_type == 'MILESTONE' %}bi-trophy
+                                                {% else %}bi-bell{% endif %} fs-5">
+                                            </i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold {% if not notification.is_read %}text-primary{% else %}text-body{% endif %}" style="font-size: 0.95rem;">
+                                                {% if notification.link %}
+                                                    <a href="{% url 'notification-redirect' notification.pk %}" class="text-decoration-none color-inherit">{{ notification.title }}</a>
+                                                {% else %}
+                                                    {{ notification.title }}
+                                                {% endif %}
+                                                {% if not notification.is_read %}
+                                                    <span class="badge bg-primary ms-2 rounded-pill" style="font-size: 0.6rem;">New</span>
+                                                {% endif %}
+                                            </h6>
+                                            <p class="mb-0 text-muted small line-clamp-1" style="max-width: 600px;">{{ notification.message }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="small text-muted text-nowrap border-bottom-0 border-top">
+                                    {{ notification.created_at|timesince|translate_digits }} ago
+                                </td>
+                                <td class="text-end pe-4 border-bottom-0 border-top">
+                                    {% if notification.link %}
+                                        <a href="{% url 'notification-redirect' notification.pk %}" class="btn btn-sm btn-link text-decoration-none fw-semibold">{% trans "View" %} <i class="bi bi-arrow-right ms-1"></i></a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="empty-state-container">
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="d-inline-flex align-items-center justify-content-center mb-3">
+                                        {% include 'illustrations/empty_notifications.svg' %}
+                                    </div>
+                                    <p class="lead text-muted mb-0">{% trans "You're all caught up! No notifications." %}</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Grid View -->
+                <div id="mobileGridView" class="py-2 d-md-none px-3">
+                    {% for notification in notifications %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-3 {% if not notification.is_read %}border-primary bg-primary bg-opacity-10{% endif %}">
                         {% if notification.link %}
-                            <span class="text-primary small mt-1 d-inline-block">View Details <i class="bi bi-arrow-right"></i></span>
+                        <a href="{% url 'notification-redirect' notification.pk %}" class="position-absolute top-0 start-0 w-100 h-100 z-1"></a>
                         {% endif %}
-                    </div>
-                    {% if not notification.is_read %}
-                        <div class="align-self-center">
-                            <span class="badge bg-primary rounded-pill p-2"><span class="visually-hidden">Unread</span></span>
+                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                            <div class="mobile-card-inner">
+                                <!-- Left-Mid: Icon (Vertically Centered) -->
+                                <div class="category-icon-container 
+                                    {% if notification.notification_type == 'RECURRING' %}text-info
+                                    {% elif notification.notification_type == 'ANALYTICS' %}text-warning
+                                    {% elif notification.notification_type == 'MILESTONE' %}text-success
+                                    {% else %}text-primary{% endif %}">
+                                    <i class="bi 
+                                        {% if notification.notification_type == 'RECURRING' %}bi-arrow-repeat
+                                        {% elif notification.notification_type == 'ANALYTICS' %}bi-lightning-charge
+                                        {% elif notification.notification_type == 'MILESTONE' %}bi-trophy
+                                        {% else %}bi-bell{% endif %}">
+                                    </i>
+                                </div>
+
+                                <!-- Middle: Info -->
+                                <div class="flex-grow-1 min-width-0 px-2 position-relative z-2 pointer-events-none">
+                                    <div class="fw-bold text-body-emphasis line-clamp-1 mb-1 {% if not notification.is_read %}text-primary{% endif %}" style="font-size: 1rem;">
+                                        {{ notification.title }}
+                                        {% if not notification.is_read %}
+                                            <span class="badge bg-primary ms-1 rounded-pill" style="font-size: 0.65rem;">New</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-body-secondary line-clamp-2" style="font-size: 0.88rem; line-height: 1.4;">
+                                        {{ notification.message }}
+                                    </div>
+                                </div>
+
+                                <!-- Right: Time -->
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1 position-relative z-2 pointer-events-none">
+                                    <div class="text-muted fw-medium" style="font-size: 0.8rem;">
+                                        {{ notification.created_at|timesince|translate_digits }}
+                                    </div>
+                                    {% if notification.link %}
+                                        <i class="bi bi-arrow-right text-primary opacity-75 mt-1"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
-                    {% endif %}
-                </div>
-                {% empty %}
-                <div class="text-center py-5 fade-in empty-state-container">
-                    <div class="d-inline-flex align-items-center justify-content-center">
-                        {% include 'illustrations/empty_notifications.svg' %}
                     </div>
-                    <p class="lead text-muted">{% trans "You're all caught up! No notifications." %}</p>
+                    {% empty %}
+                    <div class="text-center py-5">
+                        <div class="mb-4 d-inline-flex">
+                            {% include 'illustrations/empty_notifications.svg' %}
+                        </div>
+                        <p class="lead text-muted mb-0">{% trans "You're all caught up! No notifications." %}</p>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
         </div>
 
@@ -98,10 +174,108 @@
 </div>
 
 <style>
+@media (max-width: 767.98px) {
+    .notification-list-card {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    #mobileGridView {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    #mobileGridView .expense-card .card-body > .mobile-card-inner {
+        display: grid !important;
+        /* Precise widths for card components: icon: 38px info: 1fr right: 80px */
+        grid-template-columns: 38px minmax(0, 1fr) 80px !important;
+        grid-template-areas: "icon info time" !important;
+        align-items: center !important;
+        gap: 0 !important;
+        transition: all 0.3s ease;
+    }
+
+    #mobileGridView .expense-card .category-icon-container { 
+        grid-area: icon; 
+        margin: 0 !important; 
+        width: 32px !important;
+        height: 32px !important;
+        justify-self: center;
+    }
+    #mobileGridView .expense-card .flex-grow-1 { 
+        grid-area: info; 
+        margin: 0 !important; 
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        overflow: hidden;
+    }
+    #mobileGridView .expense-card .flex-shrink-0.text-end { 
+        grid-area: time; 
+        margin: 0 !important; 
+        width: 100% !important;
+        padding-right: 4px;
+    }
+}
+
+/* Card View Styles */
+.expense-card {
+    border-radius: 16px !important;
+    border: 1px solid var(--bs-border-color-translucent) !important;
+    background-color: var(--bs-body-bg);
+}
+
+[data-bs-theme="dark"] .expense-card {
+    border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* Category Icon Alignment */
+.category-icon-container {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    background-color: var(--bs-tertiary-bg);
+}
+
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+}
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    line-height: 1.25;
+    max-height: 2.5em;
+}
+
+@media (max-width: 576px) {
+    .category-icon-container {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+}
+
 .empty-state-container svg {
     max-width: 160px;
     max-height: 140px;
     height: auto;
+}
+.pointer-events-none {
+    pointer-events: none;
 }
 </style>
 {% endblock %}
