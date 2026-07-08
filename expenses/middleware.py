@@ -147,10 +147,11 @@ class AgentMarkdownMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        accept_header = request.META.get('HTTP_ACCEPT', '')
         response = self.get_response(request)
 
-        if request.method == 'GET' and 'text/markdown' in accept_header:
+        # Only parse HTML with BeautifulSoup for AI/LLM clients requesting Markdown.
+        # Regular browsers never send Accept: text/markdown so this is a no-op for them.
+        if request.method == 'GET' and 'text/markdown' in request.META.get('HTTP_ACCEPT', ''):
             content_type = response.get('Content-Type', '')
             if content_type.startswith('text/html'):
                 html_content = response.content.decode('utf-8')

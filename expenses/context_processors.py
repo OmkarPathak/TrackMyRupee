@@ -2,6 +2,7 @@ import calendar
 from datetime import timedelta
 
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -26,14 +27,14 @@ def webpush_vapid_key(request):
 def notifications(request):
     """Provides unread notifications to all templates."""
     if request.user.is_authenticated:
-        # Get unread notifications, ordered by newest first, limited to 5
-        unread_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:9]
-        has_unread = unread_notifications.exists()
-
+        # Evaluate once to avoid 3 separate queries (filter + exists + count)
+        unread_notifications = list(
+            Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:9]
+        )
         return {
             'notifications': unread_notifications,
-            'has_unread_notifications': has_unread,
-            'unread_notifications_count': unread_notifications.count()
+            'has_unread_notifications': bool(unread_notifications),
+            'unread_notifications_count': len(unread_notifications),
         }
     return {'notifications': [], 'has_unread_notifications': False}
 
@@ -50,20 +51,30 @@ def currency_symbol(request):
 def user_accounts(request):
     """Provides user accounts to all templates for the sidebar."""
     if request.user.is_authenticated:
-        from .models import Account
-        accounts = Account.objects.filter(user=request.user, is_active=True).order_by('name')
-        count = accounts.count()
-        return {
-            'sidebar_accounts': accounts[:5],
-            'sidebar_accounts_count': count,
-            'has_more_accounts': count > 5
-        }
+        cache_key = f'sidebar_accounts_{request.user.id}'
+        result = cache.get(cache_key)
+        if result is None:
+            from .models import Account
+            all_accounts = list(Account.objects.filter(user=request.user, is_active=True).order_by('name'))
+            count = len(all_accounts)
+            result = {
+                'sidebar_accounts': all_accounts[:5],
+                'sidebar_accounts_count': count,
+                'has_more_accounts': count > 5,
+            }
+            cache.set(cache_key, result, 300)  # 5 minutes
+        return result
     return {'sidebar_accounts': [], 'sidebar_accounts_count': 0, 'has_more_accounts': False}
 
 def sidebar_badges(request):
     """Provides badge counts for the sidebar navigation."""
     if not request.user.is_authenticated:
         return {}
+
+    cache_key = f'sidebar_badges_{request.user.id}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     today = timezone.now().date()
     next_week = today + timedelta(days=7)
@@ -72,25 +83,28 @@ def sidebar_badges(request):
     active_goals_count = SavingsGoal.objects.filter(user=request.user, is_completed=False).count()
 
     # 2. Subscriptions: Due within next 7 days
-    upcoming_subscriptions_count = 0
-    active_recurring = RecurringTransaction.objects.filter(user=request.user, is_active=True)
-    for rt in active_recurring:
-        if rt.next_due_date and today <= rt.next_due_date <= next_week:
-            upcoming_subscriptions_count += 1
+    # next_due_date is a computed @property, so filter in Python over active recurring only.
+    upcoming_subscriptions_count = sum(
+        1 for rt in RecurringTransaction.objects.filter(user=request.user, is_active=True).only(
+            'frequency', 'start_date', 'last_processed_date', 'end_date'
+        )
+        if rt.next_due_date and today <= rt.next_due_date <= next_week
+    )
 
-    # 3. Calendar: Events this week (reusing subscription count for now as they are the primary scheduled events)
-    # We could also include other items if available.
+    # 3. Calendar: Events this week
     calendar_this_week_count = upcoming_subscriptions_count
 
     # 4. Loans: Active loans count
     active_loans_count = Loan.objects.filter(user=request.user, is_active=True).count()
 
-    return {
+    result = {
         'active_goals_count': active_goals_count,
         'upcoming_subscriptions_count': upcoming_subscriptions_count,
         'calendar_this_week_count': calendar_this_week_count,
         'active_loans_count': active_loans_count,
     }
+    cache.set(cache_key, result, 120)  # 2 minutes
+    return result
 
 def personalization(request):
     """Provides time-based greetings and month progress encouragement to all templates."""

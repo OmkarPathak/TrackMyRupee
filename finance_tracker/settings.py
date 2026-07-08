@@ -26,15 +26,9 @@ load_dotenv()
 if os.environ.get('SENTRY_DSN'):
     sentry_sdk.init(
         dsn=os.environ.get('SENTRY_DSN'),
-        # Set traces_sample_rate to 1.0 to capture 100%
-        # of transactions for tracing.
-        traces_sample_rate=1.0,
-        _experiments={
-            # Set continuous_profiling_auto_start to True
-            # to automatically start the profiler on when
-            # possible.
-            "continuous_profiling_auto_start": True,
-        },
+        # Sample 5% of transactions — sufficient for production debugging
+        # without the overhead of full tracing on every request.
+        traces_sample_rate=0.05,
     )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -244,6 +238,26 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Cache — use Redis when available, fall back to local memory cache.
+# Redis dramatically speeds up context processors and recurring-tx cooldowns.
+_redis_url = os.environ.get('REDIS_URL')
+if _redis_url:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': _redis_url,
+        }
+    }
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
+
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'landing'

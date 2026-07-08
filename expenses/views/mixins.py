@@ -33,6 +33,14 @@ def process_user_recurring_transactions(user):
     if not user.is_authenticated:
         return
     today = date.today()
+
+    # Skip if already processed today for this user (prevents redundant writes on every page load)
+    from django.core.cache import cache
+    cooldown_key = f'recurring_processed_{user.id}_{today}'
+    if cache.get(cooldown_key):
+        return
+    cache.set(cooldown_key, True, 86400)  # lock for 24 hours
+
     profile = user.profile
     recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True).select_related('account', 'from_account', 'to_account', 'loan').order_by('created_at')
     

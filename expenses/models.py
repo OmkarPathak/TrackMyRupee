@@ -860,6 +860,10 @@ class Transfer(models.Model):
                 name='transfer_accounts_must_differ',
             )
         ]
+        indexes = [
+            models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', 'to_account']),
+        ]
 
     def __str__(self):
         return f"{self.date} - Transfer {self.amount} from {self.from_account.name} to {self.to_account.name}"
@@ -1012,6 +1016,9 @@ class RecurringTransaction(models.Model):
                 condition=models.Q(is_active=True),
                 name='unique_recurring_transaction'
             )
+        ]
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
         ]
 
     def __str__(self):
