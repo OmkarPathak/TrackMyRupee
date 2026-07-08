@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from django.contrib import messages
+from django.core.cache import cache
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Avg, Count, F, Sum
@@ -219,31 +220,38 @@ def home_view(request):
 
     # --- PERFORMANCE OPTIMIZATION: BATCH MONTHLY TOTALS ---
     # Fetch 2 years of monthly totals in one go to avoid multiple N+1 aggregations in loops
-    hist_start = (timezone.now().replace(day=1) - timedelta(days=730)).date()
-    batch_inc = Income.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-    batch_exp = Expense.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-    batch_loan = LoanRepayment.objects.filter(loan__user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total_interest=Sum(F('interest_portion') * F('exchange_rate')))
-    batch_cap_exp = CapitalEvent.objects.filter(user=request.user, date__gte=hist_start, exclude_from_averages=False).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-    
-    monthly_summary_map = {} # (year, month) -> {'income': 0, 'expense': 0}
-    for item in batch_inc:
-        dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-        monthly_summary_map[(dt.year, dt.month)] = {'income': float(item['total']), 'expense': 0.0}
-    for item in batch_exp:
-        dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-        if (dt.year, dt.month) not in monthly_summary_map:
-            monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
-        monthly_summary_map[(dt.year, dt.month)]['expense'] = float(item['total'])
-    for item in batch_loan:
-        dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-        if (dt.year, dt.month) not in monthly_summary_map:
-            monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
-        monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total_interest'] or 0)
-    for item in batch_cap_exp:
-        dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-        if (dt.year, dt.month) not in monthly_summary_map:
-            monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
-        monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total'] or 0)
+    # Using Django Cache to prevent hitting the DB on every single dashboard load.
+    monthly_summary_cache_key = f'monthly_summary_map_{request.user.id}'
+    monthly_summary_map = cache.get(monthly_summary_cache_key)
+
+    if monthly_summary_map is None:
+        hist_start = (timezone.now().replace(day=1) - timedelta(days=730)).date()
+        batch_inc = Income.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+        batch_exp = Expense.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+        batch_loan = LoanRepayment.objects.filter(loan__user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total_interest=Sum(F('interest_portion') * F('exchange_rate')))
+        batch_cap_exp = CapitalEvent.objects.filter(user=request.user, date__gte=hist_start, exclude_from_averages=False).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+        
+        monthly_summary_map = {} # (year, month) -> {'income': 0, 'expense': 0}
+        for item in batch_inc:
+            dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
+            monthly_summary_map[(dt.year, dt.month)] = {'income': float(item['total']), 'expense': 0.0}
+        for item in batch_exp:
+            dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
+            if (dt.year, dt.month) not in monthly_summary_map:
+                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
+            monthly_summary_map[(dt.year, dt.month)]['expense'] = float(item['total'])
+        for item in batch_loan:
+            dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
+            if (dt.year, dt.month) not in monthly_summary_map:
+                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
+            monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total_interest'] or 0)
+        for item in batch_cap_exp:
+            dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
+            if (dt.year, dt.month) not in monthly_summary_map:
+                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
+            monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total'] or 0)
+        
+        cache.set(monthly_summary_cache_key, monthly_summary_map, 300) # Cache for 5 minutes
 
 
     # 1. Category Chart Data (Distribution) & Summary Table

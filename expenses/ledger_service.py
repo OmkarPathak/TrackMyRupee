@@ -129,8 +129,10 @@ class LedgerPostingService:
 
     @classmethod
     def _build_line(cls, *, entry, ledger_account, direction, amount, currency, user, account_ref=None):
-        if amount <= 0:
-            raise ValidationError("Journal line amount must be positive.")
+        if amount < 0:
+            amount = abs(amount)
+            direction = "CREDIT" if direction == "DEBIT" else "DEBIT"
+            
         fx_rate, base_amount = cls._to_base_amount(user, amount, currency)
         return JournalLine(
             journal_entry=entry,

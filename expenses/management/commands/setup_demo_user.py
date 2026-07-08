@@ -5,6 +5,8 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
+from django.db import transaction
+import expenses.models as exp_models
 
 from expenses.models import (
     Account,
@@ -51,12 +53,28 @@ class Command(BaseCommand):
         user_qs = User.objects.filter(username=username)
         if user_qs.exists():
             u = user_qs.first()
-            # Explicitly delete objects in order to avoid IntegrityErrors with complex constraints
-            SavingsGoal.objects.filter(user=u).delete()
-            RecurringTransaction.objects.filter(user=u).delete()
-            Account.objects.filter(user=u).delete()
-            Category.objects.filter(user=u).delete()
-            user_qs.delete()
+            # Explicitly delete objects in reverse dependency order in order to avoid IntegrityErrors 
+            # with complex constraints. We wrap this in an atomic transaction so partial state is not left.
+            
+            with transaction.atomic():
+                # Manually delete all items in reverse dependency graph
+                exp_models.GoalContribution.objects.filter(goal__user=u).delete()
+                exp_models.SavingsGoal.objects.filter(user=u).delete()
+                exp_models.Transfer.objects.filter(user=u).delete()
+                exp_models.Expense.objects.filter(user=u).delete()
+                exp_models.Income.objects.filter(user=u).delete()
+                exp_models.LoanRepayment.objects.filter(loan__user=u).delete()
+                exp_models.LoanInterestRate.objects.filter(loan__user=u).delete()
+                exp_models.CapitalEvent.objects.filter(user=u).delete()
+                exp_models.Loan.objects.filter(user=u).delete()
+                exp_models.LedgerReconciliationReport.objects.filter(user=u).delete()
+                exp_models.JournalEntry.objects.filter(user=u).delete()
+                exp_models.RecurringTransaction.objects.filter(user=u).delete()
+                exp_models.Account.objects.filter(user=u).delete()
+                exp_models.Category.objects.filter(user=u).delete()
+                
+                # Finally delete the user itself
+                u.delete()
             
         user = User.objects.create_user(username=username, email='demo@example.com', password='demo_password_123')
         

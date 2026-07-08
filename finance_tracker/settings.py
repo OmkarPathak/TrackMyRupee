@@ -385,6 +385,16 @@ LEDGER_READ_COHORT_PERCENT = max(0, min(100, _env_int('LEDGER_READ_COHORT_PERCEN
 LEDGER_READ_COHORT_USER_IDS = _env_int_set('LEDGER_READ_COHORT_USER_IDS')
 LEDGER_READ_EXCLUDE_USER_IDS = _env_int_set('LEDGER_READ_EXCLUDE_USER_IDS')
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/django_cache',
+        'TIMEOUT': 600,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
 
 # Logging
 # Routes the 'expenses' logger (used by ledger read compare) to the console.
