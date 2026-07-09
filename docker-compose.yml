@@ -3,6 +3,7 @@ version: '3.8'
 services:
   web:
     image: omkarpathak27/trackmyrupee:latest
+    container_name: django-finance-tracker_web_1
     command: gunicorn --workers 2 --threads 2 --max-requests 1000 --max-requests-jitter 50 --bind 0.0.0.0:8000 finance_tracker.wsgi:application
     restart: unless-stopped
     deploy:
