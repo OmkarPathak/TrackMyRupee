@@ -457,20 +457,20 @@
         <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm" id="filter-form">
         <div class="row g-3 align-items-end flex-lg-nowrap">
             <!-- Search -->
-            <div class="col-12 col-md-auto filter-w-search">
+            <div class="col-12 col-md">
                 <label for="search" class="form-label small text-muted">{% trans "Search" %}</label>
                 <input type="text" name="search" id="search" class="form-control form-control-sm" placeholder="{% trans 'Search...' %}" value="{{ request.GET.search|default:'' }}">
             </div>
             
             <!-- Date Range -->
-            <div class="col-6 col-md-auto filter-w-date">
+            <div class="col-6 col-md">
                 <label for="start_date" class="form-label small text-muted d-none d-md-block">{% trans "From" %}</label>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text d-md-none">{% trans "From" %}</span>
                     <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
                 </div>
             </div>
-            <div class="col-6 col-md-auto filter-w-date">
+            <div class="col-6 col-md">
                 <label for="end_date" class="form-label small text-muted d-none d-md-block">{% trans "To" %}</label>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text d-md-none">{% trans "To" %}</span>
@@ -479,7 +479,7 @@
             </div>
 
             <!-- Year & Month -->
-            <div class="col-6 col-md-auto filter-w-year">
+            <div class="col-6 col-md">
                 <label for="year-select" class="form-label small text-muted">{% trans "Year" %}</label>
                 <select name="year" id="year-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Years...' %}">
                     {% for dt in years %}
