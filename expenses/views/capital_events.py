@@ -2,11 +2,14 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import DeleteView, ListView, View
+import calendar
+from datetime import datetime
 
 from expenses.views.utils import get_safe_redirect_url
 
@@ -23,16 +26,93 @@ class CapitalEventListView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CapitalEvent.objects.filter(user=self.request.user).select_related('account', 'linked_loan')
-        subtype = self.request.GET.get('subtype')
-        if subtype:
-            qs = qs.filter(subtype=subtype)
+        qs = CapitalEvent.objects.filter(user=self.request.user).select_related('account', 'linked_loan').order_by('-date')
+        
+        # Filtering
+        selected_years = self.request.GET.getlist('year')
+        selected_months = self.request.GET.getlist('month')
+        selected_subtypes = self.request.GET.getlist('subtype')
+        search_query = self.request.GET.get('search')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        # Remove empty strings from lists
+        selected_years = [y for y in selected_years if y]
+        selected_months = [m for m in selected_months if m]
+        selected_subtypes = [s for s in selected_subtypes if s]
+        
+        # Date Range Logic (Precedence over Year/Month)
+        if start_date or end_date:
+            if start_date:
+                qs = qs.filter(date__gte=start_date)
+            if end_date:
+                qs = qs.filter(date__lte=end_date)
+        else:
+            has_active_filters = (
+                selected_years or 
+                selected_months or 
+                search_query
+            )
+            
+            if not has_active_filters:
+                selected_years = [str(datetime.now().year)]
+                selected_months = [str(datetime.now().month)]
+            
+            if selected_years:
+                qs = qs.filter(date__year__in=selected_years)
+            
+            if selected_months:
+                qs = qs.filter(date__month__in=selected_months)
+
+        if selected_subtypes:
+            qs = qs.filter(subtype__in=selected_subtypes)
+
+        if search_query:
+            qs = qs.filter(note__icontains=search_query)
+
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        
+        filtered_queryset = self.object_list
+        ctx['filtered_count'] = filtered_queryset.count()
+        ctx['filtered_amount'] = filtered_queryset.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+
+        user_events = CapitalEvent.objects.filter(user=self.request.user)
+        years_dates = user_events.dates('date', 'year', order='DESC')
+        years = sorted(list(set([d.year for d in years_dates] + [datetime.now().year])), reverse=True)
+        
+        ctx['years'] = years
+        ctx['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
+        
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        ctx['start_date'] = start_date
+        ctx['end_date'] = end_date
+        
+        selected_years = self.request.GET.getlist('year')
+        selected_months = self.request.GET.getlist('month')
+        selected_subtypes = self.request.GET.getlist('subtype')
+        search_query = self.request.GET.get('search', '')
+
+        selected_years = [y for y in selected_years if y]
+        selected_months = [m for m in selected_months if m]
+        selected_subtypes = [s for s in selected_subtypes if s]
+        
+        ctx['selected_years'] = selected_years
+        ctx['selected_months'] = selected_months
+        ctx['selected_subtypes'] = selected_subtypes
+        ctx['search_query'] = search_query
+
+        # Mirror default logic from get_queryset if NO date range is present
+        if not (start_date or end_date):
+            has_active_filters = (selected_years or selected_months or search_query)
+            if not has_active_filters:
+                ctx['selected_years'] = [str(datetime.now().year)]
+                ctx['selected_months'] = [str(datetime.now().month)]
+
         ctx['subtype_choices'] = CapitalEvent.SUBTYPE_CHOICES
-        ctx['selected_subtype'] = self.request.GET.get('subtype', '')
         return ctx
 
 

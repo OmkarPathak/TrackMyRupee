@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters humanize %}
+{% load i18n digit_filters expense_extras humanize %}
 
 {% block title %}{% trans "Capital Events" %}{% endblock %}
 
@@ -36,9 +36,8 @@
         line-height: 1.25;
         max-height: 2.5em;
     }
-    .view-toggle-btn {
+    .view-toggle-btn, .filter-toggle-btn, .header-action-btn {
         height: 36px;
-        width: 36px;
         padding: 0;
         display: inline-flex;
         align-items: center;
@@ -49,16 +48,58 @@
         background: transparent;
         color: var(--bs-secondary);
     }
-    .view-toggle-btn.active {
+    .view-toggle-btn, .filter-toggle-btn {
+        width: 36px;
+    }
+    .header-action-btn {
+        padding: 0 0.75rem;
+        font-size: 0.875rem;
+        text-decoration: none;
+        color: var(--bs-body-color);
+    }
+    .header-action-btn.btn-primary {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+        border: none !important;
+    }
+    .view-toggle-btn.active, .filter-toggle-btn[aria-expanded="true"] {
         background: rgba(var(--bs-primary-rgb), 0.1) !important;
         color: var(--bs-primary) !important;
         border-color: rgba(var(--bs-primary-rgb), 0.3) !important;
         box-shadow: none !important;
     }
-    [data-bs-theme="dark"] .view-toggle-btn.active {
+    .filter-toggle-btn:hover {
+        opacity: 0.9;
+    }
+    .filter-toggle-btn[aria-expanded="true"]:hover {
+        opacity: 0.8;
+    }
+    [data-bs-theme="dark"] .view-toggle-btn.active,
+    [data-bs-theme="dark"] .filter-toggle-btn[aria-expanded="true"] {
         background: rgba(255, 255, 255, 0.1) !important;
         color: #fff !important;
         border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    /* Filter Bar Standardization */
+    #filter-form .form-control,
+    #filter-form .form-select,
+    #filter-form .input-group-text,
+    #filter-form .btn {
+        height: 36px !important;
+        font-size: 0.875rem !important;
+        display: flex;
+        align-items: center;
+    }
+
+    #filter-form .multiselect.dropdown-toggle {
+        height: 36px !important;
+        font-size: 0.875rem !important;
+    }
+
+    #filter-form .btn {
+        padding: 0 0.75rem;
+        white-space: nowrap;
     }
 
     /* Category Icon Alignment */
@@ -153,12 +194,19 @@
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
             <div class="d-flex align-items-center gap-2">
-                <a href="{% url 'capital-event-create' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                <a href="{% url 'capital-event-create' %}" class="header-action-btn btn-primary d-flex align-items-center gap-1">
                     <i class="bi bi-plus-lg"></i> <span>{% trans "Add" %}<span class="d-none d-sm-inline"> {% trans "Event" %}</span></span>
                 </a>
             </div>
         </div>
-        <p class="text-muted small mb-0 mt-1">{% trans "Large one-off payments excluded from monthly averages & budget tracking." %}</p>
+        <p class="text-muted small mb-0 mt-1">
+            <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "events" %} &middot; 
+            <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "total" %}<br>
+            {% trans "Large one-off payments excluded from monthly averages & budget tracking." %}
+        </p>
     </div>
 
     <!-- Desktop Header -->
@@ -166,38 +214,97 @@
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
             <div class="d-flex gap-3 align-items-center">
-                <!-- Desktop view filter (select dropdown) -->
-                <form method="get" class="d-flex align-items-center gap-2 mb-0">
-                    <label class="text-muted small fw-semibold mb-0 text-nowrap" for="subtype-filter-select-desktop">{% trans "Filter by type:" %}</label>
-                    <select name="subtype" id="subtype-filter-select-desktop" class="form-select form-select-sm rounded-3 py-1" style="width: 180px;" onchange="this.form.submit()">
-                        <option value="">{% trans "All" %}</option>
-                        {% for val, label in subtype_choices %}
-                            <option value="{{ val }}" {% if selected_subtype == val %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </form>
+                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
 
-                <a href="{% url 'capital-event-create' %}" class="btn btn-primary btn-sm d-inline-flex align-items-center text-nowrap">
+                <a href="{% url 'capital-event-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
                     <i class="bi bi-plus-lg me-1"></i> {% trans "Add Capital Event" %}
                 </a>
             </div>
         </div>
-        <p class="text-muted small mb-0 mt-1">{% trans "Large one-off payments excluded from monthly averages & budget tracking." %}</p>
+        <p class="text-muted small mb-0 mt-2 py-1 lh-base">
+            <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "events" %} &middot; 
+            <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "total" %} &middot;
+            {% trans "Large one-off payments excluded from monthly averages & budget tracking." %}
+        </p>
     </div>
 
-    <!-- Mobile Filter bar -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4 d-md-none">
-        <div class="card-body py-2">
-            <form method="get" class="d-flex align-items-center gap-2">
-                <label class="text-muted small fw-semibold mb-0 text-nowrap" for="subtype-filter-select-mobile">{% trans "Filter by type:" %}</label>
-                <select name="subtype" id="subtype-filter-select-mobile" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                    <option value="">{% trans "All" %}</option>
-                    {% for val, label in subtype_choices %}
-                        <option value="{{ val }}" {% if selected_subtype == val %}selected{% endif %}>{{ label }}</option>
+    <!-- Filter Form -->
+    <div class="collapse" id="capitalEventFilters" style="z-index: 1040; position: relative;">
+        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm" id="filter-form">
+        <div class="row g-3 align-items-end flex-lg-nowrap">
+            <!-- Search -->
+            <div class="col-12 col-md">
+                <label for="search" class="form-label small text-muted">{% trans "Search" %}</label>
+                <input type="text" name="search" id="search" class="form-control form-control-sm" placeholder="{% trans 'Search...' %}" value="{{ request.GET.search|default:'' }}">
+            </div>
+            
+            <!-- Date Range -->
+            <div class="col-6 col-md">
+                <label for="start_date" class="form-label small text-muted d-none d-md-block">{% trans "From" %}</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text d-md-none">{% trans "From" %}</span>
+                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
+                </div>
+            </div>
+            <div class="col-6 col-md">
+                <label for="end_date" class="form-label small text-muted d-none d-md-block">{% trans "To" %}</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text d-md-none">{% trans "To" %}</span>
+                    <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date|default:'' }}">
+                </div>
+            </div>
+
+            <!-- Year & Month -->
+            <div class="col-6 col-md">
+                <label for="year-select" class="form-label small text-muted">{% trans "Year" %}</label>
+                <select name="year" id="year-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Years...' %}">
+                    {% for dt in years %}
+                        <option value="{{ dt }}" {% if dt|stringformat:"s" in selected_years %}selected{% endif %}>
+                            {{ dt|translate_digits }}
+                        </option>
                     {% endfor %}
                 </select>
-            </form>
+            </div>
+            <div class="col-6 col-md">
+                <label for="month-select" class="form-label small text-muted">{% trans "Month" %}</label>
+                <select name="month" id="month-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Months...' %}">
+                    {% for num, name in months_list %}
+                        <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Subtype -->
+            <div class="col-12 col-md">
+                <label for="subtype-select" class="form-label small text-muted">{% trans "Type" %}</label>
+                <select name="subtype" id="subtype-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Types...' %}">
+                    {% for val, label in subtype_choices %}
+                        <option value="{{ val }}" {% if val in selected_subtypes %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div> <!-- End of inputs row -->
+
+        <!-- Action Buttons Row -->
+        <div class="row g-2 mt-3 align-items-center">
+            <div class="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+                <button type="submit" class="btn btn-primary btn-sm px-4">
+                    <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
+                </button>
+                
+                <a href="{% url 'capital-event-list' %}" class="btn btn-outline-secondary btn-sm px-4">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
+                </a>
+            </div>
         </div>
+    </form>
     </div>
 
     {% if events %}
