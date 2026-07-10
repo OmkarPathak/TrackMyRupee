@@ -202,11 +202,15 @@
                 </a>
             </div>
         </div>
-        <p class="text-muted small mb-0 mt-1">
-            <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "events" %} &middot; 
-            <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "total" %}<br>
-            {% trans "Large one-off payments excluded from monthly averages & budget tracking." %}
-        </p>
+        <div class="mt-2">
+            <p class="mb-1 fw-medium" style="font-size: 0.95rem;">
+                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "events" %} &middot; 
+                <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "total" %}
+            </p>
+            <p class="text-muted small mb-0 lh-sm d-flex align-items-start gap-1">
+                <span class="opacity-75">{% trans "Large one-off payments excluded from monthly averages & budget tracking." %}</span>
+            </p>
+        </div>
     </div>
 
     <!-- Desktop Header -->
@@ -223,11 +227,16 @@
                 </a>
             </div>
         </div>
-        <p class="text-muted small mb-0 mt-2 py-1 lh-base">
-            <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "events" %} &middot; 
-            <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "total" %} &middot;
-            {% trans "Large one-off payments excluded from monthly averages & budget tracking." %}
-        </p>
+        <div class="d-flex align-items-center flex-wrap gap-3 mt-2">
+            <p class="mb-0 fw-medium" style="font-size: 0.95rem;">
+                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "events" %} &middot; 
+                <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "total" %}
+            </p>
+            <div class="vr opacity-25 d-none d-lg-block"></div>
+            <p class="text-muted small mb-0 d-flex align-items-center gap-1 opacity-75">
+                {% trans "Large one-off payments excluded from monthly averages & budget tracking." %}
+            </p>
+        </div>
     </div>
 
     <!-- Filter Form -->
