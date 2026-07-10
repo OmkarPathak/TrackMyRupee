@@ -1634,6 +1634,30 @@
     {% endif %}
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Clean GET Form URLs -->
+    <script>
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            // Intercept GET forms without a specific target to clean up empty query parameters
+            if (form.method && form.method.toLowerCase() === 'get' && (!form.target || form.target === '_self')) {
+                e.preventDefault();
+                
+                const url = new URL(form.action || window.location.href);
+                // Clear existing query params so we only use the newly submitted ones
+                url.search = '';
+                
+                const formData = new FormData(form);
+                for (const [key, value] of formData.entries()) {
+                    if (value.trim() !== '') {
+                        url.searchParams.append(key, value);
+                    }
+                }
+                
+                window.location.href = url.toString();
+            }
+        });
+    </script>
 </body>
 
 
