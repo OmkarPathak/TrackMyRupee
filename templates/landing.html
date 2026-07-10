@@ -20,7 +20,7 @@
             }
         })();
     </script>
-    <title>TrackMyRupee - Expense tracker for India. No SMS. No Bank Login.</title>
+    <title>TrackMyRupee | Personal Finance System for India. No SMS. No Bank Login.</title>
 
     <!-- SEO Meta Tags -->
     <meta name="description"
@@ -34,7 +34,7 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://trackmyrupee.com/">
-    <meta property="og:title" content="TrackMyRupee - Expense tracker for India. No SMS. No Bank Login.">
+    <meta property="og:title" content="TrackMyRupee | Personal Finance System for India. No SMS. No Bank Login.">
     <meta property="og:description"
         content="Your salary has a story. TrackMyRupee tells you the whole thing. Watch your net worth grow and spot spending leaks without bank logins or SMS access.">
     <meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
@@ -44,7 +44,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://trackmyrupee.com/">
-    <meta name="twitter:title" content="TrackMyRupee - Expense tracker for India. No SMS. No Bank Login.">
+    <meta name="twitter:title" content="TrackMyRupee | Personal Finance System for India. No SMS. No Bank Login.">
     <meta name="twitter:description"
         content="Your salary has a story. TrackMyRupee tells you the whole thing. Watch your net worth grow and spot spending leaks without bank logins or SMS access.">
     <meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
@@ -958,7 +958,15 @@
                         <i class="bi bi-check"></i>
                         {% trans "It's free, takes 2 minutes" %}
                         <i class="bi bi-check"></i>
-                        <span>{% trans "Used by 100+ professionals in Bangalore, Mumbai, Pune and 12 other cities" %}</span>
+                        <span>{% trans "Used by 172 professionals" %}</span>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Bangalore</span>
+                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Mumbai</span>
+                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Pune</span>
+                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Hyderabad</span>
+                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Delhi</span>
+                        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill fw-medium">{% trans "and 10 more cities" %}</span>
                     </div>
                 </div>
             </div>
@@ -1018,7 +1026,7 @@
                 <h2 class="section-title">{% trans "Everything your salary story needs." %}<br>{% trans "Know your net worth." %}</h2>
                 <div class="networth-explainer mt-4">
                     <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 12px;">{% trans "All your accounts. One number that matters." %}</h3>
-                    <p style="font-size: 15px; color: var(--tmr-ink-600); line-height: 1.6;">{% trans "Add your savings, FDs, mutual funds, PPF, and credit cards - TrackMyRupee calculates your true net worth and shows you exactly how it moves each month." %}</p>
+                    <p style="font-size: 15px; color: var(--tmr-ink-600); line-height: 1.6;">{% trans "Track your PF, PPF, NPS, mutual funds, FDs, RDs, and credit cards - everything that makes up your real Indian net worth." %}</p>
                     <div class="account-types mt-4">
                         <div class="row row-cols-1 row-cols-md-2 g-2">
                             <div class="col">
@@ -1148,6 +1156,67 @@
         </div>
     </div>
 </section>
+<!-- COMPLETE FINANCIAL SYSTEM -->
+<section class="landing-section" style="background: var(--tmr-surface-0);">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <div class="section-tag mx-auto">{% trans "Complete financial system" %}</div>
+            <h2 class="section-title mx-auto" style="max-width: 800px;">{% trans "Most people use TrackMyRupee for expenses. Power users use it for everything." %}</h2>
+        </div>
+        
+        <div class="row g-4 mx-auto" style="max-width: 900px;">
+            <div class="col-md-6">
+                <div class="d-flex align-items-start gap-3">
+                    <div style="font-size: 24px; line-height: 1;">🏦</div>
+                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
+                        <span class="fw-bold text-dark">{% trans "Loan Manager" %}</span> {% trans "with EMI + amortization schedule" %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-start gap-3">
+                    <div style="font-size: 24px; line-height: 1;">📊</div>
+                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
+                        <span class="fw-bold text-dark">{% trans "Double-entry ledger" %}</span> {% trans "with auto-reconciliation" %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-start gap-3">
+                    <div style="font-size: 24px; line-height: 1;">🎯</div>
+                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
+                        <span class="fw-bold text-dark">{% trans "Capital events" %}</span> <span style="color: var(--tmr-ink-600);">{% trans "(large purchases that shouldn't skew your month)" %}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-start gap-3">
+                    <div style="font-size: 24px; line-height: 1;">🏠</div>
+                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
+                        <span class="fw-bold text-dark">{% trans "Physical assets" %}</span> <span style="color: var(--tmr-ink-600);">{% trans "(track your home, car, gold in net worth)" %}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-start gap-3">
+                    <div style="font-size: 24px; line-height: 1;">📈</div>
+                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
+                        <span class="fw-bold text-dark">{% trans "12-month savings rate" %}</span> {% trans "and net worth trend analytics" %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-start gap-3">
+                    <div style="font-size: 24px; line-height: 1;">🔒</div>
+                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
+                        <span class="fw-bold text-dark">{% trans "Full DPDPA compliance" %}</span> — {% trans "your data rights enforced" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 
 
 <!-- FEATURES (THE EXPERIENCE) -->
@@ -1235,7 +1304,10 @@
     <div class="container d-flex flex-wrap align-items-center justify-content-center gap-3">
         <span class="lang-strip-label mb-0">{% trans "Available in your language:" %}</span>
         <div class="lang-pill">🇬🇧 English</div>
-        <div class="lang-pill">🇮🇳 हिंदी</div>
+        <div class="lang-pill d-flex flex-column align-items-center justify-content-center py-1" style="gap: 2px;">
+            <div>🇮🇳 हिंदी</div>
+            <div style="font-size: 10px; font-weight: 500; color: var(--tmr-ink-600); line-height: 1;">अपनी भाषा में अपने पैसों को समझें</div>
+        </div>
         <div class="lang-pill">🇮🇳 मराठी</div>
         <span class="lang-strip-label mb-0" style="color:var(--accent)">{% trans "More coming soon" %}</span>
     </div>
@@ -1401,8 +1473,8 @@
     <div class="container py-5 text-center">
         <div class="section-tag mx-auto">{% trans "Simple pricing" %}</div>
         <h2 class="section-title">{% trans "Less than a chai a day. More clarity than any spreadsheet." %}</h2>
-        <p class="section-sub mx-auto">{% trans "Start free, upgrade when you're ready. No credit card required. No hidden fees." %}</p>
-
+        <p class="section-sub mx-auto mb-2">{% trans "Start free, upgrade when you're ready. No credit card required. No hidden fees." %}</p>
+        <p class="section-sub mx-auto mt-0" style="font-size: 14px; font-weight: 500; color: var(--tmr-teal-600);">{% trans "Trusted by paying subscribers across India — no investors, no pressure, just a product people choose to pay for." %}</p>
         <!-- Billing Toggle -->
         <div class="billing-toggle mb-5">
             <span class="billing-toggle-label" id="lp-label-monthly">{% trans "Monthly" %}</span>
@@ -1726,7 +1798,7 @@
         <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-4);">{% trans "Built with purpose, not VC pressure" %}</div>
         <img src="https://github.com/OmkarPathak.png" alt="Omkar Pathak" class="founder-avatar rounded-circle mb-4" width="80" height="80" loading="lazy">
         <div class="founder-quote mx-auto mb-4" style="max-width: 800px; font-size: clamp(18px, 3vw, 24px); color: white; line-height: 1.4; opacity: 0.9;">
-            {% blocktrans %}I'm Omkar - I built TrackMyRupee after losing track of an entire month's salary. No investor pressure means no dark patterns, no data selling, no forced upsells. Just a product that earns your trust.{% endblocktrans %}
+            {% blocktrans %}I'm Omkar — I built TrackMyRupee after a month where I earned well, invested on time, and still couldn't account for ₹40,000 of my salary. Every app I tried wanted my bank access to solve a problem I had created myself. So I built something that doesn't.{% endblocktrans %}
         </div>
         <div class="founder-info mt-2">
             <div class="founder-name" style="font-size: 18px; font-weight: 700; color: white;">Omkar Pathak</div>
