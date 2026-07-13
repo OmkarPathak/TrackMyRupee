@@ -721,6 +721,17 @@ def dpdp_consent_view(request):
             profile.consent_timestamp = timezone.now()
             profile.consent_version = 'v1.0'
             profile.save()
+
+            from ..models import ConsentEvent
+            ConsentEvent.objects.create(
+                user=request.user,
+                action='GRANTED',
+                purpose='Terms and Data Collection',
+                consent_version='v1.0',
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+
             messages.success(request, _("Thank you for your consent. You can now use TrackMyRupee."))
             return redirect('home')
         else:

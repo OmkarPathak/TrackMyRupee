@@ -38,19 +38,19 @@ class LedgerReadService:
         if random.random() > max(0.0, min(1.0, cls._compare_sample_rate())):
             return
 
-        # logger.info(
-        #     "ledger_read_compare",
-        #     extra={
-        #         "user_id": account.user_id,
-        #         "account_id": account.id,
-        #         "account_currency": account.currency,
-        #         "model_balance": str(account.balance),
-        #         "ledger_delta": str(ledger_delta),
-        #         "selected_balance": str(selected_balance),
-        #         "used_fallback": used_fallback,
-        #         "has_opening_entry": has_opening_entry,
-        #     },
-        # )
+        logger.info(
+            "ledger_read_compare",
+            extra={
+                "user_id": account.user_id,
+                "account_id": account.id,
+                "account_currency": account.currency,
+                "model_balance": str(account.balance),
+                "ledger_delta": str(ledger_delta),
+                "selected_balance": str(selected_balance),
+                "used_fallback": used_fallback,
+                "has_opening_entry": has_opening_entry,
+            },
+        )
 
     @classmethod
     def _line_amount_in_account_currency(cls, line, account):
@@ -178,7 +178,20 @@ class LedgerReadService:
                     remaining_principal = (remaining_principal * rate).quantize(Decimal("0.01"))
                 outstanding_loan_base += remaining_principal
 
-            return (goal_reserves_base - outstanding_loan_base).quantize(Decimal("0.01")), {}
+            physical_assets_base = Decimal("0.00")
+            if getattr(settings, "NET_WORTH_EXTENDED_MODELS_ENABLED", False):
+                from .models import PhysicalAsset
+                assets = PhysicalAsset.objects.filter(user=user, is_active=True)
+                for asset in assets:
+                    latest_val = asset.valuations.order_by('-as_of_date', '-created_at').first()
+                    if latest_val:
+                        val = latest_val.value
+                        if asset.currency != base_currency:
+                            rate = get_exchange_rate(asset.currency, base_currency)
+                            val = (val * rate).quantize(Decimal("0.01"))
+                        physical_assets_base += val
+
+            return (goal_reserves_base - outstanding_loan_base + physical_assets_base).quantize(Decimal("0.01")), {}
 
         base_currency = user.profile.currency
         account_ids = [a.id for a in accounts]
@@ -231,6 +244,22 @@ class LedgerReadService:
             else:
                 rate = get_exchange_rate(account.currency, base_currency)
                 converted_bal = (balance * rate).quantize(Decimal("0.01"))
+                
+            if getattr(settings, "NET_WORTH_EXTENDED_MODELS_ENABLED", False) and account.account_type == 'INVESTMENT':
+                from .models import Holding
+                holdings = Holding.objects.filter(account=account, is_active=True)
+                if holdings.exists():
+                    holdings_val = Decimal("0.00")
+                    for holding in holdings:
+                        latest_val = holding.valuations.order_by('-as_of_date', '-created_at').first()
+                        if latest_val:
+                            val = latest_val.value
+                            if holding.currency != base_currency:
+                                rate = get_exchange_rate(holding.currency, base_currency)
+                                val = (val * rate).quantize(Decimal("0.01"))
+                            holdings_val += val
+                    converted_bal = holdings_val
+
             account_base_balances[account.pk] = converted_bal
             net_worth += converted_bal
 
@@ -259,5 +288,18 @@ class LedgerReadService:
                 remaining_principal = (remaining_principal * rate).quantize(Decimal("0.01"))
             outstanding_loan_base += remaining_principal
 
-        net_worth = (net_worth + goal_reserves_base - outstanding_loan_base).quantize(Decimal("0.01"))
+        physical_assets_base = Decimal("0.00")
+        if getattr(settings, "NET_WORTH_EXTENDED_MODELS_ENABLED", False):
+            from .models import PhysicalAsset
+            assets = PhysicalAsset.objects.filter(user=user, is_active=True)
+            for asset in assets:
+                latest_val = asset.valuations.order_by('-as_of_date', '-created_at').first()
+                if latest_val:
+                    val = latest_val.value
+                    if asset.currency != base_currency:
+                        rate = get_exchange_rate(asset.currency, base_currency)
+                        val = (val * rate).quantize(Decimal("0.01"))
+                    physical_assets_base += val
+
+        net_worth = (net_worth + goal_reserves_base - outstanding_loan_base + physical_assets_base).quantize(Decimal("0.01"))
         return net_worth, account_base_balances

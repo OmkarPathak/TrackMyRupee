@@ -11,7 +11,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
+import sentry_sdk
 from finance_tracker.plans import get_limit
 
 from .utils import get_exchange_rate
@@ -62,7 +62,11 @@ def _run_ledger_shadow(posting_fn, source_type=None, source_id=None, action=None
     try:
         posting_fn()
     except Exception as exc:
-        logger.exception('Ledger shadow posting failed.')
+        error_code = getattr(exc, 'code', 'UNKNOWN_LEDGER_ERR')
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("error_code", error_code)
+            logger.exception('Ledger shadow posting failed.')
+            
         LedgerPostingFailure.objects.create(
             source_type=source_type or 'ADJUSTMENT',
             source_id=source_id or 0,
@@ -74,6 +78,10 @@ def _run_ledger_shadow(posting_fn, source_type=None, source_id=None, action=None
         )
         if getattr(settings, 'LEDGER_ENFORCE_BALANCED_WRITE', False):
             raise ValidationError(_('Unable to save transaction right now. Please try again.'))
+
+class SoftDeleteManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
 
 class FinanceBaseManager(models.Manager):
     def get_monthly_summary(self, user, year, month):
@@ -139,6 +147,22 @@ class Account(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['user', 'name'], name='unique_account_per_user')
         ]
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            for expense in self.expenses.all():
+                expense.delete()
+            for income in self.incomes.all():
+                income.delete()
+            for transfer in self.transfers_out.all():
+                transfer.delete()
+            for transfer in self.transfers_in.all():
+                transfer.delete()
+            for contribution in self.goal_contributions.all():
+                contribution.delete()
+            for repayment in self.loan_repayments.all():
+                repayment.delete()
+            super().delete(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.currency}{self.balance})"
@@ -223,7 +247,7 @@ class JournalLine(models.Model):
     ]
 
     journal_entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name='lines')
-    ledger_account = models.ForeignKey(LedgerAccount, on_delete=models.CASCADE, related_name='journal_lines')
+    ledger_account = models.ForeignKey(LedgerAccount, on_delete=models.PROTECT, related_name='journal_lines')
     direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES)
@@ -310,10 +334,12 @@ class Expense(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField(verbose_name=_('Date'))
-    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_('Amount'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))
     description = models.TextField(verbose_name=_('Description'))
     category = models.CharField(max_length=255, verbose_name=_('Category'))
-    
+    category_fk = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Category FK'))
+    client_dedup_key = models.CharField(max_length=255, null=True, blank=True, verbose_name=_('Client Deduplication Key'))
+
     PAYMENT_OPTIONS = [
         ('Cash', _('Cash')),
         ('Credit Card', _('Credit Card')),
@@ -325,14 +351,18 @@ class Expense(models.Model):
     
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
-    base_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
+    base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Account'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     objects = ExpenseManager()
+    active = SoftDeleteManager()
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -351,7 +381,9 @@ class Expense(models.Model):
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
-            if self.category:
+            if getattr(self, 'category_fk', None):
+                self.category = self.category_fk.name
+            elif self.category:
                 self.category = self.category.strip()
             
             # Multi-currency normalization
@@ -421,6 +453,18 @@ class Expense(models.Model):
                     } if old_instance else None,
                 },
             )
+            
+            FinancialAuditLog.objects.create(
+                user=self.user,
+                model_name='Expense',
+                object_id=self.id,
+                object_uuid=self.uuid,
+                action='CREATE' if old_instance is None else 'UPDATE',
+                diff={
+                    'before': {'amount': str(old_instance.amount), 'category': old_instance.category} if old_instance else None,
+                    'after': {'amount': str(self.amount), 'category': self.category}
+                }
+            )
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
@@ -462,19 +506,30 @@ class Expense(models.Model):
                     },
                 },
             )
-            super().delete(*args, **kwargs)
+            
+            if getattr(settings, 'SOFT_DELETE_ENABLED', False):
+                self.is_deleted = True
+                self.deleted_at = timezone.now()
+                self.save(update_fields=['is_deleted', 'deleted_at'])
+                
+                FinancialAuditLog.objects.create(
+                    user=self.user,
+                    model_name='Expense',
+                    object_id=self.id,
+                    object_uuid=self.uuid,
+                    action='DELETE',
+                    diff={'deleted': True}
+                )
+            else:
+                super().delete(*args, **kwargs)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'date', 'amount', 'currency', 'description', 'category'],
-                name='unique_expense'
-            )
-        ]
+        constraints = []
         indexes = [
             models.Index(fields=['user', 'category']),
             models.Index(fields=['user', 'payment_method']),
             models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', 'client_dedup_key'], name='idx_expense_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
         ]
 
     def __str__(self):
@@ -485,7 +540,7 @@ class Category(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, verbose_name=_('Category Name'))
     icon = models.CharField(max_length=50, default='bi-tag', verbose_name=_('Icon'))
-    limit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_('Monthly Limit'))
+    limit = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Monthly Limit'))
 
     def save(self, *args, **kwargs):
         if self.name:
@@ -519,7 +574,7 @@ class Income(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField(verbose_name=_('Date'))
-    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_('Amount'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))
     description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
     source = models.CharField(max_length=255, verbose_name=_('Source')) # e.g. Salary, Freelance, Dividend
     source_type = models.CharField(
@@ -528,17 +583,23 @@ class Income(models.Model):
         default='Salary',
         verbose_name=_('Source Type')
     )
+    source_fk = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='incomes', verbose_name=_('Source FK'))
+    client_dedup_key = models.CharField(max_length=255, null=True, blank=True, verbose_name=_('Client Deduplication Key'))
     
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
-    base_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
+    base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='incomes', verbose_name=_('Account'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     objects = IncomeManager()
+    active = SoftDeleteManager()
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -559,7 +620,9 @@ class Income(models.Model):
 
             if not self.source:
                 self.source = self.source_type or 'Salary'
-            if self.source:
+            if getattr(self, 'source_fk', None):
+                self.source = self.source_fk.name
+            elif self.source:
                 self.source = self.source.strip()
                 
             # Multi-currency normalization
@@ -629,6 +692,18 @@ class Income(models.Model):
                     } if old_instance else None,
                 },
             )
+            
+            FinancialAuditLog.objects.create(
+                user=self.user,
+                model_name='Income',
+                object_id=self.id,
+                object_uuid=self.uuid,
+                action='CREATE' if old_instance is None else 'UPDATE',
+                diff={
+                    'before': {'amount': str(old_instance.amount), 'source': old_instance.source} if old_instance else None,
+                    'after': {'amount': str(self.amount), 'source': self.source}
+                }
+            )
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
@@ -670,18 +745,29 @@ class Income(models.Model):
                     },
                 },
             )
-            super().delete(*args, **kwargs)
+            
+            if getattr(settings, 'SOFT_DELETE_ENABLED', False):
+                self.is_deleted = True
+                self.deleted_at = timezone.now()
+                self.save(update_fields=['is_deleted', 'deleted_at'])
+                
+                FinancialAuditLog.objects.create(
+                    user=self.user,
+                    model_name='Income',
+                    object_id=self.id,
+                    object_uuid=self.uuid,
+                    action='DELETE',
+                    diff={'deleted': True}
+                )
+            else:
+                super().delete(*args, **kwargs)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'date', 'amount', 'currency', 'source'],
-                name='unique_income'
-            )
-        ]
+        constraints = []
         indexes = [
             models.Index(fields=['user', 'source']),
             models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', 'client_dedup_key'], name='idx_income_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
         ]
 
     def __str__(self):
@@ -692,7 +778,7 @@ class Transfer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     from_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transfers_out', verbose_name=_('From Account'))
     to_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transfers_in', verbose_name=_('To Account'))
-    amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))
     date = models.DateField(default=timezone.now, verbose_name=_('Date'))
     description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
     
@@ -700,10 +786,16 @@ class Transfer(models.Model):
     
     # Multi-currency support (No currency field in DB yet for Transfer, using from_account.currency)
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
-    converted_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
+    converted_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = TransferManager()
+    active = SoftDeleteManager()
 
     def clean(self):
         if self.from_account_id and self.to_account_id and self.from_account_id == self.to_account_id:
@@ -808,6 +900,18 @@ class Transfer(models.Model):
                     } if old_instance else None,
                 },
             )
+            
+            FinancialAuditLog.objects.create(
+                user=self.user,
+                model_name='Transfer',
+                object_id=self.id,
+                object_uuid=self.uuid,
+                action='CREATE' if old_instance is None else 'UPDATE',
+                diff={
+                    'before': {'amount': str(old_instance.amount)} if old_instance else None,
+                    'after': {'amount': str(self.amount)}
+                }
+            )
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
@@ -851,7 +955,22 @@ class Transfer(models.Model):
                     },
                 },
             )
-            super().delete(*args, **kwargs)
+            
+            if getattr(settings, 'SOFT_DELETE_ENABLED', False):
+                self.is_deleted = True
+                self.deleted_at = timezone.now()
+                self.save(update_fields=['is_deleted', 'deleted_at'])
+                
+                FinancialAuditLog.objects.create(
+                    user=self.user,
+                    model_name='Transfer',
+                    object_id=self.id,
+                    object_uuid=self.uuid,
+                    action='DELETE',
+                    diff={'deleted': True}
+                )
+            else:
+                super().delete(*args, **kwargs)
 
     class Meta:
         constraints = [
@@ -886,16 +1005,17 @@ class RecurringTransaction(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES, verbose_name=_('Transaction Type'))
-    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_('Amount'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))
     description = models.TextField(verbose_name=_('Description'))
     category = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Category'))
+    category_fk = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transactions', verbose_name=_('Category FK'))
     source = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Source'))
     
     payment_method = models.CharField(max_length=50, choices=Expense.PAYMENT_OPTIONS, default='Cash', verbose_name=_('Payment Method'))
     
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
-    base_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
+    base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('Account'))
     loan = models.ForeignKey('Loan', on_delete=models.CASCADE, null=True, blank=True, related_name='recurring_schedules', verbose_name=_('Loan'))
@@ -923,6 +1043,15 @@ class RecurringTransaction(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        super().clean()
+        if getattr(self, 'source_fk_id', None):
+            qs = RecurringTransaction.objects.filter(source_fk_id=self.source_fk_id)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                raise ValidationError({'source_fk': _('Another recurring transaction already uses this source.')})
 
     @staticmethod
     def get_next_date(current_date, frequency):
@@ -1006,6 +1135,11 @@ class RecurringTransaction(models.Model):
         else:
             self.exchange_rate = get_exchange_rate(self.currency, base_currency)
             self.base_amount = (self.amount * self.exchange_rate).quantize(Decimal('0.01'))
+            
+        if getattr(self, 'category_fk', None):
+            self.category = self.category_fk.name
+        elif self.category:
+            self.category = self.category.strip()
             
         super().save(*args, **kwargs)
 
@@ -1225,7 +1359,7 @@ class PaymentHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order_id = models.CharField(max_length=100)
     payment_id = models.CharField(max_length=100, blank=True, null=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
     tier = models.CharField(max_length=10) # PLUS, PRO
     duration = models.CharField(max_length=10, default='YEARLY')  # MONTHLY, YEARLY
     status = models.CharField(max_length=20, default='PENDING') # PENDING, SUCCESS, FAILED
@@ -1246,7 +1380,7 @@ class SubscriptionPlan(models.Model):
     tier = models.CharField(max_length=10, choices=TIER_CHOICES)
     duration = models.CharField(max_length=10, choices=DURATION_CHOICES, default='YEARLY')
     name = models.CharField(max_length=100)
-    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price in INR")
+    price = models.DecimalField(max_digits=15, decimal_places=2, help_text="Price in INR")
     razorpay_plan_id = models.CharField(max_length=100, blank=True, null=True)
     features = models.TextField(help_text="Comma separated features", blank=True)
     is_active = models.BooleanField(default=True)
@@ -1293,8 +1427,8 @@ class SavingsGoal(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='savings_goals')
     name = models.CharField(max_length=255, verbose_name=_('Goal Name'))
-    target_amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Target Amount'))
-    current_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), verbose_name=_('Current Amount'))
+    target_amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Target Amount'))
+    current_amount = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'), verbose_name=_('Current Amount'))
     target_date = models.DateField(blank=True, null=True, verbose_name=_('Target Date'))
     icon = models.CharField(max_length=10, default='🎯', verbose_name=_('Icon'))
     color = models.CharField(max_length=20, default='primary', verbose_name=_('Color Theme'))
@@ -1323,13 +1457,8 @@ class SavingsGoal(models.Model):
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
-            # Before deleting the goal, we must refund all contributions to their respective accounts
-            # Django's cascade delete does not call individual delete() methods on related objects,
-            # so we manually iterate to ensure account balances are restored.
-            for contribution in self.contributions.select_related('account').all():
-                if contribution.account:
-                    contribution.account.balance += contribution.amount
-                    contribution.account.save()
+            for contribution in self.contributions.all():
+                contribution.delete()
             super().delete(*args, **kwargs)
 
     @property
@@ -1364,12 +1493,16 @@ class GoalContribution(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     goal = models.ForeignKey(SavingsGoal, on_delete=models.CASCADE, related_name='contributions')
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='goal_contributions', verbose_name=_('From Account'))
-    amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Contribution Amount'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Contribution Amount'))
     date = models.DateField(default=timezone.now, verbose_name=_('Date'))
     
     created_at = models.DateTimeField(auto_now_add=True)
 
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
     objects = GoalContributionManager()
+    active = SoftDeleteManager()
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -1449,6 +1582,18 @@ class GoalContribution(models.Model):
                 },
             )
             
+            FinancialAuditLog.objects.create(
+                user=self.goal.user,
+                model_name='GoalContribution',
+                object_id=self.id,
+                object_uuid=self.uuid,
+                action='CREATE' if old_instance is None else 'UPDATE',
+                diff={
+                    'before': {'amount': str(old_instance.amount)} if old_instance else None,
+                    'after': {'amount': str(self.amount)}
+                }
+            )
+            
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             # Update account balance and goal's current amount when deleting a contribution
@@ -1492,9 +1637,21 @@ class GoalContribution(models.Model):
                     },
                 },
             )
-            
-            super().delete(*args, **kwargs)
-
+            if getattr(settings, 'SOFT_DELETE_ENABLED', False):
+                self.is_deleted = True
+                self.deleted_at = timezone.now()
+                self.save(update_fields=['is_deleted', 'deleted_at'])
+                
+                FinancialAuditLog.objects.create(
+                    user=self.goal.user,
+                    model_name='GoalContribution',
+                    object_id=self.id,
+                    object_uuid=self.uuid,
+                    action='DELETE',
+                    diff={'deleted': True}
+                )
+            else:
+                super().delete(*args, **kwargs)
     def __str__(self):
         return f"+{self.amount} to {self.goal.name} on {self.date}"
 
@@ -1535,6 +1692,12 @@ class Loan(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            for repayment in self.repayments.all():
+                repayment.delete()
+            super().delete(*args, **kwargs)
+
     def __str__(self):
         return f"{self.name} - {self.initial_principal} {self.currency}"
 
@@ -1554,16 +1717,22 @@ class LoanRepayment(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='repayments')
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_repayments', verbose_name=_('Paid From Account'))
-    amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Total Amount Paid (EMI)'))
-    principal_portion = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Principal Portion'))
-    interest_portion = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Interest Portion'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Total Amount Paid (EMI)'))
+    principal_portion = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Principal Portion'))
+    interest_portion = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Interest Portion'))
     date = models.DateField(default=timezone.now, verbose_name=_('Payment Date'))
     
     # Multi-currency support
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
-    base_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
+    base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = models.Manager()
+    active = SoftDeleteManager()
 
     class Meta:
         ordering = ['date']
@@ -1686,6 +1855,18 @@ class LoanRepayment(models.Model):
                     } if old_instance else None,
                 },
             )
+            
+            FinancialAuditLog.objects.create(
+                user=self.loan.user,
+                model_name='LoanRepayment',
+                object_id=self.id,
+                object_uuid=self.uuid,
+                action='CREATE' if old_instance is None else 'UPDATE',
+                diff={
+                    'before': {'amount': str(old_instance.amount)} if old_instance else None,
+                    'after': {'amount': str(self.amount)}
+                }
+            )
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
@@ -1726,7 +1907,21 @@ class LoanRepayment(models.Model):
                     },
                 },
             )
-            super().delete(*args, **kwargs)
+            if getattr(settings, 'SOFT_DELETE_ENABLED', False):
+                self.is_deleted = True
+                self.deleted_at = timezone.now()
+                self.save(update_fields=['is_deleted', 'deleted_at'])
+                
+                FinancialAuditLog.objects.create(
+                    user=self.loan.user,
+                    model_name='LoanRepayment',
+                    object_id=self.id,
+                    object_uuid=self.uuid,
+                    action='DELETE',
+                    diff={'deleted': True}
+                )
+            else:
+                super().delete(*args, **kwargs)
 
 
 class DeletionRequestAuditLog(models.Model):
@@ -1795,6 +1990,12 @@ class CapitalEvent(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = models.Manager()
+    active = SoftDeleteManager()
 
     class Meta:
         indexes = [
@@ -1875,6 +2076,18 @@ class CapitalEvent(models.Model):
                     },
                 },
             )
+            
+            FinancialAuditLog.objects.create(
+                user=self.user,
+                model_name='CapitalEvent',
+                object_id=self.id,
+                object_uuid=self.uuid,
+                action='CREATE' if old_instance is None else 'UPDATE',
+                diff={
+                    'before': {'amount': str(old_instance.amount)} if old_instance else None,
+                    'after': {'amount': str(self.amount)}
+                }
+            )
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
@@ -1913,5 +2126,184 @@ class CapitalEvent(models.Model):
                     },
                 },
             )
-            super().delete(*args, **kwargs)
+            if getattr(settings, 'SOFT_DELETE_ENABLED', False):
+                self.is_deleted = True
+                self.deleted_at = timezone.now()
+                self.save(update_fields=['is_deleted', 'deleted_at'])
+                
+                FinancialAuditLog.objects.create(
+                    user=self.user,
+                    model_name='CapitalEvent',
+                    object_id=self.id,
+                    object_uuid=self.uuid,
+                    action='DELETE',
+                    diff={'deleted': True}
+                )
+            else:
+                super().delete(*args, **kwargs)
 
+
+class Holding(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='holdings')
+    instrument_name = models.CharField(max_length=255)
+    INSTRUMENT_TYPES = [
+        ('MF', 'Mutual Fund'),
+        ('STOCK', 'Stock'),
+        ('NPS', 'NPS'),
+        ('PPF', 'PPF'),
+        ('EPF', 'EPF'),
+        ('RD', 'Recurring Deposit'),
+        ('OTHER', 'Other'),
+    ]
+    instrument_type = models.CharField(max_length=20, choices=INSTRUMENT_TYPES, default='OTHER')
+    units = models.DecimalField(max_digits=15, decimal_places=6, null=True, blank=True)
+    avg_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.instrument_name} in {self.account.name}"
+
+
+class Valuation(models.Model):
+    holding = models.ForeignKey(Holding, on_delete=models.CASCADE, related_name='valuations')
+    value = models.DecimalField(max_digits=15, decimal_places=2)
+    as_of_date = models.DateField(default=timezone.now)
+    unit_nav = models.DecimalField(max_digits=15, decimal_places=6, null=True, blank=True)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-as_of_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.holding.instrument_name} - {self.value} on {self.as_of_date}"
+
+
+class PhysicalAsset(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='physical_assets')
+    name = models.CharField(max_length=255)
+    ASSET_CLASSES = [
+        ('REAL_ESTATE', 'Real Estate'),
+        ('VEHICLE', 'Vehicle'),
+        ('GOLD', 'Gold/Jewelry'),
+        ('OTHER', 'Other'),
+    ]
+    asset_class = models.CharField(max_length=20, choices=ASSET_CLASSES, default='OTHER')
+    acquisition_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    acquisition_date = models.DateField(null=True, blank=True)
+    currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.asset_class})"
+
+
+class AssetValuation(models.Model):
+    asset = models.ForeignKey(PhysicalAsset, on_delete=models.CASCADE, related_name='valuations')
+    value = models.DecimalField(max_digits=15, decimal_places=2)
+    as_of_date = models.DateField(default=timezone.now)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-as_of_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.asset.name} - {self.value} on {self.as_of_date}"
+
+
+class NetWorthSnapshot(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='net_worth_snapshots')
+    as_of_date = models.DateField(default=timezone.now)
+    total_net_worth = models.DecimalField(max_digits=15, decimal_places=2)
+    total_assets = models.DecimalField(max_digits=15, decimal_places=2)
+    total_liabilities = models.DecimalField(max_digits=15, decimal_places=2)
+    breakdown = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'as_of_date'], name='unique_net_worth_snapshot')
+        ]
+        indexes = [
+            models.Index(fields=['user', 'as_of_date']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.total_net_worth} on {self.as_of_date}"
+
+
+class FXRate(models.Model):
+    from_currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES)
+    to_currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES)
+    rate = models.DecimalField(max_digits=15, decimal_places=6)
+    as_of_date = models.DateField(default=timezone.now)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['from_currency', 'to_currency', 'as_of_date'], name='unique_fx_rate')
+        ]
+
+    def __str__(self):
+        return f"{self.from_currency} to {self.to_currency} - {self.rate} on {self.as_of_date}"
+
+
+class ConsentEvent(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='consent_events')
+    action = models.CharField(max_length=20) # GRANTED, WITHDRAWN, UPDATED
+    purpose = models.CharField(max_length=100, null=True, blank=True)
+    consent_version = models.CharField(max_length=50)
+    timestamp = models.DateTimeField(default=timezone.now)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} {self.action} on {self.timestamp}"
+
+
+class LoanScheduleInstallment(models.Model):
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='schedule_installments')
+    installment_no = models.PositiveIntegerField()
+    due_date = models.DateField()
+    scheduled_principal = models.DecimalField(max_digits=15, decimal_places=2)
+    scheduled_interest = models.DecimalField(max_digits=15, decimal_places=2)
+    scheduled_balance = models.DecimalField(max_digits=15, decimal_places=2)
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['loan', 'installment_no'], name='unique_loan_installment')
+        ]
+        ordering = ['due_date']
+
+    def __str__(self):
+        return f"Installment {self.installment_no} for {self.loan.name}"
+
+class FinancialAuditLog(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='audit_logs')
+    model_name = models.CharField(max_length=50)
+    object_id = models.IntegerField()
+    object_uuid = models.UUIDField(null=True, blank=True)
+    action = models.CharField(max_length=20) # CREATE, UPDATE, DELETE
+    timestamp = models.DateTimeField(default=timezone.now)
+    diff = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.action} on {self.model_name} {self.object_id}"
