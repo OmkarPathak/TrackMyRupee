@@ -525,16 +525,18 @@ class CapitalEventListViewTest(TestCase):
 
     def test_context_includes_selected_subtype(self):
         response = self.client.get(reverse('capital-event-list'), {'subtype': 'gift_given'})
-        self.assertEqual(response.context['selected_subtype'], 'gift_given')
+        self.assertEqual(response.context['selected_subtypes'], ['gift_given'])
 
     def test_pagination_present_with_many_events(self):
         for i in range(25):
             CapitalEvent.objects.create(
                 user=self.user, amount=Decimal('100.00'),
-                date=date.today() - timedelta(days=i), subtype='other',
+                date=date.today(), subtype='other',
             )
         response = self.client.get(reverse('capital-event-list'))
         self.assertEqual(response.status_code, 200)
+        print("EVENTS COUNT:", len(response.context['events']))
+        print("PAGINATOR COUNT:", getattr(response.context.get('paginator'), 'count', None))
         self.assertTrue(response.context['is_paginated'])
 
 

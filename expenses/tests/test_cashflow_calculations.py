@@ -30,6 +30,9 @@ class CashflowCalculationTestBase(TestCase):
     
     def setUp(self):
         """Set up test user with accounts and categories."""
+        from django.core.cache import cache
+        cache.clear()
+        
         self.user = User.objects.create_user(username='testuser', password='testpass123')
         
         # Setup profile

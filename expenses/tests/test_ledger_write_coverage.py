@@ -36,8 +36,9 @@ class LedgerWriteCoverageTest(TestCase):
         )
         self.assertTrue(JournalEntry.objects.filter(source_type='EXPENSE', source_id=obj.id, status='POSTED').exists())
         
+        obj_id = obj.id
         obj.delete()
-        self.assertEqual(JournalEntry.objects.filter(source_type='EXPENSE', source_id=obj.id, status='POSTED').count(), 2) # Create + Delete (reversal)
+        self.assertEqual(JournalEntry.objects.filter(source_type='EXPENSE', source_id=obj_id, status='POSTED').count(), 2) # Create + Delete (reversal)
         
     def test_income_posts_to_ledger(self):
         obj = Income.objects.create(
@@ -46,8 +47,9 @@ class LedgerWriteCoverageTest(TestCase):
         )
         self.assertTrue(JournalEntry.objects.filter(source_type='INCOME', source_id=obj.id, status='POSTED').exists())
         
+        obj_id = obj.id
         obj.delete()
-        self.assertEqual(JournalEntry.objects.filter(source_type='INCOME', source_id=obj.id, status='POSTED').count(), 2)
+        self.assertEqual(JournalEntry.objects.filter(source_type='INCOME', source_id=obj_id, status='POSTED').count(), 2)
 
     def test_transfer_posts_to_ledger(self):
         obj = Transfer.objects.create(
@@ -56,8 +58,9 @@ class LedgerWriteCoverageTest(TestCase):
         )
         self.assertTrue(JournalEntry.objects.filter(source_type='TRANSFER', source_id=obj.id, status='POSTED').exists())
         
+        obj_id = obj.id
         obj.delete()
-        self.assertEqual(JournalEntry.objects.filter(source_type='TRANSFER', source_id=obj.id, status='POSTED').count(), 2)
+        self.assertEqual(JournalEntry.objects.filter(source_type='TRANSFER', source_id=obj_id, status='POSTED').count(), 2)
 
     def test_goal_contribution_posts_to_ledger(self):
         goal = SavingsGoal.objects.create(user=self.user, name='Car', target_amount=Decimal('1000.00'))
@@ -66,26 +69,29 @@ class LedgerWriteCoverageTest(TestCase):
         )
         self.assertTrue(JournalEntry.objects.filter(source_type='GOAL_CONTRIBUTION', source_id=obj.id, status='POSTED').exists())
         
+        obj_id = obj.id
         obj.delete()
-        self.assertEqual(JournalEntry.objects.filter(source_type='GOAL_CONTRIBUTION', source_id=obj.id, status='POSTED').count(), 2)
+        self.assertEqual(JournalEntry.objects.filter(source_type='GOAL_CONTRIBUTION', source_id=obj_id, status='POSTED').count(), 2)
 
     def test_loan_repayment_posts_to_ledger(self):
         loan = Loan.objects.create(user=self.user, name='Home Loan', initial_principal=Decimal('50000.00'), duration_months=120)
         obj = LoanRepayment.objects.create(
             loan=loan, from_account=self.account, amount=Decimal('500.00'), 
-            principal_portion=Decimal('400.00'), interest_portion=Decimal('100.00'), date=date.today()
+            principal_amount=Decimal('200.00'), interest_amount=Decimal('300.00'), date=date.today()
         )
         self.assertTrue(JournalEntry.objects.filter(source_type='LOAN_REPAYMENT', source_id=obj.id, status='POSTED').exists())
         
+        obj_id = obj.id
         obj.delete()
-        self.assertEqual(JournalEntry.objects.filter(source_type='LOAN_REPAYMENT', source_id=obj.id, status='POSTED').count(), 2)
+        self.assertEqual(JournalEntry.objects.filter(source_type='LOAN_REPAYMENT', source_id=obj_id, status='POSTED').count(), 2)
 
     def test_capital_event_posts_to_ledger(self):
         obj = CapitalEvent.objects.create(
-            user=self.user, account=self.account, event_type='INFLOW', subtype='gift_received',
-            amount=Decimal('500.00'), date=date.today()
+            user=self.user, date=date.today(), amount=Decimal('2000.00'), 
+            subtype='other', account=self.account
         )
         self.assertTrue(JournalEntry.objects.filter(source_type='CAPITAL_EVENT', source_id=obj.id, status='POSTED').exists())
         
+        obj_id = obj.id
         obj.delete()
-        self.assertEqual(JournalEntry.objects.filter(source_type='CAPITAL_EVENT', source_id=obj.id, status='POSTED').count(), 2)
+        self.assertEqual(JournalEntry.objects.filter(source_type='CAPITAL_EVENT', source_id=obj_id, status='POSTED').count(), 2)

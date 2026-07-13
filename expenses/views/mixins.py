@@ -127,6 +127,7 @@ def process_user_recurring_transactions(user):
                         ).save()
                         posted_successfully = True
                     except Exception as exc:
+                        print("EXCEPTION DURING RECURRING EXPENSE POSTING:", repr(exc))
                         logger.warning("Recurring expense posting failed", exc_info=exc)
                         break
                 else:

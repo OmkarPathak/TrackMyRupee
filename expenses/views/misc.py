@@ -545,6 +545,10 @@ def upload_view(request):
 
                         # Create with Dedup check
                         try:
+                            import hashlib
+                            raw_str = f"{date_val}_{amount}_{selected_currency}_{desc}_{category_name}"
+                            dedup_key = hashlib.md5(raw_str.encode('utf-8')).hexdigest()
+
                             with transaction.atomic():
                                 Expense.objects.create(
                                     user=request.user,
@@ -554,6 +558,7 @@ def upload_view(request):
                                     category=category_name,
                                     currency=selected_currency,
                                     account=selected_account,
+                                    client_dedup_key=dedup_key,
                                 )
                                 summary['created_count'] += 1
                                 summary['total_amount'] += float(amount)
