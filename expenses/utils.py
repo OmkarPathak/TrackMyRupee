@@ -7,7 +7,6 @@ from django.db.models import Count, Sum
 from django.db.models.functions import ExtractMonth
 from django.utils.translation import get_language
 
-
 logger = logging.getLogger(__name__)
 
 

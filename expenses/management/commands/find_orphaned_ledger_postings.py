@@ -1,6 +1,8 @@
-from django.core.management.base import BaseCommand
-from expenses.models import JournalEntry
 from django.apps import apps
+from django.core.management.base import BaseCommand
+
+from expenses.models import JournalEntry
+
 
 class Command(BaseCommand):
     help = 'Find POSTED ledger entries whose source_id no longer exists'

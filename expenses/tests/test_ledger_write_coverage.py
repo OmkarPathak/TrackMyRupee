@@ -1,13 +1,23 @@
 import uuid
-from decimal import Decimal
-from django.test import TestCase, override_settings
-from django.contrib.auth.models import User
-from expenses.models import (
-    Account, Expense, Income, Transfer, SavingsGoal, 
-    GoalContribution, Loan, LoanRepayment, CapitalEvent,
-    JournalEntry
-)
 from datetime import date
+from decimal import Decimal
+
+from django.contrib.auth.models import User
+from django.test import TestCase, override_settings
+
+from expenses.models import (
+    Account,
+    CapitalEvent,
+    Expense,
+    GoalContribution,
+    Income,
+    JournalEntry,
+    Loan,
+    LoanRepayment,
+    SavingsGoal,
+    Transfer,
+)
+
 
 @override_settings(LEDGER_WRITE_ENABLED=True)
 class LedgerWriteCoverageTest(TestCase):

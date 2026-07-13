@@ -1,8 +1,10 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+
 from expenses.ledger_read_service import LedgerReadService
 from expenses.models import NetWorthSnapshot
-from django.utils import timezone
+
 
 class Command(BaseCommand):
     help = 'Capture daily net worth snapshots for all active users'

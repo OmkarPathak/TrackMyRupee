@@ -3,6 +3,7 @@ import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 
+import sentry_sdk
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
@@ -11,7 +12,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-import sentry_sdk
+
 from finance_tracker.plans import get_limit
 
 from .utils import get_exchange_rate
