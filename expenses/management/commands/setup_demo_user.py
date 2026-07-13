@@ -4,10 +4,10 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
-from django.db.models import Sum
 from django.db import transaction
-import expenses.models as exp_models
+from django.db.models import Sum
 
+import expenses.models as exp_models
 from expenses.models import (
     Account,
     CapitalEvent,

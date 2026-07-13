@@ -545,6 +545,10 @@ def upload_view(request):
 
                         # Create with Dedup check
                         try:
+                            import hashlib
+                            raw_str = f"{date_val}_{amount}_{selected_currency}_{desc}_{category_name}"
+                            dedup_key = hashlib.md5(raw_str.encode('utf-8')).hexdigest()
+
                             with transaction.atomic():
                                 Expense.objects.create(
                                     user=request.user,
@@ -554,6 +558,7 @@ def upload_view(request):
                                     category=category_name,
                                     currency=selected_currency,
                                     account=selected_account,
+                                    client_dedup_key=dedup_key,
                                 )
                                 summary['created_count'] += 1
                                 summary['total_amount'] += float(amount)
@@ -649,7 +654,6 @@ class ContactView(View):
         return ip
 
     def _check_rate_limit(self, ip):
-        from django.core.cache import cache
         hourly_key = f'contact_hourly_{ip}'
         daily_key = f'contact_daily_{ip}'
         
@@ -721,6 +725,17 @@ def dpdp_consent_view(request):
             profile.consent_timestamp = timezone.now()
             profile.consent_version = 'v1.0'
             profile.save()
+
+            from ..models import ConsentEvent
+            ConsentEvent.objects.create(
+                user=request.user,
+                action='GRANTED',
+                purpose='Terms and Data Collection',
+                consent_version='v1.0',
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+
             messages.success(request, _("Thank you for your consent. You can now use TrackMyRupee."))
             return redirect('home')
         else:

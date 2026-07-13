@@ -53,6 +53,17 @@ def get_exchange_rate(from_curr, to_curr):
         
         # Cache for 24 hours
         cache.set(cache_key, rate, 60*60*24)
+        
+        try:
+            FXRate.objects.update_or_create(
+                from_currency=from_code,
+                to_currency=to_code,
+                as_of_date=timezone.now().date(),
+                defaults={'rate': Decimal(str(rate)), 'source': 'Frankfurter'}
+            )
+        except Exception as db_err:
+            logger.warning("Failed to record FXRate: %s", db_err)
+            
         return Decimal(str(rate))
     except Exception as e:
         print(f"Frankfurter API error: {e}. Trying fallback...")
@@ -68,6 +79,17 @@ def get_exchange_rate(from_curr, to_curr):
             
             # Cache for 24 hours
             cache.set(cache_key, rate, 60*60*24)
+            
+            try:
+                FXRate.objects.update_or_create(
+                    from_currency=from_code,
+                    to_currency=to_code,
+                    as_of_date=timezone.now().date(),
+                    defaults={'rate': Decimal(str(rate)), 'source': 'ExchangeRate-API'}
+                )
+            except Exception as db_err:
+                logger.warning("Failed to record FXRate: %s", db_err)
+                
             return Decimal(str(rate))
         except Exception as fb_e:
             print(f"Fallback API error: {fb_e}")

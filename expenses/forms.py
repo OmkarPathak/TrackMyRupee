@@ -465,6 +465,16 @@ class CustomSignupForm(forms.Form):
         profile.consent_version = 'v1.0'
         profile.save()
 
+        from .models import ConsentEvent
+        ConsentEvent.objects.create(
+            user=user,
+            action='GRANTED',
+            purpose='Signup Data Collection',
+            consent_version='v1.0',
+            ip_address=request.META.get('REMOTE_ADDR') if request else None,
+            user_agent=request.META.get('HTTP_USER_AGENT', '') if request else ''
+        )
+
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your Name'}))
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'name@example.com'}))

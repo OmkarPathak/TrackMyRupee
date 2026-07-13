@@ -46,7 +46,7 @@ LEDGER_READ_COMPARE_SAMPLE_RATE=1.0
 Notes:
 - Keep `LEDGER_READ_COHORT_USER_IDS` and `LEDGER_READ_EXCLUDE_USER_IDS` empty for full rollout.
 - Keep `LEDGER_ENFORCE_BALANCED_WRITE=false` during initial cutover and backfill.
-- Enable `LEDGER_ENFORCE_BALANCED_WRITE=true` only after backfill and reconciliation checks are healthy.
+- Enable `LEDGER_ENFORCE_BALANCED_WRITE=true` only after backfill and reconciliation checks are healthy, and the async reconciliation workers are fully deployed. **Warning**: if flipped to `true` without workers running, users will see random 500s when temporary ledger write failures occur.
 - If urgent rollback is needed, disable read/enforcement first (see rollback section).
 
 ---

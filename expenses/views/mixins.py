@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.core.cache import cache
 from django.db.models import Sum
 
 from ..models import (
@@ -35,7 +36,6 @@ def process_user_recurring_transactions(user):
     today = date.today()
 
     # Skip if already processed today for this user (prevents redundant writes on every page load)
-    from django.core.cache import cache
     cooldown_key = f'recurring_processed_{user.id}_{today}'
     if cache.get(cooldown_key):
         return
@@ -127,6 +127,7 @@ def process_user_recurring_transactions(user):
                         ).save()
                         posted_successfully = True
                     except Exception as exc:
+                        print("EXCEPTION DURING RECURRING EXPENSE POSTING:", repr(exc))
                         logger.warning("Recurring expense posting failed", exc_info=exc)
                         break
                 else:

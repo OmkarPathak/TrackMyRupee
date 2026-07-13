@@ -5,11 +5,17 @@ from django.contrib.auth.models import User
 
 from .models import (
     Account,
+    AssetValuation,
     CapitalEvent,
     Category,
+    ConsentEvent,
     DeletionRequestAuditLog,
     EmailLog,
     Expense,
+    FinancialAuditLog,
+    FXRate,
+    GoalContribution,
+    Holding,
     Income,
     JournalEntry,
     JournalLine,
@@ -22,6 +28,7 @@ from .models import (
     Notification,
     PaymentHistory,
     RecurringTransaction,
+    SavingsGoal,
     SubscriptionPlan,
     Transfer,
     UserProfile,
@@ -241,3 +248,39 @@ class CapitalEventAdmin(admin.ModelAdmin):
     search_fields = ('note', 'user__username')
     ordering = ('-date',)
     raw_id_fields = ('linked_loan',)
+
+@admin.register(FinancialAuditLog)
+class FinancialAuditLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'model_name', 'object_id', 'action', 'timestamp')
+    list_filter = ('model_name', 'action', 'timestamp')
+    search_fields = ('object_id', 'diff')
+
+@admin.register(FXRate)
+class FXRateAdmin(admin.ModelAdmin):
+    list_display = ('from_currency', 'to_currency', 'rate', 'as_of_date')
+    list_filter = ('as_of_date', 'from_currency', 'to_currency')
+
+@admin.register(AssetValuation)
+class AssetValuationAdmin(admin.ModelAdmin):
+    list_display = ('asset', 'value', 'as_of_date', 'source')
+    list_filter = ('as_of_date',)
+
+@admin.register(Holding)
+class HoldingAdmin(admin.ModelAdmin):
+    list_display = ('account', 'instrument_name', 'instrument_type', 'units', 'avg_cost')
+    search_fields = ('instrument_name', 'account__name')
+
+@admin.register(ConsentEvent)
+class ConsentEventAdmin(admin.ModelAdmin):
+    list_display = ('user', 'purpose', 'action', 'timestamp')
+    list_filter = ('purpose', 'action', 'timestamp')
+
+@admin.register(SavingsGoal)
+class SavingsGoalAdmin(admin.ModelAdmin):
+    list_display = ('user', 'name', 'target_amount', 'current_amount', 'target_date')
+    search_fields = ('name', 'user__username')
+
+@admin.register(GoalContribution)
+class GoalContributionAdmin(admin.ModelAdmin):
+    list_display = ('goal', 'amount', 'date')
+    list_filter = ('date',)

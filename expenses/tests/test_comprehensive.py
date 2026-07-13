@@ -1,3 +1,5 @@
+from django.core.cache import cache
+
 """
 Comprehensive unit tests for:
 - Income model logic & balance updates
@@ -39,6 +41,7 @@ class _BaseTestCase(TestCase):
     """Common setUp that creates a user + profile + default accounts."""
 
     def setUp(self):
+        cache.clear()
         self.user = User.objects.create_user(username="testuser", password="password")
         # Profile is auto-created by signal; ensure tutorial is marked done
         self.profile = self.user.profile
@@ -188,19 +191,13 @@ class IncomeUniqueConstraintTest(_BaseTestCase):
 
     def test_duplicate_income_raises(self):
         Income.objects.create(
-            user=self.user,
-            date=date(2025, 6, 1),
-            amount=Decimal("5000.00"),
-            source="Salary",
-            currency="₹",
+            user=self.user, date=date(2025, 6, 1), amount=Decimal("500.00"),
+            source="Bonus", currency="₹", client_dedup_key="dedup_inc_123",
         )
         with self.assertRaises(IntegrityError):
             Income.objects.create(
-                user=self.user,
-                date=date(2025, 6, 1),
-                amount=Decimal("5000.00"),
-                source="Salary",
-                currency="₹",
+                user=self.user, date=date(2025, 6, 1), amount=Decimal("500.00"),
+                source="Bonus", currency="₹", client_dedup_key="dedup_inc_123",
             )
 
     def test_different_source_allowed(self):
@@ -365,12 +362,12 @@ class ExpenseUniqueConstraintTest(_BaseTestCase):
     def test_duplicate_expense_raises(self):
         Expense.objects.create(
             user=self.user, date=date(2025, 6, 1), amount=Decimal("100.00"),
-            description="Lunch", category="Food", currency="₹",
+            description="Lunch", category="Food", currency="₹", client_dedup_key="dedup123",
         )
         with self.assertRaises(IntegrityError):
             Expense.objects.create(
                 user=self.user, date=date(2025, 6, 1), amount=Decimal("100.00"),
-                description="Lunch", category="Food", currency="₹",
+                description="Lunch", category="Food", currency="₹", client_dedup_key="dedup123",
             )
 
     def test_different_category_allowed(self):

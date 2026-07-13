@@ -416,8 +416,6 @@ class LedgerPostingService:
         """Backfills an opening balance adjustment entry for an account."""
         user = account.user
         amount = abs(account.balance)
-        if amount == 0:
-            return None, False
 
         asset_ledger = cls._get_or_create_account_ledger(user, account)
         equity_ledger, _ = LedgerAccount.objects.get_or_create(

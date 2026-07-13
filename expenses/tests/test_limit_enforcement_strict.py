@@ -1,7 +1,7 @@
-
 from datetime import date, timedelta
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
@@ -19,7 +19,9 @@ from finance_tracker.plans import PLAN_DETAILS
 
 class StrictLimitEnforcementTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='password')
+        cache.clear()
+        self.user = User.objects.create_user(username='test_strict', password='password')
+        
         # Ensure profile exists
         self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
         
@@ -101,6 +103,7 @@ class StrictLimitEnforcementTest(TestCase):
         rt.last_processed_date = None
         rt.save()
         
+        cache.clear()
         process_user_recurring_transactions(self.user)
         # Plus limit
         limit_plus = PLAN_DETAILS['PLUS']['limits']['recurring_transactions']
