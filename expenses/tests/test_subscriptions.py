@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -20,6 +21,7 @@ from finance_tracker.plans import PLAN_DETAILS
 
 class SubscriptionTierTest(TestCase):
     def setUp(self):
+        cache.clear()
         self.user = User.objects.create_user(username='subuser', password='password', email='sub@example.com')
         # Clear categories created by signals
         Category.objects.filter(user=self.user).delete()

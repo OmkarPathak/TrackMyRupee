@@ -1,3 +1,5 @@
+from django.core.cache import cache
+
 """
 Comprehensive unit tests for:
 - Income model logic & balance updates
@@ -39,7 +41,6 @@ class _BaseTestCase(TestCase):
     """Common setUp that creates a user + profile + default accounts."""
 
     def setUp(self):
-        from django.core.cache import cache
         cache.clear()
         self.user = User.objects.create_user(username="testuser", password="password")
         # Profile is auto-created by signal; ensure tutorial is marked done

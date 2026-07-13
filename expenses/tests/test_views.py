@@ -2,6 +2,7 @@ import json
 from datetime import date, timedelta
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -10,6 +11,8 @@ from expenses.models import Category, Expense, Income, RecurringTransaction
 
 class BaseViewTest(TestCase):
     def setUp(self):
+        cache.clear()
+        
         self.user = User.objects.create_user(username='testuser', password='password')
         self.client = Client()
         self.client.login(username='testuser', password='password')

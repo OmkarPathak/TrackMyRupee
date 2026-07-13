@@ -654,7 +654,6 @@ class ContactView(View):
         return ip
 
     def _check_rate_limit(self, ip):
-        from django.core.cache import cache
         hourly_key = f'contact_hourly_{ip}'
         daily_key = f'contact_daily_{ip}'
         

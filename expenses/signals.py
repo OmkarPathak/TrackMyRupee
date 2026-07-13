@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=User)
 def handle_user_post_save(sender, instance, created, **kwargs):
     """Unified handler for User post_save to reduce redundant queries during signup."""
+    if kwargs.get('raw', False):
+        return
+
     if created:
         # 1. Create UserProfile
         profile, profile_created = UserProfile.objects.get_or_create(user=instance)

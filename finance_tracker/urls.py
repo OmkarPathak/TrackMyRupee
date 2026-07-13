@@ -63,7 +63,7 @@ def llms_txt(request):
     file_path = os.path.join(settings.BASE_DIR, 'llms.txt')
     if os.path.exists(file_path):
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 content = f.read()
             response = HttpResponse(content, content_type="text/plain; charset=utf-8")
             response["Access-Control-Allow-Origin"] = "*"

@@ -1,4 +1,3 @@
-import uuid
 from datetime import date
 from decimal import Decimal
 
@@ -77,7 +76,7 @@ class LedgerWriteCoverageTest(TestCase):
         loan = Loan.objects.create(user=self.user, name='Home Loan', initial_principal=Decimal('50000.00'), duration_months=120)
         obj = LoanRepayment.objects.create(
             loan=loan, from_account=self.account, amount=Decimal('500.00'), 
-            principal_amount=Decimal('200.00'), interest_amount=Decimal('300.00'), date=date.today()
+            principal_portion=Decimal('200.00'), interest_portion=Decimal('300.00'), date=date.today()
         )
         self.assertTrue(JournalEntry.objects.filter(source_type='LOAN_REPAYMENT', source_id=obj.id, status='POSTED').exists())
         
