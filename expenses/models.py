@@ -524,12 +524,13 @@ class Expense(models.Model):
                 super().delete(*args, **kwargs)
 
     class Meta:
-        constraints = []
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'client_dedup_key'], name='idx_expense_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
+        ]
         indexes = [
             models.Index(fields=['user', 'category']),
             models.Index(fields=['user', 'payment_method']),
             models.Index(fields=['user', 'date']),
-            models.Index(fields=['user', 'client_dedup_key'], name='idx_expense_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
         ]
 
     def __str__(self):
@@ -763,11 +764,12 @@ class Income(models.Model):
                 super().delete(*args, **kwargs)
 
     class Meta:
-        constraints = []
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'client_dedup_key'], name='idx_income_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
+        ]
         indexes = [
             models.Index(fields=['user', 'source']),
             models.Index(fields=['user', 'date']),
-            models.Index(fields=['user', 'client_dedup_key'], name='idx_income_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
         ]
 
     def __str__(self):

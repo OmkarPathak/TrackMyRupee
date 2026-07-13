@@ -41,7 +41,7 @@ class DPDPAComplianceTestCase(TestCase):
         
         # We need a dummy request for allauth signup form save
         class DummyRequest:
-            pass
+            META = {}
         request = DummyRequest()
         
         form.signup(request, self.user)
