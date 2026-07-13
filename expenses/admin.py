@@ -251,33 +251,33 @@ class CapitalEventAdmin(admin.ModelAdmin):
 
 @admin.register(FinancialAuditLog)
 class FinancialAuditLogAdmin(admin.ModelAdmin):
-    list_display = ('id', 'model_name', 'record_id', 'action', 'timestamp')
+    list_display = ('id', 'model_name', 'object_id', 'action', 'timestamp')
     list_filter = ('model_name', 'action', 'timestamp')
-    search_fields = ('record_id', 'changes')
+    search_fields = ('object_id', 'diff')
 
 @admin.register(FXRate)
 class FXRateAdmin(admin.ModelAdmin):
-    list_display = ('from_currency', 'to_currency', 'rate', 'date')
-    list_filter = ('date', 'from_currency', 'to_currency')
+    list_display = ('from_currency', 'to_currency', 'rate', 'as_of_date')
+    list_filter = ('as_of_date', 'from_currency', 'to_currency')
 
 @admin.register(AssetValuation)
 class AssetValuationAdmin(admin.ModelAdmin):
-    list_display = ('asset_type', 'asset_id', 'valuation', 'currency', 'date')
-    list_filter = ('asset_type', 'date')
+    list_display = ('asset', 'value', 'as_of_date', 'source')
+    list_filter = ('as_of_date',)
 
 @admin.register(Holding)
 class HoldingAdmin(admin.ModelAdmin):
-    list_display = ('user', 'symbol', 'quantity', 'average_buy_price', 'currency')
-    search_fields = ('symbol', 'user__username')
+    list_display = ('account', 'instrument_name', 'instrument_type', 'units', 'avg_cost')
+    search_fields = ('instrument_name', 'account__name')
 
 @admin.register(ConsentEvent)
 class ConsentEventAdmin(admin.ModelAdmin):
-    list_display = ('user', 'consent_type', 'action', 'timestamp')
-    list_filter = ('consent_type', 'action', 'timestamp')
+    list_display = ('user', 'purpose', 'action', 'timestamp')
+    list_filter = ('purpose', 'action', 'timestamp')
 
 @admin.register(SavingsGoal)
 class SavingsGoalAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name', 'target_amount', 'current_amount', 'deadline')
+    list_display = ('user', 'name', 'target_amount', 'current_amount', 'target_date')
     search_fields = ('name', 'user__username')
 
 @admin.register(GoalContribution)
