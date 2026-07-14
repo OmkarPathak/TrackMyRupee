@@ -23,6 +23,7 @@ from .models import (
     LedgerPostingFailure,
     LedgerReconciliationReport,
     Loan,
+    NetWorthSnapshot,
     LoanInterestRate,
     LoanRepayment,
     Notification,
@@ -248,6 +249,14 @@ class CapitalEventAdmin(admin.ModelAdmin):
     search_fields = ('note', 'user__username')
     ordering = ('-date',)
     raw_id_fields = ('linked_loan',)
+
+@admin.register(NetWorthSnapshot)
+class NetWorthSnapshotAdmin(admin.ModelAdmin):
+    list_display = ('user', 'as_of_date', 'total_net_worth', 'total_assets', 'total_liabilities', 'created_at')
+    list_select_related = ('user',)
+    list_filter = ('as_of_date',)
+    search_fields = ('user__username', 'user__email')
+    ordering = ('-as_of_date', '-created_at')
 
 @admin.register(FinancialAuditLog)
 class FinancialAuditLogAdmin(admin.ModelAdmin):

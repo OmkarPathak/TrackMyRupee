@@ -40,7 +40,7 @@ class ExpenseListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = Expense.objects.filter(user=self.request.user).select_related('account').order_by('-date')
+        queryset = Expense.objects.filter(user=self.request.user).select_related('account', 'category_fk').order_by('-date')
         
         # Filtering
         selected_years = self.request.GET.getlist('year')
@@ -348,7 +348,7 @@ class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
             return self.form_invalid(form)
 
     def get_queryset(self):
-        return Expense.objects.filter(user=self.request.user)
+        return Expense.objects.filter(user=self.request.user).select_related('account', 'category_fk')
 
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')

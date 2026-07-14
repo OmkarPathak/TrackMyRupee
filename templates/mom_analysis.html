@@ -6,11 +6,8 @@
     <!-- Dashboard Mode Toggle (Mobile Only) -->
     <div class="d-lg-none d-flex justify-content-center mb-4 fade-in">
         <div class="dashboard-mode-container" role="group">
-            <a href="{% url 'home' %}?mode=daily" class="btn btn-sm mode-btn daily-mode-btn">
-                {% trans "Daily Mode" %}
-            </a>
-            <a href="{% url 'home' %}?mode=full" class="btn btn-sm mode-btn full-report-btn">
-                {% trans "Full Report" %}
+            <a href="{% url 'home' %}" class="btn btn-sm mode-btn full-report-btn">
+                {% trans "Dashboard" %}
             </a>
             <button type="button" class="btn btn-sm mode-btn active" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'">
                 {% trans "Trends" %}

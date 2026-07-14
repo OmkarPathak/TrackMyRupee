@@ -438,8 +438,8 @@ class AccountDetailView(LoginRequiredMixin, View):
         query = request.GET.get('q', '')
         
         # Get all expenses, incomes, and transfers for this account
-        expenses = Expense.objects.filter(user=request.user, account=account)
-        incomes = Income.objects.filter(user=request.user, account=account)
+        expenses = Expense.objects.filter(user=request.user, account=account).select_related('category_fk')
+        incomes = Income.objects.filter(user=request.user, account=account).select_related('source_fk')
         transfers_from = Transfer.objects.filter(user=request.user, from_account=account).select_related('to_account')
         transfers_to = Transfer.objects.filter(user=request.user, to_account=account).select_related('from_account')
         contributions = GoalContribution.objects.filter(goal__user=request.user, account=account).select_related('goal')
@@ -672,8 +672,8 @@ class AccountDetailView(LoginRequiredMixin, View):
     def get_all_transactions(self, account, user, start_date=None):
         """Returns a combined queryset-like of all transactions affecting account balance."""
         
-        expenses = Expense.objects.filter(user=user, account=account)
-        incomes = Income.objects.filter(user=user, account=account)
+        expenses = Expense.objects.filter(user=user, account=account).select_related('category_fk')
+        incomes = Income.objects.filter(user=user, account=account).select_related('source_fk')
         transfers_out = Transfer.objects.filter(user=user, from_account=account)
         transfers_in = Transfer.objects.filter(user=user, to_account=account).select_related('from_account')
         contributions = GoalContribution.objects.filter(goal__user=user, account=account).select_related('goal')

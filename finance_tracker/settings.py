@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 import sys
-from urllib.parse import urlparse
 from pathlib import Path
+from urllib.parse import urlparse
 
 import dj_database_url
 import sentry_sdk
@@ -390,8 +390,8 @@ def _env_int_set(name):
 # Ledger rollout flags (all off by default for safe rollout)
 LEDGER_WRITE_ENABLED = _env_bool('LEDGER_WRITE_ENABLED', True)
 LEDGER_RECONCILE_ENABLED = _env_bool('LEDGER_RECONCILE_ENABLED', True)
-LEDGER_READ_ENABLED = _env_bool('LEDGER_READ_ENABLED', False)
-LEDGER_ENFORCE_BALANCED_WRITE = _env_bool('LEDGER_ENFORCE_BALANCED_WRITE', False)
+LEDGER_READ_ENABLED = _env_bool('LEDGER_READ_ENABLED', True)
+LEDGER_ENFORCE_BALANCED_WRITE = _env_bool('LEDGER_ENFORCE_BALANCED_WRITE', True)
 LEDGER_RECONCILE_ALERT_THRESHOLD = os.environ.get('LEDGER_RECONCILE_ALERT_THRESHOLD', '10.00')
 LEDGER_READ_COMPARE_ENABLED = _env_bool('LEDGER_READ_COMPARE_ENABLED', True)
 LEDGER_READ_COMPARE_SAMPLE_RATE = float(os.environ.get('LEDGER_READ_COMPARE_SAMPLE_RATE', '1.0'))

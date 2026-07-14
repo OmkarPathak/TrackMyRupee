@@ -26,10 +26,6 @@ class RecurringTransactionMixin:
             process_user_recurring_transactions(request.user)
         return super().dispatch(request, *args, **kwargs)
 
-    def process_recurring_transactions(self, user):
-        # Deprecated: Use process_user_recurring_transactions instead
-        process_user_recurring_transactions(user)
-
 def process_user_recurring_transactions(user):
     if not user.is_authenticated:
         return

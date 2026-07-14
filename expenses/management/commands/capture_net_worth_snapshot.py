@@ -19,6 +19,9 @@ class Command(BaseCommand):
                 # get_net_worth returns net_worth, account_base_balances
                 net_worth, account_balances = LedgerReadService.get_net_worth(user)
                 
+                # Convert Decimals to strings for JSON serialization
+                account_balances = {k: str(v) for k, v in account_balances.items()}
+                
                 # Create snapshot
                 # In a more complex scenario, we would compute assets vs liabilities explicitly.
                 # For now, we store net_worth as total_assets and 0 as liabilities if positive,

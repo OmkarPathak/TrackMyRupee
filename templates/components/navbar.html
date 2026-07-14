@@ -84,27 +84,7 @@
                 <!-- Authenticated User Links (Hidden on desktop because moved to sidebar) -->
                 {% if user.is_authenticated %}
                     <li class="nav-item d-lg-none">
-                        {% if request.resolver_match.url_name == 'home' %}
-                        <div class="px-3 pt-2 pb-1">
-                            <span class="text-body-secondary fw-semibold d-block mb-2" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Dashboard" %}</span>
-                            <div class="dashboard-mode-container" role="group">
-                                <button type="button" class="btn btn-sm mode-btn daily-mode-btn" id="nav-mobile-btn-daily"
-                                    onclick="switchToDailyMode(); document.getElementById('navbarContent').classList.remove('show');">
-                                    {% trans "Daily Mode" %}
-                                </button>
-                                <button type="button" class="btn btn-sm mode-btn full-report-btn" id="nav-mobile-btn-full"
-                                    onclick="switchToFullReport(); document.getElementById('navbarContent').classList.remove('show');">
-                                    {% trans "Full Report" %}
-                                </button>
-                                <button type="button" class="btn btn-sm mode-btn" id="nav-mobile-btn-mom"
-                                    onclick="window.location.href='{% url 'analytics-mom' %}'">
-                                    {% trans "Trends" %}
-                                </button>
-                            </div>
-                        </div>
-                        {% else %}
-                        <a href="{% url 'home' %}" class="nav-link">{% trans "Dashboard" %}</a>
-                        {% endif %}
+                        <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">{% trans "Dashboard" %}</a>
                     </li>
                     <li class="nav-item d-lg-none">
                         <a href="{% url 'expense-list' %}" class="nav-link {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
@@ -137,22 +117,19 @@
                         </a>
                     </li>
 
-                    <!-- Dashboard Mode Toggle (Desktop only, Home or Trends page) -->
-                    {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'analytics-mom' %}
-                    <li class="nav-item d-none d-lg-flex align-items-center me-3">
+
+
+                    <!-- Dashboard / Trends Toggle (Desktop) -->
+                    <li class="nav-item d-none d-lg-block ms-3">
                         <div class="dashboard-mode-container" role="group">
-                            <button type="button" class="btn btn-sm mode-btn daily-mode-btn {% if request.resolver_match.url_name == 'home' %}active{% endif %}" id="nav-btn-daily-mode" onclick="switchToDailyMode()">
-                                {% trans "Daily Mode" %}
-                            </button>
-                            <button type="button" class="btn btn-sm mode-btn full-report-btn" id="nav-btn-full-report" onclick="switchToFullReport()">
-                                {% trans "Full Report" %}
-                            </button>
-                            <button type="button" class="btn btn-sm mode-btn {% if request.resolver_match.url_name == 'analytics-mom' %}active{% endif %}" id="nav-btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'">
+                            <a href="{% url 'home' %}" class="btn btn-sm mode-btn {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                                {% trans "Dashboard" %}
+                            </a>
+                            <a href="{% url 'analytics-mom' %}" class="btn btn-sm mode-btn {% if request.resolver_match.url_name == 'analytics-mom' %}active{% endif %}">
                                 {% trans "Trends" %}
-                            </button>
+                            </a>
                         </div>
                     </li>
-                    {% endif %}
 
                     <!-- Action Dropdown -->
                     <li class="nav-item dropdown d-none d-lg-block ms-2">
@@ -375,16 +352,7 @@
     </div>
     <div class="offcanvas-body p-0">
         <div class="list-group list-group-flush pb-2 mt-1">
-            <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 px-4"
-                onclick="switchToDailyMode(); bootstrap.Offcanvas.getInstance(document.getElementById('dashboardModeSheet')).hide();">
-                <div class="flex-shrink-0 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                    <i class="bi bi-sun-fill text-warning" style="font-size:1.35rem;"></i>
-                </div>
-                <div class="text-start">
-                    <div class="fw-semibold">{% trans "Daily Mode" %}</div>
-                    <small class="text-muted">{% trans "Today's activity, safe-to-spend & runway" %}</small>
-                </div>
-            </button>
+
             <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 px-4"
                 onclick="switchToFullReport(); bootstrap.Offcanvas.getInstance(document.getElementById('dashboardModeSheet')).hide();">
                 <div class="flex-shrink-0 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">

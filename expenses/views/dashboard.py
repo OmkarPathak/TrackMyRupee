@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
-from django.db.models import Avg, Count, F, Sum
+from django.db.models import Count, F, Sum
 from django.db.models.functions import ExtractWeekDay, TruncDay, TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -17,7 +17,6 @@ from django.utils.html import escape, format_html, format_html_join, mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
-from ..daily_predictions_service import DailyPredictionsService
 from ..ledger_read_service import LedgerReadService
 from ..models import (
     Account,
@@ -89,10 +88,10 @@ def home_view(request):
         return total
 
     # Base QuerySet - All user expenses
-    expenses = Expense.objects.filter(user=request.user).order_by('-date')
+    expenses = Expense.objects.filter(user=request.user).select_related('account', 'category_fk').order_by('-date')
     
     # Wealth Growth (Investments) - Transfers to Investment accounts
-    investments = Transfer.objects.filter(user=request.user, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
+    investments = Transfer.objects.filter(user=request.user, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT']).select_related('from_account', 'to_account')
     
     # Logic for EOM projection
     now = datetime.now()
@@ -169,7 +168,7 @@ def home_view(request):
         expenses = expenses.filter(category__in=selected_categories)
         
     # Income Logic (Mirroring Expense Filters)
-    incomes = Income.objects.filter(user=request.user)
+    incomes = Income.objects.filter(user=request.user).select_related('account', 'source_fk')
     if effective_start_date or effective_end_date:
         if effective_start_date:
             incomes = incomes.filter(date__gte=effective_start_date)
@@ -191,7 +190,7 @@ def home_view(request):
     total_investments = sum_transfers_base(investments)
     
     # Fetch loan repayments for the selected period (moved up to fix UnboundLocalError)
-    loan_repayments_selected = LoanRepayment.objects.filter(loan__user=request.user)
+    loan_repayments_selected = LoanRepayment.objects.filter(loan__user=request.user).select_related('loan')
     if effective_start_date or effective_end_date:
         if effective_start_date:
             loan_repayments_selected = loan_repayments_selected.filter(date__gte=effective_start_date)
@@ -283,7 +282,7 @@ def home_view(request):
         if selected_months:
             budget_events = budget_events.filter(date__month__in=selected_months)
             
-    for e in budget_events:
+    for e in budget_events.iterator():
         cat_name = e.get_subtype_display()
         matched_cat = None
         for uc_name in user_categories.keys():
@@ -423,7 +422,7 @@ def home_view(request):
     exp_trend_base = expenses.annotate(period=trunc_func('date')).values('period').annotate(total=Sum('base_amount')).order_by('period')
     
     # Include loan repayments in expense trend
-    loan_repayments_filtered = LoanRepayment.objects.filter(loan__user=request.user)
+    loan_repayments_filtered = LoanRepayment.objects.filter(loan__user=request.user).select_related('loan')
     if effective_start_date or effective_end_date:
         if effective_start_date:
             loan_repayments_filtered = loan_repayments_filtered.filter(date__gte=effective_start_date)
@@ -499,7 +498,7 @@ def home_view(request):
         if selected_months:
             included_events_qs = included_events_qs.filter(date__month__in=selected_months)
             
-    for e in included_events_qs:
+    for e in included_events_qs.iterator():
         included_capital_events_total += e.base_amount
         
     total_expenses = total_expenses_base + total_loan_interest + included_capital_events_total
@@ -655,7 +654,7 @@ def home_view(request):
     
 
     # 4a. Internal Transfers (excluded from income/expense, just movement)
-    transfers_qs = Transfer.objects.filter(user=request.user)
+    transfers_qs = Transfer.objects.filter(user=request.user).select_related('from_account', 'to_account')
     if effective_start_date or effective_end_date:
         if effective_start_date:
             transfers_qs = transfers_qs.filter(date__gte=effective_start_date)
@@ -1082,7 +1081,7 @@ def home_view(request):
             }
 
             # Build period queryset (same filters as the main expense queryset)
-            period_expenses_qs = Expense.objects.filter(user=request.user)
+            period_expenses_qs = Expense.objects.filter(user=request.user).select_related('account', 'category_fk')
             if effective_start_date:
                 period_expenses_qs = period_expenses_qs.filter(date__gte=effective_start_date)
             if effective_end_date:
@@ -2194,134 +2193,6 @@ def home_view(request):
         'capital_event_callout': capital_event_callout,
     }
 
-    # --- DAILY MODE DATA ---
-    today = date.today()
-    today_expenses = Expense.objects.filter(user=request.user, date=today).order_by('-created_at')
-    today_contributions = GoalContribution.objects.filter(goal__user=request.user, date=today).order_by('-created_at')
-    
-    today_spent = (today_expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00'))
-    # Optional: Include contributions in today_spent if we want them to count against daily budget
-    # The user said "Savings should not be an expense", but they are a cash outflow.
-    # If they are NOT an expense, they shouldn't count towards the expense budget.
-    # So I will NOT add them to today_spent.
-
-    # Daily budget allowance: total_monthly_budget / days_in_month
-    days_in_current_month = calendar.monthrange(today.year, today.month)[1]
-    daily_budget_allowed = Decimal(str(total_monthly_budget)) / days_in_current_month if total_monthly_budget > 0 else Decimal('0.00')
-    daily_left = daily_budget_allowed - today_spent
-    daily_used_pct = round(float(today_spent) / float(daily_budget_allowed) * 100, 1) if daily_budget_allowed > 0 else 0
-
-    # Budget status for today
-    if daily_budget_allowed > 0:
-        if today_spent <= daily_budget_allowed * Decimal('0.8'):
-            daily_budget_status = 'within'
-        elif today_spent <= daily_budget_allowed:
-            daily_budget_status = 'near'
-        else:
-            daily_budget_status = 'over'
-    else:
-        daily_budget_status = 'no_budget'
-
-    # Today's top spending category
-    today_cat_data = today_expenses.values('category').annotate(
-        total=Sum('base_amount')
-    ).order_by('-total')
-
-    daily_top_category = None
-    daily_top_category_pct = 0
-    if today_cat_data.exists() and float(today_spent) > 0:
-        top_cat_today = today_cat_data[0]
-        daily_top_category = top_cat_today['category']
-        daily_top_category_pct = round(float(top_cat_today['total']) / float(today_spent) * 100)
-
-    # Safe to spend today (remaining budget for the rest of the month / remaining days)
-    month_spent_so_far = Decimal(str(monthly_summary_map.get((today.year, today.month), {}).get('expense', 0.0)))
-
-    remaining_month_budget = Decimal(str(total_monthly_budget)) - month_spent_so_far
-    remaining_days = max(1, days_in_current_month - today.day + 1)
-    safe_to_spend = max(Decimal('0.00'), remaining_month_budget / remaining_days)
-
-    # --- Category split for today (for right sidebar) ---
-    today_category_split = []
-    for cat_row in today_cat_data:
-        cat_name = cat_row['category']
-        cat_total = float(cat_row['total'])
-        cat_pct = round(cat_total / float(today_spent) * 100) if float(today_spent) > 0 else 0
-        cat_obj = user_categories.get(cat_name.strip()) if cat_name else None
-        today_category_split.append({
-            'name': cat_name,
-            'amount': cat_total,
-            'pct': cat_pct,
-            'icon': cat_obj.icon if cat_obj else 'bi-tag',
-        })
-
-    # --- Recurring descriptions set (for tagging) ---
-    recurring_descriptions = set(
-        RecurringTransaction.objects.filter(
-            user=request.user, is_active=True, transaction_type='EXPENSE'
-        ).values_list('description', flat=True)
-    )
-
-    # --- Average per-category spend (last 30 days) for "unusual" tagging ---
-    thirty_days_ago = today - timedelta(days=30)
-    cat_avg_30d = {}
-    cat_avg_qs = Expense.objects.filter(
-        user=request.user, date__gte=thirty_days_ago, date__lt=today
-    ).values('category').annotate(avg_amt=Avg('base_amount'))
-    for row in cat_avg_qs:
-        cat_avg_30d[row['category']] = float(row['avg_amt'])
-
-    # --- Quick stats for right sidebar ---
-    avg_daily_spend_month = float(month_spent_so_far) / max(1, today.day - 1) if today.day > 1 else float(today_spent)
-    month_transaction_count = Expense.objects.filter(
-        user=request.user, date__year=today.year, date__month=today.month
-    ).count()
-
-    # Enrich today_expenses with category icons + tags
-    today_expenses_list = []
-    for exp in today_expenses:
-        cat_obj = user_categories.get(exp.category.strip()) if exp.category else None
-        # Tag: recurring
-        is_recurring = exp.description in recurring_descriptions
-        # Tag: unusual (amount > 1.5x category avg over last 30 days)
-        cat_avg = cat_avg_30d.get(exp.category, 0)
-        is_unusual = float(exp.base_amount) > cat_avg * 1.5 and cat_avg > 0
-
-        today_expenses_list.append({
-            'id': exp.id,
-            'pk': exp.uuid,
-            'uuid': exp.uuid,
-            'description': exp.description,
-            'category': exp.category,
-            'amount': exp.base_amount,
-            'icon': cat_obj.icon if cat_obj else 'bi-tag',
-            'payment_method': exp.payment_method,
-            'date': exp.date,
-            'is_recurring': is_recurring,
-            'is_unusual': is_unusual,
-            'transaction_type': 'EXPENSE',
-        })
-
-    for con in today_contributions:
-        today_expenses_list.append({
-            'id': con.id,
-            'pk': con.uuid,
-            'uuid': con.uuid,
-            'description': _("Contribution: %(goal)s") % {'goal': con.goal.name},
-            'category': _("Savings"),
-            'amount': con.amount,
-            'icon': 'bi-piggy-bank',
-            'payment_method': con.account.name if con.account else '',
-            'date': con.date,
-            'is_recurring': False,
-            'is_unusual': False,
-            'transaction_type': 'SAVINGS',
-        })
-    
-    # Re-sort list by date/created_at if needed, but for today view usually just appended is fine
-    # Actually, let's sort to be safe
-    today_expenses_list.sort(key=lambda x: x['id'], reverse=True) 
-
     # --- SMART CONTEXTUAL NUDGES ---
     # Instead of showing on the dashboard, we add them to the notification system.
     
@@ -2427,99 +2298,6 @@ def home_view(request):
             slug=f"nudge-recurring-{top_repeat['description']}-{now.year}-{now.month}"
         )
 
-    # Existing insights (Layer 5/6)
-    # Daily insight (enhanced for over-budget urgency and coaching)
-    daily_insight = None
-    # Build recovery tip for over-budget
-    recovery_tip = None
-    if daily_budget_status == 'over' and daily_top_category:
-        recovery_tip = _("Reduce %(category)s spending to recover") % {'category': daily_top_category.lower()}
-
-    # Check overspending streak (Last 3 days > daily_budget_allowed)
-    streak_count = FinancialService.get_spending_streak(request.user, daily_budget_allowed, 3)
-
-    if streak_count >= 3:
-        daily_insight = {
-            'type': 'danger',
-            'message': _("3 days of overspending in a row"),
-            'tip': format_html(_("This usually leads to a budget miss. Rein it in!")),
-        }
-    elif daily_budget_status == 'over':
-        ratio = float(today_spent) / float(avg_daily_spend_month) if avg_daily_spend_month > 0 else 1
-        top_cats = " + ".join([c['name'] for c in today_category_split[:2]]) if today_category_split else _("various categories")
-        ratio_str = f"{round(ratio, 1)}x" if ratio >= 1.5 else f"{int((ratio-1)*100)}% more than"
-        
-        daily_insight = {
-            'type': 'danger',
-            'message': _("You overspent %(amount)s today") % {'amount': format_currency(today_spent)},
-            'tip': format_html(_("This is <strong>{}</strong> your usual daily spend<br>Mostly from <span class='fw-bold'>{}</span>"), ratio_str, top_cats),
-        }
-    elif daily_top_category and daily_top_category_pct >= 50:
-        daily_insight = {
-            'type': 'warning',
-            'message': _("You spent %(pct)s%% on %(category)s today") % {
-                'pct': daily_top_category_pct,
-                'category': daily_top_category,
-            },
-            'tip': _("Try to limit %(category)s spending") % {'category': daily_top_category.lower()},
-        }
-    elif daily_budget_status == 'within' and float(today_spent) > 0:
-        daily_insight = {
-            'type': 'success',
-            'message': _("You're within budget today"),
-            'tip': _("Great financial discipline! Keep it up"),
-        }
-
-    # Only show "safe to spend" when it's meaningful:
-    # - Must have budget
-    # - Must have remaining monthly budget (safe_to_spend > 0)
-    # - Should NOT show if user is already over their daily limit (contradictory)
-    show_safe_to_spend = (
-        total_monthly_budget > 0
-        and safe_to_spend > 0
-        and daily_budget_status != 'over'
-    )
-
-    predictions_ctx = DailyPredictionsService.get_predictions_context(
-        user=request.user,
-        today=today,
-        net_worth=net_worth,
-        avg_monthly_savings=avg_monthly_savings,
-        total_monthly_budget=total_monthly_budget,
-        month_spent_so_far=month_spent_so_far,
-        days_in_current_month=days_in_current_month,
-        currency_symbol=currency_symbol,
-        salary_cycle_active=salary_cycle_active,
-        salary_cycle_start=salary_cycle_start,
-        salary_cycle_end=salary_cycle_end
-    )
-
-    context['daily_mode'] = {
-        'today': today,
-        'today_expenses': today_expenses_list,
-        'today_spent': today_spent,
-        'daily_budget_allowed': round(daily_budget_allowed, 0),
-        'daily_left': round(daily_left, 0),  # can be negative when over budget
-        'daily_used_pct': min(daily_used_pct, 100),
-        'raw_used_pct': round(daily_used_pct, 1),  # uncapped for overspend display
-        'daily_budget_status': daily_budget_status,
-        'daily_top_category': daily_top_category,
-        'daily_top_category_pct': daily_top_category_pct,
-        'safe_to_spend': round(safe_to_spend, 0),
-        'show_safe_to_spend': show_safe_to_spend,
-        'daily_insight': daily_insight,
-        'recovery_tip': recovery_tip,
-        'has_budget': total_monthly_budget > 0,
-        'transaction_count': today_expenses.count(),
-        # Right sidebar data
-        'today_category_split': today_category_split,
-        'month_spent_so_far': round(month_spent_so_far, 0),
-        'remaining_month_budget': round(max(remaining_month_budget, Decimal('0.00')), 0),
-        'avg_daily_spend': round(Decimal(str(avg_daily_spend_month)), 0),
-        'month_transaction_count': month_transaction_count,
-        'total_monthly_budget': round(Decimal(str(total_monthly_budget)), 0),
-        **predictions_ctx
-    }
     return render(request, 'home.html', context)
 
 @login_required

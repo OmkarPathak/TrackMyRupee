@@ -343,50 +343,6 @@
         }
     }
 
-    /* Daily Mode responsive adjustments for desktop */
-    /* Mobile: single column, full width */
-    .daily-mode-container {
-        width: 100%;
-    }
-    /* Ensure all Bootstrap Icons inside daily mode align perfectly with text */
-    .daily-mode-container .bi {
-        vertical-align: middle;
-        line-height: 1;
-    }
-    .daily-mode-grid {
-        display: flex;
-        flex-direction: column;
-    }
-    .daily-left-col,
-    .daily-right-col {
-        width: 100%;
-    }
-
-    /* Tablet: slightly constrained single column */
-    @media (min-width: 768px) and (max-width: 991.98px) {
-        .daily-mode-container {
-            max-width: 720px;
-            margin: 0 auto;
-        }
-    }
-
-    /* Desktop: 2-column layout */
-    @media (min-width: 992px) {
-        .daily-mode-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .daily-mode-grid {
-            display: grid;
-            grid-template-columns: 3fr 2fr;
-            gap: 1.5rem;
-            align-items: start;
-        }
-        .daily-right-col {
-            position: sticky;
-            top: 1rem;
-        }
-    }
 
     /* Transaction row hover actions */
     .daily-txn-row {
@@ -496,11 +452,9 @@
     }
 </style>
 
-<!-- Include Daily Dashboard View -->
-{% include 'partials/daily_dashboard.html' %}
 
-<!-- Full Report View (Existing Dashboard) -->
-<div id="full-report-view" style="display: none;">
+<!-- Full Report View (Main Dashboard) -->
+<div id="full-report-view">
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-1 gap-3 fade-in" style="position: relative; z-index: 100;">
     <!-- Mobile Header (One Line) -->

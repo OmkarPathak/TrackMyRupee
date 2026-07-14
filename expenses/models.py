@@ -532,6 +532,7 @@ class Expense(models.Model):
             models.Index(fields=['user', 'category']),
             models.Index(fields=['user', 'payment_method']),
             models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', 'account']),
         ]
 
     def __str__(self):
@@ -771,6 +772,7 @@ class Income(models.Model):
         indexes = [
             models.Index(fields=['user', 'source']),
             models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', 'account']),
         ]
 
     def __str__(self):
@@ -985,6 +987,7 @@ class Transfer(models.Model):
         indexes = [
             models.Index(fields=['user', 'date']),
             models.Index(fields=['user', 'to_account']),
+            models.Index(fields=['user', 'from_account']),
         ]
 
     def __str__(self):
