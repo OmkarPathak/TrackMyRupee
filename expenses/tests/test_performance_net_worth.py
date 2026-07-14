@@ -49,7 +49,7 @@ def _add_physical_asset(user, name='Property'):
 
 
 # Exact query counts expected for get_net_worth call
-MAX_QUERIES_EXTENDED = 6  # accounts + lines + opening + holdings + assets + goals
+MAX_QUERIES_EXTENDED = 7  # accounts + lines + opening + holdings + assets + goals + unlinked_loans
 MAX_QUERIES_SIMPLE = 5    # accounts + lines + opening + goals + legacy_loans
 
 

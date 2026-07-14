@@ -98,7 +98,6 @@ class LedgerReadServiceTest(TestCase):
 
         # Assets: 1000 - 200 = 800
         # Remaining liability principal: 500 - 150 = 350
-        # Net worth: 800 - 350 = 450
         net_worth, _ = LedgerReadService.get_net_worth(self.user)
         self.assertEqual(net_worth, Decimal("450.00"))
 
@@ -294,7 +293,7 @@ class LedgerReadServiceTest(TestCase):
         
         # Mock exchange rate first returns 80.00 on creation, then 85.00 on deletion.
         with patch('expenses.models.get_exchange_rate') as mock_model_rate, \
-             patch('expenses.ledger_service.get_exchange_rate') as mock_service_rate, \
+             patch('expenses.fx.get_exchange_rate') as mock_service_rate, \
              patch('expenses.ledger_read_service.get_exchange_rate') as mock_read_rate_outer:
             
             # Setup mock returns:

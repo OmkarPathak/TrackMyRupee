@@ -652,6 +652,25 @@ class LedgerReadService:
 
         # Extended path: assets − liabilities gives clean net worth
         # (liabilities are already in total_liabilities, loans via LOAN_OUTSTANDING accounts)
+        # For backward compatibility, also subtract outstanding principal of active loans
+        # that are not linked to any LOAN_OUTSTANDING account.
+        linked_loan_ids = {
+            a.linked_loan_id for a in accounts
+            if strategy_for(a.account_type) == STRATEGY.LOAN_OUTSTANDING
+            and a.linked_loan_id is not None
+        }
+        unlinked_loans = Loan.objects.filter(user=user, is_active=True).exclude(id__in=linked_loan_ids).annotate(
+            paid_principal=Coalesce(Sum("repayments__principal_portion"), Decimal("0.00"))
+        )
+        for loan in unlinked_loans:
+            remaining_principal = (loan.initial_principal - loan.paid_principal).quantize(Decimal("0.01"))
+            if remaining_principal <= Decimal("0.00"):
+                continue
+            if loan.currency != base_currency:
+                rate = get_exchange_rate(loan.currency, base_currency)
+                remaining_principal = (remaining_principal * rate).quantize(Decimal("0.01"))
+            total_liabilities += remaining_principal
+
         # Goals: already in account balances; keep legacy goal_reserves_base addend for now
         # to avoid disrupting the net-worth number for users who use goals.
         total_net_worth = (total_assets - total_liabilities + goal_reserves_base).quantize(

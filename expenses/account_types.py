@@ -183,14 +183,14 @@ def asset_codes() -> frozenset[str]:
 # ACCOUNT_TYPE_META mapping above.
 # ---------------------------------------------------------------------------
 ACCOUNT_TYPES = [
-    ('Liquid & Cash Assets', (
+    ('Cash & Bank', (
         ('CASH_WALLET', 'Cash Wallet'),
         ('SAVINGS_ACCOUNT', 'Savings Account'),
         ('SALARY_ACCOUNT', 'Salary Account'),
         ('CURRENT_ACCOUNT', 'Current Account'),
         ('DIGITAL_WALLET', 'Digital Wallet (Paytm, Amazon Pay, etc.)'),
     )),
-    ('Fixed-Income & Govt Schemes (Assets)', (
+    ('Fixed-Income', (
         ('FD', 'Fixed Deposit (FD)'),
         ('RD', 'Recurring Deposit (RD)'),
         ('PPF', 'Public Provident Fund (PPF)'),
@@ -200,7 +200,7 @@ ACCOUNT_TYPES = [
         ('SSY', 'Sukanya Samriddhi Yojana (SSY)'),
         ('POST_OFFICE', 'Post Office Savings (SCSS, NSC, KVP)'),
     )),
-    ('Market-Linked Investments (Assets)', (
+    ('Investments', (
         ('DEMAT', 'Demat Account (Direct Equity)'),
         ('MUTUAL_FUND', 'Mutual Funds'),
         ('ETF', 'Exchange Traded Funds (ETF)'),
@@ -208,12 +208,12 @@ ACCOUNT_TYPES = [
         ('ULIP', 'Unit Linked Insurance Plan (ULIP)'),
         ('GOLD', 'Digital / Physical Gold'),
     )),
-    ('Short-Term Credit (Liabilities)', (
+    ('Short-Term Credit', (
         ('CREDIT_CARD', 'Credit Card'),
         ('BNPL', 'Buy Now Pay Later (BNPL)'),
         ('OVERDRAFT', 'Overdraft (OD) / Cash Credit (CC)'),
     )),
-    ('Long-Term Loans (Liabilities)', (
+    ('Long-Term Loans', (
         ('HOME_LOAN', 'Home Loan'),
         ('VEHICLE_LOAN', 'Vehicle Loan'),
         ('EDUCATION_LOAN', 'Education Loan'),
@@ -222,7 +222,7 @@ ACCOUNT_TYPES = [
         ('LAP', 'Loan Against Property (LAP)'),
         ('GOLD_LOAN', 'Gold Loan'),
     )),
-    ('Physical & Illiquid Assets', (
+    ('Physical Assets', (
         ('REAL_ESTATE', 'Real Estate'),
         ('VEHICLE', 'Vehicle'),
         ('LIFE_INSURANCE', 'Traditional Life Insurance (Surrender Value)'),

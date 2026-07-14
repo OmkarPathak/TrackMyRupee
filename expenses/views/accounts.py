@@ -56,7 +56,19 @@ class AccountListView(LoginRequiredMixin, ListView):
         
         account_type = self.request.GET.get('type')
         if account_type:
-            queryset = [acc for acc in queryset if acc.account_type == account_type]
+            # Check if account_type is a group name or normalized group ID
+            group_codes = []
+            for g_name, choices in Account.ACCOUNT_TYPES:
+                import re
+                g_id = re.sub(r'[^A-Z0-9_]', '_', g_name.upper())
+                if account_type == g_name or account_type == g_id:
+                    group_codes = [c for c, _ in choices]
+                    break
+            
+            if group_codes:
+                queryset = [acc for acc in queryset if acc.account_type in group_codes]
+            else:
+                queryset = [acc for acc in queryset if acc.account_type == account_type]
             
         # Annotate locked status
         if self.request.user.is_authenticated:
@@ -107,12 +119,16 @@ class AccountListView(LoginRequiredMixin, ListView):
             for val, label in choices:
                 flat_labels[val] = label
 
+        seen_account_ids = set()
         import re
         for group_name, choices in Account.ACCOUNT_TYPES:
             group_codes = [val for val, _ in choices]
-            group_accs = [a for a in accounts if a.account_type in group_codes]
+            group_accs = [a for a in accounts if a.account_type in group_codes and a.id not in seen_account_ids]
             if not group_accs:
                 continue
+
+            for a in group_accs:
+                seen_account_ids.add(a.id)
 
             # Calculate group total balance in user currency
             group_total = Decimal('0.00')
@@ -135,8 +151,17 @@ class AccountListView(LoginRequiredMixin, ListView):
 
         context['grouped_accounts'] = grouped_accounts
         context['account_types'] = Account.ACCOUNT_TYPES
-        context['selected_type'] = self.request.GET.get('type', '')
-        context['selected_type_label'] = flat_labels.get(context['selected_type'], '')
+        selected_type = self.request.GET.get('type', '')
+        selected_label = flat_labels.get(selected_type, '')
+        if not selected_label and selected_type:
+            for g_name, choices in Account.ACCOUNT_TYPES:
+                import re
+                g_id = re.sub(r'[^A-Z0-9_]', '_', g_name.upper())
+                if selected_type == g_name or selected_type == g_id:
+                    selected_label = g_name
+                    break
+        context['selected_type'] = selected_type
+        context['selected_type_label'] = selected_label
         context['current_status'] = current_status
         context['total_balance'] = total_balance.quantize(Decimal('0.01'))
         context['total_balance_currency'] = user_currency

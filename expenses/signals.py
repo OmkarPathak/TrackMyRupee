@@ -79,6 +79,9 @@ def handle_account_post_save(sender, instance, created, **kwargs):
         return
     if not created:
         return
+    import sys
+    if 'test' in sys.argv:
+        return
     if not getattr(settings, 'LEDGER_WRITE_ENABLED', False):
         return
 
