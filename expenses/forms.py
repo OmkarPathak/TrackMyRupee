@@ -21,6 +21,7 @@ from .models import (
     Loan,
     LoanInterestRate,
     LoanRepayment,
+    PhysicalAsset,
     RecurringTransaction,
     SavingsGoal,
     Transfer,
@@ -578,14 +579,61 @@ class CategoryForm(forms.ModelForm):
         return name
 
 class AccountForm(forms.ModelForm):
+    # Optional: Link to a Loan record (used for LOAN_OUTSTANDING strategy)
+    linked_loan = forms.ModelChoiceField(
+        queryset=Loan.objects.none(),
+        required=False,
+        label=_('Linked Loan'),
+        help_text=_('For loan account types (Home Loan, Vehicle Loan, etc.) — link to a Loan record for outstanding balance calculation.'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        empty_label=_('— No linked loan —'),
+    )
+
+    # Optional DEPOSIT accrual fields
+    deposit_principal = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Deposit Principal'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+    deposit_rate = forms.DecimalField(
+        required=False,
+        max_digits=7,
+        decimal_places=4,
+        label=_('Annual Interest Rate (%)'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.0001'}),
+    )
+    deposit_start_date = forms.DateField(
+        required=False,
+        label=_('Deposit Start Date'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+    deposit_compounding = forms.ChoiceField(
+        choices=[('', '—')] + [
+            ('SIMPLE', _('Simple Interest')),
+            ('QUARTERLY', _('Quarterly Compounding')),
+            ('ANNUAL', _('Annual Compounding')),
+        ],
+        required=False,
+        label=_('Compounding Frequency'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
     class Meta:
         model = Account
-        fields = ['name', 'account_type', 'balance', 'currency']
+        fields = [
+            'name', 'account_type', 'balance', 'currency',
+            'linked_loan', 'linked_physical_asset',
+            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding',
+        ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
+            # Django renders grouped choices as <optgroup> automatically — no extra work needed
             'account_type': forms.Select(attrs={'class': 'form-select'}),
             'balance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
+            'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -593,6 +641,15 @@ class AccountForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.user:
             self.fields['currency'].initial = self.user.profile.currency
+            self.fields['linked_loan'].queryset = Loan.objects.filter(
+                user=self.user, is_active=True
+            ).order_by('name')
+            self.fields['linked_physical_asset'].queryset = (
+                PhysicalAsset.objects.filter(user=self.user, is_active=True).order_by('name')
+            )
+        else:
+            self.fields['linked_loan'].queryset = Loan.objects.none()
+            self.fields['linked_physical_asset'].queryset = PhysicalAsset.objects.none()
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
@@ -601,10 +658,37 @@ class AccountForm(forms.ModelForm):
             queryset = Account.objects.filter(user=self.user, name__iexact=name)
             if self.instance.pk:
                 queryset = queryset.exclude(pk=self.instance.pk)
-            
+
             if queryset.exists():
                 raise forms.ValidationError(_("An account with this name already exists."))
         return name
+
+    def clean(self):
+        cleaned_data = super().clean()
+        account_type = cleaned_data.get('account_type')
+        linked_loan = cleaned_data.get('linked_loan')
+        linked_physical_asset = cleaned_data.get('linked_physical_asset')
+
+        if account_type:
+            from .account_types import strategy_for, STRATEGY
+            strategy = strategy_for(account_type)
+
+            # Soft validation: warn (not block) if loan type selected but no loan linked
+            if strategy == STRATEGY.LOAN_OUTSTANDING and not linked_loan:
+                self.add_error(
+                    'linked_loan',
+                    _('This account type uses loan outstanding balance. Consider linking a Loan record.')
+                )
+
+            # Soft validation: warn if physical valuation type but no asset linked
+            if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) \
+                    and not linked_physical_asset:
+                self.add_error(
+                    'linked_physical_asset',
+                    _('This account type uses physical asset valuation. Consider linking a Physical Asset.')
+                )
+
+        return cleaned_data
 
 class TransferForm(forms.ModelForm):
     class Meta:

@@ -120,8 +120,12 @@
             <div class="d-flex align-items-center gap-2">
                 <select name="type" class="form-select" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 130px;" onchange="this.form.submit()">
                     <option value="">{% trans "All Types" %}</option>
-                    {% for val, label in account_types %}
-                        <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+                    {% for group_name, choices in account_types %}
+                        <optgroup label="{{ group_name }}">
+                            {% for val, label in choices %}
+                                <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </optgroup>
                     {% endfor %}
                 </select>
             </div>
@@ -184,16 +188,18 @@
                                     aria-controls="collapse-{{ group.type }}">
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="flex-shrink-0 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                        {% if group.type == 'CASH' %}
-                                            <i class="bi bi-wallet2 text-muted" style="font-size: 0.9rem;"></i>
-                                        {% elif group.type == 'BANK' %}
+                                        {% if 'CASH' in group.type or 'BANK' in group.type %}
                                             <i class="bi bi-bank text-muted" style="font-size: 0.9rem;"></i>
-                                        {% elif group.type == 'INVESTMENT' or group.type == 'FIXED_DEPOSIT' %}
+                                        {% elif 'DEPOSIT' in group.type %}
+                                            <i class="bi bi-piggy-bank text-muted" style="font-size: 0.9rem;"></i>
+                                        {% elif 'INVEST' in group.type or 'MARKET' in group.type %}
                                             <i class="bi bi-graph-up-arrow text-muted" style="font-size: 0.9rem;"></i>
-                                        {% elif group.type == 'CREDIT_CARD' %}
+                                        {% elif 'CREDIT' in group.type %}
                                             <i class="bi bi-credit-card text-muted" style="font-size: 0.9rem;"></i>
-                                        {% else %}
+                                        {% elif 'LOAN' in group.type or 'LIABIL' in group.type %}
                                             <i class="bi bi-cash-stack text-muted" style="font-size: 0.9rem;"></i>
+                                        {% else %}
+                                            <i class="bi bi-wallet2 text-muted" style="font-size: 0.9rem;"></i>
                                         {% endif %}
                                     </div>
                                     <span class="fw-bold text-body" style="font-size: 0.95rem;">{{ group.label }}</span>

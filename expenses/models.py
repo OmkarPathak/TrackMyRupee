@@ -125,28 +125,88 @@ class GoalContributionManager(models.Manager):
 
 class Account(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    ACCOUNT_TYPES = [
-        ('CASH', _('Cash')),
-        ('BANK', _('Bank Account')),
-        ('CREDIT_CARD', _('Credit Card')),
-        ('INVESTMENT', _('Investment Account')),
-        ('FIXED_DEPOSIT', _('Fixed Deposit')),
-        ('OTHER', _('Other')),
-    ]
+
+    # Grouped account types — imported from account_types.py (single source of truth).
+    # Legacy codes (CASH, BANK, CREDIT_CARD, INVESTMENT, FIXED_DEPOSIT, OTHER) are
+    # retained in the 'Legacy' group so existing rows validate and forms keep working.
+    from .account_types import ACCOUNT_TYPES  # noqa: E402 (class-level import is intentional)
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts')
     name = models.CharField(max_length=100, verbose_name=_('Account Name'))
-    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES, default='BANK', verbose_name=_('Account Type'))
-    balance = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'), verbose_name=_('Current Balance'))
+    # max_length widened from 20 → 32 (longest new code is 15 chars; safe Postgres metadata-only alter)
+    account_type = models.CharField(
+        max_length=32,
+        choices=ACCOUNT_TYPES,
+        default='BANK',  # 'BANK' is in the Legacy group — existing rows are unaffected
+        verbose_name=_('Account Type'),
+    )
+    balance = models.DecimalField(
+        max_digits=15, decimal_places=2, default=Decimal('0.00'),
+        verbose_name=_('Current Balance'),
+    )
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
-    
+
     is_active = models.BooleanField(default=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # ── Optional FK links for LOAN_OUTSTANDING / PHYSICAL_VALUATION / INSURANCE_SURRENDER ──
+    # Nullable by default → falls back to ledger balance, so existing accounts are unaffected.
+    linked_loan = models.ForeignKey(
+        'Loan',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='linked_accounts',
+        verbose_name=_('Linked Loan'),
+        help_text=_('Link to a Loan record for LOAN_OUTSTANDING valuation strategy.'),
+    )
+    linked_physical_asset = models.ForeignKey(
+        'PhysicalAsset',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='linked_accounts',
+        verbose_name=_('Linked Physical Asset'),
+        help_text=_('Link to a PhysicalAsset for PHYSICAL_VALUATION / INSURANCE_SURRENDER strategy.'),
+    )
+
+    # ── Optional DEPOSIT accrual fields (all nullable) ───────────────────────────────────────
+    # When set, the DEPOSIT strategy computes principal*(1+r)^t-style accrual.
+    # When unset (default), DEPOSIT == ledger balance (fully backward compatible).
+    COMPOUNDING_CHOICES = [
+        ('SIMPLE', _('Simple Interest')),
+        ('QUARTERLY', _('Quarterly Compounding')),
+        ('ANNUAL', _('Annual Compounding')),
+    ]
+    deposit_principal = models.DecimalField(
+        max_digits=15, decimal_places=2,
+        null=True, blank=True,
+        verbose_name=_('Deposit Principal'),
+    )
+    deposit_rate = models.DecimalField(
+        max_digits=7, decimal_places=4,
+        null=True, blank=True,
+        verbose_name=_('Annual Interest Rate (%)'),
+    )
+    deposit_start_date = models.DateField(
+        null=True, blank=True,
+        verbose_name=_('Deposit Start Date'),
+    )
+    deposit_compounding = models.CharField(
+        max_length=10,
+        choices=COMPOUNDING_CHOICES,
+        null=True, blank=True,
+        verbose_name=_('Compounding Frequency'),
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['user', 'name'], name='unique_account_per_user')
+        ]
+        indexes = [
+            models.Index(fields=['user', 'account_type', 'is_active'], name='acc_user_type_active_idx'),
         ]
 
     def delete(self, *args, **kwargs):
@@ -2170,6 +2230,12 @@ class Holding(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        indexes = [
+            # Backs the filter on active holdings per account in net-worth computation
+            models.Index(fields=['account', 'is_active'], name='holding_account_active_idx'),
+        ]
+
     def __str__(self):
         return f"{self.instrument_name} in {self.account.name}"
 
@@ -2185,6 +2251,10 @@ class Valuation(models.Model):
 
     class Meta:
         ordering = ['-as_of_date', '-created_at']
+        indexes = [
+            # Backs the DISTINCT ON (holding_id) query in LedgerReadService.get_net_worth
+            models.Index(fields=['holding', 'as_of_date'], name='val_holding_date_idx'),
+        ]
 
     def __str__(self):
         return f"{self.holding.instrument_name} - {self.value} on {self.as_of_date}"
@@ -2222,6 +2292,10 @@ class AssetValuation(models.Model):
 
     class Meta:
         ordering = ['-as_of_date', '-created_at']
+        indexes = [
+            # Backs the DISTINCT ON (asset_id) query in LedgerReadService.get_net_worth
+            models.Index(fields=['asset', 'as_of_date'], name='assetval_asset_date_idx'),
+        ]
 
     def __str__(self):
         return f"{self.asset.name} - {self.value} on {self.as_of_date}"

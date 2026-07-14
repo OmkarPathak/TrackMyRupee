@@ -86,10 +86,11 @@ class RecurringTransactionAdmin(admin.ModelAdmin):
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('name', 'account_type', 'balance', 'currency', 'user')
-    list_select_related = ('user',)
-    list_filter = ('account_type', 'currency', 'user')
+    list_display = ('name', 'account_type', 'balance', 'currency', 'linked_loan', 'linked_physical_asset', 'is_active', 'user')
+    list_select_related = ('user', 'linked_loan', 'linked_physical_asset')
+    list_filter = ('account_type', 'currency', 'is_active', 'user')
     search_fields = ('name', 'user__username')
+    raw_id_fields = ('linked_loan', 'linked_physical_asset')
 
 @admin.register(Transfer)
 class TransferAdmin(admin.ModelAdmin):
