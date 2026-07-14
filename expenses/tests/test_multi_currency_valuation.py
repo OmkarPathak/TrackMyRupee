@@ -38,10 +38,39 @@ def _make_account(user, name, account_type='SAVINGS_ACCOUNT', balance=Decimal('0
 class TestMultiCurrencyValuation(TestCase):
 
     def setUp(self):
+        from unittest.mock import patch
         self.user = _make_user()
+        
+        # Setup get_exchange_rate patches to check DB first and avoid live calls
+        symbol_to_code = {'₹': 'INR', '$': 'USD', '€': 'EUR', 'INR': 'INR', 'USD': 'USD', 'EUR': 'EUR'}
+        def mock_get_rate(from_curr, to_curr):
+            if from_curr == to_curr:
+                return Decimal("1.0")
+            from_code = symbol_to_code.get(from_curr, from_curr)
+            to_code = symbol_to_code.get(to_curr, to_curr)
+            if from_code == to_code:
+                return Decimal("1.0")
+            row = FXRate.objects.filter(from_currency=from_code, to_currency=to_code).order_by('-as_of_date', '-created_at').first()
+            if row:
+                return row.rate
+            return Decimal("80.00")
+
+        self.patches = [
+            patch('expenses.models.get_exchange_rate', side_effect=mock_get_rate),
+            patch('expenses.fx.get_exchange_rate', side_effect=mock_get_rate),
+            patch('expenses.ledger_service.get_exchange_rate', side_effect=mock_get_rate),
+            patch('expenses.ledger_read_service.get_exchange_rate', side_effect=mock_get_rate),
+        ]
+        for p in self.patches:
+            p.start()
+
         # Ensure base rate INR -> INR is stored
         FXRate.objects.get_or_create(from_currency='INR', to_currency='INR', defaults={'rate': Decimal('1.0')})
         FXRate.objects.get_or_create(from_currency='₹', to_currency='₹', defaults={'rate': Decimal('1.0')})
+
+    def tearDown(self):
+        for p in self.patches:
+            p.stop()
 
     def test_multi_currency_net_worth(self):
         """Net worth computes correctly across INR, USD, and EUR accounts using stored FX rates."""

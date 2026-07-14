@@ -124,7 +124,7 @@ class LedgerPostingService:
         if contribution.goal.currency == contribution.account.currency:
             return contribution.amount, contribution.goal.currency
 
-        rate = get_exchange_rate(contribution.goal.currency, contribution.account.currency)
+        rate = FXService.rate(contribution.goal.currency, contribution.account.currency)
         converted = (contribution.amount * rate).quantize(Decimal("0.01"))
         return converted, contribution.account.currency
 
@@ -199,8 +199,8 @@ class LedgerPostingService:
         line_currency = currency
         if account_ref and currency != account_ref.currency:
             try:
-                from .utils import get_exchange_rate
-                rate = get_exchange_rate(currency, account_ref.currency)
+                from .fx import FXService
+                rate = FXService.rate(currency, account_ref.currency)
                 line_amount = (amount * rate).quantize(Decimal("0.01"))
                 line_currency = account_ref.currency
             except Exception as e:

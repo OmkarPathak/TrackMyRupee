@@ -141,7 +141,7 @@ class LedgerReadService:
             return line.amount
         # Fallback for legacy lines stored in a different currency than the account.
         # New postings store account-side lines in account.currency directly.
-        rate = get_exchange_rate(line.currency, account.currency)
+        rate = FXService.rate(line.currency, account.currency)
         return (line.amount * rate).quantize(Decimal("0.01"))
 
     @classmethod

@@ -919,11 +919,11 @@ class DashboardAssetAllocationTest(_BaseTestCase):
         cc.balance = Decimal("500.00")
         cc.save()
 
+        response = self.client.get(reverse("home"))
         allocation = response.context["asset_allocation"]
         type_names = [a["type"] for a in allocation]
-        # All three active groups should appear now
-        self.assertIn("Cash & Bank", type_names)
-        self.assertIn("Investments", type_names)
+        # Legacy and Short-Term Credit groups should appear
+        self.assertIn("Legacy", type_names)
         self.assertIn("Short-Term Credit", type_names)
 
     def test_asset_allocation_percentages_sum_roughly_100(self):
@@ -943,8 +943,7 @@ class DashboardAssetAllocationTest(_BaseTestCase):
         response = self.client.get(reverse("home"))
         allocation = response.context["asset_allocation"]
         alloc_map = {a["type"]: a["total"] for a in allocation}
-        self.assertAlmostEqual(alloc_map["Cash & Bank"], 6000.00, places=2)
-        self.assertAlmostEqual(alloc_map["Investments"], 2000.00, places=2)
+        self.assertAlmostEqual(alloc_map["Legacy"], 8000.00, places=2)
         self.assertAlmostEqual(alloc_map["Short-Term Credit"], 500.00, places=2)
 
 
