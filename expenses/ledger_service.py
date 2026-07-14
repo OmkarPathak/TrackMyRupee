@@ -194,15 +194,18 @@ class LedgerPostingService:
         fx_rate, base_amount = cls._to_base_amount(user, amount, currency)
 
         # Account-side line denomination requirement:
-        # Convert amount to account_ref's native currency while preserving base_amount
+        # Convert amount to account_ref's native currency while preserving base_amount.
+        # Also recompute fx_rate_to_base against the converted currency so that
+        # (amount, currency, fx_rate_to_base, base_amount) remain internally consistent.
         line_amount = amount
         line_currency = currency
         if account_ref and currency != account_ref.currency:
             try:
-                from .fx import FXService
-                rate = FXService.rate(currency, account_ref.currency)
-                line_amount = (amount * rate).quantize(Decimal("0.01"))
+                cross_rate = FXService.rate(currency, account_ref.currency)
+                line_amount = (amount * cross_rate).quantize(Decimal("0.01"))
                 line_currency = account_ref.currency
+                # Recompute fx_rate and base_amount relative to the converted currency
+                fx_rate, base_amount = cls._to_base_amount(user, line_amount, line_currency)
             except Exception as e:
                 # Fall back to transaction values on conversion error
                 pass

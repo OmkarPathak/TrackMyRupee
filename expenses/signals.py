@@ -6,7 +6,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .ledger_service import LedgerPostingService
-from .models import Category, UserProfile
+from .models import Account, Category, UserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ def handle_user_post_save(sender, instance, created, **kwargs):
             UserProfile.objects.get_or_create(user=instance)
 
 
-@receiver(post_save, sender='expenses.Account')
+@receiver(post_save, sender=Account)
 def handle_account_post_save(sender, instance, created, **kwargs):
     """Post an opening balance ledger entry when a new Account is created.
 

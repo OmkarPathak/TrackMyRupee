@@ -177,8 +177,11 @@ class FXService:
         result: dict[str, Decimal] = {}
         missing: set[str] = set()
 
-        # Map symbols to codes for DB query
-        code_to_symbol: dict[str, str] = {}
+        # Map ISO codes to all input symbols that resolve to them.
+        # This handles cases where callers mix symbol and ISO variants (e.g., '$' and 'USD'):
+        # both variants need to be populated in the result map so convert_using_map()
+        # never silently falls back to 1.0 for either form.
+        code_to_symbols: dict[str, list[str]] = {}
         source_codes: set[str] = set()
         for ccy in currencies:
             code = _to_code(ccy)
@@ -186,7 +189,7 @@ class FXService:
                 result[ccy] = Decimal('1.0')
             else:
                 source_codes.add(code)
-                code_to_symbol[code] = ccy  # store the original symbol
+                code_to_symbols.setdefault(code, []).append(ccy)
 
         if not source_codes:
             return result
@@ -206,27 +209,42 @@ class FXService:
         for row in qs.order_by('from_currency', '-as_of_date', '-created_at'):
             if row.from_currency not in seen:
                 seen.add(row.from_currency)
-                # Map back to original symbol
-                symbol = code_to_symbol.get(row.from_currency, row.from_currency)
-                result[symbol] = row.rate
+                # Store the rate under every input symbol that maps to this ISO code
+                for symbol in code_to_symbols.get(row.from_currency, [row.from_currency]):
+                    result[symbol] = row.rate
 
-        # Identify which currencies still have no rate
-        for code, symbol in code_to_symbol.items():
-            if symbol not in result:
-                missing.add(symbol)
+        # Identify which currencies still have no rate (check by original input symbol)
+        for code, symbols in code_to_symbols.items():
+            if not any(s in result for s in symbols):
+                missing.update(symbols)
 
-        # Live-fetch for missing currencies (records to FXRate automatically)
+        # Live-fetch for missing currencies (records to FXRate automatically).
+        # Fetch once per ISO code and populate all corresponding input symbols.
+        fetched_codes: set[str] = set()
         for ccy in missing:
+            code = _to_code(ccy)
+            if code in fetched_codes:
+                # Rate already fetched for this ISO code; reuse it
+                already_stored = next(
+                    (result[s] for s in code_to_symbols.get(code, []) if s in result),
+                    Decimal('1.0'),
+                )
+                result[ccy] = already_stored
+                continue
             try:
                 rate = get_exchange_rate(ccy, base_ccy)
-                result[ccy] = rate
+                fetched_codes.add(code)
+                # Populate all input symbols for this code
+                for symbol in code_to_symbols.get(code, [ccy]):
+                    result[symbol] = rate
             except Exception as exc:
                 logger.warning(
                     "FXService.build_rate_map: live fetch failed for %s→%s: %s",
                     ccy, base_ccy, exc,
                 )
                 # Use 1.0 as emergency fallback to avoid crashing net-worth
-                result[ccy] = Decimal('1.0')
+                for symbol in code_to_symbols.get(code, [ccy]):
+                    result[symbol] = Decimal('1.0')
 
         return result
 

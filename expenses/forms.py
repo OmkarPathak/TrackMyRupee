@@ -673,19 +673,19 @@ class AccountForm(forms.ModelForm):
             from .account_types import strategy_for, STRATEGY
             strategy = strategy_for(account_type)
 
-            # Soft validation: warn (not block) if loan type selected but no loan linked
+            # Required: LOAN_OUTSTANDING strategy accounts must link a Loan record
             if strategy == STRATEGY.LOAN_OUTSTANDING and not linked_loan:
                 self.add_error(
                     'linked_loan',
-                    _('This account type uses loan outstanding balance. Consider linking a Loan record.')
+                    _('This account type requires a linked Loan record for outstanding balance valuation.')
                 )
 
-            # Soft validation: warn if physical valuation type but no asset linked
+            # Required: physical valuation strategy accounts must link a Physical Asset
             if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) \
                     and not linked_physical_asset:
                 self.add_error(
                     'linked_physical_asset',
-                    _('This account type uses physical asset valuation. Consider linking a Physical Asset.')
+                    _('This account type requires a linked Physical Asset for valuation.')
                 )
 
         return cleaned_data

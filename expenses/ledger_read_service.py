@@ -380,7 +380,7 @@ class LedgerReadService:
         Query budget (flag=False): ≤ 4 (backward identical to current)
         """
         # Q1: accounts
-        accounts = list(user.accounts.filter(is_active=True))
+        accounts = list(user.accounts.filter(is_active=True).select_related('linked_loan', 'linked_physical_asset'))
         extended = getattr(settings, "NET_WORTH_EXTENDED_MODELS_ENABLED", False)
 
         if not accounts:
@@ -476,14 +476,16 @@ class LedgerReadService:
             for vals_list in holding_vals_by_account.values():
                 for v in vals_list:
                     all_currencies.add(v['currency'])
-            # Include physical asset currencies
-            asset_account_pairs = [
-                (account_map[aid], account_map[aid].linked_physical_asset_id)
-                for aid in asset_account_ids
-                if account_map[aid].linked_physical_asset_id is not None
-            ]
-            # Physical asset currencies come from PhysicalAsset model — already loaded via account FKs
-            # We'll default to account currency for physical assets if asset currency unknown
+            # Include linked loan currencies (already select_related — no extra queries)
+            for aid in loan_account_ids:
+                acct = account_map[aid]
+                if acct.linked_loan is not None:
+                    all_currencies.add(acct.linked_loan.currency)
+            # Include linked physical asset currencies (already select_related — no extra queries)
+            for aid in asset_account_ids:
+                acct = account_map[aid]
+                if acct.linked_physical_asset is not None:
+                    all_currencies.add(acct.linked_physical_asset.currency)
 
         fx_map = FXService.build_rate_map(
             currencies=all_currencies,
@@ -563,9 +565,14 @@ class LedgerReadService:
             elif strategy == STRATEGY.LOAN_OUTSTANDING:
                 if account.linked_loan_id and account.linked_loan_id in loan_outstanding_map:
                     outstanding = loan_outstanding_map[account.linked_loan_id]
-                    # Loan outstanding is reported in loan's currency; use account currency as proxy
+                    # Use the linked loan's currency; fall back to account currency if unavailable
+                    loan_ccy = (
+                        account.linked_loan.currency
+                        if account.linked_loan is not None
+                        else account.currency
+                    )
                     account_value = FXService.convert_using_map(
-                        outstanding, account.currency, fx_map
+                        outstanding, loan_ccy, fx_map
                     )
                 else:
                     # No linked loan → use ledger balance (already negative for liabilities)
@@ -577,20 +584,26 @@ class LedgerReadService:
                 asset_id = account.linked_physical_asset_id
                 if asset_id and asset_id in asset_val_map:
                     asset_native_val = asset_val_map[asset_id]
+                    # Use the linked physical asset's currency; fall back to account currency if unavailable
+                    asset_ccy = (
+                        account.linked_physical_asset.currency
+                        if account.linked_physical_asset is not None
+                        else account.currency
+                    )
                     account_value = FXService.convert_using_map(
-                        asset_native_val, account.currency, fx_map
+                        asset_native_val, asset_ccy, fx_map
                     )
                 else:
                     # Fallback: acquisition_cost from linked asset if available, else ledger balance
                     if (
                         account.linked_physical_asset_id is not None
-                        and hasattr(account, 'linked_physical_asset')
                         and account.linked_physical_asset is not None
                         and account.linked_physical_asset.acquisition_cost is not None
                     ):
+                        asset_ccy = account.linked_physical_asset.currency
                         account_value = FXService.convert_using_map(
                             account.linked_physical_asset.acquisition_cost,
-                            account.currency, fx_map,
+                            asset_ccy, fx_map,
                         )
                     else:
                         account_value = FXService.convert_using_map(
