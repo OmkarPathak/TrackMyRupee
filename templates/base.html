@@ -1344,23 +1344,67 @@
                     list.innerHTML = '';
                     const term = (filter || '').toLowerCase();
                     let hasVisible = false;
-                    Array.from(sel.options).forEach(function(opt) {
-                        if (!opt.value && opt.text.trim() === '---------') return; // skip blank
-                        const text = opt.text;
-                        if (term && text.toLowerCase().indexOf(term) === -1) return;
-                        hasVisible = true;
-                        const item = document.createElement('div');
-                        item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '');
-                        item.textContent = text;
-                        item.dataset.value = opt.value;
-                        item.addEventListener('click', function() {
-                            sel.value = opt.value;
-                            sel.dispatchEvent(new Event('change', { bubbles: true }));
-                            btn.textContent = text;
-                            close();
-                        });
-                        list.appendChild(item);
+
+                    Array.from(sel.children).forEach(function(child) {
+                        if (child.tagName === 'OPTGROUP') {
+                            const groupLabel = child.label;
+                            let groupHasVisible = false;
+                            const groupContainer = document.createDocumentFragment();
+
+                            Array.from(child.children).forEach(function(opt) {
+                                if (opt.tagName !== 'OPTION') return;
+                                if (!opt.value && opt.text.trim() === '---------') return;
+                                const text = opt.text;
+                                if (term && text.toLowerCase().indexOf(term) === -1) return;
+
+                                groupHasVisible = true;
+                                hasVisible = true;
+
+                                const item = document.createElement('div');
+                                item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '');
+                                item.style.paddingLeft = '1.5rem';
+                                item.textContent = text;
+                                item.dataset.value = opt.value;
+                                item.addEventListener('click', function() {
+                                    sel.value = opt.value;
+                                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                                    btn.textContent = text;
+                                    close();
+                                });
+                                groupContainer.appendChild(item);
+                            });
+
+                            if (groupHasVisible) {
+                                const header = document.createElement('div');
+                                header.className = 'searchable-select-header text-muted fw-bold small';
+                                header.style.padding = '0.375rem 0.75rem';
+                                header.style.pointerEvents = 'none';
+                                header.style.backgroundColor = '#f8f9fa';
+                                header.textContent = groupLabel;
+                                list.appendChild(header);
+                                list.appendChild(groupContainer);
+                            }
+                        } else if (child.tagName === 'OPTION') {
+                            const opt = child;
+                            if (!opt.value && opt.text.trim() === '---------') return;
+                            const text = opt.text;
+                            if (term && text.toLowerCase().indexOf(term) === -1) return;
+
+                            hasVisible = true;
+                            const item = document.createElement('div');
+                            item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '');
+                            item.textContent = text;
+                            item.dataset.value = opt.value;
+                            item.addEventListener('click', function() {
+                                sel.value = opt.value;
+                                sel.dispatchEvent(new Event('change', { bubbles: true }));
+                                btn.textContent = text;
+                                close();
+                            });
+                            list.appendChild(item);
+                        }
                     });
+
                     if (!hasVisible) {
                         const empty = document.createElement('div');
                         empty.className = 'searchable-select-empty';
@@ -1482,7 +1526,7 @@
         padding: 0.45rem 0.75rem;
         cursor: pointer;
         border-radius: 0.375rem;
-        font-size: 0.9rem;
+        font-size: 1rem;
         transition: background 0.12s;
     }
     .searchable-select-item:hover {
@@ -1498,6 +1542,15 @@
         text-align: center;
         color: var(--bs-secondary-color);
         font-size: 0.85rem;
+    }
+    
+    /* Fix Convert to Capital Event dropdown button readability in dark mode */
+    [data-bs-theme="dark"] .dropdown-menu .btn-convert-capital {
+        color: #dee2e6 !important;
+    }
+    [data-bs-theme="dark"] .dropdown-menu .btn-convert-capital:hover {
+        color: #ffffff !important;
+        background-color: rgba(255, 255, 255, 0.15) !important;
     }
     </style>
     <!-- Donation Notification Toast -->

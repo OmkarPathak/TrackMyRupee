@@ -630,7 +630,7 @@ class AccountForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
             # Django renders grouped choices as <optgroup> automatically — no extra work needed
-            'account_type': forms.Select(attrs={'class': 'form-select'}),
+            'account_type': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'balance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),

@@ -68,6 +68,7 @@ ACCOUNT_TYPE_META: dict[str, tuple[KIND, STRATEGY]] = {
     "NPS":         (KIND.ASSET, STRATEGY.DEPOSIT),
     "SSY":         (KIND.ASSET, STRATEGY.DEPOSIT),
     "POST_OFFICE": (KIND.ASSET, STRATEGY.DEPOSIT),
+    "APY":         (KIND.ASSET, STRATEGY.DEPOSIT),
 
     # ── Market-Linked Investments (Assets) ───────────────────────────────────
     "DEMAT":       (KIND.ASSET, STRATEGY.HOLDINGS),
@@ -199,6 +200,7 @@ ACCOUNT_TYPES = [
         ('NPS', 'National Pension System (NPS)'),
         ('SSY', 'Sukanya Samriddhi Yojana (SSY)'),
         ('POST_OFFICE', 'Post Office Savings (SCSS, NSC, KVP)'),
+        ('APY', 'Atal Pension Yojana (APY)'),
     )),
     ('Investments', (
         ('DEMAT', 'Demat Account (Direct Equity)'),

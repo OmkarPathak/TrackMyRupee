@@ -377,7 +377,7 @@
                                                     <li>
                                                         <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
                                                             {% csrf_token %}
-                                                            <button type="submit" class="dropdown-item py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                            <button type="submit" class="dropdown-item py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
                                                                 <i class="bi bi-flag me-2"></i>{% trans "Convert to Capital Event" %}
                                                             </button>
                                                         </form>
@@ -456,7 +456,7 @@
                                                 <li>
                                                     <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
                                                         {% csrf_token %}
-                                                        <button type="submit" class="dropdown-item py-2 text-secondary" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
+                                                        <button type="submit" class="dropdown-item py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
                                                             <i class="bi bi-flag me-2"></i>{% trans "Convert to Capital Event" %}
                                                         </button>
                                                     </form>
