@@ -106,19 +106,19 @@
     </div>
     
     <!-- Filter & Status Row -->
-        <div class="mb-4">
-        <form method="get" class="d-flex align-items-center flex-wrap gap-3">
+    <div class="mb-4">
+        <form method="get" class="d-flex align-items-center flex-nowrap gap-2 w-100">
             <!-- Status Filter -->
-            <div class="d-flex align-items-center gap-2">
-                <select name="status" class="form-select" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 110px;" onchange="this.form.submit()">
+            <div style="flex: 1 1 30%; min-width: 100px; max-width: 140px;">
+                <select name="status" class="form-select form-select-sm" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: 100%;" onchange="this.form.submit()">
                     <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
                     <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
                 </select>
             </div>
 
             <!-- Type Filter -->
-            <div class="d-flex align-items-center gap-2">
-                <select name="type" class="form-select" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: auto; min-width: 130px;" onchange="this.form.submit()">
+            <div style="flex: 2 1 70%;">
+                <select name="type" class="form-select form-select-sm searchable-select" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: 100%;" onchange="this.form.submit()">
                     <option value="">{% trans "All Types" %}</option>
                     {% for group_name, choices in account_types %}
                         <optgroup label="{{ group_name }}">
@@ -131,11 +131,9 @@
             </div>
 
             {% if selected_type or current_status != 'active' %}
-            <div class="d-flex align-items-center">
-                <a href="{% url 'account-list' %}" class="text-decoration-none text-muted d-flex align-items-center" style="font-size: 0.9rem; height: 38px; padding-top: 2px;">
-                    <i class="bi bi-x-circle me-2 text-danger"></i> {% trans "Reset Filters" %}
+                <a href="{% url 'account-list' %}" class="btn btn-link btn-sm text-decoration-none text-muted p-0 d-flex align-items-center justify-content-center" style="font-size: 1.1rem; height: 38px; width: 38px; flex-shrink: 0;" title="{% trans 'Clear Filters' %}">
+                    <i class="bi bi-x-circle-fill"></i>
                 </a>
-            </div>
             {% endif %}
         </form>
     </div>
