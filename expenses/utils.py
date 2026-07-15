@@ -15,6 +15,8 @@ def get_exchange_rate(from_curr, to_curr):
     Fetches the exchange rate between two currencies using Frankfurter API.
     Uses Django cache to avoid repeated external requests.
     """
+    from django.utils import timezone
+    from .models import FXRate
     if from_curr == to_curr:
         return Decimal('1.0')
 
@@ -188,9 +190,14 @@ def generate_year_in_review_data(user, year):
     else:
         data['biggest_expense'] = None
 
-    # 7. Total Invested (Transfers to INVESTMENT or FIXED_DEPOSIT)
+    # 7. Total Invested (Transfers to market-linked or deposit account types)
+    from .account_types import deposit_codes, market_linked_codes
     from .models import Account, Transfer
-    investments = Transfer.objects.filter(user=user, date__year=year, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
+    _investment_account_types = list(market_linked_codes() | deposit_codes())
+    investments = Transfer.objects.filter(
+        user=user, date__year=year,
+        to_account__account_type__in=_investment_account_types,
+    )
     data['total_invested'] = investments.aggregate(total=Sum('converted_amount'))['total'] or Decimal('0.00')
 
     # 8. Accounts Used

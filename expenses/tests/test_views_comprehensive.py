@@ -215,15 +215,14 @@ class AccountListViewTest(BaseComprehensiveTest):
         # Check grouped_accounts
         grouped_accounts = response.context['grouped_accounts']
         self.assertIsNotNone(grouped_accounts)
-        
-        # Since self.account is BANK and self.other_account is CASH, we should have groups for BANK and CASH
+
+        # Since self.account is BANK and self.other_account is CASH, they fall under LEGACY group
         group_types = [g['type'] for g in grouped_accounts]
-        self.assertIn('BANK', group_types)
-        self.assertIn('CASH', group_types)
-        
-        bank_group = next(g for g in grouped_accounts if g['type'] == 'BANK')
-        self.assertEqual(bank_group['count'], 1)
-        self.assertEqual(bank_group['total'], self.account.balance)
+        self.assertIn('LEGACY', group_types)
+
+        legacy_group = next(g for g in grouped_accounts if g['type'] == 'LEGACY')
+        self.assertEqual(legacy_group['count'], 2)
+        self.assertEqual(legacy_group['total'], self.account.balance + self.other_account.balance)
 
 
 class AccountCreateViewTest(BaseComprehensiveTest):

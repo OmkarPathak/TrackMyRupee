@@ -98,7 +98,6 @@ class LedgerReadServiceTest(TestCase):
 
         # Assets: 1000 - 200 = 800
         # Remaining liability principal: 500 - 150 = 350
-        # Net worth: 800 - 350 = 450
         net_worth, _ = LedgerReadService.get_net_worth(self.user)
         self.assertEqual(net_worth, Decimal("450.00"))
 
@@ -294,12 +293,14 @@ class LedgerReadServiceTest(TestCase):
         
         # Mock exchange rate first returns 80.00 on creation, then 85.00 on deletion.
         with patch('expenses.models.get_exchange_rate') as mock_model_rate, \
+             patch('expenses.fx.get_exchange_rate') as mock_fx_rate, \
              patch('expenses.ledger_service.get_exchange_rate') as mock_service_rate, \
              patch('expenses.ledger_read_service.get_exchange_rate') as mock_read_rate_outer:
             
             # Setup mock returns:
             mock_model_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("85.00")]
-            mock_service_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("85.00"), Decimal("85.00")]
+            mock_fx_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("80.00"), Decimal("85.00"), Decimal("85.00"), Decimal("85.00")]
+            mock_service_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("80.00"), Decimal("85.00"), Decimal("85.00"), Decimal("85.00")]
             mock_read_rate_outer.return_value = Decimal("80.00")
             
             LedgerPostingService.post_opening_balance(account=self.cash)
@@ -326,7 +327,7 @@ class LedgerReadServiceTest(TestCase):
             self.assertEqual(self.cash.balance, Decimal("1050.00"))
             
             # Verification that no exception is raised and ledger read is calculated correctly.
-            with patch('expenses.ledger_read_service.get_exchange_rate') as mock_read_rate:
+            with patch('expenses.fx.get_exchange_rate') as mock_read_rate:
                 mock_read_rate.return_value = Decimal("85.00")
                 self.assertEqual(LedgerReadService.get_account_balance(self.cash), Decimal("1000.00"))
 

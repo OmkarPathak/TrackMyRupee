@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introducing TrackMyRupee Grouped Account Types</title>
+    <!-- Import TrackMyRupee Standard Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        p, li, ol, ul {
+            font-size: 15px;
+            color: #495057;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+        .header {
+            background-color: #1d9e75;
+            padding: 32px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            font-family: 'Instrument Serif', Georgia, serif;
+            margin: 0;
+            font-size: 36px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 32px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .lead-text {
+            font-size: 16px;
+            color: #495057;
+            margin-bottom: 24px;
+        }
+        .card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #1d9e75;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .card-title {
+            font-weight: 700;
+            color: #1d9e75;
+            margin-bottom: 6px;
+            font-size: 15px;
+            text-transform: uppercase;
+        }
+        .screenshot-placeholder {
+            border: 2px dashed #ced4da;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            margin: 24px 0;
+            cursor: pointer;
+        }
+        .screenshot-placeholder i {
+            font-size: 28px;
+            color: #6c757d;
+        }
+        .screenshot-placeholder p {
+            margin: 8px 0 0 0;
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        .screenshot-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 16px 0;
+            border: 1px solid #dee2e6;
+        }
+        .badge-list {
+            margin: 16px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        .badge-list li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .badge-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #1d9e75;
+            font-weight: bold;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .grid-item {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .grid-title {
+            font-weight: bold;
+            color: #212529;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+        .grid-desc {
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+        .cta-btn {
+            display: block;
+            text-align: center;
+            background-color: #1d9e75;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 14px 28px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin: 32px 0 16px 0;
+            box-shadow: 0 4px 10px rgba(29, 158, 117, 0.2);
+        }
+        .cta-btn:hover {
+            background-color: #167e5d;
+        }
+        .footer {
+            background-color: #f1f3f5;
+            padding: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer a {
+            color: #1d9e75;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>TrackMyRupee</h1>
+            <p>Product Update: Account Structure Upgrade</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">Hi {{ user.first_name|default:user.username|default:"there" }},</div>
+            
+            <p class="lead-text">
+                We are thrilled to announce a major upgrade to how you track and visualize your wealth on TrackMyRupee. We are moving away from our flat legacy account types to a smart, <b>Grouped Account System</b> with per-type valuation engines.
+            </p>
+
+            <h3>Why are we switching?</h3>
+            <p>
+                Previously, all accounts were treated flatly. This means your volatile mutual funds, revolving credit cards, vehicle depreciation, and daily liquid cash were all processed using the exact same logic. This caused distortions in your monthly savings rate and created clutter on your dashboard.
+            </p>
+
+            <div class="card">
+                <div class="card-title">What's New in the Grouped System:</div>
+                <ul class="badge-list">
+                    <li><strong>Clarity with Accordions:</strong> Accounts are now neatly categorized into logical tabs, letting you review your short-term cash flow separately from long-term assets.</li>
+                    <li><strong>Smart Valuation Calculations:</strong> Market-linked assets use unit-NAV valuation, meaning market swings update your Net Worth automatically without corrupting your monthly budget or savings rates.</li>
+                    <li><strong>Flawless Loan Tracking:</strong> Repayments now hook into the double-entry ledger, automatically splitting into principal reduction (transfer) and interest burn (expense).</li>
+                </ul>
+            </div>
+
+            <h3>How to Migrate Your Legacy Accounts (Step-by-Step)</h3>
+            <p>
+                To take full advantage of the new valuation engine and keep your financial reports clean, follow these quick steps:
+            </p>
+            <ol style="padding-left: 20px; line-height: 1.8; margin-bottom: 24px;">
+                <li style="margin-bottom: 8px;"><strong>Go to your Account List:</strong> Navigate to the "Accounts" page in the menu bar.</li>
+                <li style="margin-bottom: 8px;"><strong>Locate Legacy Accounts:</strong> Look under the <em><b>Legacy</b></em> accordion section. These are marked with labels like "Cash (legacy)" or "Bank Account (legacy)".</li>
+                <li style="margin-bottom: 8px;"><strong>Click Edit:</strong> Click the three-dot actions menu on the right side of the legacy account and select <strong>Edit</strong>.</li>
+                <li style="margin-bottom: 8px;"><strong>Select a Precise Type:</strong> In the searchable "Account Type" dropdown, search for and select the corresponding modern type. For example, change "Bank Account (legacy)" to "Savings Account" or "Salary Account".</li>
+                <li style="margin-bottom: 8px;"><strong>Save Changes:</strong> Click <strong>Save Account</strong>. The account will immediately move into its new accordion group and start using its optimized valuation rules.</li>
+                <li style="margin-bottom: 8px;"><strong><i>Note:</i></strong> Once you change the account type, there will be no effect on any historical transactions. This is just a cosmetic change. </li>
+            </ol>
+
+            <img class="screenshot-image" src="https://cdn.jsdelivr.net/gh/OmkarPathak/TrackMyRupee@main/staticfiles/img/account_type_change_1.png" alt="Grouped Account Accordions">
+
+            <h3>The 6 Account Groups Explained</h3>
+            <div class="grid-container">
+                <div class="grid-item">
+                    <div class="grid-title">1. Cash & Bank</div>
+                    <div class="grid-desc">Liquid funds (Savings, Salary, Cash) that contribute directly to your day-to-day spending power.</div>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-title">2. Fixed-Income</div>
+                    <div class="grid-desc">Low-risk assets (FD, RD, PPF, EPF) showing interest accruals and employer contributions.</div>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-title">3. Investments</div>
+                    <div class="grid-desc">Market-linked assets (Mutual Funds, Demat, ETF, Gold) tracked dynamically via NAV.</div>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-title">4. Short-Term Credit</div>
+                    <div class="grid-desc">Revolving debts (Credit Cards, BNPL) that act as immediate liabilities reducing Net Worth.</div>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-title">5. Long-Term Loans</div>
+                    <div class="grid-desc">Linked loan contracts (Home/Personal Loans) tracking your outstanding principal.</div>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-title">6. Physical Assets</div>
+                    <div class="grid-desc">Real Estate or Vehicles that track depreciation/appreciation over time.</div>
+                </div>
+            </div>
+
+            <img class="screenshot-image" src="https://cdn.jsdelivr.net/gh/OmkarPathak/TrackMyRupee@main/staticfiles/img/account_type_change_2.png" alt="Grouped Account Accordions">
+
+            <h3>How this improves your metrics:</h3>
+            <ul class="badge-list">
+                <li><strong>Net Worth:</strong> Net Worth = Asset Balances - (Short-Term Credit + Loan Outstanding Principals).</li>
+                <li><strong>Savings Rate:</strong> Properly calculated as percentage of net income saved, isolated from asset-class transfer reallocations (like SIPs).</li>
+                <li><strong>Daily Burn Pace:</strong> More realistic tracking of how much you are spending per day relative to your monthly budget limits.</li>
+            </ul>
+
+            <p style="font-size: 13px; color: #868e96; margin-top: 24px; text-align: center;">
+                Need help migrating? Reply to this email and our support team will help you configure your portfolios.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Sent with love from the TrackMyRupee team.</p>
+            <p style="margin-top: 16px; font-size: 10px; opacity: 0.8;">
+                You are receiving this update because you are registered on TrackMyRupee. 
+                To unsubscribe, you can update your notification preferences under your profile settings on the website.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

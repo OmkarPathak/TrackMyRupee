@@ -36,7 +36,6 @@ class Command(BaseCommand):
 
         created = 0
         skipped = 0
-        zero_balance = 0
 
         for account in accounts:
             exists = account.id in opening_account_ids
@@ -44,12 +43,8 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
 
-            if account.balance == 0:
-                zero_balance += 1
-                continue
-
             if options.get("dry_run"):
-                self.stdout.write(f"[dry-run] would backfill account {account.id} ({account.name})")
+                self.stdout.write(f"[dry-run] would backfill account {account.id} ({account.name}, balance={account.balance})")
                 created += 1
                 continue
 
@@ -69,6 +64,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Opening backfill done: created={created}, skipped={skipped}, zero_balance={zero_balance}"
+                f"Opening backfill done: created={created}, skipped={skipped}"
             )
         )

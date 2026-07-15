@@ -2000,26 +2000,34 @@ def home_view(request):
             points.append(f"{x},{y}")
         sparkline_points = " ".join(points)
 
-    # Group by account type for Asset Allocation chart (using converted balances)
+    # Group by account type group for Asset Allocation chart (using converted balances)
+    code_to_group = {}
+    for group_name, choices in Account.ACCOUNT_TYPES:
+        for val, label in choices:
+            if val not in code_to_group:
+                code_to_group[val] = group_name
+
     from collections import defaultdict
-    type_totals = defaultdict(Decimal)
+    group_totals = defaultdict(Decimal)
     for acc in accounts:
-        type_totals[acc.account_type] += account_base_balances[acc.pk]
+        group_name = code_to_group.get(acc.account_type, 'Other')
+        group_totals[group_name] += account_base_balances[acc.pk]
 
     asset_allocation = []
-    account_type_display = dict(Account.ACCOUNT_TYPES)
     cumulative_percent = 0
     circumference = 2 * 3.14159 * 45
     
     # Use sum of positive balances for allocation donut to avoid >100% or negative segments
     total_assets = sum(float(v) for v in account_base_balances.values() if v > 0)
     
-    for account_type, total in sorted(type_totals.items(), key=lambda x: x[1], reverse=True):
+    import re
+    for group_name, total in sorted(group_totals.items(), key=lambda x: x[1], reverse=True):
         if total <= 0: continue # Skip liabilities in allocation donut
         percent = round((float(total) / float(total_assets) * 100), 1) if total_assets > 0 else 0
+        group_type_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
         asset_allocation.append({
-            'type_key': account_type,
-            'type': account_type_display.get(account_type, account_type),
+            'type_key': group_type_id,
+            'type': group_name,
             'total': float(total),
             'percent': percent,
             'arc_length': (percent / 100) * circumference,

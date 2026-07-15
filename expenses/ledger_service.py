@@ -18,6 +18,7 @@ from .models import (
     SavingsGoal,
     Transfer,
 )
+from .fx import FXService
 from .utils import get_exchange_rate
 
 
@@ -40,7 +41,7 @@ class LedgerPostingService:
             base_currency = '₹'
         if currency == base_currency:
             return Decimal("1.0"), amount
-        fx_rate = get_exchange_rate(currency, base_currency)
+        fx_rate = FXService.rate(currency, base_currency)
         base_amount = (amount * fx_rate).quantize(Decimal("0.01"))
         return fx_rate, base_amount
 
@@ -123,23 +124,98 @@ class LedgerPostingService:
         if contribution.goal.currency == contribution.account.currency:
             return contribution.amount, contribution.goal.currency
 
-        rate = get_exchange_rate(contribution.goal.currency, contribution.account.currency)
+        rate = FXService.rate(contribution.goal.currency, contribution.account.currency)
         converted = (contribution.amount * rate).quantize(Decimal("0.01"))
         return converted, contribution.account.currency
+
+    @classmethod
+    def _find_latest_forward_entry_lines(cls, source_type, source_id):
+        """
+        Find the lines of the most recent non-reversal posted JournalEntry
+        for the given source_type and source_id.
+        """
+        entries = JournalEntry.objects.filter(
+            source_type=source_type,
+            source_id=source_id,
+            status="POSTED"
+        ).order_by('-created_at', '-id')
+
+        target_entry = None
+        for entry in entries:
+            description = entry.description or ""
+            metadata = entry.metadata or {}
+            shadow_action = metadata.get("shadow_action", "")
+
+            is_reversal = (
+                description.startswith("Reversal:") or
+                "REVERSE" in shadow_action or
+                metadata.get("kind") == "REVERSAL"
+            )
+            if not is_reversal:
+                target_entry = entry
+                break
+
+        if target_entry:
+            return list(target_entry.lines.all())
+        return None
+
+    @classmethod
+    def _build_reversal_lines_from_original(cls, source_type, source_id):
+        """
+        Find the latest forward (non-reversal) JournalEntry for this source,
+        and build negated lines from its lines. Reuses exact stored fx_rate_to_base and base_amount.
+        """
+        lines = cls._find_latest_forward_entry_lines(source_type, source_id)
+        if not lines:
+            return None
+
+        reversal_lines = []
+        for line in lines:
+            reversal_lines.append(
+                JournalLine(
+                    journal_entry=None,
+                    ledger_account=line.ledger_account,
+                    direction="CREDIT" if line.direction == "DEBIT" else "DEBIT",
+                    amount=line.amount,
+                    currency=line.currency,
+                    fx_rate_to_base=line.fx_rate_to_base,
+                    base_amount=line.base_amount,
+                    account_ref=line.account_ref,
+                )
+            )
+        return reversal_lines
 
     @classmethod
     def _build_line(cls, *, entry, ledger_account, direction, amount, currency, user, account_ref=None):
         if amount < 0:
             amount = abs(amount)
             direction = "CREDIT" if direction == "DEBIT" else "DEBIT"
-            
+
         fx_rate, base_amount = cls._to_base_amount(user, amount, currency)
+
+        # Account-side line denomination requirement:
+        # Convert amount to account_ref's native currency while preserving base_amount.
+        # Also recompute fx_rate_to_base against the converted currency so that
+        # (amount, currency, fx_rate_to_base, base_amount) remain internally consistent.
+        line_amount = amount
+        line_currency = currency
+        if account_ref and currency != account_ref.currency:
+            try:
+                cross_rate = FXService.rate(currency, account_ref.currency)
+                line_amount = (amount * cross_rate).quantize(Decimal("0.01"))
+                line_currency = account_ref.currency
+                # Recompute fx_rate and base_amount relative to the converted currency
+                fx_rate, base_amount = cls._to_base_amount(user, line_amount, line_currency)
+            except Exception as e:
+                # Fall back to transaction values on conversion error
+                pass
+
         return JournalLine(
             journal_entry=entry,
             ledger_account=ledger_account,
             direction=direction,
-            amount=amount,
-            currency=currency,
+            amount=line_amount,
+            currency=line_currency,
             fx_rate_to_base=fx_rate,
             base_amount=base_amount,
             account_ref=account_ref,
@@ -413,7 +489,17 @@ class LedgerPostingService:
 
     @classmethod
     def post_opening_balance(cls, *, account, idempotency_key=None, metadata=None):
-        """Backfills an opening balance adjustment entry for an account."""
+        """Backfills an opening balance adjustment entry for an account.
+
+        For zero-balance accounts, posts a zero-amount marker entry so that
+        LedgerReadService._get_opening_account_ids() finds this account and uses
+        the ledger-derived balance (0.00) rather than falling back to account.balance.
+        This closes the opening-entry gap: every account (including zero-balance and
+        freshly created ones) now has an opening entry in the ledger.
+
+        The zero-amount case produces two lines with amount=0, direction DEBIT/CREDIT —
+        debit_total == credit_total == 0 which passes _validate_balanced correctly.
+        """
         user = account.user
         amount = abs(account.balance)
 
@@ -549,28 +635,29 @@ class LedgerPostingService:
         if expense.account is None:
             return None, False
 
-        expense_ledger = cls._get_or_create_expense_ledger(user, expense.category, expense.currency)
-        asset_ledger = cls._get_or_create_account_ledger(user, expense.account)
-
-        lines = [
-            cls._build_line(
-                entry=None,
-                ledger_account=asset_ledger,
-                direction="DEBIT",
-                amount=expense.amount,
-                currency=expense.currency,
-                user=user,
-                account_ref=expense.account,
-            ),
-            cls._build_line(
-                entry=None,
-                ledger_account=expense_ledger,
-                direction="CREDIT",
-                amount=expense.amount,
-                currency=expense.currency,
-                user=user,
-            ),
-        ]
+        lines = cls._build_reversal_lines_from_original("EXPENSE", expense.id)
+        if not lines:
+            expense_ledger = cls._get_or_create_expense_ledger(user, expense.category, expense.currency)
+            asset_ledger = cls._get_or_create_account_ledger(user, expense.account)
+            lines = [
+                cls._build_line(
+                    entry=None,
+                    ledger_account=asset_ledger,
+                    direction="DEBIT",
+                    amount=expense.amount,
+                    currency=expense.currency,
+                    user=user,
+                    account_ref=expense.account,
+                ),
+                cls._build_line(
+                    entry=None,
+                    ledger_account=expense_ledger,
+                    direction="CREDIT",
+                    amount=expense.amount,
+                    currency=expense.currency,
+                    user=user,
+                ),
+            ]
 
         return cls._create_entry(
             user=user,
@@ -589,28 +676,29 @@ class LedgerPostingService:
         if income.account is None:
             return None, False
 
-        asset_ledger = cls._get_or_create_account_ledger(user, income.account)
-        income_ledger = cls._get_or_create_income_ledger(user, income.source, income.currency)
-
-        lines = [
-            cls._build_line(
-                entry=None,
-                ledger_account=income_ledger,
-                direction="DEBIT",
-                amount=income.amount,
-                currency=income.currency,
-                user=user,
-            ),
-            cls._build_line(
-                entry=None,
-                ledger_account=asset_ledger,
-                direction="CREDIT",
-                amount=income.amount,
-                currency=income.currency,
-                user=user,
-                account_ref=income.account,
-            ),
-        ]
+        lines = cls._build_reversal_lines_from_original("INCOME", income.id)
+        if not lines:
+            asset_ledger = cls._get_or_create_account_ledger(user, income.account)
+            income_ledger = cls._get_or_create_income_ledger(user, income.source, income.currency)
+            lines = [
+                cls._build_line(
+                    entry=None,
+                    ledger_account=income_ledger,
+                    direction="DEBIT",
+                    amount=income.amount,
+                    currency=income.currency,
+                    user=user,
+                ),
+                cls._build_line(
+                    entry=None,
+                    ledger_account=asset_ledger,
+                    direction="CREDIT",
+                    amount=income.amount,
+                    currency=income.currency,
+                    user=user,
+                    account_ref=income.account,
+                ),
+            ]
 
         return cls._create_entry(
             user=user,
@@ -626,29 +714,30 @@ class LedgerPostingService:
     @classmethod
     def _post_transfer_reversal(cls, *, transfer, idempotency_key, metadata=None):
         user = transfer.user
-        source_ledger = cls._get_or_create_account_ledger(user, transfer.from_account)
-        destination_ledger = cls._get_or_create_account_ledger(user, transfer.to_account)
-
-        lines = [
-            cls._build_line(
-                entry=None,
-                ledger_account=source_ledger,
-                direction="DEBIT",
-                amount=transfer.amount,
-                currency=transfer.from_account.currency,
-                user=user,
-                account_ref=transfer.from_account,
-            ),
-            cls._build_line(
-                entry=None,
-                ledger_account=destination_ledger,
-                direction="CREDIT",
-                amount=transfer.amount,
-                currency=transfer.from_account.currency,
-                user=user,
-                account_ref=transfer.to_account,
-            ),
-        ]
+        lines = cls._build_reversal_lines_from_original("TRANSFER", transfer.id)
+        if not lines:
+            source_ledger = cls._get_or_create_account_ledger(user, transfer.from_account)
+            destination_ledger = cls._get_or_create_account_ledger(user, transfer.to_account)
+            lines = [
+                cls._build_line(
+                    entry=None,
+                    ledger_account=source_ledger,
+                    direction="DEBIT",
+                    amount=transfer.amount,
+                    currency=transfer.from_account.currency,
+                    user=user,
+                    account_ref=transfer.from_account,
+                ),
+                cls._build_line(
+                    entry=None,
+                    ledger_account=destination_ledger,
+                    direction="CREDIT",
+                    amount=transfer.amount,
+                    currency=transfer.from_account.currency,
+                    user=user,
+                    account_ref=transfer.to_account,
+                ),
+            ]
 
         return cls._create_entry(
             user=user,
@@ -667,41 +756,42 @@ class LedgerPostingService:
         if repayment.from_account is None:
             return None, False
 
-        paying_asset_ledger = cls._get_or_create_account_ledger(user, repayment.from_account)
-        loan_liability_ledger = cls._get_or_create_loan_liability_ledger(user, repayment.loan)
-        interest_expense_ledger = cls._get_or_create_expense_ledger(
-            user,
-            f"Loan Interest - {repayment.loan.name}",
-            repayment.loan.currency,
-        )
-
-        lines = [
-            cls._build_line(
-                entry=None,
-                ledger_account=paying_asset_ledger,
-                direction="DEBIT",
-                amount=repayment.amount,
-                currency=repayment.loan.currency,
-                user=user,
-                account_ref=repayment.from_account,
-            ),
-            cls._build_line(
-                entry=None,
-                ledger_account=loan_liability_ledger,
-                direction="CREDIT",
-                amount=repayment.principal_portion,
-                currency=repayment.loan.currency,
-                user=user,
-            ),
-            cls._build_line(
-                entry=None,
-                ledger_account=interest_expense_ledger,
-                direction="CREDIT",
-                amount=repayment.interest_portion,
-                currency=repayment.loan.currency,
-                user=user,
-            ),
-        ]
+        lines = cls._build_reversal_lines_from_original("LOAN_REPAYMENT", repayment.id)
+        if not lines:
+            paying_asset_ledger = cls._get_or_create_account_ledger(user, repayment.from_account)
+            loan_liability_ledger = cls._get_or_create_loan_liability_ledger(user, repayment.loan)
+            interest_expense_ledger = cls._get_or_create_expense_ledger(
+                user,
+                f"Loan Interest - {repayment.loan.name}",
+                repayment.loan.currency,
+            )
+            lines = [
+                cls._build_line(
+                    entry=None,
+                    ledger_account=paying_asset_ledger,
+                    direction="DEBIT",
+                    amount=repayment.amount,
+                    currency=repayment.loan.currency,
+                    user=user,
+                    account_ref=repayment.from_account,
+                ),
+                cls._build_line(
+                    entry=None,
+                    ledger_account=loan_liability_ledger,
+                    direction="CREDIT",
+                    amount=repayment.principal_portion,
+                    currency=repayment.loan.currency,
+                    user=user,
+                ),
+                cls._build_line(
+                    entry=None,
+                    ledger_account=interest_expense_ledger,
+                    direction="CREDIT",
+                    amount=repayment.interest_portion,
+                    currency=repayment.loan.currency,
+                    user=user,
+                ),
+            ]
 
         return cls._create_entry(
             user=user,
@@ -720,29 +810,30 @@ class LedgerPostingService:
         if contribution.account is None:
             return None, False
 
-        source_asset_ledger = cls._get_or_create_account_ledger(user, contribution.account)
-        goal_reserve_ledger = cls._get_or_create_goal_reserve_ledger(user, contribution.goal)
-        amount, currency = cls._goal_amount_in_account_currency(contribution)
-
-        lines = [
-            cls._build_line(
-                entry=None,
-                ledger_account=source_asset_ledger,
-                direction="DEBIT",
-                amount=amount,
-                currency=currency,
-                user=user,
-                account_ref=contribution.account,
-            ),
-            cls._build_line(
-                entry=None,
-                ledger_account=goal_reserve_ledger,
-                direction="CREDIT",
-                amount=amount,
-                currency=currency,
-                user=user,
-            ),
-        ]
+        lines = cls._build_reversal_lines_from_original("GOAL_CONTRIBUTION", contribution.id)
+        if not lines:
+            source_asset_ledger = cls._get_or_create_account_ledger(user, contribution.account)
+            goal_reserve_ledger = cls._get_or_create_goal_reserve_ledger(user, contribution.goal)
+            amount, currency = cls._goal_amount_in_account_currency(contribution)
+            lines = [
+                cls._build_line(
+                    entry=None,
+                    ledger_account=source_asset_ledger,
+                    direction="DEBIT",
+                    amount=amount,
+                    currency=currency,
+                    user=user,
+                    account_ref=contribution.account,
+                ),
+                cls._build_line(
+                    entry=None,
+                    ledger_account=goal_reserve_ledger,
+                    direction="CREDIT",
+                    amount=amount,
+                    currency=currency,
+                    user=user,
+                ),
+            ]
 
         return cls._create_entry(
             user=user,
@@ -988,27 +1079,31 @@ class LedgerPostingService:
         user = event.user
         if event.account is None:
             return None, False
-        capital_ledger = cls._get_or_create_capital_event_ledger(user, event.subtype, event.currency)
-        asset_ledger = cls._get_or_create_account_ledger(user, event.account)
-        lines = [
-            cls._build_line(
-                entry=None,
-                ledger_account=asset_ledger,
-                direction="DEBIT",
-                amount=event.amount,
-                currency=event.currency,
-                user=user,
-                account_ref=event.account,
-            ),
-            cls._build_line(
-                entry=None,
-                ledger_account=capital_ledger,
-                direction="CREDIT",
-                amount=event.amount,
-                currency=event.currency,
-                user=user,
-            ),
-        ]
+
+        lines = cls._build_reversal_lines_from_original("CAPITAL_EVENT", event.id)
+        if not lines:
+            capital_ledger = cls._get_or_create_capital_event_ledger(user, event.subtype, event.currency)
+            asset_ledger = cls._get_or_create_account_ledger(user, event.account)
+            lines = [
+                cls._build_line(
+                    entry=None,
+                    ledger_account=asset_ledger,
+                    direction="DEBIT",
+                    amount=event.amount,
+                    currency=event.currency,
+                    user=user,
+                    account_ref=event.account,
+                ),
+                cls._build_line(
+                    entry=None,
+                    ledger_account=capital_ledger,
+                    direction="CREDIT",
+                    amount=event.amount,
+                    currency=event.currency,
+                    user=user,
+                ),
+            ]
+
         return cls._create_entry(
             user=user,
             source_type="CAPITAL_EVENT",

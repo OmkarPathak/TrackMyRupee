@@ -922,11 +922,9 @@ class DashboardAssetAllocationTest(_BaseTestCase):
         response = self.client.get(reverse("home"))
         allocation = response.context["asset_allocation"]
         type_names = [a["type"] for a in allocation]
-        # All four account types should appear now
-        self.assertIn("Bank Account", type_names)
-        self.assertIn("Cash", type_names)
-        self.assertIn("Investment Account", type_names)
-        self.assertIn("Credit Card", type_names)
+        # Legacy and Short-Term Credit groups should appear
+        self.assertIn("Legacy", type_names)
+        self.assertIn("Short-Term Credit", type_names)
 
     def test_asset_allocation_percentages_sum_roughly_100(self):
         response = self.client.get(reverse("home"))
@@ -945,10 +943,8 @@ class DashboardAssetAllocationTest(_BaseTestCase):
         response = self.client.get(reverse("home"))
         allocation = response.context["asset_allocation"]
         alloc_map = {a["type"]: a["total"] for a in allocation}
-        self.assertAlmostEqual(alloc_map["Bank Account"], 5000.00, places=2)
-        self.assertAlmostEqual(alloc_map["Cash"], 1000.00, places=2)
-        self.assertAlmostEqual(alloc_map["Investment Account"], 2000.00, places=2)
-        self.assertAlmostEqual(alloc_map["Credit Card"], 500.00, places=2)
+        self.assertAlmostEqual(alloc_map["Legacy"], 8000.00, places=2)
+        self.assertAlmostEqual(alloc_map["Short-Term Credit"], 500.00, places=2)
 
 
 class DashboardIncomeExpenseSavingsTest(_BaseTestCase):
