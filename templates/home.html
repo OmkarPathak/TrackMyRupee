@@ -227,6 +227,116 @@
         background: rgba(var(--bs-body-bg-rgb), 0.6) !important;
     }
 
+    /* ── Bento Metrics Grid ───────────────────────────────────── */
+    .bento-metrics-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 0.6rem;
+        height: 100%;
+    }
+    .bento-metric-card {
+        background-color: var(--color-surface, var(--bs-card-bg, #ffffff)) !important;
+        border: 1px solid var(--border-color, var(--bs-border-color, rgba(0,0,0,0.08))) !important;
+        border-radius: 1rem;
+        padding: 0.9rem 1rem 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .bento-metric-title {
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.35px;
+        text-transform: uppercase;
+        color: var(--bs-secondary-color, #6c757d);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-bottom: 0.35rem;
+    }
+    .bento-metric-value {
+        font-family: 'DM Sans', 'Inter', sans-serif;
+        font-size: clamp(1.4rem, 3.5vw, 1.75rem);
+        font-weight: 800;
+        letter-spacing: -0.8px;
+        line-height: 1.1;
+        color: var(--bs-body-color);
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .bento-metric-delta {
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.25rem;
+        min-height: 1.2rem;
+    }
+    .bento-metric-delta .badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .bento-metric-delta .bento-comparison-label {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+    .bento-sparkline-wrap {
+        height: 48px;
+        margin: auto -1rem -0px;
+        flex-shrink: 0;
+        position: relative;
+        margin-top: auto;
+    }
+    .bento-sparkline-wrap canvas {
+        display: block;
+    }
+    /* Semantic value color variables */
+    .bento-metric-value.income { color: var(--bento-income-color, #1D9E75); }
+    .bento-metric-value.spent { color: var(--bento-spent-color, #E05C45); }
+    .bento-metric-value.invested { color: var(--bento-invested-color, #378ADD); }
+
+    /* Dark Mode Theme Adjustments */
+    [data-bs-theme="dark"] {
+        --bento-income-color: #34D399;   /* Crisp Emerald */
+        --bento-spent-color: #F87171;    /* Soft Red */
+        --bento-invested-color: #60A5FA; /* Bright Blue */
+    }
+    [data-bs-theme="dark"] .bento-metric-card {
+        background-color: var(--color-surface, #1e1e2d) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+    [data-bs-theme="dark"] .bento-metric-title {
+        color: rgba(255, 255, 255, 0.65);
+    }
+    [data-bs-theme="dark"] .bento-metric-title a {
+        color: rgba(255, 255, 255, 0.65) !important;
+    }
+    [data-bs-theme="dark"] .bento-metric-delta .bento-comparison-label {
+        color: rgba(255, 255, 255, 0.55);
+    }
+    [data-bs-theme="dark"] .bento-metric-delta .badge.bg-success {
+        background-color: rgba(52, 211, 153, 0.18) !important;
+        color: #34D399 !important;
+    }
+    [data-bs-theme="dark"] .bento-metric-delta .badge.bg-danger {
+        background-color: rgba(248, 113, 113, 0.18) !important;
+        color: #F87171 !important;
+    }
+    [data-bs-theme="dark"] .bento-metric-delta .text-success {
+        color: #34D399 !important;
+    }
+    [data-bs-theme="dark"] .bento-metric-delta .text-danger {
+        color: #F87171 !important;
+    }
+
     /* Custom Chartjs Tooltip */
     .custom-chart-tooltip {
         opacity: 0;
@@ -1189,42 +1299,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endif %}
 
-<!-- Quick Links (Mobile Only) -->
-<div class="d-md-none mb-3 fade-in p-0">
-    <div class="d-flex justify-content-between align-items-center px-1">
-        <a href="{% url 'expense-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
-                <i class="bi bi-credit-card fs-5 text-body-secondary"></i>
-            </div>
-            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Expenses" %}</span>
-        </a>
-        <a href="{% url 'goal-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
-                <i class="bi bi-flag fs-5 text-body-secondary"></i>
-            </div>
-            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Goals" %}</span>
-        </a>
-        <a href="{% url 'budget' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
-                <i class="bi bi-wallet2 fs-5 text-body-secondary"></i>
-            </div>
-            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Budgets" %}</span>
-        </a>
-        <a href="{% url 'recurring-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
-                <i class="bi bi-arrow-repeat fs-5 text-body-secondary"></i>
-            </div>
-            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Recurring" %}</span>
-        </a>
-        <a href="{% url 'category-list' %}" class="d-flex flex-column align-items-center text-decoration-none" style="flex: 1 0 0; min-width: 0;">
-            <div class="bg-body border rounded-circle d-flex align-items-center justify-content-center mb-1" style="width: 44px; height: 44px;">
-                <i class="bi bi-tag fs-5 text-body-secondary"></i>
-            </div>
-            <span class="text-body-secondary text-center" style="font-size: 0.8rem;">{% trans "Categories" %}</span>
-        </a>
-    </div>
-</div>
-
 <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .min-w-fit { min-width: fit-content; flex-shrink: 0; }
@@ -1504,140 +1578,185 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- LAYER 2: FINANCIAL HEALTH & SPENDING PACE -->
 <div class="row g-4 mb-4 fade-in" id="tour-hero-card" style="animation-delay: 0.1s;">
-    <!-- Net Worth & Accounts Card -->
+    <!-- Bento Metrics Grid -->
     <div class="col-12 col-lg-6 nw-animate-in" style="animation-delay: 0.1s;">
-        <div class="card shadow-lg border-0 rounded-4 overflow-hidden h-100">
-            <!-- Header: Month + Health Badge -->
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center px-4 py-3 fw-bold">
-                <div class="d-inline-flex align-items-center" style="line-height: 1;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted flex-shrink-0" style="vertical-align: middle;">
-                        <rect x="2" y="6" width="20" height="12" rx="2" opacity="0.2"/>
+        <div class="bento-metrics-grid">
+
+            <!-- ── Card 1: Net Worth (always current, not filter-aware) ── -->
+            <div class="card bento-metric-card" id="bento-card-networth">
+                {% if is_net_worth_locked %}
+                <a href="{% url 'pricing' %}" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center px-3 text-center text-decoration-none nw-locked-overlay" style="z-index: 10; border-radius: 1rem;">
+                    <i class="bi bi-lock-fill text-primary fs-4 mb-1"></i>
+                    <span class="fw-bold small text-body">{% trans "Unlock Net Worth" %}</span>
+                </a>
+                {% endif %}
+                <div class="bento-metric-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="6" width="20" height="12" rx="2"/>
                         <path d="M22 10H18a2 2 0 0 0 0 4h4"/>
-                        <circle cx="18" cy="12" r="1" fill="currentColor" class="anim-wallet-coin"/>
                     </svg>
-                    <span class="cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top" 
-                          title="{% trans 'The combined balance of all your accounts (Savings, Cash, Investments minus Credit Card debt).' %}">
-                        {% trans "Total Net Worth" %}
-                        {% if selected_month and selected_year %}
-                            ({{ selected_month }} {{ selected_year|translate_digits }})
-                        {% else %}
-                            ({% trans "Dashboard" %})
-                        {% endif %}
-                    </span> 
+                    <a href="{% url 'account-list' %}" class="text-muted text-decoration-none">{% trans "Net Worth" %} →</a>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.8rem;">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><a class="dropdown-item py-2" href="{% url 'transfer-create' %}"><i class="bi bi-arrow-left-right text-info me-2"></i> {% trans "Internal Transfer" %}</a></li>
-                            <li><a class="dropdown-item py-2" href="{% url 'account-create' %}"><i class="bi bi-bank text-primary me-2"></i> {% trans "New Account" %}</a></li>
-                        </ul>
-                    </div>
+                <div class="bento-metric-value text-body-emphasis">
+                    {{ currency_symbol }}{{ net_worth|compact_amount:currency_symbol|translate_digits }}
                 </div>
-            </div>
-
-            <div class="card-body p-3 position-relative">
-                {% if is_net_worth_locked %}
-                <div class="nw-locked-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center px-4 text-center" style="z-index: 10; border-radius: inherit;">
-                    <div class="mb-3 bg-primary bg-opacity-10 rounded-circle text-primary d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-                        <i class="bi bi-lock-fill fs-3"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2">{% trans "Track Your Net Worth" %}</h5>
-                    <p class="text-muted small mb-4">{% trans "Unlock live net worth tracking, historical trends, and asset allocation with TrackMyRupee Plus." %}</p>
-                    <a href="{% url 'pricing' %}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">{% trans "Upgrade Now" %}</a>
+                <div class="bento-metric-delta">
+                    {% if net_worth_change >= 0 %}
+                        <span class="text-success d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-caret-up-fill"></i>
+                            {{ currency_symbol }}{{ net_worth_change|compact_amount:currency_symbol|translate_digits }}
+                        </span>
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ net_worth_percent|translate_digits }}%</span>
+                    {% else %}
+                        <span class="text-danger d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-caret-down-fill"></i>
+                            {{ currency_symbol }}{{ net_worth_change|abs_val|compact_amount:currency_symbol|translate_digits }}
+                        </span>
+                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">{{ net_worth_percent|translate_digits }}%</span>
+                    {% endif %}
+                    <span class="bento-comparison-label">{% trans "this month" %}</span>
+                </div>
+                {% if net_worth_trend %}
+                <div class="bento-sparkline-wrap">
+                    <canvas id="bentoNwSparkline"></canvas>
+                    <div id="bento-nw-tooltip" class="custom-chart-tooltip shadow-sm"></div>
                 </div>
                 {% endif %}
-                <!-- Net Worth Block (Image Match) -->
-                <div class="px-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-end mb-1">
-                        <div>
-                            <h5 class="fw-bold mb-0" style="font-size: 1.1rem;">{% trans "Net Worth" %}</h5>
-                            <!-- <p class="text-muted small mb-0">{% trans "All accounts" %}</p> -->
-                            <p class="text-muted small mb-0">
-                                {% trans "Calculated as" %}
-                                {{ currency_symbol }}{{ net_worth_before_liabilities|humanize_currency:currency_symbol|translate_digits }}
-                                -
-                                {{ currency_symbol }}{{ total_liabilities|humanize_currency:currency_symbol|translate_digits }}
-                                ({% trans "liabilities" %})
-                            </p>
-                        </div>
-                        <a href="{% url 'account-list' %}" class="btn btn-link btn-sm text-muted text-decoration-none fw-bold p-0">{% trans "Manage" %} →</a>
-                    </div>
+            </div>
 
-                    <div class="mt-3 nw-animate-in">
-                        <div class="mb-0">
-                            <h1 class="text-body-emphasis mb-0 fw-bold nw-glow" style="font-family: 'DM Sans', 'Inter', sans-serif; font-size: clamp(2.2rem, 5vw, 2.8rem); letter-spacing: -1.5px;">
-                                {{ currency_symbol }}{{ net_worth|humanize_currency:currency_symbol|translate_digits }}
-                            </h1>
-                        </div>
-
-                        <div class="d-flex align-items-center gap-2" style="font-size: 0.85rem;">
-                            {% if net_worth_change >= 0 %}
-                                <span class="text-success fw-bold d-inline-flex align-items-center"><i class="bi bi-caret-up-fill me-1"></i> {{ currency_symbol }}{{ net_worth_change|humanize_currency:currency_symbol|translate_digits }}</span>
-                            {% else %}
-                                <span class="text-danger fw-bold d-inline-flex align-items-center"><i class="bi bi-caret-down-fill me-1"></i> {{ currency_symbol }}{{ net_worth_change|abs_val|humanize_currency:currency_symbol|translate_digits }}</span>
-                            {% endif %}
-                            <span class="text-muted">{% trans "this month" %}</span>
-                            <span class="badge {% if net_worth_change >= 0 %}bg-success{% else %}bg-danger{% endif %} bg-opacity-10 {% if net_worth_change >= 0 %}text-success{% else %}text-danger{% endif %} rounded-pill px-2 py-1 fw-bold" style="font-size: 0.75rem;">
-                                {% if net_worth_change >= 0 %}+{% endif %}{{ net_worth_percent|translate_digits }}%
-                            </span>
-                            
-                            <!-- Compact 3M Projection Badge -->
-                            {% if projected_3m_growth != 0 %}
-                            <span class="ms-auto badge bg-primary bg-opacity-10 text-primary border-0 rounded-pill px-2 py-1 d-none d-sm-inline-flex align-items-center" 
-                                  style="font-size: 0.7rem; font-weight: 700;"
-                                  data-bs-toggle="tooltip" title="{% trans 'Projected 3-month growth based on recent savings' %}">
-                                <i class="bi bi-magic me-1"></i>
-                                {% trans "3M GOAL" %}: 
-                                <span class="signed-amount">{% if projected_3m_growth > 0 %}+{% endif %}{{ currency_symbol }}{{ projected_3m_growth|compact_amount:currency_symbol|translate_digits }}</span>
-                            </span>
-                            {% endif %}
-                        </div>
-
-                        {% if net_worth_trend %}
-                        <div class="nw-sparkline-container" id="nw-sparkline-wrapper">
-                            <canvas id="nwSparklineChart"></canvas>
-                            <div id="nw-tooltip" class="custom-chart-tooltip shadow-sm"></div>
-                        </div>
-                        {% endif %}
-                    </div>
+            <!-- ── Card 2: Total Income ── -->
+            <div class="card bento-metric-card" id="bento-card-income">
+                <div class="bento-metric-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                        <polyline points="17 6 23 6 23 12"/>
+                    </svg>
+                    {% trans "Income" %}
                 </div>
-
-                <!-- Mobile Period Summary (filter-aware) — hidden on desktop -->
-                <div class="d-lg-none border-top mt-2 pt-3 pb-1">
-                    <div class="row g-0 text-center">
-                        <div class="col-3" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Income: Includes all logged income sources (salary, gifts, interest, etc.). Excludes internal transfers.' %}">
-                            <div class="fw-bold text-success" style="font-size: 0.9rem;">
-                                {{ currency_symbol }}{{ total_income|compact_amount:currency_symbol|translate_digits }}
-                            </div>
-                            <div class="text-muted" style="font-size: 0.7rem;">{% trans "income" %}</div>
-                        </div>
-                        <div class="col-3 border-start" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Spent: Includes regular expenses, loan interest, and all capital events (like down payments, prepayments, large purchases). Excludes loan principal payments, investments, and internal transfers.' %}">
-                            <div class="fw-bold text-danger" style="font-size: 0.9rem;">
-                                {{ currency_symbol }}{{ mobile_spent|compact_amount:currency_symbol|translate_digits }}
-                            </div>
-                            <div class="text-muted" style="font-size: 0.7rem;">{% trans "spent" %}</div>
-                        </div>
-                        <div class="col-3 border-start" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Invested: Includes money transferred to investment accounts and fixed deposits. Excludes regular expenses, loan payments, and capital events.' %}">
-                            <div class="fw-bold" style="font-size: 0.9rem; color: #378ADD;">
-                                {{ currency_symbol }}{{ total_investments|compact_amount:currency_symbol|translate_digits }}
-                            </div>
-                            <div class="text-muted" style="font-size: 0.7rem;">{% trans "invested" %}</div>
-                        </div>
-                        <div class="col-3 border-start" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Remaining: Net surplus/deficit calculated as Income - Spent - Invested. Represents cash savings remaining after all expenditures, investments, and capital events.' %}">
-                            <div class="fw-bold {% if mobile_remaining >= 0 %}text-primary{% else %}text-danger{% endif %}" style="font-size: 0.9rem;">
-                                {{ currency_symbol }}{{ mobile_remaining|compact_amount:currency_symbol|translate_digits }}
-                            </div>
-                            <div class="text-muted" style="font-size: 0.7rem;">{% trans "remaining" %}</div>
-                        </div>
-                    </div>
+                <div class="bento-metric-value income">
+                    {{ currency_symbol }}{{ total_income|compact_amount:currency_symbol|translate_digits }}
+                </div>
+                <div class="bento-metric-delta">
+                    {% if prev_month_data %}
+                        {% if prev_month_data.income_diff_amount >= 0 %}
+                            <span class="text-success d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-caret-up-fill"></i>
+                                {{ currency_symbol }}{{ prev_month_data.income_diff_amount|compact_amount:currency_symbol|translate_digits }}
+                            </span>
+                            {% if prev_month_data.income_pct %}
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ prev_month_data.income_pct|floatformat:1|translate_digits }}%</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-danger d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-caret-down-fill"></i>
+                                {{ currency_symbol }}{{ prev_month_data.income_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }}
+                            </span>
+                            {% if prev_month_data.income_pct %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">{{ prev_month_data.income_pct|floatformat:1|translate_digits }}%</span>
+                            {% endif %}
+                        {% endif %}
+                        <span class="bento-comparison-label">{{ comparison_label }}</span>
+                    {% else %}
+                        <span class="bento-comparison-label">{% trans "No comparison" %}</span>
+                    {% endif %}
+                </div>
+                <div class="bento-sparkline-wrap">
+                    <canvas id="bentoIncomeSparkline"></canvas>
+                    <div id="bento-income-tooltip" class="custom-chart-tooltip shadow-sm"></div>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <!-- ── Card 3: Total Spent ── -->
+            <div class="card bento-metric-card" id="bento-card-spent">
+                <div class="bento-metric-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    {% trans "Spent" %}
+                </div>
+                <div class="bento-metric-value spent">
+                    {{ currency_symbol }}{{ total_expenses|compact_amount:currency_symbol|translate_digits }}
+                </div>
+                <div class="bento-metric-delta">
+                    {% if prev_month_data %}
+                        {# For spent: positive diff_amount means MORE spent (bad) → show red; negative means LESS spent (good) → show green #}
+                        {% if prev_month_data.expense_diff_amount > 0 %}
+                            <span class="text-danger d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-caret-up-fill"></i>
+                                {{ currency_symbol }}{{ prev_month_data.expense_diff_amount|compact_amount:currency_symbol|translate_digits }}
+                            </span>
+                            {% if prev_month_data.expense_pct %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">+{{ prev_month_data.expense_pct|floatformat:1|translate_digits }}%</span>
+                            {% endif %}
+                        {% elif prev_month_data.expense_diff_amount < 0 %}
+                            <span class="text-success d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-caret-down-fill"></i>
+                                {{ currency_symbol }}{{ prev_month_data.expense_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }}
+                            </span>
+                            {% if prev_month_data.expense_pct %}
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">{{ prev_month_data.expense_pct|floatformat:1|translate_digits }}%</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="bento-comparison-label">{% trans "Same as before" %}</span>
+                        {% endif %}
+                        <span class="bento-comparison-label">{{ comparison_label }}</span>
+                    {% else %}
+                        <span class="bento-comparison-label">{% trans "No comparison" %}</span>
+                    {% endif %}
+                </div>
+                <div class="bento-sparkline-wrap">
+                    <canvas id="bentoSpentSparkline"></canvas>
+                    <div id="bento-spent-tooltip" class="custom-chart-tooltip shadow-sm"></div>
+                </div>
+            </div>
+
+            <!-- ── Card 4: Total Invested ── -->
+            <div class="card bento-metric-card" id="bento-card-invested">
+                <div class="bento-metric-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+                        <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+                    </svg>
+                    {% trans "Invested" %}
+                </div>
+                <div class="bento-metric-value invested">
+                    {{ currency_symbol }}{{ total_investments|compact_amount:currency_symbol|translate_digits }}
+                </div>
+                <div class="bento-metric-delta">
+                    {% if prev_month_data %}
+                        {% if prev_month_data.investments_diff_amount >= 0 %}
+                            <span class="text-success d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-caret-up-fill"></i>
+                                {{ currency_symbol }}{{ prev_month_data.investments_diff_amount|compact_amount:currency_symbol|translate_digits }}
+                            </span>
+                            {% if prev_month_data.investments_pct %}
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ prev_month_data.investments_pct|floatformat:1|translate_digits }}%</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-danger d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-caret-down-fill"></i>
+                                {{ currency_symbol }}{{ prev_month_data.investments_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }}
+                            </span>
+                            {% if prev_month_data.investments_pct %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">{{ prev_month_data.investments_pct|floatformat:1|translate_digits }}%</span>
+                            {% endif %}
+                        {% endif %}
+                        <span class="bento-comparison-label">{{ comparison_label }}</span>
+                    {% else %}
+                        <span class="bento-comparison-label">{% trans "No comparison" %}</span>
+                    {% endif %}
+                </div>
+                <div class="bento-sparkline-wrap">
+                    <canvas id="bentoInvestedSparkline"></canvas>
+                    <div id="bento-invested-tooltip" class="custom-chart-tooltip shadow-sm"></div>
+                </div>
+            </div>
+
+        </div><!-- /bento-metrics-grid -->
+    </div><!-- /col -->
+
     <!-- Smart Insights Card -->
     <div class="col-12 col-lg-6 nw-animate-in" id="tour-smart-insights-card" style="animation-delay: 0.2s;">
         <div class="card shadow-lg border-0 h-100 rounded-4">
@@ -2554,6 +2673,12 @@ document.addEventListener('DOMContentLoaded', function() {
 {{ net_worth_trend|json_script:"net-worth-trend" }}
 {{ net_worth_labels|json_script:"net-worth-labels" }}
 {{ capital_event_annotations|json_script:"capital-event-annotations" }}
+{{ bento_income_data|json_script:"bento-income-data" }}
+{{ bento_income_labels|json_script:"bento-income-labels" }}
+{{ ie_expense_data|json_script:"bento-expense-data" }}
+{{ bento_invested_data|json_script:"bento-invested-data" }}
+{{ bento_invested_labels|json_script:"bento-invested-labels" }}
+{{ ie_labels|json_script:"bento-period-labels" }}
 
 <script>
 
@@ -2870,71 +2995,102 @@ document.addEventListener('DOMContentLoaded', function() {
             }, stepTime);
         }
 
-        // --- 0.5 Net Worth Sparkline Chart ---
-        const ctxNW = document.getElementById('nwSparklineChart');
+        // --- 0.5 Net Worth Sparkline Chart (legacy full-card, now removed from DOM) ---
+        // The NW sparkline is now rendered inside the bento grid. See bento sparklines below.
         const forecastIndexStart = {{ forecast_index_start|default:6 }};
-        
-        if (ctxNW && nwTrend.length > 0) {
-            const ctx2d = ctxNW.getContext('2d');
-            const nwGradient = ctx2d.createLinearGradient(0, 0, 0, 100);
-            nwGradient.addColorStop(0, 'rgba(29, 158, 117, 0.25)');
-            nwGradient.addColorStop(1, 'rgba(29, 158, 117, 0)');
 
-            charts.netWorthSparkline = new Chart(ctx2d, {
+        // ── Bento Sparkline helper ─────────────────────────────────────────────
+        const makeBentoSparkline = (canvasId, tooltipId, data, labels, color, gradientAlpha, useSegment, segIdx) => {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || !data || data.length === 0) return;
+            const ctx2d = canvas.getContext('2d');
+            const grad = ctx2d.createLinearGradient(0, 0, 0, 56);
+            grad.addColorStop(0, color.replace(')', `, ${gradientAlpha})`).replace('rgb', 'rgba'));
+            grad.addColorStop(1, color.replace(')', ', 0)').replace('rgb', 'rgba'));
+
+            charts[canvasId] = new Chart(ctx2d, {
                 type: 'line',
                 data: {
-                    labels: nwLabels.length > 0 ? nwLabels : nwTrend.map((_, i) => i),
+                    labels: (labels && labels.length > 0) ? labels : data.map((_, i) => i),
                     datasets: [{
-                        data: nwTrend,
-                        borderColor: CHART_COLORS.teal,
+                        data: data,
+                        borderColor: color,
                         borderWidth: 2,
                         pointRadius: 0,
-                        pointHitRadius: 20,
-                        pointHoverRadius: 5,
-                        pointHoverBackgroundColor: CHART_COLORS.teal,
+                        pointHitRadius: 16,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: color,
                         pointHoverBorderColor: '#fff',
                         pointHoverBorderWidth: 2,
                         fill: true,
-                        backgroundColor: nwGradient,
+                        backgroundColor: grad,
                         tension: 0.4,
-                        segment: {
-                            borderDash: ctx => (ctx.p0DataIndex >= forecastIndexStart - 1) ? [5, 5] : [],
-                            borderColor: ctx => (ctx.p0DataIndex >= forecastIndexStart - 1) ? 'rgba(29, 158, 117, 0.5)' : CHART_COLORS.teal,
-                        }
+                        ...(useSegment && segIdx != null ? {
+                            segment: {
+                                borderDash: ctx => (ctx.p0DataIndex >= segIdx - 1) ? [4, 4] : [],
+                                borderColor: ctx => (ctx.p0DataIndex >= segIdx - 1) ? color + '80' : color,
+                            }
+                        } : {})
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    onHover: (event, chartElement) => {
-                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
                             enabled: false,
-                            external: createCustomTooltip('nw-tooltip', '{% trans "Net Worth" %}')
+                            external: createCustomTooltip(tooltipId, '')
                         }
                     },
-                    scales: {
-                        x: { display: false },
-                        y: { 
-                            display: false,
-                            ticks: {
-                                callback: (val) => val
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    layout: {
-                        padding: { top: 20, bottom: 0, left: 0, right: 0 }
-                    }
+                    scales: { x: { display: false }, y: { display: false } },
+                    interaction: { mode: 'index', intersect: false },
+                    layout: { padding: { top: 6, bottom: 0, left: 0, right: 0 } }
                 }
             });
-        }
+        };
+
+        // ── Bento 1: Net Worth (historical only, no forecast segment in bento) ──
+        const bentoNwData = nwTrend.slice(0, forecastIndexStart);
+        const bentoNwLabels = nwLabels.slice(0, forecastIndexStart);
+        makeBentoSparkline(
+            'bentoNwSparkline', 'bento-nw-tooltip',
+            bentoNwData, bentoNwLabels,
+            'rgb(14, 157, 184)', 0.22,  // CHART_COLORS.teal
+            false, null
+        );
+
+        // Shared period labels for Spent & Invested sparklines
+        const bentoPeriodLabels = safeParse('bento-period-labels');
+
+        // ── Bento 2: Income (Monthly Sums) ────────────────────────────────────
+        const bentoIncomeData   = safeParse('bento-income-data');
+        const bentoIncomeLabels = safeParse('bento-income-labels');
+        makeBentoSparkline(
+            'bentoIncomeSparkline', 'bento-income-tooltip',
+            bentoIncomeData, bentoIncomeLabels,
+            'rgb(29, 158, 117)', 0.20,  // CHART_COLORS.green
+            false, null
+        );
+
+        // ── Bento 3: Spent ────────────────────────────────────────────────────
+        const bentoSpentData = safeParse('bento-expense-data');
+        makeBentoSparkline(
+            'bentoSpentSparkline', 'bento-spent-tooltip',
+            bentoSpentData, bentoPeriodLabels,
+            'rgb(224, 92, 69)', 0.18,   // CHART_COLORS.coral
+            false, null
+        );
+
+        // ── Bento 4: Invested (Monthly Sums) ──────────────────────────────────
+        const bentoInvestedData   = safeParse('bento-invested-data');
+        const bentoInvestedLabels = safeParse('bento-invested-labels');
+        makeBentoSparkline(
+            'bentoInvestedSparkline', 'bento-invested-tooltip',
+            bentoInvestedData, bentoInvestedLabels,
+            'rgb(55, 138, 221)', 0.18,  // CHART_COLORS.blue
+            false, null
+        );
 
         // --- 1. Trend Chart ---
         const trendCanvas = document.getElementById('trendChart');

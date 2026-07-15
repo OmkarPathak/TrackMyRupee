@@ -536,12 +536,12 @@ body.demo-mode .sidebar {
 }
 
 .sidebar-section-title {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   font-weight: 700;
   color: var(--bs-secondary-color);
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 .account-item {
@@ -595,6 +595,20 @@ body.demo-mode .sidebar {
 [data-bs-theme="dark"] .sidebar #sidebarUserDropdown:hover i,
 [data-bs-theme="dark"] .sidebar .dropdown-item:hover i {
   color: #5DCAA5 !important;
+}
+
+[data-bs-theme="dark"] .sidebar-section-title,
+[data-bs-theme="dark"] .mobile-menu-header {
+  color: rgba(255, 255, 255, 0.55) !important;
+  opacity: 1 !important;
+}
+
+.mobile-menu-header {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  padding-left: 1.75rem !important;
+  color: var(--bs-secondary-color, #6c757d) !important;
+  opacity: 0.85;
 }
 
 /* Top Navbar Adjustments */

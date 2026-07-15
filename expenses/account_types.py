@@ -162,6 +162,14 @@ def deposit_codes() -> frozenset[str]:
     )
 
 
+def investment_codes() -> frozenset[str]:
+    """
+    Return all account_type codes classified as market-linked investments or fixed deposits/schemes.
+    Used for filtering transfers to investment/wealth-growth accounts.
+    """
+    return market_linked_codes().union(deposit_codes())
+
+
 def liability_codes() -> frozenset[str]:
     """Return all account_type codes classified as liabilities."""
     return frozenset(

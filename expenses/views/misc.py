@@ -36,6 +36,7 @@ from ..models import (
     RecurringTransaction,
     Transfer,
 )
+from ..account_types import investment_codes
 
 
 class CalendarView(LoginRequiredMixin, TemplateView):
@@ -101,7 +102,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                 income_map[day]['has_salary'] = True
 
         # Get investment data (Transfers to investment/FD accounts)
-        investment_filters = Q(user=self.request.user, date__year=year, date__month=month, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
+        investment_filters = Q(user=self.request.user, date__year=year, date__month=month, to_account__account_type__in=list(investment_codes()))
         if search_query:
             investment_filters &= (Q(description__icontains=search_query) | Q(to_account__name__icontains=search_query))
         

@@ -8,6 +8,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 from django.utils import timezone
 
+from ..account_types import investment_codes
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, Expense, Income, Transfer
 from ..templatetags.digit_filters import compact_amount
@@ -67,7 +68,7 @@ def mom_analysis_view(request):
     batch_exp = Expense.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     batch_inv = Transfer.objects.filter(
         user=user, date__gte=history_start, 
-        to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT']
+        to_account__account_type__in=list(investment_codes())
     ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('converted_amount'))
     
     mo_inc_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inc}
@@ -272,9 +273,9 @@ def mom_analysis_view(request):
             rate = get_exchange_rate(acc.currency, currency_symbol)
             bal = (bal * rate).quantize(Decimal('0.01'))
         
-        if acc.account_type == 'BANK':
+        if acc.account_type in ['BANK', 'SAVINGS_ACCOUNT', 'SALARY_ACCOUNT', 'CURRENT_ACCOUNT']:
             bank_tot += bal
-        elif acc.account_type in ['INVESTMENT', 'FIXED_DEPOSIT']:
+        elif acc.account_type in investment_codes():
             inv_tot += bal
         total_tot += bal
     

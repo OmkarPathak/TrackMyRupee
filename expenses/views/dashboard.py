@@ -17,6 +17,7 @@ from django.utils.html import escape, format_html, format_html_join, mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
+from ..account_types import investment_codes
 from ..ledger_read_service import LedgerReadService
 from ..models import (
     Account,
@@ -92,7 +93,7 @@ def home_view(request):
     expenses = Expense.objects.filter(user=request.user).select_related('account', 'category_fk').order_by('-date')
     
     # Wealth Growth (Investments) - Transfers to Investment accounts
-    investments = Transfer.objects.filter(user=request.user, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT']).select_related('from_account', 'to_account')
+    investments = Transfer.objects.filter(user=request.user, to_account__account_type__in=list(investment_codes())).select_related('from_account', 'to_account')
     
     # Logic for EOM projection
     now = datetime.now()
@@ -441,33 +442,54 @@ def home_view(request):
     ).order_by('period')
     
     # Merge periods
-    inc_periods = set(i['period'] for i in inc_trend)
-    exp_periods_base = set(e['period'] for e in exp_trend_base)
-    loan_periods = set(l['period'] for l in loan_trend)
-    all_periods_sorted = sorted(list(inc_periods.union(exp_periods_base).union(loan_periods)))
+    def normalize_period(p):
+        if hasattr(p, 'date'):
+            p = p.date()
+        if trunc_func == TruncMonth:
+            return p.replace(day=1)
+        return p
+
+    invest_map = {}
+    for t in investments:
+        p_key = normalize_period(t.date)
+        if t.from_account and t.from_account.currency != currency_symbol:
+            rate = get_exchange_rate(t.from_account.currency, currency_symbol)
+            amt = float((t.amount * rate).quantize(Decimal('0.01')))
+        else:
+            amt = float(t.amount)
+        invest_map[p_key] = invest_map.get(p_key, 0.0) + amt
+
+    inc_periods = set(normalize_period(i['period']) for i in inc_trend)
+    exp_periods_base = set(normalize_period(e['period']) for e in exp_trend_base)
+    loan_periods = set(normalize_period(l['period']) for l in loan_trend)
+    invest_periods = set(invest_map.keys())
+    all_periods_sorted = sorted(list(inc_periods.union(exp_periods_base).union(loan_periods).union(invest_periods)))
     
     ie_labels = [p.strftime(date_fmt) for p in all_periods_sorted]
     
     # Optimization: Use dict lookup instead of filter inside loop
-    inc_map = {i['period']: float(i['total']) for i in inc_trend}
-    exp_map = {e['period']: float(e['total']) for e in exp_trend_base}
-    loan_map = {l['period']: {'interest': float(l['total_interest'] or 0), 'emi': float(l['total_emi'] or 0)} for l in loan_trend}
+    inc_map = {normalize_period(i['period']): float(i['total']) for i in inc_trend}
+    exp_map = {normalize_period(e['period']): float(e['total']) for e in exp_trend_base}
+    loan_map = {normalize_period(l['period']): {'interest': float(l['total_interest'] or 0), 'emi': float(l['total_emi'] or 0)} for l in loan_trend}
     
     # Add loan interest to exp_map and calculate savings
     ie_income_data = []
     ie_expense_data = []
     ie_savings_data = []
+    ie_invested_data = []
     
     for p in all_periods_sorted:
         inc_val = inc_map.get(p, 0.0)
         exp_val = exp_map.get(p, 0.0) + loan_map.get(p, {}).get('interest', 0.0)
         emi_val = loan_map.get(p, {}).get('emi', 0.0)
+        inv_val = invest_map.get(p, 0.0)
         
         ie_income_data.append(inc_val)
         ie_expense_data.append(exp_val)
         # Savings = Income - Expenses (with interest) - Principal
         # Principal = EMI - Interest
         ie_savings_data.append(inc_val - exp_val - (emi_val - loan_map.get(p, {}).get('interest', 0.0)))
+        ie_invested_data.append(inv_val)
 
     # --- NEW: Payment Method Distribution ---
     raw_payment_data = expenses.values('payment_method').annotate(total=Sum('base_amount')).order_by('payment_method')
@@ -532,7 +554,7 @@ def home_view(request):
                 prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
                 prev_investments = sum_transfers_base(Transfer.objects.filter(
                     user=request.user,
-                    to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'],
+                    to_account__account_type__in=list(investment_codes()),
                     date__gte=prev_cycle_start,
                     date__lte=prev_cycle_end,
                 ))
@@ -567,7 +589,7 @@ def home_view(request):
                 prev_expenses_all = Expense.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month)
                 prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
                 prev_investments = sum_transfers_base(Transfer.objects.filter(
-                    user=request.user, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'],
+                    user=request.user, to_account__account_type__in=list(investment_codes()),
                     date__year=prev_year, date__month=prev_month
                 ))
 
@@ -1826,7 +1848,7 @@ def home_view(request):
         if due_date.year == v_year and due_date.month == v_month:
             rtype = rt.transaction_type
             # Determine if it's an investment
-            if rtype == 'TRANSFER' and rt.to_account and rt.to_account.account_type in ['INVESTMENT', 'FIXED_DEPOSIT']:
+            if rtype == 'TRANSFER' and rt.to_account and rt.to_account.account_type in investment_codes():
                 rtype = 'INVESTMENT'
                 
             item = {
@@ -1926,7 +1948,7 @@ def home_view(request):
     net_worth, account_base_balances = _ledger_net_worth_result
     investment_accounts_balance = Decimal('0.00')
     for acc in accounts:
-        if acc.account_type in ['INVESTMENT', 'FIXED_DEPOSIT']:
+        if acc.account_type in investment_codes():
             investment_accounts_balance += account_base_balances.get(acc.pk, Decimal('0.00'))
 
     # Net Worth Change Calculation (Growth this month)
@@ -2204,10 +2226,24 @@ def home_view(request):
         'top_labels': top_labels,
         'top_amounts': top_amounts,
         # New Context
+        'bento_income_data': [m['income'] for m in net_worth_history],
+        'bento_income_labels': [date_format(m['month'], 'M Y') for m in net_worth_history],
+        'bento_invested_data': [
+            float((
+                Transfer.objects.filter(
+                    user=request.user,
+                    to_account__account_type__in=list(investment_codes()),
+                    date__year=m['month'].year,
+                    date__month=m['month'].month
+                ).aggregate(total=Sum('converted_amount'))['total'] or Decimal('0.00')
+            )) for m in net_worth_history
+        ],
+        'bento_invested_labels': [date_format(m['month'], 'M Y') for m in net_worth_history],
         'ie_labels': ie_labels,
         'ie_income_data': ie_income_data,
         'ie_expense_data': ie_expense_data,
         'ie_savings_data': ie_savings_data,
+        'ie_invested_data': ie_invested_data,
         'payment_labels': payment_labels,
         'payment_data': payment_data,
         'years': years,
@@ -2550,7 +2586,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         # 3. Key Metrics (YTD / Full Year depending on selection)
         def get_transfers_total(year_val, limit_to_today=False):
             # Sum transfers TO investment accounts for the selected period
-            qs = Transfer.objects.filter(user=user, date__year=year_val, to_account__account_type__in=['INVESTMENT', 'FIXED_DEPOSIT'])
+            qs = Transfer.objects.filter(user=user, date__year=year_val, to_account__account_type__in=list(investment_codes()))
             if limit_to_today:
                 qs = qs.filter(date__lte=today)
             
