@@ -40,6 +40,21 @@
     .card-header svg { opacity: 0.5; transition: opacity 0.3s ease; }
     .card:hover .card-header svg { opacity: 1; }
 
+    /* ── Asset Allocation Chart Color Palette ─────────────────
+       Curated palette that works on both light and dark themes.
+       Anchored to the app's Forest-Green primary (#1D9E75).
+    ─────────────────────────────────────────────────────────── */
+    :root,
+    [data-bs-theme="dark"] {
+        --alloc-cash:        #1D9E75;  /* Forest Green  – Cash & Bank (app primary)  */
+        --alloc-fixed:       #0E8FA8;  /* Deep Teal     – Fixed-Income / Deposits    */
+        --alloc-invest:      #3D72B4;  /* Steel Blue    – Investments / Equity       */
+        --alloc-credit:      #6B8FA3;  /* Slate Blue    – Credit / Retirement / PF   */
+        --alloc-loan:        #C99A3F;  /* Gold          – Loans / Gold / Commodities */
+        --alloc-physical:    #BF7A5C;  /* Terracotta    – Physical / Real Estate     */
+        --alloc-other:       #8577B0;  /* Muted Purple  – Legacy / Alternative       */
+    }
+
     /* SVG Gauge Styles */
     .gauge-svg {
         width: 100%;
@@ -465,8 +480,8 @@
                 <i class="bi bi-patch-check-fill text-primary"></i>
                 {% trans "Your setup is" %} {{ onboarding_checklist_completed_count }} {% trans "of 6 complete" %}
             </h6>
-            <div class="progress rounded-pill d-none d-sm-block" style="height: 5px; width: 100px; background-color: var(--border-color, rgba(0,0,0,0.1));">
-                <div class="progress-bar progress-bar-primary rounded-pill" role="progressbar" style="width: {% widthratio onboarding_checklist_completed_count 6 100 %}%; background: var(--color-primary, #1D9E75);"></div>
+            <div class="d-none d-sm-block" style="height: 5px; width: 100px; background-color: rgba(0,0,0,0.1); border-radius: 999px; overflow: hidden;">
+                <div style="height: 100%; width: {% widthratio onboarding_checklist_completed_count 6 100 %}%; min-width: 4px; background-color: #1D9E75; border-radius: 999px;"></div>
             </div>
         </div>
         <div class="d-flex align-items-center gap-3">
@@ -1913,7 +1928,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 stroke-width="12"
                                 stroke-dasharray="{{ item.arc_length|floatformat:2 }} 282.74"
                                 stroke-dashoffset="-{{ item.offset_length|floatformat:2 }}"
-                                style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#06B6D4{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#3B82F6{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#6366F1{% endif %}; cursor: pointer;"/>
+                                style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; cursor: pointer;"/>
                         </a>
                         {% endfor %}
                     </svg>
@@ -1930,7 +1945,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active"
                                class="progress-bar {% if not forloop.last %}border-end border-white border-opacity-25{% endif %} text-decoration-none"
                                role="progressbar"
-                               style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#06B6D4{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#3B82F6{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#6366F1{% endif %}; cursor: pointer;"
+                               style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; cursor: pointer;"
                                aria-valuenow="{{ item.percent }}"
                                aria-valuemin="0"
                                aria-valuemax="100">
@@ -1945,7 +1960,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% for item in asset_allocation %}
                         <div class="col-6">
                             <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="d-flex align-items-start gap-2 text-decoration-none text-reset">
-                                <span class="rounded-circle d-inline-block mt-1" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#06B6D4{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#3B82F6{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#6366F1{% endif %}; flex-shrink: 0;"></span>
+                                <span class="rounded-circle d-inline-block mt-1" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; flex-shrink: 0;"></span>
                                 <div>
                                     <div class="small text-body-emphasis lh-sm fw-bold allocation-legend-label">{{ item.type }}</div>
                                     <div class="text-body-emphasis fs-4 lh-1 mt-1 allocation-legend-value">{{ item.percent|translate_digits }}%</div>
@@ -1962,7 +1977,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {% for item in asset_allocation %}
                     <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="text-center px-1 text-decoration-none text-reset allocation-type-link">
                         <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
-                            <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#06B6D4{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#3B82F6{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#6366F1{% endif %};"></span>
+                            <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %};"></span>
                             <span class="text-muted allocation-legend-label">{{ item.type }}</span>
                         </div>
                         <div class="allocation-legend-value">{{ item.percent|translate_digits }}% <span class="text-muted small opacity-50">({{ currency_symbol }}{{ item.total|humanize_currency:currency_symbol|translate_digits }})</span></div>
@@ -2644,23 +2659,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let currentColors = getThemeColor();
         const CHART_COLORS = {
-            teal: '#1D9E75',     // Growth / savings / positive
-            coral: '#E05C45',    // Expense / spending
-            amber: '#D4831A',    // Warning / alert
-            blue: '#378ADD',     // Investment / assets
-            neutral: '#9E9D9A',  // Structural / other
-            tealMid: '#5DCAA5',  // Mid-range teal
-            tealLight: '#9FE1CB',// Light teal
-            amberLight: '#F4B44E',// Light amber
-            coralLight: '#F49C8C',// Light coral
-            blueLight: '#85B7EB' // Light blue
+            // ── 6-color calm-yet-bright palette ──────────────────────────
+            // Hues spread across 159→192→212→174→234→170 (33–60° gaps)
+            // so adjacent slices are always clearly distinguishable.
+            teal:       '#0E9DB8',  // H192 – Vivid Teal      (largest slice anchor)
+            green:      '#1D9E75',  // H159 – Forest Green    (brand primary)
+            skyBlue:    '#4A90D9',  // H212 – Sky Blue        (clearly distinct blue)
+            aqua:       '#3DBEAA',  // H174 – Fresh Aqua      (mid teal-green)
+            periwinkle: '#7B80CF',  // H234 – Soft Periwinkle (blue-purple contrast)
+            mint:       '#52C4A3',  // H163 – Bright Mint     (lighter green finish)
+            // Semantic keys kept for line/bar charts
+            coral:      '#E05C45',
+            amber:      '#D4831A',
+            blue:       '#378ADD',
         };
 
         const CATEGORY_PALETTE = [
-            CHART_COLORS.teal, CHART_COLORS.coral, CHART_COLORS.amber, 
-            CHART_COLORS.blue, CHART_COLORS.neutral, CHART_COLORS.tealMid, 
-            CHART_COLORS.amberLight, CHART_COLORS.blueLight, CHART_COLORS.tealLight, 
-            CHART_COLORS.coralLight
+            CHART_COLORS.teal,        // #0E9DB8 H192
+            CHART_COLORS.green,       // #1D9E75 H159  ← 33° gap
+            CHART_COLORS.skyBlue,     // #4A90D9 H212  ← 53° gap
+            CHART_COLORS.aqua,        // #3DBEAA H174  ← 38° gap
+            CHART_COLORS.periwinkle,  // #7B80CF H234  ← 60° gap
+            CHART_COLORS.mint,        // #52C4A3 H163  ← 71° gap
+            // Extended wrap-around (still well-spaced)
+            '#5AACDF',  // H202 – Light Cyan-Blue
+            '#85CAB3',  // H164 – Soft Sage
+            '#9B96D9',  // H244 – Pale Lavender
+            '#6DD4BC',  // H170 – Aqua Mint
         ];
         Chart.defaults.font.family = "'DM Sans', 'Inter', sans-serif";
         Chart.defaults.color = currentColors.text;
@@ -2677,16 +2702,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- Solid Color Helper ---
         const chartPalette = [
-            '#1D9E75', // Teal (growth/savings)
-            '#E05C45', // Coral (expenses)
-            '#D4831A', // Amber (warning)
-            '#378ADD', // Blue (investments)
-            '#9E9D9A', // Neutral
-            '#5DCAA5', // Teal mid
-            '#F4B44E', // Amber light
-            '#85B7EB', // Blue light
-            '#9FE1CB', // Teal light
-            '#F49C8C'  // Coral light
+            '#0E9DB8',  // Teal        H192
+            '#1D9E75',  // Green       H159
+            '#4A90D9',  // Sky Blue    H212
+            '#3DBEAA',  // Aqua        H174
+            '#7B80CF',  // Periwinkle  H234
+            '#52C4A3',  // Mint        H163
+            '#5AACDF',  // Cyan-Blue   H202
+            '#85CAB3',  // Soft Sage   H164
+            '#9B96D9',  // Lavender    H244
+            '#6DD4BC',  // Aqua Mint   H170
         ];
 
         const formatCurrencyCompact = (value) => '{{ currency_symbol }}' + window.compactAmount(value, '{{ currency_symbol }}');
