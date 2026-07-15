@@ -247,10 +247,8 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     .bento-metric-title {
-        font-size: 0.82rem;
+        font-size: 0.86rem;
         font-weight: 600;
-        letter-spacing: 0.35px;
-        text-transform: uppercase;
         color: var(--bs-secondary-color, #6c757d);
         display: flex;
         align-items: center;
@@ -1378,7 +1376,6 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 0.74rem;
         font-weight: 700;
         line-height: 1;
-        letter-spacing: 0.01em;
     }
     .hero-metric-card .metric-hero-number {
         font-size: clamp(2rem, 2.8vw, 2.35rem);
@@ -1591,11 +1588,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 </a>
                 {% endif %}
                 <div class="bento-metric-title">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="6" width="20" height="12" rx="2"/>
-                        <path d="M22 10H18a2 2 0 0 0 0 4h4"/>
-                    </svg>
-                    <a href="{% url 'account-list' %}" class="text-muted text-decoration-none">{% trans "Net Worth" %} →</a>
+                    <div class="d-flex align-items-center gap-1 cursor-help" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total assets minus total liabilities (loans/debts) up to today. This value is not affected by the date filter.' %}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.1rem; margin-top: -2px;">
+                            <rect x="2" y="6" width="20" height="12" rx="2"/>
+                            <path d="M22 10H18a2 2 0 0 0 0 4h4"/>
+                        </svg>
+                        <span>{% trans "Net Worth" %}</span>
+                        <a href="{% url 'account-list' %}" class="text-muted text-decoration-none"> →</a>
+                    </div>
                 </div>
                 <div class="bento-metric-value text-body-emphasis">
                     {{ currency_symbol }}{{ net_worth|compact_amount:currency_symbol|translate_digits }}
@@ -1627,11 +1627,17 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- ── Card 2: Total Income ── -->
             <div class="card bento-metric-card" id="bento-card-income">
                 <div class="bento-metric-title">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                        <polyline points="17 6 23 6 23 12"/>
-                    </svg>
-                    {% trans "Income" %}
+                    <div class="d-flex align-items-center gap-1 cursor-help" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total income recorded within the selected period.' %}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.1rem; margin-top: -2px;">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                        <span>{% trans "Income" %}</span>
+                    </div>
+                    <span class="ms-auto badge bg-secondary bg-opacity-10 text-success fw-bold cursor-help d-inline-flex align-items-center" style="font-size: 0.75rem; text-transform: none; letter-spacing: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Saved / Remaining' %}">
+                        <i class="bi bi-piggy-bank-fill me-1" style="font-size: 0.85rem; margin-top: -1px;"></i>
+                        <span>{{ currency_symbol }}{{ savings|compact_amount:currency_symbol|translate_digits }}</span>
+                    </span>
                 </div>
                 <div class="bento-metric-value income">
                     {{ currency_symbol }}{{ total_income|compact_amount:currency_symbol|translate_digits }}
@@ -1669,12 +1675,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- ── Card 3: Total Spent ── -->
             <div class="card bento-metric-card" id="bento-card-spent">
                 <div class="bento-metric-title">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                        <path d="M16 10a4 4 0 0 1-8 0"/>
-                    </svg>
-                    {% trans "Spent" %}
+                    <div class="d-flex align-items-center gap-1 cursor-help" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total expenses recorded within the selected period.' %}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.1rem; margin-top: -2px;">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        <span>{% trans "Spent" %}</span>
+                    </div>
                 </div>
                 <div class="bento-metric-value spent">
                     {{ currency_symbol }}{{ total_expenses|compact_amount:currency_symbol|translate_digits }}
@@ -1715,11 +1723,13 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- ── Card 4: Total Invested ── -->
             <div class="card bento-metric-card" id="bento-card-invested">
                 <div class="bento-metric-title">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
-                        <path d="M22 12A10 10 0 0 0 12 2v10z"/>
-                    </svg>
-                    {% trans "Invested" %}
+                    <div class="d-flex align-items-center gap-1 cursor-help" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total amount transferred to investment accounts within the selected period.' %}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.1rem; margin-top: -2px;">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+                            <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+                        </svg>
+                        <span>{% trans "Invested" %}</span>
+                    </div>
                 </div>
                 <div class="bento-metric-value invested">
                     {{ currency_symbol }}{{ total_investments|compact_amount:currency_symbol|translate_digits }}
