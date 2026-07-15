@@ -2,163 +2,495 @@
 {% load i18n %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+<div class="row justify-content-center align-items-center" style="min-height: 80vh; padding: 20px 0;">
     <style>
-        .onboarding-step h1, .onboarding-step h2 {
-            font-family: 'Instrument Serif', serif;
-            font-size: 2.5rem;
-            color: var(--ink);
+        /* Modern Premium Styling */
+        .onboarding-card {
+            background-color: var(--color-surface, var(--bs-card-bg, #ffffff));
+            border: 1px solid var(--border-color, var(--bs-border-color, rgba(26,26,24,0.1))) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
         }
-        .onboarding-step p, .onboarding-step label, .onboarding-step input {
+        [data-bs-theme="dark"] .onboarding-card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .onboarding-step h1, .onboarding-step h2, .celebration-overlay h2 {
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 2.2rem;
+            color: var(--color-text, var(--ink, #1a1a18));
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+        .onboarding-step p, .onboarding-step label, .onboarding-step input, .onboarding-step select {
             font-family: 'DM Sans', sans-serif;
+            color: var(--color-text, var(--ink2, #4a4a46));
         }
-        .card {
-            background-color: var(--paper);
-            border: 0.1px solid var(--bs-border-color-translucent) !important;
+        .onboarding-step .form-control:not(.border-0), .onboarding-step .form-select:not(.border-0) {
+            background-color: var(--color-surface, var(--bs-body-bg, #ffffff));
+            border: 1.5px solid var(--border-color, var(--bs-border-color, rgba(26,26,24,0.15)));
+            color: var(--color-text, var(--ink, #1a1a18));
+            border-radius: 12px;
+            padding: 10px 14px;
+            transition: all 0.2s ease;
         }
-        .form-control:focus {
-            border-bottom-color: var(--primary) !important;
-            background-color: rgba(var(--primary-rgb), 0.02) !important;
+        .onboarding-step .form-control:not(.border-0):focus, .onboarding-step .form-select:not(.border-0):focus {
+            border-color: var(--color-primary, var(--bs-primary, #1D9E75));
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.15);
         }
-        .account-item {
-            border: 1px solid var(--border) !important;
+        /* Hide spin buttons in number inputs */
+        .onboarding-step input::-webkit-outer-spin-button,
+        .onboarding-step input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
-        .bg-primary-soft {
-            background-color: rgba(29, 158, 117, 0.1);
+        .onboarding-step input[type=number] {
+            -moz-appearance: textfield;
         }
-        .icon-shape {
-            transition: transform 0.3s ease;
+        /* Custom Progress Bar */
+        .progress-bar-primary {
+            background: linear-gradient(90deg, var(--color-primary, #1D9E75) 0%, #3d8b6a 100%);
         }
-        .onboarding-step:not(.d-none) .icon-shape {
-            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        /* Slide styling for Welcome Screen */
+        .welcome-carousel {
+            position: relative;
+            overflow: hidden;
+            min-height: 280px;
         }
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: scale(0.3); }
-            50% { opacity: 1; transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); }
+        .welcome-slide {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
         }
-        .shadow-hover:hover {
-            transform: translateY(-2px);
-            transition: transform 0.2s ease;
+        .welcome-slide.active {
+            position: relative;
+            opacity: 1;
+            transform: translateX(0);
         }
-        #step-text {
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+        .welcome-slide.next {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        .welcome-slide.prev {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+        /* Dots indicators */
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--border-color, rgba(0,0,0,0.2));
+            display: inline-block;
+            margin: 0 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .carousel-dot.active {
+            width: 24px;
+            border-radius: 4px;
+            background-color: var(--color-primary, #1D9E75);
+        }
+        /* Persona Card Styling */
+        .persona-card {
+            border: 2px solid var(--border-color, rgba(26,26,24,0.1));
+            background-color: var(--color-surface, #ffffff);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        .persona-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--color-primary, #1D9E75);
+            box-shadow: 0 8px 20px rgba(29, 158, 117, 0.08);
+        }
+        .persona-card.selected {
+            border-color: var(--color-primary, #1D9E75);
+            background-color: rgba(29, 158, 117, 0.04);
+            box-shadow: 0 8px 24px rgba(29, 158, 117, 0.12);
+        }
+        /* Highlight picker styling */
+        .number-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+        .picker-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid var(--border-color, rgba(26,26,24,0.1));
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background-color: var(--color-surface, #ffffff);
+            transition: all 0.2s ease;
+        }
+        .picker-cell:hover {
+            border-color: var(--color-primary, #1D9E75);
+            background-color: rgba(29, 158, 117, 0.02);
+        }
+        .picker-cell.highlight {
+            border-color: var(--color-primary, #1D9E75);
+            background-color: rgba(29, 158, 117, 0.08);
+            color: var(--color-primary, #1D9E75);
+            box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.1) inset;
+        }
+        .picker-cell.selected {
+            background-color: var(--color-primary, #1D9E75) !important;
+            color: white !important;
+            border-color: var(--color-primary, #1D9E75) !important;
+            box-shadow: 0 4px 10px rgba(29, 158, 117, 0.3) !important;
+        }
+        /* Month picker grid */
+        .month-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .month-cell {
+            padding: 12px 6px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid var(--border-color, rgba(0,0,0,0.1));
+            cursor: pointer;
+            background-color: var(--color-surface, #ffffff);
+            transition: all 0.2s ease;
+        }
+        .month-cell:hover {
+            border-color: var(--color-primary, #1D9E75);
+            background-color: rgba(29, 158, 117, 0.02);
+        }
+        .month-cell.selected {
+            background-color: var(--color-primary, #1D9E75) !important;
+            color: white !important;
+            border-color: var(--color-primary, #1D9E75) !important;
+        }
+        /* Celebration modal overlay */
+        .celebration-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-surface, #ffffff);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .celebration-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Quick Add Preview */
+        .quick-add-preview {
+            background-color: var(--paper, rgba(29, 158, 117, 0.02));
+            border: 1px dashed var(--color-primary, #1D9E75);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 
     <div class="col-md-8 col-lg-6">
-        <div class="card shadow-lg rounded-4 overflow-hidden fade-in">
-            <!-- Progress Header -->
-            <div class="px-5 pt-4 d-flex justify-content-between align-items-center">
-                <span id="step-text" class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 fw-bold">Step 1 of 6</span>
-                <div class="progress rounded-pill flex-grow-1 ms-3" style="height: 8px;">
-                    <div id="onboarding-progress" class="progress-bar progress-bar-striped progress-bar-animated rounded-pill" role="progressbar" style="width: 16%; transition: width 0.5s ease;"></div>
+        <div class="card onboarding-card rounded-4 overflow-hidden position-relative">
+            <!-- Header Progress -->
+            <div id="progress-header" class="px-5 pt-4 d-flex justify-content-between align-items-center d-none">
+                <div class="d-flex align-items-center">
+                    <span id="step-text" class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 fw-bold">Step 1 of 5</span>
+                    <!-- Tutorial Icon -->
+                    <a id="tutorial-link" href="{% url 'tutorial' %}" target="_blank" class="ms-2 text-muted" data-bs-toggle="tooltip" title="{% trans 'Need help? View tutorial guide' %}">
+                        <i class="bi bi-question-circle-fill fs-5"></i>
+                    </a>
+                </div>
+                <div class="progress rounded-pill flex-grow-1 ms-3" style="height: 6px;">
+                    <div id="onboarding-progress" class="progress-bar progress-bar-primary rounded-pill" role="progressbar" style="width: 20%; transition: width 0.4s ease;"></div>
                 </div>
             </div>
 
-            <div class="card-body p-5">
-                <!-- Step 0: Welcome / Splash -->
-                <div id="step-0" class="onboarding-step text-center">
-                    <div class="mb-5">
-                        <div class="icon-shape icon-shape-lg bg-primary bg-opacity-10 text-primary rounded-circle mb-4 mx-auto" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-rocket-takeoff-fill fs-1"></i>
-                        </div>
-                        <h1 class="mb-3">{% trans "Welcome to TrackMyRupee!" %}</h1>
-                        <p class="lead text-muted px-lg-4">
-                            {% trans "Your personal finance companion. Let’s set up your money in 5 minutes." %}
-                        </p>
-                    </div>
-
-                    <div class="d-grid shadow-hover mt-5">
-                        <button onclick="showStep(1)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
-                            {% trans "Get Started" %} <i class="bi bi-arrow-right ms-2"></i>
-                        </button>
-                    </div>
-                    <p class="text-muted small mt-4">{% trans "Warm, approachable, and here to help you grow." %}</p>
-                </div>
-
-                <!-- Step 1: Set Up Your Accounts -->
-                <div id="step-1" class="onboarding-step d-none">
-                    <div class="text-center mb-4">
-                        <div class="icon-shape icon-shape-lg bg-info bg-opacity-10 text-info rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-bank fs-1"></i>
-                        </div>
-                        <h2 class="fw-bold">{% trans "Where do you keep your money?" %}</h2>
-                        <p class="text-muted">{% trans "Add your accounts so you can track balances accurately." %}</p>
-                    </div>
-
-                    <div id="onboarding-accounts-list" class="mb-3">
-                        <div class="account-item p-4 bg-white border rounded-4 mb-3 shadow-sm hover-border-primary transition-all">
-                            <div class="row align-items-center g-3">
-                                <div class="col-12">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Account Name" %}</label>
-                                        <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Initial Balance" %}</label>
-                                    </div>
-                                    <div class="d-flex align-items-end gap-3">
-                                        <div class="flex-grow-1 border-bottom" style="border-color: var(--border) !important;">
-                                            <input type="text" class="form-control border-0 fw-bold fs-4 p-0 shadow-none bg-transparent account-name" value="SBI Savings Account" placeholder="{% trans 'e.g. SBI Savings Account' %}" style="height: 45px;">
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2 border-bottom" style="border-color: var(--border) !important; width: 180px;">
-                                            <span class="fs-5 text-muted currency-label">{{ user.profile.currency }}</span>
-                                            <input type="number" class="form-control border-0 fw-bold text-end fs-4 p-0 shadow-none bg-transparent account-balance" style="height: 45px;" value="35000" step="0.01">
-                                        </div>
-                                    </div>
-                                    <div class="mt-2 text-muted small">
-                                        <i class="bi bi-info-circle me-1"></i> <span class="account-type-text">{% trans "Bank Account" %}</span>
-                                        <input type="hidden" class="account-type" value="BANK">
-                                    </div>
+            <div class="card-body p-3 p-md-5">
+                <!-- Screen 1: Welcome slides -->
+                <div id="screen-1" class="onboarding-step text-center">
+                    <div class="welcome-carousel mb-4">
+                        <!-- Slide 1 -->
+                        <div class="welcome-slide active" id="slide-1">
+                            <div class="mb-4">
+                                <div class="icon-shape bg-primary bg-opacity-10 text-primary rounded-circle mb-4 mx-auto d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
+                                    <i class="bi bi-wallet2 fs-1"></i>
                                 </div>
+                            </div>
+                            <h2 class="mb-3">{% trans "Your entire financial life in one place." %}</h2>
+                            <p class="lead text-muted px-3">
+                                {% trans "Expenses. Income. Net worth. Loans. Goals. All of it. Without giving anyone access to your bank." %}
+                            </p>
+                        </div>
+                        <!-- Slide 2 -->
+                        <div class="welcome-slide next" id="slide-2">
+                            <div class="mb-4">
+                                <div class="icon-shape bg-info bg-opacity-10 text-info rounded-circle mb-4 mx-auto d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
+                                    <i class="bi bi-lightning-charge fs-1"></i>
+                                </div>
+                            </div>
+                            <h2 class="mb-3">{% trans "Fast, Simple, and Reliable" %}</h2>
+                            <p class="lead text-muted px-3">
+                                {% trans "Type 'swiggy 450' &rarr; logged in 3 seconds. Set up your salary &rarr; month starts when it hits. Add your accounts &rarr; net worth updates itself." %}
+                            </p>
+                        </div>
+                        <!-- Slide 3 -->
+                        <div class="welcome-slide next" id="slide-3">
+                            <div class="mb-4">
+                                <div class="icon-shape bg-success bg-opacity-10 text-success rounded-circle mb-4 mx-auto d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
+                                    <i class="bi bi-shield-check fs-1"></i>
+                                </div>
+                            </div>
+                            <h2 class="mb-3">{% trans "Privacy & Open Source" %}</h2>
+                            <p class="lead text-muted px-3">
+                                {% trans "No SMS. No bank login. No data selling. Open source. Verify it yourself on GitHub." %}
+                            </p>
+                            <div class="mt-4 px-4">
+                                <button onclick="nextScreen()" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                    <span>{% trans "Get Started" %}</span> <i class="bi bi-arrow-right"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="alert alert-light py-2 small text-muted mb-4 d-flex align-items-center">
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        <span>{% trans "Add all accounts you use regularly. Don’t worry, you can add more later!" %}</span>
-                        <span class="ms-1" data-bs-toggle="tooltip" title="{% trans 'Balances update automatically as you track transactions.' %}">
-                            <i class="bi bi-question-circle"></i>
-                        </span>
-                    </div>
-
-                    <div class="text-center mb-4">
-                        <button onclick="addAccountRow()" class="btn btn-link text-primary text-decoration-none fw-bold small">
-                            <i class="bi bi-plus-circle me-1"></i> {% trans "Add another account" %}
+                    <!-- Slide Controls -->
+                    <div id="slide-controls" class="d-flex justify-content-between align-items-center mt-4">
+                        <button onclick="prevSlide()" id="btn-prev-slide" class="btn btn-link text-muted text-decoration-none fw-bold d-inline-flex align-items-center gap-1" style="visibility: hidden;">
+                            <i class="bi bi-chevron-left"></i> <span>{% trans "Back" %}</span>
                         </button>
-                    </div>
-
-                    <div class="d-grid">
-                        <button onclick="saveStep('accounts', 1)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
-                            {% trans "Next" %} <i class="bi bi-arrow-right ms-2"></i>
+                        <div>
+                            <span class="carousel-dot active" onclick="goToSlide(1)"></span>
+                            <span class="carousel-dot" onclick="goToSlide(2)"></span>
+                            <span class="carousel-dot" onclick="goToSlide(3)"></span>
+                        </div>
+                        <button onclick="nextSlide()" id="btn-next-slide" class="btn btn-link text-primary text-decoration-none fw-bold d-inline-flex align-items-center gap-1">
+                            <span>{% trans "Next" %}</span> <i class="bi bi-chevron-right"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 2: Add Your First Income -->
-                <div id="step-2" class="onboarding-step d-none">
+                <!-- Screen 2: Persona Selection -->
+                <div id="screen-2" class="onboarding-step d-none">
                     <div class="text-center mb-4">
-                        <div class="icon-shape icon-shape-lg bg-success bg-opacity-10 text-success rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-wallet2 fs-1"></i>
+                        <h2>{% trans "Tell us about yourself" %}</h2>
+                        <p class="text-muted">{% trans "This single choice personalizes suggested splits, paydays, and your setup checklist." %}</p>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-6">
+                            <div class="persona-card" onclick="selectPersona('SALARIED')">
+                                <span class="fs-2 mb-2 d-block">👨‍💼</span>
+                                <h5 class="fw-bold mb-1">{% trans "Salaried professional" %}</h5>
+                                <p class="small text-muted mb-0">{% trans "Fixed monthly salary, SIPs, credit cards" %}</p>
+                            </div>
                         </div>
-                        <h2 class="fw-bold">{% trans "Let’s track your earnings" %}</h2>
-                        <p class="text-muted">{% trans "Add your first income so your dashboard shows your balance." %}</p>
+                        <div class="col-12 col-sm-6">
+                            <div class="persona-card" onclick="selectPersona('FREELANCER')">
+                                <span class="fs-2 mb-2 d-block">👨‍💻</span>
+                                <h5 class="fw-bold mb-1">{% trans "Freelancer / Consultant" %}</h5>
+                                <p class="small text-muted mb-0">{% trans "Variable income, client payments, GST" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="persona-card" onclick="selectPersona('FAMILY')">
+                                <span class="fs-2 mb-2 d-block">🏡</span>
+                                <h5 class="fw-bold mb-1">{% trans "Managing family finances" %}</h5>
+                                <p class="small text-muted mb-0">{% trans "Multiple incomes, household budgets, shared goals" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="persona-card" onclick="selectPersona('STUDENT')">
+                                <span class="fs-2 mb-2 d-block">🎓</span>
+                                <h5 class="fw-bold mb-1">{% trans "Student / Just starting out" %}</h5>
+                                <p class="small text-muted mb-0">{% trans "Pocket money, part-time income, savings" %}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 w-100">
+                        <button onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap">
+                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
+                        </button>
+                        <button onclick="showSkipWarning('persona')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
+                            {% trans "Skip this step" %}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Screen 3: Month Cycle Setup -->
+                <div id="screen-3" class="onboarding-step d-none">
+                    <!-- Dynamic view populated via JS based on selected persona -->
+                    <div id="salary-picker-view" class="d-none">
+                        <div class="text-center mb-4">
+                            <h2>{% trans "When does your month start?" %}</h2>
+                            <p class="text-muted">
+                                {% trans "Most Indian salaries don't arrive on the 1st. Tell us when yours does and every budget calculation will follow your actual month instead of the calendar." %}
+                            </p>
+                        </div>
+                        
+                        <div class="number-picker-grid mb-4">
+                            <!-- Populated in JS: 1 to 31 -->
+                        </div>
+
+                        <div class="text-center text-muted small mb-4 d-flex align-items-center justify-content-center gap-1">
+                            <i class="bi bi-info-circle"></i> <span>{% trans "You can change this anytime in Settings." %}</span>
+                        </div>
+                    </div>
+
+                    <div id="freelance-picker-view" class="d-none">
+                        <div class="text-center mb-4">
+                            <h2>{% trans "Your busiest billing month?" %}</h2>
+                            <p class="text-muted">
+                                {% trans "To help calibrate expectations, let us know which month typically brings in the most client work." %}
+                            </p>
+                        </div>
+
+                        <div class="month-picker-grid mb-4">
+                            <div class="month-cell" onclick="selectMonth('Jan')">{% trans "Jan" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Feb')">{% trans "Feb" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Mar')">{% trans "Mar" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Apr')">{% trans "Apr" %}</div>
+                            <div class="month-cell" onclick="selectMonth('May')">{% trans "May" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Jun')">{% trans "Jun" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Jul')">{% trans "Jul" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Aug')">{% trans "Aug" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Sep')">{% trans "Sep" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Oct')">{% trans "Oct" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Nov')">{% trans "Nov" %}</div>
+                            <div class="month-cell" onclick="selectMonth('Dec')">{% trans "Dec" %}</div>
+                        </div>
+
+                        <div class="text-center text-muted small mb-4 d-flex align-items-center justify-content-center gap-1">
+                            <i class="bi bi-info-circle"></i> <span>{% trans "This calibrates your seasonal cash flow expectations." %}</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
+                        <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
+                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                            </button>
+                            <button type="button" onclick="showSkipWarning('salary_setup')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
+                                {% trans "I'll set this later" %}
+                            </button>
+                        </div>
+                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-none d-sm-inline-block">
+                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
+                        </button>
+                        <button type="button" onclick="showSkipWarning('salary_setup')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
+                            {% trans "I'll set this later" %}
+                        </button>
+                        <button id="btn-month-next" type="button" onclick="saveSalarySetup()" class="btn btn-primary btn-lg rounded-pill px-5 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto d-none">
+                            <span>{% trans "Next" %}</span> <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Screen 4: Accounts Setup -->
+                <div id="screen-4" class="onboarding-step d-none">
+                    <div class="text-center mb-4">
+                        <h2>{% trans "Where do you keep your money?" %}</h2>
+                        <p class="text-muted">{% trans "Add your accounts so you can track balances accurately." %}</p>
+                    </div>
+
+                    <!-- Family CFO Specific Prompt -->
+                    <div id="family-cfo-prompt" class="alert alert-primary bg-primary bg-opacity-10 border-0 rounded-3 py-2 small d-none mb-3 d-flex align-items-start gap-2">
+                        <i class="bi bi-info-circle-fill mt-1"></i>
+                        <span>{% trans "Family finances often span multiple bank accounts and cards. We suggest adding at least two accounts (e.g. primary salary and joint household account)." %}</span>
+                    </div>
+
+                    <div id="onboarding-accounts-list" class="mb-3">
+                        <div class="account-item p-3 bg-light rounded-4 mb-3 border">
+                            <div class="d-flex justify-content-between mb-1">
+                                <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Account Name" %}</label>
+                                <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Initial Balance" %}</label>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="flex-grow-1 border-bottom" style="border-color: var(--border-color, rgba(0,0,0,0.1)) !important;">
+                                    <input type="text" class="form-control border-0 fw-bold fs-5 p-0 shadow-none bg-transparent account-name" value="SBI Savings Account" style="height: 40px;">
+                                </div>
+                                <div class="d-flex align-items-center gap-2 border-bottom" style="border-color: var(--border-color, rgba(0,0,0,0.1)) !important; width: 140px;">
+                                    <span class="fs-5 text-muted currency-label">{{ user.profile.currency }}</span>
+                                    <input type="number" class="form-control border-0 fw-bold text-end fs-5 p-0 pe-2 shadow-none bg-transparent account-balance" style="height: 40px;" value="35000">
+                                </div>
+                            </div>
+                            <div class="mt-2 text-muted small d-flex align-items-center gap-1">
+                                <i class="bi bi-bank"></i> <span class="account-type-text">{% trans "Bank Account" %}</span>
+                                <input type="hidden" class="account-type" value="BANK">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-3">
+                        <button onclick="addAccountRow()" class="btn btn-link text-primary text-decoration-none fw-bold small d-inline-flex align-items-center justify-content-center gap-1">
+                            <i class="bi bi-plus-circle"></i> <span>{% trans "Add another account" %}</span>
+                        </button>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
+                        <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
+                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                            </button>
+                            <button type="button" onclick="showSkipWarning('accounts')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
+                                {% trans "Skip for now" %}
+                            </button>
+                        </div>
+                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-none d-sm-inline-block">
+                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
+                        </button>
+                        <button type="button" onclick="showSkipWarning('accounts')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
+                            {% trans "Skip for now" %}
+                        </button>
+                        <button type="button" onclick="saveStep('accounts')" class="btn btn-primary btn-lg rounded-pill px-5 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto">
+                            <span>{% trans "Next" %}</span> <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Screen 5: Log Income -->
+                <div id="screen-5" class="onboarding-step d-none">
+                    <div class="text-center mb-4">
+                        <h2>{% trans "Tell us your salary" %}</h2>
+                        <p class="text-muted">{% trans "Log your salary so TrackMyRupee can show you how much you have left for the month in real time." %}</p>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Amount" %}</label>
                         <div class="input-group input-group-lg">
                             <span class="input-group-text bg-transparent border-end-0 text-muted currency-label">{{ user.profile.currency }}</span>
-                            <input type="number" id="onboarding-income-amount" class="form-control border-start-0 ps-0 fw-bold" value="50000" step="0.01">
+                            <input type="number" id="onboarding-income-amount" class="form-control border-start-0 ps-0 fw-bold" value="50000">
                         </div>
                     </div>
 
                     <div class="row g-2 mb-4">
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Source" %}</label>
-                            <input type="text" id="onboarding-income-source" class="form-control" placeholder="{% trans 'e.g. Salary' %}" value="{% trans 'Salary' %}">
+                            <input type="text" id="onboarding-income-source" class="form-control" value="Salary">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Deposit To" %}</label>
@@ -168,221 +500,101 @@
                         </div>
                     </div>
 
-                    <div class="alert alert-light border-0 py-2 small text-muted mb-4">
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        {% trans "You can add multiple incomes for different sources (salary, freelance, gifts)." %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Income Date" %}</label>
+                        <input type="date" id="onboarding-income-date" class="form-control">
                     </div>
 
-                    <div class="d-flex gap-2">
-                        <button onclick="showStep(1)" class="btn btn-outline-secondary btn-lg rounded-pill fw-bold py-3 px-4 shadow-sm">
-                            <i class="bi bi-arrow-left"></i>
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
+                        <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
+                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                            </button>
+                            <button type="button" onclick="showSkipWarning('income')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
+                                {% trans "Skip for now" %}
+                            </button>
+                        </div>
+                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-none d-sm-inline-block">
+                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                         </button>
-                        <button onclick="saveStep('income', 2)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 flex-grow-1 shadow-sm">
-                            {% trans "Next" %} <i class="bi bi-arrow-right ms-2"></i>
+                        <button type="button" onclick="showSkipWarning('income')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
+                            {% trans "Skip for now" %}
+                        </button>
+                        <button type="button" onclick="saveStep('income')" class="btn btn-primary btn-lg rounded-pill px-5 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto">
+                            <span>{% trans "Next" %}</span> <i class="bi bi-arrow-right"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 3: Add Your First Expense -->
-                <div id="step-3" class="onboarding-step d-none">
+                <!-- Screen 6: Try Quick Add -->
+                <div id="screen-6" class="onboarding-step d-none">
                     <div class="text-center mb-4">
-                        <div class="icon-shape icon-shape-lg bg-danger bg-opacity-10 text-danger rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-cart-plus-fill fs-1"></i>
-                        </div>
-                        <h2 class="fw-bold">{% trans "Now track where your money goes" %}</h2>
-                        <p class="text-muted">{% trans "Add an expense for today." %}</p>
+                        <h2>{% trans "Try the quick add" %}</h2>
+                        <p class="text-muted">{% trans "Now try logging an expense. Type anything, like 'chai 20' or 'swiggy dinner 450', and watch it parse instantly." %}</p>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Amount" %}</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted currency-label">{{ user.profile.currency }}</span>
-                            <input type="number" id="onboarding-expense-amount" class="form-control border-start-0 ps-0 fw-bold" value="1200" step="0.01">
-                        </div>
-                    </div>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Category" %}</label>
-                            <select id="onboarding-expense-category" class="form-select shadow-none">
-                                <option value="Food">{% trans "Food" %}</option>
-                                <option value="Shopping">{% trans "Shopping" %}</option>
-                                <option value="Groceries" selected>{% trans "Groceries" %}</option>
-                                <option value="Travel">{% trans "Travel" %}</option>
-                                <option value="Miscellaneous">{% trans "Miscellaneous" %}</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Paid From" %}</label>
-                            <select id="onboarding-expense-account" class="form-select onboarding-account-select shadow-none">
-                                <!-- Populated via JS -->
-                            </select>
+                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Type something here..." %}</label>
+                        <div class="input-group d-flex align-items-stretch rounded-3 overflow-hidden border" style="border-color: var(--border-color, rgba(26,26,24,0.15)) !important;">
+                            <input type="text" id="quick-add-input" class="form-control border-0 bg-transparent px-3 py-2 shadow-none" placeholder="e.g. swiggy dinner 450" autofocus style="height: 48px; font-size: 1rem; box-shadow: none;">
+                            <button class="btn btn-primary px-4 fw-bold border-0" type="button" id="btn-parse-go" onclick="triggerParse()" style="border-radius: 0; height: 48px;">{% trans "Go" %}</button>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Merchant / Description" %}</label>
-                        <input type="text" id="onboarding-expense-description" class="form-control" value="Big Bazaar" placeholder="{% trans 'e.g. Big Bazaar' %}">
+                        <span class="small text-muted d-block mb-2">{% trans "Tap an example to try:" %}</span>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill p-2 px-3 style-hover cursor-pointer" style="cursor: pointer;" onclick="fillQuickAdd('chai 20')">"chai 20"</span>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill p-2 px-3 style-hover cursor-pointer" style="cursor: pointer;" onclick="fillQuickAdd('swiggy dinner 450')">"swiggy dinner 450"</span>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill p-2 px-3 style-hover cursor-pointer" style="cursor: pointer;" onclick="fillQuickAdd('uber 150')">"uber 150"</span>
+                        </div>
                     </div>
 
-                    <div class="alert alert-light py-2 small text-muted mb-4">
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        {% trans "Categorizing your expenses helps you see trends and save money." %}
+                    <!-- Parsed Preview -->
+                    <div id="parsed-preview" class="quick-add-preview d-none">
+                        <h6 class="fw-bold text-primary mb-2 d-flex align-items-center gap-2"><i class="bi bi-magic"></i> <span>{% trans "Parsed Result:" %}</span></h6>
+                        <div class="row g-2 small text-start">
+                            <div class="col-6"><strong>{% trans "Description:" %}</strong> <span id="preview-desc">-</span></div>
+                            <div class="col-6"><strong>{% trans "Amount:" %}</strong> <span id="preview-amount">-</span></div>
+                            <div class="col-6"><strong>{% trans "Category:" %}</strong> <span id="preview-cat">-</span></div>
+                            <div class="col-6"><strong>{% trans "Paid From:" %}</strong> <span id="preview-acc">-</span></div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button onclick="confirmAndSaveExpense()" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">{% trans "Confirm & Save Expense" %}</button>
+                        </div>
                     </div>
 
-                    <div class="d-flex gap-2">
-                        <button onclick="showStep(2)" class="btn btn-outline-secondary btn-lg rounded-pill fw-bold py-3 px-4 shadow-sm">
-                            <i class="bi bi-arrow-left"></i>
+                    <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 w-100 mt-5">
+                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap">
+                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                         </button>
-                        <button onclick="saveStep('expense', 3)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 flex-grow-1 shadow-sm">
-                            {% trans "Next" %} <i class="bi bi-arrow-right ms-2"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Step 4: Set Up Recurring Expenses -->
-                <div id="step-4" class="onboarding-step d-none">
-                    <div class="text-center mb-4">
-                        <div class="icon-shape icon-shape-lg bg-warning bg-opacity-10 text-warning rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-arrow-repeat fs-1"></i>
-                        </div>
-                        <h2 class="fw-bold">{% trans "Automate your monthly bills" %}</h2>
-                        <p class="text-muted">{% trans "Do you have subscriptions that repeat? Let’s automate them." %}</p>
-                    </div>
-
-                    <div id="onboarding-recurring-list" class="mb-4">
-                        <div class="recurring-item mb-3 p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-white rounded-circle p-2 me-3">
-                                    <i class="bi bi-house text-primary"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 fw-bold">{% trans "Rent" %}</p>
-                                    <p class="small text-muted mb-0">{% trans "₹12,000 on 1st of every month" %}</p>
-                                </div>
-                            </div>
-                            <div class="form-check form-switch shadow-none">
-                                <input class="form-check-input recurring-enabled" type="checkbox" checked data-desc="Rent" data-amount="12000" data-cat="Rent" data-date="{{ current_year }}-{{ current_month }}-01">
-                            </div>
-                        </div>
-                        <div class="recurring-item mb-3 p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-white rounded-circle p-2 me-3">
-                                    <i class="bi bi-play-circle text-danger"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 fw-bold">{% trans "Netflix" %}</p>
-                                    <p class="small text-muted mb-0">{% trans "₹499 on 5th of every month" %}</p>
-                                </div>
-                            </div>
-                            <div class="form-check form-switch shadow-none">
-                                <input class="form-check-input recurring-enabled" type="checkbox" checked data-desc="Netflix" data-amount="499" data-cat="Subscriptions" data-date="{{ current_year }}-{{ current_month }}-05">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-light border-0 py-2 small text-muted mb-4 text-center">
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        {% trans "Recurring items save time and ensure nothing is missed." %}
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button onclick="showStep(3)" class="btn btn-outline-secondary btn-lg rounded-pill fw-bold py-3 px-4 shadow-sm">
-                            <i class="bi bi-arrow-left"></i>
-                        </button>
-                        <button onclick="saveStep('recurring', 4)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 flex-grow-1 shadow-sm">
-                            {% trans "Next" %} <i class="bi bi-arrow-right ms-2"></i>
-                        </button>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button onclick="showStep(5)" class="btn btn-link text-muted text-decoration-none small">{% trans "Skip for now → Add later" %}</button>
-                    </div>
-                </div>
-
-                <!-- Step 5: Quick Tour -->
-                <div id="step-5" class="onboarding-step d-none">
-                    <div class="text-center mb-4">
-                        <div class="icon-shape icon-shape-lg bg-info bg-opacity-10 text-info rounded-circle mb-3 mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-eye fs-1"></i>
-                        </div>
-                        <h2 class="fw-bold">{% trans "Quick Dashboard Tour" %}</h2>
-                        <p class="text-muted">{% trans "Here's how to read your new dashboard." %}</p>
-                    </div>
-
-                    <div class="list-group list-group-flush mb-4">
-                        <div class="list-group-item bg-transparent border-0 px-0 mb-3 d-flex align-items-start">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3">
-                                <i class="bi bi-wallet-fill"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">{% trans "Balance Cards" %}</h6>
-                                <p class="small text-muted mb-0">{% trans "This shows your total money across all your accounts." %}</p>
-                            </div>
-                        </div>
-                        <div class="list-group-item bg-transparent border-0 px-0 mb-3 d-flex align-items-start">
-                            <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2 me-3">
-                                <i class="bi bi-pie-chart-fill"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">{% trans "Expense Chart" %}</h6>
-                                <p class="small text-muted mb-0">{% trans "See where your money goes each month at a glance." %}</p>
-                            </div>
-                        </div>
-                        <div class="list-group-item bg-transparent border-0 px-0 d-flex align-items-start">
-                            <div class="bg-success bg-opacity-10 text-success rounded-circle p-2 me-3">
-                                <i class="bi bi-list-ul"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">{% trans "Recent Transactions" %}</h6>
-                                <p class="small text-muted mb-0">{% trans "Quickly view and manage your latest spending and income." %}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-secondary border-0 py-2 small text-muted mb-4 d-flex align-items-center">
-                        <i class="bi bi-lightbulb-fill text-warning me-2"></i>
-                        <span>{% trans "Tip: Tap on any category to see a detailed breakdown." %}</span>
-                    </div>
-
-                    <div class="d-grid shadow-hover">
-                        <button onclick="showStep(6)" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
-                            {% trans "Got it, let's go!" %} <i class="bi bi-check-lg ms-2"></i>
+                        <button type="button" onclick="showSkipWarning('expense')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
+                            {% trans "Skip for now" %}
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 6: Success / Finish -->
-                <div id="step-6" class="onboarding-step d-none text-center">
-                    <div class="mb-4">
-                        <div class="mb-3">
-                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-4 py-3 fw-bold fs-5">
-                                <i class="bi bi-check2-circle fs-3 me-2"></i> {% trans "Awesome! You’re all set." %}
-                            </span>
-                        </div>
-                        <h2 class="fw-bold mt-4">{% trans "Your money is now working for you." %}</h2>
-                        <p class="text-muted lead mb-5">
-                            {% trans "Your first income and expense are tracked, and your dashboard is ready. Start exploring!" %}
-                        </p>
-                    </div>
-
-                    <div class="alert alert-primary bg-primary bg-opacity-10 border-0 rounded-4 p-4 text-start mb-5">
-                        <h6 class="fw-bold text-primary mb-2">{% trans "Small wins celebrate big goals!" %}</h6>
-                        <ul class="mb-0 small text-muted ps-3">
-                            <li>{% trans "First expense tracked! 🎉" %}</li>
-                            <li>{% trans "Accounts linked successfully." %}</li>
-                            <li>{% trans "Encouragement: Add a recurring bill next." %}</li>
-                        </ul>
-                    </div>
-
-                    <div class="d-grid shadow-hover">
-                        <button onclick="saveStep('finish', 6)" class="btn btn-primary btn-lg rounded-pill fw-bold py-4 shadow-lg fs-5">
-                            {% trans "Go to Dashboard" %} <i class="bi bi-arrow-right ms-2"></i>
-                        </button>
+                <!-- Custom Skip Consequence Overlay -->
+                <div id="skip-warning-overlay" class="skip-consequence-card d-none p-4 rounded-4 mt-3 border border-warning" style="background-color: rgba(var(--bs-warning-rgb), 0.05);">
+                    <p class="text-warning-emphasis mb-3 fw-medium" id="skip-consequence-text"></p>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="cancelSkip()">{% trans "Cancel" %}</button>
+                        <button type="button" class="btn btn-sm btn-warning rounded-pill px-3 text-white fw-bold" id="btn-confirm-skip">{% trans "Skip anyway" %}</button>
                     </div>
                 </div>
+            </div>
 
-                <div class="text-center mt-4" id="skip-container">
-                    <button onclick="skipOnboarding()" class="btn btn-link text-muted text-decoration-none small opacity-75">{% trans "Skip the rest for now" %}</button>
+            <!-- Screen 6 Celebration Overlay -->
+            <div id="celebration-overlay" class="celebration-overlay">
+                <div class="text-center p-4">
+                    <span class="fs-1 d-block mb-3">🎉</span>
+                    <h2 class="fw-bold mb-3">{% trans "That's it. That's the whole thing." %}</h2>
+                    <p class="lead text-muted px-4 mb-4">
+                        {% trans "30 seconds a day and your financial picture stays accurate." %}
+                    </p>
+                    <button onclick="finishOnboarding()" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 px-5 shadow d-inline-flex align-items-center justify-content-center gap-2">
+                        <span>{% trans "Go to Dashboard" %}</span> <i class="bi bi-arrow-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -390,10 +602,245 @@
 </div>
 
 <script>
+    let currentSlide = 1;
+    let currentScreen = 1;
+    let selectedPersona = '';
+    let selectedSalaryDay = 1;
     let userAccounts = [];
+    let parsedResult = null;
 
-    function updateCurrencyLabels(val) {
-        document.querySelectorAll('.currency-label').forEach(el => el.innerText = val);
+    // Welcome Carousel Logic
+    function goToSlide(slideNum) {
+        if (slideNum < 1 || slideNum > 3) return;
+        currentSlide = slideNum;
+        
+        // Update slides
+        document.querySelectorAll('.welcome-slide').forEach((el, index) => {
+            el.classList.remove('active', 'next', 'prev');
+            if (index + 1 === slideNum) {
+                el.classList.add('active');
+            } else if (index + 1 < slideNum) {
+                el.classList.add('prev');
+            } else {
+                el.classList.add('next');
+            }
+        });
+
+        // Update dots
+        document.querySelectorAll('.carousel-dot').forEach((el, index) => {
+            if (index + 1 === slideNum) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+
+        // Update controls visibility
+        document.getElementById('btn-prev-slide').style.visibility = slideNum > 1 ? 'visible' : 'hidden';
+        document.getElementById('btn-next-slide').style.display = slideNum === 3 ? 'none' : 'inline-block';
+    }
+
+    function nextSlide() {
+        goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+        goToSlide(currentSlide - 1);
+    }
+
+    // Onboarding Wizard Transition Logic
+    function showScreen(screenNum) {
+        document.querySelectorAll('.onboarding-step').forEach(el => el.classList.add('d-none'));
+        const screenEl = document.getElementById('screen-' + screenNum);
+        if (screenEl) screenEl.classList.remove('d-none');
+        
+        currentScreen = screenNum;
+        cancelSkip(); // close warning overlay if open
+
+        const totalInteractiveSteps = 5;
+        const interactiveStepNum = screenNum - 1; // Screen 1 is welcome splash
+        
+        const progressHeader = document.getElementById('progress-header');
+        const progressBar = document.getElementById('onboarding-progress');
+        const stepBadge = document.getElementById('step-text');
+        const tutLink = document.getElementById('tutorial-link');
+
+        if (screenNum > 1 && screenNum <= 6) {
+            progressHeader.classList.remove('d-none');
+            const progress = (interactiveStepNum / totalInteractiveSteps) * 100;
+            progressBar.style.width = progress + '%';
+            stepBadge.innerText = `Step ${interactiveStepNum} of ${totalInteractiveSteps}`;
+            
+            // Link tutorial question icon to specific tab
+            let tab = 'intro';
+            if (screenNum === 4) tab = 'accounts';
+            if (screenNum === 5) tab = 'income';
+            if (screenNum === 6) tab = 'expense';
+            if (screenNum === 3) tab = (selectedPersona === 'SALARIED' ? 'income' : 'intro');
+            tutLink.href = `{% url 'tutorial' %}?tab=${tab}`;
+        } else {
+            progressHeader.classList.add('d-none');
+        }
+    }
+
+    function nextScreen() {
+        showScreen(currentScreen + 1);
+    }
+
+    function prevScreen() {
+        showScreen(currentScreen - 1);
+    }
+
+    // Screen 2: Persona Selection
+    function selectPersona(persona) {
+        selectedPersona = persona;
+        document.querySelectorAll('.persona-card').forEach(el => el.classList.remove('selected'));
+        // Find selecting card
+        const card = document.querySelector(`.persona-card[onclick*="${persona}"]`);
+        if (card) card.classList.add('selected');
+
+        // Family CFO display prompt
+        const cfoPrompt = document.getElementById('family-cfo-prompt');
+        if (persona === 'FAMILY') {
+            cfoPrompt.classList.remove('d-none');
+        } else {
+            cfoPrompt.classList.add('d-none');
+        }
+
+        // Show cycle cycle view
+        if (persona === 'FREELANCER') {
+            document.getElementById('freelance-picker-view').classList.remove('d-none');
+            document.getElementById('salary-picker-view').classList.add('d-none');
+            document.getElementById('btn-month-next').classList.add('d-none'); // requires picking a month
+        } else {
+            document.getElementById('freelance-picker-view').classList.add('d-none');
+            document.getElementById('salary-picker-view').classList.remove('d-none');
+            document.getElementById('btn-month-next').classList.remove('d-none');
+            
+            // Set default payday highlight selection: 25 for salaried, 1 for others
+            selectedSalaryDay = (persona === 'SALARIED' ? 25 : 1);
+            highlightPayday(selectedSalaryDay);
+        }
+
+        // POST persona save
+        sendOnboardingPost({ step: 'persona', persona: persona }).then(data => {
+            if (data.success) {
+                nextScreen();
+            }
+        });
+    }
+
+    // Screen 3: Salary Picker Generation & Selection
+    function buildSalaryGrid() {
+        const grid = document.querySelector('.number-picker-grid');
+        grid.innerHTML = '';
+        const commonDays = [1, 25, 30];
+        
+        for (let i = 1; i <= 31; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'picker-cell';
+            cell.innerText = i;
+            if (commonDays.includes(i)) cell.classList.add('highlight');
+            
+            cell.onclick = () => highlightPayday(i);
+            grid.appendChild(cell);
+        }
+    }
+
+    function highlightPayday(day) {
+        selectedSalaryDay = day;
+        document.querySelectorAll('.picker-cell').forEach(el => {
+            el.classList.remove('selected');
+            if (parseInt(el.innerText) === day) {
+                el.classList.add('selected');
+            }
+        });
+        
+        // Calculate date pre-fill for step 5
+        const prefilledDate = getMostRecentSalaryDay(day);
+        document.getElementById('onboarding-income-date').value = prefilledDate;
+    }
+
+    function selectMonth(month) {
+        document.querySelectorAll('.month-cell').forEach(el => {
+            el.classList.remove('selected');
+            if (el.innerText.includes(month)) el.classList.add('selected');
+        });
+        document.getElementById('btn-month-next').classList.remove('d-none');
+    }
+
+    function saveSalarySetup() {
+        let payload = { step: 'salary_setup' };
+        if (selectedPersona !== 'FREELANCER') {
+            payload.salary_date = selectedSalaryDay;
+        }
+        sendOnboardingPost(payload).then(data => {
+            if (data.success) nextScreen();
+        });
+    }
+
+    // Date pre-fill helper
+    function getMostRecentSalaryDay(day) {
+        const today = new Date();
+        let year = today.getFullYear();
+        let month = today.getMonth();
+        
+        if (today.getDate() < day) {
+            month--;
+            if (month < 0) {
+                month = 11;
+                year--;
+            }
+        }
+        
+        const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+        const actualDay = Math.min(day, lastDayOfMonth);
+        
+        const salaryDate = new Date(year, month, actualDay);
+        const y = salaryDate.getFullYear();
+        const m = String(salaryDate.getMonth() + 1).padStart(2, '0');
+        const d = String(salaryDate.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    // Screen 4: Dynamic Account row
+    function addAccountRow() {
+        const list = document.getElementById('onboarding-accounts-list');
+        const count = list.querySelectorAll('.account-item').length;
+        let placeholder = "ICICI Coral Credit Card";
+        let type = "CREDIT_CARD";
+        let typeText = "Credit Card";
+        
+        if (count === 1) {
+            placeholder = "Cash Wallet";
+            type = "CASH";
+            typeText = "Cash Account";
+        } else if (count >= 2) {
+            placeholder = "Fixed Deposit (HDFC)";
+            type = "INVESTMENT";
+            typeText = "Investment Account";
+        }
+
+        const newItem = document.createElement('div');
+        newItem.className = 'account-item p-3 bg-light rounded-4 mb-3 border position-relative';
+        newItem.innerHTML = `
+            <button onclick="this.parentElement.remove()" class="btn-close position-absolute top-0 end-0 m-2" style="font-size: 0.7rem;"></button>
+            <div class="d-flex justify-content-between mb-1">
+                <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Account Name" %}</label>
+                <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Initial Balance" %}</label>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="flex-grow-1 border-bottom" style="border-color: var(--border-color, rgba(0,0,0,0.1)) !important;">
+                    <input type="text" class="form-control border-0 fw-bold fs-5 p-0 shadow-none bg-transparent account-name" value="${placeholder}" style="height: 40px;">
+                </div>
+                <div class="d-flex align-items-center gap-2 border-bottom" style="border-color: var(--border-color, rgba(0,0,0,0.1)) !important; width: 140px;">
+                    <span class="fs-5 text-muted currency-label">${document.querySelector('.currency-label').innerText}</span>
+                    <input type="number" class="form-control border-0 fw-bold text-end fs-5 p-0 pe-2 shadow-none bg-transparent account-balance" style="height: 40px;" value="0">
+                </div>
+            </div>
+            <div class="mt-2 text-muted small d-flex align-items-center gap-1">
+                <i class="bi bi-wallet2"></i> <span class="account-type-text">${typeText}</span>
+                <input type="hidden" class="account-type" value="${type}">
+            </div>
+        `;
+        list.appendChild(newItem);
     }
 
     function populateAccountSelects() {
@@ -409,53 +856,129 @@
         });
     }
 
-    function addAccountRow() {
-        const list = document.getElementById('onboarding-accounts-list');
-        const count = list.querySelectorAll('.account-item').length;
-        let placeholder = "ICICI Coral Credit Card";
-        let type = "CREDIT_CARD";
-        let typeText = "Credit Card";
-        
-        if (count === 2) {
-            placeholder = "Fixed Deposit (ICICI)";
-            type = "INVESTMENT";
-            typeText = "Investment Account";
-        } else if (count > 2) {
-             placeholder = "Add Account";
-             type = "BANK";
-             typeText = "Bank Account";
-        }
-
-        const newItem = document.createElement('div');
-        newItem.className = 'account-item p-4 bg-white border rounded-4 mb-3 shadow-sm hover-border-primary transition-all position-relative';
-        newItem.innerHTML = `
-            <button onclick="this.parentElement.remove()" class="btn-close position-absolute top-0 end-0 m-3" style="font-size: 0.7rem;"></button>
-            <div class="row align-items-center g-3">
-                <div class="col-12">
-                    <div class="d-flex justify-content-between mb-1">
-                        <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Account Name" %}</label>
-                        <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Initial Balance" %}</label>
-                    </div>
-                    <div class="d-flex align-items-end gap-3">
-                        <div class="flex-grow-1 border-bottom" style="border-color: var(--border) !important;">
-                            <input type="text" class="form-control border-0 fw-bold fs-4 p-0 shadow-none bg-transparent account-name" value="${placeholder}" placeholder="Account Name" style="height: 45px;">
-                        </div>
-                        <div class="d-flex align-items-center gap-2 border-bottom" style="border-color: var(--border) !important; width: 180px;">
-                            <span class="fs-5 text-muted currency-label">${document.querySelector('.currency-label').innerText}</span>
-                            <input type="number" class="form-control border-0 fw-bold text-end fs-4 p-0 shadow-none bg-transparent account-balance" style="height: 45px;" value="0" step="0.01">
-                        </div>
-                    </div>
-                    <div class="mt-2 text-muted small">
-                        <i class="bi bi-info-circle me-1"></i> <span class="account-type-text">${typeText}</span>
-                        <input type="hidden" class="account-type" value="${type}">
-                    </div>
-                </div>
-            </div>
-        `;
-        list.appendChild(newItem);
+    // Screen 6: Interactive Demo
+    function fillQuickAdd(text) {
+        const input = document.getElementById('quick-add-input');
+        input.value = text;
+        triggerParse();
     }
 
-    async function saveStep(step, currentStepNum) {
+    function triggerParse() {
+        const text = document.getElementById('quick-add-input').value;
+        if (!text || text.trim().length < 3) return;
+
+        const btnGo = document.getElementById('btn-parse-go');
+        btnGo.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btnGo.disabled = true;
+
+        fetch('{% url "parse-expense" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ text: text })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btnGo.innerText = '{% trans "Go" %}';
+            btnGo.disabled = false;
+            
+            if (data.success && data.data) {
+                parsedResult = data.data;
+                document.getElementById('preview-desc').innerText = parsedResult.description || '-';
+                document.getElementById('preview-amount').innerText = (parsedResult.amount ? '{{ user.profile.currency }}' + parsedResult.amount : '-');
+                document.getElementById('preview-cat').innerText = parsedResult.category || '-';
+                
+                const selectAcc = document.getElementById('onboarding-income-account');
+                const selectedAccText = selectAcc.options[selectAcc.selectedIndex]?.text || 'SBI Savings Account';
+                document.getElementById('preview-acc').innerText = selectedAccText;
+                
+                document.getElementById('parsed-preview').classList.remove('d-none');
+            }
+        })
+        .catch(err => {
+            btnGo.innerText = '{% trans "Go" %}';
+            btnGo.disabled = false;
+            console.error(err);
+        });
+    }
+
+    function confirmAndSaveExpense() {
+        if (!parsedResult) return;
+        const payload = {
+            step: 'expense',
+            amount: parsedResult.amount,
+            category: parsedResult.category || 'Miscellaneous',
+            description: parsedResult.description || 'Quick Add Expense',
+            account_id: document.getElementById('onboarding-income-account').value
+        };
+        sendOnboardingPost(payload).then(data => {
+            if (data.success) {
+                // Show celebration overlay
+                document.getElementById('celebration-overlay').classList.add('active');
+            }
+        });
+    }
+
+    // Skip warning consequence configuration
+    const skipConsequences = {
+        persona: "{% trans 'Without a persona selected, we can\'t personalize your setup checklist and budget recommendations.' %}",
+        salary_setup: "{% trans 'Without your billing cycle set up, budget calculations will default to the calendar month (1st).' %}",
+        accounts: "{% trans 'Without accounts added, you won\'t be able to track your balances.' %}",
+        income: "{% trans 'Without income logged, your savings rate and Financial Story won\'t be accurate.' %}",
+        expense: "{% trans 'Without logging your first expense, you won\'t see the quick add in action.' %}"
+    };
+
+    function showSkipWarning(step) {
+        const overlay = document.getElementById('skip-warning-overlay');
+        const text = document.getElementById('skip-consequence-text');
+        const confirmBtn = document.getElementById('btn-confirm-skip');
+
+        text.innerText = skipConsequences[step] || "{% trans 'Are you sure you want to skip?' %}";
+        
+        confirmBtn.onclick = () => confirmSkip(step);
+        overlay.classList.remove('d-none');
+        overlay.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelSkip() {
+        document.getElementById('skip-warning-overlay').classList.add('d-none');
+    }
+
+    function confirmSkip(step) {
+        cancelSkip();
+        if (step === 'expense') {
+            // Skiping expense means ending onboarding wizard
+            sendOnboardingPost({ step: 'skip' }).then(() => {
+                finishOnboarding();
+            });
+        } else {
+            nextScreen();
+        }
+    }
+
+    // Base POST sender
+    async function sendOnboardingPost(payload) {
+        try {
+            const res = await fetch("{% url 'onboarding' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(payload)
+            });
+            return await res.json();
+        } catch (e) {
+            console.error(e);
+            alert("{% trans 'Error contacting server. Please retry.' %}");
+            return { success: false };
+        }
+    }
+
+    // Step save dispatcher
+    function saveStep(step) {
         let payload = { step: step };
         
         if (step === 'accounts') {
@@ -472,148 +995,31 @@
             payload.amount = document.getElementById('onboarding-income-amount').value;
             payload.source = document.getElementById('onboarding-income-source').value;
             payload.account_id = document.getElementById('onboarding-income-account').value;
-        } else if (step === 'expense') {
-            payload.amount = document.getElementById('onboarding-expense-amount').value;
-            payload.category = document.getElementById('onboarding-expense-category').value;
-            payload.description = document.getElementById('onboarding-expense-description').value;
-            payload.account_id = document.getElementById('onboarding-expense-account').value;
-        } else if (step === 'recurring') {
-            let recurring = [];
-            document.querySelectorAll('.recurring-enabled:checked').forEach(item => {
-                recurring.push({
-                    description: item.dataset.desc,
-                    amount: item.dataset.amount,
-                    category: item.dataset.cat,
-                    start_date: item.dataset.date,
-                    type: 'EXPENSE',
-                    frequency: 'MONTHLY'
-                });
-            });
-            payload.recurring = recurring;
         }
 
-        try {
-            const res = await fetch("{% url 'onboarding' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            
+        sendOnboardingPost(payload).then(data => {
             if (data.success) {
                 if (step === 'accounts') {
                     userAccounts = data.accounts || [];
                     populateAccountSelects();
                 }
-                
-                if (step === 'finish') {
-                    window.location.href = "{% url 'home' %}?welcome=true";
-                } else {
-                    showStep(currentStepNum + 1);
-                }
-            } else {
-                alert('Error: ' + data.error);
+                nextScreen();
             }
-        } catch (e) {
-            console.error(e);
-            alert('Something went wrong. Please try again.');
-        }
-    }
-
-    function showStep(stepNum) {
-        document.querySelectorAll('.onboarding-step').forEach(el => el.classList.add('d-none'));
-        const stepEl = document.getElementById('step-' + stepNum);
-        if (stepEl) stepEl.classList.remove('d-none');
-        
-        // Update Progress UI
-        const totalSteps = 6;
-        const currentStepNum = parseInt(stepNum);
-        
-        if (typeof currentStepNum === 'number') {
-            const progress = (currentStepNum / totalSteps) * 100;
-            const progressBar = document.getElementById('onboarding-progress');
-            const stepBadge = document.getElementById('step-text');
-            const progressParent = progressBar.parentElement.parentElement;
-
-            if (currentStepNum > 0 && currentStepNum <= totalSteps) {
-                progressParent.classList.remove('d-none');
-                progressParent.style.opacity = '1';
-                progressBar.style.width = progress + '%';
-                stepBadge.innerText = `Step ${currentStepNum} of ${totalSteps}`;
-            } else {
-                progressParent.style.opacity = '0';
-                setTimeout(() => {
-                    if (currentStepNum === 0 || currentStepNum > totalSteps) {
-                        progressParent.classList.add('d-none');
-                    }
-                }, 500);
-            }
-
-            // Hide skip on welcome and final success
-            const skipContainer = document.getElementById('skip-container');
-            if (currentStepNum === 0 || currentStepNum === 6) {
-                skipContainer.classList.add('d-none');
-            } else {
-                skipContainer.classList.remove('d-none');
-            }
-        }
-    }
-
-    async function skipOnboarding() {
-        if (!confirm("{% trans 'Are you sure? You can always set these up later in settings.' %}")) return;
-        
-        try {
-            const res = await fetch("{% url 'onboarding' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({ step: 'skip' })
-            });
-            const data = await res.json();
-            if (data.success) window.location.href = "{% url 'home' %}";
-        } catch (e) {
-            window.location.href = "{% url 'home' %}";
-        }
-    }
-
-    // Initialize Tooltips
-    document.addEventListener('DOMContentLoaded', () => {
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-        showStep(0);
+    }
+
+    function finishOnboarding() {
+        window.location.href = "{% url 'home' %}";
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        buildSalaryGrid();
+        
+        // Pre-fill date to today just as backup
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('onboarding-income-date').value = todayStr;
+        
+        showScreen(1);
     });
 </script>
-
-<style>
-    body {
-        background-color: rgba(var(--bs-primary-rgb), 0.06);
-    }
-    .bg-primary-soft {
-        background-color: rgba(var(--bs-primary-rgb), 0.1);
-    }
-    .onboarding-step {
-        animation: slideUp 0.4s ease-out;
-    }
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .shadow-hover:hover .btn {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
-    }
-    .hover-border-primary:hover {
-        border-color: rgba(var(--bs-primary-rgb), 0.5) !important;
-    }
-    .transition-all {
-        transition: all 0.2s ease-in-out;
-    }
-</style>
 {% endblock %}

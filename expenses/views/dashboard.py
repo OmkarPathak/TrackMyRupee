@@ -28,6 +28,7 @@ from ..models import (
     LoanRepayment,
     Notification,
     RecurringTransaction,
+    SavingsGoal,
     Transfer,
     UserProfile,
 )
@@ -2099,10 +2100,65 @@ def home_view(request):
     # Calculate Spent and Remaining values specifically for the mobile Net Worth card
     # including all capital events.
     excluded_capital_events_total = sum(e.base_amount for e in capital_events_list if e.exclude_from_averages)
+    # Onboarding Checklist State
+    profile = request.user.profile
+    checklist_status = {
+        'accounts': Account.objects.filter(user=request.user).exists(),
+        'income': Income.objects.filter(user=request.user).exists(),
+        'expense': Expense.objects.filter(user=request.user).exists(),
+        'budget': Category.objects.filter(user=request.user, limit__isnull=False).exists(),
+        'goal': SavingsGoal.objects.filter(user=request.user).exists(),
+        'recurring': RecurringTransaction.objects.filter(user=request.user).exists(),
+    }
+    completed_count = sum(1 for status in checklist_status.values() if status)
+    show_onboarding_checklist = not profile.dismissed_onboarding_checklist and completed_count < 6
+
+    checklist_items = [
+        {
+            'key': 'accounts',
+            'label': _('Account added'),
+            'done': checklist_status['accounts'],
+            'url': reverse('account-create'),
+        },
+        {
+            'key': 'income',
+            'label': _('Salary logged'),
+            'done': checklist_status['income'],
+            'url': reverse('income-create'),
+        },
+        {
+            'key': 'expense',
+            'label': _('First expense logged'),
+            'done': checklist_status['expense'],
+            'url': reverse('expense-create'),
+        },
+        {
+            'key': 'budget',
+            'label': _('Set a budget'),
+            'done': checklist_status['budget'],
+            'url': reverse('budget'),
+        },
+        {
+            'key': 'goal',
+            'label': _('Create your first goal'),
+            'done': checklist_status['goal'],
+            'url': reverse('goal-list'),
+        },
+        {
+            'key': 'recurring',
+            'label': _('Add a recurring subscription'),
+            'done': checklist_status['recurring'],
+            'url': reverse('recurring-list'),
+        },
+    ]
+
     mobile_spent = Decimal(str(total_expenses)) + excluded_capital_events_total
     mobile_remaining = Decimal(str(total_income)) - mobile_spent - Decimal(str(total_investments))
 
     context = {
+        'show_onboarding_checklist': show_onboarding_checklist,
+        'onboarding_checklist_completed_count': completed_count,
+        'onboarding_checklist_items': checklist_items,
         'net_worth': net_worth,
         'net_worth_change': net_worth_change,
         'net_worth_percent': net_worth_percent,

@@ -33,6 +33,8 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
 
         # Only redirect for GET requests to the onboarding page itself
         if request.method == 'GET' and request.user.profile.has_seen_tutorial:
+            if request.GET.get('force') == 'true' or request.GET.get('preview') == 'true':
+                return super().dispatch(request, *args, **kwargs)
             return redirect('home')
             
         return super().dispatch(request, *args, **kwargs)
@@ -50,7 +52,27 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
             data = json.loads(request.body)
             step = data.get('step')
             
-            if step == 'setup':
+            if step == 'persona':
+                profile = request.user.profile
+                profile.persona = data.get('persona')
+                profile.save()
+                return JsonResponse({'success': True})
+            
+            elif step == 'salary_setup':
+                profile = request.user.profile
+                day = data.get('salary_date')
+                if day and profile.persona != 'FREELANCER':
+                    profile.salary_date = int(day)
+                    profile.save()
+                return JsonResponse({'success': True})
+                
+            elif step == 'dismiss_checklist':
+                profile = request.user.profile
+                profile.dismissed_onboarding_checklist = True
+                profile.save()
+                return JsonResponse({'success': True})
+            
+            elif step == 'setup':
                 profile = request.user.profile
                 profile.currency = data.get('currency', profile.currency)
                 profile.language = data.get('language', profile.language)
@@ -181,6 +203,9 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                         currency=request.user.profile.currency,
                         account=account
                     )
+                profile = request.user.profile
+                profile.has_seen_tutorial = True
+                profile.save()
                 return JsonResponse({'success': True})
 
             elif step == 'recurring':

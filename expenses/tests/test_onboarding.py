@@ -119,3 +119,26 @@ class OnboardingViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.profile.refresh_from_db()
         self.assertTrue(self.user.profile.has_seen_tutorial)
+
+    def test_onboarding_step_persona(self):
+        data = {'step': 'persona', 'persona': 'SALARIED'}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.persona, 'SALARIED')
+
+    def test_onboarding_step_salary_setup(self):
+        self.user.profile.persona = 'SALARIED'
+        self.user.profile.save()
+        data = {'step': 'salary_setup', 'salary_date': 25}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.salary_date, 25)
+
+    def test_onboarding_dismiss_checklist(self):
+        data = {'step': 'dismiss_checklist'}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.user.profile.refresh_from_db()
+        self.assertTrue(self.user.profile.dismissed_onboarding_checklist)

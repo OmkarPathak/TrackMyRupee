@@ -1235,6 +1235,15 @@ class UserProfile(models.Model):
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
     language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default='en')
     has_seen_tutorial = models.BooleanField(default=False)
+    
+    PERSONA_CHOICES = [
+        ('SALARIED', 'Salaried professional'),
+        ('FREELANCER', 'Freelancer / Consultant'),
+        ('FAMILY', 'Managing family finances'),
+        ('STUDENT', 'Student / Just starting out'),
+    ]
+    persona = models.CharField(max_length=20, choices=PERSONA_CHOICES, blank=True, null=True)
+    dismissed_onboarding_checklist = models.BooleanField(default=False)
 
     # DPDPA Consent Fields
     consent_granted = models.BooleanField(default=False)

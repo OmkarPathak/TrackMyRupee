@@ -2001,6 +2001,11 @@
   /* ── Boot with saved/default language ── */
   document.addEventListener('DOMContentLoaded', function() {
     setLang(currentLang);
+    var params = new URLSearchParams(window.location.search);
+    var tabParam = params.get('tab');
+    if (tabParam) {
+      showPanel('p-' + tabParam);
+    }
   });
 
 </script>

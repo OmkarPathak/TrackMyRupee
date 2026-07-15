@@ -456,6 +456,109 @@
 <!-- Full Report View (Main Dashboard) -->
 <div id="full-report-view">
 
+{% if show_onboarding_checklist %}
+<div id="onboarding-checklist-card" class="card border-0 rounded-4 shadow-sm mb-4 p-3" style="background-color: var(--color-surface, var(--bs-card-bg, #ffffff)); border: 1.5px solid var(--border-color, var(--bs-border-color, rgba(26,26,24,0.1))) !important; transition: all 0.3s ease;">
+    <!-- Checklist Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2" style="border-bottom: 1px solid var(--border-color, rgba(26,26,24,0.08));">
+        <div class="d-flex align-items-center gap-2">
+            <h6 class="fw-bold mb-0 d-flex align-items-center gap-2" style="color: var(--color-text, var(--ink, #1a1a18)); font-size: 0.9rem;">
+                <i class="bi bi-patch-check-fill text-primary"></i>
+                {% trans "Your setup is" %} {{ onboarding_checklist_completed_count }} {% trans "of 6 complete" %}
+            </h6>
+            <div class="progress rounded-pill d-none d-sm-block" style="height: 5px; width: 100px; background-color: var(--border-color, rgba(0,0,0,0.1));">
+                <div class="progress-bar progress-bar-primary rounded-pill" role="progressbar" style="width: {% widthratio onboarding_checklist_completed_count 6 100 %}%; background: var(--color-primary, #1D9E75);"></div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'tutorial' %}" class="text-primary text-decoration-none fw-bold small">
+                {% trans "Read complete guide" %} &rarr;
+            </a>
+            <button type="button" class="btn btn-sm btn-link text-muted text-decoration-none p-0 border-0 small" onclick="dismissOnboardingChecklist()">
+                {% trans "Dismiss" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Compact List Items -->
+    <div class="d-flex flex-wrap align-items-center gap-x-4 gap-y-2" style="column-gap: 20px;">
+        {% for item in onboarding_checklist_items %}
+        <div class="d-flex align-items-center gap-2 small text-nowrap">
+            {% if item.done %}
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 0.9rem;"></i>
+                <span class="text-muted text-decoration-line-through">{{ item.label }}</span>
+            {% else %}
+                <i class="bi bi-circle text-muted" style="font-size: 0.9rem;"></i>
+                <a href="{{ item.url }}" class="text-decoration-none text-primary fw-bold">{{ item.label }} &rarr;</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function dismissOnboardingChecklist() {
+        fetch("{% url 'onboarding' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ step: "dismiss_checklist" })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const card = document.getElementById("onboarding-checklist-card");
+                if (card) {
+                    card.style.opacity = "0";
+                    card.style.transform = "translateY(-10px)";
+                    setTimeout(() => card.remove(), 300);
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
+
+{% if onboarding_checklist_completed_count == 6 and not user.profile.dismissed_onboarding_checklist %}
+<div id="onboarding-success-card" class="card border-0 rounded-4 overflow-hidden shadow-sm mb-4 bg-success bg-opacity-10 text-success p-4 d-flex justify-content-between align-items-center flex-md-row gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <span class="fs-1">🏆</span>
+        <div>
+            <h5 class="fw-bold mb-1">{% trans "You've set up the basics!" %}</h5>
+            <p class="mb-0 small text-muted">{% trans "Want to explore everything TrackMyRupee can do?" %}</p>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'tutorial' %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">{% trans "View full tutorial" %} &rarr;</a>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="dismissOnboardingSuccess()">{% trans "Got it" %}</button>
+    </div>
+</div>
+<script>
+    function dismissOnboardingSuccess() {
+        fetch("{% url 'onboarding' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ step: "dismiss_checklist" })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const card = document.getElementById("onboarding-success-card");
+                if (card) {
+                    card.style.opacity = "0";
+                    card.style.transform = "translateY(-10px)";
+                    setTimeout(() => card.remove(), 300);
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
+
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-1 gap-3 fade-in" style="position: relative; z-index: 100;">
     <!-- Mobile Header (One Line) -->
     <div class="d-flex d-md-none justify-content-between align-items-center w-100">
@@ -1810,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 stroke-width="12"
                                 stroke-dasharray="{{ item.arc_length|floatformat:2 }} 282.74"
                                 stroke-dashoffset="-{{ item.offset_length|floatformat:2 }}"
-                                style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#F59E0B{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#378ADD{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#9E9D9A{% endif %}; cursor: pointer;"/>
+                                style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#06B6D4{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#3B82F6{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#6366F1{% endif %}; cursor: pointer;"/>
                         </a>
                         {% endfor %}
                     </svg>
@@ -1827,7 +1930,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active"
                                class="progress-bar {% if not forloop.last %}border-end border-white border-opacity-25{% endif %} text-decoration-none"
                                role="progressbar"
-                               style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#F59E0B{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#378ADD{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#9E9D9A{% endif %}; cursor: pointer;"
+                               style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#06B6D4{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#3B82F6{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#6366F1{% endif %}; cursor: pointer;"
                                aria-valuenow="{{ item.percent }}"
                                aria-valuemin="0"
                                aria-valuemax="100">
@@ -1842,7 +1945,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% for item in asset_allocation %}
                         <div class="col-6">
                             <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="d-flex align-items-start gap-2 text-decoration-none text-reset">
-                                <span class="rounded-circle d-inline-block mt-1" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#F59E0B{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#378ADD{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#9E9D9A{% endif %}; flex-shrink: 0;"></span>
+                                <span class="rounded-circle d-inline-block mt-1" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#06B6D4{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#3B82F6{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#6366F1{% endif %}; flex-shrink: 0;"></span>
                                 <div>
                                     <div class="small text-body-emphasis lh-sm fw-bold allocation-legend-label">{{ item.type }}</div>
                                     <div class="text-body-emphasis fs-4 lh-1 mt-1 allocation-legend-value">{{ item.percent|translate_digits }}%</div>
@@ -1859,7 +1962,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {% for item in asset_allocation %}
                     <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="text-center px-1 text-decoration-none text-reset allocation-type-link">
                         <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
-                            <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#F59E0B{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#378ADD{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#9E9D9A{% endif %};"></span>
+                            <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}#1D9E75{% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}#06B6D4{% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}#3B82F6{% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}#EF4444{% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}#DC2626{% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}#8B5CF6{% else %}#6366F1{% endif %};"></span>
                             <span class="text-muted allocation-legend-label">{{ item.type }}</span>
                         </div>
                         <div class="allocation-legend-value">{{ item.percent|translate_digits }}% <span class="text-muted small opacity-50">({{ currency_symbol }}{{ item.total|humanize_currency:currency_symbol|translate_digits }})</span></div>
