@@ -512,6 +512,30 @@
                 </select>
             </div>
 
+            <!-- Payment Method -->
+            <div class="col-6 col-md">
+                <label for="payment-method-select" class="form-label small text-muted">{% trans "Payment Method" %}</label>
+                <select name="payment_method" id="payment-method-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Payment methods...' %}">
+                    {% for value, label in payment_methods %}
+                        <option value="{{ value }}" {% if value in selected_payment_methods %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Account -->
+            <div class="col-6 col-md">
+                <label for="account-select" class="form-label small text-muted">{% trans "Account" %}</label>
+                <select name="account" id="account-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Accounts...' %}">
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}" {% if account.id|stringformat:"s" in selected_accounts %}selected{% endif %}>
+                            {{ account.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
         </div> <!-- End of inputs row -->
 
         <!-- Action Buttons Row (Ensures wrapping and prevents overflow) -->
@@ -1009,7 +1033,7 @@
                     </div>
                     <h3 class="fw-bold text-body-emphasis mb-2">{% trans "No Expenses Found" %}</h3>
                     <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">
-                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month %}
+                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month or request.GET.payment_method or request.GET.account %}
                             {% trans "We couldn't find any expenses matching your filters. Try adjusting your search criteria." %}
                         {% else %}
                             {% trans "You haven't added any expenses yet. Start tracking your spending to get insights into your finances!" %}
@@ -1019,7 +1043,7 @@
                         <a href="{% url 'expense-create' %}" class="btn btn-primary fw-bold px-4 rounded-pill text-nowrap">
                             <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
                         </a>
-                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month %}
+                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month or request.GET.payment_method or request.GET.account %}
                             <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary fw-bold px-4 rounded-pill text-nowrap">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Clear Filters" %}
                             </a>
