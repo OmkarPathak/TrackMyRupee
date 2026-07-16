@@ -7,6 +7,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.management import call_command
+from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext as _
@@ -282,6 +283,10 @@ class FeaturesPageView(TemplateView):
                 'description': 'Understand your spending patterns with AI-powered analytics.',
                 'items': [
                     {
+                        'title': 'Beautiful Bento Dashboard',
+                        'desc': 'Your financial life summarized in a modern, glanceable bento grid. Everything from net worth to monthly cash flow in one stunning view.'
+                    },
+                    {
                         'title': 'Spot spending leaks before they become habits',
                         'desc': 'AI categorises your trends and shows exactly which buckets are growing month over month.'
                     },
@@ -331,6 +336,10 @@ class FeaturesPageView(TemplateView):
                         'title': 'Balanced Double-Entry Ledger',
                         'desc': 'Bank-grade accounting. Every transaction is recorded twice to ensure data integrity. Auto-reconciliation detects discrepancies and keeps your records spotless.'
                     },
+                    {
+                        'title': 'Extended Account Types',
+                        'desc': 'Track Savings, Cash, Credit Cards, Loans, and Investments independently. Includes manual valuation updates for hard-to-track assets like real estate.'
+                    }
                 ]
             },
             {
@@ -338,6 +347,10 @@ class FeaturesPageView(TemplateView):
                 'title': 'Global & Mobile',
                 'description': 'Works everywhere, feels natural in your language.',
                 'items': [
+                    {
+                        'title': 'Advanced Transaction Filters',
+                        'desc': 'Find any transaction instantly. Sift through your ledger by custom date ranges, multiple categories, specific accounts, and payment methods.'
+                    },
                     {
                         'title': 'Track in your own language',
                         'desc': 'Fully translated in English, Hindi, and Marathi - finance that feels natural to read.'
@@ -348,7 +361,7 @@ class FeaturesPageView(TemplateView):
                     },
                     {
                         'title': 'Feels like an app. No install required.',
-                        'desc': 'Add to your home screen as a PWA on Android or iPhone. Works offline. Launches in under 2 seconds.'
+                        'desc': 'Save it to your home screen (PWA). Works offline for reading, feels as fast as a native app, takes 0MB storage.'
                     },
                     {
                         'title': 'Year in Review & Monthly Reports',
@@ -388,24 +401,44 @@ def demo_login(request):
     """
     list(messages.get_messages(request))
 
+    def setup_demo_user_serialized():
+        """Serialize demo setup across workers to avoid deadlocks during heavy reseeding."""
+        if connection.vendor == 'postgresql':
+            lock_key = 840202607  # Stable advisory lock key for demo setup.
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT pg_advisory_lock(%s)", [lock_key])
+            try:
+                call_command('setup_demo_user')
+            finally:
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT pg_advisory_unlock(%s)", [lock_key])
+        else:
+            call_command('setup_demo_user')
+
     try:
         user = User.objects.get(username='demo')
-        last_expense = Expense.objects.filter(user=user).order_by('-date').first()
-        is_stale = False
-        
-        if not last_expense:
-            is_stale = True
-        else:
-            today = date.today()
-            if last_expense.date.month != today.month or last_expense.date.year != today.year:
-                is_stale = True
+        today = date.today()
+
+        # With future demo data, last_expense may be in a future month; check current-month data instead.
+        has_current_month_expense = Expense.objects.filter(
+            user=user,
+            date__year=today.year,
+            date__month=today.month,
+        ).exists()
+        has_current_month_income = Income.objects.filter(
+            user=user,
+            date__year=today.year,
+            date__month=today.month,
+        ).exists()
+
+        is_stale = not (has_current_month_expense and has_current_month_income)
         
         if is_stale:
-            call_command('setup_demo_user')
+            setup_demo_user_serialized()
             user = User.objects.get(username='demo')
 
     except User.DoesNotExist:
-        call_command('setup_demo_user')
+        setup_demo_user_serialized()
         user = User.objects.get(username='demo')
 
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
