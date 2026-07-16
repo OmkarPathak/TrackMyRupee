@@ -708,6 +708,7 @@
     </div>
 
     <!-- PWA Install Prompt Banner -->
+    {% if request.user.username != 'demo' %}
     <div id="installAppContainer"
         class="position-fixed bottom-0 start-50 translate-middle-x mb-4 p-3 bg-body rounded shadow-lg border"
         style="display: none; z-index: 10000; width: 90%; max-width: 400px;">
@@ -725,6 +726,7 @@
             <button type="button" class="btn-close" onclick="dismissPWAInstall()"></button>
         </div>
     </div>
+    {% endif %}
 
     <!-- PWA Install Logic -->
     <script>

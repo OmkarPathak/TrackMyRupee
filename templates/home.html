@@ -1250,7 +1250,7 @@
 </div>
 
 <!-- Year in Review Banner -->
-{% if show_year_in_review %}
+{% if show_year_in_review and user.username != 'demo' %}
 <div id="yir-banner-container" style="display: none;">
     <div class="alert alert-primary border-0 shadow-sm d-flex flex-column flex-sm-row align-items-sm-center justify-content-between fade-in mb-4 gap-3 position-relative pe-5" role="alert" style="background-color: rgba(29, 158, 117, 0.06);">
         
