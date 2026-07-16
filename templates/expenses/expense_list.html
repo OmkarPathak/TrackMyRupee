@@ -36,6 +36,10 @@
         .table-responsive table {
             min-width: 700px;
         }
+
+        #desktopHeaderBulkActions {
+            display: none !important;
+        }
     }
 
     /* Selection mode: smooth transitions for checkboxes on mobile */
@@ -194,6 +198,46 @@
         width: 36px;
         padding: 0;
         color: var(--bs-secondary);
+    }
+    .header-icon-btn {
+        width: 36px;
+        padding: 0;
+        color: var(--bs-secondary);
+        background: transparent;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 8px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .header-icon-btn:hover {
+        opacity: 0.9;
+    }
+    .header-icon-btn.delete {
+        color: var(--bs-danger);
+        border-color: rgba(var(--bs-danger-rgb), 0.4);
+    }
+    .header-icon-btn.bulk-edit-btn:disabled,
+    .header-icon-btn.bulk-delete-btn:disabled {
+        color: var(--bs-secondary-color);
+        border-color: var(--bs-border-color);
+        background-color: var(--bs-tertiary-bg);
+        opacity: 0.55;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    .header-icon-btn.bulk-edit-btn:not(:disabled) {
+        color: var(--bs-primary);
+        border-color: rgba(var(--bs-primary-rgb), 0.4);
+        background-color: rgba(var(--bs-primary-rgb), 0.08);
+    }
+    .header-icon-btn.bulk-delete-btn:not(:disabled) {
+        color: var(--bs-danger);
+        border-color: rgba(var(--bs-danger-rgb), 0.45);
+        background-color: rgba(var(--bs-danger-rgb), 0.08);
     }
     .header-action-btn {
         padding: 0 0.75rem;
@@ -438,14 +482,26 @@
                 <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
                 </button>
+                <div id="desktopHeaderBulkActions" class="d-md-flex align-items-center gap-2">
+                    <span id="bulkEditTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one expense to edit' %}">
+                        <button type="button" class="header-icon-btn bulk-edit-btn" id="bulkEditBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal" aria-label="{% trans 'Edit Selected' %}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </span>
+                    <span id="bulkDeleteTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one expense to delete' %}">
+                        <button type="button" class="header-icon-btn delete bulk-delete-btn" id="bulkDeleteBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal" aria-label="{% trans 'Delete Selected' %}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </span>
+                </div>
+                {% if request.user.profile.can_export_csv %}
+                <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-icon-btn no-loader" title="{% trans 'Export' %}">
+                    <i class="bi bi-download"></i>
+                </a>
+                {% endif %}
                 <a href="{% url 'expense-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
                     <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
                 </a>
-                {% if request.user.profile.can_export_csv %}
-                <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-action-btn btn-outline-success d-inline-flex align-items-center no-loader">
-                    <i class="bi bi-download me-1"></i> {% trans "Export" %}
-                </a>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -550,14 +606,6 @@
                 </a>
 
                 <div class="vr mx-1 d-none d-md-block opacity-25"></div>
-
-                <!-- Bulk Actions (Desktop) -->
-                <button type="button" class="btn btn-outline-primary btn-sm bulk-edit-btn d-none d-md-inline-block" id="bulkEditBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal">
-                    <i class="bi bi-pencil me-1"></i> {% trans "Edit Selected" %}
-                </button>
-                <button type="button" class="btn btn-outline-danger btn-sm bulk-delete-btn d-none d-md-inline-block" id="bulkDeleteBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                    <i class="bi bi-trash me-1"></i> {% trans "Delete Selected" %}
-                </button>
             </div>
         </div>
     </form>
@@ -600,6 +648,19 @@
             const bulkDeleteBtns = document.querySelectorAll('.bulk-delete-btn');
             const bulkEditBtns = document.querySelectorAll('.bulk-edit-btn');
             const mobileBulkActions = document.getElementById('mobileBulkActions');
+            const desktopHeaderBulkActions = document.getElementById('desktopHeaderBulkActions');
+            const bulkEditTooltipWrap = document.getElementById('bulkEditTooltipWrap');
+            const bulkDeleteTooltipWrap = document.getElementById('bulkDeleteTooltipWrap');
+
+            function updateTooltipMessage(el, message) {
+                if (!el) return;
+                el.setAttribute('title', message);
+                el.setAttribute('data-bs-original-title', message);
+                const instance = bootstrap.Tooltip.getInstance(el);
+                if (instance) {
+                    instance.setContent({ '.tooltip-inner': message });
+                }
+            }
 
             function updateBulkButtonsState() {
                 const anyChecked = Array.from(expenseCheckboxes).some(cb => cb.checked);
@@ -618,6 +679,23 @@
                         mobileBulkActions.classList.remove('d-flex');
                     }
                 }
+
+                if (desktopHeaderBulkActions) {
+                    desktopHeaderBulkActions.classList.remove('d-none');
+                }
+
+                updateTooltipMessage(
+                    bulkEditTooltipWrap,
+                    anyChecked
+                        ? "{% trans 'Edit selected expenses' %}"
+                        : "{% trans 'Select at least one expense to edit' %}"
+                );
+                updateTooltipMessage(
+                    bulkDeleteTooltipWrap,
+                    anyChecked
+                        ? "{% trans 'Delete selected expenses' %}"
+                        : "{% trans 'Select at least one expense to delete' %}"
+                );
             }
 
             function handleSelectAll(e) {
