@@ -20,7 +20,8 @@ class DemoReadOnlyMiddleware:
                 whitelisted_paths = [
                     reverse('account_logout'),
                     reverse('parse-expense'),
-                    reverse('predict-category')
+                    reverse('predict-category'),
+                    reverse('onboarding')
                 ]
                 if request.path in whitelisted_paths:
                     return self.get_response(request)

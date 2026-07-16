@@ -1,5 +1,5 @@
 {% load i18n %}
-<div id="cookie-consent-banner" class="fixed-bottom bg-dark text-white p-3 shadow-lg d-none" style="z-index: 9999; border-top: 1px solid rgba(255,255,255,0.1);">
+<div id="cookie-consent-banner" class="fixed-bottom bg-dark text-white p-3 shadow-lg d-none" style="z-index: 9999; border-top: 1px solid rgba(255,255,255,0.1);" data-is-demo="{% if request.user.is_authenticated and request.user.username == 'demo' %}true{% else %}false{% endif %}">
     <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
         <div class="text-center text-md-start">
             <p class="mb-0 small">
@@ -19,9 +19,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         const consent = localStorage.getItem('cookieConsent');
         const banner = document.getElementById('cookie-consent-banner');
+        const isDemo = banner && banner.dataset.isDemo === 'true';
         
-        // Show banner if no choice made
-        if (!consent) {
+        // Show banner if no choice made and not in demo mode
+        if (!consent && !isDemo) {
             banner.classList.remove('d-none');
         }
 
