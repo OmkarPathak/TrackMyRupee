@@ -36,8 +36,17 @@ from .models import (
 )
 
 
+class DemoExcludeMixin:
+    """
+    Mixin for ModelAdmin classes that have a direct 'user' FK.
+    Excludes all records belonging to the demo account from the admin list.
+    """
+    def get_queryset(self, request):
+        return super().get_queryset(request).exclude(user__username='demo')
+
+
 @admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
+class NotificationAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('title', 'user', 'is_read', 'created_at', 'related_transaction')
     list_select_related = ('user', 'related_transaction')
     list_filter = ('is_read', 'created_at', 'user')
@@ -45,7 +54,7 @@ class NotificationAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
 @admin.register(EmailLog)
-class EmailLogAdmin(admin.ModelAdmin):
+class EmailLogAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('to_email', 'subject', 'user', 'sent_at', 'status')
     list_select_related = ('user',)
     list_filter = ('sent_at', 'status')
@@ -54,7 +63,7 @@ class EmailLogAdmin(admin.ModelAdmin):
     ordering = ('-sent_at',)
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('name', 'limit', 'user')
     list_select_related = ('user',)
     list_filter = ('user',)
@@ -62,7 +71,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(Expense)
-class ExpenseAdmin(admin.ModelAdmin):
+class ExpenseAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('date', 'description', 'category', 'amount', 'user')
     list_select_related = ('user',)
     list_filter = ('date', 'user', 'category')
@@ -70,7 +79,7 @@ class ExpenseAdmin(admin.ModelAdmin):
     ordering = ('-date',)
 
 @admin.register(Income)
-class IncomeAdmin(admin.ModelAdmin):
+class IncomeAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('date', 'source', 'amount', 'user')
     list_select_related = ('user',)
     list_filter = ('date', 'user', 'source')
@@ -78,14 +87,14 @@ class IncomeAdmin(admin.ModelAdmin):
     ordering = ('-date',)
 
 @admin.register(RecurringTransaction)
-class RecurringTransactionAdmin(admin.ModelAdmin):
+class RecurringTransactionAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('description', 'transaction_type', 'amount', 'frequency', 'next_due_date', 'user', 'is_active')
     list_select_related = ('user',)
     list_filter = ('transaction_type', 'frequency', 'is_active', 'user')
     search_fields = ('description', 'user__username')
 
 @admin.register(Account)
-class AccountAdmin(admin.ModelAdmin):
+class AccountAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('name', 'account_type', 'balance', 'currency', 'linked_loan', 'linked_physical_asset', 'is_active', 'user')
     list_select_related = ('user', 'linked_loan', 'linked_physical_asset')
     list_filter = ('account_type', 'currency', 'is_active', 'user')
@@ -93,7 +102,7 @@ class AccountAdmin(admin.ModelAdmin):
     raw_id_fields = ('linked_loan', 'linked_physical_asset')
 
 @admin.register(Transfer)
-class TransferAdmin(admin.ModelAdmin):
+class TransferAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('date', 'from_account', 'to_account', 'amount', 'user')
     list_select_related = ('user', 'from_account', 'to_account')
     list_filter = ('date', 'from_account', 'to_account', 'user')
@@ -102,7 +111,7 @@ class TransferAdmin(admin.ModelAdmin):
 
 
 @admin.register(LedgerAccount)
-class LedgerAccountAdmin(admin.ModelAdmin):
+class LedgerAccountAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('code', 'name', 'account_type', 'currency', 'user', 'is_active')
     list_select_related = ('user',)
     list_filter = ('account_type', 'currency', 'is_active')
@@ -110,7 +119,7 @@ class LedgerAccountAdmin(admin.ModelAdmin):
 
 
 @admin.register(JournalEntry)
-class JournalEntryAdmin(admin.ModelAdmin):
+class JournalEntryAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('id', 'source_type', 'source_id', 'user', 'status', 'posted_at')
     list_select_related = ('user',)
     list_filter = ('source_type', 'status', 'posted_at')
@@ -143,7 +152,7 @@ class LedgerReconciliationReportAdmin(admin.ModelAdmin):
     ordering = ('-as_of_date', '-created_at')
 
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('user', 'tier', 'subscription_end_date', 'cancel_at_cycle_end', 'subscription_expired', 'is_lifetime', 'is_pro', 'razorpay_subscription_id', 'email_verified')
     list_select_related = ('user',)
     list_filter = ('tier', 'cancel_at_cycle_end', 'is_lifetime')
@@ -162,7 +171,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     subscription_expired.boolean = True
     
 @admin.register(PaymentHistory)
-class PaymentHistoryAdmin(admin.ModelAdmin):
+class PaymentHistoryAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('user', 'amount', 'tier', 'status', 'created_at', 'subscription_end_date')
     list_select_related = ('user', 'user__profile')
     list_filter = ('status', 'tier', 'created_at')
@@ -195,7 +204,7 @@ class LoanRepaymentInline(admin.TabularInline):
 
 
 @admin.register(Loan)
-class LoanAdmin(admin.ModelAdmin):
+class LoanAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('name', 'loan_type', 'initial_principal', 'currency', 'duration_months', 'start_date', 'is_active', 'user')
     list_select_related = ('user',)
     list_filter = ('loan_type', 'currency', 'is_active', 'start_date')
@@ -229,6 +238,9 @@ class UserAdmin(BaseUserAdmin):
     inlines = (EmailAddressInline,)
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'last_login', 'date_joined')
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).exclude(username='demo')
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
@@ -243,7 +255,7 @@ class DeletionRequestAuditLogAdmin(admin.ModelAdmin):
 
 
 @admin.register(CapitalEvent)
-class CapitalEventAdmin(admin.ModelAdmin):
+class CapitalEventAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('date', 'get_subtype_display', 'amount', 'currency', 'linked_loan', 'exclude_from_averages', 'exclude_from_budget', 'user')
     list_select_related = ('user', 'account', 'linked_loan')
     list_filter = ('subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth', 'date')
@@ -252,7 +264,7 @@ class CapitalEventAdmin(admin.ModelAdmin):
     raw_id_fields = ('linked_loan',)
 
 @admin.register(NetWorthSnapshot)
-class NetWorthSnapshotAdmin(admin.ModelAdmin):
+class NetWorthSnapshotAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('user', 'as_of_date', 'total_net_worth', 'total_assets', 'total_liabilities', 'created_at')
     list_select_related = ('user',)
     list_filter = ('as_of_date',)
@@ -286,7 +298,7 @@ class ConsentEventAdmin(admin.ModelAdmin):
     list_filter = ('purpose', 'action', 'timestamp')
 
 @admin.register(SavingsGoal)
-class SavingsGoalAdmin(admin.ModelAdmin):
+class SavingsGoalAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('user', 'name', 'target_amount', 'current_amount', 'target_date')
     search_fields = ('name', 'user__username')
 
