@@ -2177,6 +2177,31 @@ def home_view(request):
     mobile_spent = Decimal(str(total_expenses)) + excluded_capital_events_total
     mobile_remaining = Decimal(str(total_income)) - mobile_spent - Decimal(str(total_investments))
 
+    # Optimization: Calculate bento invested data in a single query instead of N+1
+    if net_worth_history:
+        start_date = net_worth_history[0]['month'].replace(day=1)
+        investments_grouped = Transfer.objects.filter(
+            user=request.user,
+            to_account__account_type__in=list(investment_codes()),
+            date__gte=start_date
+        ).annotate(
+            month_group=TruncMonth('date')
+        ).values('month_group').annotate(
+            total=Sum('converted_amount')
+        ).order_by('month_group')
+        
+        investments_by_month = {
+            item['month_group'].strftime('%Y-%m') if item['month_group'] else '': item['total'] or Decimal('0.00')
+            for item in investments_grouped
+        }
+        
+        bento_invested_data_list = [
+            float(investments_by_month.get(m['month'].strftime('%Y-%m'), 0))
+            for m in net_worth_history
+        ]
+    else:
+        bento_invested_data_list = []
+
     context = {
         'show_onboarding_checklist': show_onboarding_checklist,
         'onboarding_checklist_completed_count': completed_count,
@@ -2228,16 +2253,7 @@ def home_view(request):
         # New Context
         'bento_income_data': [m['income'] for m in net_worth_history],
         'bento_income_labels': [date_format(m['month'], 'M Y') for m in net_worth_history],
-        'bento_invested_data': [
-            float((
-                Transfer.objects.filter(
-                    user=request.user,
-                    to_account__account_type__in=list(investment_codes()),
-                    date__year=m['month'].year,
-                    date__month=m['month'].month
-                ).aggregate(total=Sum('converted_amount'))['total'] or Decimal('0.00')
-            )) for m in net_worth_history
-        ],
+        'bento_invested_data': bento_invested_data_list,
         'bento_invested_labels': [date_format(m['month'], 'M Y') for m in net_worth_history],
         'ie_labels': ie_labels,
         'ie_income_data': ie_income_data,
