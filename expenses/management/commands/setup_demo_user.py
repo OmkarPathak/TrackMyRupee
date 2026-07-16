@@ -50,34 +50,43 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         username = 'demo'
         
-        # 1. Reset User
+        # 1. Reset demo data (without deleting user to avoid protected FK issues)
         user_qs = User.objects.filter(username=username)
         if user_qs.exists():
-            u = user_qs.first()
-            # Explicitly delete objects in reverse dependency order in order to avoid IntegrityErrors 
-            # with complex constraints. We wrap this in an atomic transaction so partial state is not left.
-            
+            user = user_qs.first()
+
             with transaction.atomic():
-                # Manually delete all items in reverse dependency graph
-                exp_models.GoalContribution.objects.filter(goal__user=u).delete()
-                exp_models.SavingsGoal.objects.filter(user=u).delete()
-                exp_models.Transfer.objects.filter(user=u).delete()
-                exp_models.Expense.objects.filter(user=u).delete()
-                exp_models.Income.objects.filter(user=u).delete()
-                exp_models.LoanRepayment.objects.filter(loan__user=u).delete()
-                exp_models.LoanInterestRate.objects.filter(loan__user=u).delete()
-                exp_models.CapitalEvent.objects.filter(user=u).delete()
-                exp_models.Loan.objects.filter(user=u).delete()
-                exp_models.LedgerReconciliationReport.objects.filter(user=u).delete()
-                exp_models.JournalEntry.objects.filter(user=u).delete()
-                exp_models.RecurringTransaction.objects.filter(user=u).delete()
-                exp_models.Account.objects.filter(user=u).delete()
-                exp_models.Category.objects.filter(user=u).delete()
-                
-                # Finally delete the user itself
-                u.delete()
-            
-        user = User.objects.create_user(username=username, email='demo@example.com', password='demo_password_123')
+                # Manually delete all items in reverse dependency graph.
+                exp_models.GoalContribution.objects.filter(goal__user=user).delete()
+                exp_models.SavingsGoal.objects.filter(user=user).delete()
+                exp_models.Transfer.objects.filter(user=user).delete()
+                exp_models.Expense.objects.filter(user=user).delete()
+                exp_models.Income.objects.filter(user=user).delete()
+                exp_models.LoanRepayment.objects.filter(loan__user=user).delete()
+                exp_models.LoanInterestRate.objects.filter(loan__user=user).delete()
+                exp_models.CapitalEvent.objects.filter(user=user).delete()
+                exp_models.Loan.objects.filter(user=user).delete()
+                exp_models.RecurringTransaction.objects.filter(user=user).delete()
+                exp_models.Notification.objects.filter(user=user).delete()
+                exp_models.NetWorthSnapshot.objects.filter(user=user).delete()
+                exp_models.ConsentEvent.objects.filter(user=user).delete()
+                exp_models.FinancialAuditLog.objects.filter(user=user).delete()
+                exp_models.LedgerReconciliationReport.objects.filter(user=user).delete()
+
+                # Clear ledger data before touching ledger accounts (PROTECT on JournalLine.ledger_account).
+                exp_models.JournalLine.objects.filter(journal_entry__user=user).delete()
+                exp_models.JournalEntry.objects.filter(user=user).delete()
+                exp_models.LedgerAccount.objects.filter(user=user).delete()
+
+                exp_models.Account.objects.filter(user=user).delete()
+                exp_models.Category.objects.filter(user=user).delete()
+
+            # Keep the same user row for stability in demo login flow.
+            user.email = 'demo@example.com'
+            user.set_password('demo_password_123')
+            user.save(update_fields=['email', 'password'])
+        else:
+            user = User.objects.create_user(username=username, email='demo@example.com', password='demo_password_123')
         
         # Setup Profile as PRO
         profile, created = UserProfile.objects.get_or_create(user=user)
