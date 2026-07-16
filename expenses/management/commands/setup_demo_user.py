@@ -74,7 +74,9 @@ class Command(BaseCommand):
                 exp_models.LedgerReconciliationReport.objects.filter(user=user).delete()
 
                 # Clear ledger data before touching ledger accounts (PROTECT on JournalLine.ledger_account).
+                # Delete by both journal owner and ledger-account owner to catch all demo-linked rows.
                 exp_models.JournalLine.objects.filter(journal_entry__user=user).delete()
+                exp_models.JournalLine.objects.filter(ledger_account__user=user).delete()
                 exp_models.JournalEntry.objects.filter(user=user).delete()
                 exp_models.LedgerAccount.objects.filter(user=user).delete()
 
