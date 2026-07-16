@@ -70,13 +70,13 @@
         <div class="collapse navbar-collapse" id="navbarContent">
             {% if user.is_authenticated %}
                 <!-- Desktop Greeting -->
-                <div class="d-none d-lg-flex align-items-center gap-2 py-2 px-3 rounded-pill navbar-greeting-pill me-auto">
+                <div class="d-none d-lg-flex align-items-center gap-2 py-2 px-3 rounded-pill me-auto">
                     <span class="text-body-secondary small">{{ personalized_greeting }},</span>
                     <span class="fw-bold text-body" style="font-size: 0.95rem;">{{ greeting_user_name }}</span>
-                    {% if month_progress_encouragement %}
+                    <!-- {% if month_progress_encouragement %}
                         <span class="mx-2 text-body-tertiary">|</span>
                         <span class="text-success small fw-medium">{{ month_progress_encouragement }}</span>
-                    {% endif %}
+                    {% endif %} -->
                 </div>
             {% endif %}
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
