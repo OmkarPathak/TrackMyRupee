@@ -15,10 +15,6 @@ python manage.py collectstatic --noinput
 echo "Compiling translation messages..."
 python manage.py compilemessages
 
-# Setup Demo User
-echo "Setting up Demo User..."
-python manage.py setup_demo_user
-
 # Execute the passed command (e.g., runserver)
 echo "Starting application..."
 exec "$@"

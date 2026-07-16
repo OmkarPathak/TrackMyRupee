@@ -8,6 +8,7 @@ from django.db import transaction
 from django.db.models import Sum
 
 import expenses.models as exp_models
+from expenses.ledger_read_service import LedgerReadService
 from expenses.models import (
     Account,
     CapitalEvent,
@@ -153,16 +154,22 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Created Rich Categories'))
 
-        # 3. Time Windows (Last 3 months)
+        # 3. Time Windows (Last 6 months + Next 6 months)
         today = date.today()
-        three_months_ago = (today.replace(day=1) - timedelta(days=125)).replace(day=1) 
+        current_month_start = today.replace(day=1)
+        window_start = (current_month_start - timedelta(days=183)).replace(day=1)
+        first_of_next_month = self._next_month_start(current_month_start)
+        window_end_exclusive = first_of_next_month
+        for _ in range(6):
+            window_end_exclusive = self._next_month_start(window_end_exclusive)
+        window_end = window_end_exclusive - timedelta(days=1)
 
         # 3.1 Seed opening balance through an Income (ledger-backed) instead of direct account balance.
         Income.objects.create(
             user=user,
             source='Opening Balance',
-            amount=Decimal('950000.00'),
-            date=three_months_ago - timedelta(days=1),
+            amount=Decimal('1500000.00'),
+            date=window_start - timedelta(days=1),
             description='Demo seed corpus',
             account=acc_main,
         )
@@ -173,12 +180,12 @@ class Command(BaseCommand):
             {'source': '🚀 Freelance Gig', 'amount': 10000, 'day': 20},
         ]
 
-        # Generate income for past 3 months
-        curr_month = three_months_ago
-        while curr_month <= today:
+        # Generate income for last 6 months + next 6 months window
+        curr_month = window_start
+        while curr_month <= window_end:
             for inc in income_sources:
                 inc_date = curr_month.replace(day=inc['day'])
-                if inc_date <= today:
+                if window_start <= inc_date <= window_end:
                     Income.objects.create(
                         user=user,
                         source=inc['source'],
@@ -190,7 +197,7 @@ class Command(BaseCommand):
             # Next Month
             curr_month = self._next_month_start(curr_month)
 
-        self.stdout.write(self.style.SUCCESS('Generated 3-Month Income History'))
+        self.stdout.write(self.style.SUCCESS('Generated 12-Month Income History (past 6 + future 6)'))
 
         # 5. Expenses (Structured but randomized)
         
@@ -213,8 +220,8 @@ class Command(BaseCommand):
             {'amount': 10000, 'freq': 'MONTHLY', 'desc': 'Nifty 50 Index Fund SIP'},
         ]
 
-        curr_date = three_months_ago
-        while curr_date <= today:
+        curr_date = window_start
+        while curr_date <= window_end:
             for pattern in expense_patterns:
                 should_create = False
                 if pattern['freq'] == 'MONTHLY' and curr_date.day == 5:
@@ -371,10 +378,10 @@ class Command(BaseCommand):
                     )
 
         # Monthly ATM Withdrawals
-        curr_month = three_months_ago
-        while curr_month <= today:
+        curr_month = window_start
+        while curr_month <= window_end:
             withdrawal_date = curr_month.replace(day=10)
-            if withdrawal_date <= today:
+            if window_start <= withdrawal_date <= window_end:
                 Transfer.objects.create(
                     user=user,
                     from_account=acc_main,
@@ -429,7 +436,7 @@ class Command(BaseCommand):
 
             for _ in range(months_to_add):
                 payment_date = repayment_month.replace(day=min(day_of_month, 28))
-                if payment_date > today:
+                if payment_date > window_end:
                     break
 
                 monthly_rate = Decimal(str(annual_rate)) / Decimal('12') / Decimal('100')
@@ -453,8 +460,8 @@ class Command(BaseCommand):
                 remaining = (remaining - principal).quantize(Decimal('0.01'))
                 repayment_month = self._next_month_start(repayment_month)
 
-        add_repayments(home_loan, Decimal('9.25'), months_to_add=5, day_of_month=7)
-        add_repayments(personal_loan, Decimal('13.50'), months_to_add=4, day_of_month=12)
+        add_repayments(home_loan, Decimal('9.25'), months_to_add=18, day_of_month=7)
+        add_repayments(personal_loan, Decimal('13.50'), months_to_add=18, day_of_month=12)
 
         self.stdout.write(self.style.SUCCESS('Created demo loans with repayment history'))
 
@@ -468,7 +475,7 @@ class Command(BaseCommand):
             description='Airtel Broadband',
             category='Utilities',
             frequency='MONTHLY',
-            start_date=three_months_ago,
+            start_date=window_start,
             last_processed_date=today - timedelta(days=27),
             payment_method='UPI',
             account=acc_main
@@ -482,8 +489,8 @@ class Command(BaseCommand):
             description='Gold\'s Gym Membership',
             category='Health' if 'Health' in cat_objs else 'Other',
             frequency='MONTHLY',
-            start_date=three_months_ago - timedelta(days=100),
-            last_processed_date=three_months_ago - timedelta(days=10),
+            start_date=window_start - timedelta(days=100),
+            last_processed_date=window_start - timedelta(days=10),
             is_active=False,
             account=acc_main
         )
@@ -496,7 +503,7 @@ class Command(BaseCommand):
             description='Design Consultant Retainer',
             source='🚀 Freelance Gig',
             frequency='MONTHLY',
-            start_date=three_months_ago,
+            start_date=window_start,
             last_processed_date=today - timedelta(days=10),
             account=acc_main
         )
@@ -543,5 +550,21 @@ class Command(BaseCommand):
         )
         
         self.stdout.write(self.style.SUCCESS('Created Capital Events (Excluded from Net Worth)'))
+
+        # 10. Net worth floor: guarantee strictly positive demo net worth.
+        # This protects the live demo from rendering negative net worth due to liabilities.
+        target_floor = Decimal('250000.00')
+        current_net_worth, _ = LedgerReadService.get_net_worth(user)
+        if current_net_worth <= target_floor:
+            top_up = (target_floor - current_net_worth + Decimal('50000.00')).quantize(Decimal('0.01'))
+            Income.objects.create(
+                user=user,
+                source='Net Worth Buffer',
+                amount=top_up,
+                date=today,
+                description='Demo safeguard top-up to keep net worth positive',
+                account=acc_main,
+            )
+            self.stdout.write(self.style.SUCCESS(f'Applied net worth safeguard top-up: {profile.currency}{top_up}'))
 
         self.stdout.write(self.style.SUCCESS('--- DEMO SETUP COMPLETE ---'))
