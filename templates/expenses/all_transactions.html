@@ -96,6 +96,14 @@
         opacity: 0.9;
     }
 
+    .amount-sort-link {
+        color: inherit;
+        gap: 0.35rem;
+    }
+    .amount-sort-link:hover {
+        color: var(--bs-primary);
+    }
+
     .category-icon-container {
         width: 40px;
         height: 40px;
@@ -323,7 +331,24 @@
                                     <th>{% trans "Description" %}</th>
                                     <th>{% trans "Category/Source" %}</th>
                                     <th>{% trans "Account" %}</th>
-                                    <th class="text-end">{% trans "Amount" %}</th>
+                                    <th class="text-end pe-4">
+                                        {% if request.GET.sort == 'amount_asc' %}
+                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" href="?{% url_replace sort='amount_desc' %}">
+                                                <span>{% trans "Amount" %}</span>
+                                                <i class="bi bi-arrow-up-short"></i>
+                                            </a>
+                                        {% elif request.GET.sort == 'amount_desc' %}
+                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" href="?{% url_replace sort='amount_asc' %}">
+                                                <span>{% trans "Amount" %}</span>
+                                                <i class="bi bi-arrow-down-short"></i>
+                                            </a>
+                                        {% else %}
+                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" href="?{% url_replace sort='amount_desc' %}">
+                                                <span>{% trans "Amount" %}</span>
+                                                <i class="bi bi-arrow-down-up text-muted opacity-50"></i>
+                                            </a>
+                                        {% endif %}
+                                    </th>
                                     <th class="text-end pe-4">{% trans "Actions" %}</th>
                                 </tr>
                             </thead>

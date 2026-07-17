@@ -1227,6 +1227,30 @@ class AllTransactionsViewTest(BaseComprehensiveTest):
         self.assertEqual(len(transactions), 1)
         self.assertEqual(transactions[0]['cat'], 'Food')
 
+    def test_all_transactions_amount_sorting(self):
+        """Test sorting the unified transaction table by amount."""
+        tx_date = date.today()
+        Expense.objects.create(
+            user=self.user,
+            amount=300,
+            category='Food',
+            date=tx_date
+        )
+        Expense.objects.create(
+            user=self.user,
+            amount=100,
+            category='Transport',
+            date=tx_date
+        )
+
+        asc_response = self.client.get(reverse('all-transactions'), {'sort': 'amount_asc'})
+        asc_amounts = [tx['unified_amount'] for tx in asc_response.context['transactions']]
+        self.assertEqual(asc_amounts, [Decimal('100.00'), Decimal('300.00')])
+
+        desc_response = self.client.get(reverse('all-transactions'), {'sort': 'amount_desc'})
+        desc_amounts = [tx['unified_amount'] for tx in desc_response.context['transactions']]
+        self.assertEqual(desc_amounts, [Decimal('300.00'), Decimal('100.00')])
+
     def test_all_transactions_cc_balances_and_summary_bar(self):
         """Test summary amounts and CC balance after payment calculations."""
         # 1. Create a Credit Card account
