@@ -176,8 +176,17 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
             for qs in active_qs
         ]
         
-        queryset = normalized_qs[0].union(*normalized_qs[1:]).order_by('-date')
-        
+        queryset = normalized_qs[0].union(*normalized_qs[1:])
+
+        # Apply sorting
+        sort_by = self.request.GET.get('sort', '')
+        if sort_by == 'amount_asc':
+            queryset = queryset.order_by('unified_amount')
+        elif sort_by == 'amount_desc':
+            queryset = queryset.order_by('-unified_amount')
+        else:
+            queryset = queryset.order_by('-date')
+
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -419,6 +428,7 @@ class AllTransactionsListView(LoginRequiredMixin, ListView):
         context['search_query'] = search_query or ''
         context['start_date'] = start_date or ''
         context['end_date'] = end_date or ''
+        context['current_sort'] = self.request.GET.get('sort', '')
 
         # Month Navigation Logic
         display_year = None
