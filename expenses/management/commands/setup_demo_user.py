@@ -106,28 +106,28 @@ class Command(BaseCommand):
         acc_main = Account.objects.create(
             user=user, 
             name="HDFC Bank (Main)", 
-            account_type='BANK', 
+            account_type='SAVINGS_ACCOUNT', 
             balance=Decimal('0.00'), 
             currency='₹'
         )
         acc_savings = Account.objects.create(
             user=user, 
             name="SBI Savings", 
-            account_type='BANK', 
+            account_type='SAVINGS_ACCOUNT', 
             balance=Decimal('0.00'), 
             currency='₹'
         )
         acc_cash = Account.objects.create(
             user=user, 
             name="Cash Wallet", 
-            account_type='CASH', 
+            account_type='CASH_WALLET', 
             balance=Decimal('0.00'), 
             currency='₹'
         )
         acc_invest = Account.objects.create(
             user=user, 
             name="Zerodha Demat", 
-            account_type='INVESTMENT', 
+            account_type='DEMAT', 
             balance=Decimal('0.00'), 
             currency='₹'
         )
