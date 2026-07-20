@@ -1,10 +1,14 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
+from django.http import Http404
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
+from django.views import View
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from expenses.views.utils import get_safe_redirect_url
@@ -19,6 +23,31 @@ class CategoryListView(LoginRequiredMixin, ListView):
     template_name = 'expenses/category_list.html'
     context_object_name = 'categories'
     paginate_by = 10
+
+    def get(self, request, *args, **kwargs):
+        try:
+            return super().get(request, *args, **kwargs)
+        except Http404 as exc:
+            # When records are deleted, requested page can become out of range.
+            if 'Invalid page' not in str(exc):
+                raise
+
+            queryset = self.get_queryset()
+            paginator = Paginator(queryset, self.paginate_by)
+            last_page = paginator.num_pages
+
+            query_params = request.GET.copy()
+            if last_page <= 1:
+                query_params.pop('page', None)
+            else:
+                query_params['page'] = str(last_page)
+
+            target_url = reverse('category-list')
+            encoded = query_params.urlencode()
+            if encoded:
+                target_url = f"{target_url}?{encoded}"
+
+            return redirect(target_url)
 
     def get_queryset(self):
         queryset = Category.objects.filter(user=self.request.user).order_by('name')
@@ -176,3 +205,29 @@ class CategoryDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, _("Category deleted successfully."))
         return super().form_valid(form)
+
+
+class CategoryBulkDeleteView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        category_ids = request.POST.getlist('category_ids')
+        if not category_ids:
+            messages.error(request, _('No categories selected for deletion.'))
+            return redirect(self.get_success_url())
+
+        categories_to_delete = Category.objects.filter(id__in=category_ids, user=request.user)
+        deleted_count = categories_to_delete.count()
+
+        if deleted_count > 0:
+            categories_to_delete.delete()
+            messages.success(request, _('%(count)d categories deleted successfully.') % {'count': deleted_count})
+        else:
+            messages.warning(request, _('No valid categories found to delete.'))
+
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        url = reverse('category-list')
+        query_params = self.request.GET.urlencode()
+        if query_params:
+            return f"{url}?{query_params}"
+        return url

@@ -33,6 +33,7 @@ urlpatterns = [
     path('category/create/ajax/', views.create_category_ajax, name='category-create-ajax'),
     path('category/list/', views.CategoryListView.as_view(), name='category-list'),
     path('category/add/', views.CategoryCreateView.as_view(), name='category-create'),
+    path('category/bulk-delete/', views.CategoryBulkDeleteView.as_view(), name='category-bulk-delete'),
     path('category/<uuid_or_int:pk>/edit/', views.CategoryUpdateView.as_view(), name='category-edit'),
     path('category/<uuid_or_int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category-delete'),
     

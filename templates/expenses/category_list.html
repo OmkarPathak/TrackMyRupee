@@ -3,12 +3,175 @@
 
 {% block settings_content %}
 <div class="fade-in">
-    <div class="pt-1 pb-3 mb-4">
+    <style>
+        .header-icon-btn {
+            width: 36px;
+            padding: 0;
+            color: var(--bs-secondary);
+            background: transparent;
+            border: 1px solid var(--bs-border-color);
+            border-radius: 8px !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .header-icon-btn:hover {
+            opacity: 0.9;
+        }
+        .header-icon-btn.delete {
+            color: var(--bs-danger);
+            border-color: rgba(var(--bs-danger-rgb), 0.4);
+        }
+        .header-icon-btn.bulk-delete-btn:disabled {
+            color: var(--bs-secondary-color);
+            border-color: var(--bs-border-color);
+            background-color: var(--bs-tertiary-bg);
+            opacity: 0.55;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .header-icon-btn.bulk-delete-btn:not(:disabled) {
+            color: var(--bs-danger);
+            border-color: rgba(var(--bs-danger-rgb), 0.45);
+            background-color: rgba(var(--bs-danger-rgb), 0.08);
+        }
+        .category-card {
+            border-radius: 16px !important;
+            border: 1px solid var(--bs-border-color-translucent) !important;
+            background-color: var(--bs-body-bg);
+        }
+        .category-icon-container {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            border-radius: 12px;
+            color: var(--bs-secondary-color);
+            background-color: transparent;
+            transition: all 0.2s ease;
+        }
+        .category-card:hover .category-icon-container {
+            background-color: var(--bs-tertiary-bg);
+            transform: scale(1.08);
+            color: var(--bs-primary);
+        }
+
+        @media (max-width: 767.98px) {
+            .category-list-shell {
+                background: transparent !important;
+                box-shadow: none !important;
+                border: 0 !important;
+            }
+            .category-list-shell > .card-body {
+                padding: 0 !important;
+            }
+            #mobileGridView .form-check {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                width: 0;
+                margin-right: 0 !important;
+                opacity: 0;
+                overflow: hidden;
+                transition: width 0.3s ease, margin-right 0.3s ease, opacity 0.2s ease;
+                padding-left: 0;
+            }
+            #mobileGridView .form-check .form-check-input {
+                margin: 0 !important;
+                flex-shrink: 0;
+            }
+            #mobileGridView.selection-mode .form-check {
+                width: 24px;
+                margin-right: 0.35rem !important;
+                opacity: 1;
+            }
+            #mobileSelectAllRow {
+                overflow: hidden;
+                transition: all 0.3s ease;
+                max-height: 0;
+                opacity: 0;
+                width: 0;
+                white-space: nowrap;
+                display: flex !important;
+                align-items: center;
+            }
+            #mobileGridView.selection-mode #mobileSelectAllRow {
+                max-height: 50px;
+                opacity: 1;
+                width: auto;
+                margin-right: 1rem;
+            }
+            #mobileGridView .category-card .card-body > .mobile-card-inner {
+                display: grid !important;
+                grid-template-columns: 0px 38px minmax(0, 1fr) 85px 30px !important;
+                grid-template-areas: "check icon info limit menu" !important;
+                align-items: center !important;
+                gap: 0 !important;
+                transition: all 0.3s ease;
+            }
+            #mobileGridView.selection-mode .category-card .card-body > .mobile-card-inner {
+                grid-template-columns: 32px 38px minmax(0, 1fr) 85px 30px !important;
+            }
+            #mobileGridView .category-card .form-check {
+                grid-area: check;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: flex !important;
+                justify-content: center;
+            }
+            #mobileGridView .category-card .category-icon-container {
+                grid-area: icon;
+                margin: 0 !important;
+                width: 32px !important;
+                height: 32px !important;
+                justify-self: center;
+            }
+            #mobileGridView .category-card .flex-grow-1 {
+                grid-area: info;
+                margin: 0 !important;
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+                overflow: hidden;
+            }
+            #mobileGridView .category-card .flex-shrink-0.text-end {
+                grid-area: limit;
+                margin: 0 !important;
+                width: 100% !important;
+                padding-right: 4px;
+            }
+            #mobileGridView .category-card .dropdown {
+                grid-area: menu;
+                margin: 0 !important;
+                justify-self: center;
+            }
+        }
+
+        .empty-state-container svg {
+            max-width: 160px;
+            max-height: 140px;
+            height: auto;
+        }
+    </style>
+
+    <div class="pt-1 pb-3 mb-3">
         <div class="d-flex justify-content-between align-items-center mb-1">
             <h2 class="h4 mb-0 fw-bold">{% trans "Categories" %}</h2>
-            <a href="{% url 'category-create' %}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg me-1"></i> {% trans "Add Category" %}
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                <span id="bulkDeleteTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one category to delete' %}">
+                    <button type="button" class="header-icon-btn delete bulk-delete-btn" id="bulkDeleteBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal" aria-label="{% trans 'Delete Selected' %}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </span>
+                <a href="{% url 'category-create' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Category" %}
+                </a>
+            </div>
         </div>
         <p class="text-muted small mb-3">{% trans "Categories help you understand your spending habits" %}</p>
         <form method="get" class="d-flex" role="search">
@@ -22,75 +185,181 @@
 
     {% include 'components/upgrade_nudge.html' %}
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 category-list-shell">
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0 text-start align-middle">
-                    <thead>
-                        <tr>
-                            <th class="ps-4" style="width: 40px;"></th>
-                            <th>{% trans "Name" %}</th>
-                            <th class="text-end">{% trans "Monthly Limit" %}</th>
-                            <th class="text-end pe-4">{% trans "Actions" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for category in categories %}
-                        <tr>
-                            <td class="ps-4">
-                                <i class="bi {{ category.icon }} fs-5"></i>
-                            </td>
-                            <td>{{ category.name }}</td>
-                             <td class="text-end">{% if category.limit %}{{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
-                            <td class="text-end pe-4 text-nowrap">
-                                <div class="hstack gap-3 justify-content-end">
-                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" 
-                                            data-bs-toggle="modal" data-bs-target="#editCategoryModal"
-                                            data-url="{% url 'category-edit' category.uuid %}"
-                                            data-name="{{ category.name }}"
-                                            data-icon="{{ category.icon }}"
-                                            data-limit="{{ category.limit|default_if_none:'' }}"
-                                            title="{% trans 'Edit' %}">
-                                        <i class="bi bi-pencil-square text-primary fs-6"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
-                                            data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                            data-url="{% url 'category-delete' category.uuid %}"
-                                            data-message="{% blocktrans with name=category.name %}Are you sure you want to delete category '{{ name }}'? This will NOT delete expenses in this category, but they will be unlinked or require update.{% endblocktrans %}">
-                                        <i class="bi bi-trash text-danger fs-6"></i>
-                                    </button>
+            {% if categories %}
+            <form id="bulkDeleteForm" method="post" action="{% url 'category-bulk-delete' %}?{{ request.GET.urlencode }}">
+                {% csrf_token %}
+
+                <div id="mobileBulkActions" class="d-md-none p-2 bg-body border-bottom d-none justify-content-end align-items-center gap-2">
+                    <span class="small text-muted me-auto">{% trans "Items Selected" %}</span>
+                    <button type="button" class="btn btn-outline-danger btn-sm bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
+                        <i class="bi bi-trash me-1"></i> {% trans "Delete" %}
+                    </button>
+                </div>
+
+                <div class="d-none d-md-block">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 text-start align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 40px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                        </div>
+                                    </th>
+                                    <th>{% trans "Name" %}</th>
+                                    <th class="text-end">{% trans "Monthly Limit" %}</th>
+                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in categories %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input category-checkbox" type="checkbox" name="category_ids" value="{{ category.pk }}">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi {{ category.icon }} fs-5"></i>
+                                            <span>{{ category.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        {% if category.limit %}
+                                            {{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 text-nowrap">
+                                        <div class="dropdown hstack gap-3 justify-content-end">
+                                            <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
+                                                <i class="bi bi-three-dots-vertical text-muted"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                                <li>
+                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                                            data-bs-toggle="modal" data-bs-target="#editCategoryModal"
+                                                            data-url="{% url 'category-edit' category.uuid %}"
+                                                            data-name="{{ category.name }}"
+                                                            data-icon="{{ category.icon }}"
+                                                            data-limit="{{ category.limit|default_if_none:'' }}">
+                                                        <i class="bi bi-pencil-square text-primary"></i>
+                                                        <span>{% trans "Edit" %}</span>
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button"
+                                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                            data-url="{% url 'category-delete' category.uuid %}"
+                                                            data-message="{% blocktrans with name=category.name %}Are you sure you want to delete category '{{ name }}'? This will NOT delete expenses in this category, but they will be unlinked or require update.{% endblocktrans %}">
+                                                        <i class="bi bi-trash"></i>
+                                                        <span>{% trans "Delete" %}</span>
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="mobileGridView" class="py-2 d-md-none">
+                    <div class="d-flex align-items-center mb-2 px-1 mobile-selection-header">
+                        <div id="mobileSelectAllRow" class="d-flex align-items-center gap-2">
+                            <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
+                            <label class="small text-muted" for="selectAllMobile" style="cursor: pointer;">{% trans "Select All" %}</label>
+                        </div>
+                        <a href="#" id="mobileSelectToggle" class="text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</a>
+                    </div>
+
+                    {% for category in categories %}
+                    <div class="card category-card shadow-sm border-0 position-relative mb-3">
+                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                            <div class="mobile-card-inner">
+                                <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
+                                    <input class="form-check-input category-checkbox" type="checkbox" name="category_ids" value="{{ category.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
                                 </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr class="empty-state-container">
-                            <td colspan="4" class="text-center py-5">
-                                <div class="py-4">
-                                    <div class="mb-4">
-                                        {% include 'illustrations/empty_categories.svg' %}
+
+                                <div class="category-icon-container" title="{{ category.name }}">
+                                    <i class="bi {{ category.icon }}"></i>
+                                </div>
+
+                                <div class="flex-grow-1 min-width-0 px-1">
+                                    <div class="fw-semibold text-body-emphasis text-truncate mb-1" style="font-size: 0.93rem;">
+                                        {{ category.name }}
                                     </div>
-                                    <h4 class="fw-bold text-muted">{% trans "No Categories Yet" %}</h4>
-                                    <p class="text-muted mb-4">{% trans "Organize your transactions by creating custom categories." %}</p>
-                                    <a href="{% url 'category-create' %}" class="btn btn-primary">
-                                        <i class="bi bi-plus-lg me-1"></i> {% trans "Add Category" %}
-                                    </a>
+                                    <div class="text-body-secondary" style="font-size: 0.72rem;">
+                                        {% trans "Category" %}
+                                    </div>
                                 </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
+                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 0.95rem; line-height: 1.2;">
+                                        {% if category.limit %}
+                                            {{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="text-body-secondary" style="font-size: 0.68rem;">{% trans "Monthly Limit" %}</span>
+                                </div>
+
+                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
+                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
+                                        <li>
+                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                                    data-bs-toggle="modal" data-bs-target="#editCategoryModal"
+                                                    data-url="{% url 'category-edit' category.uuid %}"
+                                                    data-name="{{ category.name }}"
+                                                    data-icon="{{ category.icon }}"
+                                                    data-limit="{{ category.limit|default_if_none:'' }}">
+                                                <i class="bi bi-pencil-square text-primary"></i>
+                                                <span>{% trans "Edit" %}</span>
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                    data-url="{% url 'category-delete' category.uuid %}"
+                                                    data-message="{% blocktrans with name=category.name %}Are you sure you want to delete category '{{ name }}'? This will NOT delete expenses in this category, but they will be unlinked or require update.{% endblocktrans %}">
+                                                <i class="bi bi-trash"></i>
+                                                <span>{% trans "Delete" %}</span>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </form>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="py-4">
+                    <div class="mb-4">
+                        {% include 'illustrations/empty_categories.svg' %}
+                    </div>
+                    <h4 class="fw-bold text-muted">{% trans "No Categories Yet" %}</h4>
+                    <p class="text-muted mb-4">{% trans "Organize your transactions by creating custom categories." %}</p>
+                    <a href="{% url 'category-create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> {% trans "Add Category" %}
+                    </a>
+                </div>
             </div>
+            {% endif %}
         </div>
 
-<style>
-.empty-state-container svg {
-    max-width: 160px;
-    max-height: 140px;
-    height: auto;
-}
-</style>
-        
         {% if is_paginated %}
         <div class="card-footer bg-transparent py-3">
             <nav aria-label="Category pagination">
@@ -106,17 +375,17 @@
                             <span class="page-link">&laquo;</span>
                         </li>
                     {% endif %}
-    
+
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
-                             <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
+                            <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                             <li class="page-item">
-                                 <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num|translate_digits }}</a>
+                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num|translate_digits }}</a>
                             </li>
                         {% endif %}
                     {% endfor %}
-    
+
                     {% if page_obj.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Next">
@@ -135,10 +404,109 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllTable = document.getElementById('selectAll');
+        const selectAllMobile = document.getElementById('selectAllMobile');
+        const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+        const bulkDeleteBtns = document.querySelectorAll('.bulk-delete-btn');
+        const mobileBulkActions = document.getElementById('mobileBulkActions');
+        const bulkDeleteTooltipWrap = document.getElementById('bulkDeleteTooltipWrap');
+        const mobileGridView = document.getElementById('mobileGridView');
+
+        function updateTooltipMessage(el, message) {
+            if (!el) return;
+            el.setAttribute('title', message);
+            el.setAttribute('data-bs-original-title', message);
+            const instance = bootstrap.Tooltip.getInstance(el);
+            if (instance) {
+                instance.setContent({ '.tooltip-inner': message });
+            }
+        }
+
+        function updateBulkButtonsState() {
+            const anyChecked = Array.from(categoryCheckboxes).some(cb => cb.checked);
+            bulkDeleteBtns.forEach(btn => btn.disabled = !anyChecked);
+
+            if (mobileBulkActions) {
+                if (anyChecked) {
+                    mobileBulkActions.classList.remove('d-none');
+                    mobileBulkActions.classList.add('d-flex');
+                } else {
+                    mobileBulkActions.classList.add('d-none');
+                    mobileBulkActions.classList.remove('d-flex');
+                }
+            }
+
+            updateTooltipMessage(
+                bulkDeleteTooltipWrap,
+                anyChecked
+                    ? "{% trans 'Delete selected categories' %}"
+                    : "{% trans 'Select at least one category to delete' %}"
+            );
+        }
+
+        function handleSelectAll(e) {
+            const isChecked = e.target.checked;
+            categoryCheckboxes.forEach(cb => {
+                cb.checked = isChecked;
+            });
+            if (selectAllTable) selectAllTable.checked = isChecked;
+            if (selectAllMobile) selectAllMobile.checked = isChecked;
+            updateBulkButtonsState();
+        }
+
+        if (selectAllTable) selectAllTable.addEventListener('change', handleSelectAll);
+        if (selectAllMobile) selectAllMobile.addEventListener('change', handleSelectAll);
+
+        categoryCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                updateBulkButtonsState();
+                const allChecked = categoryCheckboxes.length > 0 && Array.from(categoryCheckboxes).every(item => item.checked);
+                if (selectAllTable) selectAllTable.checked = allChecked;
+                if (selectAllMobile) selectAllMobile.checked = allChecked;
+            });
+        });
+
+        const mobileSelectToggle = document.getElementById('mobileSelectToggle');
+        if (mobileSelectToggle && mobileGridView) {
+            mobileSelectToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const isSelecting = mobileGridView.classList.toggle('selection-mode');
+                this.innerHTML = isSelecting ? '<i class="bi bi-x-lg"></i> {% trans "Cancel" %}' : '<i class="bi bi-check2-square"></i> {% trans "Select" %}';
+                if (!isSelecting) {
+                    categoryCheckboxes.forEach(cb => cb.checked = false);
+                    if (selectAllMobile) selectAllMobile.checked = false;
+                    if (selectAllTable) selectAllTable.checked = false;
+                    updateBulkButtonsState();
+                }
+            });
+        }
+
+        updateBulkButtonsState();
+    });
+</script>
 {% endblock %}
 
 {% block modals %}
-    <!-- Edit Category Modal -->
+    <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{% trans "Confirm Bulk Delete" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% trans "Are you sure you want to delete the selected categories? This action cannot be undone." %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="button" class="btn btn-danger" onclick="setButtonLoading(this, '{% trans 'Deleting...' %}'); document.getElementById('bulkDeleteForm').submit()">{% trans "Delete Selected" %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -154,7 +522,7 @@
                         <div class="mb-3">
                             <label class="form-label text-muted small text-uppercase">{% trans "Icon" %}</label>
                             <div class="dropdown w-100">
-                                <button class="form-select multiselect-btn text-start w-100 d-flex align-items-center justify-content-between p-2" 
+                                <button class="form-select multiselect-btn text-start w-100 d-flex align-items-center justify-content-between p-2"
                                         type="button" id="modalIconPickerBtn" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
                                     <div class="d-flex align-items-center gap-2">
                                         <i id="modal_selected_icon_display" class="bi bi-tag fs-5"></i>
@@ -170,8 +538,8 @@
                                     </div>
                                     <div class="modal-icon-grid d-flex flex-wrap gap-2 overflow-auto py-2" style="max-height: 250px;">
                                         {% for val, label in bootstrap_icons %}
-                                            <div class="modal-icon-item position-relative p-2 border rounded cursor-pointer" 
-                                                 data-value="{{ val }}" 
+                                            <div class="modal-icon-item position-relative p-2 border rounded cursor-pointer"
+                                                 data-value="{{ val }}"
                                                  data-label="{{ label }}"
                                                  title="{{ label }}"
                                                  style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
@@ -217,7 +585,7 @@
                             }
                             .cursor-pointer { cursor: pointer; }
                         </style>
-                        
+
                         <div class="mb-3">
                             <label for="edit_limit" class="form-label text-muted small text-uppercase">{% trans "Monthly Limit (Optional)" %}</label>
                             <div class="input-group">
@@ -226,7 +594,6 @@
                             </div>
                         </div>
 
-                        
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
                         </div>
@@ -258,43 +625,40 @@
                     const name = button.getAttribute('data-name');
                     const icon = button.getAttribute('data-icon') || 'bi-tag';
                     const limit = button.getAttribute('data-limit');
-                    
+
                     const form = editModal.querySelector('#editCategoryForm');
                     const nameInput = editModal.querySelector('#edit_name');
                     const limitInput = editModal.querySelector('#edit_limit');
-                    
+
                     form.action = url;
                     nameInput.value = name;
                     limitInput.value = limit || '';
-                    
-                    // Update Icon Picker State
+
                     hiddenInput.value = icon;
                     displayIcon.className = 'bi ' + icon + ' fs-5';
                     displayLabel.textContent = iconMappings[icon] || '{% trans "General Tag" %}';
-                    
+
                     dropdownItems.forEach(i => {
                         if (i.dataset.value === icon) i.classList.add('active');
                         else i.classList.remove('active');
                     });
                 });
 
-                // Icon selection click handler
                 dropdownItems.forEach(item => {
                     item.addEventListener('click', function(e) {
                         e.preventDefault();
                         const val = this.dataset.value;
                         const label = this.dataset.label;
-                        
+
                         hiddenInput.value = val;
                         displayIcon.className = 'bi ' + val + ' fs-5';
                         displayLabel.textContent = label;
-                        
+
                         dropdownItems.forEach(i => i.classList.remove('active'));
                         this.classList.add('active');
                     });
                 });
 
-                // Search handler
                 searchInput.addEventListener('input', function() {
                     const term = this.value.toLowerCase();
                     dropdownItems.forEach(item => {
@@ -308,9 +672,15 @@
                     });
                 });
 
-                // Prevent closing on search click
                 searchInput.addEventListener('click', (e) => e.stopPropagation());
             }
+
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    boundary: document.body
+                });
+            });
         });
     </script>
 {% endblock %}
