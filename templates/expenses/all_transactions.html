@@ -14,6 +14,13 @@
         border-bottom: 0 !important;
     }
 
+    #tableView table th {
+        font-size: 0.95rem !important;
+    }
+    #tableView table td {
+        font-size: 0.95rem !important;
+    }
+
     @media (max-width: 767.98px) {
         .table-responsive table {
             min-width: 800px;
@@ -503,7 +510,7 @@
     <div class="card-body p-0">
         {% if transactions %}
             <!-- Table View -->
-            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block">
+            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mt-4">
                 <div class="card-body p-0">
                     <div id="tableView" class="table-responsive">
                         <table class="table table-hover table-striped mb-0 align-middle">
