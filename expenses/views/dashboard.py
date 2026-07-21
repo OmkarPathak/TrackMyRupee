@@ -1608,7 +1608,7 @@ def home_view(request):
         curr_symbol = capital_event_callout['events'][0].currency
         event_text = format_html(
             _("{title}"
-              " You made a one-off payment of {curr}{total}. Your regular spending was {curr}{regular} - that's your true monthly pace. "
+              " You made a one-off payment of {curr}{total}. "
               "<a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>View Capital Events &rarr;</a>"),
             title=mark_safe(title_text),
             curr=curr_symbol,
