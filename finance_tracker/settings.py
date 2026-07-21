@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 
 import dj_database_url
 import sentry_sdk
+from django.core.exceptions import DisallowedHost
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
 
@@ -29,6 +30,7 @@ if os.environ.get('SENTRY_DSN'):
         # Sample 5% of transactions — sufficient for production debugging
         # without the overhead of full tracing on every request.
         traces_sample_rate=0.05,
+        ignore_errors=[DisallowedHost],
     )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -54,7 +56,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
     'ALLOWED_HOSTS',
-    'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1,192.168.1.251'
+    'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'
 ).split(',') if host.strip()]
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com,https://django-finance-tracker-fr1u.onrender.com').split(',')
@@ -434,6 +436,9 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'null': {
+            'class': 'logging.NullHandler',
+        },
     },
     'root': {
         'handlers': ['console'],
@@ -443,6 +448,10 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
+            'propagate': False,
+        },
+        'django.security.DisallowedHost': {
+            'handlers': ['null'],
             'propagate': False,
         },
         # Ledger read-service comparison logs (ledger_read_compare events)
