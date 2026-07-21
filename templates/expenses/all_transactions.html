@@ -153,11 +153,134 @@
         height: auto;
     }
     .max-width-300 { max-width: 300px; }
+
+    .stats-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .stats-label {
+        font-size: 0.78rem;
+        /* font-weight: 600; */
+        color: var(--bs-body-color);
+    }
+    .stats-count {
+        font-size: 0.72rem;
+        font-weight: 400;
+        color: var(--bs-secondary-color);
+    }
+    .stats-amount {
+        font-size: 0.80rem;
+        font-weight: 700;
+    }
+
+    .filter-pills-container {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding: 0.35rem 0;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .filter-pills-container::-webkit-scrollbar {
+        display: none;
+    }
+    .filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1.5px solid transparent;
+        white-space: nowrap;
+    }
+    
+    .filter-pill-inactive {
+        background-color: transparent;
+        color: var(--bs-body-color);
+        border-color: var(--bs-border-color-translucent);
+    }
+    .filter-pill-inactive:hover {
+        background-color: var(--bs-secondary-bg);
+        color: var(--bs-body-color);
+    }
+    .filter-pill-badge-inactive {
+        background-color: var(--bs-secondary-bg);
+        color: var(--bs-secondary-color);
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.05rem 0.35rem;
+        border-radius: 10px;
+    }
+
+    .filter-pill-all.active {
+        border-color: #1D9E75;
+        color: #1D9E75;
+        background-color: transparent;
+    }
+    .filter-pill-all.active .filter-pill-badge {
+        background-color: #1D9E75;
+        color: white;
+    }
+
+    .filter-pill-income.active {
+        border-color: #1D9E75;
+        color: #1D9E75;
+        background-color: transparent;
+    }
+    .filter-pill-income.active .filter-pill-badge {
+        background-color: #1D9E75;
+        color: white;
+    }
+
+    .filter-pill-expense.active {
+        border-color: #E05C45;
+        color: #E05C45;
+        background-color: transparent;
+    }
+    .filter-pill-expense.active .filter-pill-badge {
+        background-color: #E05C45;
+        color: white;
+    }
+
+    .filter-pill-transfer.active {
+        border-color: #378ADD;
+        color: #378ADD;
+        background-color: transparent;
+    }
+    .filter-pill-transfer.active .filter-pill-badge {
+        background-color: #378ADD;
+        color: white;
+    }
+
+    .filter-pill-loan.active {
+        border-color: #B45309;
+        color: #B45309;
+        background-color: transparent;
+    }
+    .filter-pill-loan.active .filter-pill-badge {
+        background-color: #B45309;
+        color: white;
+    }
+
+    .filter-pill-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.05rem 0.35rem;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
 </style>
 
 <div class="fade-in">
     <!-- Header -->
-    <div class="card-header bg-transparent pt-1 pb-3">
+    <div class="card-header bg-transparent pt-1">
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="mb-0 fw-bold d-flex align-items-center gap-2">
                 {% if prev_month_url %}
@@ -236,84 +359,144 @@
             </div>
         </div>
 
-        <!-- Stats Line (Mobile View) -->
-        <div class="text-muted small mb-0 mt-3 d-flex d-md-none align-items-center justify-content-center flex-wrap gap-2 py-1 lh-base">
-            <span class="text-nowrap">
-                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "transactions" %}
-            </span>
-            {% if expense_count > 0 %}
-            <span class="opacity-50">•</span>
-            <span class="text-nowrap">
-                <span class="fw-bold text-danger">{{ expense_count|translate_digits }}</span> {% trans "expenses" %} · <span class="fw-bold text-danger">{{ user.profile.currency }}{{ expense_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-            </span>
-            {% endif %}
-            {% if transfer_count > 0 %}
-            <span class="opacity-50">•</span>
-            <span class="text-nowrap">
-                <span class="fw-bold text-info">{{ transfer_count|translate_digits }}</span> {% trans "transfers" %} · <span class="fw-bold text-info">{{ user.profile.currency }}{{ transfer_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "moved" %}
-            </span>
-            {% endif %}
-            {% if income_count > 0 %}
-            <span class="opacity-50">•</span>
-            <span class="text-nowrap">
-                <span class="fw-bold text-success">{{ income_count|translate_digits }}</span> {% trans "incomes" %} · <span class="fw-bold text-success">{{ user.profile.currency }}{{ income_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
-            </span>
-            {% endif %}
-            {% if loan_count > 0 %}
-            <span class="opacity-50">•</span>
-            <span class="text-nowrap">
-                <span class="fw-bold text-warning">{{ loan_count|translate_digits }}</span> {% trans "loan repayments" %} · <span class="fw-bold text-warning">{{ user.profile.currency }}{{ loan_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-            </span>
-            {% endif %}
-            {% if capital_event_count > 0 %}
-            <span class="opacity-50">•</span>
-            <span class="text-nowrap">
-                <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "capital events" %} · <span class="fw-bold text-secondary">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-            </span>
-            {% endif %}
+        <!-- Filters -->
+        <div class="collapse" id="transactionFilters">
+            <form method="get" class="mb-4 mt-4 bg-body p-3 rounded shadow-sm">
+                <div class="row g-3 flex-lg-nowrap">
+                    <div class="col-12 col-md">
+                        <label class="form-label small text-muted">{% trans "Search" %}</label>
+                        <input type="text" name="search" class="form-control form-control-sm" value="{{ search_query }}" placeholder="{% trans 'Description...' %}">
+                    </div>
+                    <div class="col-12 col-md">
+                        <label class="form-label small text-muted">{% trans "Type" %}</label>
+                        <select name="type" class="form-select form-select-sm django-multi-select" multiple>
+                            <option value="EXPENSE" {% if 'EXPENSE' in selected_types %}selected{% endif %}>{% trans "Expense" %}</option>
+                            <option value="INCOME" {% if 'INCOME' in selected_types %}selected{% endif %}>{% trans "Income" %}</option>
+                            <option value="TRANSFER" {% if 'TRANSFER' in selected_types %}selected{% endif %}>{% trans "Transfer" %}</option>
+                            <option value="LOAN" {% if 'LOAN' in selected_types %}selected{% endif %}>{% trans "Loan Repayment" %}</option>
+                            <option value="CAPITAL_EVENT" {% if 'CAPITAL_EVENT' in selected_types %}selected{% endif %}>{% trans "Capital Event" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md">
+                        <label class="form-label small text-muted">{% trans "Year" %}</label>
+                        <select name="year" class="form-select form-select-sm django-multi-select" multiple>
+                            {% for y in years %}
+                            <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y|translate_digits }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 col-md">
+                        <label class="form-label small text-muted">{% trans "Month" %}</label>
+                        <select name="month" class="form-select form-select-sm django-multi-select" multiple>
+                            {% for m_val, m_name in months_list %}
+                            <option value="{{ m_val }}" {% if m_val|stringformat:"s" in selected_months %}selected{% endif %}>{{ m_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-auto d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">{% trans "Apply" %}</button>
+                        <a href="{% url 'all-transactions' %}" class="btn btn-outline-secondary btn-sm">{% trans "Reset" %}</a>
+                    </div>
+                </div>
+            </form>
         </div>
-    </div>
 
-    <!-- Filters -->
-    <div class="collapse" id="transactionFilters">
-        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm">
-            <div class="row g-3 flex-lg-nowrap">
-                <div class="col-12 col-md">
-                    <label class="form-label small text-muted">{% trans "Search" %}</label>
-                    <input type="text" name="search" class="form-control form-control-sm" value="{{ search_query }}" placeholder="{% trans 'Description...' %}">
-                </div>
-                <div class="col-12 col-md">
-                    <label class="form-label small text-muted">{% trans "Type" %}</label>
-                    <select name="type" class="form-select form-select-sm django-multi-select" multiple>
-                        <option value="EXPENSE" {% if 'EXPENSE' in selected_types %}selected{% endif %}>{% trans "Expense" %}</option>
-                        <option value="INCOME" {% if 'INCOME' in selected_types %}selected{% endif %}>{% trans "Income" %}</option>
-                        <option value="TRANSFER" {% if 'TRANSFER' in selected_types %}selected{% endif %}>{% trans "Transfer" %}</option>
-                        <option value="LOAN" {% if 'LOAN' in selected_types %}selected{% endif %}>{% trans "Loan Repayment" %}</option>
-                        <option value="CAPITAL_EVENT" {% if 'CAPITAL_EVENT' in selected_types %}selected{% endif %}>{% trans "Capital Event" %}</option>
-                    </select>
-                </div>
-                <div class="col-6 col-md">
-                    <label class="form-label small text-muted">{% trans "Year" %}</label>
-                    <select name="year" class="form-select form-select-sm django-multi-select" multiple>
-                        {% for y in years %}
-                        <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y|translate_digits }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-6 col-md">
-                    <label class="form-label small text-muted">{% trans "Month" %}</label>
-                    <select name="month" class="form-select form-select-sm django-multi-select" multiple>
-                        {% for m_val, m_name in months_list %}
-                        <option value="{{ m_val }}" {% if m_val|stringformat:"s" in selected_months %}selected{% endif %}>{{ m_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12 col-md-auto d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">{% trans "Apply" %}</button>
-                    <a href="{% url 'all-transactions' %}" class="btn btn-outline-secondary btn-sm">{% trans "Reset" %}</a>
+        <!-- Stats Section (Mobile View) -->
+        <div class="d-md-none mt-3">
+            <div class="border-0 mb-2">
+                <div class="card expense-card p-3">
+                    <div class="row g-0 align-items-stretch">
+                        <!-- Left Column -->
+                        <div class="col-6 pe-3 border-end d-flex flex-column justify-content-between">
+                            <div class="stats-row mb-2">
+                                <span class="stats-label">
+                                    {% trans "Income" %}
+                                    <span class="stats-count">({{ income_count|translate_digits }})</span>
+                                </span>
+                                <span class="stats-amount">{{ user.profile.currency }}{{ income_amount|compact_amount:user.profile.currency|translate_digits }}</span>
+                            </div>
+                            <div class="stats-row mb-2">
+                                <span class="stats-label">
+                                    {% trans "Expenses" %}
+                                    <span class="stats-count">({{ expense_count|translate_digits }})</span>
+                                </span>
+                                <span class="stats-amount">{{ user.profile.currency }}{{ expense_amount|compact_amount:user.profile.currency|translate_digits }}</span>
+                            </div>
+                            <div class="stats-row">
+                                <span class="stats-label">
+                                    {% trans "Transfers" %}
+                                    <span class="stats-count">({{ transfer_count|translate_digits }})</span>
+                                </span>
+                                <span class="stats-amount">{{ user.profile.currency }}{{ transfer_amount|compact_amount:user.profile.currency|translate_digits }}</span>
+                            </div>
+                        </div>
+                        <!-- Right Column -->
+                        <div class="col-6 ps-3 d-flex flex-column justify-content-between">
+                            <div class="stats-row mb-2">
+                                <span class="stats-label">
+                                    {% trans "Capital" %}
+                                    <span class="stats-count">({{ capital_event_count|translate_digits }})</span>
+                                </span>
+                                <span class="stats-amount">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</span>
+                            </div>
+                            <div class="stats-row mb-2">
+                                <span class="stats-label">
+                                    {% trans "Loans" %}
+                                    <span class="stats-count">({{ loan_count|translate_digits }})</span>
+                                </span>
+                                <span class="stats-amount">{{ user.profile.currency }}{{ loan_amount|compact_amount:user.profile.currency|translate_digits }}</span>
+                            </div>
+                            <!-- Total Transactions row -->
+                            <div class="stats-row">
+                                <span class="stats-label">
+                                    {% trans "Total Txns" %}
+                                </span>
+                                <span class="stats-amount">{{ filtered_count|translate_digits }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </form>
+
+            <!-- Quick Filter Pills -->
+            <div class="filter-pills-container">
+                <!-- All Pill -->
+                <a href="?{% url_replace type='' %}" class="filter-pill filter-pill-all {% if not selected_types %}active{% else %}filter-pill-inactive{% endif %}">
+                    {% trans "All" %}
+                    <span class="{% if not selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
+                        {{ filtered_count|translate_digits }}
+                    </span>
+                </a>
+                <!-- Income Pill -->
+                <a href="?{% url_replace type='INCOME' %}" class="filter-pill filter-pill-income {% if 'INCOME' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
+                    {% trans "Income" %}
+                    <span class="{% if 'INCOME' in selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
+                        {{ income_count|translate_digits }}
+                    </span>
+                </a>
+                <!-- Expense Pill -->
+                <a href="?{% url_replace type='EXPENSE' %}" class="filter-pill filter-pill-expense {% if 'EXPENSE' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
+                    {% trans "Expenses" %}
+                    <span class="{% if 'EXPENSE' in selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
+                        {{ expense_count|translate_digits }}
+                    </span>
+                </a>
+                <!-- Transfer Pill -->
+                <a href="?{% url_replace type='TRANSFER' %}" class="filter-pill filter-pill-transfer {% if 'TRANSFER' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
+                    {% trans "Transfers" %}
+                    <span class="{% if 'TRANSFER' in selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
+                        {{ transfer_count|translate_digits }}
+                    </span>
+                </a>
+                <!-- Loans Pill -->
+                <a href="?{% url_replace type='LOAN' %}" class="filter-pill filter-pill-loan {% if 'LOAN' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
+                    {% trans "Loans" %}
+                    <span class="{% if 'LOAN' in selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
+                        {{ loan_count|translate_digits }}
+                    </span>
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- Main View -->
