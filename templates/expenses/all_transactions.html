@@ -470,37 +470,22 @@
                 <!-- All Pill -->
                 <a href="?{% url_replace type='' %}" class="filter-pill filter-pill-all {% if not selected_types %}active{% else %}filter-pill-inactive{% endif %}">
                     {% trans "All" %}
-                    <span class="{% if not selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
-                        {{ filtered_count|translate_digits }}
-                    </span>
                 </a>
                 <!-- Income Pill -->
                 <a href="?{% url_replace type='INCOME' %}" class="filter-pill filter-pill-income {% if 'INCOME' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
                     {% trans "Income" %}
-                    <span class="{% if 'INCOME' in selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
-                        {{ income_count|translate_digits }}
-                    </span>
                 </a>
                 <!-- Expense Pill -->
                 <a href="?{% url_replace type='EXPENSE' %}" class="filter-pill filter-pill-expense {% if 'EXPENSE' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
                     {% trans "Expenses" %}
-                    <span class="{% if 'EXPENSE' in selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
-                        {{ expense_count|translate_digits }}
-                    </span>
                 </a>
                 <!-- Transfer Pill -->
                 <a href="?{% url_replace type='TRANSFER' %}" class="filter-pill filter-pill-transfer {% if 'TRANSFER' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
                     {% trans "Transfers" %}
-                    <span class="{% if 'TRANSFER' in selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
-                        {{ transfer_count|translate_digits }}
-                    </span>
                 </a>
                 <!-- Loans Pill -->
                 <a href="?{% url_replace type='LOAN' %}" class="filter-pill filter-pill-loan {% if 'LOAN' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
                     {% trans "Loans" %}
-                    <span class="{% if 'LOAN' in selected_types %}filter-pill-badge{% else %}filter-pill-badge-inactive{% endif %}">
-                        {{ loan_count|translate_digits }}
-                    </span>
                 </a>
             </div>
         </div>
