@@ -212,8 +212,7 @@
                         </h2>
                         <div id="collapse-{{ group.type }}" 
                              class="accordion-collapse collapse" 
-                             aria-labelledby="heading-{{ group.type }}" 
-                             data-bs-parent="#accountsAccordion">
+                             aria-labelledby="heading-{{ group.type }}">
                             <div class="accordion-body p-0 bg-body-tertiary">
                                 {% for account in group.accounts %}
                                 <div class="d-flex align-items-center py-3 px-3 {% if not forloop.last %}border-bottom{% endif %} hover-bg-child transition-all bg-accordion-child">
