@@ -20,10 +20,12 @@ from django.views.generic import ListView
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, CapitalEvent, Expense, Income, LoanRepayment, Transfer
 from ..utils import get_exchange_rate
+from .mixins import HtmxPartialTemplateMixin
 
 
-class AllTransactionsListView(LoginRequiredMixin, ListView):
+class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     template_name = 'expenses/all_transactions.html'
+    htmx_template_name = 'expenses/partials/_transaction_list.html'
     context_object_name = 'transactions'
     paginate_by = 25
 

@@ -4,6 +4,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from django.core.cache import cache
 from django.db.models import Sum
+from django.utils.cache import patch_vary_headers
 
 from ..models import (
     CapitalEvent,
@@ -18,6 +19,20 @@ from ..utils import get_exchange_rate
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 logger = logging.getLogger(__name__)
+
+
+class HtmxPartialTemplateMixin:
+    htmx_template_name = None
+
+    def get_template_names(self):
+        if getattr(self.request, 'htmx', False) and self.htmx_template_name:
+            return [self.htmx_template_name]
+        return super().get_template_names()
+
+    def render_to_response(self, context, **response_kwargs):
+        response = super().render_to_response(context, **response_kwargs)
+        patch_vary_headers(response, ['HX-Request'])
+        return response
 
 
 class RecurringTransactionMixin:

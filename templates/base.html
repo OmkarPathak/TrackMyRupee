@@ -607,9 +607,9 @@
 
 </head>
 
-<body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated has-sidebar{% endif %} {% if request.user.username == 'demo' %}demo-mode{% endif %}">
+<body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated has-sidebar{% endif %} {% if request.user.username == 'demo' %}demo-mode{% endif %}" data-csrf-token="{{ csrf_token }}" hx-headers='js:{"X-CSRFToken": document.body.dataset.csrfToken}'>
     <!-- Instant Progress Bar (Static) -->
-    <div id="global-progress-bar"></div>
+    <div id="global-progress-bar" class="htmx-indicator"></div>
 
     {% if user.is_authenticated %}
         {% include 'components/sidebar.html' %}
@@ -1001,6 +1001,8 @@
 
     <!-- Skeleton Loader JS (must load before loader logic) -->
     <script src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 
     <script>
         // Start 7-Day Pro Trial
@@ -1152,6 +1154,26 @@
         })();
     </script>
 
+    <script>
+        document.body.addEventListener('htmx:beforeRequest', function () {
+            const bar = document.getElementById('global-progress-bar');
+            if (bar) {
+                bar.classList.add('active');
+            }
+        });
+
+        const clearHtmxLoader = function () {
+            const bar = document.getElementById('global-progress-bar');
+            if (bar) {
+                bar.classList.remove('active');
+            }
+        };
+
+        document.body.addEventListener('htmx:afterSettle', clearHtmxLoader);
+        document.body.addEventListener('htmx:responseError', clearHtmxLoader);
+        document.body.addEventListener('htmx:sendError', clearHtmxLoader);
+    </script>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
@@ -1255,8 +1277,13 @@
     <script>
         // Global Bootstrap Multiselect Initialization
         // Usage: Add class 'django-multi-select' to any <select multiple>
-        const initGlobalMultiselects = () => {
-            $('.django-multi-select').each(function () {
+        const initGlobalMultiselects = (root) => {
+            const $root = root ? $(root) : $(document);
+            $root.find('.django-multi-select').each(function () {
+                if ($(this).data('multiselect')) {
+                    return;
+                }
+
                 const placeholder = $(this).attr('placeholder') || 'Select...';
                 
                 // Check if the original select has 'sm' class via class checking
@@ -1297,6 +1324,10 @@
 
         $(document).ready(function () {
             initGlobalMultiselects();
+        });
+
+        document.body.addEventListener('htmx:afterSwap', function (event) {
+            initGlobalMultiselects(event.target);
         });
     </script>
 
@@ -1693,6 +1724,25 @@
     <script>
         document.addEventListener('submit', function(e) {
             const form = e.target;
+
+            // Let HTMX handle boosted/AJAX forms; do not force full-page navigation.
+            const isHtmxForm = form.hasAttribute('hx-get')
+                || form.hasAttribute('hx-post')
+                || form.hasAttribute('hx-put')
+                || form.hasAttribute('hx-patch')
+                || form.hasAttribute('hx-delete')
+                || form.hasAttribute('data-hx-get')
+                || form.hasAttribute('data-hx-post')
+                || form.hasAttribute('data-hx-put')
+                || form.hasAttribute('data-hx-patch')
+                || form.hasAttribute('data-hx-delete')
+                || form.closest('[hx-boost="true"]')
+                || form.closest('[data-hx-boost="true"]');
+
+            if (isHtmxForm) {
+                return;
+            }
+
             // Intercept GET forms without a specific target to clean up empty query parameters
             if (form.method && form.method.toLowerCase() === 'get' && (!form.target || form.target === '_self')) {
                 e.preventDefault();

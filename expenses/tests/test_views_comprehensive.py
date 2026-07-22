@@ -1132,6 +1132,27 @@ class AllTransactionsViewTest(BaseComprehensiveTest):
         """Test that all transactions view loads."""
         response = self.client.get(reverse('all-transactions'))
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'expenses/all_transactions.html')
+
+    def test_all_transactions_htmx_returns_partial_only(self):
+        Expense.objects.create(
+            user=self.user,
+            account=self.account,
+            amount=100,
+            category='Food',
+            date=date.today(),
+        )
+
+        response = self.client.get(
+            reverse('all-transactions'),
+            HTTP_HX_REQUEST='true',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'expenses/partials/_transaction_list.html')
+        self.assertTemplateNotUsed(response, 'base.html')
+        self.assertIn('HX-Request', response['Vary'])
     
     def test_all_transactions_shows_expenses_and_income(self):
         """Test that both expenses and income are shown."""

@@ -184,6 +184,41 @@ class ExpenseCRUDTest(BaseViewTest):
         self.assertIn('category=Food', response.url)
         self.assertIn(f'year={date.today().year}', response.url)
 
+
+class ExpenseListHtmxTest(BaseViewTest):
+    def test_expense_list_standard_request_renders_full_page(self):
+        Expense.objects.create(
+            user=self.user,
+            date=date.today(),
+            amount=100,
+            category='Food',
+            description='Lunch',
+            currency='₹',
+        )
+
+        response = self.client.get(reverse('expense-list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'expenses/expense_list.html')
+
+    def test_expense_list_htmx_renders_partial_only(self):
+        Expense.objects.create(
+            user=self.user,
+            date=date.today(),
+            amount=100,
+            category='Food',
+            description='Lunch',
+            currency='₹',
+        )
+
+        response = self.client.get(reverse('expense-list'), HTTP_HX_REQUEST='true')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'expenses/partials/_expense_list.html')
+        self.assertTemplateNotUsed(response, 'base.html')
+        self.assertIn('HX-Request', response['Vary'])
+
 class IncomeCRUDTest(BaseViewTest):
     def test_create_income(self):
         url = reverse('income-create')

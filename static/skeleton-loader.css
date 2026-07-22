@@ -85,6 +85,11 @@
   animation: skeleton-progress 3s cubic-bezier(0.1, 0.5, 0.5, 1) forwards;
 }
 
+#global-progress-bar.htmx-request {
+  display: block;
+  animation: skeleton-progress 3s cubic-bezier(0.1, 0.5, 0.5, 1) forwards;
+}
+
 [data-bs-theme="dark"] .skeleton-overlay {
   background: rgba(17, 19, 21, 0.96);
 }
