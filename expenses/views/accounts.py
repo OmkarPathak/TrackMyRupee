@@ -33,13 +33,14 @@ from ..models import (
     _run_ledger_shadow,
 )
 from ..utils import get_exchange_rate
-from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
-class AccountListView(LoginRequiredMixin, ListView):
+class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     model = Account
     template_name = 'expenses/account_list.html'
+    htmx_template_name = 'expenses/partials/_account_list.html'
     context_object_name = 'accounts'
 
     def get_queryset(self):

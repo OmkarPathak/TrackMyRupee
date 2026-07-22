@@ -290,6 +290,35 @@ class IncomeCRUDTest(BaseViewTest):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Income.objects.count(), 0)
 
+    def test_income_list_standard_get_renders_full_page(self):
+        response = self.client.get(reverse('income-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'expenses/income_list.html')
+
+    def test_income_list_htmx_renders_partial_only(self):
+        Income.objects.create(user=self.user, date=date.today(), amount=1000, source_type='Salary', source='Salary', currency='₹')
+        response = self.client.get(reverse('income-list'), HTTP_HX_REQUEST='true')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'expenses/partials/_income_list.html')
+        self.assertTemplateNotUsed(response, 'base.html')
+        self.assertIn('HX-Request', response['Vary'])
+
+class AccountListViewTest(BaseViewTest):
+    def test_account_list_standard_get_renders_full_page(self):
+        response = self.client.get(reverse('account-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'expenses/account_list.html')
+
+    def test_account_list_htmx_renders_partial_only(self):
+        Account.objects.create(user=self.user, name='Savings', account_type='SAVINGS', balance=5000, currency='₹')
+        response = self.client.get(reverse('account-list'), HTTP_HX_REQUEST='true')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'expenses/partials/_account_list.html')
+        self.assertTemplateNotUsed(response, 'base.html')
+        self.assertIn('HX-Request', response['Vary'])
+
 class BulkActionTest(BaseViewTest):
     def test_bulk_delete_expenses(self):
         # Create multiple expenses associated with user
