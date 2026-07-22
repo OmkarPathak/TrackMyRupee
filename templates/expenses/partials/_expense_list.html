@@ -480,7 +480,7 @@
                         <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
                         <label class="small text-muted" for="selectAllMobile" style="cursor: pointer;">{% trans "Select All" %}</label>
                     </div>
-                    <button type="button" id="mobileSelectToggle" class="btn btn-link text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader p-0" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</button>
+                    <button type="button" id="mobileSelectToggle" class="btn btn-link text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader p-0 m-0" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</button>
                 </div>
                 {% regroup expenses by date as expenses_by_date %}
                 {% for group in expenses_by_date %}
@@ -581,20 +581,40 @@
 
     {% if is_paginated %}
     <div class="card-footer bg-transparent py-3">
-        <nav>
+        <nav aria-label="Expense pagination">
             <ul class="pagination justify-content-center mb-0">
                 {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" hx-get="{% url 'expense-list' %}?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Previous" %}</a>
-                </li>
+                    <li class="page-item">
+                        <button type="button" class="page-link" hx-get="{% url 'expense-list' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </button>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
                 {% endif %}
-                <li class="page-item disabled">
-                    <span class="page-link">{% trans "Page" %} {{ page_obj.number|translate_digits }} {% trans "of" %} {{ page_obj.paginator.num_pages|translate_digits }}</span>
-                </li>
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <button type="button" class="page-link" hx-get="{% url 'expense-list' %}?{% url_replace page=num %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</button>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
                 {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" hx-get="{% url 'expense-list' %}?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Next" %}</a>
-                </li>
+                    <li class="page-item">
+                        <button type="button" class="page-link" hx-get="{% url 'expense-list' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </button>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
                 {% endif %}
             </ul>
         </nav>

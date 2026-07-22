@@ -203,14 +203,14 @@
         </div>
 
         {% if is_paginated %}
-        <div class="card-footer bg-transparent py-3">
+        <div class="card-footer bg-transparent py-3 border-top">
             <nav aria-label="Category pagination">
                 <ul class="pagination justify-content-center mb-0">
                     {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Previous" hx-get="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" hx-target="#category-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                            <button type="button" class="page-link" hx-get="{% url 'category-list' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#category-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Previous">
                                 <span aria-hidden="true">&laquo;</span>
-                            </a>
+                            </button>
                         </li>
                     {% else %}
                         <li class="page-item disabled">
@@ -223,16 +223,16 @@
                             <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" hx-get="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" hx-target="#category-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</a>
+                                <button type="button" class="page-link" hx-get="{% url 'category-list' %}?{% url_replace page=num %}" hx-target="#category-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</button>
                             </li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Next" hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" hx-target="#category-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                            <button type="button" class="page-link" hx-get="{% url 'category-list' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#category-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Next">
                                 <span aria-hidden="true">&raquo;</span>
-                            </a>
+                            </button>
                         </li>
                     {% else %}
                         <li class="page-item disabled">

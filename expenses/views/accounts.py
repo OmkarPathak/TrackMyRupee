@@ -395,10 +395,12 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
             messages.error(self.request, _("Unable to complete transfer because currency conversion failed or transfer data is invalid."))
             return self.form_invalid(form)
 
-class TransferListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
+class TransferListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = Transfer
     template_name = 'expenses/transfer_list.html'
+    htmx_template_name = 'expenses/partials/_transfer_list.html'
     context_object_name = 'transfers'
+    paginate_by = 10
 
     def get_queryset(self):
         return Transfer.objects.filter(user=self.request.user).select_related('from_account', 'to_account').order_by('-date')
@@ -637,6 +639,10 @@ class AccountDetailView(LoginRequiredMixin, View):
             'filtered_net_total': filtered_net_total,
             'trend_data': self.get_trend_data(account, request.user),
         }
+        if getattr(request, 'htmx', False):
+            response = render(request, 'expenses/partials/_account_detail.html', context)
+            response['Vary'] = 'HX-Request'
+            return response
         return render(request, self.template_name, context)
 
     def get_trend_data(self, account, user):

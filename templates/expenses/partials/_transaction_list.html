@@ -394,14 +394,40 @@
 
     {% if is_paginated %}
     <div class="card-footer bg-transparent py-3">
-        <nav>
+        <nav aria-label="Transaction pagination">
             <ul class="pagination justify-content-center mb-0">
                 {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" hx-get="{% url 'all-transactions' %}?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Previous" %}</a></li>
+                    <li class="page-item">
+                        <button type="button" class="page-link" hx-get="{% url 'all-transactions' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </button>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
                 {% endif %}
-                <li class="page-item disabled"><span class="page-link">{% trans "Page" %} {{ page_obj.number|translate_digits }}</span></li>
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <button type="button" class="page-link" hx-get="{% url 'all-transactions' %}?{% url_replace page=num %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</button>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
                 {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" hx-get="{% url 'all-transactions' %}?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Next" %}</a></li>
+                    <li class="page-item">
+                        <button type="button" class="page-link" hx-get="{% url 'all-transactions' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </button>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
                 {% endif %}
             </ul>
         </nav>
