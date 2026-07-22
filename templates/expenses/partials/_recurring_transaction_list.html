@@ -1,0 +1,604 @@
+{% load i18n digit_filters humanize %}
+
+<div id="recurring-list-shell">
+    <!-- Mobile Header -->
+    <div class="card-header bg-transparent d-md-none pt-1 pb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                <span class="h4 mb-0">{% trans "Subscriptions" %}</span>
+                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideRecurring" aria-expanded="false" title="{% trans 'How it works' %}">
+                    <i class="bi bi-info-lg" style="font-size: 0.65rem;"></i>
+                </button>
+            </h3>
+            <div class="d-flex align-items-center gap-2">
+                <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                {% if is_limit_reached %}
+                    <button type="button" class="header-action-btn btn-primary p-2" data-bs-toggle="modal" data-bs-target="#limitReachedModal" title="{% trans 'Add Subscription' %}">
+                        <i class="bi bi-plus-lg"></i>{% trans 'Add' %}
+                    </button>
+                {% else %}
+                    <a href="{% url 'recurring-create' %}" class="header-action-btn btn-primary p-2" title="{% trans 'Add' %}">
+                        <i class="bi bi-plus-lg"></i>{% trans 'Add' %}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Stats Line (Mobile View) -->
+        <p class="text-muted text-center small mb-0 mt-4 fw-medium py-1 lh-base">
+            <span class="fw-bold text-primary">{{ active_subs|length|translate_digits }}</span> {% trans "subscriptions" %} &middot; 
+            <span class="fw-bold text-primary">{{ currency_symbol }}{{ total_monthly_cost|compact_amount:currency_symbol|translate_digits }}</span> {% trans "monthly" %} &middot; 
+            <span class="fw-bold text-primary">{{ currency_symbol }}{{ total_daily_cost|compact_amount:currency_symbol|translate_digits }}</span> {% trans "daily" %} &middot; 
+            <span class="fw-bold text-primary">{{ currency_symbol }}{{ total_yearly_cost|compact_amount:currency_symbol|translate_digits }}</span> {% trans "yearly" %}
+        </p>
+    </div>
+
+    <!-- Desktop Header -->
+    <div class="card-header bg-transparent d-none d-md-block pt-1 pb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
+                <span class="h3 mb-0">{% trans "Subscriptions" %}</span>
+                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 28px; height: 28px; min-width: 28px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideRecurring" aria-expanded="false" title="{% trans 'How it works' %}">
+                    <i class="bi bi-info-lg" style="font-size: 0.75rem;"></i>
+                </button>
+            </h2>
+
+            <!-- Stats Line (Desktop Center) -->
+            <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
+                <span class="fw-bold text-primary">{{ active_subs|length|translate_digits }}</span> {% trans "subscriptions" %} &middot; 
+                <span class="fw-bold text-primary">{{ currency_symbol }}{{ total_monthly_cost|compact_amount:currency_symbol|translate_digits }}</span> {% trans "monthly" %} &middot; 
+                <span class="fw-bold text-primary">{{ currency_symbol }}{{ total_daily_cost|compact_amount:currency_symbol|translate_digits }}</span> {% trans "daily" %} &middot; 
+                <span class="fw-bold text-primary">{{ currency_symbol }}{{ total_yearly_cost|compact_amount:currency_symbol|translate_digits }}</span> {% trans "yearly" %}
+            </p>
+
+            <div class="d-flex align-items-center gap-2">
+                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                {% if is_limit_reached %}
+                    <button type="button" class="header-action-btn btn-primary" data-bs-toggle="modal" data-bs-target="#limitReachedModal">
+                        <i class="bi bi-plus-lg me-1"></i> {% trans "Add Subscription" %}
+                    </button>
+                {% else %}
+                    <a href="{% url 'recurring-create' %}" class="header-action-btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> {% trans "Add Subscription" %}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% include 'partials/guide_recurring.html' %}
+
+    <!-- Filter Form -->
+    <div class="collapse" id="subscriptionFilters">
+        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm border-0 mt-3" id="filter-form" hx-get="{% url 'recurring-list' %}" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+            <div class="row g-2 align-items-end">
+                <!-- Category -->
+                <div class="col-12 col-md-auto" style="min-width: 200px;">
+                    <label for="category-select" class="form-label small text-muted">{% trans "Category" %}</label>
+                    <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="Categories...">
+                        {% for cat in categories %}
+                            <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>
+                                {{ cat }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-6 col-md-auto">
+                    <button type="submit" class="btn btn-primary btn-sm w-100 w-md-auto">
+                        <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
+                    </button>
+                </div>
+                <!-- Reset -->
+                <div class="col-6 col-md-auto">
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 w-md-auto" hx-get="{% url 'recurring-list' %}" hx-params="none" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+        
+    {% include 'components/upgrade_nudge.html' %}
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4 gap-2 flex-nowrap overflow-auto py-1 mt-3" id="subscriptionTabs" role="tablist" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active px-4 rounded-pill text-nowrap d-flex align-items-center" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-selected="true">
+                {% trans "All" %}
+                <span class="badge bg-body text-primary ms-2 rounded-pill opacity-75">{{ active_subs|length|translate_digits }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4 rounded-pill text-nowrap d-flex align-items-center" id="renewing-tab" data-bs-toggle="tab" data-bs-target="#renewing" type="button" role="tab" aria-selected="false">
+                {% trans "Renewing Soon" %} 
+                {% if renewals_count > 0 %}<span class="badge bg-danger ms-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px;">{{ renewals_count|translate_digits }}</span>{% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4 rounded-pill text-nowrap d-flex align-items-center" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab" aria-selected="false">{% trans "Cancelled" %}</button>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="subscriptionTabsContent">
+        <!-- 1. All Subscriptions Tab -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+            {% if active_subs %}
+                <!-- Desktop Table View -->
+                <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mb-4">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-start align-middle">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">{% trans "Subscription" %}</th>
+                                        <th>{% trans "Category" %}</th>
+                                        <th>{% trans "Frequency" %}</th>
+                                        <th>{% trans "Account" %}</th>
+                                        <th>{% trans "Next Renewal" %}</th>
+                                        <th>{% trans "Amount" %}</th>
+                                        <th class="text-end pe-4">{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sub in active_subs %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                {% if sub.is_locked %}
+                                                    <i class="bi bi-lock-fill text-muted fs-5"></i>
+                                                {% elif sub.transaction_type == 'TRANSFER' %}
+                                                    <i class="bi bi-arrow-left-right text-info fs-5"></i>
+                                                {% elif sub.transaction_type == 'INCOME' %}
+                                                    <i class="bi bi-arrow-repeat text-success fs-5"></i>
+                                                {% else %}
+                                                    <i class="bi bi-arrow-repeat text-secondary fs-5"></i>
+                                                {% endif %}
+                                                <div>
+                                                    <span class="fw-bold {% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
+                                                    {% if sub.end_date %}
+                                                        <div class="text-danger small" style="font-size: 0.72rem;">
+                                                            <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if sub.transaction_type == 'INCOME' %}
+                                                <span class="badge bg-success-subtle text-success">{% trans "Income" %}</span>
+                                            {% elif sub.transaction_type == 'TRANSFER' %}
+                                                <span class="badge bg-info-subtle text-info">{% trans "Transfer" %}</span>
+                                            {% elif sub.transaction_type == 'CAPITAL' %}
+                                                <span class="badge bg-warning-subtle text-warning">{% trans "Capital Event" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary">{{ sub.category }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-capitalize">{{ sub.get_frequency_display }}</td>
+                                        <td>
+                                            {% if sub.account %}
+                                                <span class="text-secondary small">{{ sub.account.name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if sub.is_locked %}
+                                                <span class="text-muted small">{% trans "Locked" %}</span>
+                                            {% elif sub.annotated_next_date %}
+                                                <span class="{% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger fw-bold{% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning fw-semibold{% else %}text-secondary{% endif %}">
+                                                    {{ sub.annotated_next_date|date:"d M Y"|translate_digits }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                            {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
+                                            {% if sub.currency != user.profile.currency %}
+                                                <div class="text-muted small fw-normal" style="font-size: 0.72rem;">
+                                                    ({{ sub.currency }}{{ sub.amount|compact_amount:sub.currency|translate_digits }})
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-4 text-nowrap">
+                                            {% if sub.is_locked %}
+                                                <a href="{% url 'pricing' %}" class="btn btn-sm btn-link text-decoration-none p-0 fw-bold text-primary">
+                                                    <i class="bi bi-rocket-takeoff fs-6"></i>
+                                                </a>
+                                            {% else %}
+                                                <div class="hstack gap-3 justify-content-end">
+                                                    <a href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}" title="{% trans 'Edit' %}">
+                                                        <i class="bi bi-pencil-square text-primary fs-6"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
+                                                            data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                                            data-url="{% url 'recurring-delete' sub.uuid %}"
+                                                            data-message="{% trans 'Are you sure?' %}">
+                                                        <i class="bi bi-trash text-danger fs-6"></i>
+                                                    </button>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Grid View -->
+                <div id="mobileGridView" class="py-2 d-md-none">
+                    {% for sub in active_subs %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-2">
+                        <div class="card-body p-3">
+                            <div class="mobile-card-inner">
+                                <div class="category-icon-container" title="{{ sub.description }}">
+                                    {% if sub.is_locked %}
+                                        <i class="bi bi-lock-fill text-secondary"></i>
+                                    {% elif sub.transaction_type == 'TRANSFER' %}
+                                        <i class="bi bi-arrow-left-right text-info"></i>
+                                    {% elif sub.transaction_type == 'INCOME' %}
+                                        <i class="bi bi-arrow-repeat text-success"></i>
+                                    {% else %}
+                                        <i class="bi bi-arrow-repeat text-danger"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1 min-width-0 ps-3">
+                                    <h6 class="mb-0 fw-bold text-truncate {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 0.95rem;">
+                                        {{ sub.description }}
+                                    </h6>
+                                    <div class="text-muted small mb-0 text-truncate d-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                                        <span>{{ sub.get_frequency_display }}</span>
+                                        <span class="opacity-50">&middot;</span>
+                                        {% if sub.is_locked %}
+                                            <span>{% trans "Locked" %}</span>
+                                        {% else %}
+                                            <span class="{% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger fw-bold{% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning fw-semibold{% else %}text-secondary{% endif %}">{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0 text-end">
+                                    <span class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}" style="font-size: 0.95rem;">
+                                        {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
+                                    </span>
+                                </div>
+                                <div class="dropdown ms-2">
+                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        {% if sub.is_locked %}
+                                            <li>
+                                                <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
+                                                    <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li>
+                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
+                                                    <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <button type="button" class="dropdown-item py-2 text-danger delete-btn" 
+                                                        data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                                        data-url="{% url 'recurring-delete' sub.uuid %}"
+                                                        data-message="{% trans 'Are you sure?' %}">
+                                                    <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                                </button>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div>
+                        {% include 'illustrations/empty_recurring.svg' %}
+                    </div>
+                    <h4 class="fw-bold">{% trans "No active subscriptions" %}</h4>
+                    <p class="text-muted mb-4 col-md-6 mx-auto">{% trans "Most people forget at least one renewal every year. Add yours now so we can remind you before you pay." %}</p>
+                    {% if is_limit_reached %}
+                        <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-medium" data-bs-toggle="modal" data-bs-target="#limitReachedModal">
+                            <i class="bi bi-plus-lg me-2"></i>{% trans "Add your first subscription" %}
+                        </button>
+                    {% else %}
+                        <a href="{% url 'recurring-create' %}" class="btn btn-primary px-4 py-2 rounded-pill fw-medium">
+                            <i class="bi bi-plus-lg me-2"></i>{% trans "Add your first subscription" %}
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 2. Renewing Soon Tab -->
+        <div class="tab-pane fade" id="renewing" role="tabpanel">
+            {% if renewing_soon %}
+                <!-- Desktop Table View -->
+                <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mb-4">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-start align-middle">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">{% trans "Description" %}</th>
+                                        <th>{% trans "Type" %}</th>
+                                        <th>{% trans "Frequency" %}</th>
+                                        <th>{% trans "Next Due" %}</th>
+                                        <th>{% trans "Amount" %}</th>
+                                        <th class="text-end pe-4">{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sub in renewing_soon %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                {% if sub.is_locked %}
+                                                    <i class="bi bi-lock-fill text-muted fs-5"></i>
+                                                {% else %}
+                                                    <i class="bi bi-exclamation-circle-fill text-danger fs-5"></i>
+                                                {% endif %}
+                                                <div>
+                                                    <span class="fw-bold {% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
+                                                    {% if sub.end_date %}
+                                                        <div class="text-danger small" style="font-size: 0.72rem;">
+                                                            <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if sub.transaction_type == 'INCOME' %}
+                                                <span class="badge bg-success-subtle text-success">{% trans "Income" %}</span>
+                                            {% elif sub.transaction_type == 'TRANSFER' %}
+                                                <span class="badge bg-info-subtle text-info">{% trans "Transfer" %}</span>
+                                            {% elif sub.transaction_type == 'CAPITAL' %}
+                                                <span class="badge bg-warning-subtle text-warning">{% trans "Capital Event" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary">{% trans "Expense" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ sub.get_frequency_display }}</td>
+                                        <td>
+                                            {% if sub.is_locked %}
+                                                <span class="text-muted small">{% trans "Locked" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-danger text-white">{% trans "Renewing This Month" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                            {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
+                                            {% if sub.currency != user.profile.currency %}
+                                                <div class="text-muted small fw-normal" style="font-size: 0.72rem;">
+                                                    ({{ sub.currency }}{{ sub.amount|floatformat:0|translate_digits }})
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            {% if sub.is_locked %}
+                                                <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary mt-2 rounded-pill fw-bold" style="font-size: 0.8rem;">{% trans "Unlock" %}</a>
+                                            {% else %}
+                                                 <a href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary mt-2 rounded-pill" style="font-size: 0.8rem;">{% trans "Manage" %}</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Grid View -->
+                <div id="mobileGridView" class="py-2 d-md-none">
+                    {% for sub in renewing_soon %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-2">
+                        <div class="card-body p-3">
+                            <div class="mobile-card-inner">
+                                <div class="category-icon-container" title="{{ sub.description }}">
+                                    {% if sub.is_locked %}
+                                        <i class="bi bi-lock-fill text-secondary"></i>
+                                    {% else %}
+                                        <i class="bi bi-exclamation-circle-fill text-danger"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1 min-width-0 ps-3">
+                                    <h6 class="mb-0 fw-bold text-truncate {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 0.95rem;">
+                                        {{ sub.description }}
+                                    </h6>
+                                    <div class="text-muted small mb-0 text-truncate d-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                                        {% if sub.is_locked %}
+                                            <span>{% trans "Locked" %}</span>
+                                        {% else %}
+                                            <span class="text-danger fw-semibold">{% trans "Renewing This Month" %}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0 text-end">
+                                    <span class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}" style="font-size: 0.95rem;">
+                                        {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
+                                    </span>
+                                </div>
+                                <div class="dropdown ms-2">
+                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        {% if sub.is_locked %}
+                                            <li>
+                                                <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
+                                                    <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li>
+                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
+                                                    <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Manage" %}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-check-circle display-4 text-success mb-3 d-block"></i>
+                    <p class="text-muted">{% trans "No renewals coming up this month!" %}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 3. Cancelled Tab -->
+        <div class="tab-pane fade" id="cancelled" role="tabpanel">
+            {% if cancelled_subs %}
+                <!-- Desktop Table View -->
+                <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mb-4 opacity-75">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-start align-middle">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">{% trans "Description" %}</th>
+                                        <th>{% trans "Type" %}</th>
+                                        <th>{% trans "Frequency" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Amount" %}</th>
+                                        <th class="text-end pe-4">{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sub in cancelled_subs %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                {% if sub.is_locked %}
+                                                    <i class="bi bi-lock-fill text-muted fs-5"></i>
+                                                {% else %}
+                                                    <i class="bi bi-x-circle text-muted fs-5"></i>
+                                                {% endif %}
+                                                <div>
+                                                    <span class="fw-bold text-decoration-line-through text-muted">{{ sub.description }}</span>
+                                                    {% if sub.end_date %}
+                                                        <div class="text-danger small" style="font-size: 0.72rem;">
+                                                            <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if sub.transaction_type == 'INCOME' %}
+                                                <span class="badge bg-success-subtle text-success">{% trans "Income" %}</span>
+                                            {% elif sub.transaction_type == 'TRANSFER' %}
+                                                <span class="badge bg-info-subtle text-info">{% trans "Transfer" %}</span>
+                                            {% elif sub.transaction_type == 'CAPITAL' %}
+                                                <span class="badge bg-warning-subtle text-warning">{% trans "Capital Event" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary">{% trans "Expense" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ sub.get_frequency_display }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{% trans "Cancelled" %}</span>
+                                        </td>
+                                        <td class="fw-bold text-muted">
+                                            {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
+                                            {% if sub.currency != user.profile.currency %}
+                                                <div class="text-muted small fw-normal" style="font-size: 0.72rem;">
+                                                    ({{ sub.currency }}{{ sub.amount|floatformat:0|translate_digits }})
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            {% if sub.is_locked %}
+                                                <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary mt-2 rounded-pill fw-bold" style="font-size: 0.8rem;">{% trans "Unlock" %}</a>
+                                            {% else %}
+                                                <a href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}" class="btn btn-sm btn-outline-primary mt-2" style="font-size: 0.8rem;">{% trans "Reactivate" %}</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Grid View -->
+                <div id="mobileGridView" class="py-2 d-md-none opacity-75">
+                    {% for sub in cancelled_subs %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-2">
+                        <div class="card-body p-3">
+                            <div class="mobile-card-inner">
+                                <div class="category-icon-container" title="{{ sub.description }}">
+                                    {% if sub.is_locked %}
+                                        <i class="bi bi-lock-fill text-secondary"></i>
+                                    {% else %}
+                                        <i class="bi bi-x-circle text-secondary"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1 min-width-0 ps-3">
+                                    <h6 class="mb-0 fw-bold text-truncate text-decoration-line-through text-muted" style="font-size: 0.95rem;">
+                                        {{ sub.description }}
+                                    </h6>
+                                    <div class="text-muted small mb-0 text-truncate d-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                                        <span class="badge bg-secondary">{% trans "Cancelled" %}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0 text-end">
+                                    <span class="fw-bold text-muted" style="font-size: 0.95rem;">
+                                        {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
+                                    </span>
+                                </div>
+                                <div class="dropdown ms-2">
+                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        {% if sub.is_locked %}
+                                            <li>
+                                                <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
+                                                    <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li>
+                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
+                                                    <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Reactivate" %}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <p class="text-muted">{% trans "No cancelled subscriptions." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

@@ -11,12 +11,13 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import RecurringTransactionForm
 from ..models import RecurringTransaction
-from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
 
 
-class RecurringTransactionListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
+class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = RecurringTransaction
     template_name = 'expenses/recurring_transaction_list.html'
+    htmx_template_name = 'expenses/partials/_recurring_transaction_list.html'
     context_object_name = 'recurring_transactions'
     filter_expenses_only = False
 

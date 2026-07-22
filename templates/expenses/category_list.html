@@ -159,274 +159,33 @@
         }
     </style>
 
-    <div class="pt-1 pb-3 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-            <h2 class="h4 mb-0 fw-bold">{% trans "Categories" %}</h2>
-            <div class="d-flex align-items-center gap-2">
-                <span id="bulkDeleteTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one category to delete' %}">
-                    <button type="button" class="header-icon-btn delete bulk-delete-btn" id="bulkDeleteBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal" aria-label="{% trans 'Delete Selected' %}">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </span>
-                <a href="{% url 'category-create' %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Category" %}
-                </a>
-            </div>
-        </div>
-        <p class="text-muted small mb-3">{% trans "Categories help you understand your spending habits" %}</p>
-        <form method="get" class="d-flex" role="search">
-            <input class="form-control me-2" type="search" name="search" placeholder="{% trans 'Search categories...' %}" aria-label="Search" value="{{ search_query }}">
-            <button class="btn btn-outline-primary" type="submit">{% trans "Search" %}</button>
-            {% if search_query %}
-                <a href="{% url 'category-list' %}" class="btn btn-outline-secondary ms-2">{% trans "Reset" %}</a>
-            {% endif %}
-        </form>
-    </div>
-
-    {% include 'components/upgrade_nudge.html' %}
-
-    <div class="card shadow-sm border-0 category-list-shell">
-        <div class="card-body p-0">
-            {% if categories %}
-            <form id="bulkDeleteForm" method="post" action="{% url 'category-bulk-delete' %}?{{ request.GET.urlencode }}">
-                {% csrf_token %}
-
-                <div id="mobileBulkActions" class="d-md-none p-2 bg-body border-bottom d-none justify-content-end align-items-center gap-2">
-                    <span class="small text-muted me-auto">{% trans "Items Selected" %}</span>
-                    <button type="button" class="btn btn-outline-danger btn-sm bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                        <i class="bi bi-trash me-1"></i> {% trans "Delete" %}
-                    </button>
-                </div>
-
-                <div class="d-none d-md-block">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 text-start align-middle">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4" style="width: 40px;">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="selectAll">
-                                        </div>
-                                    </th>
-                                    <th>{% trans "Name" %}</th>
-                                    <th class="text-end">{% trans "Monthly Limit" %}</th>
-                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for category in categories %}
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input category-checkbox" type="checkbox" name="category_ids" value="{{ category.pk }}">
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="bi {{ category.icon }} fs-5"></i>
-                                            <span>{{ category.name }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="text-end">
-                                        {% if category.limit %}
-                                            {{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end pe-4 text-nowrap">
-                                        <div class="dropdown hstack gap-3 justify-content-end">
-                                            <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
-                                                <i class="bi bi-three-dots-vertical text-muted"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                                <li>
-                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
-                                                            data-bs-toggle="modal" data-bs-target="#editCategoryModal"
-                                                            data-url="{% url 'category-edit' category.uuid %}"
-                                                            data-name="{{ category.name }}"
-                                                            data-icon="{{ category.icon }}"
-                                                            data-limit="{{ category.limit|default_if_none:'' }}">
-                                                        <i class="bi bi-pencil-square text-primary"></i>
-                                                        <span>{% trans "Edit" %}</span>
-                                                    </button>
-                                                </li>
-                                                <li>
-                                                    <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button"
-                                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                            data-url="{% url 'category-delete' category.uuid %}"
-                                                            data-message="{% blocktrans with name=category.name %}Are you sure you want to delete category '{{ name }}'? This will NOT delete expenses in this category, but they will be unlinked or require update.{% endblocktrans %}">
-                                                        <i class="bi bi-trash"></i>
-                                                        <span>{% trans "Delete" %}</span>
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="mobileGridView" class="py-2 d-md-none">
-                    <div class="d-flex align-items-center mb-2 px-1 mobile-selection-header">
-                        <div id="mobileSelectAllRow" class="d-flex align-items-center gap-2">
-                            <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
-                            <label class="small text-muted" for="selectAllMobile" style="cursor: pointer;">{% trans "Select All" %}</label>
-                        </div>
-                        <a href="#" id="mobileSelectToggle" class="text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</a>
-                    </div>
-
-                    {% for category in categories %}
-                    <div class="card category-card shadow-sm border-0 position-relative mb-3">
-                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
-                            <div class="mobile-card-inner">
-                                <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
-                                    <input class="form-check-input category-checkbox" type="checkbox" name="category_ids" value="{{ category.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
-                                </div>
-
-                                <div class="category-icon-container" title="{{ category.name }}">
-                                    <i class="bi {{ category.icon }}"></i>
-                                </div>
-
-                                <div class="flex-grow-1 min-width-0 px-1">
-                                    <div class="fw-semibold text-body-emphasis text-truncate mb-1" style="font-size: 0.93rem;">
-                                        {{ category.name }}
-                                    </div>
-                                    <div class="text-body-secondary" style="font-size: 0.72rem;">
-                                        {% trans "Category" %}
-                                    </div>
-                                </div>
-
-                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
-                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 0.95rem; line-height: 1.2;">
-                                        {% if category.limit %}
-                                            {{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </div>
-                                    <span class="text-body-secondary" style="font-size: 0.68rem;">{% trans "Monthly Limit" %}</span>
-                                </div>
-
-                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
-                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
-                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
-                                        <li>
-                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
-                                                    data-bs-toggle="modal" data-bs-target="#editCategoryModal"
-                                                    data-url="{% url 'category-edit' category.uuid %}"
-                                                    data-name="{{ category.name }}"
-                                                    data-icon="{{ category.icon }}"
-                                                    data-limit="{{ category.limit|default_if_none:'' }}">
-                                                <i class="bi bi-pencil-square text-primary"></i>
-                                                <span>{% trans "Edit" %}</span>
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button"
-                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                    data-url="{% url 'category-delete' category.uuid %}"
-                                                    data-message="{% blocktrans with name=category.name %}Are you sure you want to delete category '{{ name }}'? This will NOT delete expenses in this category, but they will be unlinked or require update.{% endblocktrans %}">
-                                                <i class="bi bi-trash"></i>
-                                                <span>{% trans "Delete" %}</span>
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </form>
-            {% else %}
-            <div class="text-center py-5">
-                <div class="py-4">
-                    <div class="mb-4">
-                        {% include 'illustrations/empty_categories.svg' %}
-                    </div>
-                    <h4 class="fw-bold text-muted">{% trans "No Categories Yet" %}</h4>
-                    <p class="text-muted mb-4">{% trans "Organize your transactions by creating custom categories." %}</p>
-                    <a href="{% url 'category-create' %}" class="btn btn-primary">
-                        <i class="bi bi-plus-lg me-1"></i> {% trans "Add Category" %}
-                    </a>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-
-        {% if is_paginated %}
-        <div class="card-footer bg-transparent py-3">
-            <nav aria-label="Category pagination">
-                <ul class="pagination justify-content-center mb-0">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">&laquo;</span>
-                        </li>
-                    {% endif %}
-
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num|translate_digits }}</a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">&raquo;</span>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
-        {% endif %}
-    </div>
+    {% include 'expenses/partials/_category_list.html' %}
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const selectAllTable = document.getElementById('selectAll');
-        const selectAllMobile = document.getElementById('selectAllMobile');
-        const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
-        const bulkDeleteBtns = document.querySelectorAll('.bulk-delete-btn');
-        const mobileBulkActions = document.getElementById('mobileBulkActions');
-        const bulkDeleteTooltipWrap = document.getElementById('bulkDeleteTooltipWrap');
-        const mobileGridView = document.getElementById('mobileGridView');
-
+    (function() {
         function updateTooltipMessage(el, message) {
             if (!el) return;
             el.setAttribute('title', message);
             el.setAttribute('data-bs-original-title', message);
-            const instance = bootstrap.Tooltip.getInstance(el);
-            if (instance) {
-                instance.setContent({ '.tooltip-inner': message });
+            if (window.bootstrap && window.bootstrap.Tooltip) {
+                const instance = window.bootstrap.Tooltip.getInstance(el);
+                if (instance) {
+                    instance.setContent({ '.tooltip-inner': message });
+                }
             }
         }
 
         function updateBulkButtonsState() {
+            const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+            const bulkDeleteBtns = document.querySelectorAll('.bulk-delete-btn');
+            const mobileBulkActions = document.getElementById('mobileBulkActions');
+            const bulkDeleteTooltipWrap = document.getElementById('bulkDeleteTooltipWrap');
+
             const anyChecked = Array.from(categoryCheckboxes).some(cb => cb.checked);
-            bulkDeleteBtns.forEach(btn => btn.disabled = !anyChecked);
+            bulkDeleteBtns.forEach(btn => {
+                btn.disabled = !anyChecked;
+            });
 
             if (mobileBulkActions) {
                 if (anyChecked) {
@@ -446,45 +205,52 @@
             );
         }
 
-        function handleSelectAll(e) {
-            const isChecked = e.target.checked;
+        function handleSelectAll(isChecked) {
+            const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
             categoryCheckboxes.forEach(cb => {
                 cb.checked = isChecked;
             });
+            const selectAllTable = document.getElementById('selectAll');
+            const selectAllMobile = document.getElementById('selectAllMobile');
             if (selectAllTable) selectAllTable.checked = isChecked;
             if (selectAllMobile) selectAllMobile.checked = isChecked;
             updateBulkButtonsState();
         }
 
-        if (selectAllTable) selectAllTable.addEventListener('change', handleSelectAll);
-        if (selectAllMobile) selectAllMobile.addEventListener('change', handleSelectAll);
-
-        categoryCheckboxes.forEach(cb => {
-            cb.addEventListener('change', function() {
+        document.addEventListener('change', function(e) {
+            if (e.target.matches('#selectAll') || e.target.matches('#selectAllMobile')) {
+                handleSelectAll(e.target.checked);
+            } else if (e.target.matches('.category-checkbox')) {
                 updateBulkButtonsState();
-                const allChecked = categoryCheckboxes.length > 0 && Array.from(categoryCheckboxes).every(item => item.checked);
+                const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+                const allChecked = categoryCheckboxes.length > 0 && Array.from(categoryCheckboxes).every(cb => cb.checked);
+                const selectAllTable = document.getElementById('selectAll');
+                const selectAllMobile = document.getElementById('selectAllMobile');
                 if (selectAllTable) selectAllTable.checked = allChecked;
                 if (selectAllMobile) selectAllMobile.checked = allChecked;
-            });
+            }
         });
 
-        const mobileSelectToggle = document.getElementById('mobileSelectToggle');
-        if (mobileSelectToggle && mobileGridView) {
-            mobileSelectToggle.addEventListener('click', function(e) {
+        document.addEventListener('click', function(e) {
+            const toggleBtn = e.target.closest('#mobileSelectToggle');
+            if (toggleBtn) {
                 e.preventDefault();
-                const isSelecting = mobileGridView.classList.toggle('selection-mode');
-                this.innerHTML = isSelecting ? '<i class="bi bi-x-lg"></i> {% trans "Cancel" %}' : '<i class="bi bi-check2-square"></i> {% trans "Select" %}';
-                if (!isSelecting) {
-                    categoryCheckboxes.forEach(cb => cb.checked = false);
-                    if (selectAllMobile) selectAllMobile.checked = false;
-                    if (selectAllTable) selectAllTable.checked = false;
-                    updateBulkButtonsState();
+                const mobileGridView = document.getElementById('mobileGridView');
+                if (mobileGridView) {
+                    const isSelecting = mobileGridView.classList.toggle('selection-mode');
+                    toggleBtn.innerHTML = isSelecting
+                        ? '<i class="bi bi-x-lg"></i> {% trans "Cancel" %}'
+                        : '<i class="bi bi-check2-square"></i> {% trans "Select" %}';
+                    if (!isSelecting) {
+                        handleSelectAll(false);
+                    }
                 }
-            });
-        }
+            }
+        });
 
-        updateBulkButtonsState();
-    });
+        document.addEventListener('DOMContentLoaded', updateBulkButtonsState);
+        document.addEventListener('htmx:afterSwap', updateBulkButtonsState);
+    })();
 </script>
 {% endblock %}
 
