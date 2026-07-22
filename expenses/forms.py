@@ -1,3 +1,5 @@
+import uuid
+
 from datetime import date
 from decimal import Decimal
 
@@ -59,7 +61,7 @@ class CachedModelChoiceField(forms.ModelChoiceField):
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        fields = ['date', 'amount', 'currency', 'account', 'description', 'category', 'payment_method']
+        fields = ['date', 'amount', 'currency', 'account', 'description', 'category', 'payment_method', 'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -67,11 +69,15 @@ class ExpenseForm(forms.ModelForm):
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'description': forms.TextInput(attrs={'class': 'form-control'}),
             'payment_method': forms.Select(attrs={'class': 'form-select'}),
+            'client_dedup_key': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        if not self.is_bound and not self.instance.pk:
+            self.fields['client_dedup_key'].initial = str(uuid.uuid4())
         self.fields['date'].initial = date.today
         
         # If user is provided, populate category choices
@@ -150,7 +156,7 @@ class ExpenseForm(forms.ModelForm):
 class IncomeForm(forms.ModelForm):
     class Meta:
         model = Income
-        fields = ['date', 'amount', 'currency', 'account', 'source_type', 'description']
+        fields = ['date', 'amount', 'currency', 'account', 'source_type', 'description', 'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -158,6 +164,7 @@ class IncomeForm(forms.ModelForm):
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'source_type': forms.Select(attrs={'class': 'form-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('e.g. Salary from company, Freelance project details')}),
+            'client_dedup_key': forms.HiddenInput(),
         }
     
     add_to_recurring = forms.BooleanField(required=False, label=_("Make this a recurring income"))
@@ -171,6 +178,9 @@ class IncomeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        if not self.is_bound and not self.instance.pk:
+            self.fields['client_dedup_key'].initial = str(uuid.uuid4())
         self.fields['date'].initial = date.today
         self.fields['source_type'].required = True
         self.fields['source_type'].label = _("Source Type")
@@ -693,18 +703,22 @@ class AccountForm(forms.ModelForm):
 class TransferForm(forms.ModelForm):
     class Meta:
         model = Transfer
-        fields = ['date', 'amount', 'from_account', 'to_account', 'description']
+        fields = ['date', 'amount', 'from_account', 'to_account', 'description', 'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'to_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'client_dedup_key': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        if not self.is_bound and not self.instance.pk:
+            self.fields['client_dedup_key'].initial = str(uuid.uuid4())
         self.fields['date'].initial = date.today
         if user:
             # Enforce Tier Limits for Accounts

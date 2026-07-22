@@ -13,6 +13,9 @@
             <div class="card-body p-4">
                 <form method="post">
                     {% csrf_token %}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
                     
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger mb-3">

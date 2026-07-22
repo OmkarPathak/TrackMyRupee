@@ -4,6 +4,7 @@ from decimal import Decimal
 from itertools import chain
 
 from django.conf import settings
+from django.db import IntegrityError
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
@@ -381,10 +382,14 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+
         try:
             response = super().form_valid(form)
             messages.success(self.request, _("Transfer completed successfully!"))
             return response
+        except IntegrityError:
+            messages.error(self.request, _("Duplicate transfer found! This transfer has already been completed."))
+            return self.form_invalid(form)
         except (RuntimeError, ValidationError):
             messages.error(self.request, _("Unable to complete transfer because currency conversion failed or transfer data is invalid."))
             return self.form_invalid(form)

@@ -846,6 +846,7 @@ class Transfer(models.Model):
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))
     date = models.DateField(default=timezone.now, verbose_name=_('Date'))
     description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    client_dedup_key = models.CharField(max_length=255, null=True, blank=True, verbose_name=_('Client Deduplication Key'))
     
     objects = TransferManager()
     
@@ -1042,7 +1043,8 @@ class Transfer(models.Model):
             models.CheckConstraint(
                 check=~models.Q(from_account=models.F('to_account')),
                 name='transfer_accounts_must_differ',
-            )
+            ),
+            models.UniqueConstraint(fields=['user', 'client_dedup_key'], name='idx_transfer_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
         ]
         indexes = [
             models.Index(fields=['user', 'date']),
