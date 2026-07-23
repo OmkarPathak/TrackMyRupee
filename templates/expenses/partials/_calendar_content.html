@@ -4,27 +4,27 @@
     <!-- Header -->
     <div class="card-header bg-transparent d-flex flex-column flex-md-row justify-content-between align-items-center py-3 gap-3">
         <div class="d-flex align-items-center gap-3">
-            <a href="{% url 'calendar-month' prev_year prev_month %}{% if search_query %}?search={{ search_query }}{% endif %}" 
-               hx-get="{% url 'calendar-month' prev_year prev_month %}{% if search_query %}?search={{ search_query }}{% endif %}" 
-               hx-target="#calendar-shell" 
-               hx-swap="outerHTML show:none" 
-               hx-push-url="true" 
-               hx-indicator="#global-progress-bar"
-               class="btn btn-sm"
-               title="{% trans 'Previous Month' %}">
+            <button type="button" 
+                    hx-get="{% url 'calendar-month' prev_year prev_month %}{% if search_query %}?search={{ search_query }}{% endif %}" 
+                    hx-target="#calendar-shell" 
+                    hx-swap="outerHTML show:none" 
+                    hx-push-url="true" 
+                    hx-indicator="#global-progress-bar"
+                    class="btn btn-sm"
+                    title="{% trans 'Previous Month' %}">
                 <i class="bi bi-chevron-left"></i>
-            </a>
+            </button>
             <h2 class="h4 mb-0 fw-bold">{{ month_name }} {{ current_year|translate_digits }}</h2>
-            <a href="{% url 'calendar-month' next_year next_month %}{% if search_query %}?search={{ search_query }}{% endif %}" 
-               hx-get="{% url 'calendar-month' next_year next_month %}{% if search_query %}?search={{ search_query }}{% endif %}" 
-               hx-target="#calendar-shell" 
-               hx-swap="outerHTML show:none" 
-               hx-push-url="true" 
-               hx-indicator="#global-progress-bar"
-               class="btn btn-sm"
-               title="{% trans 'Next Month' %}">
+            <button type="button" 
+                    hx-get="{% url 'calendar-month' next_year next_month %}{% if search_query %}?search={{ search_query }}{% endif %}" 
+                    hx-target="#calendar-shell" 
+                    hx-swap="outerHTML show:none" 
+                    hx-push-url="true" 
+                    hx-indicator="#global-progress-bar"
+                    class="btn btn-sm"
+                    title="{% trans 'Next Month' %}">
                 <i class="bi bi-chevron-right"></i>
-            </a>
+            </button>
         </div>
         
         <div class="d-flex w-100 w-md-auto gap-2 ms-md-auto justify-content-end">
@@ -36,6 +36,7 @@
                   hx-swap="outerHTML show:none"
                   hx-push-url="true"
                   hx-indicator="#global-progress-bar"
+                  onsubmit="return false;"
                   class="d-flex flex-grow-1 flex-md-grow-0" 
                   role="search">
                 <div class="input-group input-group-sm">
@@ -46,18 +47,18 @@
                            placeholder="{% trans 'Search entries...' %}" 
                            value="{{ search_query }}" 
                            aria-label="{% trans 'Search' %}"
-                           hx-trigger="keyup changed delay:400ms, search">
+                           hx-trigger="keyup changed delay:400ms, search, input">
                     {% if search_query %}
-                    <a href="{% url 'calendar-month' current_year current_month %}" 
-                       hx-get="{% url 'calendar-month' current_year current_month %}" 
-                       hx-target="#calendar-shell" 
-                       hx-swap="outerHTML show:none" 
-                       hx-push-url="true" 
-                       hx-indicator="#global-progress-bar"
-                       class="input-group-text bg-transparent border-start-0 text-decoration-none" 
-                       title="{% trans 'Clear search' %}">
+                    <button type="button" 
+                            hx-get="{% url 'calendar-month' current_year current_month %}" 
+                            hx-target="#calendar-shell" 
+                            hx-swap="outerHTML show:none" 
+                            hx-push-url="true" 
+                            hx-indicator="#global-progress-bar"
+                            class="input-group-text bg-transparent border-start-0 text-muted border-0 text-decoration-none" 
+                            title="{% trans 'Clear search' %}">
                         <i class="bi bi-x-lg"></i>
-                    </a>
+                    </button>
                     {% else %}
                     <span class="input-group-text bg-transparent border-start-0"></span>
                     {% endif %}
