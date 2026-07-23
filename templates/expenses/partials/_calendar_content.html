@@ -264,11 +264,14 @@
             initCalendarPlugins();
         }
 
-        document.body.addEventListener('htmx:afterSwap', function(evt) {
-            if (evt.detail.target && (evt.detail.target.id === 'calendar-shell' || evt.detail.target.querySelector('#calendar-shell'))) {
-                initCalendarPlugins(evt.detail.target);
-            }
-        });
+        if (!window.__calendarAfterSwapBound) {
+            window.__calendarAfterSwapBound = true;
+            document.body.addEventListener('htmx:afterSwap', function(evt) {
+                if (evt.detail.target && (evt.detail.target.id === 'calendar-shell' || evt.detail.target.querySelector('#calendar-shell'))) {
+                    initCalendarPlugins(evt.detail.target);
+                }
+            });
+        }
     })();
     </script>
 </div>
