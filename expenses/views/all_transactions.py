@@ -261,6 +261,14 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         context['loan_amount'] = loan_repayments.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
         context['capital_event_amount'] = capital_events.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
 
+        net_remaining = context['income_amount'] - context['expense_amount'] - context['capital_event_amount']
+        context['net_remaining'] = net_remaining
+        context['net_saved'] = net_remaining
+        if context['income_amount'] > 0:
+            context['savings_rate'] = round((net_remaining / context['income_amount']) * 100, 1)
+        else:
+            context['savings_rate'] = 0
+
         # Daily sparkline trend calculation
         from datetime import timedelta
         all_dates = list(expenses.values_list('date', flat=True)) + list(incomes.values_list('date', flat=True))

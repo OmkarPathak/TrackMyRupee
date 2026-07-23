@@ -37,10 +37,12 @@ from ..models import (
     Transfer,
 )
 from ..account_types import investment_codes
+from .mixins import HtmxPartialTemplateMixin
 
 
-class CalendarView(LoginRequiredMixin, TemplateView):
+class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
     template_name = 'expenses/calendar.html'
+    htmx_template_name = 'expenses/partials/_calendar_content.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
