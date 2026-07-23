@@ -118,7 +118,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                         continue
                     parsed_accounts.append({
                         'name': name,
-                        'account_type': acc_data.get('type', 'BANK'),
+                        'account_type': acc_data.get('type', 'SAVINGS_ACCOUNT'),
                         'balance': Decimal(acc_data.get('balance', 0)),
                     })
 

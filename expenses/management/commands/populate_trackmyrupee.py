@@ -49,13 +49,13 @@ class Command(BaseCommand):
 
         # 2. Generate 7 accounts
         accounts_data = [
-            {'name': 'Main Bank', 'type': 'BANK', 'balance': '150000.00'},
-            {'name': 'Savings Bank', 'type': 'BANK', 'balance': '450000.00'},
+            {'name': 'Main Bank', 'type': 'CURRENT_ACCOUNT', 'balance': '150000.00'},
+            {'name': 'Savings Bank', 'type': 'SAVINGS_ACCOUNT', 'balance': '450000.00'},
             {'name': 'Credit Card', 'type': 'CREDIT_CARD', 'balance': '-25000.00'},
-            {'name': 'Fixed Deposit', 'type': 'FIXED_DEPOSIT', 'balance': '300000.00'},
-            {'name': 'Mutual Funds', 'type': 'INVESTMENT', 'balance': '850000.00'},
-            {'name': 'Cash Wallet', 'type': 'CASH', 'balance': '5000.00'},
-            {'name': 'Emergency Fund', 'type': 'OTHER', 'balance': '200000.00'},
+            {'name': 'Fixed Deposit', 'type': 'FD', 'balance': '300000.00'},
+            {'name': 'Mutual Funds', 'type': 'MUTUAL_FUND', 'balance': '850000.00'},
+            {'name': 'Cash Wallet', 'type': 'CASH_WALLET', 'balance': '5000.00'},
+            {'name': 'Emergency Fund', 'type': 'SAVINGS_ACCOUNT', 'balance': '200000.00'},
         ]
         accounts = {}
         for acc in accounts_data:
