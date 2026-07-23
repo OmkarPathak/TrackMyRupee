@@ -639,11 +639,11 @@ class AccountDetailView(LoginRequiredMixin, View):
             'filtered_net_total': filtered_net_total,
             'trend_data': self.get_trend_data(account, request.user),
         }
-        if getattr(request, 'htmx', False):
-            response = render(request, 'expenses/partials/_account_detail.html', context)
-            response['Vary'] = 'HX-Request'
-            return response
-        return render(request, self.template_name, context)
+        from django.utils.cache import patch_vary_headers
+        template_name = 'expenses/partials/_account_detail.html' if request.headers.get('HX-Request') == 'true' else self.template_name
+        response = render(request, template_name, context)
+        patch_vary_headers(response, ['HX-Request'])
+        return response
 
     def get_trend_data(self, account, user):
         
