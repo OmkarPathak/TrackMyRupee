@@ -3,25 +3,6 @@
 
 {% block content %}
 <style>
-    /* Custom override for subtle nav pills with Dark Mode support */
-    .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-        background-color: transparent;
-        color: var(--bs-primary);
-        font-weight: 600;
-        box-shadow: none;
-        border: 2px solid var(--bs-primary);
-    }
-    .nav-pills .nav-link {
-        color: var(--bs-secondary-color);
-        font-weight: 500;
-        background-color: var(--bs-tertiary-bg);
-        border: 1px solid transparent;
-    }
-    .nav-pills .nav-link:hover {
-        color: var(--bs-primary);
-        background-color: var(--bs-secondary-bg);
-    }
-    
     /* Summary Card Dark Mode Adaptation */
     [data-bs-theme="dark"] .summary-card {
         background-color: var(--bs-dark-bg-subtle) !important;

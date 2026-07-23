@@ -29,7 +29,7 @@
     <div class="d-none d-md-block pt-1 pb-3 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
-            <div class="d-flex gap-3 align-items-center">
+            <div class="d-flex gap-2 align-items-center">
                 <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
                 </button>
@@ -161,10 +161,10 @@
                             <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ event.note|default:'' }}">
                                 {{ event.note|default:"—"|truncatechars:40 }}
                             </td>
-                            <td class="text-secondary small">{{ event.account.name|default:"—" }}</td>
+                            <td>{{ event.account.name|default:"—" }}</td>
                             <td>
                                 {% if event.linked_loan %}
-                                    <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none small">
+                                    <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none">
                                         <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name }}
                                     </a>
                                 {% else %}

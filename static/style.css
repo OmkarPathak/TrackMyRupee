@@ -109,6 +109,82 @@ body {
   --bs-table-hover-bg: rgba(93, 202, 165, 0.06);
 }
 
+/* --- Filter Pills & Nav Pills Standardization --- */
+.filter-pills-container,
+.nav-pills-standard {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.35rem 0;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.filter-pills-container::-webkit-scrollbar,
+.nav-pills-standard::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-pill,
+.nav-pills-standard .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem !important;
+  border-radius: 50px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1.5px solid var(--bs-border-color-translucent) !important;
+  background-color: transparent !important;
+  color: var(--bs-body-color) !important;
+  white-space: nowrap;
+}
+
+.filter-pill-inactive,
+.nav-pills-standard .nav-link:not(.active) {
+  background-color: transparent !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-border-color-translucent) !important;
+}
+
+.filter-pill-inactive:hover,
+.nav-pills-standard .nav-link:not(.active):hover {
+  background-color: var(--bs-secondary-bg) !important;
+  color: var(--bs-body-color) !important;
+}
+
+.filter-pill.active,
+.filter-pill-all.active,
+.filter-pill-income.active,
+.nav-pills-standard .nav-link.active {
+  border-color: #1D9E75 !important;
+  color: #1D9E75 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.filter-pill-expense.active {
+  border-color: #E05C45 !important;
+  color: #E05C45 !important;
+  background-color: transparent !important;
+}
+
+.filter-pill-transfer.active {
+  border-color: #378ADD !important;
+  color: #378ADD !important;
+  background-color: transparent !important;
+}
+
+.filter-pill-loan.active {
+  border-color: #B45309 !important;
+  color: #B45309 !important;
+  background-color: transparent !important;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

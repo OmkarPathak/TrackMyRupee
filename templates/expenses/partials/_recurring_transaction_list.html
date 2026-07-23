@@ -107,21 +107,21 @@
     {% include 'components/upgrade_nudge.html' %}
 
     <!-- Navigation Tabs -->
-    <ul class="nav nav-pills mb-4 gap-2 flex-nowrap overflow-auto py-1 mt-3" id="subscriptionTabs" role="tablist" style="scrollbar-width: none; -ms-overflow-style: none;">
+    <ul class="nav nav-pills-standard mb-4 gap-2 flex-nowrap overflow-auto py-1 mt-3" id="subscriptionTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active px-4 rounded-pill text-nowrap d-flex align-items-center" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-selected="true">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-selected="true">
                 {% trans "All" %}
-                <span class="badge bg-body text-primary ms-2 rounded-pill opacity-75">{{ active_subs|length|translate_digits }}</span>
+                <span class="badge rounded-pill bg-body text-body-secondary ms-1 opacity-75" style="font-size: 0.7rem;">{{ active_subs|length|translate_digits }}</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link px-4 rounded-pill text-nowrap d-flex align-items-center" id="renewing-tab" data-bs-toggle="tab" data-bs-target="#renewing" type="button" role="tab" aria-selected="false">
+            <button class="nav-link" id="renewing-tab" data-bs-toggle="tab" data-bs-target="#renewing" type="button" role="tab" aria-selected="false">
                 {% trans "Renewing Soon" %} 
-                {% if renewals_count > 0 %}<span class="badge bg-danger ms-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px;">{{ renewals_count|translate_digits }}</span>{% endif %}
+                {% if renewals_count > 0 %}<span class="badge rounded-pill bg-body text-body-secondary ms-1" style="font-size: 0.68rem; padding: 0.25em 0.55em;">{{ renewals_count|translate_digits }}</span>{% endif %}
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link px-4 rounded-pill text-nowrap d-flex align-items-center" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab" aria-selected="false">{% trans "Cancelled" %}</button>
+            <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab" aria-selected="false">{% trans "Cancelled" %}</button>
         </li>
     </ul>
 
