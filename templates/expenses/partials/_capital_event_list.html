@@ -255,7 +255,7 @@
                                         {{ event.note|default:event.get_subtype_display }}
                                     </div>
                                     <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
-                                        <span class="text-truncate">{{ event.get_subtype_display }}{% if event.account.name is not null %} • {{ event.account.name|truncatechars:18 }}{% endif %}</span>
+                                        <span class="text-truncate">{{ event.get_subtype_display }}{% if event.account.name %} • {{ event.account.name|truncatechars:18 }}{% endif %}</span>
                                     </div>
                                     {% if event.linked_loan %}
                                     <div class="text-primary mt-1" style="font-size: 0.7rem;">
