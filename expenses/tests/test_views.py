@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from expenses.models import Category, Expense, Income, RecurringTransaction
+from expenses.models import Account, Category, Expense, Income, RecurringTransaction
 
 
 class BaseViewTest(TestCase):
