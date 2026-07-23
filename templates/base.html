@@ -1328,6 +1328,9 @@
 
         document.body.addEventListener('htmx:afterSwap', function (event) {
             initGlobalMultiselects(event.target);
+            if (window.initSearchableSelects) {
+                window.initSearchableSelects();
+            }
         });
     </script>
 
@@ -1335,7 +1338,7 @@
     <script>
     (function() {
         function initSearchableSelects() {
-            document.querySelectorAll('select.searchable-select').forEach(function(sel) {
+            document.querySelectorAll('select.searchable-select, select.form-select:not(.django-multi-select):not([multiple])').forEach(function(sel) {
                 if (sel.dataset.searchableInit) return;
                 sel.dataset.searchableInit = '1';
 

@@ -25,7 +25,7 @@
                 {% endif %}
             </h2>
 
-            <div class="text-muted text-center small mb-0 fw-medium d-none d-md-flex flex-column align-items-center justify-content-center py-1 lh-base">
+            <div class="text-muted text-center small mb-0 fw-medium d-none d-md-flex flex-column align-items-center justify-content-center px-3 py-1.5 rounded-3 border border-light-subtle lh-base">
                 <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
                     <span class="text-nowrap">
                         <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "transactions" %}
@@ -206,7 +206,7 @@
                 </div>
                 <!-- 6. Net Remaining -->
                 <div class="col">
-                    <div class="card p-2 rounded-3 h-100 d-flex flex-column justify-content-between">
+                    <div class="card p-2 rounded-3 border border-light-subtle h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex align-items-center gap-1 amount-income" style="font-size: 0.7rem;">
                             <span class="fw-medium text-truncate">{% trans "Net Remaining" %}</span>
                         </div>
