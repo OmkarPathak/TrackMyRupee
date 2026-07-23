@@ -1,0 +1,623 @@
+{% load i18n digit_filters expense_extras humanize %}
+
+<div id="expense-list-shell">
+    <div class="bg-transparent d-none d-md-block pt-1 pb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
+                {% if prev_month_url %}
+                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}" hx-get="{{ prev_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        <i class="bi bi-chevron-left fs-5"></i>
+                    </button>
+                {% endif %}
+                <span class="h3 mb-0">
+                {% if display_month and display_year %}
+                    {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
+                {% else %}
+                    {% trans "Expenses" %}
+                {% endif %}
+                </span>
+                {% if next_month_url %}
+                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}" hx-get="{{ next_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        <i class="bi bi-chevron-right fs-5"></i>
+                    </button>
+                {% endif %}
+            </h2>
+            <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
+                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot;
+                <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
+                {% if days_left is not None %}
+                &middot; <span class="fw-bold text-primary">{{ days_left|translate_digits }}</span> {% trans "days left in cycle" %}
+                {% endif %}
+            </p>
+            <div class="d-flex align-items-center gap-2">
+                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                <div id="desktopHeaderBulkActions" class="d-md-flex align-items-center gap-2">
+                    <span id="bulkEditTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one expense to edit' %}">
+                        <button type="button" class="header-icon-btn bulk-edit-btn" id="bulkEditBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal" aria-label="{% trans 'Edit Selected' %}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </span>
+                    <span id="bulkDeleteTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one expense to delete' %}">
+                        <button type="button" class="header-icon-btn delete bulk-delete-btn" id="bulkDeleteBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal" aria-label="{% trans 'Delete Selected' %}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </span>
+                </div>
+                {% if request.user.profile.can_export_csv %}
+                <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-icon-btn no-loader" title="{% trans 'Export' %}">
+                    <i class="bi bi-download"></i>
+                </a>
+                {% endif %}
+                <a href="{% url 'expense-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
+                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-transparent d-md-none pt-1 pb-3">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
+                {% if prev_month_url %}
+                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}" hx-get="{{ prev_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        <i class="bi bi-chevron-left fs-5"></i>
+                    </button>
+                {% endif %}
+                <span class="h3 mb-0">
+                {% if display_month and display_year %}
+                    {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
+                {% else %}
+                    {% trans "Expenses" %}
+                {% endif %}
+                </span>
+                {% if next_month_url %}
+                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}" hx-get="{{ next_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        <i class="bi bi-chevron-right fs-5"></i>
+                    </button>
+                {% endif %}
+            </h2>
+            <div class="d-flex align-items-center gap-2">
+                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                {% if request.user.profile.can_export_csv %}
+                <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-icon-btn no-loader" title="{% trans 'Export' %}">
+                    <i class="bi bi-download"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
+            <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot;
+            <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
+            {% if days_left is not None %}
+            &middot; <span class="fw-bold text-primary">{{ days_left|translate_digits }}</span> {% trans "days left in cycle" %}
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="collapse" id="expenseFilters" style="z-index: 1040; position: relative;">
+        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm" id="filter-form" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+        <div class="row g-3 align-items-end flex-lg-nowrap">
+            <div class="col-12 col-md">
+                <label for="search" class="form-label small text-muted">{% trans "Search" %}</label>
+                <input type="text" name="search" id="search" class="form-control form-control-sm" placeholder="{% trans 'Search...' %}" value="{{ request.GET.search|default:'' }}">
+            </div>
+            <div class="col-6 col-md">
+                <label for="start_date" class="form-label small text-muted d-none d-md-block">{% trans "From" %}</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text d-md-none">{% trans "From" %}</span>
+                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
+                </div>
+            </div>
+            <div class="col-6 col-md">
+                <label for="end_date" class="form-label small text-muted d-none d-md-block">{% trans "To" %}</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text d-md-none">{% trans "To" %}</span>
+                    <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date|default:'' }}">
+                </div>
+            </div>
+            <div class="col-6 col-md">
+                <label for="year-select" class="form-label small text-muted">{% trans "Year" %}</label>
+                <select name="year" id="year-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Years...' %}">
+                    {% for dt in years %}
+                        <option value="{{ dt }}" {% if dt|stringformat:"s" in selected_years %}selected{% endif %}>{{ dt|translate_digits }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md">
+                <label for="month-select" class="form-label small text-muted">{% trans "Month" %}</label>
+                <select name="month" id="month-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Months...' %}">
+                    {% for num, name in months_list %}
+                        <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md">
+                <label for="category-select" class="form-label small text-muted">{% trans "Category" %}</label>
+                <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md">
+                <label for="payment-method-select" class="form-label small text-muted">{% trans "Payment Method" %}</label>
+                <select name="payment_method" id="payment-method-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Payment methods...' %}">
+                    {% for value, label in payment_methods %}
+                        <option value="{{ value }}" {% if value in selected_payment_methods %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md">
+                <label for="account-select" class="form-label small text-muted">{% trans "Account" %}</label>
+                <select name="account" id="account-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Accounts...' %}">
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}" {% if account.id|stringformat:"s" in selected_accounts %}selected{% endif %}>{{ account.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row g-2 mt-3 align-items-center">
+            <div class="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+                <button type="submit" class="btn btn-primary btn-sm px-4">
+                    <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm px-4" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
+                </button>
+                <div class="vr mx-1 d-none d-md-block opacity-25"></div>
+            </div>
+        </div>
+        </form>
+    </div>
+
+    <script>
+        (function () {
+            const shell = document.getElementById('expense-list-shell');
+            if (!shell || shell.dataset.initialized === 'true') {
+                return;
+            }
+            shell.dataset.initialized = 'true';
+
+            const getSelectAllTable = () => shell.querySelector('#selectAll');
+            const getSelectAllMobile = () => shell.querySelector('#selectAllMobile');
+            const getExpenseCheckboxes = () => shell.querySelectorAll('.expense-checkbox');
+            const getBulkDeleteBtns = () => shell.querySelectorAll('.bulk-delete-btn');
+            const getBulkEditBtns = () => shell.querySelectorAll('.bulk-edit-btn');
+            const getMobileBulkActions = () => shell.querySelector('#mobileBulkActions');
+            const getDesktopHeaderBulkActions = () => shell.querySelector('#desktopHeaderBulkActions');
+            const bulkEditTooltipWrap = shell.querySelector('#bulkEditTooltipWrap');
+            const bulkDeleteTooltipWrap = shell.querySelector('#bulkDeleteTooltipWrap');
+
+            function updateTooltipMessage(el, message) {
+                if (!el) return;
+                el.setAttribute('title', message);
+                el.setAttribute('data-bs-original-title', message);
+                const instance = bootstrap.Tooltip.getInstance(el);
+                if (instance) {
+                    instance.setContent({ '.tooltip-inner': message });
+                }
+            }
+
+            function updateBulkButtonsState() {
+                const expenseCheckboxes = getExpenseCheckboxes();
+                const bulkDeleteBtns = getBulkDeleteBtns();
+                const bulkEditBtns = getBulkEditBtns();
+                const mobileBulkActions = getMobileBulkActions();
+                const desktopHeaderBulkActions = getDesktopHeaderBulkActions();
+                const anyChecked = Array.from(expenseCheckboxes).some(cb => cb.checked);
+                bulkDeleteBtns.forEach(btn => btn.disabled = !anyChecked);
+                bulkEditBtns.forEach(btn => btn.disabled = !anyChecked);
+
+                if (mobileBulkActions) {
+                    if (anyChecked) {
+                        mobileBulkActions.classList.remove('d-none');
+                        mobileBulkActions.classList.add('d-flex');
+                    } else {
+                        mobileBulkActions.classList.add('d-none');
+                        mobileBulkActions.classList.remove('d-flex');
+                    }
+                }
+
+                if (desktopHeaderBulkActions) {
+                    desktopHeaderBulkActions.classList.remove('d-none');
+                }
+
+                updateTooltipMessage(
+                    bulkEditTooltipWrap,
+                    anyChecked
+                        ? "{% trans 'Edit selected expenses' %}"
+                        : "{% trans 'Select at least one expense to edit' %}"
+                );
+                updateTooltipMessage(
+                    bulkDeleteTooltipWrap,
+                    anyChecked
+                        ? "{% trans 'Delete selected expenses' %}"
+                        : "{% trans 'Select at least one expense to delete' %}"
+                );
+            }
+
+            function handleSelectAll(e) {
+                const expenseCheckboxes = getExpenseCheckboxes();
+                const selectAllTable = getSelectAllTable();
+                const selectAllMobile = getSelectAllMobile();
+                const isChecked = e.target.checked;
+                expenseCheckboxes.forEach(cb => {
+                    cb.checked = isChecked;
+                });
+                if (selectAllTable) selectAllTable.checked = isChecked;
+                if (selectAllMobile) selectAllMobile.checked = isChecked;
+                updateBulkButtonsState();
+            }
+
+            shell.addEventListener('change', function(e) {
+                if (e.target.matches('#selectAll') || e.target.matches('#selectAllMobile')) {
+                    handleSelectAll(e);
+                    return;
+                }
+
+                if (e.target.matches('.expense-checkbox')) {
+                    const expenseCheckboxes = getExpenseCheckboxes();
+                    const selectAllTable = getSelectAllTable();
+                    const selectAllMobile = getSelectAllMobile();
+                    updateBulkButtonsState();
+                    const allChecked = expenseCheckboxes.length > 0 && Array.from(expenseCheckboxes).every(box => box.checked);
+                    if (selectAllTable) selectAllTable.checked = allChecked;
+                    if (selectAllMobile) selectAllMobile.checked = allChecked;
+                }
+            });
+
+            shell.addEventListener('click', function(e) {
+                const bulkEditTrigger = e.target.closest('.bulk-edit-btn');
+                if (!bulkEditTrigger) {
+                    return;
+                }
+
+                const selectedIds = Array.from(getExpenseCheckboxes())
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+                const hiddenIdsField = document.getElementById('bulkEditIds');
+                if (hiddenIdsField) {
+                    hiddenIdsField.innerHTML = '';
+                    selectedIds.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'expense_ids';
+                        input.value = id;
+                        hiddenIdsField.appendChild(input);
+                    });
+                }
+            });
+
+            shell.addEventListener('submit', function(e) {
+                const submitter = e.submitter;
+                if (!submitter) {
+                    return;
+                }
+
+                const convertButton = submitter.closest('.btn-convert-capital');
+                if (!convertButton) {
+                    return;
+                }
+
+                const message = convertButton.getAttribute('data-confirm-message') || '{% trans "Are you sure?" %}';
+                if (!confirm(message)) {
+                    e.preventDefault();
+                }
+            });
+
+            if (window.innerWidth < 768) {
+                shell.querySelectorAll('#filter-form .btn-group').forEach(function(btnGroup) {
+                    const observer = new MutationObserver(function() {
+                        const dropdown = btnGroup.querySelector('.dropdown-menu');
+                        if (!dropdown) return;
+                        const isOpen = dropdown.classList.contains('show');
+                        let backdrop = btnGroup.querySelector('.multiselect-backdrop');
+                        if (isOpen && !backdrop) {
+                            backdrop = document.createElement('div');
+                            backdrop.className = 'multiselect-backdrop';
+                            backdrop.addEventListener('click', function() {
+                                const toggle = btnGroup.querySelector('.dropdown-toggle');
+                                if (toggle) toggle.click();
+                            });
+                            btnGroup.appendChild(backdrop);
+                        } else if (!isOpen && backdrop) {
+                            backdrop.remove();
+                        }
+                    });
+                    observer.observe(btnGroup, { attributes: true, subtree: true, attributeFilter: ['class'] });
+                });
+            }
+
+            shell.addEventListener('click', function(e) {
+                const mobileSelectToggle = e.target.closest('#mobileSelectToggle');
+                if (!mobileSelectToggle) {
+                    return;
+                }
+
+                const currentMobileGridView = shell.querySelector('#mobileGridView');
+                if (!currentMobileGridView) {
+                    return;
+                }
+
+                e.preventDefault();
+                const isSelecting = currentMobileGridView.classList.toggle('selection-mode');
+                mobileSelectToggle.innerHTML = isSelecting ? '<i class="bi bi-x-lg"></i> {% trans "Cancel" %}' : '<i class="bi bi-check2-square"></i> {% trans "Select" %}';
+                if (!isSelecting) {
+                    const expenseCheckboxes = getExpenseCheckboxes();
+                    const selectAllMobile = getSelectAllMobile();
+                    const selectAllTable = getSelectAllTable();
+                    expenseCheckboxes.forEach(cb => cb.checked = false);
+                    if (selectAllMobile) selectAllMobile.checked = false;
+                    if (selectAllTable) selectAllTable.checked = false;
+                    updateBulkButtonsState();
+                }
+            });
+
+            const tooltipTriggerList = [].slice.call(shell.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    boundary: document.body
+                });
+            });
+
+            if (typeof checkDescriptionOverflow === 'function') {
+                checkDescriptionOverflow();
+            }
+            updateBulkButtonsState();
+        })();
+    </script>
+
+    <div class="card-body p-0">
+        {% if expenses %}
+        <form id="bulkDeleteForm" method="post" action="{% url 'expense-bulk-delete' %}?{{ request.GET.urlencode }}">
+            {% csrf_token %}
+            <div id="mobileBulkActions" class="d-md-none p-2 bg-body border-bottom d-none justify-content-end align-items-center gap-2">
+                <span class="small text-muted me-auto">{% trans "Items Selected" %}</span>
+                <button type="button" class="btn btn-outline-primary btn-sm bulk-edit-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal">
+                    <i class="bi bi-pencil me-1"></i> {% trans "Edit" %}
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
+                    <i class="bi bi-trash me-1"></i> {% trans "Delete" %}
+                </button>
+            </div>
+            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block">
+                <div class="card-body p-0">
+                    <div id="tableView" class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 text-start align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 40px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                        </div>
+                                    </th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Payment Method" %}</th>
+                                    <th>{% trans "Account" %}</th>
+                                    <th>
+                                        {% if request.GET.sort == 'amount_asc' %}
+                                            <a class="text-decoration-none text-body" href="?{% url_replace sort='amount_desc' %}" hx-get="{% url 'expense-list' %}?{% url_replace sort='amount_desc' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-up-short"></i></a>
+                                        {% elif request.GET.sort == 'amount_desc' %}
+                                            <a class="text-decoration-none text-body" href="?{% url_replace sort='amount_asc' %}" hx-get="{% url 'expense-list' %}?{% url_replace sort='amount_asc' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-down-short"></i></a>
+                                        {% else %}
+                                            <a class="text-decoration-none text-body" href="?{% url_replace sort='amount_asc' %}" hx-get="{% url 'expense-list' %}?{% url_replace sort='amount_asc' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-down-up text-muted opacity-25" style="font-size: 0.8em;"></i></a>
+                                        {% endif %}
+                                    </th>
+                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in expenses %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}">
+                                        </div>
+                                    </td>
+                                    <td class="text-nowrap">{{ expense.date|date:"d M Y"|translate_digits }}</td>
+                                    <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">{{ expense.description|truncatechars:40 }}</td>
+                                    <td>
+                                        <span class="badge-soft badge-soft-success align-items-center gap-1">
+                                            <i class="bi {% category_icon expense.category user %}"></i>
+                                            {{ expense.category }}
+                                        </span>
+                                    </td>
+                                    <td>{{ expense.payment_method }}</td>
+                                    <td>{{ expense.account.name }}</td>
+                                    <td class="fw-bold">
+                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                        {% if expense.currency != user.profile.currency %}
+                                        <div class="text-muted small fw-normal" style="font-size: 0.75rem;">({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 text-nowrap">
+                                        <div class="dropdown hstack gap-3 justify-content-end">
+                                            <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
+                                                <i class="bi bi-three-dots-vertical text-muted"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                        <i class="bi bi-pencil-square text-primary"></i>
+                                                        <span>{% trans "Edit" %}</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <form method="post" action="{% url 'expense-convert' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary btn-convert-capital" data-confirm-message="{% trans 'Are you sure you want to convert this expense into a capital event?' %}">
+                                                            <i class="bi bi-flag"></i>
+                                                            <span>{% trans "Convert to Capital Event" %}</span>
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'expense-delete' expense.uuid %}?{{ request.GET.urlencode }}" data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
+                                                        <i class="bi bi-trash"></i>
+                                                        <span>{% trans "Delete" %}</span>
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="mobileGridView" class="py-2 d-md-none">
+                <div class="d-flex align-items-center mb-2 px-1 mobile-selection-header">
+                    <div id="mobileSelectAllRow" class="d-flex align-items-center gap-2">
+                        <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
+                        <label class="small text-muted" for="selectAllMobile" style="cursor: pointer;">{% trans "Select All" %}</label>
+                    </div>
+                    <button type="button" id="mobileSelectToggle" class="btn btn-link text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader p-0 m-0" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</button>
+                </div>
+                {% regroup expenses by date as expenses_by_date %}
+                {% for group in expenses_by_date %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                        <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">{{ group.grouper|date:"d M, Y"|translate_digits }}</div>
+                        <div class="fw-bold text-body-secondary" style="font-size: 0.78rem;">{{ user.profile.currency }}{{ group.list|sum_base_amounts|compact_amount:user.profile.currency|translate_digits }}</div>
+                    </div>
+                    {% for expense in group.list %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-3">
+                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                            <div class="mobile-card-inner">
+                                <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
+                                    <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
+                                </div>
+                                <div class="category-icon-container" title="{{ expense.category }}">
+                                    <i class="bi {% category_icon expense.category user %}"></i>
+                                </div>
+                                <div class="flex-grow-1 min-width-0 px-1">
+                                    <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">{{ expense.description }}</div>
+                                    <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                        <span class="text-truncate">{{ expense.category|truncatechars:18 }}{% if expense.account.name is not null %} • {{ expense.account.name|truncatechars:18 }}{% endif %}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
+                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
+                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                        {% if expense.currency != user.profile.currency %}
+                                        <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})</div>
+                                        {% endif %}
+                                    </div>
+                                    <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
+                                </div>
+                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
+                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-pencil-square text-primary"></i>
+                                                <span>{% trans "Edit" %}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                             <form method="post" action="{% url 'expense-convert' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary btn-convert-capital" data-confirm-message="{% trans 'Are you sure you want to convert this expense into a capital event?' %}">
+                                                    <i class="bi bi-flag"></i>
+                                                    <span>{% trans "Convert to Capital Event" %}</span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'expense-delete' expense.uuid %}?{{ request.GET.urlencode }}" data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
+                                                <i class="bi bi-trash"></i>
+                                                <span>{% trans "Delete" %}</span>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </form>
+        {% else %}
+            <div class="text-center py-5">
+                <div class="py-5 px-3">
+                    <div class="mb-4">
+                        {% include 'illustrations/empty_expenses.svg' %}
+                    </div>
+                    <h3 class="fw-bold text-body-emphasis mb-2">{% trans "No Expenses Found" %}</h3>
+                    <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">
+                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month or request.GET.payment_method or request.GET.account %}
+                            {% trans "We couldn't find any expenses matching your filters. Try adjusting your search criteria." %}
+                        {% else %}
+                            {% trans "You haven't added any expenses yet. Start tracking your spending to get insights into your finances!" %}
+                        {% endif %}
+                    </p>
+                    <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-2">
+                        <a href="{% url 'expense-create' %}" class="btn btn-primary fw-bold px-4 rounded-pill text-nowrap">
+                            <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
+                        </a>
+                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month or request.GET.payment_method or request.GET.account %}
+                            <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary fw-bold px-4 rounded-pill text-nowrap" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Clear Filters" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if is_paginated %}
+    <div class="card-footer bg-transparent py-3">
+        <nav aria-label="Expense pagination">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <button type="button" class="page-link" hx-get="{% url 'expense-list' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </button>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <button type="button" class="page-link" hx-get="{% url 'expense-list' %}?{% url_replace page=num %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</button>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <button type="button" class="page-link" hx-get="{% url 'expense-list' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </button>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>

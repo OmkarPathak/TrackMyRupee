@@ -3,9 +3,6 @@
 
 {% block content %}
 <style>
-    /* Responsive Filter Widths - Removed hardcoded px widths that cause overflows */
-
-    /* Fix multiselect dropdown overflow on mobile */
     #filter-form .row,
     #filter-form .row > [class*="col"] {
         overflow: visible !important;
@@ -16,16 +13,106 @@
     }
 
     @media (max-width: 767.98px) {
-
-        /* Constrain page width, allow table to scroll */
-        /* allow fade-in overflow on mobile for dropdowns */
-
-        .card-body.p-0 {
+        .card-body.p-0,
+        #bulkDeleteForm {
             overflow: hidden;
         }
 
-        #bulkDeleteForm {
+        .mobile-selection-header {
+            justify-content: flex-start;
+            gap: 0.75rem;
+        }
+
+        #mobileGridView .form-check {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 0;
+            margin-right: 0 !important;
+            opacity: 0;
             overflow: hidden;
+            transition: width 0.3s ease, margin-right 0.3s ease, opacity 0.2s ease;
+            padding-left: 0;
+        }
+
+        #mobileGridView .form-check .form-check-input {
+            margin: 0 !important;
+            flex-shrink: 0;
+        }
+
+        #mobileGridView.selection-mode .form-check {
+            width: 24px;
+            margin-right: 0.35rem !important;
+            opacity: 1;
+        }
+
+        #mobileSelectAllRow {
+            overflow: hidden;
+            transition: all 0.3s ease;
+            max-height: 0;
+            opacity: 0;
+            width: 0;
+            white-space: nowrap;
+            display: none !important;
+            align-items: center;
+        }
+
+        #mobileGridView.selection-mode #mobileSelectAllRow {
+            max-height: 50px;
+            opacity: 1;
+            width: auto;
+            margin-right: 1rem;
+            display: flex !important;
+        }
+
+        #mobileGridView .expense-card .card-body > .mobile-card-inner {
+            display: grid !important;
+            grid-template-columns: 0 38px minmax(0, 1fr) 95px 30px !important;
+            grid-template-areas: "check icon info amount menu" !important;
+            align-items: center !important;
+            gap: 0 !important;
+            transition: all 0.3s ease;
+        }
+
+        #mobileGridView.selection-mode .expense-card .card-body > .mobile-card-inner {
+            grid-template-columns: 32px 38px minmax(0, 1fr) 95px 30px !important;
+        }
+
+        #mobileGridView .expense-card .form-check {
+            grid-area: check;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            justify-content: center;
+        }
+
+        #mobileGridView .expense-card .category-icon-container {
+            grid-area: icon;
+            margin: 0 !important;
+            width: 32px !important;
+            height: 32px !important;
+            justify-self: center;
+        }
+
+        #mobileGridView .expense-card .flex-grow-1 {
+            grid-area: info;
+            margin: 0 !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            overflow: hidden;
+        }
+
+        #mobileGridView .expense-card .flex-shrink-0.text-end {
+            grid-area: amount;
+            margin: 0 !important;
+            width: 100% !important;
+            padding-right: 4px;
+        }
+
+        #mobileGridView .expense-card .dropdown {
+            grid-area: menu;
+            margin: 0 !important;
+            justify-self: center;
         }
 
         .table-responsive {
@@ -42,149 +129,16 @@
         }
     }
 
-    /* Selection mode: smooth transitions for checkboxes on mobile */
-    @media (max-width: 767.98px) {
-        #mobileGridView .form-check {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            width: 0;
-            margin-right: 0 !important;
-            opacity: 0;
-            overflow: hidden;
-            transition: width 0.3s ease, margin-right 0.3s ease, opacity 0.2s ease;
-            padding-left: 0;
-        }
-        #mobileGridView .form-check .form-check-input {
-            margin: 0 !important;
-            flex-shrink: 0;
-        }
-        #mobileGridView.selection-mode .form-check {
-            width: 24px;
-            margin-right: 0.35rem !important;
-            opacity: 1;
-        }
-
-        /* Smooth transition for Select All row */
-        #mobileSelectAllRow {
-            overflow: hidden;
-            transition: all 0.3s ease;
-            max-height: 0;
-            opacity: 0;
-            width: 0;
-            white-space: nowrap;
-            /* Ensure children are centered */
-            display: flex !important;
-            align-items: center;
-        }
-        #mobileGridView.selection-mode #mobileSelectAllRow {
-            max-height: 50px;
-            opacity: 1;
-            width: auto;
-            margin-right: 1rem;
-        }
-
-        /* Selection header row spacing */
-        .mobile-selection-header {
-            transition: margin-top 0.3s ease;
-        }
-        #mobileGridView.selection-mode .mobile-selection-header {
-            margin-top: 0.5rem;
-        }
-
-        /* Force deterministic horizontal alignment with CSS Grid Areas */
-        #mobileGridView .expense-card .card-body > .mobile-card-inner {
-            display: grid !important;
-            /* Precise non-variable widths for every card component:
-               check: 28px icon: 38px info: 1fr amount: 95px menu: 30px
-            */
-            grid-template-columns: 0px 38px minmax(0, 1fr) 95px 30px !important;
-            grid-template-areas: "check icon info amount menu" !important;
-            align-items: center !important;
-            gap: 0 !important; /* Spacing handled by padding/margin inside cells */
-            transition: all 0.3s ease;
-        }
-
-        #mobileGridView.selection-mode .expense-card .card-body > .mobile-card-inner {
-            grid-template-columns: 32px 38px minmax(0, 1fr) 95px 30px !important;
-        }
-
-        /* Standardize child behavior for rigid alignment */
-        #mobileGridView .expense-card .form-check { 
-            grid-area: check; 
-            margin: 0 !important; 
-            padding: 0 !important;
-            display: flex !important;
-            justify-content: center;
-        }
-        #mobileGridView .expense-card .category-icon-container { 
-            grid-area: icon; 
-            margin: 0 !important; 
-            width: 32px !important;
-            height: 32px !important;
-            justify-self: center;
-        }
-        #mobileGridView .expense-card .flex-grow-1 { 
-            grid-area: info; 
-            margin: 0 !important; 
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
-            overflow: hidden;
-        }
-        #mobileGridView .expense-card .flex-shrink-0.text-end { 
-            grid-area: amount; 
-            margin: 0 !important; 
-            width: 100% !important;
-            padding-right: 4px; /* Space before menu */
-        }
-        #mobileGridView .expense-card .dropdown { 
-            grid-area: menu; 
-            margin: 0 !important; 
-            justify-self: center;
-        }
-    }
-
-    /* Card View Styles */
     .expense-card {
         border-radius: 16px !important;
         border: 1px solid var(--bs-border-color-translucent) !important;
         background-color: var(--bs-body-bg);
     }
-    .month-nav-pill {
-        width: 44px;
-        height: 44px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        background-color: var(--bs-body-bg);
-        border: 1px solid var(--bs-border-color-translucent);
-        color: var(--bs-body-color);
-        transition: all 0.2s ease;
-        text-decoration: none;
-    }
-    .month-nav-pill:hover {
-        background-color: var(--bs-tertiary-bg);
-        color: var(--bs-primary);
-    }
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        white-space: normal;
-        line-height: 1.25;
-        max-height: 2.5em; /* Fallback for very old browsers */
-    }
-    .delete-btn-card {
-        transition: all 0.2s ease;
-    }
-    .delete-btn-card:hover i {
-        opacity: 1 !important;
-        transform: scale(1.1);
-    }
-    .view-toggle-btn, .filter-toggle-btn, .header-action-btn {
+
+    .view-toggle-btn,
+    .filter-toggle-btn,
+    .header-action-btn,
+    .header-icon-btn {
         height: 36px;
         display: inline-flex;
         align-items: center;
@@ -193,187 +147,36 @@
         transition: all 0.2s ease;
         border: 1px solid var(--bs-border-color);
         background: transparent;
+        text-decoration: none;
     }
-    .view-toggle-btn, .filter-toggle-btn {
-        width: 36px;
-        padding: 0;
-        color: var(--bs-secondary);
-    }
+
+    .view-toggle-btn,
+    .filter-toggle-btn,
     .header-icon-btn {
         width: 36px;
         padding: 0;
         color: var(--bs-secondary);
-        background: transparent;
-        border: 1px solid var(--bs-border-color);
-        border-radius: 8px !important;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 36px;
-        transition: all 0.2s ease;
-        text-decoration: none;
     }
-    .header-icon-btn:hover {
-        opacity: 0.9;
-    }
-    .header-icon-btn.delete {
-        color: var(--bs-danger);
-        border-color: rgba(var(--bs-danger-rgb), 0.4);
-    }
-    .header-icon-btn.bulk-edit-btn:disabled,
-    .header-icon-btn.bulk-delete-btn:disabled {
-        color: var(--bs-secondary-color);
-        border-color: var(--bs-border-color);
-        background-color: var(--bs-tertiary-bg);
-        opacity: 0.55;
-        cursor: not-allowed;
-        pointer-events: none;
-    }
-    .header-icon-btn.bulk-edit-btn:not(:disabled) {
-        color: var(--bs-primary);
-        border-color: rgba(var(--bs-primary-rgb), 0.4);
-        background-color: rgba(var(--bs-primary-rgb), 0.08);
-    }
-    .header-icon-btn.bulk-delete-btn:not(:disabled) {
-        color: var(--bs-danger);
-        border-color: rgba(var(--bs-danger-rgb), 0.45);
-        background-color: rgba(var(--bs-danger-rgb), 0.08);
-    }
+
     .header-action-btn {
         padding: 0 0.75rem;
         font-size: 0.875rem;
-        text-decoration: none;
         color: var(--bs-body-color);
     }
+
     .header-action-btn.btn-primary {
         background-color: var(--bs-primary) !important;
         color: white !important;
         border: none !important;
     }
-    .header-action-btn.btn-outline-success {
-        border-color: var(--bs-success);
-        color: var(--bs-success);
-    }
-    .header-action-btn.btn-outline-success:hover {
-        background-color: var(--bs-success);
-        color: white;
-    }
-    .view-toggle-btn.active, .filter-toggle-btn[aria-expanded="true"] {
+
+    .filter-toggle-btn[aria-expanded="true"] {
         background: rgba(var(--bs-primary-rgb), 0.1) !important;
         color: var(--bs-primary) !important;
         border-color: rgba(var(--bs-primary-rgb), 0.3) !important;
         box-shadow: none !important;
     }
-    .filter-toggle-btn:hover, .header-action-btn:hover {
-        opacity: 0.9;
-    }
-    .filter-toggle-btn[aria-expanded="true"]:hover {
-        opacity: 0.8;
-    }
 
-    /* Filter Bar Standardization */
-    #filter-form .form-control,
-    #filter-form .form-select,
-    #filter-form .input-group-text,
-    #filter-form .btn {
-        height: 36px !important;
-        font-size: 0.875rem !important;
-        display: flex;
-        align-items: center;
-    }
-
-    #filter-form .multiselect.dropdown-toggle {
-        height: 36px !important;
-        font-size: 0.875rem !important;
-    }
-
-    #filter-form .btn {
-        padding: 0 0.75rem;
-        white-space: nowrap;
-    }
-    
-    [data-bs-theme="dark"] .expense-card {
-        border-color: rgba(255,255,255,0.1) !important;
-    }
-    [data-bs-theme="dark"] .view-toggle-btn.active, 
-    [data-bs-theme="dark"] .filter-toggle-btn[aria-expanded="true"] {
-        background: rgba(255, 255, 255, 0.1) !important;
-        color: #fff !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
-    }
-    [data-bs-theme="dark"] .bg-soft-pink { background-color: rgba(224, 92, 69, 0.15); }
-    [data-bs-theme="dark"] .bg-soft-blue { background-color: rgba(55, 138, 221, 0.15); }
-    [data-bs-theme="dark"] .bg-soft-green { background-color: rgba(29, 158, 117, 0.15); }
-    [data-bs-theme="dark"] .bg-soft-purple { background-color: rgba(133, 183, 235, 0.15); }
-    [data-bs-theme="dark"] .bg-soft-orange { background-color: rgba(212, 131, 26, 0.15); }
-
-    /* Light Mode Soft Backgrounds */
-    .bg-soft-blue-light { background-color: rgba(5, 117, 230, 0.08); }
-    .bg-soft-green-light { background-color: rgba(43, 147, 72, 0.08); }
-    
-    .stats-card {
-        transition: all 0.2s ease;
-        border: 1px solid var(--bs-border-color-translucent) !important;
-    }
-    .stats-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
-    }
-    .stats-icon {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-    }
-
-    .description-clamp {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        min-height: 2.8em;
-        transition: all 0.3s ease;
-    }
-    .description-clamp.expanded {
-        -webkit-line-clamp: unset;
-        line-clamp: unset;
-        min-height: unset;
-    }
-    .expand-desc-btn {
-        display: none;
-        padding: 0;
-        width: 20px;
-        height: 20px;
-        align-items: center;
-        justify-content: center;
-        border-radius: 0;
-        transition: transform 0.3s ease;
-        background: transparent;
-        border: none;
-        color: var(--bs-secondary);
-        box-shadow: none !important;
-    }
-    .expand-desc-btn.active {
-        transform: rotate(180deg);
-        background: transparent;
-    }
-    /* Ensure the dropdown container is above other card content */
-    .expense-card .dropdown {
-        z-index: 5;
-    }
-    /* Elevate the entire card when a dropdown is open or focused */
-    .expense-card:focus-within {
-        z-index: 1060 !important;
-    }
-    .expense-card .dropdown-menu {
-        z-index: 1061 !important;
-    }
-
-
-    /* Category Icon Alignment */
     .category-icon-container {
         width: 40px;
         height: 40px;
@@ -382,791 +185,84 @@
         justify-content: center;
         font-size: 1.25rem;
         flex-shrink: 0;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        color: var(--bs-secondary-color);
         border-radius: 12px;
-        background-color: transparent;
-    }
-    .expense-card:hover .category-icon-container {
         background-color: var(--bs-tertiary-bg);
-        transform: scale(1.08);
-        color: var(--bs-primary);
     }
 
-    /* Clean bottom border of the last row in desktop table */
-    #tableView table tbody tr:last-child td {
-        border-bottom: 0 !important;
-    }
-
-    #tableView table th {
-        font-size: 0.95rem !important;
-    }
-    #tableView table td {
-        font-size: 0.95rem !important;
-    }
-    
-    @media (max-width: 576px) {
-        .category-icon-container {
-            width: 32px;
-            height: 32px;
-            font-size: 1rem;
-        }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+        line-height: 1.25;
+        max-height: 2.5em;
     }
 </style>
-<div class="fade-in">
-    <!-- Mobile Header -->
-    <div class="card-header bg-transparent d-md-none pt-1 pb-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3 class="mb-0 fw-bold d-flex align-items-center gap-3">
-                {% if prev_month_url %}
-                    <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}">
-                        <i class="bi bi-chevron-left fs-5"></i>
-                    </a>
-                {% endif %}
-                <span class="h4 mb-0">
-                {% if display_month and display_year %}
-                    {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
-                {% else %}
-                    {% trans "Expenses" %}
-                {% endif %}
-                </span>
-                {% if next_month_url %}
-                    <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}">
-                        <i class="bi bi-chevron-right fs-5"></i>
-                    </a>
-                {% endif %}
-            </h3>
-            <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
-                </button>
-                {% if request.user.profile.can_export_csv %}
-                <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-action-btn btn-outline-primary d-flex align-items-center gap-1 no-loader">
-                    <i class="bi bi-download"></i>
-                </a>
-                {% endif %}
-            </div>
-        </div>
-        <p class="text-muted text-center small mb-0 mt-4 fw-medium py-1 lh-base">
-            <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot; 
-            <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
-            {% if days_left is not None %}
-            &middot; <span class="fw-bold text-primary">{{ days_left|translate_digits }}</span> {% trans "days left in cycle" %}
-            {% endif %}
-        </p>
-    </div>
 
-    <!-- Desktop Header -->
-    <div class="card-header bg-transparent d-none d-md-block pt-1 pb-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
-                {% if prev_month_url %}
-                    <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}">
-                        <i class="bi bi-chevron-left fs-5"></i>
-                    </a>
-                {% endif %}
-                <span class="h3 mb-0">
-                {% if display_month and display_year %}
-                    {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
-                {% else %}
-                    {% trans "Expenses" %}
-                {% endif %}
-                </span>
-                {% if next_month_url %}
-                    <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}">
-                        <i class="bi bi-chevron-right fs-5"></i>
-                    </a>
-                {% endif %}
-            </h2>
-            <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
-                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot; 
-                <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
-                {% if days_left is not None %}
-                &middot; <span class="fw-bold text-primary">{{ days_left|translate_digits }}</span> {% trans "days left in cycle" %}
-                {% endif %}
-            </p>
-            <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
-                </button>
-                <div id="desktopHeaderBulkActions" class="d-md-flex align-items-center gap-2">
-                    <span id="bulkEditTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one expense to edit' %}">
-                        <button type="button" class="header-icon-btn bulk-edit-btn" id="bulkEditBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal" aria-label="{% trans 'Edit Selected' %}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </span>
-                    <span id="bulkDeleteTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one expense to delete' %}">
-                        <button type="button" class="header-icon-btn delete bulk-delete-btn" id="bulkDeleteBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal" aria-label="{% trans 'Delete Selected' %}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </span>
-                </div>
-                {% if request.user.profile.can_export_csv %}
-                <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-icon-btn no-loader" title="{% trans 'Export' %}">
-                    <i class="bi bi-download"></i>
-                </a>
-                {% endif %}
-                <a href="{% url 'expense-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
-                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
-                </a>
-            </div>
-        </div>
-    </div>
-    
+{% include 'expenses/partials/_expense_list.html' %}
 
-
-    <!-- Filter Form -->
-    <div class="collapse" id="expenseFilters" style="z-index: 1040; position: relative;">
-        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm" id="filter-form">
-        <div class="row g-3 align-items-end flex-lg-nowrap">
-            <!-- Search -->
-            <div class="col-12 col-md">
-                <label for="search" class="form-label small text-muted">{% trans "Search" %}</label>
-                <input type="text" name="search" id="search" class="form-control form-control-sm" placeholder="{% trans 'Search...' %}" value="{{ request.GET.search|default:'' }}">
-            </div>
-            
-            <!-- Date Range -->
-            <div class="col-6 col-md">
-                <label for="start_date" class="form-label small text-muted d-none d-md-block">{% trans "From" %}</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text d-md-none">{% trans "From" %}</span>
-                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <label for="end_date" class="form-label small text-muted d-none d-md-block">{% trans "To" %}</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text d-md-none">{% trans "To" %}</span>
-                    <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date|default:'' }}">
-                </div>
-            </div>
-
-            <!-- Year & Month -->
-            <div class="col-6 col-md">
-                <label for="year-select" class="form-label small text-muted">{% trans "Year" %}</label>
-                <select name="year" id="year-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Years...' %}">
-                    {% for dt in years %}
-                        <option value="{{ dt }}" {% if dt|stringformat:"s" in selected_years %}selected{% endif %}>
-                            {{ dt|translate_digits }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-6 col-md">
-                <label for="month-select" class="form-label small text-muted">{% trans "Month" %}</label>
-                <select name="month" id="month-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Months...' %}">
-                    {% for num, name in months_list %}
-                        <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>
-                            {{ name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Category -->
-            <div class="col-12 col-md">
-                <label for="category-select" class="form-label small text-muted">{% trans "Category" %}</label>
-                <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
-                    {% for cat in categories %}
-                        <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>
-                            <i class="bi {% category_icon cat user %}"></i> {{ cat }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Payment Method -->
-            <div class="col-6 col-md">
-                <label for="payment-method-select" class="form-label small text-muted">{% trans "Payment Method" %}</label>
-                <select name="payment_method" id="payment-method-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Payment methods...' %}">
-                    {% for value, label in payment_methods %}
-                        <option value="{{ value }}" {% if value in selected_payment_methods %}selected{% endif %}>
-                            {{ label }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Account -->
-            <div class="col-6 col-md">
-                <label for="account-select" class="form-label small text-muted">{% trans "Account" %}</label>
-                <select name="account" id="account-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Accounts...' %}">
-                    {% for account in accounts %}
-                        <option value="{{ account.id }}" {% if account.id|stringformat:"s" in selected_accounts %}selected{% endif %}>
-                            {{ account.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-        </div> <!-- End of inputs row -->
-
-        <!-- Action Buttons Row (Ensures wrapping and prevents overflow) -->
-        <div class="row g-2 mt-3 align-items-center">
-            <div class="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                <button type="submit" class="btn btn-primary btn-sm px-4">
-                    <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
-                </button>
-                
-                <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary btn-sm px-4">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
-                </a>
-
-                <div class="vr mx-1 d-none d-md-block opacity-25"></div>
-            </div>
-        </div>
-    </form>
-    </div>
-
-    <!-- Stats Row -->
-    <!-- <div class="mb-4 mt-3 mt-md-0">
-        <div class="row g-3">
-            <div class="col-6 col-md-auto">
-                <div class="p-2 px-3 border rounded bg-body stats-card h-100 d-flex align-items-center gap-3">
-                    <div class="stats-icon text-primary">
-                        <i class="bi bi-layers" style="font-size: 1.1rem;"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Total Records" %}</small>
-                        <span class="fw-bold fs-6 mb-0 text-body-emphasis">{{ filtered_count|translate_digits }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-auto">
-                <div class="p-2 px-3 border rounded bg-body stats-card h-100 d-flex align-items-center gap-3">
-                    <div class="stats-icon text-success">
-                        <i class="bi bi-wallet2" style="font-size: 1.1rem;"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.5px;">{% trans "Total Amount" %}</small>
-                        <span class="fw-bold fs-6 mb-0 text-success">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> -->
-
-    <script>
-        // Bulk Delete Logic
-        document.addEventListener('DOMContentLoaded', function() {
-            const selectAllTable = document.getElementById('selectAll');
-            const selectAllMobile = document.getElementById('selectAllMobile');
-            const expenseCheckboxes = document.querySelectorAll('.expense-checkbox');
-            const bulkDeleteBtns = document.querySelectorAll('.bulk-delete-btn');
-            const bulkEditBtns = document.querySelectorAll('.bulk-edit-btn');
-            const mobileBulkActions = document.getElementById('mobileBulkActions');
-            const desktopHeaderBulkActions = document.getElementById('desktopHeaderBulkActions');
-            const bulkEditTooltipWrap = document.getElementById('bulkEditTooltipWrap');
-            const bulkDeleteTooltipWrap = document.getElementById('bulkDeleteTooltipWrap');
-
-            function updateTooltipMessage(el, message) {
-                if (!el) return;
-                el.setAttribute('title', message);
-                el.setAttribute('data-bs-original-title', message);
-                const instance = bootstrap.Tooltip.getInstance(el);
-                if (instance) {
-                    instance.setContent({ '.tooltip-inner': message });
+<script>
+    function checkDescriptionOverflow() {
+        setTimeout(() => {
+            document.querySelectorAll('.description-clamp').forEach(el => {
+                const btn = el.closest('.d-flex')?.querySelector('.expand-desc-btn');
+                if (btn) {
+                    btn.style.display = el.scrollHeight > el.offsetHeight + 1 ? 'inline-flex' : 'none';
                 }
-            }
-
-            function updateBulkButtonsState() {
-                const anyChecked = Array.from(expenseCheckboxes).some(cb => cb.checked);
-                
-                // Toggle all bulk action buttons
-                bulkDeleteBtns.forEach(btn => btn.disabled = !anyChecked);
-                bulkEditBtns.forEach(btn => btn.disabled = !anyChecked);
-                
-                // Toggle mobile actions bar visibility
-                if (mobileBulkActions) {
-                    if (anyChecked) {
-                        mobileBulkActions.classList.remove('d-none');
-                        mobileBulkActions.classList.add('d-flex');
-                    } else {
-                        mobileBulkActions.classList.add('d-none');
-                        mobileBulkActions.classList.remove('d-flex');
-                    }
-                }
-
-                if (desktopHeaderBulkActions) {
-                    desktopHeaderBulkActions.classList.remove('d-none');
-                }
-
-                updateTooltipMessage(
-                    bulkEditTooltipWrap,
-                    anyChecked
-                        ? "{% trans 'Edit selected expenses' %}"
-                        : "{% trans 'Select at least one expense to edit' %}"
-                );
-                updateTooltipMessage(
-                    bulkDeleteTooltipWrap,
-                    anyChecked
-                        ? "{% trans 'Delete selected expenses' %}"
-                        : "{% trans 'Select at least one expense to delete' %}"
-                );
-            }
-
-            function handleSelectAll(e) {
-                const isChecked = e.target.checked;
-                expenseCheckboxes.forEach(cb => {
-                    cb.checked = isChecked;
-                });
-                // Keep all selectAll checkboxes in sync
-                if (selectAllTable) selectAllTable.checked = isChecked;
-                if (selectAllMobile) selectAllMobile.checked = isChecked;
-                updateBulkButtonsState();
-            }
-
-            // Handle Select All (Table and Grid)
-            if (selectAllTable) selectAllTable.addEventListener('change', handleSelectAll);
-            if (selectAllMobile) selectAllMobile.addEventListener('change', handleSelectAll);
-
-            // Handle Individual Checkboxes
-            expenseCheckboxes.forEach(cb => {
-                cb.addEventListener('change', function() {
-                    updateBulkButtonsState();
-                    // Update Select All state
-                    const allChecked = Array.from(expenseCheckboxes).every(cb => cb.checked);
-                    if (selectAllTable) selectAllTable.checked = allChecked;
-                    if (selectAllMobile) selectAllMobile.checked = allChecked;
-                });
             });
+        }, 50);
+    }
 
-            // Handle Bulk Edit - collect IDs
-            bulkEditBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const selectedIds = Array.from(expenseCheckboxes)
-                        .filter(cb => cb.checked)
-                        .map(cb => cb.value);
-                    
-                    const hiddenIdsField = document.getElementById('bulkEditIds');
-                    if (hiddenIdsField) {
-                        // Clear existing
-                        hiddenIdsField.innerHTML = '';
-                        selectedIds.forEach(id => {
-                            const input = document.createElement('input');
-                            input.type = 'hidden';
-                            input.name = 'expense_ids';
-                            input.value = id;
-                            hiddenIdsField.appendChild(input);
-                        });
-                    }
-                });
-            });
-            
-            // Handle Delete Button Click (Modal triggering is handled by bootstrap data-bs-target)
-            // But we might want to ensure the modal knows which form to submit? 
-            // The modal submit button does `document.getElementById('bulkDeleteForm').submit()`, which works globally.
-
-            // Mobile multiselect backdrop
-            if (window.innerWidth < 768) {
-                document.querySelectorAll('#filter-form .btn-group').forEach(function(btnGroup) {
-                    const observer = new MutationObserver(function(mutations) {
-                        mutations.forEach(function(mutation) {
-                            const dropdown = btnGroup.querySelector('.dropdown-menu');
-                            if (!dropdown) return;
-                            const isOpen = dropdown.classList.contains('show');
-                            let backdrop = document.querySelector('.multiselect-backdrop');
-                            if (isOpen && !backdrop) {
-                                backdrop = document.createElement('div');
-                                backdrop.className = 'multiselect-backdrop';
-                                backdrop.addEventListener('click', function() {
-                                    // Close the dropdown by clicking the toggle
-                                    const toggle = btnGroup.querySelector('.dropdown-toggle');
-                                    if (toggle) toggle.click();
-                                });
-                                btnGroup.appendChild(backdrop);
-                            } else if (!isOpen && backdrop) {
-                                backdrop.remove();
-                            }
-                        });
-                    });
-                    observer.observe(btnGroup, { attributes: true, subtree: true, attributeFilter: ['class'] });
-                });
-            }
-
-            // Mobile Selection Mode Toggle
-            const mobileSelectToggle = document.getElementById('mobileSelectToggle');
-            const mobileSelectAllRow = document.getElementById('mobileSelectAllRow');
-            if (mobileSelectToggle && mobileGridView) {
-                mobileSelectToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const isSelecting = mobileGridView.classList.toggle('selection-mode');
-                    this.innerHTML = isSelecting ? '<i class="bi bi-x-lg"></i> {% trans "Cancel" %}' : '<i class="bi bi-check2-square"></i> {% trans "Select" %}';
-                    if (!isSelecting) {
-                        // Uncheck all when exiting selection mode
-                        expenseCheckboxes.forEach(cb => cb.checked = false);
-                        if (selectAllMobile) selectAllMobile.checked = false;
-                        if (selectAllTable) selectAllTable.checked = false;
-                        updateBulkButtonsState();
-                    }
-                });
-            }
-
-            // Initial Load - Check description overflows for grid cards
-            checkDescriptionOverflow();
-
-            // Filters are hidden by default via HTML classes ('collapse' without 'show').
-            // No auto-expand logic to ensure they stay hidden until explicitly toggled by the user.
-        });
-
-        function checkDescriptionOverflow() {
-            // Need a slight delay to ensure DOM is rendered and visible
-            setTimeout(() => {
-                document.querySelectorAll('.description-clamp').forEach(el => {
-                    const btn = el.closest('.d-flex').querySelector('.expand-desc-btn');
-                    if (btn) {
-                        // Overflow check: scrollHeight > offsetHeight
-                        if (el.scrollHeight > el.offsetHeight + 1) {
-                            btn.style.display = 'inline-flex';
-                        } else {
-                            btn.style.display = 'none';
-                        }
-                    }
-                });
-            }, 50);
+    function toggleDescription(btn, event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const container = btn.closest('.d-flex');
+        const desc = container?.querySelector('.description-clamp');
+        if (desc) {
+            desc.classList.toggle('expanded');
+            btn.classList.toggle('active');
         }
+    }
 
-        function toggleDescription(btn, event) {
-            event.preventDefault();
-            event.stopPropagation();
-            const container = btn.closest('.d-flex');
-            const desc = container.querySelector('.description-clamp');
-            if (desc) {
-                desc.classList.toggle('expanded');
-                btn.classList.toggle('active');
-            }
-        }
-    </script>
-    
-    <script>
-        // Initialize Payment Method Selector for Bulk Edit Modal
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof initPaymentMethodSelector === 'function') {
-                initPaymentMethodSelector(document.getElementById('bulkEditModal'));
-            }
-        });
+    function initPaymentMethodSelector(container = document) {
+        const selectors = container.querySelectorAll('.payment-method-selector');
+        selectors.forEach(selector => {
+            const targetId = selector.dataset.targetId;
+            const targetSelect = document.getElementById(targetId);
+            const items = selector.querySelectorAll('.payment-method-item');
 
-        // Re-use logic from base if needed, but here we define it if not present
-        if (typeof initPaymentMethodSelector !== 'function') {
-            function initPaymentMethodSelector(container = document) {
-                const selectors = container.querySelectorAll('.payment-method-selector');
-                selectors.forEach(selector => {
-                    const targetId = selector.dataset.targetId;
-                    const targetSelect = document.getElementById(targetId);
-                    const items = selector.querySelectorAll('.payment-method-item');
-                    
+            if (targetSelect) {
+                const currentValue = targetSelect.value;
+                items.forEach(item => {
+                    if (item.dataset.value === currentValue) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    const value = this.dataset.value;
+                    items.forEach(entry => entry.classList.remove('active'));
+                    this.classList.add('active');
                     if (targetSelect) {
-                        const currentValue = targetSelect.value;
-                        items.forEach(item => {
-                            if (item.dataset.value === currentValue) item.classList.add('active');
-                        });
+                        targetSelect.value = value;
+                        targetSelect.dispatchEvent(new Event('change'));
                     }
-                    
-                    items.forEach(item => {
-                        item.addEventListener('click', function() {
-                            const value = this.dataset.value;
-                            items.forEach(i => i.classList.remove('active'));
-                            this.classList.add('active');
-                            if (targetSelect) {
-                                targetSelect.value = value;
-                                targetSelect.dispatchEvent(new Event('change'));
-                            }
-                        });
-                    });
-                });
-            }
-        }
-
-        // Initialize Tooltips
-        document.addEventListener('DOMContentLoaded', function () {
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    boundary: document.body 
                 });
             });
         });
-    </script>
-    
+    }
 
-
-    <!-- Views Container -->
-    <div class="card-body p-0">
-        {% if expenses %}
-        <form id="bulkDeleteForm" method="post" action="{% url 'expense-bulk-delete' %}?{{ request.GET.urlencode }}">
-            {% csrf_token %}
-            
-            <!-- Mobile Bulk Actions (Hidden by default, shown via JS) -->
-            <div id="mobileBulkActions" class="d-md-none p-2 bg-body border-bottom d-none justify-content-end align-items-center gap-2">
-                <span class="small text-muted me-auto">{% trans "Items Selected" %}</span>
-                <button type="button" class="btn btn-outline-primary btn-sm bulk-edit-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal">
-                    <i class="bi bi-pencil me-1"></i> {% trans "Edit" %}
-                </button>
-                <button type="button" class="btn btn-outline-danger btn-sm bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                    <i class="bi bi-trash me-1"></i> {% trans "Delete" %}
-                </button>
-            </div>
-
-            <!-- 1. Table View -->
-            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block">
-                <div class="card-body p-0">
-                    <div id="tableView" class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 text-start align-middle">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4" style="width: 40px;">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="selectAll">
-                                        </div>
-                                    </th>
-                                    <th>{% trans "Date" %}</th>
-                                    <th>{% trans "Description" %}</th>
-                                    <th>{% trans "Category" %}</th>
-                                    <th>{% trans "Payment Method" %}</th>
-                                    <th>{% trans "Account" %}</th>
-                                    {% load expense_extras %}
-                                    {% if request.GET.sort == 'amount_asc' %}
-                                        <th style="cursor: pointer;" onclick="window.location.href='?{% url_replace sort='amount_desc' %}'">
-                                    {% else %}
-                                        <th style="cursor: pointer;" onclick="window.location.href='?{% url_replace sort='amount_asc' %}'">
-                                    {% endif %}
-                                        {% trans "Amount" %}
-                                        {% if request.GET.sort == 'amount_asc' %}
-                                            <i class="bi bi-arrow-up-short"></i>
-                                        {% elif request.GET.sort == 'amount_desc' %}
-                                            <i class="bi bi-arrow-down-short"></i>
-                                        {% else %}
-                                            <i class="bi bi-arrow-down-up text-muted opacity-25" style="font-size: 0.8em;"></i>
-                                        {% endif %}
-                                    </th>
-                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for expense in expenses %}
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}">
-                                        </div>
-                                    </td>
-                                    <td class="text-nowrap">{{ expense.date|date:"d M Y"|translate_digits }}</td>
-                                    <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">{{ expense.description|truncatechars:40 }}</td>
-                                    <td>
-                                        <span class="badge-soft badge-soft-success align-items-center gap-1">
-                                            <i class="bi {% category_icon expense.category user %}"></i>
-                                            {{ expense.category }}
-                                        </span>
-                                    </td>
-                                    <td>{{ expense.payment_method }}</td>
-                                    <td>{{ expense.account.name }}</td>
-                                    <td class="fw-bold">
-                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
-                                        {% if expense.currency != user.profile.currency %}
-                                        <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
-                                            ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
-                                        </div>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end pe-4 text-nowrap">
-                                        <div class="dropdown hstack gap-3 justify-content-end">
-                                            <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
-                                                <i class="bi bi-three-dots-vertical text-muted"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
-                                                        <i class="bi bi-pencil-square text-primary"></i>
-                                                        <span>{% trans "Edit" %}</span>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <form method="post" action="{% url 'expense-convert' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
-                                                            <i class="bi bi-flag"></i>
-                                                            <span>{% trans "Convert to Capital Event" %}</span>
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                                <li>
-                                                    <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button" 
-                                                            data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                            data-url="{% url 'expense-delete' expense.uuid %}?{{ request.GET.urlencode }}"
-                                                            data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
-                                                        <i class="bi bi-trash"></i>
-                                                        <span>{% trans "Delete" %}</span>
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Mobile Grid View (Daily Grouped) -->
-            <div id="mobileGridView" class="py-2 d-md-none">
-                <div class="d-flex align-items-center mb-2 px-1 mobile-selection-header">
-                    <div id="mobileSelectAllRow" class="d-flex align-items-center gap-2">
-                        <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
-                        <label class="small text-muted" for="selectAllMobile" style="cursor: pointer;">{% trans "Select All" %}</label>
-                    </div>
-                    <a href="#" id="mobileSelectToggle" class="text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</a>
-                </div>
-                {% regroup expenses by date as expenses_by_date %}
-                {% for group in expenses_by_date %}
-                <div class="mb-3">
-                    <!-- Day Header -->
-                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
-                        <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
-                            {{ group.grouper|date:"d M, Y"|translate_digits }}
-                        </div>
-                        <div class="fw-bold text-body-secondary" style="font-size: 0.78rem;">
-                            {{ user.profile.currency }}{{ group.list|sum_base_amounts|compact_amount:user.profile.currency|translate_digits }}
-                        </div>
-                    </div>
-                    <!-- Day's Expenses -->
-                    {% for expense in group.list %}
-                    <div class="card expense-card shadow-sm border-0 position-relative mb-3">
-                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
-                            <div class="mobile-card-inner">
-                                <!-- Left: Checkbox -->
-                                <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
-                                    <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
-                                </div>
-
-                                <!-- Left-Mid: Category Icon (Vertically Centered) -->
-                                <div class="category-icon-container" title="{{ expense.category }}">
-                                    <i class="bi {% category_icon expense.category user %}"></i>
-                                </div>
-
-                                <!-- Middle: Info -->
-                                <div class="flex-grow-1 min-width-0 px-1">
-                                    <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
-                                         data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">
-                                        {{ expense.description }}
-                                    </div>
-                                    <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
-                                        <span class="text-truncate">{{ expense.category|truncatechars:18 }}{% if expense.account.name is not null %} • {{ expense.account.name|truncatechars:18 }}{% endif %}</span>
-                                    </div>
-                                </div>
-
-                                <!-- Right: Amount + Payment Badge -->
-                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
-                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
-                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
-                                        {% if expense.currency != user.profile.currency %}
-                                        <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">
-                                            ({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
-                                </div>
-
-                                <!-- Far Right: Menu -->
-                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
-                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
-                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
-                                                <i class="bi bi-pencil-square text-primary"></i>
-                                                <span>{% trans "Edit" %}</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                             <form method="post" action="{% url 'expense-convert' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
-                                                    <i class="bi bi-flag"></i>
-                                                    <span>{% trans "Convert to Capital Event" %}</span>
-                                                </button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn-card" type="button"
-                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                    data-url="{% url 'expense-delete' expense.uuid %}?{{ request.GET.urlencode }}"
-                                                    data-message="{% trans 'Are you sure you want to delete' %} '{{ expense.description }}'?">
-                                                <i class="bi bi-trash"></i>
-                                                <span>{% trans "Delete" %}</span>
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-            </div>
-        </form>
-        {% else %}
-            <!-- Global Empty State -->
-            <div class="text-center py-5">
-                <div class="py-5 px-3">
-                    <div class="mb-4">
-                        {% include 'illustrations/empty_expenses.svg' %}
-                    </div>
-                    <h3 class="fw-bold text-body-emphasis mb-2">{% trans "No Expenses Found" %}</h3>
-                    <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">
-                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month or request.GET.payment_method or request.GET.account %}
-                            {% trans "We couldn't find any expenses matching your filters. Try adjusting your search criteria." %}
-                        {% else %}
-                            {% trans "You haven't added any expenses yet. Start tracking your spending to get insights into your finances!" %}
-                        {% endif %}
-                    </p>
-                    <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-2">
-                        <a href="{% url 'expense-create' %}" class="btn btn-primary fw-bold px-4 rounded-pill text-nowrap">
-                            <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
-                        </a>
-                        {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month or request.GET.payment_method or request.GET.account %}
-                            <a href="{% url 'expense-list' %}" class="btn btn-outline-secondary fw-bold px-4 rounded-pill text-nowrap">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Clear Filters" %}
-                            </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-    </div>
-
-    {% if is_paginated %}
-    <div class="card-footer bg-transparent py-3">
-        <nav>
-            <ul class="pagination justify-content-center mb-0">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">{% trans "Previous" %}</a>
-                </li>
-                {% endif %}
-                
-                <li class="page-item disabled">
-                    <span class="page-link">{% trans "Page" %} {{ page_obj.number|translate_digits }} {% trans "of" %} {{ page_obj.paginator.num_pages|translate_digits }}</span>
-                </li>
-
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">{% trans "Next" %}</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
-    {% endif %}
-</div>
+    document.addEventListener('DOMContentLoaded', function() {
+        initPaymentMethodSelector(document.getElementById('bulkEditModal'));
+    });
+</script>
 {% endblock %}
 
 {% block modals %}
-    <!-- Bulk Delete Confirmation Modal -->
     <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -1179,27 +275,26 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="button" class="btn btn-danger" onclick="setButtonLoading(this, '{% trans 'Deleting...' %}'); document.getElementById('bulkDeleteForm').submit()">{% trans "Delete Selected" %}</button>
+                    <button type="button" class="btn btn-danger" data-loading-text="{% trans 'Deleting...' %}" onclick="setButtonLoading(this, this.dataset.loadingText); document.getElementById('bulkDeleteForm').submit()">{% trans "Delete Selected" %}</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bulk Edit Modal -->
     <div class="modal fade" id="bulkEditModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <form id="bulkEditForm" method="post" action="{% url 'expense-bulk-edit' %}">
                     {% csrf_token %}
-                    <div id="bulkEditIds"></div> <!-- Hidden inputs will be injected here -->
-                    
+                    <div id="bulkEditIds"></div>
+
                     <div class="modal-header">
                         <h5 class="modal-title">{% trans "Bulk Edit Expenses" %}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-start">
                         <p class="small text-muted mb-3">{% trans "Select the fields you want to update for all selected records. Leave blank to keep existing values." %}</p>
-                        
+
                         <div class="mb-3">
                             <label class="form-label small fw-bold">{% trans "Category" %}</label>
                             <select name="bulk_category" class="form-select">
@@ -1248,7 +343,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                        <button type="submit" class="btn btn-primary" onclick="setButtonLoading(this, '{% trans 'Updating...' %}')">{% trans "Save Changes" %}</button>
+                        <button type="submit" class="btn btn-primary" data-loading-text="{% trans 'Updating...' %}" onclick="setButtonLoading(this, this.dataset.loadingText)">{% trans "Save Changes" %}</button>
                     </div>
                 </form>
             </div>

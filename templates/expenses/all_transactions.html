@@ -3,20 +3,16 @@
 
 {% block content %}
 <style>
-    /* Adopted from expense_list.html */
     .table-responsive {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Clean bottom border of the last row in desktop table */
     #tableView table tbody tr:last-child td {
         border-bottom: 0 !important;
     }
 
-    #tableView table th {
-        font-size: 0.95rem !important;
-    }
+    #tableView table th,
     #tableView table td {
         font-size: 0.95rem !important;
     }
@@ -34,29 +30,32 @@
             gap: 0 !important;
         }
 
-        #mobileGridView .expense-card .category-icon-container { 
-            grid-area: icon; 
-            margin: 0 !important; 
+        #mobileGridView .expense-card .category-icon-container {
+            grid-area: icon;
+            margin: 0 !important;
             width: 32px !important;
             height: 32px !important;
             justify-self: center;
         }
-        #mobileGridView .expense-card .flex-grow-1 { 
-            grid-area: info; 
-            margin: 0 !important; 
+
+        #mobileGridView .expense-card .flex-grow-1 {
+            grid-area: info;
+            margin: 0 !important;
             padding-left: 0.5rem !important;
             padding-right: 0.5rem !important;
             overflow: hidden;
         }
-        #mobileGridView .expense-card .flex-shrink-0.text-end { 
-            grid-area: amount; 
-            margin: 0 !important; 
+
+        #mobileGridView .expense-card .flex-shrink-0.text-end {
+            grid-area: amount;
+            margin: 0 !important;
             width: 100% !important;
             padding-right: 4px;
         }
-        #mobileGridView .expense-card .dropdown { 
-            grid-area: menu; 
-            margin: 0 !important; 
+
+        #mobileGridView .expense-card .dropdown {
+            grid-area: menu;
+            margin: 0 !important;
             justify-self: center;
         }
     }
@@ -67,7 +66,9 @@
         background-color: var(--bs-body-bg);
     }
 
-    .view-toggle-btn, .filter-toggle-btn, .header-action-btn {
+    .view-toggle-btn,
+    .filter-toggle-btn,
+    .header-action-btn {
         height: 36px;
         display: inline-flex;
         align-items: center;
@@ -77,29 +78,37 @@
         border: 1px solid var(--bs-border-color);
         background: transparent;
     }
-    .view-toggle-btn, .filter-toggle-btn {
+
+    .view-toggle-btn,
+    .filter-toggle-btn {
         width: 36px;
         padding: 0;
         color: var(--bs-secondary);
     }
+
     .header-action-btn {
         padding: 0 0.75rem;
         font-size: 0.875rem;
         text-decoration: none;
         color: var(--bs-body-color);
     }
+
     .header-action-btn.btn-primary {
         background-color: var(--bs-primary) !important;
         color: white !important;
         border: none !important;
     }
-    .view-toggle-btn.active, .filter-toggle-btn[aria-expanded="true"] {
+
+    .view-toggle-btn.active,
+    .filter-toggle-btn[aria-expanded="true"] {
         background: rgba(var(--bs-primary-rgb), 0.1) !important;
         color: var(--bs-primary) !important;
         border-color: rgba(var(--bs-primary-rgb), 0.3) !important;
         box-shadow: none !important;
     }
-    .filter-toggle-btn:hover, .header-action-btn:hover {
+
+    .filter-toggle-btn:hover,
+    .header-action-btn:hover {
         opacity: 0.9;
     }
 
@@ -107,6 +116,7 @@
         color: inherit;
         gap: 0.35rem;
     }
+
     .amount-sort-link:hover {
         color: var(--bs-primary);
     }
@@ -131,6 +141,7 @@
         border-radius: 4px;
         letter-spacing: 0.02em;
     }
+
     .type-expense { background-color: rgba(224, 92, 69, 0.1); color: #E05C45; }
     .type-income { background-color: rgba(29, 158, 117, 0.1); color: #1D9E75; }
     .type-transfer { background-color: rgba(55, 138, 221, 0.1); color: #378ADD; }
@@ -143,7 +154,6 @@
     .amount-loan { color: #B45309; }
     .amount-capital_event { color: #E05C45; }
 
-    /* Empty State */
     .empty-state-container {
         display: flex;
         flex-direction: column;
@@ -154,11 +164,13 @@
         border-radius: 20px;
         margin: 2rem 0;
     }
+
     .empty-state-container svg {
         width: 100%;
         max-width: 160px;
         height: auto;
     }
+
     .max-width-300 { max-width: 300px; }
 
     .stats-row {
@@ -166,18 +178,20 @@
         justify-content: space-between;
         align-items: center;
     }
+
     .stats-label {
         font-size: 0.78rem;
-        /* font-weight: 600; */
         color: var(--bs-body-color);
     }
+
     .stats-count {
         font-size: 0.72rem;
         font-weight: 400;
         color: var(--bs-secondary-color);
     }
+
     .stats-amount {
-        font-size: 0.80rem;
+        font-size: 0.8rem;
         font-weight: 700;
     }
 
@@ -191,9 +205,11 @@
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
     }
+
     .filter-pills-container::-webkit-scrollbar {
         display: none;
     }
+
     .filter-pill {
         display: inline-flex;
         align-items: center;
@@ -207,43 +223,23 @@
         border: 1.5px solid transparent;
         white-space: nowrap;
     }
-    
+
     .filter-pill-inactive {
         background-color: transparent;
         color: var(--bs-body-color);
         border-color: var(--bs-border-color-translucent);
     }
+
     .filter-pill-inactive:hover {
         background-color: var(--bs-secondary-bg);
         color: var(--bs-body-color);
     }
-    .filter-pill-badge-inactive {
-        background-color: var(--bs-secondary-bg);
-        color: var(--bs-secondary-color);
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 0.05rem 0.35rem;
-        border-radius: 10px;
-    }
 
-    .filter-pill-all.active {
-        border-color: #1D9E75;
-        color: #1D9E75;
-        background-color: transparent;
-    }
-    .filter-pill-all.active .filter-pill-badge {
-        background-color: #1D9E75;
-        color: white;
-    }
-
+    .filter-pill-all.active,
     .filter-pill-income.active {
         border-color: #1D9E75;
         color: #1D9E75;
         background-color: transparent;
-    }
-    .filter-pill-income.active .filter-pill-badge {
-        background-color: #1D9E75;
-        color: white;
     }
 
     .filter-pill-expense.active {
@@ -251,19 +247,11 @@
         color: #E05C45;
         background-color: transparent;
     }
-    .filter-pill-expense.active .filter-pill-badge {
-        background-color: #E05C45;
-        color: white;
-    }
 
     .filter-pill-transfer.active {
         border-color: #378ADD;
         color: #378ADD;
         background-color: transparent;
-    }
-    .filter-pill-transfer.active .filter-pill-badge {
-        background-color: #378ADD;
-        color: white;
     }
 
     .filter-pill-loan.active {
@@ -271,458 +259,7 @@
         color: #B45309;
         background-color: transparent;
     }
-    .filter-pill-loan.active .filter-pill-badge {
-        background-color: #B45309;
-        color: white;
-    }
-
-    .filter-pill-badge {
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 0.05rem 0.35rem;
-        border-radius: 10px;
-        transition: all 0.2s ease;
-    }
 </style>
 
-<div class="fade-in">
-    <!-- Header -->
-    <div class="card-header bg-transparent pt-1">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="mb-0 fw-bold d-flex align-items-center gap-2">
-                {% if prev_month_url %}
-                    <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0 text-muted" title="{% trans 'Previous Month' %}">
-                        <i class="bi bi-chevron-left fs-5"></i>
-                    </a>
-                {% endif %}
-                
-                <span class="h3 mb-0">
-                {% if display_month and display_year %}
-                    {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
-                {% else %}
-                    {% trans "All Transactions" %}
-                {% endif %}
-                </span>
-
-                {% if next_month_url %}
-                    <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center p-0 text-muted" title="{% trans 'Next Month' %}">
-                        <i class="bi bi-chevron-right fs-5"></i>
-                    </a>
-                {% endif %}
-            </h2>
-
-            <!-- Stats Line (Desktop Center) -->
-            <div class="text-muted text-center small mb-0 fw-medium d-none d-md-flex align-items-center justify-content-center flex-wrap gap-2 py-1 lh-base">
-                <span class="text-nowrap">
-                    <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "transactions" %}
-                </span>
-                {% if expense_count > 0 %}
-                <span class="opacity-50">•</span>
-                <span class="text-nowrap">
-                    <span class="fw-bold text-danger">{{ expense_count|translate_digits }}</span> {% trans "expenses" %} · <span class="fw-bold text-danger">{{ user.profile.currency }}{{ expense_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-                </span>
-                {% endif %}
-                {% if transfer_count > 0 %}
-                <span class="opacity-50">•</span>
-                <span class="text-nowrap">
-                    <span class="fw-bold text-info">{{ transfer_count|translate_digits }}</span> {% trans "transfers" %} · <span class="fw-bold text-info">{{ user.profile.currency }}{{ transfer_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "moved" %}
-                </span>
-                {% endif %}
-                {% if income_count > 0 %}
-                <span class="opacity-50">•</span>
-                <span class="text-nowrap">
-                    <span class="fw-bold text-success">{{ income_count|translate_digits }}</span> {% trans "incomes" %} · <span class="fw-bold text-success">{{ user.profile.currency }}{{ income_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
-                </span>
-                {% endif %}
-                {% if loan_count > 0 %}
-                <span class="opacity-50">•</span>
-                <span class="text-nowrap">
-                    <span class="fw-bold text-warning">{{ loan_count|translate_digits }}</span> {% trans "loan repayments" %} · <span class="fw-bold text-warning">{{ user.profile.currency }}{{ loan_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-                </span>
-                {% endif %}
-                {% if capital_event_count > 0 %}
-                <span class="opacity-50">•</span>
-                <span class="text-nowrap">
-                    <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "capital events" %} · <span class="fw-bold text-secondary">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-                </span>
-                {% endif %}
-            </div>
-
-            <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#transactionFilters" aria-expanded="false" aria-controls="transactionFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
-                </button>
-                
-                <div class="dropdown d-none d-md-block">
-                    <button class="header-action-btn btn-primary fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        {% trans "Add" %}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item py-2" href="{% url 'expense-create' %}"><i class="bi bi-dash-circle me-2 text-danger"></i>{% trans "Add Expense" %}</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'income-create' %}"><i class="bi bi-plus-circle me-2 text-success"></i>{% trans "Add Income" %}</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'transfer-create' %}"><i class="bi bi-arrow-left-right me-2 text-primary"></i>{% trans "Add Transfer" %}</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filters -->
-        <div class="collapse" id="transactionFilters">
-            <form method="get" class="mb-4 mt-4 bg-body p-3 rounded shadow-sm">
-                <div class="row g-3 flex-lg-nowrap">
-                    <div class="col-12 col-md">
-                        <label class="form-label small text-muted">{% trans "Search" %}</label>
-                        <input type="text" name="search" class="form-control form-control-sm" value="{{ search_query }}" placeholder="{% trans 'Description...' %}">
-                    </div>
-                    <div class="col-12 col-md">
-                        <label class="form-label small text-muted">{% trans "Type" %}</label>
-                        <select name="type" class="form-select form-select-sm django-multi-select" multiple>
-                            <option value="EXPENSE" {% if 'EXPENSE' in selected_types %}selected{% endif %}>{% trans "Expense" %}</option>
-                            <option value="INCOME" {% if 'INCOME' in selected_types %}selected{% endif %}>{% trans "Income" %}</option>
-                            <option value="TRANSFER" {% if 'TRANSFER' in selected_types %}selected{% endif %}>{% trans "Transfer" %}</option>
-                            <option value="LOAN" {% if 'LOAN' in selected_types %}selected{% endif %}>{% trans "Loan Repayment" %}</option>
-                            <option value="CAPITAL_EVENT" {% if 'CAPITAL_EVENT' in selected_types %}selected{% endif %}>{% trans "Capital Event" %}</option>
-                        </select>
-                    </div>
-                    <div class="col-6 col-md">
-                        <label class="form-label small text-muted">{% trans "Year" %}</label>
-                        <select name="year" class="form-select form-select-sm django-multi-select" multiple>
-                            {% for y in years %}
-                            <option value="{{ y }}" {% if y|stringformat:"s" in selected_years %}selected{% endif %}>{{ y|translate_digits }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-6 col-md">
-                        <label class="form-label small text-muted">{% trans "Month" %}</label>
-                        <select name="month" class="form-select form-select-sm django-multi-select" multiple>
-                            {% for m_val, m_name in months_list %}
-                            <option value="{{ m_val }}" {% if m_val|stringformat:"s" in selected_months %}selected{% endif %}>{{ m_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-auto d-flex align-items-end gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">{% trans "Apply" %}</button>
-                        <a href="{% url 'all-transactions' %}" class="btn btn-outline-secondary btn-sm">{% trans "Reset" %}</a>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Stats Section (Mobile View) -->
-        <div class="d-md-none mt-3">
-            <div class="border-0 mb-2">
-                <div class="card expense-card p-3">
-                    <div class="row g-0 align-items-stretch">
-                        <!-- Left Column -->
-                        <div class="col-6 pe-3 border-end d-flex flex-column justify-content-between">
-                            <div class="stats-row mb-2">
-                                <span class="stats-label">
-                                    {% trans "Income" %}
-                                    <span class="stats-count">({{ income_count|translate_digits }})</span>
-                                </span>
-                                <span class="stats-amount">{{ user.profile.currency }}{{ income_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-                            </div>
-                            <div class="stats-row mb-2">
-                                <span class="stats-label">
-                                    {% trans "Expenses" %}
-                                    <span class="stats-count">({{ expense_count|translate_digits }})</span>
-                                </span>
-                                <span class="stats-amount">{{ user.profile.currency }}{{ expense_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-                            </div>
-                            <div class="stats-row">
-                                <span class="stats-label">
-                                    {% trans "Transfers" %}
-                                    <span class="stats-count">({{ transfer_count|translate_digits }})</span>
-                                </span>
-                                <span class="stats-amount">{{ user.profile.currency }}{{ transfer_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-                            </div>
-                        </div>
-                        <!-- Right Column -->
-                        <div class="col-6 ps-3 d-flex flex-column justify-content-between">
-                            <div class="stats-row mb-2">
-                                <span class="stats-label">
-                                    {% trans "Capital" %}
-                                    <span class="stats-count">({{ capital_event_count|translate_digits }})</span>
-                                </span>
-                                <span class="stats-amount">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-                            </div>
-                            <div class="stats-row mb-2">
-                                <span class="stats-label">
-                                    {% trans "Loans" %}
-                                    <span class="stats-count">({{ loan_count|translate_digits }})</span>
-                                </span>
-                                <span class="stats-amount">{{ user.profile.currency }}{{ loan_amount|compact_amount:user.profile.currency|translate_digits }}</span>
-                            </div>
-                            <!-- Total Transactions row -->
-                            <div class="stats-row">
-                                <span class="stats-label">
-                                    {% trans "Total Txns" %}
-                                </span>
-                                <span class="stats-amount">{{ filtered_count|translate_digits }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Filter Pills -->
-            <div class="filter-pills-container">
-                <!-- All Pill -->
-                <a href="?{% url_replace type='' %}" class="filter-pill filter-pill-all {% if not selected_types %}active{% else %}filter-pill-inactive{% endif %}">
-                    {% trans "All" %}
-                </a>
-                <!-- Income Pill -->
-                <a href="?{% url_replace type='INCOME' %}" class="filter-pill filter-pill-income {% if 'INCOME' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
-                    {% trans "Income" %}
-                </a>
-                <!-- Expense Pill -->
-                <a href="?{% url_replace type='EXPENSE' %}" class="filter-pill filter-pill-expense {% if 'EXPENSE' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
-                    {% trans "Expenses" %}
-                </a>
-                <!-- Transfer Pill -->
-                <a href="?{% url_replace type='TRANSFER' %}" class="filter-pill filter-pill-transfer {% if 'TRANSFER' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
-                    {% trans "Transfers" %}
-                </a>
-                <!-- Loans Pill -->
-                <a href="?{% url_replace type='LOAN' %}" class="filter-pill filter-pill-loan {% if 'LOAN' in selected_types %}active{% else %}filter-pill-inactive{% endif %}">
-                    {% trans "Loans" %}
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main View -->
-    <div class="card-body p-0">
-        {% if transactions %}
-            <!-- Table View -->
-            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mt-4">
-                <div class="card-body p-0">
-                    <div id="tableView" class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 align-middle">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4">{% trans "Date" %}</th>
-                                    <th>{% trans "Type" %}</th>
-                                    <th>{% trans "Description" %}</th>
-                                    <th>{% trans "Category/Source" %}</th>
-                                    <th>{% trans "Account" %}</th>
-                                    <th class="text-end pe-4">
-                                        {% if request.GET.sort == 'amount_asc' %}
-                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" href="?{% url_replace sort='amount_desc' %}">
-                                                <span>{% trans "Amount" %}</span>
-                                                <i class="bi bi-arrow-up-short"></i>
-                                            </a>
-                                        {% elif request.GET.sort == 'amount_desc' %}
-                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" href="?{% url_replace sort='amount_asc' %}">
-                                                <span>{% trans "Amount" %}</span>
-                                                <i class="bi bi-arrow-down-short"></i>
-                                            </a>
-                                        {% else %}
-                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" href="?{% url_replace sort='amount_desc' %}">
-                                                <span>{% trans "Amount" %}</span>
-                                                <i class="bi bi-arrow-down-up text-muted opacity-50"></i>
-                                            </a>
-                                        {% endif %}
-                                    </th>
-                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for tx in transactions %}
-                                <tr>
-                                    <td class="ps-4 text-nowrap">{{ tx.date|date:"d M Y"|translate_digits }}</td>
-                                    <td>
-                                        <span class="type-badge type-{{ tx.type|lower }}">
-                                            {% if tx.type == 'EXPENSE' %}{% trans "Expense" %}
-                                            {% elif tx.type == 'INCOME' %}{% trans "Income" %}
-                                            {% elif tx.type == 'LOAN' %}{% trans "Loan Repayment" %}
-                                            {% elif tx.type == 'CAPITAL_EVENT' %}{% trans "Capital Event" %}
-                                            {% else %}{% trans "Transfer" %}{% endif %}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div>{{ tx.tx_description|default:"-"|truncatechars:40 }}</div>
-                                        {% if tx.cc_balance_after_payment is not None %}
-                                            <div class="text-muted small mt-1" style="font-size: 0.75rem;">
-                                                {{ tx.to_account_name }} · {% trans "Balance after payment" %}: {{ tx.to_account_currency }}{{ tx.cc_balance_after_payment|compact_amount:tx.to_account_currency|translate_digits }}
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if tx.type == 'EXPENSE' %}
-                                            <span class="badge-soft badge-soft-danger"><i class="bi {% category_icon tx.cat user %} me-1"></i>{{ tx.cat }}</span>
-                                        {% elif tx.type == 'INCOME' %}
-                                            <span class="badge-soft badge-soft-success"><i class="bi bi-wallet2 me-1"></i>{{ tx.cat }}</span>
-                                        {% elif tx.type == 'LOAN' %}
-                                            <span class="badge bg-warning-subtle text-warning-emphasis"><i class="bi bi-shield-lock me-1"></i>{{ tx.cat }}</span>
-                                        {% elif tx.type == 'CAPITAL_EVENT' %}
-                                            <span class="badge-soft badge-soft-danger"><i class="bi bi-flag me-1"></i>{{ tx.cat }}</span>
-                                        {% else %}
-                                            <span class="badge-soft badge-soft-primary"><i class="bi bi-arrow-left-right me-1"></i>{% trans "Transfer" %}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="small text-muted">{{ tx.acc }}</td>
-                                    <td class="text-end fw-bold amount-{{ tx.type|lower }} signed-amount">
-                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
-                                        {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <div class="dropdown">
-                                            <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots-vertical text-muted"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                                {% if tx.type == 'EXPENSE' %}
-                                                    <li><a class="dropdown-item py-2" href="{% url 'expense-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                    <li>
-                                                        <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
-                                                            {% csrf_token %}
-                                                            <button type="submit" class="dropdown-item py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
-                                                                <i class="bi bi-flag me-2"></i>{% trans "Convert to Capital Event" %}
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                    <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'expense-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this expense?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                                {% elif tx.type == 'INCOME' %}
-                                                    <li><a class="dropdown-item py-2" href="{% url 'income-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                    <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'income-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this income?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                                {% elif tx.type == 'LOAN' %}
-                                                    <li><a class="dropdown-item py-2" href="{% url 'loan-detail' tx.loan_pk %}"><i class="bi bi-eye me-2 text-primary"></i>{% trans "View Loan" %}</a></li>
-                                                    <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-repayment-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this loan repayment?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                                {% elif tx.type == 'CAPITAL_EVENT' %}
-                                                    <li><a class="dropdown-item py-2" href="{% url 'capital-event-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                    <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'capital-event-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this capital event?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                                {% else %}
-                                                    <li><a class="dropdown-item py-2" href="{% url 'transfer-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                    <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'transfer-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this transfer?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                                {% endif %}
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mobile View -->
-            <div id="mobileGridView" class="py-2 d-md-none">
-                {% regroup transactions by date as tx_by_date %}
-                {% for group in tx_by_date %}
-                <div class="mb-3">
-                    {% with day_net=group.list|sum_net_unified_amounts %}
-                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
-                        <div class="text-body-secondary fw-semibold small">{{ group.grouper|date:"d M, Y"|translate_digits }}</div>
-                        <div class="fw-bold small">
-                            {% if day_net > 0 %}+{% elif day_net < 0 %}-{% endif %}
-                            {{ user.profile.currency }}{{ day_net|abs_val|compact_amount:user.profile.currency|translate_digits }}
-                        </div>
-                    </div>
-                    {% endwith %}
-                    {% for tx in group.list %}
-                    <div class="card expense-card shadow-sm border-0 mb-2">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;">
-                                    {% if tx.type == 'EXPENSE' %}<i class="bi {% category_icon tx.cat user %}"></i>
-                                    {% elif tx.type == 'INCOME' %}<i class="bi bi-plus-circle"></i>
-                                    {% elif tx.type == 'LOAN' %}<i class="bi bi-shield-lock"></i>
-                                    {% elif tx.type == 'CAPITAL_EVENT' %}<i class="bi bi-flag"></i>
-                                    {% else %}<i class="bi bi-arrow-left-right"></i>{% endif %}
-                                </div>
-                                <div class="flex-grow-1 min-width-0">
-                                    <div class="fw-semibold mb-1" style="font-size: 0.93rem;">{{ tx.tx_description|default:tx.cat }}</div>
-                                    <div class="text-muted" style="font-size: 0.65rem;">{{ tx.acc|truncatechars:40 }}</div>
-                                    {% if tx.cc_balance_after_payment is not None %}
-                                        <div class="text-muted mt-1" style="font-size: 0.65rem;">
-                                            {{ tx.to_account_name }} · {% trans "Balance after payment" %}: {{ tx.to_account_currency }}{{ tx.cc_balance_after_payment|compact_amount:tx.to_account_currency|translate_digits }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="text-end d-flex align-items-center gap-2">
-                                    <div class="fw-bold amount-{{ tx.type|lower }} signed-amount">
-                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
-                                        {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
-                                    </div>
-                                    <div class="dropdown">
-                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical text-muted"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                            {% if tx.type == 'EXPENSE' %}
-                                                <li><a class="dropdown-item py-2" href="{% url 'expense-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                <li>
-                                                    <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="dropdown-item py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a capital event?' %}')">
-                                                            <i class="bi bi-flag me-2"></i>{% trans "Convert to Capital Event" %}
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                                <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'expense-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this expense?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                            {% elif tx.type == 'INCOME' %}
-                                                <li><a class="dropdown-item py-2" href="{% url 'income-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'income-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this income?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                            {% elif tx.type == 'LOAN' %}
-                                                <li><a class="dropdown-item py-2" href="{% url 'loan-detail' tx.loan_pk %}"><i class="bi bi-eye me-2 text-primary"></i>{% trans "View Loan" %}</a></li>
-                                                <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-repayment-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this loan repayment?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                            {% elif tx.type == 'CAPITAL_EVENT' %}
-                                                <li><a class="dropdown-item py-2" href="{% url 'capital-event-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'capital-event-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this capital event?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                            {% else %}
-                                                <li><a class="dropdown-item py-2" href="{% url 'transfer-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'transfer-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this transfer?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
-                                            {% endif %}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-            </div>
-
-        {% else %}
-            <div class="empty-state-container py-5">
-                <div class="mb-4">
-                    {% include 'illustrations/empty_generic.svg' %}
-                </div>
-                <h4 class="fw-bold text-body-emphasis">{% trans "No transactions found" %}</h4>
-                <p class="text-muted small max-width-300 mx-auto mb-4">
-                    {% trans "We couldn't find any transactions matching your current filters. Try adjusting your search or date range." %}
-                </p>
-                <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center align-items-center">
-                    <a href="{% url 'all-transactions' %}" class="btn btn-outline-primary btn-sm rounded-pill px-4 w-100 w-sm-auto text-nowrap">
-                        <i class="bi bi-x-circle me-2"></i>{% trans "Clear Filters" %}
-                    </a>
-                    <a href="{% url 'expense-create' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-primary btn-sm rounded-pill px-4 w-100 w-sm-auto text-nowrap">
-                        <i class="bi bi-plus-lg me-2"></i>{% trans "Add Expense" %}
-                    </a>
-                </div>
-            </div>
-        {% endif %}
-    </div>
-
-    {% if is_paginated %}
-    <div class="card-footer bg-transparent py-3">
-        <nav>
-            <ul class="pagination justify-content-center mb-0">
-                {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">{% trans "Previous" %}</a></li>
-                {% endif %}
-                <li class="page-item disabled"><span class="page-link">{% trans "Page" %} {{ page_obj.number|translate_digits }}</span></li>
-                {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">{% trans "Next" %}</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
-    {% endif %}
-</div>
-
-
+{% include 'expenses/partials/_transaction_list.html' %}
 {% endblock %}

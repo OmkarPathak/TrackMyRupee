@@ -1,0 +1,379 @@
+{% load i18n digit_filters expense_extras humanize %}
+
+<div id="capital-event-list-shell">
+    <!-- Mobile Header -->
+    <div class="d-md-none pb-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
+            <div class="d-flex align-items-center gap-2">
+                <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                <a href="{% url 'capital-event-create' %}" class="header-action-btn btn-primary d-flex align-items-center gap-1">
+                    <i class="bi bi-plus-lg"></i> <span>{% trans "Add" %}<span class="d-none d-sm-inline"> {% trans "Event" %}</span></span>
+                </a>
+            </div>
+        </div>
+        <div class="mt-2">
+            <p class="mb-1 fw-medium" style="font-size: 0.95rem;">
+                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "events" %} &middot; 
+                <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "total" %}
+            </p>
+            <p class="text-muted small mb-0 lh-sm d-flex align-items-start gap-1">
+                <span class="opacity-75">{% trans "Large one-off payments excluded from monthly averages & budget tracking." %}</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Desktop Header -->
+    <div class="d-none d-md-block pt-1 pb-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
+            <div class="d-flex gap-2 align-items-center">
+                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+
+                <a href="{% url 'capital-event-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
+                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Capital Event" %}
+                </a>
+            </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap gap-3 mt-2">
+            <p class="mb-0 fw-medium" style="font-size: 0.95rem;">
+                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "events" %} &middot; 
+                <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "total" %}
+            </p>
+            <div class="vr opacity-25 d-none d-lg-block"></div>
+            <p class="text-muted small mb-0 d-flex align-items-center gap-1 opacity-75">
+                {% trans "Large one-off payments excluded from monthly averages & budget tracking." %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="collapse" id="capitalEventFilters" style="z-index: 1040; position: relative;">
+        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm" id="filter-form" hx-get="{% url 'capital-event-list' %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+        <div class="row g-3 align-items-end flex-lg-nowrap">
+            <!-- Search -->
+            <div class="col-12 col-md">
+                <label for="search" class="form-label small text-muted">{% trans "Search" %}</label>
+                <input type="text" name="search" id="search" class="form-control form-control-sm" placeholder="{% trans 'Search...' %}" value="{{ request.GET.search|default:'' }}">
+            </div>
+            
+            <!-- Date Range -->
+            <div class="col-6 col-md">
+                <label for="start_date" class="form-label small text-muted d-none d-md-block">{% trans "From" %}</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text d-md-none">{% trans "From" %}</span>
+                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
+                </div>
+            </div>
+            <div class="col-6 col-md">
+                <label for="end_date" class="form-label small text-muted d-none d-md-block">{% trans "To" %}</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text d-md-none">{% trans "To" %}</span>
+                    <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date|default:'' }}">
+                </div>
+            </div>
+
+            <!-- Year & Month -->
+            <div class="col-6 col-md">
+                <label for="year-select" class="form-label small text-muted">{% trans "Year" %}</label>
+                <select name="year" id="year-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Years...' %}">
+                    {% for dt in years %}
+                        <option value="{{ dt }}" {% if dt|stringformat:"s" in selected_years %}selected{% endif %}>
+                            {{ dt|translate_digits }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md">
+                <label for="month-select" class="form-label small text-muted">{% trans "Month" %}</label>
+                <select name="month" id="month-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Months...' %}">
+                    {% for num, name in months_list %}
+                        <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Subtype -->
+            <div class="col-12 col-md">
+                <label for="subtype-select" class="form-label small text-muted">{% trans "Type" %}</label>
+                <select name="subtype" id="subtype-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Types...' %}">
+                    {% for val, label in subtype_choices %}
+                        <option value="{{ val }}" {% if val in selected_subtypes %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div> <!-- End of inputs row -->
+
+        <!-- Action Buttons Row -->
+        <div class="row g-2 mt-3 align-items-center">
+            <div class="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+                <button type="submit" class="btn btn-primary btn-sm px-4">
+                    <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
+                </button>
+                
+                <button type="button" class="btn btn-outline-secondary btn-sm px-4" hx-get="{% url 'capital-event-list' %}" hx-params="none" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
+                </button>
+            </div>
+        </div>
+    </form>
+    </div>
+
+    {% if events %}
+    <div class="card border-0 shadow-sm rounded-4" id="mainCardContainer">
+        <div class="card-body p-0">
+            <!-- 1. Table View -->
+            <div id="tableView" class="table-responsive d-none d-md-block">
+                <table class="table table-hover table-striped mb-0 text-start align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Note" %}</th>
+                            <th>{% trans "Account" %}</th>
+                            <th>{% trans "Linked Loan" %}</th>
+                            <th class="text-center">{% trans "Flags" %}</th>
+                            <th class="pe-4 text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td class="ps-4 text-nowrap">{{ event.date|date:"d M Y"|translate_digits }}</td>
+                            <td>
+                                <span class="badge-soft badge-soft-primary align-items-center gap-1">
+                                    <i class="bi bi-flag me-1"></i>{{ event.get_subtype_display }}
+                                </span>
+                            </td>
+                            <td class="fw-bold">
+                                {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
+                            </td>
+                            <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ event.note|default:'' }}">
+                                {{ event.note|default:"—"|truncatechars:40 }}
+                            </td>
+                            <td>{{ event.account.name|default:"—" }}</td>
+                            <td>
+                                {% if event.linked_loan %}
+                                    <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none">
+                                        <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name }}
+                                    </a>
+                                {% else %}
+                                    <span class="opacity-40">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if event.exclude_from_averages %}
+                                    <span class="badge-soft badge-soft-info" title="{% trans 'Excluded from averages & trends' %}">
+                                        <i class="bi bi-graph-down-arrow me-1"></i>{% trans "excl. avg" %}
+                                    </span>
+                                {% endif %}
+                                {% if not event.include_in_net_worth %}
+                                    <span class="badge-soft badge-soft-danger mt-1" title="{% trans 'Not counted in net worth / cash flow' %}">
+                                        <i class="bi bi-x-circle me-1"></i>{% trans "excl. NW" %}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4 text-nowrap">
+                                <div class="dropdown hstack gap-3 justify-content-end">
+                                    <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
+                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-pencil-square text-primary"></i>
+                                                <span>{% trans "Edit" %}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <form method="post" action="{% url 'capital-event-convert' event.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                                  class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                                    <i class="bi bi-arrow-left-right text-warning"></i>
+                                                    <span>{% trans "Convert to Expense" %}</span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-trash"></i>
+                                                <span>{% trans "Delete" %}</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 2. Mobile Grid View -->
+            <div id="mobileGridView" class="py-2 px-1 d-md-none">
+                {% regroup events by date as events_by_date %}
+                {% for group in events_by_date %}
+                <div class="mb-3">
+                    <!-- Day Header -->
+                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                        <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                            {{ group.grouper|date:"d M, Y"|translate_digits }}
+                        </div>
+                    </div>
+                    <!-- Day's Events -->
+                    {% for event in group.list %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-3">
+                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                            <div class="mobile-card-inner">
+                                <!-- Left-Mid: Category Icon -->
+                                <div class="category-icon-container" title="{{ event.get_subtype_display }}">
+                                    <i class="bi
+                                        {% if event.subtype == 'loan_down_payment' or event.subtype == 'loan_prepayment' %}bi-bank
+                                        {% elif event.subtype == 'large_purchase' %}bi-cart
+                                        {% elif event.subtype == 'medical_lump_sum' %}bi-heart-pulse
+                                        {% elif event.subtype == 'gift_given' or event.subtype == 'gift_received' %}bi-gift
+                                        {% elif event.subtype == 'investment_lump_sum' %}bi-graph-up-arrow
+                                        {% else %}bi-flag{% endif %}
+                                    "></i>
+                                </div>
+
+                                <!-- Middle: Info -->
+                                <div class="flex-grow-1 min-width-0 px-1">
+                                    <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
+                                         data-bs-toggle="tooltip" data-bs-placement="top" title="{{ event.note|default:event.get_subtype_display }}">
+                                        {{ event.note|default:event.get_subtype_display }}
+                                    </div>
+                                    <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                        <span class="text-truncate">{{ event.get_subtype_display }}{% if event.account.name %} • {{ event.account.name|truncatechars:18 }}{% endif %}</span>
+                                    </div>
+                                    {% if event.linked_loan %}
+                                    <div class="text-primary mt-1" style="font-size: 0.7rem;">
+                                        <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name|truncatechars:18 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Right: Amount + Flags -->
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
+                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
+                                        {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end gap-1">
+                                        {% if event.exclude_from_averages %}
+                                            <span class="badge-soft badge-soft-info" style="font-size: 0.65rem;" title="{% trans 'Excluded from averages & trends' %}">{% trans "excl. avg" %}</span>
+                                        {% endif %}
+                                        {% if not event.include_in_net_worth %}
+                                            <span class="badge-soft badge-soft-danger" style="font-size: 0.65rem;" title="{% trans 'Not counted in net worth / cash flow' %}">{% trans "excl. NW" %}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Far Right: Menu -->
+                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
+                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-pencil-square text-primary"></i>
+                                                <span>{% trans "Edit" %}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <form method="post" action="{% url 'capital-event-convert' event.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                                  class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                                    <i class="bi bi-arrow-left-right text-warning"></i>
+                                                    <span>{% trans "Convert to Expense" %}</span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-trash"></i>
+                                                <span>{% trans "Delete" %}</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="card-footer bg-transparent py-3 border-top">
+            <nav aria-label="Capital event pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <button type="button" class="page-link" hx-get="{% url 'capital-event-list' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </button>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <button type="button" class="page-link" hx-get="{% url 'capital-event-list' %}?{% url_replace page=num %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</button>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <button type="button" class="page-link" hx-get="{% url 'capital-event-list' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </button>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                {% include 'illustrations/empty_capital_events.svg' %}
+            </div>
+            <h5 class="mt-3 fw-semibold">{% trans "No capital events yet" %}</h5>
+            <p class="text-muted">{% trans "Capital events are large one-off payments (e.g. a home loan down payment) that are excluded from your regular analytics so they don't distort your monthly trends." %}</p>
+            <a href="{% url 'capital-event-create' %}" class="btn btn-primary rounded-3 mt-2">
+                <i class="bi bi-plus-lg me-1"></i>{% trans "Record your first capital event" %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>

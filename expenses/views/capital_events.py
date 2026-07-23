@@ -16,13 +16,14 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import CapitalEventForm
 from ..models import CapitalEvent, Expense, Loan
-from .mixins import UUIDOrIntLookupMixin
+from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
-class CapitalEventListView(LoginRequiredMixin, ListView):
+class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     model = CapitalEvent
     template_name = 'expenses/capital_event_list.html'
+    htmx_template_name = 'expenses/partials/_capital_event_list.html'
     context_object_name = 'events'
     paginate_by = 20
 

@@ -23,6 +23,7 @@ from ..forms import ExpenseForm
 from ..models import Account, CapitalEvent, Category, Expense
 from ..parser import parse_expense_nl
 from .mixins import (
+    HtmxPartialTemplateMixin,
     RecurringTransactionMixin,
     UUIDOrIntLookupMixin,
     process_user_recurring_transactions,
@@ -30,9 +31,10 @@ from .mixins import (
 from .utils import get_object_by_uuid_or_pk
 
 
-class ExpenseListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
+class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = Expense
     template_name = 'expenses/expense_list.html'
+    htmx_template_name = 'expenses/partials/_expense_list.html'
     context_object_name = 'expenses'
     paginate_by = 20
 

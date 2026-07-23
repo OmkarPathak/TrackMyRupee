@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from expenses.models import Category, Expense, Income, RecurringTransaction
+from expenses.models import Account, Category, Expense, Income, RecurringTransaction
 
 
 class BaseViewTest(TestCase):
@@ -184,6 +184,41 @@ class ExpenseCRUDTest(BaseViewTest):
         self.assertIn('category=Food', response.url)
         self.assertIn(f'year={date.today().year}', response.url)
 
+
+class ExpenseListHtmxTest(BaseViewTest):
+    def test_expense_list_standard_request_renders_full_page(self):
+        Expense.objects.create(
+            user=self.user,
+            date=date.today(),
+            amount=100,
+            category='Food',
+            description='Lunch',
+            currency='₹',
+        )
+
+        response = self.client.get(reverse('expense-list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'expenses/expense_list.html')
+
+    def test_expense_list_htmx_renders_partial_only(self):
+        Expense.objects.create(
+            user=self.user,
+            date=date.today(),
+            amount=100,
+            category='Food',
+            description='Lunch',
+            currency='₹',
+        )
+
+        response = self.client.get(reverse('expense-list'), HTTP_HX_REQUEST='true')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'expenses/partials/_expense_list.html')
+        self.assertTemplateNotUsed(response, 'base.html')
+        self.assertIn('HX-Request', response['Vary'])
+
 class IncomeCRUDTest(BaseViewTest):
     def test_create_income(self):
         url = reverse('income-create')
@@ -254,6 +289,35 @@ class IncomeCRUDTest(BaseViewTest):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Income.objects.count(), 0)
+
+    def test_income_list_standard_get_renders_full_page(self):
+        response = self.client.get(reverse('income-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'expenses/income_list.html')
+
+    def test_income_list_htmx_renders_partial_only(self):
+        Income.objects.create(user=self.user, date=date.today(), amount=1000, source_type='Salary', source='Salary', currency='₹')
+        response = self.client.get(reverse('income-list'), HTTP_HX_REQUEST='true')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'expenses/partials/_income_list.html')
+        self.assertTemplateNotUsed(response, 'base.html')
+        self.assertIn('HX-Request', response['Vary'])
+
+class AccountListViewTest(BaseViewTest):
+    def test_account_list_standard_get_renders_full_page(self):
+        response = self.client.get(reverse('account-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'expenses/account_list.html')
+
+    def test_account_list_htmx_renders_partial_only(self):
+        Account.objects.create(user=self.user, name='Savings', account_type='SAVINGS_ACCOUNT', balance=5000, currency='₹')
+        response = self.client.get(reverse('account-list'), HTTP_HX_REQUEST='true')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'expenses/partials/_account_list.html')
+        self.assertTemplateNotUsed(response, 'base.html')
+        self.assertIn('HX-Request', response['Vary'])
 
 class BulkActionTest(BaseViewTest):
     def test_bulk_delete_expenses(self):

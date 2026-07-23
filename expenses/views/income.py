@@ -17,12 +17,13 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
-from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
 
 
-class IncomeListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
+class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = Income
     template_name = 'expenses/income_list.html'
+    htmx_template_name = 'expenses/partials/_income_list.html'
     context_object_name = 'incomes'
     paginate_by = 20
 

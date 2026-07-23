@@ -1,0 +1,387 @@
+{% load i18n digit_filters humanize expense_extras %}
+
+<div id="income-list-shell">
+    <!-- Mobile Header -->
+    <div class="card-header bg-transparent d-md-none pt-1 pb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0 fw-bold">
+                <span class="h4 mb-0">{% trans "Income" %}</span>
+            </h3>
+            <div class="d-flex align-items-center gap-2">
+                <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#incomeFilters" aria-expanded="false" aria-controls="incomeFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                <a href="{% url 'income-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap p-2">
+                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add" %}
+                </a>
+            </div>
+        </div>
+        
+        <!-- Stats Line (Mobile View) -->
+        <p class="text-muted text-center small mb-0 mt-4 fw-medium py-1 lh-base">
+            <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "records" %} &middot; 
+            <span class="fw-bold text-primary">{{ user.profile.currency }}{{ filtered_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
+        </p>
+    </div>
+
+    <!-- Desktop Header -->
+    <div class="card-header bg-transparent d-none d-md-block pt-1 pb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
+                <span class="h3 mb-0">{% trans "Income" %}</span>
+            </h2>
+
+            <!-- Stats Line (Desktop Center) -->
+            <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
+                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "records" %} &middot; 
+                <span class="fw-bold text-primary">{{ user.profile.currency }}{{ filtered_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
+            </p>
+
+            <div class="d-flex align-items-center gap-2">
+                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#incomeFilters" aria-expanded="false" aria-controls="incomeFilters" title="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                <a href="{% url 'income-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
+                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Income" %}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Collapsible Filter Form -->
+    <div class="collapse" id="incomeFilters">
+        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm border-0 mt-3" hx-get="{% url 'income-list' %}" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+            <div class="row g-3 align-items-end">
+                <div class="col-6 col-md-2">
+                    <label for="date_from" class="form-label small text-muted">{% trans "Date From" %}</label>
+                    <input type="date" class="form-control form-control-sm" id="date_from" name="date_from" value="{{ filter_form.date_from }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label for="date_to" class="form-label small text-muted">{% trans "Date To" %}</label>
+                    <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ filter_form.date_to }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label for="income_group" class="form-label small text-muted">{% trans "Group Type" %}</label>
+                    <select class="form-select form-select-sm" id="income_group" name="income_group">
+                        <option value="">{% trans "All Groups" %}</option>
+                        <option value="EARNED" {% if filter_form.income_group == "EARNED" %}selected{% endif %}>{% trans "Earned" %}</option>
+                        <option value="PASSIVE" {% if filter_form.income_group == "PASSIVE" %}selected{% endif %}>{% trans "Passive" %}</option>
+                        <option value="ONE_OFF" {% if filter_form.income_group == "ONE_OFF" %}selected{% endif %}>{% trans "One-off" %}</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label for="source_type" class="form-label small text-muted">{% trans "Source Type" %}</label>
+                    <select class="form-select form-select-sm" id="source_type" name="source_type">
+                        <option value="">{% trans "All types" %}</option>
+                        <option value="Salary" {% if filter_form.source_type == "Salary" %}selected{% endif %}>{% trans "Salary" %}</option>
+                        <option value="Freelance / Consulting" {% if filter_form.source_type == "Freelance / Consulting" %}selected{% endif %}>{% trans "Freelance / Consulting" %}</option>
+                        <option value="Business" {% if filter_form.source_type == "Business" %}selected{% endif %}>{% trans "Business" %}</option>
+                        <option value="Investment Returns" {% if filter_form.source_type == "Investment Returns" %}selected{% endif %}>{% trans "Investment Returns" %}</option>
+                        <option value="Rental Income" {% if filter_form.source_type == "Rental Income" %}selected{% endif %}>{% trans "Rental Income" %}</option>
+                        <option value="Cashback & Rewards" {% if filter_form.source_type == "Cashback & Rewards" %}selected{% endif %}>{% trans "Cashback & Rewards" %}</option>
+                        <option value="Refund / Reimbursement" {% if filter_form.source_type == "Refund / Reimbursement" %}selected{% endif %}>{% trans "Refund / Reimbursement" %}</option>
+                        <option value="Other" {% if filter_form.source_type == "Other" %}selected{% endif %}>{% trans "Other" %}</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label for="source" class="form-label small text-muted">{% trans "Source" %}</label>
+                    <input type="text" class="form-control form-control-sm" id="source" name="source" value="{{ filter_form.source }}" placeholder="{% trans 'Search source...' %}">
+                </div>
+                <div class="col-auto d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" hx-get="{% url 'income-list' %}" hx-params="none" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        {% trans "Reset" %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary & Sparkline Widget -->
+    <div class="row g-2 mb-3 mt-1">
+        <!-- Summary Cards -->
+        <div class="col-7 col-md-8">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 bg-body h-100">
+                <div class="row text-center text-md-start align-items-center h-100 g-0">
+                    <div class="col-4 border-end">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "Earned" %}</div>
+                        <h5 class="fw-bold text-success mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                            {{ user.profile.currency }}{{ earned_total|compact_amount:user.profile.currency|translate_digits }}
+                        </h5>
+                    </div>
+                    <div class="col-4 border-end ps-1 ps-md-3">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "Passive" %}</div>
+                        <h5 class="fw-bold text-primary mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                            {{ user.profile.currency }}{{ passive_total|compact_amount:user.profile.currency|translate_digits }}
+                        </h5>
+                    </div>
+                    <div class="col-4 ps-1 ps-md-3">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "One-off" %}</div>
+                        <h5 class="fw-bold text-primary mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                            {{ user.profile.currency }}{{ one_off_total|compact_amount:user.profile.currency|translate_digits }}
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sparkline Card -->
+        <div class="col-5 col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 bg-body h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">{% trans "Trend" %}</div>
+                    {% if sparkline_data %}
+                        {% with last_point=sparkline_data|last %}
+                        <div class="fw-bold text-success" style="font-size: 0.75rem;">
+                            {{ user.profile.currency }}{{ last_point.amount|compact_amount:user.profile.currency|translate_digits }}
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                </div>
+                <div class="d-flex align-items-end justify-content-between gap-1 pt-1">
+                    <!-- Sparkline SVG -->
+                    <div class="flex-grow-1" style="height: 25px; min-width: 50px;">
+                        <svg class="w-100 h-100" viewBox="0 0 120 30" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="sparklineGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="var(--bs-success)" stop-opacity="0.25"></stop>
+                                    <stop offset="100%" stop-color="var(--bs-success)" stop-opacity="0.00"></stop>
+                                </linearGradient>
+                            </defs>
+                            {% if sparkline_path %}
+                                <path d="{{ sparkline_path }}" fill="none" stroke="var(--bs-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="{{ sparkline_path }} L 120,30 L 0,30 Z" fill="url(#sparklineGrad)"></path>
+                            {% endif %}
+                        </svg>
+                    </div>
+                    <!-- Month Labels -->
+                    {% if sparkline_data %}
+                        {% with last_point=sparkline_data|last %}
+                        <div class="d-flex flex-column justify-content-between text-end text-muted" style="font-size: 0.55rem; height: 25px; min-width: 30px;">
+                            <span>{{ sparkline_data.0.month_name }}</span>
+                            <span>{{ last_point.month_name }}</span>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Views Container -->
+    <div class="card-body p-0 mt-3">
+        {% if incomes %}
+            <!-- 1. Table View (Desktop) -->
+            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block">
+                <div class="card-body p-0">
+                    <div id="tableView" class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 text-start align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">{% trans "Date" %}</th>
+                                    <th>{% trans "Source Type" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Amount" %}</th>
+                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for income in incomes %}
+                                <tr>
+                                    <td class="ps-4 text-nowrap">{{ income.date|date:"d M Y"|translate_digits }}</td>
+                                    <td>
+                                        <span class="badge-soft badge-soft-success">{{ income.source_type }}</span>
+                                    </td>
+                                    <td>{{ income.description|default:"-"|truncatechars:30 }}</td>
+                                    <td class="fw-bold text-success">
+                                        {{ user.profile.currency}}{{ income.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                        {% if income.currency != user.profile.currency %}
+                                        <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
+                                            ({{ income.currency }}{{ income.amount|compact_amount:income.currency|translate_digits }})
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 text-nowrap">
+                                        <div class="hstack gap-3 justify-content-end">
+                                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" 
+                                                    data-bs-toggle="modal" data-bs-target="#editIncomeModal"
+                                                    data-url="{% url 'income-edit' income.uuid %}"
+                                                    data-date="{{ income.date|date:'Y-m-d' }}"
+                                                    data-source="{{ income.source }}"
+                                                    data-source-type="{{ income.source_type }}"
+                                                    data-description="{{ income.description|default_if_none:'' }}"
+                                                    data-amount="{{ income.amount }}"
+                                                    data-currency="{{ income.currency }}"
+                                                    data-account="{{ income.account.pk }}"
+                                                    data-is-recurring="{% if income.source in recurring_data %}true{% else %}false{% endif %}"
+                                                    data-frequency="{{ recurring_data|get_dict_item:income.source }}"
+                                                    title="{% trans 'Edit' %}">
+                                                <i class="bi bi-pencil-square text-primary fs-6"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                                    data-url="{% url 'income-delete' income.uuid %}"
+                                                    data-message="{% blocktrans with source=income.source_type %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
+                                                <i class="bi bi-trash text-danger fs-6"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Mobile Grid View -->
+            <div id="mobileGridView" class="py-2 d-md-none">
+                {% regroup incomes by date as incomes_by_date %}
+                {% for group in incomes_by_date %}
+                <div class="mb-3">
+                    <!-- Day Header -->
+                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                        <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                            {{ group.grouper|date:"d M, Y"|translate_digits }}
+                        </div>
+                    </div>
+                    <!-- Day's Incomes -->
+                    {% for income in group.list %}
+                    <div class="card expense-card shadow-sm border-0 position-relative mb-2">
+                        <div class="card-body p-3">
+                            <div class="mobile-card-inner">
+                                <!-- Left-Mid: Icon -->
+                                <div class="category-icon-container" title="{{ income.source_type }}">
+                                    <i class="bi bi-wallet2 text-success"></i>
+                                </div>
+                                <!-- Center: Source & Description -->
+                                <div class="flex-grow-1 min-width-0 ps-3">
+                                    <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.95rem;">{{ income.source_type }}</h6>
+                                    <p class="text-muted small mb-0 text-truncate" style="font-size: 0.78rem;">
+                                        {{ income.description|default:"-" }}
+                                    </p>
+                                </div>
+                                <!-- Right: Amount -->
+                                <div class="flex-shrink-0 text-end">
+                                    <span class="fw-bold text-success" style="font-size: 0.95rem;">
+                                        +{{ user.profile.currency }}{{ income.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                    </span>
+                                </div>
+                                <!-- Dropdown actions -->
+                                <div class="dropdown ms-2">
+                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        <li>
+                                            <button type="button" class="dropdown-item py-2" 
+                                                    data-bs-toggle="modal" data-bs-target="#editIncomeModal"
+                                                    data-url="{% url 'income-edit' income.uuid %}"
+                                                    data-date="{{ income.date|date:'Y-m-d' }}"
+                                                    data-source="{{ income.source }}"
+                                                    data-source-type="{{ income.source_type }}"
+                                                    data-description="{{ income.description|default_if_none:'' }}"
+                                                    data-amount="{{ income.amount }}"
+                                                    data-currency="{{ income.currency }}"
+                                                    data-account="{{ income.account.pk }}"
+                                                    data-is-recurring="{% if income.source in recurring_data %}true{% else %}false{% endif %}"
+                                                    data-frequency="{{ recurring_data|get_dict_item:income.source }}">
+                                                <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button type="button" class="dropdown-item py-2 text-danger" 
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                                    data-url="{% url 'income-delete' income.uuid %}"
+                                                    data-message="{% blocktrans with source=income.source_type %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
+                                                <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="text-center py-5">
+                        <div class="py-4">
+                            <div class="mb-4">
+                                {% include 'illustrations/empty_income.svg' %}
+                            </div>
+                            <h4 class="fw-bold text-muted">{% trans "No Income Records" %}</h4>
+                            <p class="text-muted mb-4 max-width-300 mx-auto">
+                                {% if filter_form.date_from or filter_form.date_to or filter_form.source %}
+                                    {% trans "We couldn't find any income records matching your filters." %}
+                                {% else %}
+                                    {% trans "You haven't recorded any income yet. Start tracking your earnings!" %}
+                                {% endif %}
+                            </p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'income-create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Income" %}
+                                </a>
+                                {% if filter_form.date_from or filter_form.date_to or filter_form.source %}
+                                    <a href="{% url 'income-list' %}" class="btn btn-outline-secondary" hx-get="{% url 'income-list' %}" hx-params="none" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                                        {% trans "Clear Filters" %}
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="card-footer bg-transparent py-3 border-top">
+        <nav aria-label="Income pagination">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <button type="button" class="page-link" hx-get="{% url 'income-list' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </button>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <button type="button" class="page-link" hx-get="{% url 'income-list' %}?{% url_replace page=num %}" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</button>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <button type="button" class="page-link" hx-get="{% url 'income-list' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </button>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>

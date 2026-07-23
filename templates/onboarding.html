@@ -439,8 +439,8 @@
                                 </div>
                             </div>
                             <div class="mt-2 text-muted small d-flex align-items-center gap-1">
-                                <i class="bi bi-bank"></i> <span class="account-type-text">{% trans "Bank Account" %}</span>
-                                <input type="hidden" class="account-type" value="BANK">
+                                <i class="bi bi-bank"></i> <span class="account-type-text">{% trans "Savings Account" %}</span>
+                                <input type="hidden" class="account-type" value="SAVINGS_ACCOUNT">
                             </div>
                         </div>
                     </div>
@@ -810,12 +810,12 @@
         
         if (count === 1) {
             placeholder = "Cash Wallet";
-            type = "CASH";
-            typeText = "Cash Account";
+            type = "CASH_WALLET";
+            typeText = "Cash Wallet";
         } else if (count >= 2) {
             placeholder = "Fixed Deposit (HDFC)";
-            type = "INVESTMENT";
-            typeText = "Investment Account";
+            type = "FD";
+            typeText = "Fixed Deposit";
         }
 
         const newItem = document.createElement('div');

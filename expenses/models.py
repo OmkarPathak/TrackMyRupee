@@ -137,7 +137,7 @@ class Account(models.Model):
     account_type = models.CharField(
         max_length=32,
         choices=ACCOUNT_TYPES,
-        default='BANK',  # 'BANK' is in the Legacy group — existing rows are unaffected
+        default='SAVINGS_ACCOUNT',
         verbose_name=_('Account Type'),
     )
     balance = models.DecimalField(

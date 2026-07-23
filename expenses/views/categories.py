@@ -15,12 +15,13 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import CategoryForm
 from ..models import Category
-from .mixins import UUIDOrIntLookupMixin
+from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 
 
-class CategoryListView(LoginRequiredMixin, ListView):
+class CategoryListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     model = Category
     template_name = 'expenses/category_list.html'
+    htmx_template_name = 'expenses/partials/_category_list.html'
     context_object_name = 'categories'
     paginate_by = 10
 

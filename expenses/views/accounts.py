@@ -33,13 +33,14 @@ from ..models import (
     _run_ledger_shadow,
 )
 from ..utils import get_exchange_rate
-from .mixins import RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
-class AccountListView(LoginRequiredMixin, ListView):
+class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     model = Account
     template_name = 'expenses/account_list.html'
+    htmx_template_name = 'expenses/partials/_account_list.html'
     context_object_name = 'accounts'
 
     def get_queryset(self):
@@ -394,10 +395,12 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
             messages.error(self.request, _("Unable to complete transfer because currency conversion failed or transfer data is invalid."))
             return self.form_invalid(form)
 
-class TransferListView(LoginRequiredMixin, RecurringTransactionMixin, ListView):
+class TransferListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
     model = Transfer
     template_name = 'expenses/transfer_list.html'
+    htmx_template_name = 'expenses/partials/_transfer_list.html'
     context_object_name = 'transfers'
+    paginate_by = 10
 
     def get_queryset(self):
         return Transfer.objects.filter(user=self.request.user).select_related('from_account', 'to_account').order_by('-date')
@@ -636,7 +639,11 @@ class AccountDetailView(LoginRequiredMixin, View):
             'filtered_net_total': filtered_net_total,
             'trend_data': self.get_trend_data(account, request.user),
         }
-        return render(request, self.template_name, context)
+        from django.utils.cache import patch_vary_headers
+        template_name = 'expenses/partials/_account_detail.html' if request.headers.get('HX-Request') == 'true' else self.template_name
+        response = render(request, template_name, context)
+        patch_vary_headers(response, ['HX-Request'])
+        return response
 
     def get_trend_data(self, account, user):
         

@@ -58,7 +58,18 @@ class CachedModelChoiceField(forms.ModelChoiceField):
         return super().to_python(value)
 
 
-class ExpenseForm(forms.ModelForm):
+class SearchableSelectFormMixin:
+    """Mixin to automatically ensure all single-select fields have the 'searchable-select' CSS class."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if isinstance(field.widget, forms.Select) and not isinstance(field.widget, (forms.SelectMultiple, forms.CheckboxSelectMultiple)):
+                css_class = field.widget.attrs.get('class', '')
+                if 'searchable-select' not in css_class and 'django-multi-select' not in css_class:
+                    field.widget.attrs['class'] = f"{css_class} searchable-select".strip()
+
+
+class ExpenseForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Expense
         fields = ['date', 'amount', 'currency', 'account', 'description', 'category', 'payment_method', 'client_dedup_key']
@@ -153,7 +164,7 @@ class ExpenseForm(forms.ModelForm):
             return category.strip()
         return category
 
-class IncomeForm(forms.ModelForm):
+class IncomeForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Income
         fields = ['date', 'amount', 'currency', 'account', 'source_type', 'description', 'client_dedup_key']
@@ -210,7 +221,7 @@ class IncomeForm(forms.ModelForm):
             return source.strip()
         return source or ""
 
-class RecurringTransactionForm(forms.ModelForm):
+class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = RecurringTransaction
         fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
@@ -372,7 +383,7 @@ class RecurringTransactionForm(forms.ModelForm):
 
         return cleaned_data
 
-class ProfileUpdateForm(forms.ModelForm):
+class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
     SALARY_DATE_CHOICES = [(i, str(i)) for i in range(1, 32)]
     
     auth_email = forms.EmailField(required=True, label='Email Address')
@@ -427,7 +438,7 @@ class ProfileUpdateForm(forms.ModelForm):
             profile.save()
         return user
 
-class LanguageUpdateForm(forms.ModelForm):
+class LanguageUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['language']
@@ -435,7 +446,7 @@ class LanguageUpdateForm(forms.ModelForm):
             'language': forms.Select(attrs={'class': 'form-select'}),
         }
 
-class SalaryDateUpdateForm(forms.ModelForm):
+class SalaryDateUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
     SALARY_DATE_CHOICES = [(i, str(i)) for i in range(1, 32)]
     salary_date = forms.ChoiceField(
         choices=SALARY_DATE_CHOICES,
@@ -506,7 +517,7 @@ class ContactForm(forms.Form):
             self.fields['captcha'] = ReCaptchaField(widget=ReCaptchaV3)
 
 
-class SavingsGoalForm(forms.ModelForm):
+class SavingsGoalForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = SavingsGoal
         fields = ['name', 'target_amount', 'currency', 'target_date', 'icon', 'color']
@@ -537,7 +548,7 @@ class SavingsGoalForm(forms.ModelForm):
             raise forms.ValidationError(_("Target amount must be greater than zero."))
         return target_amount
 
-class GoalContributionForm(forms.ModelForm):
+class GoalContributionForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = GoalContribution
         fields = ['account', 'amount', 'date']
@@ -568,7 +579,7 @@ class GoalContributionForm(forms.ModelForm):
         return amount
  
  
-class CategoryForm(forms.ModelForm):
+class CategoryForm(SearchableSelectFormMixin, forms.ModelForm):
     icon = forms.ChoiceField(choices=BOOTSTRAP_ICONS, widget=forms.Select(attrs={'class': 'form-select'}), required=False)
  
     class Meta:
@@ -588,7 +599,7 @@ class CategoryForm(forms.ModelForm):
             raise forms.ValidationError(_('A category with this name already exists.'))
         return name
 
-class AccountForm(forms.ModelForm):
+class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     # Optional: Link to a Loan record (used for LOAN_OUTSTANDING strategy)
     linked_loan = forms.ModelChoiceField(
         queryset=Loan.objects.none(),
@@ -700,7 +711,7 @@ class AccountForm(forms.ModelForm):
 
         return cleaned_data
 
-class TransferForm(forms.ModelForm):
+class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Transfer
         fields = ['date', 'amount', 'from_account', 'to_account', 'description', 'client_dedup_key']
@@ -752,7 +763,7 @@ class TransferForm(forms.ModelForm):
 
         return cleaned_data
 
-class LoanForm(forms.ModelForm):
+class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Loan
         fields = ['name', 'loan_type', 'initial_principal', 'duration_months', 'start_date', 'currency']
@@ -782,7 +793,7 @@ class LoanForm(forms.ModelForm):
             if latest_rate:
                 self.fields['interest_rate'].initial = latest_rate.interest_rate
 
-class LoanInterestRateForm(forms.ModelForm):
+class LoanInterestRateForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = LoanInterestRate
         fields = ['interest_rate', 'effective_date']
@@ -795,7 +806,7 @@ class LoanInterestRateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['effective_date'].initial = date.today
 
-class LoanRepaymentForm(forms.ModelForm):
+class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
     add_to_recurring = forms.BooleanField(required=False, label=_("Make this a recurring loan repayment"))
     recurring_frequency = forms.ChoiceField(
         choices=RecurringTransaction.FREQUENCY_CHOICES,
@@ -908,9 +919,7 @@ class LoanRepaymentForm(forms.ModelForm):
 
         return cleaned_data
 
-
-
-class CapitalEventForm(forms.ModelForm):
+class CapitalEventForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = CapitalEvent
         fields = [

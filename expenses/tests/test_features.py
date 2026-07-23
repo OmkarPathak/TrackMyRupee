@@ -59,6 +59,13 @@ class FeatureViewTest(BaseFeatureTest):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
+    def test_calendar_htmx_returns_partial_only(self):
+        url = reverse('calendar')
+        response = self.client.get(url, HTTP_HX_REQUEST='true')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'expenses/partials/_calendar_content.html')
+        self.assertTemplateNotUsed(response, 'base.html')
+
     def test_budget_view(self):
         url = reverse('budget')
         response = self.client.get(url)

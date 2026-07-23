@@ -14,6 +14,7 @@ from django.views.generic import ListView
 from expenses.views.utils import get_safe_redirect_url
 
 from ..models import Notification
+from .mixins import HtmxPartialTemplateMixin
 
 
 def _cron_authorized(request):
@@ -54,9 +55,10 @@ def _get_threshold_param(request, default):
         return default
 
 
-class NotificationListView(LoginRequiredMixin, ListView):
+class NotificationListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     model = Notification
     template_name = 'expenses/notification_list.html'
+    htmx_template_name = 'expenses/partials/_notification_list.html'
     context_object_name = 'notifications'
     paginate_by = 20
 
