@@ -312,7 +312,7 @@ class AccountListViewTest(BaseViewTest):
         self.assertTemplateUsed(response, 'expenses/account_list.html')
 
     def test_account_list_htmx_renders_partial_only(self):
-        Account.objects.create(user=self.user, name='Savings', account_type='SAVINGS', balance=5000, currency='₹')
+        Account.objects.create(user=self.user, name='Savings', account_type='SAVINGS_ACCOUNT', balance=5000, currency='₹')
         response = self.client.get(reverse('account-list'), HTTP_HX_REQUEST='true')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'expenses/partials/_account_list.html')
