@@ -25,7 +25,7 @@ class HtmxPartialTemplateMixin:
     htmx_template_name = None
 
     def get_template_names(self):
-        if getattr(self.request, 'htmx', False) and self.htmx_template_name:
+        if self.request.headers.get('HX-Request') == 'true' and self.htmx_template_name:
             return [self.htmx_template_name]
         return super().get_template_names()
 
