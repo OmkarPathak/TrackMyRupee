@@ -27,9 +27,15 @@
             </a>
 
             <!-- Analytics -->
-            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name or 'mom' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
-                <i class="bi bi-graph-up-arrow fs-5"></i>
+            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" title="{% trans 'Analytics' %}">
+                <i class="bi bi-pie-chart fs-5"></i>
                 <span class="nav-text">{% trans "Analytics" %}</span>
+            </a>
+
+            <!-- Trends -->
+            <a href="{% url 'analytics-mom' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'analytics-mom' %}active{% endif %}" title="{% trans 'Trends' %}">
+                <i class="bi bi-graph-up-arrow fs-5"></i>
+                <span class="nav-text">{% trans "Trends" %}</span>
             </a>
 
             <!-- Cash Flow Section -->

@@ -490,7 +490,7 @@
                         <div class="fw-bold text-body-secondary" style="font-size: 0.78rem;">{{ user.profile.currency }}{{ group.list|sum_base_amounts|compact_amount:user.profile.currency|translate_digits }}</div>
                     </div>
                     {% for expense in group.list %}
-                    <div class="card expense-card shadow-sm border-0 position-relative mb-3">
+                    <div class="card expense-card rounded-4 position-relative mb-3" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
                             <div class="mobile-card-inner">
                                 <div class="form-check mb-0 z-2 position-relative flex-shrink-0">

@@ -1,250 +1,428 @@
 {% load i18n digit_filters %}
 
 <div id="account-list-shell">
-    <div class="pt-1 mb-2">
-        <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
-            <div class="d-flex align-items-center gap-2">
-                <h2 class="h4 mb-0 fw-bold">
-                    {% if current_status == 'inactive' %}{% trans "Inactive Accounts" %}{% else %}{% trans "Accounts" %}{% endif %}
-                </h2>
-                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px; line-height: 1;" data-bs-toggle="collapse" data-bs-target="#guideAccounts" aria-expanded="false" title="{% trans 'How it works' %}">
-                    <i class="bi bi-info-lg" style="font-size: 0.7rem;"></i>
-                </button>
-            </div>
-            <div class="d-flex flex-column align-items-stretch align-items-md-end gap-2">
-                <div class="d-flex gap-2 flex-wrap justify-content-md-end">
-                    <a href="{% url 'transfer-list' %}" class="btn btn-outline-primary btn-sm px-2 px-sm-3 d-flex align-items-center shadow-sm" style="border-radius: 8px;">
-                        <i class="bi bi-arrow-left-right me-1"></i> <span class="small">{% trans "History" %}</span>
-                    </a>
-                    <a href="{% url 'account-create' %}" class="btn btn-primary btn-sm px-2 px-sm-3 d-flex align-items-center shadow-sm" style="border-radius: 8px;">
-                        <i class="bi bi-plus-lg me-1"></i> <span class="small">{% trans "Add" %}</span>
-                    </a>
-                </div>
-            </div>
+    <style>
+        .account-group-header .accordion-chevron {
+            transition: transform 0.2s ease-in-out;
+        }
+        .account-group-header.collapsed .accordion-chevron {
+            transform: rotate(-90deg);
+        }
+    </style>
+
+    <!-- ═══════════════════════════════════════════════
+         MOBILE HEADER (d-md-none)
+         Large title left + round green "+" button right
+    ══════════════════════════════════════════════════ -->
+    <div class="d-md-none pt-1 mb-3">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="h2 fw-bold text-body mb-0">
+                {% if current_status == 'inactive' %}{% trans "Inactive" %}{% else %}{% trans "Accounts" %}{% endif %}
+            </h2>
+            <a href="{% url 'account-create' %}"
+               class="d-flex align-items-center justify-content-center text-white rounded-3"
+               style="width: 35px; height: 35px; background-color: #1D9E75; flex-shrink: 0;">
+                <i class="bi bi-plus-lg" style="font-size: 1rem;"></i>
+            </a>
         </div>
-        <p class="text-muted small mb-3">{% trans "Manage your wallets, bank accounts, and investment portfolios" %}</p>
     </div>
-    
-    <!-- Filter & Status Row -->
-    <div class="mb-4">
-        <form method="get" class="d-flex align-items-center flex-nowrap gap-2 w-100" hx-get="{% url 'account-list' %}" hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-            <!-- Status Filter -->
-            <div style="flex: 1 1 30%; min-width: 100px; max-width: 140px;">
-                <select name="status" class="form-select form-select-sm" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: 100%;" hx-get="{% url 'account-list' %}" hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" hx-trigger="change" hx-include="[name='type']">
-                    <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
-                    <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
-                </select>
-            </div>
 
-            <!-- Type Filter -->
-            <div style="flex: 2 1 70%;">
-                <select name="type" class="form-select form-select-sm searchable-select" style="border-radius: 8px; cursor: pointer; height: 38px; font-size: 0.9rem; border-color: rgba(0,0,0,0.1); width: 100%;" hx-get="{% url 'account-list' %}" hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" hx-trigger="change" hx-include="[name='status']">
-                    <option value="">{% trans "All Types" %}</option>
-                    {% for group_name, choices in account_types %}
-                        <optgroup label="{{ group_name }}">
-                            {% for val, label in choices %}
-                                <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </optgroup>
-                    {% endfor %}
-                </select>
-            </div>
+    <!-- ═══════════════════════════════════════════════
+         DESKTOP HEADER (d-none d-md-flex)
+    ══════════════════════════════════════════════════ -->
+    <div class="d-none d-md-flex align-items-center justify-content-between gap-3 pt-1 mb-3">
+        <div>
+            <h2 class="h3 fw-bold text-body mb-1">
+                {% if current_status == 'inactive' %}{% trans "Inactive Accounts" %}{% else %}{% trans "Accounts" %}{% endif %}
+            </h2>
+            <p class="text-muted small mb-0">{% trans "Manage your wallets, bank accounts, and investment portfolios" %}</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-shrink-0">
+            <a href="{% url 'transfer-list' %}" class="btn btn-outline-secondary btn-sm px-3 py-2 d-flex align-items-center gap-1 rounded-3">
+                <i class="bi bi-clock-history"></i>
+                <span class="small fw-semibold">{% trans "History" %}</span>
+            </a>
+            <a href="{% url 'account-create' %}" class="btn btn-sm px-3 py-2 d-flex align-items-center gap-1 rounded-3 fw-semibold text-white" style="background-color: #1D9E75; border-color: #1D9E75;">
+                <i class="bi bi-plus-lg"></i>
+                <span class="small">{% trans "Add account" %}</span>
+            </a>
+        </div>
+    </div>
 
+    <!-- ═══════════════════════════════════════════════
+         FILTER BAR (shared)
+    ══════════════════════════════════════════════════ -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+            <select name="status"
+                    class="form-select form-select-sm bg-body rounded-3 border-light-subtle fw-medium"
+                    style="min-width: 105px; cursor: pointer; padding: 7px 14px;"
+                    hx-get="{% url 'account-list' %}" hx-target="#account-list-shell" hx-swap="outerHTML show:none"
+                    hx-push-url="true" hx-indicator="#global-progress-bar" hx-trigger="change" hx-include="[name='type']">
+                <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+                <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
+            </select>
+            <select name="type"
+                    class="form-select form-select-sm bg-body rounded-3 border-light-subtle fw-medium"
+                    style="min-width: 200px; cursor: pointer; padding: 7px 14px;"
+                    hx-get="{% url 'account-list' %}" hx-target="#account-list-shell" hx-swap="outerHTML show:none"
+                    hx-push-url="true" hx-indicator="#global-progress-bar" hx-trigger="change" hx-include="[name='status']">
+                <option value="">{% trans "All types" %}</option>
+                {% for group_name, choices in account_types %}
+                    <optgroup label="{{ group_name }}">
+                        {% for val, label in choices %}
+                            <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
             {% if selected_type or current_status != 'active' %}
-                <button type="button" class="btn btn-link btn-sm text-decoration-none text-muted p-0 d-flex align-items-center justify-content-center" style="font-size: 1.1rem; height: 38px; width: 38px; flex-shrink: 0;" title="{% trans 'Clear Filters' %}" hx-get="{% url 'account-list' %}" hx-params="none" hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                    <i class="bi bi-x-circle-fill"></i>
+                <button type="button" class="btn btn-link btn-sm text-muted p-0 ms-1"
+                        hx-get="{% url 'account-list' %}" hx-params="none" hx-target="#account-list-shell"
+                        hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                    <i class="bi bi-x-circle-fill fs-5 opacity-60"></i>
                 </button>
             {% endif %}
         </form>
     </div>
 
-    <div class="accounts-summary-card rounded-4 px-3 px-md-4 py-3 mb-4">
-        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-            <div class="min-w-0">
-                <div class="accounts-summary-label mb-1">{% trans "Filtered total balance" %}</div>
-                <div class="fw-semibold text-body-emphasis text-truncate accounts-summary-subline">
-                    {% if selected_type_label %}
-                        {{ selected_type_label }}
-                    {% else %}
-                        {% trans "All account types" %}
-                    {% endif %}
-                    <span class="text-muted fw-normal">·</span>
-                    {% if current_status == 'inactive' %}
-                        {% trans "Inactive" %}
-                    {% else %}
-                        {% trans "Active" %}
-                    {% endif %}
-                </div>
-                <div class="accounts-summary-meta mt-1">
-                    {% blocktrans count account_count=accounts|length %}{{ account_count }} account{% plural %}{{ account_count }} accounts{% endblocktrans %}
-                </div>
+    <!-- ═══════════════════════════════════════════════
+         METRICS CARD
+    ══════════════════════════════════════════════════ -->
+    <div class="card border-0 rounded-4 mb-4 overflow-hidden"
+         style="background-color: rgba(29, 158, 117, 0.05); border: 1px solid rgba(29, 158, 117, 0.12) !important;">
+        <div class="card-body p-3 p-md-4">
+
+            <!-- Label -->
+            <div class="fw-bold text-uppercase mb-1" style="font-size: 0.65rem; letter-spacing: 0.05em; color: #1D9E75;">
+                {% trans "FILTERED TOTAL BALANCE" %}
             </div>
-            <div class="text-md-end text-start text-md-end">
-                <div class="accounts-summary-amount text-body-emphasis">
-                    {{ total_balance_currency }}{{ total_balance|ind_comma:total_balance_currency|translate_digits }}
-                </div>
-                <div class="accounts-summary-meta mt-1">{% trans "Across the currently filtered list" %}</div>
+
+            <!-- Subtitle: all info on one line -->
+            <div class="text-muted mb-2" style="font-size: 0.8rem;">
+                {% if selected_type_label %}{{ selected_type_label }}{% else %}{% trans "All account types" %}{% endif %}&nbsp;·&nbsp;{% if current_status == 'inactive' %}{% trans "Inactive" %}{% else %}{% trans "Active" %}{% endif %}&nbsp;·&nbsp;{% blocktrans count count=account_count %}{{ count }} account{% plural %}{{ count }} accounts{% endblocktrans %}
             </div>
+
+            <!-- Balance amount -->
+            <div class="text-body-emphasis mb-3" style="font-weight: 900; font-size: clamp(1.9rem, 5vw, 2.6rem); letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums;">
+                {{ total_balance_currency }}{{ total_balance|ind_comma:total_balance_currency|translate_digits }}
+            </div>
+
+            {% if grouped_accounts %}
+            <!-- Progress bar: full width -->
+            <div class="rounded-pill overflow-hidden mb-2" style="height: 7px; background-color: rgba(0,0,0,0.07); display: flex;">
+                {% for group in grouped_accounts %}
+                    {% if group.pct > 0 %}
+                        <div style="width: {{ group.pct }}%; background-color: {{ group.color }};"></div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Legend: clickable group filters -->
+            <div class="d-flex align-items-center flex-wrap" style="font-size: 0.76rem; gap: 6px 12px; row-gap: 6px;">
+                {% for group in grouped_accounts %}
+                    {% if group.pct > 0 %}
+                        {% if selected_type == group.type %}
+                            <a href="#"
+                               hx-get="{% url 'account-list' %}?status={{ current_status }}"
+                               hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true"
+                               hx-indicator="#global-progress-bar"
+                               class="d-inline-flex align-items-center text-decoration-none"
+                               style="gap: 5px; cursor: pointer; border-radius: 20px; padding: 3px 9px 3px 7px; background-color: {{ group.color }}18; border: 1.5px solid {{ group.color }}50;">
+                                <span class="rounded-circle flex-shrink-0" style="width: 7px; height: 7px; background-color: {{ group.color }}; display: inline-block;"></span>
+                                <span class="fw-semibold" style="color: {{ group.color }};">{{ group.label }}</span>
+                                <span class="fw-bold" style="color: {{ group.color }};">{{ group.pct_int|translate_digits }}%</span>
+                                <i class="bi bi-x" style="font-size: 0.72rem; color: {{ group.color }}; opacity: 0.7;"></i>
+                            </a>
+                        {% else %}
+                            <a href="#"
+                               hx-get="{% url 'account-list' %}?type={{ group.type }}&amp;status={{ current_status }}"
+                               hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true"
+                               hx-indicator="#global-progress-bar"
+                               class="d-inline-flex align-items-center text-decoration-none"
+                               style="gap: 5px; cursor: pointer; border-radius: 20px; padding: 3px 9px 3px 7px; border: 1.5px solid transparent; transition: background 0.15s, border-color 0.15s;"
+                               onmouseover="this.style.background='{{ group.color }}12'; this.style.borderColor='{{ group.color }}40';"
+                               onmouseout="this.style.background='transparent'; this.style.borderColor='transparent';">
+                                <span class="rounded-circle flex-shrink-0" style="width: 7px; height: 7px; background-color: {{ group.color }}; display: inline-block;"></span>
+                                <span class="text-muted">{{ group.label }}</span>
+                                <span class="fw-bold text-body">{{ group.pct_int|translate_digits }}%</span>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
         </div>
     </div>
 
     {% include 'partials/guide_accounts.html' %}
 
-    <!-- Compact List Layout -->
-    <div class="card shadow-sm border-0 rounded-4 mb-4">
+    <!-- ═══════════════════════════════════════════════
+         DESKTOP TABLE (d-none d-md-block)
+    ══════════════════════════════════════════════════ -->
+    <div class="card border-0 rounded-4 d-none d-md-block mb-4 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
         <div class="card-body p-0">
             {% if grouped_accounts %}
-                <div class="accordion accordion-flush" id="accountsAccordion">
-                    {% for group in grouped_accounts %}
-                    <div class="accordion-item {% if forloop.last %}rounded-bottom-4 overflow-hidden{% endif %} {% if forloop.first %}rounded-top-4 overflow-hidden{% endif %}">
-                        <h2 class="accordion-header" id="heading-{{ group.type }}">
-                            <button class="accordion-button collapsed px-3 py-3 d-flex justify-content-between align-items-center bg-transparent border-bottom" 
-                                     type="button" 
-                                     data-bs-toggle="collapse" 
-                                     data-bs-target="#collapse-{{ group.type }}" 
-                                     aria-expanded="false" 
-                                     aria-controls="collapse-{{ group.type }}">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="flex-shrink-0 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                        {% if 'CASH' in group.type or 'BANK' in group.type %}
-                                            <i class="bi bi-bank text-muted" style="font-size: 0.9rem;"></i>
-                                        {% elif 'DEPOSIT' in group.type %}
-                                            <i class="bi bi-piggy-bank text-muted" style="font-size: 0.9rem;"></i>
-                                        {% elif 'INVEST' in group.type or 'MARKET' in group.type %}
-                                            <i class="bi bi-graph-up-arrow text-muted" style="font-size: 0.9rem;"></i>
-                                        {% elif 'CREDIT' in group.type %}
-                                            <i class="bi bi-credit-card text-muted" style="font-size: 0.9rem;"></i>
-                                        {% elif 'LOAN' in group.type or 'LIABIL' in group.type %}
-                                            <i class="bi bi-cash-stack text-muted" style="font-size: 0.9rem;"></i>
-                                        {% else %}
-                                            <i class="bi bi-wallet2 text-muted" style="font-size: 0.9rem;"></i>
-                                        {% endif %}
-                                    </div>
-                                    <span class="fw-bold text-body" style="font-size: 0.95rem;">{{ group.label }}</span>
-                                    <span class="badge bg-secondary bg-opacity-25 text-muted rounded-pill" style="font-size: 0.72rem;">{{ group.count|translate_digits }}</span>
-                                </div>
-                                <div class="ms-auto me-3 text-end">
-                                    <span class="fw-bold text-body" style="font-size: 0.95rem;">
-                                        {{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}
-                                    </span>
-                                </div>
-                            </button>
-                        </h2>
-                        <div id="collapse-{{ group.type }}" 
-                             class="accordion-collapse collapse" 
-                             aria-labelledby="heading-{{ group.type }}">
-                            <div class="accordion-body p-0 bg-body-tertiary">
-                                {% for account in group.accounts %}
-                                <div class="d-flex align-items-center py-3 px-3 {% if not forloop.last %}border-bottom{% endif %} hover-bg-child transition-all bg-accordion-child">
-                                    <!-- Account Info -->
-                                    <div class="flex-grow-1" style="min-width: 0;">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div style="min-width: 0;">
-                                                {% if account.is_locked %}
-                                                    <span class="fw-bold text-muted d-block text-truncate mb-0" style="font-size: 0.95rem; letter-spacing: -0.2px;">
-                                                        <i class="bi bi-lock-fill me-1 small"></i>{{ account.name }}
-                                                    </span>
-                                                {% else %}
-                                                    <a href="{% url 'account-detail' account.uuid %}" class="fw-bold text-decoration-none text-body d-block text-truncate mb-0" style="font-size: 0.95rem; letter-spacing: -0.2px;">
-                                                        {{ account.name }}
-                                                    </a>
-                                                {% endif %}
-                                                <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                                                    <small class="text-muted d-inline-flex align-items-center" style="font-size: 0.75rem;">
-                                                        {% if account.days_since_update >= 30 %}
-                                                            <span class="d-inline-block rounded-circle bg-warning me-1" style="width: 7px; height: 7px;" title="{% trans 'Not updated in 30+ days' %}"></span>
-                                                        {% endif %}
-                                                        {% if account.days_since_update == 0 %}
-                                                            {% trans "updated today" %}
-                                                        {% elif account.days_since_update == 1 %}
-                                                            {% trans "updated 1 day ago" %}
-                                                        {% else %}
-                                                            {% blocktrans with days=account.days_since_update|translate_digits %}updated {{ days }} days ago{% endblocktrans %}
-                                                        {% endif %}
-                                                    </small>
-                                                    {% if account.is_locked %}
-                                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25" style="font-size: 0.65rem;">{% trans "Locked" %}</span>
-                                                    {% endif %}
+                <div class="table-responsive">
+                    <table class="table mb-0 text-start align-middle" style="table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 30%;">
+                            <col style="width: 17%;">
+                            <col style="width: 21%;">
+                            <col style="width: 13%;">
+                            <col style="width: 14%;">
+                            <col style="width: 5%;">
+                        </colgroup>
+                        <thead>
+                            <tr class="border-bottom" style="background-color: rgba(0,0,0,0.02);">
+                                <th class="ps-4 py-3 text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Account Name" %}</th>
+                                <th class="py-3 text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Type" %}</th>
+                                <th class="py-3 text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Maturity & Rate" %}</th>
+                                <th class="py-3 text-end text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Deposit" %}</th>
+                                <th class="py-3 text-end text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Balance" %}</th>
+                                <th class="py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for group in grouped_accounts %}
+                                <!-- Group Header -->
+                                <tr data-bs-toggle="collapse" data-bs-target="#desktop-group-{{ group.type }}" aria-expanded="true"
+                                    class="account-group-header"
+                                    style="cursor: pointer; background-color: rgba(0,0,0,0.025);">
+                                    <td colspan="6" class="ps-4 pe-4 py-2 border-top border-bottom">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 {{ group.icon_bg }}" style="width: 28px; height: 28px;">
+                                                    <i class="{{ group.icon }}" style="font-size: 0.8rem;"></i>
                                                 </div>
+                                                <span class="fw-bold text-body" style="font-size: 0.88rem;">{{ group.label }}</span>
+                                                <span class="text-muted" style="font-size: 0.7rem; background-color: rgba(0,0,0,0.06); border-radius: 20px; padding: 1px 7px;">{{ group.count|translate_digits }}</span>
                                             </div>
-                                            
-                                            <!-- Balance & Actions -->
-                                            <div class="d-flex align-items-center gap-2 ps-2">
-                                                <div class="fw-bold {% if account.display_balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}" style="font-size: 1.05rem; letter-spacing: -0.3px;">
-                                                    {{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-link text-muted p-0 border-0 opacity-50 hover-opacity-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bi bi-three-dots-vertical" style="font-size: 1rem;"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-1">
-                                                        {% if current_status == 'inactive' %}
-                                                            <li>
-                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-success fw-bold" href="{% url 'account-restore' account.uuid %}">
-                                                                    <i class="bi bi-arrow-counterclockwise"></i>
-                                                                    <span>{% trans "Restore Account" %}</span>
-                                                                </a>
-                                                            </li>
-                                                        {% elif account.is_locked %}
-                                                            <li>
-                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-primary fw-bold" href="{% url 'pricing' %}">
-                                                                    <i class="bi bi-rocket-takeoff"></i>
-                                                                    <span>{% trans "Unlock Account" %}</span>
-                                                                </a>
-                                                            </li>
-                                                        {% else %}
-                                                            <li>
-                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small" href="{% url 'account-edit' account.uuid %}">
-                                                                    <i class="bi bi-pencil-square text-primary"></i>
-                                                                    <span>{% trans "Edit" %}</span>
-                                                                </a>
-                                                            </li>
-                                                            <li><hr class="dropdown-divider my-1"></li>
-                                                            <li>
-                                                                <a class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small" href="{% url 'account-delete' account.uuid %}">
-                                                                    <i class="bi bi-trash"></i>
-                                                                    <span>{% trans "Delete" %}</span>
-                                                                </a>
-                                                            </li>
-                                                        {% endif %}
-                                                    </ul>
-                                                </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fw-bold text-body" style="font-size: 0.88rem;">{{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}</span>
+                                                <i class="bi bi-chevron-down text-muted accordion-chevron" style="font-size: 0.72rem; transition: transform 0.2s ease;"></i>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
+                                    </td>
+                                </tr>
+
+                                <!-- Account Rows -->
+                                <tr class="p-0 border-0">
+                                    <td colspan="6" class="p-0 border-0">
+                                        <div id="desktop-group-{{ group.type }}" class="collapse show">
+                                            <table class="table mb-0 align-middle" style="table-layout: fixed;">
+                                                <colgroup>
+                                                    <col style="width: 30%;">
+                                                    <col style="width: 17%;">
+                                                    <col style="width: 21%;">
+                                                    <col style="width: 13%;">
+                                                    <col style="width: 14%;">
+                                                    <col style="width: 5%;">
+                                                </colgroup>
+                                                <tbody>
+                                                    {% for account in group.accounts %}
+                                                    <tr class="border-bottom" style="transition: background 0.1s;">
+                                                        <td class="ps-4 py-3">
+                                                            {% if account.is_locked %}
+                                                                <span class="fw-semibold text-muted d-block text-truncate" style="font-size: 0.87rem;"><i class="bi bi-lock-fill me-1" style="font-size: 0.7rem;"></i>{{ account.name }}</span>
+                                                            {% else %}
+                                                                <a href="{% url 'account-detail' account.uuid %}" class="fw-semibold text-decoration-none text-body d-block text-truncate" style="font-size: 0.87rem;">{{ account.name }}</a>
+                                                            {% endif %}
+                                                            <div class="text-muted mt-0.5" style="font-size: 0.71rem;">
+                                                                {% if account.days_since_update == 0 %}{% trans "Updated today" %}
+                                                                {% elif account.days_since_update == 1 %}{% trans "Updated 1 day ago" %}
+                                                                {% else %}{% blocktrans with days=account.days_since_update|translate_digits %}Updated {{ days }} days ago{% endblocktrans %}{% endif %}
+                                                            </div>
+                                                        </td>
+                                                        <td class="py-3">
+                                                            <span class="text-muted" style="font-size: 0.8rem;">{{ account.get_account_type_display }}</span>
+                                                        </td>
+                                                        <td class="py-3">
+                                                            {% if account.deposit_maturity_date or account.deposit_rate %}
+                                                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                                    {% if account.deposit_maturity_date %}
+                                                                        <span class="text-muted" style="font-size: 0.75rem; white-space: nowrap;"><i class="bi bi-calendar2 me-0.5 opacity-50"></i>{{ account.deposit_maturity_date|date:"d M Y" }}</span>
+                                                                    {% endif %}
+                                                                    {% if account.deposit_rate %}
+                                                                        <span class="rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.68rem; background-color: rgba(29, 158, 117, 0.1); color: #1D9E75; white-space: nowrap;">{{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.</span>
+                                                                    {% endif %}
+                                                                </div>
+                                                            {% else %}
+                                                                <span class="text-muted" style="opacity: 0.3;">—</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="py-3 text-end">
+                                                            {% if account.has_accrued_value %}
+                                                                <span class="text-muted" style="font-size: 0.79rem; white-space: nowrap;">{{ account.currency }}{{ account.effective_principal|ind_comma:account.currency|translate_digits }}</span>
+                                                            {% else %}
+                                                                <span class="text-muted" style="opacity: 0.3;">—</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="py-3 text-end">
+                                                            <div class="fw-bold {% if account.display_balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}" style="font-size: 0.87rem; letter-spacing: -0.2px; white-space: nowrap;">
+                                                                {% if account.has_accrued_value %}{{ account.currency }}{{ account.accrued_value|ind_comma:account.currency|translate_digits }}
+                                                                {% else %}{{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}{% endif %}
+                                                            </div>
+                                                            {% if account.has_accrued_value %}
+                                                                <div class="text-muted" style="font-size: 0.68rem; white-space: nowrap; opacity: 0.55;">{{ account.currency }}{{ account.effective_principal|ind_comma:account.currency|translate_digits }}</div>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="py-3 text-center">
+                                                            <div class="dropdown">
+                                                                <button class="btn btn-link text-muted p-0 border-0" style="opacity: 0.3; line-height: 1;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="bi bi-three-dots-vertical" style="font-size: 0.85rem;"></i>
+                                                                </button>
+                                                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1">
+                                                                    {% if current_status == 'inactive' %}
+                                                                        <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-success fw-semibold" href="{% url 'account-restore' account.uuid %}"><i class="bi bi-arrow-counterclockwise"></i><span>{% trans "Restore" %}</span></a></li>
+                                                                    {% elif account.is_locked %}
+                                                                        <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-primary fw-semibold" href="{% url 'pricing' %}"><i class="bi bi-rocket-takeoff"></i><span>{% trans "Unlock" %}</span></a></li>
+                                                                    {% else %}
+                                                                        <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small" href="{% url 'account-edit' account.uuid %}"><i class="bi bi-pencil-square text-primary"></i><span>{% trans "Edit" %}</span></a></li>
+                                                                        <li><hr class="dropdown-divider my-1"></li>
+                                                                        <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small" href="{% url 'account-delete' account.uuid %}"><i class="bi bi-trash"></i><span>{% trans "Delete" %}</span></a></li>
+                                                                    {% endif %}
+                                                                </ul>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             {% else %}
                 <div class="text-center py-5">
-                    <div class="mb-4">
-                        {% include 'illustrations/empty_accounts.svg' %}
-                    </div>
-                    <h5 class="fw-bold text-muted">
-                        {% if current_status == 'inactive' %}
-                            {% trans "No Inactive Accounts" %}
-                        {% else %}
-                            {% trans "No Accounts Found" %}
-                        {% endif %}
-                    </h5>
-                    <p class="text-muted small mb-4">
-                        {% if current_status == 'inactive' %}
-                            {% trans "Accounts you deactivate will appear here." %}
-                        {% else %}
-                            {% trans "Start by adding your first account." %}
-                        {% endif %}
-                    </p>
-                    {% if current_status == 'active' %}
-                    <a href="{% url 'account-create' %}" class="btn btn-primary btn-sm px-4 rounded-pill">
-                        <i class="bi bi-plus-lg me-1"></i> {% trans "Add Account" %}
-                    </a>
+                    <div class="mb-4">{% include 'illustrations/empty_accounts.svg' %}</div>
+                    <h5 class="fw-bold text-muted">{% if current_status == 'inactive' %}{% trans "No inactive accounts found." %}{% else %}{% trans "No accounts created yet." %}{% endif %}</h5>
+                    <p class="text-muted small mb-3">{% trans "Track cash, bank accounts, fixed deposits, and investments." %}</p>
+                    {% if current_status != 'inactive' %}
+                        <a href="{% url 'account-create' %}" class="btn btn-sm fw-bold px-3 py-2 text-white rounded-3" style="background-color: #1D9E75; border-color: #1D9E75;">
+                            <i class="bi bi-plus-lg me-1"></i>{% trans "Add First Account" %}
+                        </a>
                     {% endif %}
                 </div>
             {% endif %}
         </div>
     </div>
+
+    <!-- ═══════════════════════════════════════════════
+         MOBILE CARD VIEW (d-md-none)
+         Matches mockup: dot + name/type left, balance/date right
+    ══════════════════════════════════════════════════ -->
+    <div class="d-md-none">
+        {% if grouped_accounts %}
+            {% for group in grouped_accounts %}
+
+                <!-- Mobile Group Header -->
+                <div class="d-flex align-items-center justify-content-between px-0 py-2 mb-2 mt-3 account-group-header"
+                     data-bs-toggle="collapse" data-bs-target="#mobile-group-{{ group.type }}"
+                     aria-expanded="true" style="cursor: pointer;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 {{ group.icon_bg }}" style="width: 32px; height: 32px;">
+                            <i class="{{ group.icon }}" style="font-size: 0.9rem;"></i>
+                        </div>
+                        <span class="fw-bold text-body" style="font-size: 1rem;">{{ group.label }}</span>
+                        <span class="text-muted fw-medium" style="font-size: 0.7rem; background-color: rgba(0,0,0,0.06); border-radius: 20px; padding: 2px 8px;">{{ group.count|translate_digits }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold text-body" style="font-size: 1rem;">{{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}</span>
+                        <i class="bi bi-chevron-down text-muted accordion-chevron" style="font-size: 0.72rem; transition: transform 0.2s ease;"></i>
+                    </div>
+                </div>
+
+                <!-- Account Cards -->
+                <div id="mobile-group-{{ group.type }}" class="collapse show mb-2">
+                    <div class="d-flex flex-column gap-2">
+                    {% for account in group.accounts %}
+                    <div class="bg-body rounded-4 mb-1" style="border: 1px solid rgba(0,0,0,0.07);">
+                        <div class="d-flex align-items-start gap-3 p-3">
+
+                            <!-- Left: name + meta -->
+                            <div style="min-width: 0; flex: 1;">
+                                {% if account.is_locked %}
+                                    <span class="fw-semibold text-muted d-block text-truncate" style="font-size: 0.93rem;"><i class="bi bi-lock-fill me-1" style="font-size: 0.7rem;"></i>{{ account.name }}</span>
+                                {% else %}
+                                    <a href="{% url 'account-detail' account.uuid %}" class="fw-semibold text-decoration-none text-body d-block text-truncate" style="font-size: 0.93rem;">{{ account.name }}</a>
+                                {% endif %}
+
+                                <!-- Subtext row 1: maturity OR account type -->
+                                {% if account.deposit_maturity_date %}
+                                    <div class="text-muted mt-1" style="font-size: 0.76rem;">{% trans "Matures" %} {{ account.deposit_maturity_date|date:"d M Y" }}</div>
+                                {% else %}
+                                    <div class="text-muted mt-1" style="font-size: 0.76rem;">{{ account.get_account_type_display }}</div>
+                                {% endif %}
+
+                                <!-- Interest rate badge (FD/RD only) -->
+                                {% if account.deposit_rate %}
+                                    <span class="d-inline-block rounded-3 px-2 mt-1 fw-semibold" style="font-size: 0.68rem; background-color: rgba(29, 158, 117, 0.1); color: #1D9E75; padding-top: 3px; padding-bottom: 3px;">
+                                        {{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Right: balance + date/deposit + 3-dots -->
+                            <div class="flex-shrink-0 text-end d-flex align-items-start gap-1">
+                                <div>
+                                    <div class="fw-bold {% if account.display_balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}" style="font-size: 0.95rem; letter-spacing: -0.3px; white-space: nowrap;">
+                                        {% if account.has_accrued_value %}{{ account.currency }}{{ account.accrued_value|ind_comma:account.currency|translate_digits }}
+                                        {% else %}{{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}{% endif %}
+                                    </div>
+                                    <!-- Date (right-aligned below balance, like mockup) -->
+                                    <div class="text-muted mt-1" style="font-size: 0.72rem; white-space: nowrap;">
+                                        {% if account.days_since_update == 0 %}{% trans "today" %}
+                                        {% elif account.days_since_update == 1 %}{% trans "1 day ago" %}
+                                        {% else %}{% blocktrans with days=account.days_since_update|translate_digits %}{{ days }} days ago{% endblocktrans %}{% endif %}
+                                    </div>
+                                    <!-- Deposit sub-line (FD/RD) -->
+                                    {% if account.has_accrued_value %}
+                                        <div class="text-muted" style="font-size: 0.7rem; white-space: nowrap; opacity: 0.65;">{% trans "Deposit" %} {{ account.currency }}{{ account.effective_principal|ind_comma:account.currency|translate_digits }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- 3-dot menu -->
+                                <div class="dropdown ms-1">
+                                    <button class="btn btn-link text-muted p-0 border-0" style="opacity: 0.35; line-height: 1;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical" style="font-size: 0.9rem;"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1">
+                                        {% if current_status == 'inactive' %}
+                                            <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-success fw-semibold" href="{% url 'account-restore' account.uuid %}"><i class="bi bi-arrow-counterclockwise"></i><span>{% trans "Restore" %}</span></a></li>
+                                        {% elif account.is_locked %}
+                                            <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-primary fw-semibold" href="{% url 'pricing' %}"><i class="bi bi-rocket-takeoff"></i><span>{% trans "Unlock" %}</span></a></li>
+                                        {% else %}
+                                            <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small" href="{% url 'account-edit' account.uuid %}"><i class="bi bi-pencil-square text-primary"></i><span>{% trans "Edit" %}</span></a></li>
+                                            <li><hr class="dropdown-divider my-1"></li>
+                                            <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small" href="{% url 'account-delete' account.uuid %}"><i class="bi bi-trash"></i><span>{% trans "Delete" %}</span></a></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    </div><!-- /d-flex flex-column gap-2 -->
+                </div><!-- /collapse -->
+
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">{% include 'illustrations/empty_accounts.svg' %}</div>
+                <h5 class="fw-bold text-muted">{% if current_status == 'inactive' %}{% trans "No Inactive Accounts" %}{% else %}{% trans "No Accounts Found" %}{% endif %}</h5>
+                <p class="text-muted small mb-4">{% if current_status == 'inactive' %}{% trans "Accounts you deactivate will appear here." %}{% else %}{% trans "Start by adding your first account." %}{% endif %}</p>
+                {% if current_status == 'active' %}
+                    <a href="{% url 'account-create' %}" class="btn btn-sm px-4 py-2 rounded-3 fw-bold text-white" style="background-color: #1D9E75; border-color: #1D9E75;">
+                        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Account" %}
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
 </div>

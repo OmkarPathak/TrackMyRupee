@@ -908,6 +908,30 @@ def home_view(request):
                         'allow_share': False
                     })
 
+        # 0.5 Fixed-Income Maturing Soon Alert
+        maturing_accounts = Account.objects.filter(
+            user=request.user,
+            is_active=True,
+            deposit_maturity_date__isnull=False,
+            deposit_maturity_date__gte=now.date(),
+            deposit_maturity_date__lte=now.date() + timedelta(days=30),
+        ).order_by('deposit_maturity_date')
+
+        for mat_acc in maturing_accounts:
+            mat_date_str = date_format(mat_acc.deposit_maturity_date, 'd M Y')
+            mat_amount_str = f"{mat_acc.currency}{compact_amount(mat_acc.balance, mat_acc.currency)}"
+            insights.append({
+                'type': 'warning',
+                'icon': 'hourglass-split',
+                'title': _('Fixed-Income Maturing Soon ⏳'),
+                'message': _("%(name)s matures on %(date)s — %(amount)s will need a home.") % {
+                    'name': mat_acc.name,
+                    'date': mat_date_str,
+                    'amount': mat_amount_str,
+                },
+                'allow_share': False
+            })
+
         # 0.6 Predictive Spending Speed Warning
         speed_alert_categories = []
         for cat in category_limits:
@@ -1623,6 +1647,25 @@ def home_view(request):
             'icon': 'bi-flag',
             'theme': 'primary',
             'score': 5
+        })
+
+    # Maturing Fixed-Income Accounts Bullet Insight
+    maturing_bullet_accounts = Account.objects.filter(
+        user=request.user,
+        is_active=True,
+        deposit_maturity_date__isnull=False,
+        deposit_maturity_date__gte=now.date(),
+        deposit_maturity_date__lte=now.date() + timedelta(days=30),
+    ).order_by('deposit_maturity_date')
+
+    for mat_acc in maturing_bullet_accounts:
+        mat_date_str = date_format(mat_acc.deposit_maturity_date, 'd M Y')
+        mat_amount_str = f"{mat_acc.currency}{compact_amount(mat_acc.balance, mat_acc.currency)}"
+        raw_insights.append({
+            'text': format_html(_("<b>{}</b> matures on <b>{}</b> — <span class='text-primary fw-bold'>{}</span> will need a home."), mat_acc.name, mat_date_str, mat_amount_str),
+            'icon': 'bi-clock-history',
+            'theme': 'warning',
+            'score': 2
         })
     
     # 0. Power AI Insight (Positive/Proactive)

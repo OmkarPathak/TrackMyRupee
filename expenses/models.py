@@ -200,6 +200,10 @@ class Account(models.Model):
         null=True, blank=True,
         verbose_name=_('Compounding Frequency'),
     )
+    deposit_maturity_date = models.DateField(
+        null=True, blank=True,
+        verbose_name=_('Deposit Maturity Date'),
+    )
 
     class Meta:
         constraints = [

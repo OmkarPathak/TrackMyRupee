@@ -56,6 +56,56 @@
                         <small class="form-text text-muted">{% trans "Current amount of money in this account." %}</small>
                     </div>
 
+                    <!-- Fixed-Income / Deposit Details (Optional Accordion) -->
+                    <div class="accordion mb-4" id="depositDetailsAccordion" style="display: none;">
+                        <div class="accordion-item border border-secondary border-opacity-25 rounded-3 overflow-hidden">
+                            <h2 class="accordion-header" id="headingDepositDetails">
+                                <button class="accordion-button {% if not form.deposit_rate.value and not form.deposit_maturity_date.value and not form.deposit_principal.value and not form.deposit_start_date.value and not form.deposit_rate.errors and not form.deposit_maturity_date.errors and not form.deposit_principal.errors and not form.deposit_start_date.errors %}collapsed{% endif %} bg-body-tertiary shadow-none fw-bold small text-body py-3 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDepositDetails" aria-expanded="{% if form.deposit_rate.value or form.deposit_maturity_date.value or form.deposit_principal.value or form.deposit_start_date.value or form.deposit_rate.errors or form.deposit_maturity_date.errors or form.deposit_principal.errors or form.deposit_start_date.errors %}true{% else %}false{% endif %}" aria-controls="collapseDepositDetails">
+                                    <i class="bi bi-piggy-bank text-primary me-2"></i>
+                                    {% trans "Fixed-Income / Deposit Details (Optional)" %}
+                                </button>
+                            </h2>
+                            <div id="collapseDepositDetails" class="accordion-collapse collapse {% if form.deposit_rate.value or form.deposit_maturity_date.value or form.deposit_principal.value or form.deposit_start_date.value or form.deposit_rate.errors or form.deposit_maturity_date.errors or form.deposit_principal.errors or form.deposit_start_date.errors %}show{% endif %}" aria-labelledby="headingDepositDetails" data-bs-parent="#depositDetailsAccordion">
+                                <div class="accordion-body bg-body-tertiary pt-0 px-3 pb-3">
+                                    <p class="text-muted small mb-3" style="font-size: 0.78rem;">{% trans "Interest rate, maturity date, and principal for FDs, RDs, PPF, etc." %}</p>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small fw-semibold mb-1">{% trans "Annual Interest Rate (%)" %}</label>
+                                            {{ form.deposit_rate }}
+                                            {% if form.deposit_rate.errors %}
+                                                <div class="text-danger small mt-1">{{ form.deposit_rate.errors }}</div>
+                                            {% endif %}
+                                            <small class="form-text text-muted d-block" style="font-size: 0.72rem;">{% trans "e.g., 7.1 for 7.1% p.a." %}</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small fw-semibold mb-1">{% trans "Maturity Date" %}</label>
+                                            {{ form.deposit_maturity_date }}
+                                            {% if form.deposit_maturity_date.errors %}
+                                                <div class="text-danger small mt-1">{{ form.deposit_maturity_date.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small fw-semibold mb-1">{% trans "Deposit Principal" %}</label>
+                                            {{ form.deposit_principal }}
+                                            {% if form.deposit_principal.errors %}
+                                                <div class="text-danger small mt-1">{{ form.deposit_principal.errors }}</div>
+                                            {% endif %}
+                                            <small class="form-text text-muted d-block" style="font-size: 0.72rem;">{% trans "Original amount invested. Optional if same as current balance." %}</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small fw-semibold mb-1">{% trans "Deposit Start Date" %}</label>
+                                            {{ form.deposit_start_date }}
+                                            {% if form.deposit_start_date.errors %}
+                                                <div class="text-danger small mt-1">{{ form.deposit_start_date.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end align-items-center gap-2">
                         <a href="{% url 'account-list' %}" class="btn btn-outline-secondary px-4">
                             {% trans "Cancel" %}
@@ -69,4 +119,35 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const accountTypeSelect = document.querySelector('select[name="account_type"]') || document.getElementById('id_account_type');
+    const depositAccordion = document.getElementById('depositDetailsAccordion');
+    
+    // Account type codes for FD / RD and fixed deposit schemes
+    const depositTypes = ['FD', 'RD', 'FIXED_DEPOSIT', 'PPF', 'EPF', 'VPF', 'NPS', 'SSY', 'POST_OFFICE', 'APY'];
+
+    function toggleDepositAccordion() {
+        if (!accountTypeSelect || !depositAccordion) return;
+        const selectedValue = accountTypeSelect.value;
+        if (depositTypes.includes(selectedValue)) {
+            depositAccordion.style.display = 'block';
+        } else {
+            depositAccordion.style.display = 'none';
+        }
+    }
+
+    if (accountTypeSelect) {
+        accountTypeSelect.addEventListener('change', toggleDepositAccordion);
+        if (window.jQuery) {
+            window.jQuery(accountTypeSelect).on('change', toggleDepositAccordion);
+        }
+        // Run initial check
+        toggleDepositAccordion();
+    }
+});
+</script>
 {% endblock %}

@@ -640,13 +640,18 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         label=_('Compounding Frequency'),
         widget=forms.Select(attrs={'class': 'form-select'}),
     )
+    deposit_maturity_date = forms.DateField(
+        required=False,
+        label=_('Deposit Maturity Date'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
 
     class Meta:
         model = Account
         fields = [
             'name', 'account_type', 'balance', 'currency',
             'linked_loan', 'linked_physical_asset',
-            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding',
+            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_compounding',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),

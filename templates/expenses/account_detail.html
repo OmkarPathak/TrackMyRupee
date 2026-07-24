@@ -3,73 +3,19 @@
 
 {% block content %}
 <div class="container fade-in">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item"><a href="{% url 'home' %}">{% trans "Dashboard" %}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'account-list' %}">{% trans "Accounts" %}</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ account.name }}</li>
-                </ol>
-            </nav>
-            <div class="d-flex align-items-center gap-2 mb-0">
-                <h1 class="h2 fw-bold mb-0">{{ account.name }}</h1>
-                {% if not account.is_active %}
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill border">{% trans "Inactive" %}</span>
-                {% endif %}
-            </div>
-            <p class="text-muted mb-0">{{ account.get_account_type_display }} • {{ account.currency }}</p>
+    <!-- Account Trend Chart (Desktop only) -->
+    <div class="card rounded-4 p-3 mb-4 d-none d-md-block" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+        <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+            <h6 class="text-muted small text-uppercase fw-bold mb-0" style="letter-spacing: 1px;">
+                {% if trend_data.type == 'monthly' %}{% trans "Balance Trend (Last 12 Months)" %}{% else %}{% trans "Balance Trend (Last 30 Days)" %}{% endif %}
+            </h6>
         </div>
-        <div class="d-flex gap-2">
-            {% if user.username != 'demo' %}
-                {% if account.is_active %}
-                <a href="{% url 'transfer-create' %}?from_account={{ account.uuid }}" class="btn btn-outline-primary fw-bold">
-                    <i class="bi bi-arrow-left-right me-1"></i> {% trans "Transfer" %}
-                </a>
-                {% else %}
-                <button class="btn btn-outline-primary fw-bold disabled" disabled title="{% trans 'Restore account to transfer' %}">
-                    <i class="bi bi-arrow-left-right me-1"></i> {% trans "Transfer" %}
-                </button>
-                {% endif %}
-            {% endif %}
-            {% if account.is_active %}
-                <a href="{% url 'account-edit' account.uuid %}" class="btn btn-primary fw-bold">
-                    <i class="bi bi-pencil me-1"></i> {% trans "Edit Account" %}
-                </a>
-            {% else %}
-                <button class="btn btn-primary fw-bold disabled" disabled title="{% trans 'Restore account to edit' %}">
-                    <i class="bi bi-pencil me-1"></i> {% trans "Edit Account" %}
-                </button>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Account Summary Stats -->
-    <div class="row g-4 mb-4">
-        <div class="col-12 col-md-4">
-            <div class="card shadow-sm border-0 rounded-4 p-4 text-center bg-primary bg-opacity-10 h-100 d-flex flex-column justify-content-center">
-                <p class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 1px;">{% trans "Current Balance" %}</p>
-                <h2 class="fw-black text-primary mb-0">
-                    {{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}
-                </h2>
-            </div>
-        </div>
-        <div class="col-12 col-md-8 d-none d-md-block">
-            <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2 px-2">
-                    <h6 class="text-muted small text-uppercase fw-bold mb-0" style="letter-spacing: 1px;">
-                        {% if trend_data.type == 'monthly' %}{% trans "Balance Trend (Last 12 Months)" %}{% else %}{% trans "Balance Trend (Last 30 Days)" %}{% endif %}
-                    </h6>
-                </div>
-                <div style="height: 120px;">
-                    <canvas id="accountTrendChart"></canvas>
-                </div>
-            </div>
+        <div style="height: 120px;">
+            <canvas id="accountTrendChart"></canvas>
         </div>
     </div>
 
     {% include 'expenses/partials/_account_detail.html' %}
-</div>
 </div>
 
 <style>

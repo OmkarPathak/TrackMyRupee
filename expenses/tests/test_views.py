@@ -529,3 +529,29 @@ class DashboardAggregationTest(BaseViewTest):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "10x+")
+
+    def test_fixed_income_maturity_and_interest_rate_display(self):
+        """Test that fixed-income accounts display maturity date subtitle, interest rate badge, and smart insights alert when maturing within 30 days."""
+        from datetime import timedelta
+        today = date.today()
+        maturity_date = today + timedelta(days=15)
+        fd_acc = Account.objects.create(
+            user=self.user,
+            name="Baliraja FD 4 Lakh",
+            account_type="FD",
+            balance=Decimal("400000.00"),
+            deposit_rate=Decimal("7.1000"),
+            deposit_maturity_date=maturity_date,
+        )
+
+        # 1. Check account list view renders Matures on and 7.1% p.a.
+        res_list = self.client.get(reverse('account-list'))
+        self.assertEqual(res_list.status_code, 200)
+        self.assertContains(res_list, "Matures on:")
+        self.assertContains(res_list, "7.1% p.a.")
+
+        # 2. Check dashboard view renders smart insight alert for maturing FD
+        res_dash = self.client.get(reverse('home'))
+        self.assertEqual(res_dash.status_code, 200)
+        self.assertContains(res_dash, "Baliraja FD 4 Lakh")
+        self.assertContains(res_dash, "will need a home.")

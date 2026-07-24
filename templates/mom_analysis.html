@@ -3,18 +3,7 @@
 
 {% block content %}
 <div class="container">
-    <!-- Dashboard Mode Toggle (Mobile Only) -->
-    <div class="d-lg-none d-flex justify-content-center mb-4 fade-in">
-        <div class="dashboard-mode-container" role="group">
-            <a href="{% url 'home' %}" class="btn btn-sm mode-btn full-report-btn">
-                {% trans "Dashboard" %}
-            </a>
-            <button type="button" class="btn btn-sm mode-btn active" id="btn-mom" onclick="window.location.href='{% url 'analytics-mom' %}'">
-                {% trans "Trends" %}
-            </button>
-        </div>
-    </div>
-    
+
     {% if is_history_limited %}
     <!-- Subtle Upgrade Banner -->
     <div class="row fade-in mb-4">

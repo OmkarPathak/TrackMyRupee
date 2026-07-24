@@ -131,7 +131,7 @@
             <div class="row row-cols-3 g-2 mb-3">
                 <!-- 1. Income -->
                 <div class="col">
-                    <div class="card p-2 rounded-3 border border-light-subtle h-100 d-flex flex-column justify-content-between">
+                    <div class="card p-2 rounded-3 h-100 d-flex flex-column justify-content-between" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
                             <i class="bi bi-arrow-down-up amount-income"></i>
                             <span class="fw-medium text-truncate">{% trans "Income" %}</span>
@@ -146,7 +146,7 @@
                 </div>
                 <!-- 2. Expenses -->
                 <div class="col">
-                    <div class="card p-2 rounded-3 border border-light-subtle h-100 d-flex flex-column justify-content-between">
+                    <div class="card p-2 rounded-3 h-100 d-flex flex-column justify-content-between" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
                             <i class="bi bi-arrow-down-up amount-expense"></i>
                             <span class="fw-medium text-truncate">{% trans "Expenses" %}</span>
@@ -161,7 +161,7 @@
                 </div>
                 <!-- 3. Transfers -->
                 <div class="col">
-                    <div class="card p-2 rounded-3 border border-light-subtle h-100 d-flex flex-column justify-content-between">
+                    <div class="card p-2 rounded-3 h-100 d-flex flex-column justify-content-between" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
                             <i class="bi bi-arrow-left-right amount-transfer"></i>
                             <span class="text-truncate">{% trans "Transfers" %}</span>
@@ -176,7 +176,7 @@
                 </div>
                 <!-- 4. Capital -->
                 <div class="col">
-                    <div class="card p-2 rounded-3 border border-light-subtle h-100 d-flex flex-column justify-content-between">
+                    <div class="card p-2 rounded-3 h-100 d-flex flex-column justify-content-between" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
                             <i class="bi bi-flag amount-capital_event"></i>
                             <span class="fw-medium text-truncate">{% trans "Capital" %}</span>
@@ -191,7 +191,7 @@
                 </div>
                 <!-- 5. Loans -->
                 <div class="col">
-                    <div class="card p-2 rounded-3 border border-light-subtle h-100 d-flex flex-column justify-content-between">
+                    <div class="card p-2 rounded-3 h-100 d-flex flex-column justify-content-between" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
                             <i class="bi bi-building-columns amount-loan"></i>
                             <span class="fw-medium text-truncate">{% trans "Loans" %}</span>
@@ -206,7 +206,7 @@
                 </div>
                 <!-- 6. Net Remaining -->
                 <div class="col">
-                    <div class="card p-2 rounded-3 border border-light-subtle h-100 d-flex flex-column justify-content-between">
+                    <div class="card p-2 rounded-3 h-100 d-flex flex-column justify-content-between" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="d-flex align-items-center gap-1 amount-income" style="font-size: 0.7rem;">
                             <span class="fw-medium text-truncate">{% trans "Net Remaining" %}</span>
                         </div>
@@ -358,7 +358,7 @@
                     </div>
                     {% endwith %}
                     {% for tx in group.list %}
-                    <div class="card expense-card shadow-sm border-0 mb-2">
+                    <div class="card expense-card rounded-4 border-0 mb-2" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="card-body p-3">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;">

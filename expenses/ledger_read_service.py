@@ -65,22 +65,24 @@ def _compute_deposit_value(account, ledger_balance: Decimal) -> Decimal:
     Otherwise returns the ledger_balance unchanged (fully backward compatible).
     """
     if (
-        account.deposit_principal is None
-        or account.deposit_rate is None
+        account.deposit_rate is None
         or account.deposit_start_date is None
     ):
+        return ledger_balance
+
+    principal = account.deposit_principal if account.deposit_principal is not None else ledger_balance
+    if principal is None or principal == Decimal('0.00'):
         return ledger_balance
 
     today = date_type.today()
     start = account.deposit_start_date
     if start > today:
-        return account.deposit_principal
+        return principal
 
     # Years elapsed (fractional)
     days_elapsed = (today - start).days
     years = Decimal(str(days_elapsed)) / Decimal('365.25')
     rate = account.deposit_rate / Decimal('100')  # convert % to decimal
-    principal = account.deposit_principal
     compounding = account.deposit_compounding or 'SIMPLE'
 
     if compounding == 'SIMPLE':

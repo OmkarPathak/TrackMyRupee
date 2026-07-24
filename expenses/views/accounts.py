@@ -20,8 +20,9 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
+from ..account_types import deposit_codes
 from ..forms import AccountForm, TransferForm
-from ..ledger_read_service import LedgerReadService
+from ..ledger_read_service import LedgerReadService, _compute_deposit_value
 from ..models import (
     Account,
     CapitalEvent,
@@ -105,6 +106,19 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             else:
                 account.display_balance = account.balance
 
+            # Compute accrued value for fixed-income / deposit accounts
+            if account.account_type in deposit_codes():
+                accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
+                deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
+                if accrued != deposit_principal or account.deposit_rate is not None:
+                    account.accrued_value = accrued
+                    account.effective_principal = deposit_principal
+                    account.has_accrued_value = True
+                else:
+                    account.has_accrued_value = False
+            else:
+                account.has_accrued_value = False
+
             delta = now - account.updated_at
             account.days_since_update = delta.days
 
@@ -112,7 +126,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 rate = get_exchange_rate(account.currency, user_currency)
             except Exception:
                 rate = Decimal('1.0')
-            total_balance += Decimal(account.display_balance) * Decimal(str(rate))
+            bal_val = account.accrued_value if getattr(account, 'has_accrued_value', False) else account.display_balance
+            total_balance += Decimal(str(bal_val)) * Decimal(str(rate))
 
         # Group accounts using nested ACCOUNT_TYPES groups
         grouped_accounts = []
@@ -139,7 +154,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                     rate = get_exchange_rate(acc.currency, user_currency)
                 except Exception:
                     rate = Decimal('1.0')
-                group_total += Decimal(acc.display_balance) * Decimal(str(rate))
+                bal_val = acc.accrued_value if getattr(acc, 'has_accrued_value', False) else acc.display_balance
+                group_total += Decimal(str(bal_val)) * Decimal(str(rate))
 
             group_type_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
 
@@ -151,8 +167,55 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 'total': group_total.quantize(Decimal('0.01')),
             })
 
+        # Calculate category percentages, colors, icons, and short formatted totals for breakdown banner
+        category_palette = [
+            {'color': '#3b82f6', 'dot_class': 'bg-primary', 'icon': 'bi-bank', 'icon_bg': 'bg-primary-subtle text-primary'},
+            {'color': '#d97706', 'dot_class': 'bg-warning', 'icon': 'bi-briefcase-fill', 'icon_bg': 'bg-warning-subtle text-warning-emphasis'},
+            {'color': '#8b5cf6', 'dot_class': 'bg-purple', 'icon': 'bi-graph-up-arrow', 'icon_bg': 'bg-info-subtle text-info-emphasis'},
+            {'color': '#ec4899', 'dot_class': 'bg-danger', 'icon': 'bi-credit-card', 'icon_bg': 'bg-danger-subtle text-danger'},
+            {'color': '#ef4444', 'dot_class': 'bg-danger', 'icon': 'bi-cash-stack', 'icon_bg': 'bg-danger-subtle text-danger'},
+        ]
+
+        def _get_short_amount(amount):
+            val = float(amount)
+            if val >= 10000000:
+                return f"{user_currency}{val/10000000:.2f}Cr"
+            elif val >= 100000:
+                return f"{user_currency}{val/100000:.2f}L"
+            elif val >= 1000:
+                return f"{user_currency}{val/1000:.1f}k"
+            else:
+                return f"{user_currency}{val:.0f}"
+
+        tb_float = float(total_balance)
+        for idx, group in enumerate(grouped_accounts):
+            gt_float = float(group['total'])
+            group['pct'] = round((gt_float / tb_float * 100), 1) if tb_float > 0 else 0
+            group['pct_int'] = int(round(group['pct']))
+            group['short_total'] = _get_short_amount(group['total'])
+
+            gtype = group['type']
+            if 'CASH' in gtype or 'BANK' in gtype:
+                p = category_palette[0]
+            elif 'DEPOSIT' in gtype or 'FIXED' in gtype:
+                p = category_palette[1]
+            elif 'INVEST' in gtype or 'MARKET' in gtype or 'EQUITY' in gtype:
+                p = category_palette[2]
+            elif 'CREDIT' in gtype:
+                p = category_palette[3]
+            elif 'LOAN' in gtype or 'LIABIL' in gtype:
+                p = category_palette[4]
+            else:
+                p = category_palette[idx % len(category_palette)]
+
+            group['color'] = p['color']
+            group['dot_class'] = p['dot_class']
+            group['icon'] = p['icon']
+            group['icon_bg'] = p['icon_bg']
+
         context['grouped_accounts'] = grouped_accounts
         context['account_types'] = Account.ACCOUNT_TYPES
+        context['account_count'] = len(accounts)
         selected_type = self.request.GET.get('type', '')
         selected_label = flat_labels.get(selected_type, '')
         if not selected_label and selected_type:
@@ -475,7 +538,20 @@ class AccountDetailView(LoginRequiredMixin, View):
         else:
             account.display_balance = account.balance
 
+        if account.account_type in deposit_codes():
+            accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
+            deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
+            if accrued != deposit_principal or account.deposit_rate is not None:
+                account.accrued_value = accrued
+                account.effective_principal = deposit_principal
+                account.has_accrued_value = True
+            else:
+                account.has_accrued_value = False
+        else:
+            account.has_accrued_value = False
+
         query = request.GET.get('q', '')
+        selected_tx_type = request.GET.get('tx_type', '')
         
         # Get all expenses, incomes, and transfers for this account
         expenses = Expense.objects.filter(user=request.user, account=account).select_related('category_fk')
@@ -485,6 +561,27 @@ class AccountDetailView(LoginRequiredMixin, View):
         contributions = GoalContribution.objects.filter(goal__user=request.user, account=account).select_related('goal')
         loan_repayments = LoanRepayment.objects.filter(loan__user=request.user, from_account=account).select_related('loan')
         capital_events = CapitalEvent.objects.filter(user=request.user, account=account).select_related('linked_loan')
+
+        if selected_tx_type == 'EXPENSE':
+            incomes = Income.objects.none()
+            transfers_from = Transfer.objects.none()
+            transfers_to = Transfer.objects.none()
+            contributions = GoalContribution.objects.none()
+            loan_repayments = LoanRepayment.objects.none()
+            capital_events = CapitalEvent.objects.none()
+        elif selected_tx_type == 'INCOME':
+            expenses = Expense.objects.none()
+            transfers_from = Transfer.objects.none()
+            transfers_to = Transfer.objects.none()
+            contributions = GoalContribution.objects.none()
+            loan_repayments = LoanRepayment.objects.none()
+            capital_events = CapitalEvent.objects.none()
+        elif selected_tx_type == 'TRANSFER':
+            expenses = Expense.objects.none()
+            incomes = Income.objects.none()
+            contributions = GoalContribution.objects.none()
+            loan_repayments = LoanRepayment.objects.none()
+            capital_events = CapitalEvent.objects.none()
 
         if query:
             expenses = expenses.filter(Q(description__icontains=query) | Q(category__icontains=query))
@@ -636,6 +733,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             'currency_symbol': account.currency,
             'base_currency_symbol': base_currency,
             'search_query': query,
+            'selected_tx_type': selected_tx_type,
             'filtered_net_total': filtered_net_total,
             'trend_data': self.get_trend_data(account, request.user),
         }
