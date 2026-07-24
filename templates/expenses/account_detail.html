@@ -2,19 +2,7 @@
 {% load i18n humanize currency_filters digit_filters expense_extras %}
 
 {% block content %}
-<div class="container fade-in">
-    <!-- Account Trend Chart (Desktop only) -->
-    <div class="card rounded-4 p-3 mb-4 d-none d-md-block" style="border: 1px solid rgba(0,0,0,0.07) !important;">
-        <div class="d-flex justify-content-between align-items-center mb-2 px-2">
-            <h6 class="text-muted small text-uppercase fw-bold mb-0" style="letter-spacing: 1px;">
-                {% if trend_data.type == 'monthly' %}{% trans "Balance Trend (Last 12 Months)" %}{% else %}{% trans "Balance Trend (Last 30 Days)" %}{% endif %}
-            </h6>
-        </div>
-        <div style="height: 120px;">
-            <canvas id="accountTrendChart"></canvas>
-        </div>
-    </div>
-
+<div class="fade-in">
     {% include 'expenses/partials/_account_detail.html' %}
 </div>
 
@@ -157,24 +145,17 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Prevent autofocus from opening the keyboard on mobile
-    const searchInput = document.querySelector('input[name="q"]');
-    if (searchInput) {
-        searchInput.blur();
-        const preventAutoKeyboard = function() {
-            searchInput.blur();
-            searchInput.removeEventListener('focus', preventAutoKeyboard);
-        };
-        searchInput.addEventListener('focus', preventAutoKeyboard);
-        setTimeout(function() {
-            searchInput.removeEventListener('focus', preventAutoKeyboard);
-        }, 1000);
-    }
+function renderAccountTrendChart() {
     const ctx = document.getElementById('accountTrendChart');
-    if (!ctx) return;
+    const trendLabelsEl = document.getElementById('trend-labels');
+    if (!ctx || !trendLabelsEl) return;
+    if (typeof Chart === 'undefined') return;
 
-    const labels = JSON.parse(document.getElementById('trend-labels').textContent);
+    if (Chart.getChart(ctx)) {
+        Chart.getChart(ctx).destroy();
+    }
+
+    const labels = JSON.parse(trendLabelsEl.textContent);
     const dataValues = JSON.parse(document.getElementById('trend-values').textContent);
     const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
 
@@ -237,6 +218,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.blur();
+        const preventAutoKeyboard = function() {
+            searchInput.blur();
+            searchInput.removeEventListener('focus', preventAutoKeyboard);
+        };
+        searchInput.addEventListener('focus', preventAutoKeyboard);
+        setTimeout(function() {
+            searchInput.removeEventListener('focus', preventAutoKeyboard);
+        }, 1000);
+    }
+    renderAccountTrendChart();
+});
+
+document.body.addEventListener('htmx:afterSwap', function(e) {
+    if (e.detail.target && e.detail.target.id === 'account-detail-shell') {
+        renderAccountTrendChart();
+    }
 });
 </script>
 {% endblock %}

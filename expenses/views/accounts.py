@@ -582,6 +582,27 @@ class AccountDetailView(LoginRequiredMixin, View):
             contributions = GoalContribution.objects.none()
             loan_repayments = LoanRepayment.objects.none()
             capital_events = CapitalEvent.objects.none()
+        elif selected_tx_type == 'SAVINGS':
+            expenses = Expense.objects.none()
+            incomes = Income.objects.none()
+            transfers_from = Transfer.objects.none()
+            transfers_to = Transfer.objects.none()
+            loan_repayments = LoanRepayment.objects.none()
+            capital_events = CapitalEvent.objects.none()
+        elif selected_tx_type == 'LOAN':
+            expenses = Expense.objects.none()
+            incomes = Income.objects.none()
+            transfers_from = Transfer.objects.none()
+            transfers_to = Transfer.objects.none()
+            contributions = GoalContribution.objects.none()
+            capital_events = CapitalEvent.objects.none()
+        elif selected_tx_type == 'CAPITAL':
+            expenses = Expense.objects.none()
+            incomes = Income.objects.none()
+            transfers_from = Transfer.objects.none()
+            transfers_to = Transfer.objects.none()
+            contributions = GoalContribution.objects.none()
+            loan_repayments = LoanRepayment.objects.none()
 
         if query:
             expenses = expenses.filter(Q(description__icontains=query) | Q(category__icontains=query))

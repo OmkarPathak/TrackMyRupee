@@ -214,20 +214,20 @@
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        padding: 0.3rem 0.75rem;
+        padding: 0.25rem 1rem;
         border-radius: 50px;
         font-size: 0.8rem;
         font-weight: 600;
         text-decoration: none;
         transition: all 0.2s ease;
-        border: 1.5px solid transparent;
+        border: 1px solid transparent;
         white-space: nowrap;
     }
 
     .filter-pill-inactive {
-        background-color: transparent;
-        color: var(--bs-body-color);
-        border-color: var(--bs-border-color-translucent);
+        background-color: var(--bs-tertiary-bg);
+        color: var(--bs-secondary-color);
+        border-color: rgba(0,0,0,0.06);
     }
 
     .filter-pill-inactive:hover {
@@ -235,29 +235,10 @@
         color: var(--bs-body-color);
     }
 
-    .filter-pill-all.active,
-    .filter-pill-income.active {
+    .filter-pill.active {
+        background-color: #1D9E75;
         border-color: #1D9E75;
-        color: #1D9E75;
-        background-color: transparent;
-    }
-
-    .filter-pill-expense.active {
-        border-color: #E05C45;
-        color: #E05C45;
-        background-color: transparent;
-    }
-
-    .filter-pill-transfer.active {
-        border-color: #378ADD;
-        color: #378ADD;
-        background-color: transparent;
-    }
-
-    .filter-pill-loan.active {
-        border-color: #B45309;
-        color: #B45309;
-        background-color: transparent;
+        color: #fff;
     }
 </style>
 
