@@ -1608,13 +1608,21 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="bi bi-caret-up-fill"></i>
                             {{ currency_symbol }}{{ net_worth_change|compact_amount:currency_symbol|translate_digits }}
                         </span>
+                        {% if net_worth_percent > 999 %}
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">10x+</span>
+                        {% else %}
                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ net_worth_percent|translate_digits }}%</span>
+                        {% endif %}
                     {% else %}
                         <span class="text-danger d-inline-flex align-items-center gap-1">
                             <i class="bi bi-caret-down-fill"></i>
                             {{ currency_symbol }}{{ net_worth_change|abs_val|compact_amount:currency_symbol|translate_digits }}
                         </span>
+                        {% if net_worth_percent > 999 %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">10x+</span>
+                        {% else %}
                         <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">{{ net_worth_percent|translate_digits }}%</span>
+                        {% endif %}
                     {% endif %}
                     <span class="bento-comparison-label">{% trans "this month" %}</span>
                 </div>
@@ -1652,7 +1660,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 {{ currency_symbol }}{{ prev_month_data.income_diff_amount|compact_amount:currency_symbol|translate_digits }}
                             </span>
                             {% if prev_month_data.income_pct %}
-                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ prev_month_data.income_pct|floatformat:1|translate_digits }}%</span>
+                                {% if prev_month_data.income_pct > 999 %}
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">10x+</span>
+                                {% else %}
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ prev_month_data.income_pct|floatformat:1|translate_digits }}%</span>
+                                {% endif %}
                             {% endif %}
                         {% else %}
                             <span class="text-danger d-inline-flex align-items-center gap-1">
@@ -1698,7 +1710,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 {{ currency_symbol }}{{ prev_month_data.expense_diff_amount|compact_amount:currency_symbol|translate_digits }}
                             </span>
                             {% if prev_month_data.expense_pct %}
-                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">+{{ prev_month_data.expense_pct|floatformat:1|translate_digits }}%</span>
+                                {% if prev_month_data.expense_pct > 999 %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">10x+</span>
+                                {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">+{{ prev_month_data.expense_pct|floatformat:1|translate_digits }}%</span>
+                                {% endif %}
                             {% endif %}
                         {% elif prev_month_data.expense_diff_amount < 0 %}
                             <span class="text-success d-inline-flex align-items-center gap-1">
@@ -1744,7 +1760,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 {{ currency_symbol }}{{ prev_month_data.investments_diff_amount|compact_amount:currency_symbol|translate_digits }}
                             </span>
                             {% if prev_month_data.investments_pct %}
-                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ prev_month_data.investments_pct|floatformat:1|translate_digits }}%</span>
+                                {% if prev_month_data.investments_pct > 999 %}
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">10x+</span>
+                                {% else %}
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ prev_month_data.investments_pct|floatformat:1|translate_digits }}%</span>
+                                {% endif %}
                             {% endif %}
                         {% else %}
                             <span class="text-danger d-inline-flex align-items-center gap-1">
@@ -1903,7 +1923,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="metric-subline mt-1 mb-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Average daily spend for the selected period.' %}">
                                 {% trans "Burn rate" %}
                                 {% if salary_breakdown.spending_pace.burn_diff_pct is not None %}
-                                    <span class="{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}text-danger{% else %}text-success{% endif %} fw-bold">{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ salary_breakdown.spending_pace.burn_diff_pct_abs|floatformat:0|translate_digits }}%</span>
+                                    <span class="{% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}text-danger{% else %}text-success{% endif %} fw-bold">
+                                        {% if salary_breakdown.spending_pace.burn_diff_pct_abs > 999 %}
+                                            {% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}↑{% else %}↓{% endif %} 10x+
+                                        {% else %}
+                                            {% if salary_breakdown.spending_pace.burn_diff_pct > 0 %}↑{% else %}↓{% endif %} {{ salary_breakdown.spending_pace.burn_diff_pct_abs|floatformat:0|translate_digits }}%
+                                        {% endif %}
+                                    </span>
                                     {{ comparison_label }}
                                 {% endif %}
                             </div>
@@ -2187,7 +2213,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="metric-mini-value mb-2">{{ currency_symbol }}{{ total_income|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
                         {% if prev_month_data.income_pct %}
                         <div class="metric-mini-text {% if prev_month_data.income_pct > 0 %}text-success{% elif prev_month_data.income_pct < 0 %}text-danger{% else %}text-muted{% endif %}">
+                            {% if prev_month_data.income_pct > 999 %}
+                            ↑ 10x+ {{ comparison_label }}
+                            {% else %}
                             {% if prev_month_data.income_pct > 0 %}↑{% elif prev_month_data.income_pct < 0 %}↓{% endif %} {{ prev_month_data.income_pct_abs|floatformat:0|translate_digits }}% {{ comparison_label }}
+                            {% endif %}
                         </div>
                         {% endif %}
                     </a>
@@ -2199,7 +2229,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="metric-mini-value mb-2">{{ currency_symbol }}{{ hero_metrics.spent|floatformat:0|humanize_currency:currency_symbol|translate_digits }}</div>
                         {% if prev_month_data.expense_pct %}
                         <div class="metric-mini-text {% if prev_month_data.expense_pct < 0 %}text-success{% elif prev_month_data.expense_pct > 0 %}text-danger{% else %}text-muted{% endif %}">
+                            {% if prev_month_data.expense_pct > 999 %}
+                            ↑ 10x+ {{ comparison_label }}
+                            {% else %}
                             {% if prev_month_data.expense_pct > 0 %}↑{% elif prev_month_data.expense_pct < 0 %}↓{% endif %} {{ prev_month_data.expense_pct_abs|floatformat:0|translate_digits }}% {{ comparison_label }}
+                            {% endif %}
                         </div>
                         {% endif %}
                     </a>
@@ -2297,7 +2331,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <h6 class="mb-0 fw-semibold text-truncate py-1" title="{{ item.name }}">{{ item.name }}</h6>
                                 {% if item.trend_pct is not None %}
                                     <small class="{% if item.trend_dir == 'down' %}text-success{% elif item.trend_dir == 'up' %}text-danger{% else %}text-muted{% endif %} d-block" style="font-size: 0.65rem; font-weight: 600; margin-top: -1px;">
-                                        {% if item.trend_dir == 'down' %}↓{% elif item.trend_dir == 'up' %}↑{% endif %} {{ item.trend_pct|translate_digits }}% {{ comparison_label }}
+                                        {% if item.trend_pct > 999 %}
+                                            {% if item.trend_dir == 'down' %}↓{% elif item.trend_dir == 'up' %}↑{% endif %} 10x+ {{ comparison_label }}
+                                        {% else %}
+                                            {% if item.trend_dir == 'down' %}↓{% elif item.trend_dir == 'up' %}↑{% endif %} {{ item.trend_pct|translate_digits }}% {{ comparison_label }}
+                                        {% endif %}
                                     </small>
                                 {% endif %}
                             </div>

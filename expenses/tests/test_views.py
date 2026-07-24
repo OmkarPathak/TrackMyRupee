@@ -507,3 +507,25 @@ class DashboardAggregationTest(BaseViewTest):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['recent_activity']), 0)
+
+    def test_dashboard_extreme_percentage_capped_at_10x(self):
+        """Test that percentage changes exceeding 999% display as 10x+ on the dashboard."""
+        from datetime import timedelta
+        # Setup previous month small investment transfer and current month large investment transfer (> 10x increase, e.g. 100 to 1600000)
+        today = date.today()
+        # Use previous month date
+        if today.month == 1:
+            prev_month_date = date(today.year - 1, 12, 15)
+        else:
+            prev_month_date = date(today.year, today.month - 1, 15)
+
+        inv_acc = Account.objects.create(user=self.user, name="Investment Acc", account_type="MUTUAL_FUND", initial_balance=0)
+        bank_acc = Account.objects.create(user=self.user, name="Bank Acc", account_type="SAVINGS", initial_balance=2000000)
+
+        Transfer.objects.create(user=self.user, from_account=bank_acc, to_account=inv_acc, amount=100, date=prev_month_date)
+        Transfer.objects.create(user=self.user, from_account=bank_acc, to_account=inv_acc, amount=1600000, date=today)
+
+        url = f"{reverse('home')}?year={today.year}&month={today.month}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "10x+")

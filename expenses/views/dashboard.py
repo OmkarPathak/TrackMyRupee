@@ -1292,20 +1292,22 @@ def home_view(request):
                         'share_text': share_text
                     })
             elif prev_month_data['savings_pct'] and prev_month_data['savings_pct'] > 0:
+                 savings_str = "10x+" if prev_month_data['savings_pct_abs'] > 999 else f"{prev_month_data['savings_pct_abs']:.0f}%"
                  insights.append({
                     'type': 'success',
                     'icon': 'graph-up-arrow',
                     'title': _('Momentum Building 🚀'),
-                    'message': _("Your savings grew by %(savings_pct_abs)s%% %(period)s. You're getting better at this!") % {'savings_pct_abs': f"{prev_month_data['savings_pct_abs']:.0f}", 'period': comparison_label},
+                    'message': _("Your savings grew by %(savings_pct_abs)s %(period)s. You're getting better at this!") % {'savings_pct_abs': savings_str, 'period': comparison_label},
                     'allow_share': True,
-                    'share_text': _("My savings grew by %(savings_pct_abs)s%% this month! 🚀 via TrackMyRupee") % {'savings_pct_abs': f"{prev_month_data['savings_pct_abs']:.0f}"}
+                    'share_text': _("My savings grew by %(savings_pct_abs)s this month! 🚀 via TrackMyRupee") % {'savings_pct_abs': savings_str}
                 })
         
         # Expense Control Win (if we haven't already praised savings)
         if len(insights) == 0: 
             if prev_month_data['expense_pct'] and prev_month_data['expense_pct'] < -5:
-                 msg_text = _("You've cut spending by %(expense_pct_abs)s%%.") % {'expense_pct_abs': f"{prev_month_data['expense_pct_abs']:.0f}"}
-                 share_text = _("I cut my spending by %(expense_pct_abs)s%% this month! 👍 via TrackMyRupee") % {'expense_pct_abs': f"{prev_month_data['expense_pct_abs']:.0f}"}
+                 expense_str = "10x+" if prev_month_data['expense_pct_abs'] > 999 else f"{prev_month_data['expense_pct_abs']:.0f}%"
+                 msg_text = _("You've cut spending by %(expense_pct_abs)s.") % {'expense_pct_abs': expense_str}
+                 share_text = _("I cut my spending by %(expense_pct_abs)s this month! 👍 via TrackMyRupee") % {'expense_pct_abs': expense_str}
                  
                  if top_savers:
                      cats_link = link_cats(top_savers)
@@ -1319,7 +1321,7 @@ def home_view(request):
                     'title': _('You’re in Control 👍'),
                     'message': msg,
                     'allow_share': True,
-                    'share_text': _("I cut my spending by %(expense_pct_abs)s%% this month! 👍 via TrackMyRupee") % {'expense_pct_abs': f"{prev_month_data['expense_pct_abs']:.0f}"}
+                    'share_text': _("I cut my spending by %(expense_pct_abs)s this month! 👍 via TrackMyRupee") % {'expense_pct_abs': expense_str}
                 })
 
     # 3. Streak & Identity (Reassuring / Habit Forming)
