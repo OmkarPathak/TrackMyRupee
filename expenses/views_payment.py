@@ -169,7 +169,9 @@ def verify_payment(request):
                 return JsonResponse({'error': 'Signature Verification Failed'}, status=400)
 
             # Payment Successful
-            payment_record = PaymentHistory.objects.get(order_id=target_id, user=request.user)
+            payment_record = PaymentHistory.objects.filter(order_id=target_id, user=request.user).order_by('-created_at').first()
+            if not payment_record:
+                return JsonResponse({'error': 'Order not found'}, status=404)
             
             # Prevent capture-replay attack
             if payment_record.status == 'SUCCESS':
@@ -252,21 +254,25 @@ def razorpay_webhook(request):
                     )
                 else:
                     # Idempotency guard — Razorpay retries on non-2xx/timeout.
-                    # get_or_create keyed on payment_id: duplicate delivery skips all writes.
-                    _, created = PaymentHistory.objects.get_or_create(
-                        payment_id=payment_id,
-                        defaults={
-                            'user': profile.user,
-                            'order_id': sub_id,
-                            'amount': event_data['payload']['payment']['entity']['amount'] / 100,
-                            'tier': profile.tier,
-                            'duration': 'RECURRING',
-                            'status': 'SUCCESS',
-                        }
-                    )
-                    if not created:
+                    if PaymentHistory.objects.filter(payment_id=payment_id).exists():
                         logger.info(f"subscription.charged: duplicate delivery for payment_id={payment_id}, skipping.")
                     else:
+                        history = PaymentHistory.objects.filter(order_id=sub_id).order_by('-created_at').first()
+                        if history:
+                            history.payment_id = payment_id
+                            history.status = 'SUCCESS'
+                            history.save()
+                        else:
+                            PaymentHistory.objects.create(
+                                payment_id=payment_id,
+                                user=profile.user,
+                                order_id=sub_id,
+                                amount=event_data['payload']['payment']['entity']['amount'] / 100,
+                                tier=profile.tier,
+                                duration='RECURRING',
+                                status='SUCCESS',
+                            )
+
                         # aware UTC datetime for USE_TZ=True compatibility.
                         current_end = event_data['payload']['subscription']['entity']['current_end']
                         profile.subscription_end_date = timezone.datetime.fromtimestamp(
