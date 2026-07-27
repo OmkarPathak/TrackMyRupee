@@ -74,7 +74,7 @@
                 </button>
                 
                 <div class="dropdown d-none d-md-block">
-                    <button class="header-action-btn btn-primary fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <button class="header-action-btn btn-primary fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
                         {% trans "Add" %}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
@@ -305,7 +305,7 @@
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="dropdown">
-                                            <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                            <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
                                                 <i class="bi bi-three-dots-vertical text-muted"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
@@ -383,7 +383,7 @@
                                         {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
                                     </div>
                                     <div class="dropdown">
-                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
                                             <i class="bi bi-three-dots-vertical text-muted"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
