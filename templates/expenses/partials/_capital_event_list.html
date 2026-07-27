@@ -227,17 +227,15 @@
                 <div class="mb-3">
                     <!-- Day Header -->
                     <div class="d-flex justify-content-between align-items-center px-1 mb-2">
-                        <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
-                            {{ group.grouper|date:"d M, Y"|translate_digits }}
-                        </div>
+                        <div class="text-body-secondary fw-semibold small">{{ group.grouper|date:"d M, Y"|translate_digits }}</div>
                     </div>
                     <!-- Day's Events -->
                     {% for event in group.list %}
-                    <div class="card expense-card shadow-sm border-0 position-relative mb-3">
-                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
-                            <div class="mobile-card-inner">
+                    <div class="card expense-card rounded-4 border-0 mb-2" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center gap-3">
                                 <!-- Left-Mid: Category Icon -->
-                                <div class="category-icon-container" title="{{ event.get_subtype_display }}">
+                                <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;" title="{{ event.get_subtype_display }}">
                                     <i class="bi
                                         {% if event.subtype == 'loan_down_payment' or event.subtype == 'loan_prepayment' %}bi-bank
                                         {% elif event.subtype == 'large_purchase' %}bi-cart
@@ -249,65 +247,66 @@
                                 </div>
 
                                 <!-- Middle: Info -->
-                                <div class="flex-grow-1 min-width-0 px-1">
-                                    <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="fw-semibold mb-1 text-truncate" style="font-size: 0.93rem;" 
                                          data-bs-toggle="tooltip" data-bs-placement="top" title="{{ event.note|default:event.get_subtype_display }}">
                                         {{ event.note|default:event.get_subtype_display }}
                                     </div>
-                                    <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                    <div class="text-muted mt-1" style="font-size: 0.65rem;">
                                         <span class="text-truncate">{{ event.get_subtype_display }}{% if event.account.name %} • {{ event.account.name|truncatechars:18 }}{% endif %}</span>
                                     </div>
                                     {% if event.linked_loan %}
-                                    <div class="text-primary mt-1" style="font-size: 0.7rem;">
+                                    <div class="text-primary mt-1" style="font-size: 0.65rem;">
                                         <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name|truncatechars:18 }}
                                     </div>
                                     {% endif %}
                                 </div>
 
                                 <!-- Right: Amount + Flags -->
-                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
-                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
-                                        {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
-                                    </div>
+                                <div class="text-end d-flex align-items-center gap-2">
                                     <div class="d-flex flex-column align-items-end gap-1">
-                                        {% if event.exclude_from_averages %}
-                                            <span class="badge-soft badge-soft-info" style="font-size: 0.65rem;" title="{% trans 'Excluded from averages & trends' %}">{% trans "excl. avg" %}</span>
-                                        {% endif %}
-                                        {% if not event.include_in_net_worth %}
-                                            <span class="badge-soft badge-soft-danger" style="font-size: 0.65rem;" title="{% trans 'Not counted in net worth / cash flow' %}">{% trans "excl. NW" %}</span>
-                                        {% endif %}
+                                        <div class="fw-bold amount-capital_event signed-amount">
+                                            -{{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end gap-1">
+                                            {% if event.exclude_from_averages %}
+                                                <span class="badge-soft badge-soft-info" style="font-size: 0.55rem; padding: 2px 4px;" title="{% trans 'Excluded from averages & trends' %}">{% trans "excl. avg" %}</span>
+                                            {% endif %}
+                                            {% if not event.include_in_net_worth %}
+                                                <span class="badge-soft badge-soft-danger" style="font-size: 0.55rem; padding: 2px 4px;" title="{% trans 'Not counted in net worth / cash flow' %}">{% trans "excl. NW" %}</span>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Far Right: Menu -->
-                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
-                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
-                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.uuid %}?next={{ request.get_full_path|urlencode }}">
-                                                <i class="bi bi-pencil-square text-primary"></i>
-                                                <span>{% trans "Edit" %}</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <form method="post" action="{% url 'capital-event-convert' event.uuid %}?next={{ request.get_full_path|urlencode }}"
-                                                  class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
-                                                {% csrf_token %}
-                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                                                    <i class="bi bi-arrow-left-right text-warning"></i>
-                                                    <span>{% trans "Convert to Expense" %}</span>
-                                                </button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}">
-                                                <i class="bi bi-trash"></i>
-                                                <span>{% trans "Delete" %}</span>
-                                            </a>
-                                        </li>
-                                    </ul>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                    <i class="bi bi-pencil-square text-primary"></i>
+                                                    <span>{% trans "Edit" %}</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form method="post" action="{% url 'capital-event-convert' event.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                                      class="d-inline" onsubmit="return confirm('{% trans "Convert this capital event to a regular expense?" %}')">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                                        <i class="bi bi-arrow-left-right text-warning"></i>
+                                                        <span>{% trans "Convert to Expense" %}</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}">
+                                                    <i class="bi bi-trash"></i>
+                                                    <span>{% trans "Delete" %}</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>

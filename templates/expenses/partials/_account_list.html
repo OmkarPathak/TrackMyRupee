@@ -2,11 +2,22 @@
 
 <div id="account-list-shell">
     <style>
+        /* Accordion chevron */
         .account-group-header .accordion-chevron {
             transition: transform 0.2s ease-in-out;
         }
         .account-group-header.collapsed .accordion-chevron {
             transform: rotate(-90deg);
+        }
+
+        /* Show ⋮ button only on row hover */
+        .acct-row .acct-actions { opacity: 0; transition: opacity 0.15s; }
+        .acct-row:hover .acct-actions { opacity: 1; }
+        .acct-row:hover { background-color: rgba(0,0,0,0.018) !important; }
+
+        /* Group header left accent */
+        .account-group-header td {
+            border-left: 3px solid transparent;
         }
     </style>
 
@@ -62,20 +73,22 @@
                 <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
                 <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
             </select>
-            <select name="type"
-                    class="form-select form-select-sm bg-body rounded-3 border-light-subtle fw-medium"
-                    style="min-width: 200px; cursor: pointer; padding: 7px 14px;"
-                    hx-get="{% url 'account-list' %}" hx-target="#account-list-shell" hx-swap="outerHTML show:none"
-                    hx-push-url="true" hx-indicator="#global-progress-bar" hx-trigger="change" hx-include="[name='status']">
-                <option value="">{% trans "All types" %}</option>
-                {% for group_name, choices in account_types %}
-                    <optgroup label="{{ group_name }}">
-                        {% for val, label in choices %}
-                            <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </optgroup>
-                {% endfor %}
-            </select>
+            <div style="min-width: 280px;">
+                <select name="type"
+                        class="form-select form-select-sm bg-body rounded-3 border-light-subtle fw-medium"
+                        style="cursor: pointer; padding: 7px 14px;"
+                        hx-get="{% url 'account-list' %}" hx-target="#account-list-shell" hx-swap="outerHTML show:none"
+                        hx-push-url="true" hx-indicator="#global-progress-bar" hx-trigger="change" hx-include="[name='status']">
+                    <option value="">{% trans "All types" %}</option>
+                    {% for group_name, choices in account_types %}
+                        <optgroup label="{{ group_name }}">
+                            {% for val, label in choices %}
+                                <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
             {% if selected_type or current_status != 'active' %}
                 <button type="button" class="btn btn-link btn-sm text-muted p-0 ms-1"
                         hx-get="{% url 'account-list' %}" hx-params="none" hx-target="#account-list-shell"
@@ -158,171 +171,18 @@
 
     {% include 'partials/guide_accounts.html' %}
 
-    <!-- ═══════════════════════════════════════════════
-         DESKTOP TABLE (d-none d-md-block)
-    ══════════════════════════════════════════════════ -->
-    <div class="card border-0 rounded-4 d-none d-md-block mb-4 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
-        <div class="card-body p-0">
-            {% if grouped_accounts %}
-                <div class="table-responsive">
-                    <table class="table mb-0 text-start align-middle" style="table-layout: fixed;">
-                        <colgroup>
-                            <col style="width: 30%;">
-                            <col style="width: 17%;">
-                            <col style="width: 21%;">
-                            <col style="width: 13%;">
-                            <col style="width: 14%;">
-                            <col style="width: 5%;">
-                        </colgroup>
-                        <thead>
-                            <tr class="border-bottom" style="background-color: rgba(0,0,0,0.02);">
-                                <th class="ps-4 py-3 text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Account Name" %}</th>
-                                <th class="py-3 text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Type" %}</th>
-                                <th class="py-3 text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Maturity & Rate" %}</th>
-                                <th class="py-3 text-end text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Deposit" %}</th>
-                                <th class="py-3 text-end text-muted text-uppercase fw-semibold" style="font-size: 0.67rem; letter-spacing: 0.08em;">{% trans "Balance" %}</th>
-                                <th class="py-3"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for group in grouped_accounts %}
-                                <!-- Group Header -->
-                                <tr data-bs-toggle="collapse" data-bs-target="#desktop-group-{{ group.type }}" aria-expanded="true"
-                                    class="account-group-header"
-                                    style="cursor: pointer; background-color: rgba(0,0,0,0.025);">
-                                    <td colspan="6" class="ps-4 pe-4 py-2 border-top border-bottom">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 {{ group.icon_bg }}" style="width: 28px; height: 28px;">
-                                                    <i class="{{ group.icon }}" style="font-size: 0.8rem;"></i>
-                                                </div>
-                                                <span class="fw-bold text-body" style="font-size: 0.88rem;">{{ group.label }}</span>
-                                                <span class="text-muted" style="font-size: 0.7rem; background-color: rgba(0,0,0,0.06); border-radius: 20px; padding: 1px 7px;">{{ group.count|translate_digits }}</span>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <span class="fw-bold text-body" style="font-size: 0.88rem;">{{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}</span>
-                                                <i class="bi bi-chevron-down text-muted accordion-chevron" style="font-size: 0.72rem; transition: transform 0.2s ease;"></i>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <!-- Account Rows -->
-                                <tr class="p-0 border-0">
-                                    <td colspan="6" class="p-0 border-0">
-                                        <div id="desktop-group-{{ group.type }}" class="collapse show">
-                                            <table class="table mb-0 align-middle" style="table-layout: fixed;">
-                                                <colgroup>
-                                                    <col style="width: 30%;">
-                                                    <col style="width: 17%;">
-                                                    <col style="width: 21%;">
-                                                    <col style="width: 13%;">
-                                                    <col style="width: 14%;">
-                                                    <col style="width: 5%;">
-                                                </colgroup>
-                                                <tbody>
-                                                    {% for account in group.accounts %}
-                                                    <tr class="border-bottom" style="transition: background 0.1s;">
-                                                        <td class="ps-4 py-3">
-                                                            {% if account.is_locked %}
-                                                                <span class="fw-semibold text-muted d-block text-truncate" style="font-size: 0.87rem;"><i class="bi bi-lock-fill me-1" style="font-size: 0.7rem;"></i>{{ account.name }}</span>
-                                                            {% else %}
-                                                                <a href="{% url 'account-detail' account.uuid %}" class="fw-semibold text-decoration-none text-body d-block text-truncate" style="font-size: 0.87rem;">{{ account.name }}</a>
-                                                            {% endif %}
-                                                            <div class="text-muted mt-0.5" style="font-size: 0.71rem;">
-                                                                {% if account.days_since_update == 0 %}{% trans "Updated today" %}
-                                                                {% elif account.days_since_update == 1 %}{% trans "Updated 1 day ago" %}
-                                                                {% else %}{% blocktrans with days=account.days_since_update|translate_digits %}Updated {{ days }} days ago{% endblocktrans %}{% endif %}
-                                                            </div>
-                                                        </td>
-                                                        <td class="py-3">
-                                                            <span class="text-muted" style="font-size: 0.8rem;">{{ account.get_account_type_display }}</span>
-                                                        </td>
-                                                        <td class="py-3">
-                                                            {% if account.deposit_maturity_date or account.deposit_rate %}
-                                                                <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                                    {% if account.deposit_maturity_date %}
-                                                                        <span class="text-muted" style="font-size: 0.75rem; white-space: nowrap;"><i class="bi bi-calendar2 me-0.5 opacity-50"></i>{{ account.deposit_maturity_date|date:"d M Y" }}</span>
-                                                                    {% endif %}
-                                                                    {% if account.deposit_rate %}
-                                                                        <span class="rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.68rem; background-color: rgba(29, 158, 117, 0.1); color: #1D9E75; white-space: nowrap;">{{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.</span>
-                                                                    {% endif %}
-                                                                </div>
-                                                            {% else %}
-                                                                <span class="text-muted" style="opacity: 0.3;">—</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td class="py-3 text-end">
-                                                            {% if account.has_accrued_value %}
-                                                                <span class="text-muted" style="font-size: 0.79rem; white-space: nowrap;">{{ account.currency }}{{ account.effective_principal|ind_comma:account.currency|translate_digits }}</span>
-                                                            {% else %}
-                                                                <span class="text-muted" style="opacity: 0.3;">—</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td class="py-3 text-end">
-                                                            <div class="fw-bold {% if account.display_balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}" style="font-size: 0.87rem; letter-spacing: -0.2px; white-space: nowrap;">
-                                                                {% if account.has_accrued_value %}{{ account.currency }}{{ account.accrued_value|ind_comma:account.currency|translate_digits }}
-                                                                {% else %}{{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}{% endif %}
-                                                            </div>
-                                                            {% if account.has_accrued_value %}
-                                                                <div class="text-muted" style="font-size: 0.68rem; white-space: nowrap; opacity: 0.55;">{{ account.currency }}{{ account.effective_principal|ind_comma:account.currency|translate_digits }}</div>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td class="py-3 text-center">
-                                                            <div class="dropdown">
-                                                                <button class="btn btn-link text-muted p-0 border-0" style="opacity: 0.3; line-height: 1;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="bi bi-three-dots-vertical" style="font-size: 0.85rem;"></i>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1">
-                                                                    {% if current_status == 'inactive' %}
-                                                                        <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-success fw-semibold" href="{% url 'account-restore' account.uuid %}"><i class="bi bi-arrow-counterclockwise"></i><span>{% trans "Restore" %}</span></a></li>
-                                                                    {% elif account.is_locked %}
-                                                                        <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small text-primary fw-semibold" href="{% url 'pricing' %}"><i class="bi bi-rocket-takeoff"></i><span>{% trans "Unlock" %}</span></a></li>
-                                                                    {% else %}
-                                                                        <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small" href="{% url 'account-edit' account.uuid %}"><i class="bi bi-pencil-square text-primary"></i><span>{% trans "Edit" %}</span></a></li>
-                                                                        <li><hr class="dropdown-divider my-1"></li>
-                                                                        <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small" href="{% url 'account-delete' account.uuid %}"><i class="bi bi-trash"></i><span>{% trans "Delete" %}</span></a></li>
-                                                                    {% endif %}
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <div class="mb-4">{% include 'illustrations/empty_accounts.svg' %}</div>
-                    <h5 class="fw-bold text-muted">{% if current_status == 'inactive' %}{% trans "No inactive accounts found." %}{% else %}{% trans "No accounts created yet." %}{% endif %}</h5>
-                    <p class="text-muted small mb-3">{% trans "Track cash, bank accounts, fixed deposits, and investments." %}</p>
-                    {% if current_status != 'inactive' %}
-                        <a href="{% url 'account-create' %}" class="btn btn-sm fw-bold px-3 py-2 text-white rounded-3" style="background-color: #1D9E75; border-color: #1D9E75;">
-                            <i class="bi bi-plus-lg me-1"></i>{% trans "Add First Account" %}
-                        </a>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
-    </div>
 
     <!-- ═══════════════════════════════════════════════
          MOBILE CARD VIEW (d-md-none)
          Matches mockup: dot + name/type left, balance/date right
     ══════════════════════════════════════════════════ -->
-    <div class="d-md-none">
+    <div class="account-list-cards mb-4">
         {% if grouped_accounts %}
             {% for group in grouped_accounts %}
 
                 <!-- Mobile Group Header -->
                 <div class="d-flex align-items-center justify-content-between px-0 py-2 mb-2 mt-3 account-group-header"
-                     data-bs-toggle="collapse" data-bs-target="#mobile-group-{{ group.type }}"
+                     data-bs-toggle="collapse" data-bs-target="#group-{{ group.type }}"
                      aria-expanded="true" style="cursor: pointer;">
                     <div class="d-flex align-items-center gap-2">
                         <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 {{ group.icon_bg }}" style="width: 32px; height: 32px;">
@@ -338,10 +198,11 @@
                 </div>
 
                 <!-- Account Cards -->
-                <div id="mobile-group-{{ group.type }}" class="collapse show mb-2">
-                    <div class="d-flex flex-column gap-2">
+                <div id="group-{{ group.type }}" class="collapse show mb-3 mt-1">
+                    <div class="row row-cols-1 row-cols-xl-2 g-2">
                     {% for account in group.accounts %}
-                    <div class="bg-body rounded-4 mb-1" style="border: 1px solid rgba(0,0,0,0.07);">
+                    <div class="col">
+                    <div class="bg-body rounded-4 h-100" style="border: 1px solid rgba(0,0,0,0.07); transition: box-shadow 0.2s;">
                         <div class="d-flex align-items-start gap-3 p-3">
 
                             <!-- Left: name + meta -->
@@ -406,8 +267,9 @@
                             </div>
                         </div>
                     </div>
+                    </div>
                     {% endfor %}
-                    </div><!-- /d-flex flex-column gap-2 -->
+                    </div><!-- /row -->
                 </div><!-- /collapse -->
 
             {% endfor %}
