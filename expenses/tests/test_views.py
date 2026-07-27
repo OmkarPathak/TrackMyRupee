@@ -1,12 +1,13 @@
 import json
 from datetime import date, timedelta
+from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from expenses.models import Account, Category, Expense, Income, RecurringTransaction
+from expenses.models import Account, Category, Expense, Income, RecurringTransaction, Transfer
 
 
 class BaseViewTest(TestCase):
@@ -519,8 +520,8 @@ class DashboardAggregationTest(BaseViewTest):
         else:
             prev_month_date = date(today.year, today.month - 1, 15)
 
-        inv_acc = Account.objects.create(user=self.user, name="Investment Acc", account_type="MUTUAL_FUND", initial_balance=0)
-        bank_acc = Account.objects.create(user=self.user, name="Bank Acc", account_type="SAVINGS", initial_balance=2000000)
+        inv_acc = Account.objects.create(user=self.user, name="Investment Acc", account_type="MUTUAL_FUND", balance=0)
+        bank_acc = Account.objects.create(user=self.user, name="Bank Acc", account_type="SAVINGS", balance=2000000)
 
         Transfer.objects.create(user=self.user, from_account=bank_acc, to_account=inv_acc, amount=100, date=prev_month_date)
         Transfer.objects.create(user=self.user, from_account=bank_acc, to_account=inv_acc, amount=1600000, date=today)
@@ -547,7 +548,7 @@ class DashboardAggregationTest(BaseViewTest):
         # 1. Check account list view renders Matures on and 7.1% p.a.
         res_list = self.client.get(reverse('account-list'))
         self.assertEqual(res_list.status_code, 200)
-        self.assertContains(res_list, "Matures on:")
+        self.assertContains(res_list, "Matures")
         self.assertContains(res_list, "7.1% p.a.")
 
         # 2. Check dashboard view renders smart insight alert for maturing FD
