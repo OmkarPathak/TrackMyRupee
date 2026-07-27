@@ -558,8 +558,11 @@ class LedgerReadService:
                     )
 
             elif strategy == STRATEGY.DEPOSIT:
-                # Accrual if deposit fields set, else ledger balance
-                native_val = _compute_deposit_value(account, ledger_bal)
+                # Accrual if deposit fields set and show_accrued_balance is True, else ledger balance
+                if getattr(account, 'show_accrued_balance', True):
+                    native_val = _compute_deposit_value(account, ledger_bal)
+                else:
+                    native_val = ledger_bal
                 account_value = FXService.convert_using_map(
                     native_val, account.currency, fx_map
                 )

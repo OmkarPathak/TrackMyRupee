@@ -204,6 +204,11 @@ class Account(models.Model):
         null=True, blank=True,
         verbose_name=_('Deposit Maturity Date'),
     )
+    show_accrued_balance = models.BooleanField(
+        default=True,
+        verbose_name=_('Show Accrued Balance'),
+        help_text=_('If enabled, the dashboard and account lists will display the projected accrued balance instead of the ledger balance.')
+    )
 
     class Meta:
         constraints = [

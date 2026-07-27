@@ -100,6 +100,20 @@
                                                 <div class="text-danger small mt-1">{{ form.deposit_start_date.errors }}</div>
                                             {% endif %}
                                         </div>
+                                        <div class="col-12 mt-3 pt-2 border-top border-secondary border-opacity-10">
+                                            <div class="form-check form-switch">
+                                                {{ form.show_accrued_balance }}
+                                                <label class="form-check-label text-body-emphasis fw-semibold ms-1" for="{{ form.show_accrued_balance.id_for_label }}">
+                                                    {% trans "Show Accrued Balance" %}
+                                                </label>
+                                                {% if form.show_accrued_balance.errors %}
+                                                    <div class="text-danger small mt-1">{{ form.show_accrued_balance.errors }}</div>
+                                                {% endif %}
+                                                <small class="form-text text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                                    {% trans "If enabled, the dashboard and account lists will display the projected accrued balance instead of the ledger balance." %}
+                                                </small>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -124,29 +138,48 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const accountTypeSelect = document.querySelector('select[name="account_type"]') || document.getElementById('id_account_type');
     const depositAccordion = document.getElementById('depositDetailsAccordion');
     
     // Account type codes for FD / RD and fixed deposit schemes
     const depositTypes = ['FD', 'RD', 'FIXED_DEPOSIT', 'PPF', 'EPF', 'VPF', 'NPS', 'SSY', 'POST_OFFICE', 'APY'];
 
-    function toggleDepositAccordion() {
-        if (!accountTypeSelect || !depositAccordion) return;
-        const selectedValue = accountTypeSelect.value;
+    function toggleDepositAccordion(selectedValue) {
+        if (!depositAccordion) return;
+        
         if (depositTypes.includes(selectedValue)) {
             depositAccordion.style.display = 'block';
+            // Auto-expand the accordion
+            const collapseEl = document.getElementById('collapseDepositDetails');
+            const buttonEl = depositAccordion.querySelector('.accordion-button');
+            if (collapseEl && !collapseEl.classList.contains('show')) {
+                collapseEl.classList.add('show');
+                if (buttonEl) buttonEl.classList.remove('collapsed');
+                if (buttonEl) buttonEl.setAttribute('aria-expanded', 'true');
+            }
         } else {
             depositAccordion.style.display = 'none';
+            // Auto-collapse when hiding
+            const collapseEl = document.getElementById('collapseDepositDetails');
+            const buttonEl = depositAccordion.querySelector('.accordion-button');
+            if (collapseEl && collapseEl.classList.contains('show')) {
+                collapseEl.classList.remove('show');
+                if (buttonEl) buttonEl.classList.add('collapsed');
+                if (buttonEl) buttonEl.setAttribute('aria-expanded', 'false');
+            }
         }
     }
 
-    if (accountTypeSelect) {
-        accountTypeSelect.addEventListener('change', toggleDepositAccordion);
-        if (window.jQuery) {
-            window.jQuery(accountTypeSelect).on('change', toggleDepositAccordion);
+    // Use event delegation to catch change events even if the select is manipulated by custom UI scripts
+    document.addEventListener('change', function(e) {
+        if (e.target && (e.target.name === 'account_type' || e.target.id === 'id_account_type')) {
+            toggleDepositAccordion(e.target.value);
         }
-        // Run initial check
-        toggleDepositAccordion();
+    });
+
+    // Run initial check
+    const accountTypeSelect = document.querySelector('select[name="account_type"]') || document.getElementById('id_account_type');
+    if (accountTypeSelect) {
+        toggleDepositAccordion(accountTypeSelect.value);
     }
 });
 </script>

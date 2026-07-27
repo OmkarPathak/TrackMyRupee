@@ -651,7 +651,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = [
             'name', 'account_type', 'balance', 'currency',
             'linked_loan', 'linked_physical_asset',
-            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_compounding',
+            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_compounding', 'show_accrued_balance',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
@@ -660,6 +660,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'balance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
+            'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def __init__(self, *args, **kwargs):

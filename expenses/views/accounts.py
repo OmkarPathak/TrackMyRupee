@@ -110,7 +110,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             if account.account_type in deposit_codes():
                 accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
                 deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
-                if accrued != deposit_principal or account.deposit_rate is not None:
+                if getattr(account, 'show_accrued_balance', True) and (accrued != deposit_principal or account.deposit_rate is not None):
                     account.accrued_value = accrued
                     account.effective_principal = deposit_principal
                     account.has_accrued_value = True
@@ -541,7 +541,7 @@ class AccountDetailView(LoginRequiredMixin, View):
         if account.account_type in deposit_codes():
             accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
             deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
-            if accrued != deposit_principal or account.deposit_rate is not None:
+            if getattr(account, 'show_accrued_balance', True) and (accrued != deposit_principal or account.deposit_rate is not None):
                 account.accrued_value = accrued
                 account.effective_principal = deposit_principal
                 account.has_accrued_value = True
