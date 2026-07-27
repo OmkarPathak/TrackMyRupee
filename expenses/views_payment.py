@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import timedelta
+from datetime import timedelta, timezone as dt_timezone
 
 import razorpay
 from django.conf import settings
@@ -64,17 +64,21 @@ def create_order(request):
                     }
                 }
                 subscription = client.subscription.create(data=subscription_data)
-                
+
                 # Save as pending order for tracking
                 PaymentHistory.objects.create(
                     user=request.user,
-                    order_id=subscription['id'], # Using subscription ID here
+                    order_id=subscription['id'],  # Using subscription ID here
                     amount=db_plan.price,
                     tier=plan_type,
                     duration=duration,
                     status='PENDING'
                 )
-                
+
+                profile = request.user.profile
+                profile.razorpay_subscription_id = subscription['id']
+                profile.save(update_fields=['razorpay_subscription_id'])
+
                 return JsonResponse({
                     'id': subscription['id'],
                     'type': 'SUBSCRIPTION',
@@ -159,11 +163,11 @@ def verify_payment(request):
                     }
                     client.utility.verify_payment_signature(params_dict)
             except razorpay.errors.SignatureVerificationError:
-                PaymentHistory.objects.filter(order_id=target_id).update(status='FAILED')
+                PaymentHistory.objects.filter(order_id=target_id, user=request.user).update(status='FAILED')
                 return JsonResponse({'error': 'Signature Verification Failed'}, status=400)
 
             # Payment Successful
-            payment_record = PaymentHistory.objects.get(order_id=target_id)
+            payment_record = PaymentHistory.objects.get(order_id=target_id, user=request.user)
             
             # Prevent capture-replay attack
             if payment_record.status == 'SUCCESS':
@@ -226,33 +230,99 @@ def razorpay_webhook(request):
             # Handle Subscription Events
             if event == 'subscription.charged':
                 sub_id = event_data['payload']['subscription']['entity']['id']
+                payment_id = event_data['payload']['payment']['entity']['id']
+
+                # Idempotency guard — Razorpay retries on non-2xx/timeout.
+                # Use get_or_create keyed on payment_id so a duplicate delivery
+                # neither double-extends the subscription_end_date nor creates a
+                # duplicate PaymentHistory row.
+                _, created = PaymentHistory.objects.get_or_create(
+                    payment_id=payment_id,
+                    defaults={
+                        'order_id': sub_id,
+                        'amount': event_data['payload']['payment']['entity']['amount'] / 100,
+                        'duration': 'RECURRING',
+                        'status': 'SUCCESS',
+                    }
+                )
+                if not created:
+                    logger.info(f"subscription.charged: duplicate delivery for payment_id={payment_id}, skipping.")
+                else:
+                    profile = UserProfile.objects.filter(razorpay_subscription_id=sub_id).first()
+                    if not profile:
+                        history = PaymentHistory.objects.filter(order_id=sub_id).select_related('user__profile').first()
+                        if history:
+                            profile = history.user.profile
+                            # Back-fill the subscription ID so future webhooks match directly.
+                            profile.razorpay_subscription_id = sub_id
+
+                    if profile:
+                        # Use an aware datetime (UTC) so Django's
+                        # USE_TZ=True machinery doesn't warn or silently misinterpret.
+                        current_end = event_data['payload']['subscription']['entity']['current_end']
+                        profile.subscription_end_date = timezone.datetime.fromtimestamp(
+                            current_end, tz=dt_timezone.utc
+                        )
+                        # Back-fill tier on the idempotency record now that we have the profile
+                        PaymentHistory.objects.filter(payment_id=payment_id).update(
+                            user=profile.user,
+                            tier=profile.tier,
+                        )
+                        profile.save()
+                        logger.info(f"subscription.charged: extended subscription for sub_id={sub_id} until {profile.subscription_end_date}")
+                    else:
+                        logger.error(
+                            f"subscription.charged: could not find profile for sub_id={sub_id}. "
+                            "Payment charged but subscription NOT activated."
+                        )
+
+            elif event == 'subscription.cancelled':
+                # User-initiated cancellation at cycle end — they already paid for
+                # the current cycle so subscription_end_date remains correct.
+                sub_id = event_data['payload']['subscription']['entity']['id']
                 profile = UserProfile.objects.filter(razorpay_subscription_id=sub_id).first()
                 if profile:
-                    # Extend subscription
-                    # The payload contains current subscription details
-                    current_end = event_data['payload']['subscription']['entity']['current_end']
-                    profile.subscription_end_date = timezone.datetime.fromtimestamp(current_end)
+                    profile.cancel_at_cycle_end = False
                     profile.save()
-                    
-                    # Log to PaymentHistory for records
-                    PaymentHistory.objects.create(
-                        user=profile.user,
-                        order_id=sub_id,
-                        payment_id=event_data['payload']['payment']['entity']['id'],
-                        amount=event_data['payload']['payment']['entity']['amount'] / 100,
-                        tier=profile.tier,
-                        duration='RECURRING',
-                        status='SUCCESS'
+                    logger.info(f"Subscription confirmed cancelled for {sub_id}")
+
+            elif event == 'subscription.halted':
+                # halted ≠ cancelled. Razorpay halts after repeated
+                # payment failures — the customer has stopped paying. Expire access
+                # immediately and downgrade the tier instead of just clearing the flag.
+                sub_id = event_data['payload']['subscription']['entity']['id']
+                profile = UserProfile.objects.filter(razorpay_subscription_id=sub_id).first()
+                if profile:
+                    profile.tier = 'FREE'
+                    profile.subscription_end_date = timezone.now()
+                    profile.cancel_at_cycle_end = False
+                    profile.save()
+                    logger.warning(
+                        f"Subscription halted (payment failure) for sub_id={sub_id}. "
+                        f"User {profile.user_id} downgraded to FREE."
                     )
-            
-            elif event in ['subscription.cancelled', 'subscription.halted']:
-                 sub_id = event_data['payload']['subscription']['entity']['id']
-                 profile = UserProfile.objects.filter(razorpay_subscription_id=sub_id).first()
-                 if profile:
-                     # Reset flag as it's now fully cancelled
-                     profile.cancel_at_cycle_end = False
-                     profile.save()
-                     logger.info(f"Subscription confirmed cancelled for {sub_id}")
+
+            elif event == 'subscription.pending':
+                # Razorpay is retrying a failed charge — no action needed yet, but
+                # log it so we know a halted event may follow if retries are exhausted.
+                sub_id = event_data['payload']['subscription']['entity']['id']
+                logger.info(f"subscription.pending: payment retry in progress for sub_id={sub_id}")
+
+            elif event == 'subscription.completed':
+                # Fired when total_count (100) billing cycles are
+                # exhausted. Without this handler the user silently keeps PRO access
+                # until the last subscription_end_date lapses, then loses it with no
+                # notification. Log and downgrade now so the UI prompts renewal.
+                sub_id = event_data['payload']['subscription']['entity']['id']
+                profile = UserProfile.objects.filter(razorpay_subscription_id=sub_id).first()
+                if profile:
+                    profile.tier = 'FREE'
+                    profile.cancel_at_cycle_end = False
+                    profile.save()
+                    logger.info(
+                        f"subscription.completed: all billing cycles exhausted for sub_id={sub_id}. "
+                        f"User {profile.user_id} downgraded to FREE."
+                    )
 
             return JsonResponse({'status': 'ok'})
         except Exception as e:
