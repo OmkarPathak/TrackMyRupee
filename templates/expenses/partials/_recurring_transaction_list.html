@@ -110,36 +110,50 @@
     <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 hide-scrollbar mt-3 mb-4" style="scrollbar-width: none;" id="subscriptionTabs" role="tablist">
         <button type="button" id="all-tab" role="tab" aria-selected="true"
             class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
-            data-bs-toggle="tab" data-bs-target="#all"
+            data-sub-tab-target="#all"
             style="font-size: 0.8rem; background-color: #1D9E75; border-color: #1D9E75; color: #fff;">
             {% trans "All" %} {{ active_subs|length|translate_digits }}
         </button>
         <button type="button" id="renewing-tab" role="tab" aria-selected="false"
             class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
-            data-bs-toggle="tab" data-bs-target="#renewing"
+            data-sub-tab-target="#renewing"
             style="font-size: 0.8rem; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);">
             {% trans "Renewing Soon" %}{% if renewals_count > 0 %} {{ renewals_count|translate_digits }}{% endif %}
         </button>
         <button type="button" id="cancelled-tab" role="tab" aria-selected="false"
             class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
-            data-bs-toggle="tab" data-bs-target="#cancelled"
+            data-sub-tab-target="#cancelled"
             style="font-size: 0.8rem; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);">
             {% trans "Cancelled" %}
         </button>
     </div>
     <script>
     (function () {
-        /* Keep green-pill active state in sync with Bootstrap tab events */
+        /* Drive tab switching manually via bootstrap.Tab so we avoid any
+           nav-link / active class style conflicts with the custom pill colours. */
         document.querySelectorAll('.sub-pill-btn').forEach(function (btn) {
-            btn.addEventListener('show.bs.tab', function () {
+            btn.addEventListener('click', function () {
+                var targetId = btn.getAttribute('data-sub-tab-target');
+                var pane = document.querySelector(targetId);
+                if (!pane) return;
+
+                /* Hide all panes, show the target */
+                document.querySelectorAll('#subscriptionTabsContent .tab-pane').forEach(function (p) {
+                    p.classList.remove('show', 'active');
+                });
+                pane.classList.add('show', 'active');
+
+                /* Update pill colours */
                 document.querySelectorAll('.sub-pill-btn').forEach(function (b) {
                     b.style.backgroundColor = 'var(--bs-tertiary-bg)';
                     b.style.borderColor = 'rgba(0,0,0,0.06)';
                     b.style.color = 'var(--bs-secondary-color)';
+                    b.setAttribute('aria-selected', 'false');
                 });
                 btn.style.backgroundColor = '#1D9E75';
                 btn.style.borderColor = '#1D9E75';
                 btn.style.color = '#fff';
+                btn.setAttribute('aria-selected', 'true');
             });
         });
     })();

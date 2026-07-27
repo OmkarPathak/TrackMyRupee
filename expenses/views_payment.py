@@ -34,6 +34,7 @@ def start_trial(request):
         return JsonResponse({'success': True, 'message': '7-Day Pro Trial activated successfully!'})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+
 @login_required
 def create_order(request):
     if request.method == "POST":
@@ -130,6 +131,7 @@ def create_order(request):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+
 @login_required
 def verify_payment(request):
     if request.method == "POST":
@@ -204,6 +206,7 @@ def verify_payment(request):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+
 @csrf_exempt
 def razorpay_webhook(request):
     if request.method == "POST":
@@ -232,49 +235,45 @@ def razorpay_webhook(request):
                 sub_id = event_data['payload']['subscription']['entity']['id']
                 payment_id = event_data['payload']['payment']['entity']['id']
 
-                # Idempotency guard — Razorpay retries on non-2xx/timeout.
-                # Use get_or_create keyed on payment_id so a duplicate delivery
-                # neither double-extends the subscription_end_date nor creates a
-                # duplicate PaymentHistory row.
-                _, created = PaymentHistory.objects.get_or_create(
-                    payment_id=payment_id,
-                    defaults={
-                        'order_id': sub_id,
-                        'amount': event_data['payload']['payment']['entity']['amount'] / 100,
-                        'duration': 'RECURRING',
-                        'status': 'SUCCESS',
-                    }
-                )
-                if not created:
-                    logger.info(f"subscription.charged: duplicate delivery for payment_id={payment_id}, skipping.")
-                else:
-                    profile = UserProfile.objects.filter(razorpay_subscription_id=sub_id).first()
-                    if not profile:
-                        history = PaymentHistory.objects.filter(order_id=sub_id).select_related('user__profile').first()
-                        if history:
-                            profile = history.user.profile
-                            # Back-fill the subscription ID so future webhooks match directly.
-                            profile.razorpay_subscription_id = sub_id
+                # Resolve the profile FIRST so `user` (non-nullable FK) is known
+                # before we touch PaymentHistory.
+                profile = UserProfile.objects.filter(razorpay_subscription_id=sub_id).first()
+                if not profile:
+                    history = PaymentHistory.objects.filter(order_id=sub_id).select_related('user__profile').first()
+                    if history:
+                        profile = history.user.profile
+                        # Back-fill the subscription ID so future webhooks match directly.
+                        profile.razorpay_subscription_id = sub_id
 
-                    if profile:
-                        # Use an aware datetime (UTC) so Django's
-                        # USE_TZ=True machinery doesn't warn or silently misinterpret.
+                if not profile:
+                    logger.error(
+                        f"subscription.charged: could not find profile for sub_id={sub_id}. "
+                        "Payment charged but subscription NOT activated."
+                    )
+                else:
+                    # Idempotency guard — Razorpay retries on non-2xx/timeout.
+                    # get_or_create keyed on payment_id: duplicate delivery skips all writes.
+                    _, created = PaymentHistory.objects.get_or_create(
+                        payment_id=payment_id,
+                        defaults={
+                            'user': profile.user,
+                            'order_id': sub_id,
+                            'amount': event_data['payload']['payment']['entity']['amount'] / 100,
+                            'tier': profile.tier,
+                            'duration': 'RECURRING',
+                            'status': 'SUCCESS',
+                        }
+                    )
+                    if not created:
+                        logger.info(f"subscription.charged: duplicate delivery for payment_id={payment_id}, skipping.")
+                    else:
+                        # aware UTC datetime for USE_TZ=True compatibility.
                         current_end = event_data['payload']['subscription']['entity']['current_end']
                         profile.subscription_end_date = timezone.datetime.fromtimestamp(
                             current_end, tz=dt_timezone.utc
                         )
-                        # Back-fill tier on the idempotency record now that we have the profile
-                        PaymentHistory.objects.filter(payment_id=payment_id).update(
-                            user=profile.user,
-                            tier=profile.tier,
-                        )
                         profile.save()
                         logger.info(f"subscription.charged: extended subscription for sub_id={sub_id} until {profile.subscription_end_date}")
-                    else:
-                        logger.error(
-                            f"subscription.charged: could not find profile for sub_id={sub_id}. "
-                            "Payment charged but subscription NOT activated."
-                        )
 
             elif event == 'subscription.cancelled':
                 # User-initiated cancellation at cycle end — they already paid for
@@ -330,6 +329,7 @@ def razorpay_webhook(request):
             return JsonResponse({'status': 'error'}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+
 @login_required
 def cancel_subscription(request):
     if request.method == "POST":
@@ -357,6 +357,7 @@ def cancel_subscription(request):
             logger.error(f"Error cancelling subscription: {e}")
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
 
 class PaymentHistoryView(LoginRequiredMixin, ListView):
     model = PaymentHistory
