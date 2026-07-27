@@ -106,24 +106,44 @@
         
     {% include 'components/upgrade_nudge.html' %}
 
-    <!-- Navigation Tabs -->
-    <ul class="nav nav-pills-standard mb-4 gap-2 flex-nowrap overflow-auto py-1 mt-3" id="subscriptionTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-selected="true">
-                {% trans "All" %}
-                <span class="badge rounded-pill bg-body text-body-secondary ms-1 opacity-75" style="font-size: 0.7rem;">{{ active_subs|length|translate_digits }}</span>
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="renewing-tab" data-bs-toggle="tab" data-bs-target="#renewing" type="button" role="tab" aria-selected="false">
-                {% trans "Renewing Soon" %} 
-                {% if renewals_count > 0 %}<span class="badge rounded-pill bg-body text-body-secondary ms-1" style="font-size: 0.68rem; padding: 0.25em 0.55em;">{{ renewals_count|translate_digits }}</span>{% endif %}
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab" aria-selected="false">{% trans "Cancelled" %}</button>
-        </li>
-    </ul>
+    <!-- Navigation Pills (matches all-transactions page style) -->
+    <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 hide-scrollbar mt-3 mb-4" style="scrollbar-width: none;" id="subscriptionTabs" role="tablist">
+        <button type="button" id="all-tab" role="tab" aria-selected="true"
+            class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
+            data-bs-toggle="tab" data-bs-target="#all"
+            style="font-size: 0.8rem; background-color: #1D9E75; border-color: #1D9E75; color: #fff;">
+            {% trans "All" %} {{ active_subs|length|translate_digits }}
+        </button>
+        <button type="button" id="renewing-tab" role="tab" aria-selected="false"
+            class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
+            data-bs-toggle="tab" data-bs-target="#renewing"
+            style="font-size: 0.8rem; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);">
+            {% trans "Renewing Soon" %}{% if renewals_count > 0 %} {{ renewals_count|translate_digits }}{% endif %}
+        </button>
+        <button type="button" id="cancelled-tab" role="tab" aria-selected="false"
+            class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
+            data-bs-toggle="tab" data-bs-target="#cancelled"
+            style="font-size: 0.8rem; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);">
+            {% trans "Cancelled" %}
+        </button>
+    </div>
+    <script>
+    (function () {
+        /* Keep green-pill active state in sync with Bootstrap tab events */
+        document.querySelectorAll('.sub-pill-btn').forEach(function (btn) {
+            btn.addEventListener('show.bs.tab', function () {
+                document.querySelectorAll('.sub-pill-btn').forEach(function (b) {
+                    b.style.backgroundColor = 'var(--bs-tertiary-bg)';
+                    b.style.borderColor = 'rgba(0,0,0,0.06)';
+                    b.style.color = 'var(--bs-secondary-color)';
+                });
+                btn.style.backgroundColor = '#1D9E75';
+                btn.style.borderColor = '#1D9E75';
+                btn.style.color = '#fff';
+            });
+        });
+    })();
+    </script>
 
     <!-- Tab Contents -->
     <div class="tab-content" id="subscriptionTabsContent">
@@ -238,66 +258,63 @@
                 <!-- Mobile Grid View -->
                 <div id="mobileGridView" class="py-2 d-md-none">
                     {% for sub in active_subs %}
-                    <div class="card expense-card shadow-sm border-0 position-relative mb-2">
+                    <div class="card expense-card rounded-4 border-0 mb-2" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="card-body p-3">
-                            <div class="mobile-card-inner">
-                                <div class="category-icon-container" title="{{ sub.description }}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;" title="{{ sub.description }}">
                                     {% if sub.is_locked %}
-                                        <i class="bi bi-lock-fill text-secondary"></i>
+                                        <i class="bi bi-lock-fill"></i>
                                     {% elif sub.transaction_type == 'TRANSFER' %}
-                                        <i class="bi bi-arrow-left-right text-info"></i>
+                                        <i class="bi bi-arrow-left-right"></i>
                                     {% elif sub.transaction_type == 'INCOME' %}
-                                        <i class="bi bi-arrow-repeat text-success"></i>
+                                        <i class="bi bi-arrow-repeat"></i>
                                     {% else %}
-                                        <i class="bi bi-arrow-repeat text-danger"></i>
+                                        <i class="bi bi-arrow-repeat"></i>
                                     {% endif %}
                                 </div>
-                                <div class="flex-grow-1 min-width-0 ps-3">
-                                    <h6 class="mb-0 fw-bold text-truncate {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 0.95rem;">
-                                        {{ sub.description }}
-                                    </h6>
-                                    <div class="text-muted small mb-0 text-truncate d-flex align-items-center gap-1" style="font-size: 0.78rem;">
-                                        <span>{{ sub.get_frequency_display }}</span>
-                                        <span class="opacity-50">&middot;</span>
-                                        {% if sub.is_locked %}
-                                            <span>{% trans "Locked" %}</span>
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="fw-semibold mb-1 text-truncate {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 0.93rem;">{{ sub.description }}</div>
+                                    <div class="text-muted text-truncate" style="font-size: 0.65rem;">
+                                        {{ sub.get_frequency_display }}
+                                        {% if not sub.is_locked %}
+                                            &nbsp;·&nbsp;<span class="{% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger fw-bold{% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning fw-semibold{% endif %}">{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
                                         {% else %}
-                                            <span class="{% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger fw-bold{% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning fw-semibold{% else %}text-secondary{% endif %}">{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
+                                            &nbsp;·&nbsp;{% trans "Locked" %}
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="flex-shrink-0 text-end">
-                                    <span class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}" style="font-size: 0.95rem;">
+                                <div class="text-end d-flex align-items-center gap-2">
+                                    <div class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
                                         {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
-                                    </span>
-                                </div>
-                                <div class="dropdown ms-2">
-                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical text-muted"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                        {% if sub.is_locked %}
-                                            <li>
-                                                <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
-                                                    <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
-                                                </a>
-                                            </li>
-                                        {% else %}
-                                            <li>
-                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
-                                                    <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <button type="button" class="dropdown-item py-2 text-danger delete-btn" 
-                                                        data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                        data-url="{% url 'recurring-delete' sub.uuid %}"
-                                                        data-message="{% trans 'Are you sure?' %}">
-                                                    <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
-                                                </button>
-                                            </li>
-                                        {% endif %}
-                                    </ul>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                            {% if sub.is_locked %}
+                                                <li>
+                                                    <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
+                                                        <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
+                                                    </a>
+                                                </li>
+                                            {% else %}
+                                                <li>
+                                                    <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
+                                                        <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item py-2 text-danger delete-btn"
+                                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                            data-url="{% url 'recurring-delete' sub.uuid %}"
+                                                            data-message="{% trans 'Are you sure?' %}">
+                                                        <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                                    </button>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -407,52 +424,50 @@
                 <!-- Mobile Grid View -->
                 <div id="mobileGridView" class="py-2 d-md-none">
                     {% for sub in renewing_soon %}
-                    <div class="card expense-card shadow-sm border-0 position-relative mb-2">
+                    <div class="card expense-card rounded-4 border-0 mb-2" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="card-body p-3">
-                            <div class="mobile-card-inner">
-                                <div class="category-icon-container" title="{{ sub.description }}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;" title="{{ sub.description }}">
                                     {% if sub.is_locked %}
-                                        <i class="bi bi-lock-fill text-secondary"></i>
+                                        <i class="bi bi-lock-fill"></i>
                                     {% else %}
-                                        <i class="bi bi-exclamation-circle-fill text-danger"></i>
+                                        <i class="bi bi-exclamation-circle-fill"></i>
                                     {% endif %}
                                 </div>
-                                <div class="flex-grow-1 min-width-0 ps-3">
-                                    <h6 class="mb-0 fw-bold text-truncate {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 0.95rem;">
-                                        {{ sub.description }}
-                                    </h6>
-                                    <div class="text-muted small mb-0 text-truncate d-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="fw-semibold mb-1 text-truncate {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 0.93rem;">{{ sub.description }}</div>
+                                    <div class="text-muted text-truncate" style="font-size: 0.65rem;">
                                         {% if sub.is_locked %}
-                                            <span>{% trans "Locked" %}</span>
+                                            {% trans "Locked" %}
                                         {% else %}
                                             <span class="text-danger fw-semibold">{% trans "Renewing This Month" %}</span>
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="flex-shrink-0 text-end">
-                                    <span class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}" style="font-size: 0.95rem;">
+                                <div class="text-end d-flex align-items-center gap-2">
+                                    <div class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
                                         {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
-                                    </span>
-                                </div>
-                                <div class="dropdown ms-2">
-                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical text-muted"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                        {% if sub.is_locked %}
-                                            <li>
-                                                <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
-                                                    <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
-                                                </a>
-                                            </li>
-                                        {% else %}
-                                            <li>
-                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
-                                                    <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Manage" %}
-                                                </a>
-                                            </li>
-                                        {% endif %}
-                                    </ul>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                            {% if sub.is_locked %}
+                                                <li>
+                                                    <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
+                                                        <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
+                                                    </a>
+                                                </li>
+                                            {% else %}
+                                                <li>
+                                                    <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
+                                                        <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Manage" %}
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -546,48 +561,46 @@
                 <!-- Mobile Grid View -->
                 <div id="mobileGridView" class="py-2 d-md-none opacity-75">
                     {% for sub in cancelled_subs %}
-                    <div class="card expense-card shadow-sm border-0 position-relative mb-2">
+                    <div class="card expense-card rounded-4 border-0 mb-2" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                         <div class="card-body p-3">
-                            <div class="mobile-card-inner">
-                                <div class="category-icon-container" title="{{ sub.description }}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;" title="{{ sub.description }}">
                                     {% if sub.is_locked %}
-                                        <i class="bi bi-lock-fill text-secondary"></i>
+                                        <i class="bi bi-lock-fill"></i>
                                     {% else %}
-                                        <i class="bi bi-x-circle text-secondary"></i>
+                                        <i class="bi bi-x-circle"></i>
                                     {% endif %}
                                 </div>
-                                <div class="flex-grow-1 min-width-0 ps-3">
-                                    <h6 class="mb-0 fw-bold text-truncate text-decoration-line-through text-muted" style="font-size: 0.95rem;">
-                                        {{ sub.description }}
-                                    </h6>
-                                    <div class="text-muted small mb-0 text-truncate d-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
-                                        <span class="badge bg-secondary">{% trans "Cancelled" %}</span>
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="fw-semibold mb-1 text-truncate text-decoration-line-through text-muted" style="font-size: 0.93rem;">{{ sub.description }}</div>
+                                    <div class="text-muted text-truncate" style="font-size: 0.65rem;">
+                                        {% trans "Cancelled" %}
                                     </div>
                                 </div>
-                                <div class="flex-shrink-0 text-end">
-                                    <span class="fw-bold text-muted" style="font-size: 0.95rem;">
+                                <div class="text-end d-flex align-items-center gap-2">
+                                    <div class="fw-bold text-muted">
                                         {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
-                                    </span>
-                                </div>
-                                <div class="dropdown ms-2">
-                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical text-muted"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                        {% if sub.is_locked %}
-                                            <li>
-                                                <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
-                                                    <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
-                                                </a>
-                                            </li>
-                                        {% else %}
-                                            <li>
-                                                <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
-                                                    <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Reactivate" %}
-                                                </a>
-                                            </li>
-                                        {% endif %}
-                                    </ul>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                            {% if sub.is_locked %}
+                                                <li>
+                                                    <a class="dropdown-item py-2 text-primary fw-bold" href="{% url 'pricing' %}">
+                                                        <i class="bi bi-rocket-takeoff me-2"></i>{% trans "Unlock" %}
+                                                    </a>
+                                                </li>
+                                            {% else %}
+                                                <li>
+                                                    <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
+                                                        <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Reactivate" %}
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
