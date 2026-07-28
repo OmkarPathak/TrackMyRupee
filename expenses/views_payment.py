@@ -173,30 +173,39 @@ def verify_payment(request):
             if not payment_record:
                 return JsonResponse({'error': 'Order not found'}, status=404)
             
-            # Prevent capture-replay attack
+            # Race condition guard: if the webhook already processed this payment
+            # (marked it SUCCESS and set subscription_end_date), we must still
+            # activate profile.tier here — don't return 400 early.
             if payment_record.status == 'SUCCESS':
-                return JsonResponse({'error': 'Payment already verified'}, status=400)
-                
-            payment_record.payment_id = razorpay_payment_id
-            payment_record.status = 'SUCCESS'
-            payment_record.save()
-            
-            # Update User Subscription
-            profile = request.user.profile
+                # Check if the tier was already activated by the webhook
+                profile = request.user.profile
+                if profile.tier == payment_record.tier:
+                    # Fully activated already — idempotent success
+                    return JsonResponse({'success': True})
+                # Tier not yet set (webhook ran first but only set end date)
+                # Fall through to activate below.
+            else:
+                payment_record.payment_id = razorpay_payment_id
+                payment_record.status = 'SUCCESS'
+                payment_record.save()
+                profile = request.user.profile
+
+            # Activate / update the subscription tier and dates
             profile.tier = payment_record.tier
-            
+
             if razorpay_subscription_id:
                 profile.razorpay_subscription_id = razorpay_subscription_id
             else:
                 profile.razorpay_order_id = razorpay_order_id
-            
-            # Set end date (Initially 30/365 days, then managed by webhooks)
-            days = 30 if payment_record.duration == 'MONTHLY' else 365
+
+            # Set end date only if not already extended by the webhook
             if payment_record.duration == 'LIFETIME':
                 profile.is_lifetime = True
-            else:
+            elif not profile.subscription_end_date or profile.subscription_end_date <= timezone.now():
+                # Webhook hasn't extended it yet — set a safe initial window
+                days = 30 if payment_record.duration == 'MONTHLY' else 365
                 profile.subscription_end_date = timezone.now() + timedelta(days=days)
-            
+
             profile.expiry_reminder_sent = False
             profile.save()
 
@@ -257,21 +266,34 @@ def razorpay_webhook(request):
                     if PaymentHistory.objects.filter(payment_id=payment_id).exists():
                         logger.info(f"subscription.charged: duplicate delivery for payment_id={payment_id}, skipping.")
                     else:
+                        # Resolve the tier from PaymentHistory (set by create_order) or
+                        # subscription notes (fallback). This makes the webhook fully
+                        # self-sufficient — profile.tier is activated even if the user
+                        # closed the tab before verify_payment ran.
                         history = PaymentHistory.objects.filter(order_id=sub_id).order_by('-created_at').first()
                         if history:
+                            activated_tier = history.tier
                             history.payment_id = payment_id
                             history.status = 'SUCCESS'
                             history.save()
                         else:
+                            # Fall back to subscription notes if no PaymentHistory exists
+                            notes = event_data['payload']['subscription']['entity'].get('notes', {})
+                            activated_tier = notes.get('plan', profile.tier)
                             PaymentHistory.objects.create(
                                 payment_id=payment_id,
                                 user=profile.user,
                                 order_id=sub_id,
                                 amount=event_data['payload']['payment']['entity']['amount'] / 100,
-                                tier=profile.tier,
+                                tier=activated_tier,
                                 duration='RECURRING',
                                 status='SUCCESS',
                             )
+
+                        # Activate the tier so the user has access even if they never
+                        # returned to the app after payment (tab closed, network drop, etc.)
+                        profile.tier = activated_tier
+                        profile.expiry_reminder_sent = False
 
                         # aware UTC datetime for USE_TZ=True compatibility.
                         current_end = event_data['payload']['subscription']['entity']['current_end']
@@ -279,7 +301,10 @@ def razorpay_webhook(request):
                             current_end, tz=dt_timezone.utc
                         )
                         profile.save()
-                        logger.info(f"subscription.charged: extended subscription for sub_id={sub_id} until {profile.subscription_end_date}")
+                        logger.info(
+                            f"subscription.charged: activated tier={activated_tier} for sub_id={sub_id} "
+                            f"until {profile.subscription_end_date}"
+                        )
 
             elif event == 'subscription.cancelled':
                 # User-initiated cancellation at cycle end — they already paid for

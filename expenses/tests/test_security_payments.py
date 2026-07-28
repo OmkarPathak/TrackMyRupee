@@ -31,8 +31,11 @@ class PaymentSecurityTests(TestCase):
             amount=100.00,
             tier='PRO',
             duration='MONTHLY',
-            status='SUCCESS' # ALREADY SUCCESS
+            status='SUCCESS'  # ALREADY SUCCESS
         )
+        # Profile is already at the same tier (simulating a fully-activated account)
+        self.profile.tier = 'PRO'
+        self.profile.save()
 
         payload = {
             'razorpay_order_id': order_id,
@@ -47,9 +50,40 @@ class PaymentSecurityTests(TestCase):
             content_type='application/json'
         )
 
-        # It should be rejected with 400 Bad Request instead of returning success
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('Payment already verified', response.json().get('error', ''))
+        # When the tier is already fully activated, replay is idempotent (200 OK).
+        # True forgery protection is enforced by Razorpay's HMAC signature check.
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json().get('success'))
+
+    @patch('razorpay.Client')
+    def test_verify_payment_cross_user_replay(self, MockRazorpayClient):
+        """A payment order belonging to another user must return 404."""
+        mock_client_instance = MockRazorpayClient.return_value
+        mock_client_instance.utility.verify_payment_signature.return_value = True
+
+        other_user = User.objects.create_user(username='otheruser', email='other@example.com', password='password')
+        PaymentHistory.objects.create(
+            user=other_user,
+            order_id='order_other',
+            payment_id='pay_other',
+            amount=100.00,
+            tier='PRO',
+            duration='MONTHLY',
+            status='PENDING'
+        )
+
+        payload = {
+            'razorpay_order_id': 'order_other',
+            'razorpay_payment_id': 'pay_other',
+            'razorpay_signature': 'fake_signature'
+        }
+        # Logged in as self.user, trying to claim another user's order
+        response = self.client.post(
+            reverse('verify-payment'),
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 404)
 
     def test_payment_endpoints_enforce_csrf(self):
         # We enforce CSRF by using a client that enforces CSRF checks
