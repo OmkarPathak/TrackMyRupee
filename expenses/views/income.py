@@ -34,25 +34,29 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         # Date Filter
         queryset = apply_date_filters(queryset, self.request)
         search = self.request.GET.get('search')
-        source_type = self.request.GET.get('source_type')
-        income_group = self.request.GET.get('income_group')
+        source_types = self.request.GET.getlist('source_type')
+        income_groups = self.request.GET.getlist('income_group')
 
         # Search Filter
         if search:
             queryset = queryset.filter(description__icontains=search)
             
         # Source Type Filter
-        if source_type:
-            queryset = queryset.filter(source_type=source_type)
+        if source_types:
+            queryset = queryset.filter(source_type__in=source_types)
             
         # Income Group Filter
-        if income_group:
-            if income_group == 'EARNED':
-                queryset = queryset.filter(source_type__in=['Salary', 'Freelance / Consulting', 'Business'])
-            elif income_group == 'PASSIVE':
-                queryset = queryset.filter(source_type__in=['Investment Returns', 'Rental Income'])
-            elif income_group == 'ONE_OFF':
-                queryset = queryset.filter(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement', 'Other'])
+        if income_groups:
+            group_source_types = []
+            if 'EARNED' in income_groups:
+                group_source_types.extend(['Salary', 'Freelance / Consulting', 'Business'])
+            if 'PASSIVE' in income_groups:
+                group_source_types.extend(['Investment Returns', 'Rental Income'])
+            if 'ONE_OFF' in income_groups:
+                group_source_types.extend(['Cashback & Rewards', 'Refund / Reimbursement', 'Other'])
+            
+            if group_source_types:
+                queryset = queryset.filter(source_type__in=group_source_types)
             
         return queryset
 
@@ -154,8 +158,8 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
             path_d = "M " + " L ".join(f"{x:.1f},{y:.1f}" for x, y in points)
             
         # Set filter context values
-        context['source_type'] = self.request.GET.get('source_type', '')
-        context['income_group'] = self.request.GET.get('income_group', '')
+        context['source_types'] = self.request.GET.getlist('source_type')
+        context['income_groups'] = self.request.GET.getlist('income_group')
         context['time_period'] = self.request.GET.get('time_period', 'this_month')
         context['start_date'] = self.request.GET.get('start_date', '')
         context['end_date'] = self.request.GET.get('end_date', '')
@@ -167,9 +171,9 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
             active_filters += 1
         if context['time_period'] != 'this_month':
             active_filters += 1
-        if context['source_type']:
+        if context['source_types']:
             active_filters += 1
-        if context['income_group']:
+        if context['income_groups']:
             active_filters += 1
         context['active_filters_count'] = active_filters
             
@@ -179,9 +183,8 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         context['filter_form'] = {
             'date_from': getattr(self, 'date_from', ''),
             'date_to': getattr(self, 'date_to', ''),
-            'source': self.request.GET.get('source', ''),
-            'source_type': self.request.GET.get('source_type', ''),
-            'income_group': self.request.GET.get('income_group', ''),
+            'source_types': self.request.GET.getlist('source_type'),
+            'income_groups': self.request.GET.getlist('income_group'),
         }
         return context
 

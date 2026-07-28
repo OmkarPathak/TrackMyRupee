@@ -162,40 +162,20 @@ class SubscriptionTierTest(TestCase):
         from django.core.management import call_command
 
         from expenses.models import Notification, RecurringTransaction
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        target_due = timezone.now().date() + timedelta(days=3)
         
         rt = RecurringTransaction.objects.create(
             user=self.user,
             transaction_type='EXPENSE',
             amount=100,
             description='Due Soon',
-            frequency='MONTHLY',
-            start_date=date.today(),
-            last_processed_date=None
+            frequency='DAILY',
+            start_date=target_due - timedelta(days=10),
+            last_processed_date=target_due - timedelta(days=1)
         )
-        # Mock next_due_date to be exactly 3 days from now
-        from datetime import timedelta
-        target_due = date.today() + timedelta(days=3)
-        
-        # Adjust start_date and last_processed_date so next_due_date is exactly target_due
-        # If monthly, and next is target_due, then last was target_due - 1 month
-        def get_last_month(d):
-            new_month = d.month - 1
-            new_year = d.year
-            if new_month == 0:
-                new_month = 12
-                new_year -= 1
-            
-            # Handle day out of range (e.g. March 31 -> Feb 28/29)
-            new_day = d.day
-            while True:
-                try:
-                    return date(new_year, new_month, new_day)
-                except ValueError:
-                    new_day -= 1
-        
-        rt.start_date = get_last_month(target_due)
-        rt.last_processed_date = get_last_month(target_due)
-        rt.save()
         
         # Free Tier
         self.setup_tier('FREE')

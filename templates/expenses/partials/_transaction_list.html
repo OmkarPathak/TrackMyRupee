@@ -139,7 +139,7 @@
 
                     <div class="col-12 d-flex justify-content-end mt-4">
                         <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
-                        <button type="button" class="btn btn-light text-secondary border-0 fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'all-transactions' %}" hx-params="none" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
+                        <button type="button" class="btn btn-outline-secondary fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'all-transactions' %}" hx-params="none" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
                     </div>
                 </div>
             </form>

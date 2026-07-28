@@ -65,8 +65,8 @@
         <form method="get" class="mb-4 bg-body p-4 rounded-4 border mt-3" style="border-color: rgba(0,0,0,0.08) !important;" hx-get="{% url 'income-list' %}" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
             <div class="row g-4">
                 <div class="col-12 col-md-4">
-                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search Description" %}</label>
-                    <div class="input-group">
+                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search" %}</label>
+                    <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
                         <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" value="{{ search_query }}" placeholder="{% trans 'Search description...' %}">
                     </div>
@@ -92,25 +92,23 @@
                     <div class="row g-3">
                         <div class="col-6 col-md">
                             <label for="income_group" class="form-label small text-muted fw-semibold mb-2">{% trans "Group Type" %}</label>
-                            <select class="form-select form-select-sm" id="income_group" name="income_group">
-                                <option value="">{% trans "All Groups" %}</option>
-                                <option value="EARNED" {% if income_group == "EARNED" %}selected{% endif %}>{% trans "Earned" %}</option>
-                                <option value="PASSIVE" {% if income_group == "PASSIVE" %}selected{% endif %}>{% trans "Passive" %}</option>
-                                <option value="ONE_OFF" {% if income_group == "ONE_OFF" %}selected{% endif %}>{% trans "One-off" %}</option>
+                            <select class="form-control django-multi-select" id="income_group" name="income_group" multiple placeholder="{% trans 'All Groups' %}">
+                                <option value="EARNED" {% if "EARNED" in income_groups %}selected{% endif %}>{% trans "Earned" %}</option>
+                                <option value="PASSIVE" {% if "PASSIVE" in income_groups %}selected{% endif %}>{% trans "Passive" %}</option>
+                                <option value="ONE_OFF" {% if "ONE_OFF" in income_groups %}selected{% endif %}>{% trans "One-off" %}</option>
                             </select>
                         </div>
                         <div class="col-6 col-md">
                             <label for="source_type" class="form-label small text-muted fw-semibold mb-2">{% trans "Source Type" %}</label>
-                            <select class="form-select form-select-sm" id="source_type" name="source_type">
-                                <option value="">{% trans "All types" %}</option>
-                                <option value="Salary" {% if source_type == "Salary" %}selected{% endif %}>{% trans "Salary" %}</option>
-                                <option value="Freelance / Consulting" {% if source_type == "Freelance / Consulting" %}selected{% endif %}>{% trans "Freelance / Consulting" %}</option>
-                                <option value="Business" {% if source_type == "Business" %}selected{% endif %}>{% trans "Business" %}</option>
-                                <option value="Investment Returns" {% if source_type == "Investment Returns" %}selected{% endif %}>{% trans "Investment Returns" %}</option>
-                                <option value="Rental Income" {% if source_type == "Rental Income" %}selected{% endif %}>{% trans "Rental Income" %}</option>
-                                <option value="Cashback & Rewards" {% if source_type == "Cashback & Rewards" %}selected{% endif %}>{% trans "Cashback & Rewards" %}</option>
-                                <option value="Refund / Reimbursement" {% if source_type == "Refund / Reimbursement" %}selected{% endif %}>{% trans "Refund / Reimbursement" %}</option>
-                                <option value="Other" {% if source_type == "Other" %}selected{% endif %}>{% trans "Other" %}</option>
+                            <select class="form-control django-multi-select" id="source_type" name="source_type" multiple placeholder="{% trans 'All types' %}">
+                                <option value="Salary" {% if "Salary" in source_types %}selected{% endif %}>{% trans "Salary" %}</option>
+                                <option value="Freelance / Consulting" {% if "Freelance / Consulting" in source_types %}selected{% endif %}>{% trans "Freelance / Consulting" %}</option>
+                                <option value="Business" {% if "Business" in source_types %}selected{% endif %}>{% trans "Business" %}</option>
+                                <option value="Investment Returns" {% if "Investment Returns" in source_types %}selected{% endif %}>{% trans "Investment Returns" %}</option>
+                                <option value="Rental Income" {% if "Rental Income" in source_types %}selected{% endif %}>{% trans "Rental Income" %}</option>
+                                <option value="Cashback & Rewards" {% if "Cashback & Rewards" in source_types %}selected{% endif %}>{% trans "Cashback & Rewards" %}</option>
+                                <option value="Refund / Reimbursement" {% if "Refund / Reimbursement" in source_types %}selected{% endif %}>{% trans "Refund / Reimbursement" %}</option>
+                                <option value="Other" {% if "Other" in source_types %}selected{% endif %}>{% trans "Other" %}</option>
                             </select>
                         </div>
                         {% if time_period == 'custom' %}
@@ -131,7 +129,7 @@
 
                 <div class="col-12 d-flex justify-content-end mt-4">
                     <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
-                    <button type="button" class="btn btn-light text-secondary border-0 fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'income-list' %}" hx-params="none" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
+                    <button type="button" class="btn btn-outline-secondary fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'income-list' %}" hx-params="none" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
                 </div>
             </div>
         </form>

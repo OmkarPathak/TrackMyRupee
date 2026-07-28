@@ -1218,6 +1218,7 @@ class AllTransactionsViewTest(BaseComprehensiveTest):
         response = self.client.get(
             reverse('all-transactions'),
             {
+                'time_period': 'custom',
                 'start_date': today.strftime('%Y-%m-%d'),
                 'end_date': tomorrow.strftime('%Y-%m-%d')
             }
