@@ -22,13 +22,14 @@ from expenses.views.utils import get_safe_redirect_url
 from ..forms import ExpenseForm
 from ..models import Account, CapitalEvent, Category, Expense
 from ..parser import parse_expense_nl
+from ..utils import get_exchange_rate
 from .mixins import (
     HtmxPartialTemplateMixin,
     RecurringTransactionMixin,
     UUIDOrIntLookupMixin,
     process_user_recurring_transactions,
 )
-from .utils import get_object_by_uuid_or_pk
+from .utils import apply_date_filters, get_object_by_uuid_or_pk
 
 
 class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
@@ -47,49 +48,17 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         
         # Filtering
         selected_years = self.request.GET.getlist('year')
-        selected_months = self.request.GET.getlist('month')
         selected_categories = self.request.GET.getlist('category')
         selected_payment_methods = self.request.GET.getlist('payment_method')
         selected_accounts = self.request.GET.getlist('account')
         search_query = self.request.GET.get('search')
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
+        
+        queryset = apply_date_filters(queryset, self.request)
 
         # Remove empty strings from lists
-        selected_years = [y for y in selected_years if y]
-        selected_months = [m for m in selected_months if m]
         selected_categories = [c for c in selected_categories if c]
         selected_payment_methods = [pm for pm in selected_payment_methods if pm]
         selected_accounts = [acc for acc in selected_accounts if acc]
-        
-        # Date Range Logic (Precedence over Year/Month)
-        if start_date or end_date:
-            if start_date:
-                queryset = queryset.filter(date__gte=start_date)
-            if end_date:
-                queryset = queryset.filter(date__lte=end_date)
-        else:
-            # Check if any specific filter is active
-            has_active_filters = (
-                selected_years or 
-                selected_months or 
-                selected_payment_methods or
-                selected_accounts or
-                search_query  # Don't check categories as we might want defaults even if cat is selected? No, usually filters are additive.
-            )
-            
-            # If no year/month/search filters, default to current month/year
-            # (ignoring category here might be debated, but typically if I just filter 'Food', I might want all time or current month? 
-            #  The dashboard logic defaults to current month if no year/month. Let's stick to that.)
-            if not has_active_filters:
-                selected_years = [str(datetime.now().year)]
-                selected_months = [str(datetime.now().month)]
-            
-            if selected_years:
-                queryset = queryset.filter(date__year__in=selected_years)
-            
-            if selected_months:
-                queryset = queryset.filter(date__month__in=selected_months)
 
         if selected_categories:
             queryset = queryset.filter(category__in=selected_categories)
@@ -138,27 +107,23 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         context['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
         
         # Determine selected filters for UI
+        time_period = self.request.GET.get('time_period', 'this_month')
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
-        context['start_date'] = start_date
-        context['end_date'] = end_date
+        context['time_period'] = time_period
+        context['start_date'] = start_date or ''
+        context['end_date'] = end_date or ''
         
-        selected_years = self.request.GET.getlist('year')
-        selected_months = self.request.GET.getlist('month')
         selected_categories = self.request.GET.getlist('category')
         selected_payment_methods = self.request.GET.getlist('payment_method')
         selected_accounts = self.request.GET.getlist('account')
         search_query = self.request.GET.get('search', '')
 
         # Remove empty strings
-        selected_years = [y for y in selected_years if y]
-        selected_months = [m for m in selected_months if m]
         selected_categories = [c for c in selected_categories if c]
         selected_payment_methods = [pm for pm in selected_payment_methods if pm]
         selected_accounts = [acc for acc in selected_accounts if acc]
         
-        context['selected_years'] = selected_years
-        context['selected_months'] = selected_months
         context['selected_categories'] = selected_categories
         context['selected_payment_methods'] = selected_payment_methods
         context['selected_accounts'] = selected_accounts
@@ -166,101 +131,33 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         context['payment_methods'] = Expense.PAYMENT_OPTIONS
         context['accounts'] = Account.objects.filter(user=self.request.user, is_active=True).order_by('name')
 
-        # Mirror default logic from get_queryset if NO date range is present
-        if not (start_date or end_date):
-            has_active_filters = (
-                selected_years
-                or selected_months
-                or selected_payment_methods
-                or selected_accounts
-                or search_query
-            )
-            if not has_active_filters:
-                context['selected_years'] = [str(datetime.now().year)]
-                context['selected_months'] = [str(datetime.now().month)]
+        active_filters = 0
+        if search_query:
+            active_filters += 1
+        if time_period != 'this_month':
+            active_filters += 1
+        if selected_categories:
+            active_filters += 1
+        if selected_payment_methods:
+            active_filters += 1
+        if selected_accounts:
+            active_filters += 1
+        context['active_filters_count'] = active_filters
 
-        # Month Navigation Logic
-        curr_selected_years = context['selected_years']
-        curr_selected_months = context['selected_months']
-        
-        display_year = None
-        display_month = None
-        
-        if len(curr_selected_years) == 1:
-            display_year = curr_selected_years[0]
-            
-        if len(curr_selected_months) == 1:
-            try:
-                m_idx = int(curr_selected_months[0])
-                display_month = _(calendar.month_name[m_idx])
-            except (ValueError, IndexError):
-                pass
-                
-        context['display_year'] = display_year
-        context['display_month'] = display_month
+        # Remove legacy month navigation
+        context['prev_month_url'] = None
+        context['next_month_url'] = None
 
-        prev_month_url = None
-        next_month_url = None
-
-        if len(curr_selected_years) == 1 and len(curr_selected_months) == 1:
-            try:
-                curr_year = int(curr_selected_years[0])
-                curr_month = int(curr_selected_months[0])
-                
-                if curr_month == 1:
-                    pm = 12
-                    py = curr_year - 1
-                else:
-                    pm = curr_month - 1
-                    py = curr_year
-                
-                if curr_month == 12:
-                    nm = 1
-                    ny = curr_year + 1
-                else:
-                    nm = curr_month + 1
-                    ny = curr_year
-
-                base_qs = []
-                for c in selected_categories:
-                    base_qs.append(('category', c))
-                for pm in selected_payment_methods:
-                    base_qs.append(('payment_method', pm))
-                for account_id in selected_accounts:
-                    base_qs.append(('account', account_id))
-                if search_query:
-                    base_qs.append(('search', search_query))
-                
-                sort_by = self.request.GET.get('sort')
-                if sort_by:
-                    base_qs.append(('sort', sort_by))
-                
-                qs_prev = base_qs + [('year', py), ('month', pm)]
-                qs_next = base_qs + [('year', ny), ('month', nm)]
-                
-                prev_month_url = f"{reverse('expense-list')}?{urlencode(qs_prev)}"
-                next_month_url = f"{reverse('expense-list')}?{urlencode(qs_next)}"
-            except ValueError:
-                pass
-                
-        context['prev_month_url'] = prev_month_url
-        context['next_month_url'] = next_month_url
 
         # Calculate days left in cycle
         now = datetime.now()
         is_current_month = False
         days_left = None
         
-        if display_year and display_month:
-            try:
-                sel_year = int(curr_selected_years[0])
-                sel_month = int(curr_selected_months[0])
-                if sel_year == now.year and sel_month == now.month:
-                    is_current_month = True
-                    last_day = calendar.monthrange(now.year, now.month)[1]
-                    days_left = last_day - now.day
-            except (ValueError, IndexError):
-                pass
+        if time_period == 'this_month':
+            is_current_month = True
+            last_day = calendar.monthrange(now.year, now.month)[1]
+            days_left = last_day - now.day
                 
         context['is_current_month'] = is_current_month
         context['days_left'] = days_left

@@ -18,6 +18,7 @@ from expenses.views.utils import get_safe_redirect_url
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
 from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .utils import apply_date_filters
 
 
 class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
@@ -31,44 +32,10 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         queryset = Income.objects.filter(user=self.request.user).select_related('account').order_by('-date')
         
         # Date Filter
-        date_from = self.request.GET.get('date_from')
-        date_to = self.request.GET.get('date_to')
-        selected_years = self.request.GET.getlist('year')
-        selected_months = self.request.GET.getlist('month')
+        queryset = apply_date_filters(queryset, self.request)
         source = self.request.GET.get('source')
         source_type = self.request.GET.get('source_type')
         income_group = self.request.GET.get('income_group')
-
-        # Remove empty strings from lists
-        selected_years = [y for y in selected_years if y]
-        selected_months = [m for m in selected_months if m]
-
-        # Date Range Logic (Precedence)
-        # Default to current year if no filters are provided
-        now = timezone.now()
-        default_from = f"{now.year}-01-01"
-        default_to = f"{now.year}-12-31"
-
-        if date_from or date_to:
-            self.date_from = date_from or ''
-            self.date_to = date_to or ''
-            if date_from:
-                queryset = queryset.filter(date__gte=date_from)
-            if date_to:
-                queryset = queryset.filter(date__lte=date_to)
-        elif selected_years or selected_months:
-            if selected_years:
-                queryset = queryset.filter(date__year__in=selected_years)
-            if selected_months:
-                queryset = queryset.filter(date__month__in=selected_months)
-            self.date_from = ''
-            self.date_to = ''
-        else:
-            # No filters at all — default to current year
-            if not source and not source_type and not income_group:
-                queryset = queryset.filter(date__gte=default_from, date__lte=default_to)
-            self.date_from = default_from
-            self.date_to = default_to
 
         # Source Filter
         if source:
@@ -185,6 +152,26 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         path_d = ""
         if points:
             path_d = "M " + " L ".join(f"{x:.1f},{y:.1f}" for x, y in points)
+            
+        # Set filter context values
+        context['source_type'] = self.request.GET.get('source_type', '')
+        context['income_group'] = self.request.GET.get('income_group', '')
+        context['time_period'] = self.request.GET.get('time_period', 'this_month')
+        context['start_date'] = self.request.GET.get('start_date', '')
+        context['end_date'] = self.request.GET.get('end_date', '')
+        context['search_query'] = self.request.GET.get('source', '')
+        
+        # Calculate active filters count
+        active_filters = 0
+        if context['search_query']:
+            active_filters += 1
+        if context['time_period'] != 'this_month':
+            active_filters += 1
+        if context['source_type']:
+            active_filters += 1
+        if context['income_group']:
+            active_filters += 1
+        context['active_filters_count'] = active_filters
             
         context['sparkline_path'] = path_d
         context['sparkline_data'] = sparkline_data

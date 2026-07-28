@@ -104,3 +104,14 @@ def get_dict_item(dictionary, key):
     if dictionary:
         return dictionary.get(key)
     return None
+
+
+@register.filter(name='split_string')
+def split_string(value, key):
+    """
+    Returns the value turned into a list.
+    Usage: {{ "a,b,c"|split_string:"," }}
+    """
+    if value:
+        return str(value).split(key)
+    return []

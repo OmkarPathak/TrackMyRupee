@@ -11,8 +11,14 @@
                 </button>
             </h3>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}">
+                <button class="filter-toggle-btn position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
+                    {% if active_filters_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
+                        {{ active_filters_count }}
+                        <span class="visually-hidden">active filters</span>
+                    </span>
+                    {% endif %}
                 </button>
                 {% if is_limit_reached %}
                     <button type="button" class="header-action-btn btn-primary p-2" data-bs-toggle="modal" data-bs-target="#limitReachedModal" title="{% trans 'Add Subscription' %}">
@@ -54,8 +60,14 @@
             </p>
 
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}">
+                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
+                    {% if active_filters_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
+                        {{ active_filters_count }}
+                        <span class="visually-hidden">active filters</span>
+                    </span>
+                    {% endif %}
                 </button>
                 {% if is_limit_reached %}
                     <button type="button" class="header-action-btn btn-primary" data-bs-toggle="modal" data-bs-target="#limitReachedModal">
@@ -74,11 +86,10 @@
 
     <!-- Filter Form -->
     <div class="collapse" id="subscriptionFilters">
-        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm border-0 mt-3" id="filter-form" hx-get="{% url 'recurring-list' %}" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-            <div class="row g-2 align-items-end">
-                <!-- Category -->
-                <div class="col-12 col-md-auto" style="min-width: 200px;">
-                    <label for="category-select" class="form-label small text-muted">{% trans "Category" %}</label>
+        <form method="get" class="mb-4 bg-body p-4 rounded-4 shadow-sm border mt-3" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'recurring-list' %}" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+            <div class="row g-4 align-items-end">
+                <div class="col-12 col-md-6">
+                    <label for="category-select" class="form-label small text-muted fw-semibold mb-2">{% trans "Category" %}</label>
                     <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="Categories...">
                         {% for cat in categories %}
                             <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>
@@ -87,18 +98,10 @@
                         {% endfor %}
                     </select>
                 </div>
-
-                <!-- Buttons -->
-                <div class="col-6 col-md-auto">
-                    <button type="submit" class="btn btn-primary btn-sm w-100 w-md-auto">
-                        <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
-                    </button>
-                </div>
-                <!-- Reset -->
-                <div class="col-6 col-md-auto">
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 w-md-auto" hx-get="{% url 'recurring-list' %}" hx-params="none" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
-                    </button>
+                
+                <div class="col-12 col-md-6 d-flex justify-content-start justify-content-md-end mt-4 mt-md-0">
+                    <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
+                    <button type="button" class="btn btn-light text-secondary border-0 fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'recurring-list' %}" hx-params="none" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
                 </div>
             </div>
         </form>

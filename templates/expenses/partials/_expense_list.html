@@ -30,8 +30,14 @@
                 {% endif %}
             </p>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
+                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
+                    {% if active_filters_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
+                        {{ active_filters_count }}
+                        <span class="visually-hidden">active filters</span>
+                    </span>
+                    {% endif %}
                 </button>
                 <div id="desktopHeaderBulkActions" class="d-md-flex align-items-center gap-2">
                     <span id="bulkEditTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one expense to edit' %}">
@@ -79,8 +85,14 @@
                 {% endif %}
             </h2>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
+                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
+                    {% if active_filters_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
+                        {{ active_filters_count }}
+                        <span class="visually-hidden">active filters</span>
+                    </span>
+                    {% endif %}
                 </button>
                 {% if request.user.profile.can_export_csv %}
                 <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-icon-btn no-loader" title="{% trans 'Export' %}">
@@ -99,78 +111,79 @@
     </div>
 
     <div class="collapse" id="expenseFilters" style="z-index: 1040; position: relative;">
-        <form method="get" class="mb-4 bg-body p-3 rounded shadow-sm" id="filter-form" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-        <div class="row g-3 align-items-end flex-lg-nowrap">
-            <div class="col-12 col-md">
-                <label for="search" class="form-label small text-muted">{% trans "Search" %}</label>
-                <input type="text" name="search" id="search" class="form-control form-control-sm" placeholder="{% trans 'Search...' %}" value="{{ request.GET.search|default:'' }}">
-            </div>
-            <div class="col-6 col-md">
-                <label for="start_date" class="form-label small text-muted d-none d-md-block">{% trans "From" %}</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text d-md-none">{% trans "From" %}</span>
-                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date|default:'' }}">
+        <form method="get" class="mb-4 bg-body p-4 rounded-4 shadow-sm border" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+            <div class="row g-4">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search" %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" value="{{ search_query }}" placeholder="{% trans 'Search...' %}" oninput="clearTimeout(this.timer); this.timer = setTimeout(() => this.form.dispatchEvent(new Event('submit', { cancelable: true })), 300)">
+                    </div>
+                </div>
+                
+                <div class="col-12 col-md-8">
+                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Time Period" %}</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% with periods="this_month:This month,last_month:Last month,last_3_months:Last 3 months,this_year:This year,all:All time,custom:Custom" %}
+                        {% for period in periods|split_string:"," %}
+                            {% with p_val=period|split_string:":"|first p_label=period|split_string:":"|last %}
+                            <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm{% else %}btn-light text-secondary border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period != p_val %}background-color: var(--bs-tertiary-bg);{% endif %}">
+                                <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))" {% if time_period == p_val %}checked{% endif %}>
+                                {{ p_label }}
+                            </label>
+                            {% endwith %}
+                        {% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+
+                <div class="col-12 mt-3 pt-3 border-top">
+                    <div class="row g-3">
+                        <div class="col-12 col-md">
+                            <label for="category-select" class="form-label small text-muted fw-semibold mb-2">{% trans "Category" %}</label>
+                            <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
+                                {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md">
+                            <label for="payment-method-select" class="form-label small text-muted fw-semibold mb-2">{% trans "Payment Method" %}</label>
+                            <select name="payment_method" id="payment-method-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Payment methods...' %}">
+                                {% for value, label in payment_methods %}
+                                    <option value="{{ value }}" {% if value in selected_payment_methods %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md">
+                            <label for="account-select" class="form-label small text-muted fw-semibold mb-2">{% trans "Account" %}</label>
+                            <select name="account" id="account-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Accounts...' %}">
+                                {% for account in accounts %}
+                                    <option value="{{ account.id }}" {% if account.id|stringformat:"s" in selected_accounts %}selected{% endif %}>{{ account.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if time_period == 'custom' %}
+                        <div class="col-12 col-md">
+                            <label class="form-label small text-muted fw-semibold mb-2">{% trans "Date Range" %}</label>
+                            <div class="input-group input-group-sm mb-2">
+                                <span class="input-group-text bg-light border-end-0 text-muted" style="min-width: 60px;">{% trans "From" %}</span>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))">
+                            </div>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-end-0 text-muted" style="min-width: 60px;">{% trans "To" %}</span>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
+                    <button type="button" class="btn btn-light text-secondary border-0 fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'expense-list' %}" hx-params="none" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
                 </div>
             </div>
-            <div class="col-6 col-md">
-                <label for="end_date" class="form-label small text-muted d-none d-md-block">{% trans "To" %}</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text d-md-none">{% trans "To" %}</span>
-                    <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date|default:'' }}">
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <label for="year-select" class="form-label small text-muted">{% trans "Year" %}</label>
-                <select name="year" id="year-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Years...' %}">
-                    {% for dt in years %}
-                        <option value="{{ dt }}" {% if dt|stringformat:"s" in selected_years %}selected{% endif %}>{{ dt|translate_digits }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-6 col-md">
-                <label for="month-select" class="form-label small text-muted">{% trans "Month" %}</label>
-                <select name="month" id="month-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Months...' %}">
-                    {% for num, name in months_list %}
-                        <option value="{{ num }}" {% if num|stringformat:"s" in selected_months %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-12 col-md">
-                <label for="category-select" class="form-label small text-muted">{% trans "Category" %}</label>
-                <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories...' %}">
-                    {% for cat in categories %}
-                        <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>{{ cat }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-6 col-md">
-                <label for="payment-method-select" class="form-label small text-muted">{% trans "Payment Method" %}</label>
-                <select name="payment_method" id="payment-method-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Payment methods...' %}">
-                    {% for value, label in payment_methods %}
-                        <option value="{{ value }}" {% if value in selected_payment_methods %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-6 col-md">
-                <label for="account-select" class="form-label small text-muted">{% trans "Account" %}</label>
-                <select name="account" id="account-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Accounts...' %}">
-                    {% for account in accounts %}
-                        <option value="{{ account.id }}" {% if account.id|stringformat:"s" in selected_accounts %}selected{% endif %}>{{ account.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <div class="row g-2 mt-3 align-items-center">
-            <div class="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                <button type="submit" class="btn btn-primary btn-sm px-4">
-                    <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm px-4" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
-                </button>
-                <div class="vr mx-1 d-none d-md-block opacity-25"></div>
-            </div>
-        </div>
         </form>
     </div>
 
