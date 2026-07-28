@@ -395,111 +395,143 @@
             </div>
         </div>
 
-        <div class="list-group list-group-flush pb-1 mt-2">
+        <style>
+            .mobile-grid-item {
+                transition: background-color 0.2s;
+            }
+            .mobile-grid-item:active, .mobile-grid-item:hover {
+                background-color: var(--bs-tertiary-bg);
+            }
+        </style>
+        <div class="pb-3 mt-2">
             <!-- Cash Flow Section -->
-            <div class="px-4 pt-2 pb-1 text-uppercase fw-bold mobile-menu-header">
+            <div class="px-4 pt-3 pb-2 text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                 {% trans "Cash Flow" %}
             </div>
-
-            <a href="{% url 'expense-list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-credit-card text-danger"></i>
-                <span>{% trans "Expenses" %}</span>
-            </a>
-            <a href="{% url 'income-list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-cash-coin text-success"></i>
-                <span>{% trans "Income" %}</span>
-            </a>
-            <a href="{% url 'budget' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-wallet2 text-warning"></i>
-                <span>{% trans "Budgets" %}</span>
-            </a>
-            <a href="{% url 'recurring-list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-arrow-repeat text-primary"></i>
-                <span>{% trans "Subscriptions" %}</span>
-            </a>
-            <a href="{% url 'calendar' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-calendar3 text-info"></i>
-                <span>{% trans "Calendar" %}</span>
-            </a>
+            <div class="row row-cols-4 g-2 px-3 mb-1">
+                <div class="col">
+                    <a href="{% url 'expense-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-credit-card text-danger mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Expenses" %}</span>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'income-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-cash-coin text-success mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Income" %}</span>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'budget' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-wallet2 text-warning mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Budgets" %}</span>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'recurring-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-arrow-repeat text-primary mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Subscriptions" %}</span>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'calendar' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-calendar3 text-info mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Calendar" %}</span>
+                    </a>
+                </div>
+            </div>
 
             <!-- Net Worth Section -->
-            <div class="px-4 pt-3 pb-1 text-uppercase fw-bold mobile-menu-header">
+            <div class="px-4 pt-3 pb-2 text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                 {% trans "Net Worth" %}
             </div>
+            <div class="row row-cols-4 g-2 px-3 mb-1">
+                <div class="col">
+                    <a href="{% url 'account-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-bank text-info mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Accounts" %}</span>
+                    </a>
+                </div>
+                
+                <div class="col">
+                    {% if user.profile.can_track_loans %}
+                    <a href="{% url 'loan-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-shield-lock text-primary mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Loans" %}</span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'pricing' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-shield-lock text-warning mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Loans (Pro)" %}</span>
+                    </a>
+                    {% endif %}
+                </div>
 
-            <a href="{% url 'account-list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-bank text-info"></i>
-                <span>{% trans "Accounts" %}</span>
-            </a>
-            {% if user.profile.can_track_loans %}
-            <a href="{% url 'loan-list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-shield-lock text-primary"></i>
-                <span>{% trans "Loans" %}</span>
-            </a>
-            {% else %}
-            <a href="{% url 'pricing' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-shield-lock text-warning"></i>
-                <span>{% trans "Loans (Plus/Pro)" %}</span>
-            </a>
-            {% endif %}
-            <a href="{% url 'capital-event-list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-gem text-info"></i>
-                <span>{% trans "Capital Events" %}</span>
-            </a>
-            {% if user.profile.active_tier == 'PRO' %}
-            <a href="{% url 'goal-list' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-bullseye text-success"></i>
-                <span>{% trans "Goals" %}</span>
-            </a>
-            {% endif %}
+                <div class="col">
+                    <a href="{% url 'capital-event-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-gem text-info mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Capital Events" %}</span>
+                    </a>
+                </div>
+                
+                {% if user.profile.active_tier == 'PRO' %}
+                <div class="col">
+                    <a href="{% url 'goal-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-bullseye text-success mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Goals" %}</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
 
             <!-- System Section -->
-            <div class="px-4 pt-3 pb-1 text-uppercase fw-bold mobile-menu-header">
+            <div class="px-4 pt-3 pb-2 text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                 {% trans "System" %}
             </div>
-
-            <!-- Notifications Item -->
-            <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
-                <a href="{% url 'notification-list' %}" class="text-decoration-none text-body d-flex align-items-center gap-3 flex-grow-1">
-                    <i class="bi bi-bell-fill text-warning"></i>
-                    <span>{% trans "Notifications" %}</span>
-                    {% if has_unread_notifications %}
-                        <span class="badge rounded-pill bg-danger border border-light">
-                            {{ unread_notifications_count }}
-                        </span>
-                    {% endif %}
-                </a>
-                <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">
-                    <i class="bi bi-bell-fill me-1"></i> {% trans "Enable Push" %}
-                </button>
-            </div>
-
-            <a href="{% url 'settings-home' %}" class="list-group-item list-group-item-action">
-                <i class="bi bi-gear text-secondary"></i>
-                <span>{% trans "Settings" %}</span>
-            </a>
-            
-            <!-- Support & Legal Trigger -->
-            <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" type="button" data-bs-toggle="offcanvas" data-bs-target="#supportLegalSheet">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-info-circle text-primary"></i>
-                    <span>{% trans "Support & Legal" %}</span>
+            <div class="row row-cols-4 g-2 px-3">
+                <div class="col">
+                    <a href="{% url 'notification-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item position-relative">
+                        <i class="bi bi-bell-fill text-warning mb-1" style="font-size: 1.5rem;"></i>
+                        {% if has_unread_notifications %}
+                            <span class="position-absolute top-0 start-50 translate-middle p-1 bg-danger border border-light rounded-circle" style="margin-top: 10px; margin-left: 10px;">
+                                <span class="visually-hidden">New alerts</span>
+                            </span>
+                        {% endif %}
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Alerts" %}</span>
+                    </a>
                 </div>
-                <i class="bi bi-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-            </button>
 
-            <button class="list-group-item list-group-item-action theme-toggle-btn">
-                <i class="bi bi-moon-stars-fill theme-icon-active text-primary"></i>
-                <span>{% trans "Change Theme" %}</span>
-            </button>
+                <div class="col">
+                    <a href="{% url 'settings-home' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-gear text-secondary mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Settings" %}</span>
+                    </a>
+                </div>
 
-            <form action="{% url 'account_logout' %}" method="post" class="m-0">
-                {% csrf_token %}
-                <button type="submit" class="list-group-item list-group-item-action text-danger w-100 text-start">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>{% trans "Logout" %}</span>
-                </button>
-            </form>
+                <div class="col">
+                    <button class="btn btn-link text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item w-100 border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#supportLegalSheet">
+                        <i class="bi bi-info-circle text-primary mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Legal" %}</span>
+                    </button>
+                </div>
+
+                <div class="col">
+                    <button class="btn btn-link text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item w-100 border-0 theme-toggle-btn">
+                        <i class="bi bi-moon-stars-fill theme-icon-active text-primary mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Theme" %}</span>
+                    </button>
+                </div>
+
+                <div class="col">
+                    <form action="{% url 'account_logout' %}" method="post" class="m-0 h-100">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item w-100 border-0 h-100">
+                            <i class="bi bi-box-arrow-right text-danger mb-1" style="font-size: 1.5rem;"></i>
+                            <span class="text-danger fw-medium text-center" style="font-size: 0.75rem;">{% trans "Logout" %}</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
