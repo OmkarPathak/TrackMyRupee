@@ -33,13 +33,13 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         
         # Date Filter
         queryset = apply_date_filters(queryset, self.request)
-        source = self.request.GET.get('source')
+        search = self.request.GET.get('search')
         source_type = self.request.GET.get('source_type')
         income_group = self.request.GET.get('income_group')
 
-        # Source Filter
-        if source:
-            queryset = queryset.filter(source__icontains=source)
+        # Search Filter
+        if search:
+            queryset = queryset.filter(description__icontains=search)
             
         # Source Type Filter
         if source_type:
@@ -159,7 +159,7 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         context['time_period'] = self.request.GET.get('time_period', 'this_month')
         context['start_date'] = self.request.GET.get('start_date', '')
         context['end_date'] = self.request.GET.get('end_date', '')
-        context['search_query'] = self.request.GET.get('source', '')
+        context['search_query'] = self.request.GET.get('search', '')
         
         # Calculate active filters count
         active_filters = 0

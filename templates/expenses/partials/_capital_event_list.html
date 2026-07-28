@@ -64,14 +64,14 @@
     </div>
 
     <!-- Filter Form -->
-    <div class="collapse" id="capitalEventFilters" style="z-index: 1040; position: relative;">
-        <form method="get" class="mb-4 bg-body p-4 rounded-4 shadow-sm border mt-3" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'capital-event-list' %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+    <div class="collapse {% if time_period == 'custom' and request.GET.pill_clicked %}show{% endif %}" id="capitalEventFilters" style="z-index: 1040; position: relative;">
+        <form method="get" class="mb-4 bg-body p-4 rounded-4 border mt-3" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'capital-event-list' %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
             <div class="row g-4">
                 <div class="col-12 col-md-4">
                     <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search" %}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" value="{{ search_query }}" placeholder="{% trans 'Search...' %}" oninput="clearTimeout(this.timer); this.timer = setTimeout(() => this.form.dispatchEvent(new Event('submit', { cancelable: true })), 300)">
+                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" value="{{ search_query }}" placeholder="{% trans 'Search...' %}">
                     </div>
                 </div>
                 
@@ -82,7 +82,7 @@
                         {% for period in periods|split_string:"," %}
                             {% with p_val=period|split_string:":"|first p_label=period|split_string:":"|last %}
                             <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm{% else %}btn-light text-secondary border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period != p_val %}background-color: var(--bs-tertiary-bg);{% endif %}">
-                                <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))" {% if time_period == p_val %}checked{% endif %}>
+                                <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="const f=document.createElement('input'); f.type='hidden'; f.name='pill_clicked'; f.value='true'; this.form.appendChild(f); this.form.dispatchEvent(new Event('submit', { cancelable: true }))" {% if time_period == p_val %}checked{% endif %}>
                                 {{ p_label }}
                             </label>
                             {% endwith %}
@@ -109,11 +109,11 @@
                             <label class="form-label small text-muted fw-semibold mb-2">{% trans "Date Range" %}</label>
                             <div class="input-group input-group-sm mb-2">
                                 <span class="input-group-text bg-light border-end-0 text-muted" style="min-width: 60px;">{% trans "From" %}</span>
-                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))">
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
                             </div>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light border-end-0 text-muted" style="min-width: 60px;">{% trans "To" %}</span>
-                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))">
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
                             </div>
                         </div>
                         {% endif %}

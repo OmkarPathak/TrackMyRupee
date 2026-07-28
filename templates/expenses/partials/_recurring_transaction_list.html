@@ -85,8 +85,8 @@
     {% include 'partials/guide_recurring.html' %}
 
     <!-- Filter Form -->
-    <div class="collapse" id="subscriptionFilters">
-        <form method="get" class="mb-4 bg-body p-4 rounded-4 shadow-sm border mt-3" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'recurring-list' %}" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+    <div class="collapse {% if time_period == 'custom' and request.GET.pill_clicked %}show{% endif %}" id="subscriptionFilters">
+        <form method="get" class="mb-4 bg-body p-4 rounded-4 border mt-3" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'recurring-list' %}" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
             <div class="row g-4 align-items-end">
                 <div class="col-12 col-md-6">
                     <label for="category-select" class="form-label small text-muted fw-semibold mb-2">{% trans "Category" %}</label>

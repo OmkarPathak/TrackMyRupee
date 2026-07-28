@@ -92,7 +92,7 @@
             </div>
         </div>
 
-        <div class="collapse" id="transactionFilters">
+        <div class="collapse {% if time_period == 'custom' and request.GET.pill_clicked %}show{% endif %}" id="transactionFilters">
             <form method="get" class="mb-4 mt-4 bg-body p-4 rounded-4 border" style="border-color: rgba(0,0,0,0.08) !important;" hx-get="{% url 'all-transactions' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
                 {% for t in selected_types %}
                 <input type="hidden" name="type" value="{{ t }}">
@@ -102,7 +102,7 @@
                         <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search" %}</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                            <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" value="{{ search_query }}" placeholder="{% trans 'Search transactions...' %}" oninput="clearTimeout(this.timer); this.timer = setTimeout(() => this.form.dispatchEvent(new Event('submit', { cancelable: true })), 300)">
+                            <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" value="{{ search_query }}" placeholder="{% trans 'Search transactions...' %}">
                         </div>
                     </div>
                     
@@ -113,7 +113,7 @@
                             {% for period in periods|split_string:"," %}
                                 {% with p_val=period|split_string:":"|first p_label=period|split_string:":"|last %}
                                 <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm{% else %}btn-light text-secondary border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period != p_val %}background-color: var(--bs-tertiary-bg);{% endif %}">
-                                    <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))" {% if time_period == p_val %}checked{% endif %}>
+                                    <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="const f=document.createElement('input'); f.type='hidden'; f.name='pill_clicked'; f.value='true'; this.form.appendChild(f); this.form.dispatchEvent(new Event('submit', { cancelable: true }))" {% if time_period == p_val %}checked{% endif %}>
                                     {{ p_label }}
                                 </label>
                                 {% endwith %}
@@ -127,17 +127,18 @@
                         <div class="row g-3 align-items-end">
                             <div class="col-12 col-md-5">
                                 <label class="form-label small text-muted fw-semibold mb-1">{% trans "Start Date" %}</label>
-                                <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))">
+                                <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
                             </div>
                             <div class="col-12 col-md-5">
                                 <label class="form-label small text-muted fw-semibold mb-1">{% trans "End Date" %}</label>
-                                <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}" onchange="this.form.dispatchEvent(new Event('submit', { cancelable: true }))">
+                                <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
                             </div>
                         </div>
                     </div>
                     {% endif %}
 
                     <div class="col-12 d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
                         <button type="button" class="btn btn-light text-secondary border-0 fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'all-transactions' %}" hx-params="none" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
                     </div>
                 </div>
