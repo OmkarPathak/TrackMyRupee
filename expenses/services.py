@@ -6,7 +6,21 @@ from django.db.models import F, Sum
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 
+import logging
 from .models import CapitalEvent, Expense, Income, Loan, LoanRepayment
+
+logger = logging.getLogger(__name__)
+
+
+def _month_start_offset(today, months):
+    """Return the first day of the month that is `months` calendar months before today.
+    Uses proper calendar arithmetic instead of approximating months as 30 days."""
+    year = today.year
+    month = today.month - months
+    while month <= 0:
+        month += 12
+        year -= 1
+    return today.replace(year=year, month=month, day=1)
 
 
 class FinancialService:
@@ -21,7 +35,7 @@ class FinancialService:
         # We can optimize this by getting all data in 2 queries and grouping in Python,
         # or using TruncMonth. Let's use TruncMonth for robustness.
         
-        start_date = (today.replace(day=1) - timedelta(days=30 * (months - 1))).replace(day=1)
+        start_date = _month_start_offset(today, months - 1)
         
         income_qs = Income.objects.filter(
             user=user, date__gte=start_date, date__lte=today
@@ -113,7 +127,7 @@ class FinancialService:
         """
         today = timezone.now().date()
         # Start from the previous month
-        start_date = (today.replace(day=1) - timedelta(days=30 * months)).replace(day=1)
+        start_date = _month_start_offset(today, months)
         end_date = today.replace(day=1) - timedelta(days=1)
         
         agg = Expense.objects.filter(
@@ -140,7 +154,7 @@ class FinancialService:
         """
         today = timezone.now().date()
         
-        start_date = (today.replace(day=1) - timedelta(days=30 * months)).replace(day=1)
+        start_date = _month_start_offset(today, months)
         
         # This is a bit complex in one query if we want to join income and expense.
         # It's cleaner to get both lists and compare in Python.
@@ -202,13 +216,23 @@ class LoanService:
     def get_total_liabilities(user):
         """
         Returns the sum of remaining principal for all active loans.
+        Mirrors get_loan_summary's formula: subtracts both EMI-based principal
+        repayments AND any lump-sum capital-event prepayments (down payments,
+        prepayments) so that net worth / total debt display is always consistent.
         """
         active_loans = Loan.objects.filter(user=user, is_active=True).annotate(
             principal_paid=Coalesce(Sum('repayments__principal_portion'), Decimal('0.00'))
         )
         total = Decimal('0.00')
         for loan in active_loans:
-            remaining_principal = Decimal(str(loan.initial_principal)) - Decimal(str(loan.principal_paid or 0))
+            principal_paid = Decimal(str(loan.principal_paid or 0))
+            # Subtract lump-sum prepayments recorded as CapitalEvents (same as get_loan_summary)
+            capital_prepaid = (
+                CapitalEvent.objects
+                .filter(linked_loan=loan, subtype__in=['loan_down_payment', 'loan_prepayment'])
+                .aggregate(total=Sum('amount'))['total']
+            ) or Decimal('0.00')
+            remaining_principal = Decimal(str(loan.initial_principal)) - principal_paid - capital_prepaid
             if remaining_principal > 0:
                 total += remaining_principal
         return float(total)
@@ -352,6 +376,14 @@ class LoanService:
                 interest_payment = balance * r
                 principal_payment = emi - interest_payment
                 if principal_payment <= 0:
+                    # EMI no longer covers the interest — loan can't amortise at this rate.
+                    # This should never trigger since EMI is freshly calculated for the
+                    # remaining term, but log a warning if it does so it's visible.
+                    logger.warning(
+                        "_simulate: principal_payment <= 0 (interest=%.4f, emi=%.4f, balance=%.4f). "
+                        "Loan cannot amortise; breaking early and returning understated savings.",
+                        float(interest_payment), float(emi), float(balance),
+                    )
                     break
                 if principal_payment > balance:
                     principal_payment = balance
