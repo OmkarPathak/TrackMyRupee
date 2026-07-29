@@ -21,11 +21,20 @@
     pip install -r requirements.txt
     ```
 
-4.  **Apply database migrations**:
+4.  **Create `.env` file**:
+    Create a `.env` file in the root directory. At a minimum, for local development you need:
+    ```env
+    SECRET_KEY='your-secret-key-here'
+    DEBUG=True
+    USE_SQLITE=True
+    ```
+
+5.  **Apply database migrations**:
     ```bash
     python manage.py migrate
     ```
-5.  **Setup Demo User** (Optional but recommended):
+
+6.  **Setup Demo User** (Optional but recommended):
     ```bash
     python manage.py setup_demo_user
     ```
@@ -42,17 +51,51 @@
     ```
 
 2.  **Create `.env` file**:
-    Create a file named `.env` in the root directory. Fill in the values:
+    Create a file named `.env` in the root directory. Below are all the environment variables supported by the application. Fill in the ones you need based on the features you want to enable:
     ```env
-    SECRET_KEY=''
+    # Required Core Settings
+    SECRET_KEY='your-secret-key-here'
     DEBUG=True
-    EMAIL_HOST='smtp.gmail.com' # if you want to use gmail for sending emails
+
+    # Database Settings (Leave blank or remove to use SQLite by default)
+    # USE_SQLITE=False
+    # DATABASE_URL='postgres://user:password@localhost:5432/dbname'
+
+    # Email Settings (Choose Brevo API or SMTP)
+    BREVO_API_KEY=''
+    # OR
+    EMAIL_HOST='smtp.gmail.com'
     EMAIL_PORT=587
     EMAIL_USE_TLS=True
     EMAIL_HOST_USER=''
     EMAIL_HOST_PASSWORD=''
+
+    # Authentication / Google OAuth
+    GOOGLE_CLIENT_ID=''
+    GOOGLE_CLIENT_SECRET=''
+
+    # Payments (Razorpay)
+    RAZORPAY_KEY_ID=''
+    RAZORPAY_KEY_SECRET=''
+    RAZORPAY_WEBHOOK_SECRET=''
+
+    # Push Notifications (Web Push)
+    VAPID_PUBLIC_KEY=''
+    VAPID_PRIVATE_KEY=''
+    VAPID_ADMIN_EMAIL='support@example.com'
+
+    # AI Insights
+    GEMINI_API_KEY=''
+
+    # Analytics & Tracking
+    GOOGLE_ANALYTICS_ID=''
+    SENTRY_DSN=''
+    
+    # reCAPTCHA
+    RECAPTCHA_PUBLIC_KEY=''
+    RECAPTCHA_SECRET_KEY=''
     ```
-    **Note**: The application will not run correctly without this file.
+    **Note**: The application will not run correctly without at least the Core Settings in this file.
 
 3.  **Run with Docker Compose**:
     ```bash
