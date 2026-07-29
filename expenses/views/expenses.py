@@ -420,7 +420,7 @@ def parse_expense_view(request):
         combined_categories = list(set(user_categories + frequent_categories))
         
         # Get last used account and payment method as defaults
-        last_expense = Expense.objects.filter(user=request.user).order_by('-created_at').first()
+        last_expense = Expense.objects.filter(user=request.user).order_by('-date', '-created_at').first()
         default_account = last_expense.account.name if last_expense and last_expense.account else None
         default_payment_method = last_expense.payment_method if last_expense else 'Cash' # sensible default
         
@@ -429,13 +429,39 @@ def parse_expense_view(request):
         
         result = parse_expense_nl(text, user_categories=combined_categories, user_accounts=user_accounts, user=request.user)
         if result:
-            # Apply defaults if not parsed
-            if not result.get('account'):
-                result['account'] = default_account
+            predicted_description = result.get('description')
+            predicted_category = result.get('category')
+            cat_account = None
+            cat_payment_method = None
             
-            result['payment_method'] = default_payment_method
-            # Note: We aren't currently parsing payment method from text, 
-            # but we can add it later if needed. For now just returning default
+            if predicted_category:
+                from django.db.models import Q
+                
+                last_cat_expense = None
+                # 1. Try to find the last expense with the same description and category
+                if predicted_description:
+                    last_cat_expense = Expense.objects.filter(
+                        Q(category__iexact=predicted_category) | Q(category_fk__name__iexact=predicted_category),
+                        user=request.user,
+                        description__icontains=predicted_description
+                    ).select_related('account').order_by('-date', '-created_at').first()
+                
+                # 2. If no description match, fall back to just the category
+                if not last_cat_expense:
+                    last_cat_expense = Expense.objects.filter(
+                        Q(category__iexact=predicted_category) | Q(category_fk__name__iexact=predicted_category),
+                        user=request.user
+                    ).select_related('account').order_by('-date', '-created_at').first()
+                
+                if last_cat_expense:
+                    cat_account = last_cat_expense.account.name if last_cat_expense.account else None
+                    cat_payment_method = last_cat_expense.payment_method
+
+            # Apply defaults if not parsed (prioritize category-specific over global)
+            if not result.get('account'):
+                result['account'] = cat_account or default_account
+            
+            result['payment_method'] = cat_payment_method or default_payment_method
             
             return JsonResponse({'success': True, 'data': result})
         return JsonResponse({'success': False, 'error': 'No input text provided.'})
