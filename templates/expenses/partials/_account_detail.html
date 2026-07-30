@@ -43,7 +43,7 @@
     <div class="row g-3 mb-2 mb-md-4 align-items-stretch">
         <!-- Hero Metrics Header -->
         <div class="col-12 {% if trend_data %}col-lg-7{% endif %}">
-        <div class="card border-0 full-width-hero-card h-100 overflow-hidden" style="background-color: #ffffff; border: 1px solid rgba(0,0,0,0.07) !important;">
+        <div class="card border-0 full-width-hero-card h-100 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
                 <div class="card-body p-4 d-flex flex-column justify-content-between h-100">
                     <!-- Top Section: Title & Actions -->
                     <div class="d-flex flex-column mb-4 gap-1">
@@ -83,7 +83,7 @@
 
                         <!-- Subtitle Row -->
                         <div class="min-w-0">
-                            <p class="mb-0 lh-sm text-truncate" style="font-size: 0.82rem; color: #9a9a90;">
+                            <p class="mb-0 lh-sm text-truncate text-body-secondary" style="font-size: 0.82rem;">
                                 {{ account.get_account_type_display }} • {{ account.currency }}
                                 {% if account.deposit_rate %}
                                     • <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25 fw-normal">{{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.</span>
@@ -96,11 +96,11 @@
                     </div>
 
                     <!-- Bottom Section: Balance Hero Figure -->
-                    <div class="mt-auto pt-3 border-top border-dark border-opacity-10">
-                        <div class="fw-semibold text-uppercase mb-2 mt-2" style="font-size: 0.62rem; letter-spacing: 0.10em; color: #9a9a90;">{% trans "Current Balance" %}</div>
+                    <div class="mt-auto pt-3 border-top">
+                        <div class="fw-semibold text-uppercase mb-2 mt-2 text-body-secondary" style="font-size: 0.62rem; letter-spacing: 0.10em;">{% trans "Current Balance" %}</div>
                         <div class="d-flex align-items-end justify-content-between gap-3">
                             <div>
-                                <div style="font-size: clamp(2.2rem, 8vw, 3rem); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 800; color: #1a1a18;">
+                                <div class="text-body-emphasis" style="font-size: clamp(2.2rem, 8vw, 3rem); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 800;">
                                     {% if account.has_accrued_value %}
                                         {{ currency_symbol }}{{ account.accrued_value|ind_comma:currency_symbol|translate_digits }}
                                     {% else %}
@@ -108,13 +108,13 @@
                                     {% endif %}
                                 </div>
                                 {% if account.has_accrued_value %}
-                                    <div class="mt-2" style="font-size: 0.8rem; color: #9a9a90;">
+                                    <div class="mt-2 text-body-secondary" style="font-size: 0.8rem;">
                                         {% trans "Original Deposit:" %} {{ currency_symbol }}{{ account.effective_principal|ind_comma:currency_symbol|translate_digits }}
                                     </div>
                                 {% endif %}
                             </div>
-                            <div class="text-end pb-1 flex-shrink-0" style="color: #9a9a90; font-size: 0.82rem;">
-                                <span class="fw-bold fs-6" style="color: #1a1a18;">{{ page_obj.paginator.count|translate_digits }}</span> <span class="opacity-75">{% trans "transactions" %}</span>
+                            <div class="text-end pb-1 flex-shrink-0 text-body-secondary" style="font-size: 0.82rem;">
+                                <span class="fw-bold fs-6 text-body-emphasis">{{ page_obj.paginator.count|translate_digits }}</span> <span class="opacity-75">{% trans "transactions" %}</span>
                             </div>
                         </div>
                     </div>
