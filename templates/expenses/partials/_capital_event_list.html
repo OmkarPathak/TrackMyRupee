@@ -105,15 +105,12 @@
                         </div>
                         
                         {% if time_period == 'custom' %}
-                        <div class="col-12 col-md">
+                        <div class="col-12 col-md-auto">
                             <label class="form-label small text-muted fw-semibold mb-2">{% trans "Date Range" %}</label>
-                            <div class="input-group input-group-sm mb-2">
-                                <span class="input-group-text bg-light border-end-0 text-muted" style="min-width: 60px;">{% trans "From" %}</span>
-                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
-                            </div>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light border-end-0 text-muted" style="min-width: 60px;">{% trans "To" %}</span>
-                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}" aria-label="{% trans 'Start Date' %}">
+                                <span class="text-muted small">{% trans "to" %}</span>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}" aria-label="{% trans 'End Date' %}">
                             </div>
                         </div>
                         {% endif %}
