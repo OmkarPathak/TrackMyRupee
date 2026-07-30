@@ -88,10 +88,14 @@ def apply_date_filters(queryset, request, date_field='date'):
     from django.utils import timezone
 
     time_period = request.GET.get('time_period')
-    if not time_period:
-        time_period = 'this_month'
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
+
+    if not time_period:
+        if start_date or end_date:
+            time_period = 'custom'
+        else:
+            time_period = 'this_month'
 
     today = timezone.localtime().date()
 

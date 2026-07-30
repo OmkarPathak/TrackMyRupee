@@ -3228,9 +3228,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Apply the clicked day as the date range
                                 queryParams.append('start_date', dateStr);
                                 queryParams.append('end_date', dateStr);
-                                // Also pass selected categories
                                 if (selectedCategories && selectedCategories.length > 0) {
-                                    selectedCategories.forEach(cat => queryParams.append('category', encodeURIComponent(cat)));
+                                    selectedCategories.forEach(cat => queryParams.append('category', cat));
                                 }
                                 showLoader();
                                 window.location.href = "{% url 'expense-list' %}?" + queryParams.toString();
@@ -3283,7 +3282,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 queryParams.append('start_date', startDateStr);
                                 queryParams.append('end_date', endDateStr);
                                 if (selectedCategories && selectedCategories.length > 0) {
-                                    selectedCategories.forEach(cat => queryParams.append('category', encodeURIComponent(cat)));
+                                    selectedCategories.forEach(cat => queryParams.append('category', cat));
                                 }
                                 showLoader();
                                 window.location.href = "{% url 'expense-list' %}?" + queryParams.toString();
