@@ -54,6 +54,9 @@ CRON_ALLOW_QUERY_SECRET = os.getenv('CRON_ALLOW_QUERY_SECRET', 'False').lower() 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
+# Option to disable the admin panel url
+ENABLE_ADMIN_URL = os.getenv('ENABLE_ADMIN_URL', 'False').lower() in {'1', 'true', 'yes', 'on'}
+
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
     'ALLOWED_HOSTS',
     'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'
