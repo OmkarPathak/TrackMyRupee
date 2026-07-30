@@ -778,6 +778,27 @@
             deferredPrompt = null;
             console.log('PWA was installed');
         });
+
+        // Update login time for all active users (PWA and regular web)
+        {% if user.is_authenticated %}
+        // Use localStorage to only send ping once per day per user
+        const today = new Date().toISOString().split('T')[0];
+        const appLoginKey = 'appLastLoginDate_' + '{{ user.id }}';
+        const lastPingDate = localStorage.getItem(appLoginKey);
+        if (lastPingDate !== today) {
+            fetch('{% url "update-pwa-login" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    localStorage.setItem(appLoginKey, today);
+                }
+            }).catch(e => console.error("Error updating login time", e));
+        }
+        {% endif %}
     </script>
 
     <main class="container pt-2 pt-lg-4 pb-4 flex-grow-1">

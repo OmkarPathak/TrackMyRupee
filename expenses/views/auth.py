@@ -11,6 +11,8 @@ from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext as _
+from django.utils import timezone
+from django.views import View
 from django.views.generic import TemplateView
 
 from ..models import (
@@ -483,3 +485,9 @@ def resend_verification_email(request):
         except EmailAddress.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Email not found'})
     return JsonResponse({'success': False}, status=400)
+
+class UpdatePWALoginView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        request.user.last_login = timezone.now()
+        request.user.save(update_fields=['last_login'])
+        return JsonResponse({'status': 'success'})
