@@ -280,6 +280,10 @@ class FXService:
         """
         Convert amount to base currency using a pre-built rate map.
         Zero additional DB queries — pure arithmetic.
+        Raises ValueError if rate for from_ccy is missing in fx_map.
         """
-        rate = fx_map.get(from_ccy, Decimal('1.0'))
+        if from_ccy not in fx_map:
+            logger.error("convert_using_map: missing rate for currency '%s' in fx_map", from_ccy)
+            raise ValueError(f"Exchange rate for {from_ccy} is missing from FX rate map")
+        rate = fx_map[from_ccy]
         return (amount * rate).quantize(Decimal('0.01'))

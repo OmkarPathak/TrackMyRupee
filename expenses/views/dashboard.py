@@ -574,7 +574,7 @@ def home_view(request):
                     user=request.user,
                     date__gte=prev_cycle_start,
                     date__lte=prev_cycle_end,
-                    exclude_from_budget=False,
+                    exclude_from_averages=False,
                 ).aggregate(total=Sum('base_amount'))['total'] or 0
             else:
                 # Calculate previous month and year
@@ -609,7 +609,7 @@ def home_view(request):
                     user=request.user,
                     date__year=prev_year,
                     date__month=prev_month,
-                    exclude_from_budget=False,
+                    exclude_from_averages=False,
                 ).aggregate(total=Sum('base_amount'))['total'] or 0
 
             prev_loan_interest = prev_loan_stats['total_interest'] or 0
