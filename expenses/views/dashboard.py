@@ -17,6 +17,8 @@ from django.utils.html import escape, format_html, format_html_join, mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
+from .mixins import HtmxPartialTemplateMixin
+
 from ..account_types import investment_codes
 from ..ledger_read_service import LedgerReadService
 from ..models import (
@@ -3116,8 +3118,11 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
 
         return context
 
-class BudgetDashboardView(LoginRequiredMixin, TemplateView):
+
+class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
     template_name = 'expenses/budget_dashboard.html'
+    htmx_template_name = 'expenses/partials/_budget_dashboard_content.html'
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -3125,6 +3130,7 @@ class BudgetDashboardView(LoginRequiredMixin, TemplateView):
         
         month_param = self.request.GET.get('month')
         year_param = self.request.GET.get('year')
+        sort_param = self.request.GET.get('sort', 'urgent')
         
         month = int(month_param) if month_param else today.month
         year = int(year_param) if year_param else today.year
@@ -3132,6 +3138,7 @@ class BudgetDashboardView(LoginRequiredMixin, TemplateView):
         # Ensure context variables for filters are correct
         context['current_month'] = month
         context['current_year'] = year
+        context['current_sort'] = sort_param
         
         categories = Category.objects.filter(user=user)
         budget_data = []
@@ -3150,35 +3157,63 @@ class BudgetDashboardView(LoginRequiredMixin, TemplateView):
         cat_spend_qs = FinancialService.get_categorical_spending(user, year, month)
         cat_spend_map = {item['category']: item['total'] for item in cat_spend_qs}
 
+        over_budget_count = 0
+        at_limit_count = 0
+        on_track_count = 0
+        no_limit_count = 0
+
         for category in categories:
             spent = cat_spend_map.get(category.name, 0)
             
             percentage = (float(spent) / float(category.limit) * 100) if category.limit and category.limit > 0 else 0
             
+            status = 'nolimit'
+            if category.limit and category.limit > 0:
+                if spent > category.limit:
+                    status = 'over'
+                    over_budget_count += 1
+                elif percentage >= 85 or spent == category.limit:
+                    status = 'limit'
+                    at_limit_count += 1
+                else:
+                    status = 'ontrack'
+                    on_track_count += 1
+            else:
+                no_limit_count += 1
+
+            remaining = (category.limit - spent) if category.limit and spent <= category.limit else 0
+            left_percentage = max(0.0, 100.0 - percentage) if category.limit and category.limit > 0 else 0
+
             budget_data.append({
                 'category': category,
                 'spent': spent,
                 'limit': category.limit,
                 'percentage': min(percentage, 100),
                 'actual_percentage': percentage,
-                'remaining': (category.limit - spent) if category.limit and spent <= category.limit else 0,
-                'over_budget': (spent - category.limit) if category.limit and spent > category.limit else 0
+                'remaining': remaining,
+                'over_budget': (spent - category.limit) if category.limit and spent > category.limit else 0,
+                'left_percentage': left_percentage,
+                'status': status
             })
             
             if category.limit:
                 total_budget += category.limit
             categorized_spent += spent
-            
-        context.update({
-            'budget_data': budget_data,
-            'total_budget': total_budget,
-            'total_spent': grand_total_spent,
-            'total_remaining': (total_budget - grand_total_spent) if total_budget > grand_total_spent else 0,
-            'over_budget_amount': (grand_total_spent - total_budget) if grand_total_spent > total_budget else 0,
-            'total_percentage': min((grand_total_spent / total_budget * 100), 100) if total_budget else 0,
-            'actual_total_percentage': (grand_total_spent / total_budget * 100) if total_budget else 0,
-            'month_name': date(year, month, 1).strftime('%B'),
-        })
+
+        # Sorting logic
+        if sort_param == 'name':
+            budget_data.sort(key=lambda x: x['category'].name.lower())
+        elif sort_param == 'limit':
+            budget_data.sort(key=lambda x: (x['limit'] or 0), reverse=True)
+        elif sort_param == 'spent':
+            budget_data.sort(key=lambda x: float(x['spent']), reverse=True)
+        else:  # 'urgent' default
+            status_order = {'over': 0, 'limit': 1, 'ontrack': 2, 'nolimit': 3}
+            budget_data.sort(key=lambda x: (status_order[x['status']], -x['actual_percentage']))
+
+        needs_attention = [item for item in budget_data if item['status'] in ('over', 'limit')]
+        on_track = [item for item in budget_data if item['status'] == 'ontrack']
+        no_limit = [item for item in budget_data if item['status'] == 'nolimit']
 
         # MoM Calculation for Budget Dashboard
         if month == 1:
@@ -3194,16 +3229,37 @@ class BudgetDashboardView(LoginRequiredMixin, TemplateView):
             date__month=prev_month
         ).aggregate(Total=Sum('base_amount'))['Total'] or 0
 
+        spent_mom_pct = None
+        spent_mom_pct_abs = None
         if prev_spent > 0:
-            context['spent_mom_pct'] = ((grand_total_spent - prev_spent) / prev_spent) * 100
-            context['spent_mom_pct_abs'] = abs(context['spent_mom_pct'])
-        else:
-            context['spent_mom_pct'] = None
-            context['spent_mom_pct_abs'] = None
+            spent_mom_pct = ((grand_total_spent - prev_spent) / prev_spent) * 100
+            spent_mom_pct_abs = abs(spent_mom_pct)
+
+        currency_symbol = user.profile.currency if hasattr(user, 'profile') and user.profile.currency else '₹'
 
         context.update({
+            'budget_data': budget_data,
+            'needs_attention': needs_attention,
+            'on_track': on_track,
+            'no_limit': no_limit,
+            'over_budget_count': over_budget_count,
+            'at_limit_count': at_limit_count,
+            'on_track_count': on_track_count,
+            'no_limit_count': no_limit_count,
+            'total_budget': total_budget,
+            'total_spent': grand_total_spent,
+            'total_remaining': (total_budget - grand_total_spent) if total_budget > grand_total_spent else 0,
+            'over_budget_amount': (grand_total_spent - total_budget) if grand_total_spent > total_budget else 0,
+            'total_percentage': min((grand_total_spent / total_budget * 100), 100) if total_budget else 0,
+            'actual_total_percentage': (grand_total_spent / total_budget * 100) if total_budget else 0,
+            'spent_mom_pct': spent_mom_pct,
+            'spent_mom_pct_abs': spent_mom_pct_abs,
+            'month_name': date(year, month, 1).strftime('%B'),
+            'short_month_name': date(year, month, 1).strftime('%b'),
+            'currency_symbol': currency_symbol,
             'current_month': month,
             'current_year': year,
+            'current_sort': sort_param,
             'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
             'years': range(today.year - 2, today.year + 2),
         })
