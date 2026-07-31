@@ -342,22 +342,9 @@ class LedgerReadService:
         result = dict(schedule_map)
 
         if missing_loan_ids:
-            loans = (
-                Loan.objects
-                .filter(id__in=missing_loan_ids)
-                .annotate(
-                    paid_principal=Coalesce(
-                        Sum('repayments__principal_portion'), Decimal('0.00')
-                    )
-                )
-                .values('id', 'initial_principal', 'paid_principal')
-            )
-            for row in loans:
-                remaining = max(
-                    Decimal('0.00'),
-                    row['initial_principal'] - row['paid_principal'],
-                )
-                result[row['id']] = remaining
+            loans = Loan.objects.filter(id__in=missing_loan_ids)
+            for loan in loans:
+                result[loan.id] = loan.remaining_principal
 
         return result
 
@@ -649,11 +636,9 @@ class LedgerReadService:
         if not extended:
             # Pre-change path: subtract loan principal and add physical assets separately
             outstanding_loan_base = Decimal("0.00")
-            active_loans = Loan.objects.filter(user=user, is_active=True).annotate(
-                paid_principal=Coalesce(Sum("repayments__principal_portion"), Decimal("0.00"))
-            )
+            active_loans = Loan.objects.filter(user=user, is_active=True)
             for loan in active_loans:
-                remaining_principal = (loan.initial_principal - loan.paid_principal).quantize(Decimal("0.01"))
+                remaining_principal = loan.remaining_principal.quantize(Decimal("0.01"))
                 if remaining_principal <= Decimal("0.00"):
                     continue
                 if loan.currency != base_currency:
@@ -677,11 +662,9 @@ class LedgerReadService:
             if strategy_for(a.account_type) == STRATEGY.LOAN_OUTSTANDING
             and a.linked_loan_id is not None
         }
-        unlinked_loans = Loan.objects.filter(user=user, is_active=True).exclude(id__in=linked_loan_ids).annotate(
-            paid_principal=Coalesce(Sum("repayments__principal_portion"), Decimal("0.00"))
-        )
+        unlinked_loans = Loan.objects.filter(user=user, is_active=True).exclude(id__in=linked_loan_ids)
         for loan in unlinked_loans:
-            remaining_principal = (loan.initial_principal - loan.paid_principal).quantize(Decimal("0.01"))
+            remaining_principal = loan.remaining_principal.quantize(Decimal("0.01"))
             if remaining_principal <= Decimal("0.00"):
                 continue
             if loan.currency != base_currency:
@@ -710,11 +693,9 @@ class LedgerReadService:
             goal_reserves_base += goal_amount
 
         outstanding_loan_base = Decimal("0.00")
-        active_loans = Loan.objects.filter(user=user, is_active=True).annotate(
-            paid_principal=Coalesce(Sum("repayments__principal_portion"), Decimal("0.00"))
-        )
+        active_loans = Loan.objects.filter(user=user, is_active=True)
         for loan in active_loans:
-            remaining_principal = (loan.initial_principal - loan.paid_principal).quantize(Decimal("0.01"))
+            remaining_principal = loan.remaining_principal.quantize(Decimal("0.01"))
             if remaining_principal <= Decimal("0.00"):
                 continue
             if loan.currency != base_currency:

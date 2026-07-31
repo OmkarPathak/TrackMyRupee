@@ -80,14 +80,7 @@ def home_view(request):
 
     # Helper: sum transfer amounts converted to user's base currency
     def sum_transfers_base(qs):
-        total = Decimal('0.00')
-        for t in qs:
-            if t.from_account and t.from_account.currency != currency_symbol:
-                rate = get_exchange_rate(t.from_account.currency, currency_symbol)
-                total += (t.amount * rate).quantize(Decimal('0.01'))
-            else:
-                total += t.amount
-        return total
+        return qs.aggregate(total=Sum('converted_amount'))['total'] or Decimal('0.00')
 
     # Base QuerySet - All user expenses
     expenses = Expense.objects.filter(user=request.user).select_related('account', 'category_fk').order_by('-date')
@@ -96,7 +89,7 @@ def home_view(request):
     investments = Transfer.objects.filter(user=request.user, to_account__account_type__in=list(investment_codes())).select_related('from_account', 'to_account')
     
     # Logic for EOM projection
-    now = datetime.now()
+    now = timezone.localtime(timezone.now())
     num_days_in_month = calendar.monthrange(now.year, now.month)[1]
     days_passed = now.day
     
@@ -120,8 +113,8 @@ def home_view(request):
     if not (start_date or end_date):
         has_filter_params = selected_years or selected_months or selected_categories
         if not has_filter_params:
-            selected_years = [str(datetime.now().year)]
-            selected_months = [str(datetime.now().month)]
+            selected_years = [str(now.year)]
+            selected_months = [str(now.month)]
 
         if len(selected_months) == 1 and len(selected_years) == 1:
             try:
@@ -213,7 +206,7 @@ def home_view(request):
     total_loan_principal = total_loan_emi - total_loan_interest
 
     all_dates = Expense.objects.filter(user=request.user).dates('date', 'year', order='DESC')
-    years = sorted(list(set([d.year for d in all_dates] + [datetime.now().year])), reverse=True)
+    years = sorted(list(set([d.year for d in all_dates] + [now.year])), reverse=True)
     all_categories = Expense.objects.filter(user=request.user).values_list('category', flat=True).distinct().order_by('category')
 
     # Optimization: Pre-fetch all categories for the user to avoid N+1 queries in the loop
@@ -288,7 +281,7 @@ def home_view(request):
         cat_name = e.get_subtype_display()
         matched_cat = None
         for uc_name in user_categories.keys():
-            if uc_name.lower() in cat_name.lower() or cat_name.lower() in uc_name.lower():
+            if uc_name.lower() == cat_name.lower():
                 matched_cat = uc_name
                 break
         if matched_cat:
@@ -577,6 +570,12 @@ def home_view(request):
                     total_interest=Sum(F('interest_portion') * F('exchange_rate')),
                     total_emi=Sum('base_amount')
                 )
+                prev_cap_events = CapitalEvent.objects.filter(
+                    user=request.user,
+                    date__gte=prev_cycle_start,
+                    date__lte=prev_cycle_end,
+                    exclude_from_budget=False,
+                ).aggregate(total=Sum('base_amount'))['total'] or 0
             else:
                 # Calculate previous month and year
                 if sel_month == 1:
@@ -606,11 +605,17 @@ def home_view(request):
                     total_interest=Sum(F('interest_portion') * F('exchange_rate')),
                     total_emi=Sum('base_amount')
                 )
+                prev_cap_events = CapitalEvent.objects.filter(
+                    user=request.user,
+                    date__year=prev_year,
+                    date__month=prev_month,
+                    exclude_from_budget=False,
+                ).aggregate(total=Sum('base_amount'))['total'] or 0
 
             prev_loan_interest = prev_loan_stats['total_interest'] or 0
             prev_loan_emi = prev_loan_stats['total_emi'] or 0
             prev_loan_principal = prev_loan_emi - prev_loan_interest
-            prev_expenses_total = prev_expenses_op + prev_loan_interest
+            prev_expenses_total = prev_expenses_op + prev_loan_interest + prev_cap_events
             prev_savings = prev_income - prev_expenses_total
             prev_savings_rate_denominator = prev_income - prev_cb_rf
 
@@ -2011,9 +2016,13 @@ def home_view(request):
     curr_mon_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     month_income_sum = Income.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
     month_expense_sum = Expense.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+    month_loan_interest = LoanRepayment.objects.filter(loan__user=request.user, date__gte=curr_mon_start).aggregate(
+        total_interest=Sum(F('interest_portion') * F('exchange_rate'))
+    )['total_interest'] or Decimal('0.00')
+    month_cap_events = CapitalEvent.objects.filter(user=request.user, date__gte=curr_mon_start, exclude_from_budget=False).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
     
     # Net change (savings) is the growth in net worth
-    net_worth_change = month_income_sum - month_expense_sum
+    net_worth_change = month_income_sum - (month_expense_sum + month_loan_interest + month_cap_events)
     start_net_worth = net_worth - net_worth_change
     
     if start_net_worth > 0:
@@ -2021,30 +2030,6 @@ def home_view(request):
     elif start_net_worth == 0 and net_worth_change > 0:
         net_worth_percent = Decimal('100.0')
 
-    # --- NEW: 6-Month Net Worth Trend for Sparkline ---
-    net_worth_trend = []
-    tmp_nw = net_worth
-    # Current month (point 0)
-    net_worth_trend.append(float(tmp_nw))
-    
-    # Last 5 full months
-    for i in range(1, 6):
-        # Calculate start of month i months ago
-        first_day_current_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        # Move back i months
-        target_month_end = first_day_current_month - timedelta(days=1)
-        # If we are loop i=1, target_month_end is last day of prev month.
-        # So we need income/expense of the month that just ended to get net worth AT the start of current month.
-        
-        # Actually, simpler: 
-        # Point 0: Net Worth Now
-        # Point 1: Net Worth at Start of current month = Now - (Income_current - Expense_current)
-        # Point 2: Net Worth at Start of prev month = Point 1 - (Income_prev - Expense_prev)
-        
-        # Period i cashflow
-        period_start = (first_day_current_month - timedelta(days=1)).replace(day=1)
-        # This is not quite right for a loop. Let's use a cleaner date logic.
-        
     # --- NET WORTH TREND (Sparkline and Chart) ---
     net_worth_trend = FinancialService.get_cumulative_net_worth_history(request.user, net_worth, 6)
     

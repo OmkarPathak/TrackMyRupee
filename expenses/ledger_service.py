@@ -1,6 +1,9 @@
+import logging
 from datetime import timedelta
 from decimal import Decimal
 from types import SimpleNamespace
+
+logger = logging.getLogger(__name__)
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -208,7 +211,7 @@ class LedgerPostingService:
                 fx_rate, base_amount = cls._to_base_amount(user, line_amount, line_currency)
             except Exception as e:
                 # Fall back to transaction values on conversion error
-                pass
+                logger.warning("FX conversion error in _build_line (%s -> %s): %s", currency, account_ref.currency, e)
 
         return JournalLine(
             journal_entry=entry,

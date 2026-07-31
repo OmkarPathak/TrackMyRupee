@@ -12,6 +12,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Sum
 
 from finance_tracker.plans import get_limit
 
@@ -859,9 +860,12 @@ class Transfer(models.Model):
     
     objects = TransferManager()
     
-    # Multi-currency support (No currency field in DB yet for Transfer, using from_account.currency)
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
     converted_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
+
+    @property
+    def base_amount(self):
+        return self.converted_amount
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1783,6 +1787,28 @@ class Loan(models.Model):
             for repayment in self.repayments.all():
                 repayment.delete()
             super().delete(*args, **kwargs)
+
+    @property
+    def remaining_principal(self) -> Decimal:
+        """
+        Calculates remaining outstanding principal:
+        initial_principal - sum(repayments.principal_portion) - sum(capital_prepaid)
+        """
+        
+        principal_paid = getattr(self, 'paid_principal', None)
+        if principal_paid is None:
+            principal_paid = self.repayments.aggregate(
+                total=Sum('principal_portion')
+            )['total'] or Decimal('0.00')
+
+        capital_prepaid = getattr(self, 'capital_prepaid', None)
+        if capital_prepaid is None:
+            capital_prepaid = self.capital_events.filter(
+                subtype__in=['loan_down_payment', 'loan_prepayment']
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+
+        rem = Decimal(str(self.initial_principal)) - Decimal(str(principal_paid)) - Decimal(str(capital_prepaid))
+        return max(rem, Decimal('0.00'))
 
     def __str__(self):
         return f"{self.name} - {self.initial_principal} {self.currency}"

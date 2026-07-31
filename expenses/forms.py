@@ -914,11 +914,24 @@ class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
             self.add_error('amount', _("Repayment amount must be greater than zero."))
 
         if loan and amount is not None:
-            breakdown = self._calculate_repayment_breakdown(amount, loan)
-            if breakdown:
-                cleaned_data['amount'] = breakdown['amount']
-                cleaned_data['principal_portion'] = breakdown['principal_portion']
-                cleaned_data['interest_portion'] = breakdown['interest_portion']
+            user_principal = cleaned_data.get('principal_portion')
+            user_interest = cleaned_data.get('interest_portion')
+
+            if user_principal is not None and user_interest is not None:
+                cleaned_data['principal_portion'] = user_principal
+                cleaned_data['interest_portion'] = user_interest
+            elif user_principal is not None:
+                cleaned_data['principal_portion'] = user_principal
+                cleaned_data['interest_portion'] = max(Decimal('0.00'), amount - user_principal)
+            elif user_interest is not None:
+                cleaned_data['interest_portion'] = user_interest
+                cleaned_data['principal_portion'] = max(Decimal('0.00'), amount - user_interest)
+            else:
+                breakdown = self._calculate_repayment_breakdown(amount, loan)
+                if breakdown:
+                    cleaned_data['amount'] = breakdown['amount']
+                    cleaned_data['principal_portion'] = breakdown['principal_portion']
+                    cleaned_data['interest_portion'] = breakdown['interest_portion']
 
         if add_to_recurring and not recurring_frequency:
             self.add_error('recurring_frequency', _("Please select a recurring frequency."))

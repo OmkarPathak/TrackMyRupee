@@ -135,6 +135,12 @@ class FinancialService:
         ).aggregate(
             total=Sum('base_amount')
         )
+
+        loan_interest_agg = LoanRepayment.objects.filter(
+            loan__user=user, date__gte=start_date, date__lte=end_date
+        ).aggregate(
+            total_interest=Sum(F('interest_portion') * F('exchange_rate'))
+        )
         
         income_agg = Income.objects.filter(
             user=user, date__gte=start_date, date__lte=end_date
@@ -142,9 +148,11 @@ class FinancialService:
             total=Sum('base_amount')
         )
         
+        total_expense = float(agg['total'] or 0) + float(loan_interest_agg['total_interest'] or 0)
+
         return {
             'avg_income': float(income_agg['total'] or 0) / months,
-            'avg_expense': float(agg['total'] or 0) / months
+            'avg_expense': total_expense / months
         }
 
     @staticmethod
@@ -220,21 +228,8 @@ class LoanService:
         repayments AND any lump-sum capital-event prepayments (down payments,
         prepayments) so that net worth / total debt display is always consistent.
         """
-        active_loans = Loan.objects.filter(user=user, is_active=True).annotate(
-            principal_paid=Coalesce(Sum('repayments__principal_portion'), Decimal('0.00'))
-        )
-        total = Decimal('0.00')
-        for loan in active_loans:
-            principal_paid = Decimal(str(loan.principal_paid or 0))
-            # Subtract lump-sum prepayments recorded as CapitalEvents (same as get_loan_summary)
-            capital_prepaid = (
-                CapitalEvent.objects
-                .filter(linked_loan=loan, subtype__in=['loan_down_payment', 'loan_prepayment'])
-                .aggregate(total=Sum('amount'))['total']
-            ) or Decimal('0.00')
-            remaining_principal = Decimal(str(loan.initial_principal)) - principal_paid - capital_prepaid
-            if remaining_principal > 0:
-                total += remaining_principal
+        active_loans = Loan.objects.filter(user=user, is_active=True)
+        total = sum(loan.remaining_principal for loan in active_loans)
         return float(total)
 
     @staticmethod
@@ -260,9 +255,7 @@ class LoanService:
             .aggregate(total=Sum('amount'))['total']
         ) or Decimal('0.00')
         
-        remaining_principal = loan.initial_principal - principal_paid - capital_prepaid
-        if remaining_principal < 0:
-            remaining_principal = Decimal('0.00')
+        remaining_principal = loan.remaining_principal
             
         return {
             'principal_paid': float(principal_paid),

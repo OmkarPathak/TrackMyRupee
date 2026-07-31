@@ -68,7 +68,7 @@ def get_exchange_rate(from_curr, to_curr):
             
         return Decimal(str(rate))
     except Exception as e:
-        print(f"Frankfurter API error: {e}. Trying fallback...")
+        logger.warning("Frankfurter API error: %s. Trying fallback...", e)
         
         try:
             # Fallback: ExchangeRate-API (v4 - free tier, no key needed for simple pairs)
@@ -94,7 +94,7 @@ def get_exchange_rate(from_curr, to_curr):
                 
             return Decimal(str(rate))
         except Exception as fb_e:
-            print(f"Fallback API error: {fb_e}")
+            logger.warning("Fallback API error: %s", fb_e)
             logger.warning("All exchange rate APIs failed for %s->%s.", from_code, to_code)
             raise RuntimeError(
                 f"Exchange rate unavailable for {from_code}->{to_code}."

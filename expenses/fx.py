@@ -27,7 +27,7 @@ Usage:
 """
 
 import logging
-from datetime import date as date_type
+from datetime import date as date_type, timedelta
 from decimal import Decimal
 
 from django.utils import timezone
@@ -112,6 +112,11 @@ class FXService:
         if as_of is not None:
             # Historical: latest row with as_of_date ≤ target date
             qs = qs.filter(as_of_date__lte=as_of)
+        else:
+            # Current: ignore rows older than 24 hours
+            cutoff = timezone.now() - timedelta(hours=24)
+            qs = qs.filter(created_at__gte=cutoff)
+
         # Most recent row
         row = qs.order_by('-as_of_date', '-created_at').first()
         if row is not None:
@@ -227,9 +232,10 @@ class FXService:
                 # Rate already fetched for this ISO code; reuse it
                 already_stored = next(
                     (result[s] for s in code_to_symbols.get(code, []) if s in result),
-                    Decimal('1.0'),
+                    None,
                 )
-                result[ccy] = already_stored
+                if already_stored is not None:
+                    result[ccy] = already_stored
                 continue
             try:
                 rate = get_exchange_rate(ccy, base_ccy)
@@ -242,9 +248,25 @@ class FXService:
                     "FXService.build_rate_map: live fetch failed for %s→%s: %s",
                     ccy, base_ccy, exc,
                 )
-                # Use 1.0 as emergency fallback to avoid crashing net-worth
-                for symbol in code_to_symbols.get(code, [ccy]):
-                    result[symbol] = Decimal('1.0')
+                # Fall back to the most recent stored FXRate for that currency if one exists (regardless of age)
+                fallback_row = (
+                    FXRate.objects.filter(from_currency=code, to_currency=base_code)
+                    .order_by('-as_of_date', '-created_at')
+                    .first()
+                )
+                if fallback_row is not None:
+                    logger.error(
+                        "FXService.build_rate_map: live fetch failed for %s→%s, falling back to stale stored rate (%s from %s)",
+                        code, base_code, fallback_row.rate, fallback_row.as_of_date,
+                    )
+                    fetched_codes.add(code)
+                    for symbol in code_to_symbols.get(code, [ccy]):
+                        result[symbol] = fallback_row.rate
+                else:
+                    logger.error(
+                        "FXService.build_rate_map: live fetch failed and no stored FXRate exists for %s→%s",
+                        code, base_code,
+                    )
 
         return result
 
