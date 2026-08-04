@@ -50,15 +50,15 @@
                         {% endif %}
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="row g-2 g-md-3">
+                        <div class="col-6 col-md-6 mb-3">
                             <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Type" %}</label>
                             {{ form.account_type }}
                             {% if form.account_type.errors %}
                                 <div class="text-danger small mt-1">{{ form.account_type.errors }}</div>
                             {% endif %}
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-6 col-md-6 mb-3">
                             <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Currency" %}</label>
                             {{ form.currency }}
                             {% if form.currency.errors %}
@@ -91,8 +91,8 @@
                             </h5>
                         </div>
                         <div class="card-body p-4">
-                            <div class="row g-3">
-                                <div class="col-md-6">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-6 col-md-6">
                                     <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Principal" %}</label>
                                     {{ form.deposit_principal }}
                                     {% if form.deposit_principal.errors %}
@@ -100,7 +100,7 @@
                                     {% endif %}
                                     <small class="form-text text-muted d-block" style="font-size: 0.72rem;">{% trans "Original amount invested." %}</small>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6 col-md-6">
                                     <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Annual Interest Rate (%)" %}</label>
                                     {{ form.deposit_rate }}
                                     {% if form.deposit_rate.errors %}
@@ -108,21 +108,21 @@
                                     {% endif %}
                                     <small class="form-text text-muted d-block" style="font-size: 0.72rem;">{% trans "e.g., 7.25 for 7.25% p.a." %}</small>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6 col-md-6">
                                     <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Start Date" %}</label>
                                     {{ form.deposit_start_date }}
                                     {% if form.deposit_start_date.errors %}
                                         <div class="text-danger small mt-1">{{ form.deposit_start_date.errors }}</div>
                                     {% endif %}
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6 col-md-6">
                                     <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Maturity Date" %}</label>
                                     {{ form.deposit_maturity_date }}
                                     {% if form.deposit_maturity_date.errors %}
                                         <div class="text-danger small mt-1">{{ form.deposit_maturity_date.errors }}</div>
                                     {% endif %}
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6 col-md-6">
                                     <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Compounding Frequency" %}</label>
                                     {{ form.deposit_compounding }}
                                     {% if form.deposit_compounding.errors %}
@@ -135,15 +135,15 @@
                                      x-show="accountType === 'RD'"
                                      x-cloak>
                                     <h6 class="fw-bold text-primary small mb-3">{% trans "Recurring Deposit (RD) Schedule" %}</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
+                                    <div class="row g-2 g-md-3">
+                                        <div class="col-6 col-md-6">
                                             <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Monthly Installment Amount" %}</label>
                                             {{ form.rd_installment_amount }}
                                             {% if form.rd_installment_amount.errors %}
                                                 <div class="text-danger small mt-1">{{ form.rd_installment_amount.errors }}</div>
                                             {% endif %}
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-6 col-md-6">
                                             <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Installment Day of Month (1-28)" %}</label>
                                             {{ form.rd_installment_day }}
                                             {% if form.rd_installment_day.errors %}

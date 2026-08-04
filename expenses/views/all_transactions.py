@@ -144,7 +144,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         # SQLite disallows ORDER BY inside UNION subqueries, so clear ordering first.
         normalized_qs = [
             qs.values(
-                'date', 'tx_description', 'type', 'cat', 'acc', 
+                'date', 'created_at', 'tx_description', 'type', 'cat', 'acc', 
                 'unified_amount', 'loan_pk', 'source_account_id', 'target_account_id', 
                 pk=F('uuid_str')
             ).order_by() 
@@ -160,7 +160,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         elif sort_by == 'amount_desc':
             queryset = queryset.order_by('-unified_amount')
         else:
-            queryset = queryset.order_by('-date')
+            queryset = queryset.order_by('-created_at', '-date')
 
         return queryset
 
