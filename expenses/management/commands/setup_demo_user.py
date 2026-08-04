@@ -131,8 +131,22 @@ class Command(BaseCommand):
             balance=Decimal('0.00'), 
             currency='₹'
         )
+        acc_cc_regalia = Account.objects.create(
+            user=user, 
+            name="HDFC Regalia Credit Card", 
+            account_type='CREDIT_CARD', 
+            balance=Decimal('0.00'), 
+            currency='₹'
+        )
+        acc_cc_amazon = Account.objects.create(
+            user=user, 
+            name="ICICI Amazon Pay Credit Card", 
+            account_type='CREDIT_CARD', 
+            balance=Decimal('0.00'), 
+            currency='₹'
+        )
 
-        self.stdout.write(self.style.SUCCESS('Created Bank and Cash Accounts'))
+        self.stdout.write(self.style.SUCCESS('Created Bank, Cash, and Credit Card Accounts'))
         
         # 2. Categories & Budgets
         categories_data = [
@@ -224,6 +238,7 @@ class Command(BaseCommand):
             {'cat': 'Subscriptions', 'amount': 649, 'freq': 'MONTHLY', 'desc': 'Netflix Premium'},
             {'cat': 'Subscriptions', 'amount': 299, 'freq': 'MONTHLY', 'desc': 'Spotify Family'},
             {'cat': 'Shopping', 'amount': 3000, 'freq': 'MONTHLY', 'desc': 'Amazon/Myntra Shopping'},
+            {'cat': 'Travel', 'amount': 4500, 'freq': 'MONTHLY', 'desc': 'Flight & Hotel Booking'},
         ]
         
         # Investment Transfers (SIPs)
@@ -247,11 +262,19 @@ class Command(BaseCommand):
                         variation = random.randint(-100, 300)
                         amt = Decimal(amt) + Decimal(variation)
 
-                    # Determine Account
-                    if pattern['cat'] in ['Groceries', 'Transport', 'Dining Out']:
+                    # Determine Account & Payment Method
+                    if pattern['cat'] in ['Shopping', 'Subscriptions']:
+                        selected_account = acc_cc_regalia
+                        pm = 'Credit Card'
+                    elif pattern['cat'] in ['Travel']:
+                        selected_account = acc_cc_amazon
+                        pm = 'Credit Card'
+                    elif pattern['cat'] in ['Groceries', 'Transport', 'Dining Out']:
                         selected_account = acc_cash
+                        pm = 'UPI' if 'Dining' in pattern['cat'] else 'Cash'
                     else:
                         selected_account = acc_main
+                        pm = 'Debit Card'
 
                     Expense.objects.create(
                         user=user,
@@ -259,7 +282,7 @@ class Command(BaseCommand):
                         amount=amt,
                         date=curr_date,
                         description=pattern['desc'],
-                        payment_method='UPI' if 'Dining' in pattern['cat'] else 'Debit Card',
+                        payment_method=pm,
                         account=selected_account
                     )
                     
@@ -276,7 +299,30 @@ class Command(BaseCommand):
             
             curr_date += timedelta(days=1)
 
-        self.stdout.write(self.style.SUCCESS('Generated Realistic Expense History and Investment Transfers'))
+        # Monthly Credit Card Bill Payments (Transfers from Bank to Credit Cards)
+        curr_month = window_start
+        while curr_month <= window_end:
+            bill_date = curr_month.replace(day=18)
+            if window_start <= bill_date <= window_end:
+                Transfer.objects.create(
+                    user=user,
+                    from_account=acc_main,
+                    to_account=acc_cc_regalia,
+                    amount=Decimal('3800.00'),
+                    date=bill_date,
+                    description="HDFC Regalia Credit Card Bill Settlement"
+                )
+                Transfer.objects.create(
+                    user=user,
+                    from_account=acc_main,
+                    to_account=acc_cc_amazon,
+                    amount=Decimal('2800.00'),
+                    date=bill_date + timedelta(days=2),
+                    description="ICICI Amazon Pay Card Bill Settlement"
+                )
+            curr_month = self._next_month_start(curr_month)
+
+        self.stdout.write(self.style.SUCCESS('Generated Realistic Expense History, Credit Card Bill Payments, and Investment Transfers'))
         
         # 5.1 Enforce "Today" and "Yesterday" Expenses for Dashboard KPI
         # We target ~₹12,000 in Dining Out for May to show the '33%' insight on ~₹36k total expenses
@@ -351,6 +397,16 @@ class Command(BaseCommand):
             {'name': 'New iPad Pro', 'target': 80000, 'current': 0, 'icon': '📱', 'color': 'info'},
         ]
 
+        # Initial savings seed transfer to keep SBI Savings positive
+        Transfer.objects.create(
+            user=user,
+            from_account=acc_main,
+            to_account=acc_savings,
+            amount=Decimal('50000.00'),
+            date=window_start,
+            description="Initial Emergency Savings Seed"
+        )
+
         for g_data in goals:
             goal = SavingsGoal.objects.create(
                 user=user,
@@ -371,16 +427,16 @@ class Command(BaseCommand):
             if parts:
                 for i, part in enumerate(parts):
                     contrib_date = today - timedelta(days=30 * i + 5)
-                    # We create a Transfer to represent the movement of money to the savings account
+                    # Create a Transfer representing movement of funds from main to savings
                     Transfer.objects.create(
                         user=user,
                         from_account=acc_main,
                         to_account=acc_savings,
                         amount=part,
                         date=contrib_date,
-                        description=f"Savings for {goal.name}"
+                        description=f"Savings transfer for {goal.name}"
                     )
-                    # Link to savings account
+                    # Link to savings goal
                     GoalContribution.objects.create(
                         goal=goal,
                         amount=part,
@@ -521,8 +577,17 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Created Complex Recurring Transactions'))
 
-        # 9. Capital Events
-        # Adding some sample capital events but excluding them from net worth to keep current logic stable.
+        # 9. Capital Events & Lump Sum Investments
+        # Lump sum investment into Zerodha Demat from Main account
+        Transfer.objects.create(
+            user=user,
+            from_account=acc_main,
+            to_account=acc_invest,
+            amount=Decimal('150000.00'),
+            date=today - timedelta(days=10),
+            description='Lump Sum in Parag Parikh Flexi Cap'
+        )
+
         CapitalEvent.objects.create(
             user=user,
             amount=Decimal('500000.00'),
@@ -542,25 +607,13 @@ class Command(BaseCommand):
             date=today - timedelta(days=60),
             subtype='medical_lump_sum',
             note='Dad\'s Surgery Out-of-pocket',
-            account=acc_savings,
-            exclude_from_averages=True,
-            exclude_from_budget=True,
-            include_in_net_worth=False
-        )
-
-        CapitalEvent.objects.create(
-            user=user,
-            amount=Decimal('150000.00'),
-            date=today - timedelta(days=10),
-            subtype='investment_lump_sum',
-            note='Lump Sum in Parag Parikh Flexi Cap',
-            account=acc_invest,
+            account=acc_main,
             exclude_from_averages=True,
             exclude_from_budget=True,
             include_in_net_worth=False
         )
         
-        self.stdout.write(self.style.SUCCESS('Created Capital Events (Excluded from Net Worth)'))
+        self.stdout.write(self.style.SUCCESS('Created Capital Events and Lump Sum Investments'))
 
         # 10. Net worth floor: guarantee strictly positive demo net worth.
         # This protects the live demo from rendering negative net worth due to liabilities.
