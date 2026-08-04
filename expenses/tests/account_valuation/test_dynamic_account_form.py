@@ -156,3 +156,52 @@ class TestDynamicAccountForm(TestCase):
         self.assertIsNone(updated_account.deposit_principal)
         self.assertIsNone(updated_account.deposit_rate)
         self.assertIsNone(updated_account.deposit_start_date)
+
+    def test_account_name_uniqueness_checks_only_active_accounts(self):
+        """
+        Account name uniqueness validation should only trigger for active accounts.
+        If an account with the same name exists but is soft-deleted (is_active=False),
+        creating a new active account with that name must succeed.
+        """
+        # Create an inactive account
+        Account.objects.create(
+            user=self.user,
+            name='Old Deleted Account',
+            account_type='SAVINGS_ACCOUNT',
+            balance=Decimal('0.00'),
+            is_active=False,
+        )
+
+        # Form with same name for active account should be valid
+        form_inactive_dup = AccountForm(
+            data={
+                'name': 'Old Deleted Account',
+                'account_type': 'SAVINGS_ACCOUNT',
+                'balance': '1000.00',
+                'currency': '₹',
+            },
+            user=self.user,
+        )
+        self.assertTrue(form_inactive_dup.is_valid(), form_inactive_dup.errors)
+
+        # Create an active account
+        Account.objects.create(
+            user=self.user,
+            name='Active Unique Account',
+            account_type='SAVINGS_ACCOUNT',
+            balance=Decimal('0.00'),
+            is_active=True,
+        )
+
+        # Form with same name as an active account should fail
+        form_active_dup = AccountForm(
+            data={
+                'name': 'Active Unique Account',
+                'account_type': 'SAVINGS_ACCOUNT',
+                'balance': '1000.00',
+                'currency': '₹',
+            },
+            user=self.user,
+        )
+        self.assertFalse(form_active_dup.is_valid())
+        self.assertIn('name', form_active_dup.errors)

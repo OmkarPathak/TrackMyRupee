@@ -233,7 +233,11 @@ class Account(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'name'], name='unique_account_per_user')
+            models.UniqueConstraint(
+                fields=['user', 'name'],
+                condition=models.Q(is_active=True),
+                name='unique_account_per_user'
+            )
         ]
         indexes = [
             models.Index(fields=['user', 'account_type', 'is_active'], name='acc_user_type_active_idx'),

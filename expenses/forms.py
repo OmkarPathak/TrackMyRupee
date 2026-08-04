@@ -703,7 +703,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     def clean_name(self):
         name = self.cleaned_data.get('name')
         if name and self.user:
-            queryset = Account.objects.filter(user=self.user, name__iexact=name)
+            queryset = Account.objects.filter(user=self.user, name__iexact=name, is_active=True)
             if self.instance.pk:
                 queryset = queryset.exclude(pk=self.instance.pk)
 
