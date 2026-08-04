@@ -84,9 +84,10 @@ class IncomeSourceTypeTest(TestCase):
         self.assertEqual(income.description, 'Sales revenue')
 
     def test_income_list_source_type_filter(self):
-        # Create different source_type incomes
-        Income.objects.create(user=self.user, date=date(2026, 7, 10), amount=Decimal('100.00'), source_type='Salary', source='Salary', account=self.account)
-        Income.objects.create(user=self.user, date=date(2026, 7, 11), amount=Decimal('200.00'), source_type='Business', source='Business', account=self.account)
+        # Create different source_type incomes in the current month
+        today = date.today()
+        Income.objects.create(user=self.user, date=today.replace(day=10), amount=Decimal('100.00'), source_type='Salary', source='Salary', account=self.account)
+        Income.objects.create(user=self.user, date=today.replace(day=11), amount=Decimal('200.00'), source_type='Business', source='Business', account=self.account)
         
         self.client.force_login(self.user)
         from django.urls import reverse
@@ -102,13 +103,14 @@ class IncomeSourceTypeTest(TestCase):
         self.assertEqual(response.context['incomes'][0].source_type, 'Business')
 
     def test_income_list_group_filtering_and_sparkline(self):
-        # Create incomes of different high-level groups
+        # Create incomes of different high-level groups in the current month
+        today = date.today()
         # 1. Earned
-        Income.objects.create(user=self.user, date=date(2026, 7, 1), amount=Decimal('1000.00'), source_type='Salary', source='Salary', account=self.account)
+        Income.objects.create(user=self.user, date=today.replace(day=1), amount=Decimal('1000.00'), source_type='Salary', source='Salary', account=self.account)
         # 2. Passive
-        Income.objects.create(user=self.user, date=date(2026, 7, 2), amount=Decimal('500.00'), source_type='Investment Returns', source='Dividends', account=self.account)
+        Income.objects.create(user=self.user, date=today.replace(day=2), amount=Decimal('500.00'), source_type='Investment Returns', source='Dividends', account=self.account)
         # 3. One-off
-        Income.objects.create(user=self.user, date=date(2026, 7, 3), amount=Decimal('100.00'), source_type='Cashback & Rewards', source='Cashback', account=self.account)
+        Income.objects.create(user=self.user, date=today.replace(day=3), amount=Decimal('100.00'), source_type='Cashback & Rewards', source='Cashback', account=self.account)
         
         self.client.force_login(self.user)
         from django.urls import reverse
