@@ -210,6 +210,25 @@ class Account(models.Model):
         verbose_name=_('Show Accrued Balance'),
         help_text=_('If enabled, the dashboard and account lists will display the projected accrued balance instead of the ledger balance.')
     )
+    rd_installment_amount = models.DecimalField(
+        max_digits=15, decimal_places=2,
+        null=True, blank=True,
+        verbose_name=_('RD Installment Amount'),
+    )
+    rd_installment_day = models.PositiveIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(28)],
+        verbose_name=_('RD Installment Day'),
+    )
+    deposit_closed_date = models.DateField(
+        null=True, blank=True,
+        verbose_name=_('Deposit Closed Date'),
+    )
+    credit_limit = models.DecimalField(
+        max_digits=15, decimal_places=2,
+        null=True, blank=True,
+        verbose_name=_('Credit Limit'),
+    )
 
     class Meta:
         constraints = [
@@ -259,6 +278,10 @@ class LedgerAccount(models.Model):
     name = models.CharField(max_length=150)
     account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES)
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, null=True, blank=True)
+    cached_balance = models.DecimalField(
+        max_digits=15, decimal_places=2, null=True, blank=True,
+        verbose_name=_('Cached Balance'),
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -425,6 +448,7 @@ class Expense(models.Model):
     base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Account'))
+    linked_physical_asset = models.ForeignKey('PhysicalAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Linked Physical Asset'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -603,6 +627,7 @@ class Expense(models.Model):
             models.Index(fields=['user', 'payment_method']),
             models.Index(fields=['user', 'date']),
             models.Index(fields=['user', 'account']),
+            models.Index(fields=['linked_physical_asset']),
         ]
 
     def __str__(self):
@@ -614,6 +639,7 @@ class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name=_('Category Name'))
     icon = models.CharField(max_length=50, default='bi-tag', verbose_name=_('Icon'))
     limit = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Monthly Limit'))
+    is_interest_category = models.BooleanField(default=False, verbose_name=_('Is Interest Category'))
 
     def save(self, *args, **kwargs):
         if self.name:
@@ -1774,6 +1800,15 @@ class Loan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='loans')
     name = models.CharField(max_length=100, verbose_name=_('Loan Name'))
     loan_type = models.CharField(max_length=20, choices=LOAN_TYPES, default='HOME', verbose_name=_('Loan Type'))
+    REPAYMENT_TYPE_CHOICES = [
+        ('EMI', _('EMI Amortizing')),
+        ('BULLET', _('Bullet Repayment')),
+        ('INTEREST_ONLY', _('Interest Only')),
+    ]
+    repayment_type = models.CharField(
+        max_length=20, choices=REPAYMENT_TYPE_CHOICES, default='EMI',
+        verbose_name=_('Repayment Type'),
+    )
     initial_principal = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Initial Principal Amount'))
     duration_months = models.IntegerField(verbose_name=_('Duration (Months)'))
     start_date = models.DateField(default=timezone.now, verbose_name=_('Start Date'))
@@ -2314,12 +2349,27 @@ class PhysicalAsset(models.Model):
         ('REAL_ESTATE', 'Real Estate'),
         ('VEHICLE', 'Vehicle'),
         ('GOLD', 'Gold/Jewelry'),
+        ('INSURANCE', 'Insurance Policy'),
         ('OTHER', 'Other'),
     ]
     asset_class = models.CharField(max_length=20, choices=ASSET_CLASSES, default='OTHER')
     acquisition_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     acquisition_date = models.DateField(null=True, blank=True)
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
+    policy_number = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('Policy Number'))
+    premium_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Premium Amount'))
+    PREMIUM_FREQUENCY_CHOICES = [
+        ('ANNUAL', _('Annual')),
+        ('SEMI_ANNUAL', _('Semi-Annual')),
+        ('QUARTERLY', _('Quarterly')),
+        ('MONTHLY', _('Monthly')),
+    ]
+    premium_frequency = models.CharField(
+        max_length=20, choices=PREMIUM_FREQUENCY_CHOICES, null=True, blank=True,
+        verbose_name=_('Premium Frequency'),
+    )
+    policy_start_date = models.DateField(null=True, blank=True, verbose_name=_('Policy Start Date'))
+    sum_assured = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Sum Assured'))
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

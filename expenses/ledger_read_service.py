@@ -53,6 +53,7 @@ from .models import (
 )
 from .fx import FXService
 from .utils import get_exchange_rate
+from .models import LedgerAccount
 
 logger = logging.getLogger(__name__)
 
@@ -170,19 +171,39 @@ class LedgerReadService:
 
         account_ids = [account.id for account in accounts]
         account_map = {account.id: account for account in accounts}
+
+        # SPEC §4: Check if cached_balance is available on LedgerAccount (O(1) read)
+        ledger_codes = [f"USR:{user.id}:ASSET:ACCOUNT:{aid}" for aid in account_ids]
+        ledger_accounts = LedgerAccount.objects.filter(code__in=ledger_codes).only('id', 'code', 'cached_balance')
+        ledger_map = {la.code: la for la in ledger_accounts}
+
+        balances = {}
+        missing_account_ids = []
+
+        for account_id in account_ids:
+            code = f"USR:{user.id}:ASSET:ACCOUNT:{account_id}"
+            la = ledger_map.get(code)
+            if la is not None and la.cached_balance is not None:
+                balances[account_id] = la.cached_balance
+            else:
+                missing_account_ids.append(account_id)
+
+        if not missing_account_ids:
+            return balances
+
+        # Fall back to full-sum calculation for accounts where cached_balance is null
         lines = JournalLine.objects.filter(
-            account_ref_id__in=account_ids,
+            account_ref_id__in=missing_account_ids,
             journal_entry__status="POSTED",
         ).only("account_ref_id", "direction", "amount", "currency")
 
-        lines_by_account = {account_id: [] for account_id in account_ids}
+        lines_by_account = {account_id: [] for account_id in missing_account_ids}
         for line in lines:
             lines_by_account[line.account_ref_id].append(line)
 
         opening_account_ids = cls._get_opening_account_ids(user)
-        balances = {}
 
-        for account_id in account_ids:
+        for account_id in missing_account_ids:
             account = account_map[account_id]
             debit = Decimal("0.00")
             credit = Decimal("0.00")
@@ -210,6 +231,11 @@ class LedgerReadService:
 
     @classmethod
     def get_account_ledger_delta(cls, account):
+        code = f"USR:{account.user_id}:ASSET:ACCOUNT:{account.id}"
+        la = LedgerAccount.objects.filter(code=code).only('cached_balance').first()
+        if la is not None and la.cached_balance is not None:
+            return la.cached_balance
+
         lines = JournalLine.objects.filter(
             account_ref=account,
             journal_entry__status="POSTED",

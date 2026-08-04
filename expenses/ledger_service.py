@@ -272,6 +272,20 @@ class LedgerPostingService:
             for line in lines:
                 line.journal_entry = entry
             JournalLine.objects.bulk_create(lines)
+
+            # SPEC §4: Synchronously update cached_balance on affected LedgerAccount rows via F() expressions
+            from django.db.models import F
+            deltas: dict[int, Decimal] = {}
+            for line in lines:
+                delta = line.amount if line.direction == "DEBIT" else -line.amount
+                deltas[line.ledger_account_id] = deltas.get(line.ledger_account_id, Decimal("0.00")) + delta
+
+            for ledger_account_id, total_delta in deltas.items():
+                if total_delta != Decimal("0.00"):
+                    LedgerAccount.objects.filter(pk=ledger_account_id).update(
+                        cached_balance=F('cached_balance') + total_delta
+                    )
+
             return entry, True
 
     @classmethod
