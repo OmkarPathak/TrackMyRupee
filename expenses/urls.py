@@ -50,6 +50,7 @@ urlpatterns = [
     path('accounts/<uuid_or_int:pk>/delete/', views.AccountDeleteView.as_view(), name='account-delete'),
     path('accounts/<uuid_or_int:pk>/restore/', views.AccountRestoreView.as_view(), name='account-restore'),
     path('accounts/<uuid_or_int:pk>/', views.AccountDetailView.as_view(), name='account-detail'),
+    path('accounts/<uuid_or_int:pk>/record-maturity-income/', views.RecordMaturityIncomeView.as_view(), name='account-record-maturity-income'),
     path('accounts/quick-add/', views.AccountQuickCreateView.as_view(), name='account-quick-create'),
     
     # Transfers

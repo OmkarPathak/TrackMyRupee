@@ -225,6 +225,11 @@ class Account(models.Model):
         null=True, blank=True,
         verbose_name=_('Deposit Closed Date'),
     )
+    record_maturity_income = models.BooleanField(
+        default=False,
+        verbose_name=_('Record Interest Earned as Income'),
+        help_text=_('If enabled, accrued interest is recorded as Income under Investment Returns.')
+    )
     credit_limit = models.DecimalField(
         max_digits=15, decimal_places=2,
         null=True, blank=True,

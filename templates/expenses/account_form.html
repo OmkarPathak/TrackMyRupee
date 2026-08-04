@@ -123,6 +123,14 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-6 col-md-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Closed Date" %}</label>
+                                    {{ form.deposit_closed_date }}
+                                    {% if form.deposit_closed_date.errors %}
+                                        <div class="text-danger small mt-1">{{ form.deposit_closed_date.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted d-block" style="font-size: 0.72rem;">{% trans "If closed early or paid out, interest stops accruing on this date." %}</small>
+                                </div>
+                                <div class="col-6 col-md-6">
                                     <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Compounding Frequency" %}</label>
                                     {{ form.deposit_compounding }}
                                     {% if form.deposit_compounding.errors %}
@@ -154,7 +162,7 @@
                                 </div>
 
                                 <div class="col-12 mt-3 pt-2 border-top border-secondary border-opacity-10">
-                                    <div class="form-check form-switch">
+                                    <div class="form-check form-switch mb-2">
                                         {{ form.show_accrued_balance }}
                                         <label class="form-check-label text-body-emphasis fw-semibold ms-1" for="{{ form.show_accrued_balance.id_for_label }}">
                                             {% trans "Show Accrued Balance" %}
@@ -164,6 +172,19 @@
                                         {% endif %}
                                         <small class="form-text text-muted d-block mt-1" style="font-size: 0.72rem;">
                                             {% trans "If enabled, projected accrued balance is displayed instead of ledger balance." %}
+                                        </small>
+                                    </div>
+
+                                    <div class="form-check form-switch mt-3 pt-2 border-top border-secondary border-opacity-10">
+                                        {{ form.record_maturity_income }}
+                                        <label class="form-check-label text-body-emphasis fw-semibold ms-1" for="{{ form.record_maturity_income.id_for_label }}">
+                                            {% trans "Record Interest Earned as Income ('Investment Returns')" %}
+                                        </label>
+                                        {% if form.record_maturity_income.errors %}
+                                            <div class="text-danger small mt-1">{{ form.record_maturity_income.errors }}</div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                            {% trans "Automatically logs an Income transaction under 'Investment Returns' for the accrued interest earned." %}
                                         </small>
                                     </div>
                                 </div>

@@ -261,6 +261,7 @@ FIELD_GROUPS_BY_STRATEGY: dict[STRATEGY, list[str]] = {
         'deposit_start_date',
         'deposit_compounding',
         'deposit_maturity_date',
+        'deposit_closed_date',
         'show_accrued_balance',
     ],
     STRATEGY.HOLDINGS: [],

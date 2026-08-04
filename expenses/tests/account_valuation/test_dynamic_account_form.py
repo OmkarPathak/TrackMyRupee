@@ -205,3 +205,52 @@ class TestDynamicAccountForm(TestCase):
         )
         self.assertFalse(form_active_dup.is_valid())
         self.assertIn('name', form_active_dup.errors)
+
+    def test_deposit_closed_date_and_record_maturity_income(self):
+        """
+        Test that deposit_closed_date is saved and record_maturity_income creates an Income entry
+        with source_type='Investment Returns'.
+        """
+        form = AccountForm(
+            data={
+                'name': 'Matured FD',
+                'account_type': 'FD',
+                'balance': '100000.00',
+                'currency': '₹',
+                'deposit_principal': '100000.00',
+                'deposit_rate': '10.0',
+                'deposit_start_date': '2025-01-01',
+                'deposit_maturity_date': '2026-01-01',
+                'deposit_closed_date': '2026-01-01',
+                'deposit_compounding': 'SIMPLE',
+                'record_maturity_income': True,
+            },
+            user=self.user,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        account = form.save(commit=False)
+        account.user = self.user
+        account.save()
+        form._record_maturity_income(account)
+
+        self.assertEqual(account.deposit_closed_date, date(2026, 1, 1))
+
+        # Check Income entry
+        from expenses.models import Income
+        income = Income.objects.filter(user=self.user, source_type='Investment Returns').first()
+        self.assertIsNotNone(income)
+        self.assertEqual(income.source_type, 'Investment Returns')
+        self.assertGreater(income.amount, Decimal('9900.00'))
+
+    def test_edit_account_preserves_record_maturity_income_toggle_on_ui(self):
+        """Test that editing an account with record_maturity_income=True populates the form toggle as checked."""
+        account = Account.objects.create(
+            user=self.user,
+            name='Saved Matured Deposit',
+            account_type='FD',
+            balance=Decimal('100000.00'),
+            record_maturity_income=True,
+        )
+        form = AccountForm(instance=account, user=self.user)
+        self.assertTrue(form.initial.get('record_maturity_income'))
+        self.assertIn('checked', form['record_maturity_income'].as_widget())

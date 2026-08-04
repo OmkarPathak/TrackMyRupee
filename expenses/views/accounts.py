@@ -34,7 +34,7 @@ from ..models import (
     _run_ledger_shadow,
 )
 from ..utils import get_exchange_rate
-from ..account_valuation import get_interest_summary
+from ..account_valuation import get_interest_summary, get_baseline, get_current
 from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
@@ -918,3 +918,42 @@ class AccountDetailView(LoginRequiredMixin, View):
                 return self[0] if self else None
                 
         return PseudoQS(all_tx)
+
+
+class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
+    """
+    Action view to record accrued interest earned on an FD/RD account as an
+    Income entry under 'Investment Returns'.
+    """
+    def post(self, request, *args, **kwargs):
+        account = get_object_by_uuid_or_pk(Account, kwargs.get('pk') or kwargs.get('uuid'), user=request.user)
+
+        today_val = account.deposit_closed_date or account.deposit_maturity_date or date.today()
+        current_val = get_current(account, today=today_val)
+        baseline_val = get_baseline(account, today=today_val) or Decimal('0.00')
+        interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
+
+        if interest_earned <= Decimal('0.00'):
+            messages.warning(request, _("No accrued interest earned to record for %(name)s.") % {'name': account.name})
+        else:
+            Income.objects.create(
+                user=request.user,
+                date=today_val,
+                amount=interest_earned,
+                currency=account.currency,
+                source_type='Investment Returns',
+                source=f"Interest from {account.name}",
+                account=account,
+                description=f"Accrued interest earned on deposit {account.name}",
+            )
+            messages.success(
+                request,
+                _("Recorded %(currency)s%(amount)s interest for %(name)s as Income under 'Investment Returns'.") % {
+                    'currency': account.currency,
+                    'amount': interest_earned,
+                    'name': account.name,
+                }
+            )
+
+        redirect_url = request.META.get('HTTP_REFERER') or reverse_lazy('account-list')
+        return redirect(redirect_url)

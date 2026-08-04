@@ -30,6 +30,7 @@ from .models import (
     UserProfile,
 )
 from .utils import BOOTSTRAP_ICONS
+from .account_valuation import get_baseline, get_current
 
 
 class CachedModelChoiceField(forms.ModelChoiceField):
@@ -646,6 +647,18 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         label=_('Deposit Maturity Date'),
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
     )
+    deposit_closed_date = forms.DateField(
+        required=False,
+        label=_('Deposit Closed Date'),
+        help_text=_('Date when the deposit was closed or broken early. Interest stops accruing on this date.'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+    record_maturity_income = forms.BooleanField(
+        required=False,
+        label=_("Record Interest Earned as Income ('Investment Returns')"),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_("Automatically logs an Income transaction under 'Investment Returns' for the accrued interest earned."),
+    )
     rd_installment_amount = forms.DecimalField(
         required=False,
         max_digits=15,
@@ -666,7 +679,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = [
             'name', 'account_type', 'balance', 'currency',
             'linked_loan', 'linked_physical_asset',
-            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_compounding', 'show_accrued_balance',
+            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'show_accrued_balance', 'record_maturity_income',
             'rd_installment_amount', 'rd_installment_day',
         ]
         widgets = {
@@ -676,6 +689,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     @property
@@ -699,6 +713,11 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         else:
             self.fields['linked_loan'].queryset = Loan.objects.none()
             self.fields['linked_physical_asset'].queryset = PhysicalAsset.objects.none()
+
+        if self.instance and self.instance.pk:
+            has_income = Income.objects.filter(account=self.instance, source_type='Investment Returns').exists()
+            if getattr(self.instance, 'record_maturity_income', False) or has_income:
+                self.initial['record_maturity_income'] = True
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
@@ -764,7 +783,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         # Null out stray/irrelevant fields not belonging to this account_type strategy
         strategy_fields = {
             'deposit_principal', 'deposit_rate', 'deposit_start_date',
-            'deposit_maturity_date', 'deposit_compounding',
+            'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding',
             'rd_installment_amount', 'rd_installment_day',
             'linked_loan', 'linked_physical_asset',
         }
@@ -781,7 +800,29 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 setattr(account, field, value)
         if commit:
             account.save()
+            if self.cleaned_data.get('record_maturity_income'):
+                self._record_maturity_income(account)
         return account
+
+    def _record_maturity_income(self, account):
+        today_val = account.deposit_closed_date or account.deposit_maturity_date or date.today()
+        current_val = get_current(account, today=today_val)
+        baseline_val = get_baseline(account, today=today_val) or Decimal('0.00')
+        interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
+
+        if interest_earned > Decimal('0.00'):
+            # Only create Income if one does not exist for this account under Investment Returns
+            if not Income.objects.filter(account=account, source_type='Investment Returns').exists():
+                Income.objects.create(
+                    user=account.user,
+                    date=today_val,
+                    amount=interest_earned,
+                    currency=account.currency,
+                    source_type='Investment Returns',
+                    source=f"Interest from {account.name}",
+                    account=account,
+                    description=f"Accrued interest earned on deposit {account.name}",
+                )
 
 class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
