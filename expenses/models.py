@@ -179,6 +179,7 @@ class Account(models.Model):
     COMPOUNDING_CHOICES = [
         ('SIMPLE', _('Simple Interest')),
         ('QUARTERLY', _('Quarterly Compounding')),
+        ('MONTHLY', _('Monthly Compounding')),
         ('ANNUAL', _('Annual Compounding')),
     ]
     deposit_principal = models.DecimalField(

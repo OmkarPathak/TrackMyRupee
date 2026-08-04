@@ -497,6 +497,8 @@ class RecurringTransactionCashflowTest(CashflowCalculationTestBase):
             currency='₹'
         )
         
+        from django.core.cache import cache
+        cache.clear()
         from expenses.views.mixins import process_user_recurring_transactions
         process_user_recurring_transactions(self.user)
         

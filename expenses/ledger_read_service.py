@@ -61,41 +61,11 @@ logger = logging.getLogger(__name__)
 def _compute_deposit_value(account, ledger_balance: Decimal) -> Decimal:
     """
     Compute accrued DEPOSIT value for an account.
-
-    If the optional deposit_* fields are set, computes principal * (1+r)^t-style accrual.
-    Otherwise returns the ledger_balance unchanged (fully backward compatible).
+    Delegates to expenses.account_valuation.get_current_deposit(account)
+    for unified FD and RD accrual math (including maturity/closed date caps).
     """
-    if (
-        account.deposit_rate is None
-        or account.deposit_start_date is None
-    ):
-        return ledger_balance
-
-    principal = account.deposit_principal if account.deposit_principal is not None else ledger_balance
-    if principal is None or principal == Decimal('0.00'):
-        return ledger_balance
-
-    today = date_type.today()
-    start = account.deposit_start_date
-    if start > today:
-        return principal
-
-    # Years elapsed (fractional)
-    days_elapsed = (today - start).days
-    years = Decimal(str(days_elapsed)) / Decimal('365.25')
-    rate = account.deposit_rate / Decimal('100')  # convert % to decimal
-    compounding = account.deposit_compounding or 'SIMPLE'
-
-    if compounding == 'SIMPLE':
-        value = principal * (Decimal('1') + rate * years)
-    elif compounding == 'QUARTERLY':
-        # (1 + r/4)^(4*t)
-        n = Decimal('4')
-        value = principal * ((Decimal('1') + rate / n) ** (n * years))
-    else:  # ANNUAL
-        value = principal * ((Decimal('1') + rate) ** years)
-
-    return value.quantize(Decimal('0.01'))
+    from .account_valuation import get_current_deposit
+    return get_current_deposit(account, ledger_balance=ledger_balance)
 
 
 class LedgerReadService:

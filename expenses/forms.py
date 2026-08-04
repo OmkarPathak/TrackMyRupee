@@ -634,6 +634,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         choices=[('', '—')] + [
             ('SIMPLE', _('Simple Interest')),
             ('QUARTERLY', _('Quarterly Compounding')),
+            ('MONTHLY', _('Monthly Compounding')),
             ('ANNUAL', _('Annual Compounding')),
         ],
         required=False,
@@ -645,6 +646,20 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         label=_('Deposit Maturity Date'),
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
     )
+    rd_installment_amount = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('RD Installment Amount'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+    rd_installment_day = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=28,
+        label=_('RD Installment Day of Month (1-28)'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '28'}),
+    )
 
     class Meta:
         model = Account
@@ -652,16 +667,23 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'name', 'account_type', 'balance', 'currency',
             'linked_loan', 'linked_physical_asset',
             'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_compounding', 'show_accrued_balance',
+            'rd_installment_amount', 'rd_installment_day',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
-            # Django renders grouped choices as <optgroup> automatically — no extra work needed
             'account_type': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'balance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    @property
+    def fields_by_type_json(self):
+        import json
+        from .account_types import ACCOUNT_TYPE_META, get_fields_for_account_type
+        mapping = {code: get_fields_for_account_type(code) for code in ACCOUNT_TYPE_META}
+        return json.dumps(mapping)
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -681,7 +703,6 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     def clean_name(self):
         name = self.cleaned_data.get('name')
         if name and self.user:
-            # Check for uniqueness, excluding current instance if updating
             queryset = Account.objects.filter(user=self.user, name__iexact=name)
             if self.instance.pk:
                 queryset = queryset.exclude(pk=self.instance.pk)
@@ -693,29 +714,74 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         account_type = cleaned_data.get('account_type')
+        if not account_type:
+            return cleaned_data
+
+        from .account_types import strategy_for, STRATEGY, get_fields_for_account_type
+        strategy = strategy_for(account_type)
+        allowed_fields = set(get_fields_for_account_type(account_type))
+
         linked_loan = cleaned_data.get('linked_loan')
         linked_physical_asset = cleaned_data.get('linked_physical_asset')
 
-        if account_type:
-            from .account_types import strategy_for, STRATEGY
-            strategy = strategy_for(account_type)
+        # Validation for DEPOSIT strategy
+        if strategy == STRATEGY.DEPOSIT:
+            deposit_principal = cleaned_data.get('deposit_principal')
+            if deposit_principal is None and (not self.instance.pk or self.instance.account_type != account_type):
+                self.add_error('deposit_principal', _('Deposit principal is required for deposit accounts.'))
 
-            # Required: LOAN_OUTSTANDING strategy accounts must link a Loan record
-            if strategy == STRATEGY.LOAN_OUTSTANDING and not linked_loan:
-                self.add_error(
-                    'linked_loan',
-                    _('This account type requires a linked Loan record for outstanding balance valuation.')
-                )
+            if cleaned_data.get('deposit_rate') is None:
+                self.add_error('deposit_rate', _('Interest rate is required for deposit accounts.'))
 
-            # Required: physical valuation strategy accounts must link a Physical Asset
-            if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) \
-                    and not linked_physical_asset:
-                self.add_error(
-                    'linked_physical_asset',
-                    _('This account type requires a linked Physical Asset for valuation.')
-                )
+            if not cleaned_data.get('deposit_start_date'):
+                self.add_error('deposit_start_date', _('Start date is required for deposit accounts.'))
+
+            if account_type == 'RD':
+                if not cleaned_data.get('rd_installment_amount'):
+                    self.add_error('rd_installment_amount', _('Installment amount is required for Recurring Deposits.'))
+
+                rd_day = cleaned_data.get('rd_installment_day')
+                if not rd_day:
+                    self.add_error('rd_installment_day', _('Installment day (1-28) is required for Recurring Deposits.'))
+                elif not (1 <= rd_day <= 28):
+                    self.add_error('rd_installment_day', _('Installment day must be between 1 and 28.'))
+
+        # Required: LOAN_OUTSTANDING strategy accounts must link a Loan record
+        if strategy == STRATEGY.LOAN_OUTSTANDING and not linked_loan:
+            self.add_error(
+                'linked_loan',
+                _('This account type requires a linked Loan record for outstanding balance valuation.')
+            )
+
+        # Required: physical valuation strategy accounts must link a Physical Asset
+        if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) \
+                and not linked_physical_asset:
+            self.add_error(
+                'linked_physical_asset',
+                _('This account type requires a linked Physical Asset for valuation.')
+            )
+
+        # Null out stray/irrelevant fields not belonging to this account_type strategy
+        strategy_fields = {
+            'deposit_principal', 'deposit_rate', 'deposit_start_date',
+            'deposit_maturity_date', 'deposit_compounding',
+            'rd_installment_amount', 'rd_installment_day',
+            'linked_loan', 'linked_physical_asset',
+        }
+        for field in strategy_fields:
+            if field not in allowed_fields:
+                cleaned_data[field] = None
 
         return cleaned_data
+
+    def save(self, commit=True):
+        account = super().save(commit=False)
+        for field, value in self.cleaned_data.items():
+            if hasattr(account, field):
+                setattr(account, field, value)
+        if commit:
+            account.save()
+        return account
 
 class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:

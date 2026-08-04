@@ -34,6 +34,7 @@ from ..models import (
     _run_ledger_shadow,
 )
 from ..utils import get_exchange_rate
+from ..account_valuation import get_interest_summary
 from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
@@ -230,6 +231,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         context['current_status'] = current_status
         context['total_balance'] = total_balance.quantize(Decimal('0.01'))
         context['total_balance_currency'] = user_currency
+
+        context['interest_summary'] = get_interest_summary(self.request.user)
         return context
 
 class AccountCreateView(LoginRequiredMixin, CreateView):
