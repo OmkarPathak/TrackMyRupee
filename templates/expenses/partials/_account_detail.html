@@ -112,6 +112,13 @@
                                         {% trans "Original Deposit:" %} {{ currency_symbol }}{{ account.effective_principal|ind_comma:currency_symbol|translate_digits }}
                                     </div>
                                 {% endif %}
+                                {% if account.has_credit_limit %}
+                                    <div class="mt-2 text-body-secondary d-flex align-items-center gap-3 flex-wrap" style="font-size: 0.8rem;">
+                                        <div>{% trans "Credit Limit:" %} <strong>{{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</strong></div>
+                                        <div>{% trans "Available:" %} <strong class="text-success">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</strong></div>
+                                        <div>{% trans "Used:" %} <strong class="{% if account.credit_utilization_pct > 30 %}text-warning{% else %}text-body-emphasis{% endif %}">{{ account.credit_utilization_pct|translate_digits }}%</strong></div>
+                                    </div>
+                                {% endif %}
                             </div>
                             <div class="text-end pb-1 flex-shrink-0 text-body-secondary" style="font-size: 0.82rem;">
                                 <span class="fw-bold fs-6 text-body-emphasis">{{ page_obj.paginator.count|translate_digits }}</span> <span class="opacity-75">{% trans "transactions" %}</span>

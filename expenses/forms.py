@@ -673,6 +673,13 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         label=_('RD Installment Day of Month (1-28)'),
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '28'}),
     )
+    credit_limit = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Credit Limit'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
 
     class Meta:
         model = Account
@@ -680,7 +687,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'name', 'account_type', 'balance', 'currency',
             'linked_loan', 'linked_physical_asset',
             'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'show_accrued_balance', 'record_maturity_income',
-            'rd_installment_amount', 'rd_installment_day',
+            'rd_installment_amount', 'rd_installment_day', 'credit_limit',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
@@ -690,6 +697,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'credit_limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 
     @property
@@ -784,7 +792,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         strategy_fields = {
             'deposit_principal', 'deposit_rate', 'deposit_start_date',
             'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding',
-            'rd_installment_amount', 'rd_installment_day',
+            'rd_installment_amount', 'rd_installment_day', 'credit_limit',
             'linked_loan', 'linked_physical_asset',
         }
         for field in strategy_fields:

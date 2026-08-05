@@ -236,6 +236,32 @@ class Account(models.Model):
         verbose_name=_('Credit Limit'),
     )
 
+    @property
+    def has_credit_limit(self) -> bool:
+        return self.credit_limit is not None and self.credit_limit > Decimal('0.00')
+
+    @property
+    def used_credit(self) -> Decimal:
+        """Amount of credit used (positive decimal balance)."""
+        bal = getattr(self, 'display_balance', self.balance)
+        if bal and bal < Decimal('0.00'):
+            return abs(bal)
+        return Decimal('0.00')
+
+    @property
+    def available_credit(self) -> Decimal:
+        """Remaining available credit limit."""
+        if not self.has_credit_limit:
+            return Decimal('0.00')
+        return max(Decimal('0.00'), self.credit_limit - self.used_credit)
+
+    @property
+    def credit_utilization_pct(self) -> Decimal:
+        """Credit limit utilization percentage (0-100+)."""
+        if not self.has_credit_limit:
+            return Decimal('0.00')
+        return ((self.used_credit / self.credit_limit) * Decimal('100')).quantize(Decimal('0.1'))
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

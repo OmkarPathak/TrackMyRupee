@@ -213,9 +213,16 @@
                                     <a href="{% url 'account-detail' account.uuid %}" class="fw-semibold text-decoration-none text-body d-block text-truncate" style="font-size: 0.93rem;">{{ account.name }}</a>
                                 {% endif %}
 
-                                <!-- Subtext row 1: maturity OR account type -->
+                                <!-- Subtext row 1: maturity OR account type & credit limit -->
                                 {% if account.deposit_maturity_date %}
                                     <div class="text-muted mt-1" style="font-size: 0.76rem;">{% trans "Matures" %} {{ account.deposit_maturity_date|date:"d M Y" }}</div>
+                                {% elif account.has_credit_limit %}
+                                    <div class="text-muted mt-1 d-flex align-items-center gap-1 flex-wrap" style="font-size: 0.76rem;">
+                                        <span>{{ account.get_account_type_display }}</span>
+                                        <span class="opacity-40">&bull;</span>
+                                        <span class="fw-medium text-body-secondary">{{ account.currency }}{{ account.available_credit|ind_comma:account.currency|translate_digits }} {% trans "avail" %}</span>
+                                        <span class="{% if account.credit_utilization_pct > 75 %}text-danger fw-semibold{% elif account.credit_utilization_pct > 50 %}text-warning fw-semibold{% else %}opacity-75{% endif %}">({{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %})</span>
+                                    </div>
                                 {% else %}
                                     <div class="text-muted mt-1" style="font-size: 0.76rem;">{{ account.get_account_type_display }}</div>
                                 {% endif %}

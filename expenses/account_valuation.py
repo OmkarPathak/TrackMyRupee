@@ -251,24 +251,72 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
     )
 
 
-def get_baseline_holdings(account: Account) -> Decimal | None:
-    # TODO(session-3): see SPEC.md §2.2 for full HOLDINGS baseline logic
-    return _get_account_ledger_balance(account)
+def get_baseline_holdings(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
+    """
+    SPEC §2.2 HOLDINGS Baseline = Σ (units × avg_cost) across active holdings.
+    Converted to account currency if holding currency differs.
+    """
+    from .models import Holding
+    from .utils import get_exchange_rate
+
+    active_holdings = Holding.objects.filter(account=account, is_active=True)
+    if not active_holdings.exists():
+        return Decimal('0.00')
+
+    baseline_total = Decimal('0.00')
+    for holding in active_holdings:
+        units = holding.units or Decimal('0.00')
+        avg_cost = holding.avg_cost or Decimal('0.00')
+        val = (units * avg_cost).quantize(Decimal('0.01'))
+        if holding.currency and holding.currency != account.currency:
+            rate = get_exchange_rate(holding.currency, account.currency)
+            val = (val * rate).quantize(Decimal('0.01'))
+        baseline_total += val
+
+    return baseline_total.quantize(Decimal('0.01'))
 
 
-def get_current_holdings(account: Account) -> Decimal:
-    # TODO(session-3): see SPEC.md §2.2 for full HOLDINGS current logic
-    return _get_account_ledger_balance(account)
+def get_current_holdings(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
+    """
+    SPEC §2.2 HOLDINGS Current Value:
+    - Σ latest Valuation.value per active holding (falling back to units × avg_cost if zero Valuations exist).
+    - Additive-cash fix: includes uninvested ledger_balance sitting in the account.
+    """
+    from .models import Holding
+    from .utils import get_exchange_rate
+
+    ledger_bal = ledger_balance if ledger_balance is not None else _get_account_ledger_balance(account)
+    active_holdings = Holding.objects.filter(account=account, is_active=True).prefetch_related('valuations')
+
+    holdings_total = Decimal('0.00')
+    for holding in active_holdings:
+        units = holding.units or Decimal('0.00')
+        avg_cost = holding.avg_cost or Decimal('0.00')
+
+        latest_val = holding.valuations.order_by('-as_of_date', '-created_at').first()
+        if latest_val:
+            val = latest_val.value
+        else:
+            # Fallback to cost basis if no valuation posted yet
+            val = (units * avg_cost).quantize(Decimal('0.01'))
+
+        if holding.currency and holding.currency != account.currency:
+            rate = get_exchange_rate(holding.currency, account.currency)
+            val = (val * rate).quantize(Decimal('0.01'))
+        holdings_total += val
+
+    # Additive cash fix: holdings_val + uninvested ledger cash
+    return (holdings_total + ledger_bal).quantize(Decimal('0.01'))
 
 
-def get_baseline_revolving_credit(account: Account) -> None:
+def get_baseline_revolving_credit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> None:
     """REVOLVING_CREDIT strategy has no baseline concept."""
     return None
 
 
-def get_current_revolving_credit(account: Account) -> Decimal:
-    # TODO(session-4): see SPEC.md §2.3 for full REVOLVING_CREDIT logic
-    return _get_account_ledger_balance(account)
+def get_current_revolving_credit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
+    """SPEC §2.3 REVOLVING_CREDIT Current Value = ledger balance (negative for owed amount)."""
+    return ledger_balance if ledger_balance is not None else _get_account_ledger_balance(account)
 
 
 def get_baseline_loan(account: Account) -> None:
@@ -318,9 +366,9 @@ def get_baseline(account: Account, ledger_balance: Decimal | None = None, today:
     elif strategy == STRATEGY.DEPOSIT:
         return get_baseline_deposit(account, ledger_balance=ledger_balance, today=today)
     elif strategy == STRATEGY.HOLDINGS:
-        return get_baseline_holdings(account)
+        return get_baseline_holdings(account, ledger_balance=ledger_balance, today=today)
     elif strategy == STRATEGY.REVOLVING_CREDIT:
-        return get_baseline_revolving_credit(account)
+        return get_baseline_revolving_credit(account, ledger_balance=ledger_balance, today=today)
     elif strategy == STRATEGY.LOAN_OUTSTANDING:
         return get_baseline_loan(account)
     elif strategy == STRATEGY.PHYSICAL_VALUATION:
@@ -338,9 +386,9 @@ def get_current(account: Account, ledger_balance: Decimal | None = None, today: 
     elif strategy == STRATEGY.DEPOSIT:
         return get_current_deposit(account, ledger_balance=ledger_balance, today=today)
     elif strategy == STRATEGY.HOLDINGS:
-        return get_current_holdings(account)
+        return get_current_holdings(account, ledger_balance=ledger_balance, today=today)
     elif strategy == STRATEGY.REVOLVING_CREDIT:
-        return get_current_revolving_credit(account)
+        return get_current_revolving_credit(account, ledger_balance=ledger_balance, today=today)
     elif strategy == STRATEGY.LOAN_OUTSTANDING:
         return get_current_loan(account)
     elif strategy == STRATEGY.PHYSICAL_VALUATION:

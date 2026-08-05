@@ -254,3 +254,36 @@ class TestDynamicAccountForm(TestCase):
         form = AccountForm(instance=account, user=self.user)
         self.assertTrue(form.initial.get('record_maturity_income'))
         self.assertIn('checked', form['record_maturity_income'].as_widget())
+
+    def test_holdings_and_revolving_credit_form_rendering_and_cleaning(self):
+        """Test form validation and cleaning for HOLDINGS and REVOLVING_CREDIT account types."""
+        # 1. HOLDINGS platform account creation (e.g. DEMAT)
+        form_demat = AccountForm(
+            data={
+                'name': 'Zerodha Demat Platform',
+                'account_type': 'DEMAT',
+                'balance': '0.00',
+                'currency': '₹',
+                'deposit_principal': '10000.00',  # stray deposit field
+            },
+            user=self.user,
+        )
+        self.assertTrue(form_demat.is_valid(), form_demat.errors)
+        account_demat = form_demat.save(commit=False)
+        # Stray deposit field must be nulled out for HOLDINGS
+        self.assertIsNone(account_demat.deposit_principal)
+
+        # 2. REVOLVING_CREDIT account creation (CREDIT_CARD)
+        form_card = AccountForm(
+            data={
+                'name': 'HDFC Diners Card',
+                'account_type': 'CREDIT_CARD',
+                'balance': '-15000.00',
+                'currency': '₹',
+                'credit_limit': '250000.00',
+            },
+            user=self.user,
+        )
+        self.assertTrue(form_card.is_valid(), form_card.errors)
+        account_card = form_card.save(commit=False)
+        self.assertEqual(account_card.credit_limit, Decimal('250000.00'))

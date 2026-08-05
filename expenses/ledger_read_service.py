@@ -239,41 +239,50 @@ class LedgerReadService:
     def _fetch_latest_holding_valuations(cls, account_ids: list) -> dict:
         """
         Fetch latest Valuation per active Holding for all given account IDs.
-        ONE query using Python-side DISTINCT (compatible with all DB backends).
+        Falls back to units * avg_cost for active holdings with zero Valuation rows.
 
-        Returns: {account_id: Decimal total_value} in each holding's own currency.
+        Returns: {account_id: list of {'value': Decimal, 'currency': str}}
         Note: the caller is responsible for FX conversion.
         """
-
-        # Fetch all latest valuations across all holdings in these accounts
-        # Ordered by holding_id then -as_of_date so we can Python-dedup to latest per holding
-        rows = (
-            Valuation.objects
-            .filter(
-                holding__account_id__in=account_ids,
-                holding__is_active=True,
-            )
-            .select_related('holding')
-            .order_by('holding_id', '-as_of_date', '-created_at')
-            .values('holding_id', 'holding__account_id', 'holding__currency', 'value')
+        active_holdings = list(
+            Holding.objects.filter(
+                account_id__in=account_ids,
+                is_active=True,
+            ).values('id', 'account_id', 'currency', 'units', 'avg_cost')
         )
 
-        # Python-side dedup: keep first row per holding_id (= latest valuation)
-        seen_holdings: set = set()
-        # {account_id: list of (value, holding_currency)}
-        account_holding_vals: dict = {}
+        if not active_holdings:
+            return {}
 
-        for row in rows:
-            hid = row['holding_id']
-            if hid in seen_holdings:
-                continue
-            seen_holdings.add(hid)
-            acc_id = row['holding__account_id']
+        val_rows = (
+            Valuation.objects
+            .filter(holding__account_id__in=account_ids, holding__is_active=True)
+            .order_by('holding_id', '-as_of_date', '-created_at')
+            .values('holding_id', 'value')
+        )
+
+        latest_vals = {}
+        for r in val_rows:
+            hid = r['holding_id']
+            if hid not in latest_vals:
+                latest_vals[hid] = r['value']
+
+        account_holding_vals: dict = {}
+        for h in active_holdings:
+            hid = h['id']
+            acc_id = h['account_id']
+            if hid in latest_vals:
+                val = latest_vals[hid]
+            else:
+                units = h['units'] or Decimal('0.00')
+                avg_cost = h['avg_cost'] or Decimal('0.00')
+                val = (units * avg_cost).quantize(Decimal('0.01'))
+
             if acc_id not in account_holding_vals:
                 account_holding_vals[acc_id] = []
             account_holding_vals[acc_id].append({
-                'value': row['value'],
-                'currency': row['holding__currency'],
+                'value': val,
+                'currency': h['currency'],
             })
 
         return account_holding_vals
@@ -329,20 +338,46 @@ class LedgerReadService:
         seen_loans: set = set()
         for row in schedule_rows:
             lid = row['loan_id']
-            if lid not in seen_loans:
-                seen_loans.add(lid)
-                schedule_map[lid] = max(Decimal('0.00'), row['scheduled_balance'])
+            if lid in seen_loans:
+                continue
+            seen_loans.add(lid)
+            schedule_map[lid] = max(Decimal('0.00'), row['scheduled_balance'])
 
         # For loans without a schedule, aggregate repayments
         missing_loan_ids = [lid for lid in loan_ids if lid not in schedule_map]
-        result = dict(schedule_map)
 
         if missing_loan_ids:
-            loans = Loan.objects.filter(id__in=missing_loan_ids)
-            for loan in loans:
-                result[loan.id] = loan.remaining_principal
+            from .models import LoanRepayment, CapitalEvent
+            # Fallback for loans without schedule entries
+            # Fetch initial_principal
+            loan_objs = Loan.objects.filter(id__in=missing_loan_ids).values('id', 'initial_principal')
+            init_map = {l['id']: l['initial_principal'] for l in loan_objs}
 
-        return result
+            # Principal repaid from LoanRepayment
+            repaid_rows = (
+                LoanRepayment.objects
+                .filter(loan_id__in=missing_loan_ids)
+                .values('loan_id')
+                .annotate(total=Sum('principal_amount'))
+            )
+            repaid_map = {r['loan_id']: r['total'] or Decimal('0.00') for r in repaid_rows}
+
+            # Prepayments from CapitalEvent
+            prep_rows = (
+                CapitalEvent.objects
+                .filter(loan_id__in=missing_loan_ids, event_type='PREPAYMENT')
+                .values('loan_id')
+                .annotate(total=Sum('amount'))
+            )
+            prep_map = {p['loan_id']: p['total'] or Decimal('0.00') for p in prep_rows}
+
+            for lid in missing_loan_ids:
+                init_p = init_map.get(lid, Decimal('0.00'))
+                rep = repaid_map.get(lid, Decimal('0.00'))
+                prep = prep_map.get(lid, Decimal('0.00'))
+                schedule_map[lid] = max(Decimal('0.00'), init_p - rep - prep)
+
+        return schedule_map
 
     # ──────────────────────────────────────────────────────────────────────────
     # Main net-worth computation (set-based, ≤ 8 total queries)
@@ -526,19 +561,15 @@ class LedgerReadService:
             # ── Full extended valuation (flag on) ──────────────────────────
             if strategy == STRATEGY.HOLDINGS:
                 vals_list = holding_vals_by_account.get(account.id)
+                holdings_val = Decimal("0.00")
                 if vals_list:
-                    # Sum holdings across potentially different holding currencies
-                    holdings_val = Decimal("0.00")
                     for v in vals_list:
                         holdings_val += FXService.convert_using_map(
                             v['value'], v['currency'], fx_map
                         )
-                    account_value = holdings_val
-                else:
-                    # No active holdings → fallback to ledger balance
-                    account_value = FXService.convert_using_map(
-                        ledger_bal, account.currency, fx_map
-                    )
+                # Additive cash fix: holdings_val + uninvested ledger balance
+                cash_val = FXService.convert_using_map(ledger_bal, account.currency, fx_map)
+                account_value = holdings_val + cash_val
 
             elif strategy == STRATEGY.DEPOSIT:
                 # Accrual if deposit fields set and show_accrued_balance is True, else ledger balance

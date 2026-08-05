@@ -11,16 +11,25 @@
             accountType: '',
             fieldsMap: {{ form.fields_by_type_json|safe }},
             init() {
-                const getVal = () => {
+                const updateVal = () => {
                     const sel = document.getElementById('id_account_type') || document.querySelector('select[name="account_type"]');
-                    return sel ? sel.value : '';
+                    if (sel && sel.value) {
+                        this.accountType = sel.value;
+                    }
                 };
-                this.accountType = getVal();
+                updateVal();
+                this.$nextTick(() => {
+                    updateVal();
+                });
+                // Watch for changes on the account_type select element
                 document.addEventListener('change', (e) => {
                     if (e.target && (e.target.name === 'account_type' || e.target.id === 'id_account_type')) {
                         this.accountType = e.target.value;
                     }
                 });
+                // Also poll briefly to handle late searchable-select initialization
+                setTimeout(() => updateVal(), 100);
+                setTimeout(() => updateVal(), 300);
             }
         };
     }
@@ -189,6 +198,29 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Revolving Credit Details (REVOLVING_CREDIT Strategy) -->
+                    <div class="card border border-secondary border-opacity-25 shadow-sm rounded-3 mb-4"
+                         x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('credit_limit')"
+                         x-cloak
+                         :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('credit_limit'))">
+                        <div class="card-header bg-body-tertiary border-0 py-3 px-4">
+                            <h5 class="h6 fw-bold mb-0 text-body">
+                                <i class="bi bi-credit-card text-primary me-2"></i>
+                                {% trans "Credit Card / Revolving Credit Details" %}
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Credit Limit" %}</label>
+                            {{ form.credit_limit }}
+                            {% if form.credit_limit.errors %}
+                                <div class="text-danger small mt-1">{{ form.credit_limit.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                {% trans "Total credit line limit granted for this account (optional)." %}
+                            </small>
                         </div>
                     </div>
 
