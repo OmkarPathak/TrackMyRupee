@@ -58,6 +58,9 @@ class CurrencyConversionTest(TestCase):
     @patch('requests.get')
     def test_conversion_caching(self, mock_get):
         """Verify that exchange rates are cached and API is only called once."""
+        from django.core.cache import cache
+        cache.clear()
+
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {'rates': {'INR': 80.00}}

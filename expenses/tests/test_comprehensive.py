@@ -604,6 +604,8 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         self.assertGreaterEqual(incomes.count(), 1)
 
     def test_daily_expense_creates_multiple(self):
+        from django.core.cache import cache
+        cache.clear()
         start = date.today() - timedelta(days=5)
         RecurringTransaction.objects.create(
             user=self.user, transaction_type="EXPENSE", amount=Decimal("50.00"),
@@ -775,6 +777,8 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
                 category="Bills",
             )
             
+        from django.core.cache import cache
+        cache.clear()
         process_user_recurring_transactions(self.user)
         # It should only have processed the first 'limit' transactions
         expenses_count = Expense.objects.filter(user=self.user, description__contains="FREERT_").count()

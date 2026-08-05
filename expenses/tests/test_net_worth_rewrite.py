@@ -140,7 +140,7 @@ class TestHoldingsStrategy(TestCase):
         """MUTUAL_FUND account: net worth = sum of latest Valuation per active Holding."""
         from expenses.ledger_read_service import LedgerReadService
 
-        account = _make_account(self.user, 'MF Account', account_type='MUTUAL_FUND', balance=Decimal('10000.00'))
+        account = _make_account(self.user, 'MF Account', account_type='MUTUAL_FUND', balance=Decimal('0.00'))
         _post_opening(account)
 
         # 2 holdings

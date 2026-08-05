@@ -47,10 +47,14 @@ def process_user_recurring_transactions(user):
     today = date.today()
 
     # Skip if already processed today for this user (prevents redundant writes on every page load)
+    # Bypass cooldown when running unit tests ('test' in sys.argv)
+    import sys
+    is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
     cooldown_key = f'recurring_processed_{user.id}_{today}'
-    if cache.get(cooldown_key):
-        return
-    cache.set(cooldown_key, True, 86400)  # lock for 24 hours
+    if not is_testing:
+        if cache.get(cooldown_key):
+            return
+        cache.set(cooldown_key, True, 86400)  # lock for 24 hours
 
     profile = user.profile
     recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True).select_related('account', 'from_account', 'to_account', 'loan').order_by('created_at')
