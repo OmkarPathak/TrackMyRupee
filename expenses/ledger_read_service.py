@@ -239,50 +239,39 @@ class LedgerReadService:
     def _fetch_latest_holding_valuations(cls, account_ids: list) -> dict:
         """
         Fetch latest Valuation per active Holding for all given account IDs.
+        ONE query via LEFT JOIN on Valuation.
         Falls back to units * avg_cost for active holdings with zero Valuation rows.
 
         Returns: {account_id: list of {'value': Decimal, 'currency': str}}
         Note: the caller is responsible for FX conversion.
         """
-        active_holdings = list(
-            Holding.objects.filter(
-                account_id__in=account_ids,
-                is_active=True,
-            ).values('id', 'account_id', 'currency', 'units', 'avg_cost')
+        rows = (
+            Holding.objects
+            .filter(account_id__in=account_ids, is_active=True)
+            .order_by('id', '-valuations__as_of_date', '-valuations__created_at')
+            .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'valuations__value')
         )
 
-        if not active_holdings:
-            return {}
-
-        val_rows = (
-            Valuation.objects
-            .filter(holding__account_id__in=account_ids, holding__is_active=True)
-            .order_by('holding_id', '-as_of_date', '-created_at')
-            .values('holding_id', 'value')
-        )
-
-        latest_vals = {}
-        for r in val_rows:
-            hid = r['holding_id']
-            if hid not in latest_vals:
-                latest_vals[hid] = r['value']
-
+        seen_holdings: set = set()
         account_holding_vals: dict = {}
-        for h in active_holdings:
-            hid = h['id']
-            acc_id = h['account_id']
-            if hid in latest_vals:
-                val = latest_vals[hid]
-            else:
-                units = h['units'] or Decimal('0.00')
-                avg_cost = h['avg_cost'] or Decimal('0.00')
+        for r in rows:
+            hid = r['id']
+            if hid in seen_holdings:
+                continue
+            seen_holdings.add(hid)
+
+            acc_id = r['account_id']
+            val = r['valuations__value']
+            if val is None:
+                units = r['units'] or Decimal('0.00')
+                avg_cost = r['avg_cost'] or Decimal('0.00')
                 val = (units * avg_cost).quantize(Decimal('0.01'))
 
             if acc_id not in account_holding_vals:
                 account_holding_vals[acc_id] = []
             account_holding_vals[acc_id].append({
                 'value': val,
-                'currency': h['currency'],
+                'currency': r['currency'],
             })
 
         return account_holding_vals

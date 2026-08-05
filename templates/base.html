@@ -1183,10 +1183,21 @@
             }
         });
 
+        // Disable HTMX default auto-focusing behavior globally
+        if (window.htmx) {
+            htmx.config.defaultFocus = false;
+        }
+
         const clearHtmxLoader = function () {
             const bar = document.getElementById('global-progress-bar');
             if (bar) {
                 bar.classList.remove('active');
+            }
+            // Prevent mobile/PWA soft keyboard auto-opening on HTMX swaps/settles (except #nl-input on expense_form)
+            if (document.activeElement && 
+                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') && 
+                document.activeElement.id !== 'nl-input') {
+                document.activeElement.blur();
             }
         };
 

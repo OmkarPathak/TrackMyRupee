@@ -91,6 +91,9 @@
                                 {% if account.deposit_maturity_date %}
                                     • <span class="fw-medium">{% trans "Matures on:" %} {{ account.deposit_maturity_date|date:"d M Y" }}</span>
                                 {% endif %}
+                                {% if account.has_credit_limit %}
+                                    • <span class="fw-medium">{% trans "Limit:" %} {{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>
+                                {% endif %}
                             </p>
                         </div>
                     </div>
@@ -113,10 +116,9 @@
                                     </div>
                                 {% endif %}
                                 {% if account.has_credit_limit %}
-                                    <div class="mt-2 text-body-secondary d-flex align-items-center gap-3 flex-wrap" style="font-size: 0.8rem;">
-                                        <div>{% trans "Credit Limit:" %} <strong>{{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</strong></div>
-                                        <div>{% trans "Available:" %} <strong class="text-success">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</strong></div>
-                                        <div>{% trans "Used:" %} <strong class="{% if account.credit_utilization_pct > 30 %}text-warning{% else %}text-body-emphasis{% endif %}">{{ account.credit_utilization_pct|translate_digits }}%</strong></div>
+                                    <div class="mt-2 text-body-secondary" style="font-size: 0.82rem;">
+                                        {% trans "Available:" %} <span class="fw-semibold text-body-emphasis">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</span>
+                                        <span class="ms-1 opacity-75">({{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %})</span>
                                     </div>
                                 {% endif %}
                             </div>
