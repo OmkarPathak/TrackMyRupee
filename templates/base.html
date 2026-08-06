@@ -1444,10 +1444,9 @@
 
                             if (groupHasVisible) {
                                 const header = document.createElement('div');
-                                header.className = 'searchable-select-header text-muted fw-bold small';
+                                header.className = 'searchable-select-header fw-bold small text-uppercase';
                                 header.style.padding = '0.375rem 0.75rem';
                                 header.style.pointerEvents = 'none';
-                                header.style.backgroundColor = '#f8f9fa';
                                 header.textContent = groupLabel;
                                 list.appendChild(header);
                                 list.appendChild(groupContainer);
@@ -1610,6 +1609,17 @@
         text-align: center;
         color: var(--bs-secondary-color);
         font-size: 0.85rem;
+    }
+    .searchable-select-header {
+        background-color: var(--bs-tertiary-bg, #f8f9fa);
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+    [data-bs-theme="dark"] .searchable-select-header {
+        background-color: rgba(255, 255, 255, 0.06) !important;
+        color: #9ca3af !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
     
     /* Fix Convert to Capital Event dropdown button readability in dark mode */

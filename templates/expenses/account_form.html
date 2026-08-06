@@ -4,12 +4,56 @@
 {% block content %}
 <style>
     [x-cloak] { display: none !important; }
+
+    /* Compact Wizard Step Indicator Styling */
+    .wizard-steps-header {
+        position: relative;
+        padding-bottom: 0.25rem;
+    }
+    .wizard-step-tab {
+        cursor: pointer;
+        padding-bottom: 0.35rem;
+        transition: all 0.2s ease;
+    }
+    .wizard-step-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color, #6c757d);
+        transition: color 0.2s ease;
+    }
+    .wizard-step-tab.active .wizard-step-title {
+        color: #10b981;
+        font-weight: 700;
+    }
+    .wizard-step-tab.completed .wizard-step-title {
+        color: #10b981;
+    }
+
+    [data-bs-theme="dark"] .wizard-step-title {
+        color: #9ca3af !important;
+    }
+    [data-bs-theme="dark"] .wizard-step-tab.active .wizard-step-title {
+        color: #34d399 !important;
+    }
+    [data-bs-theme="dark"] .wizard-step-tab.completed .wizard-step-title {
+        color: #34d399 !important;
+    }
 </style>
+
 <script>
     function accountFormSetup() {
         return {
             accountType: '',
             fieldsMap: {{ form.fields_by_type_json|safe }},
+            step2Title() {
+                if (!this.accountType || !this.fieldsMap[this.accountType]) return '{% trans "Additional Details" %}';
+                const f = this.fieldsMap[this.accountType];
+                if (f.includes('deposit_principal') || f.includes('deposit_rate')) return '{% trans "Deposit Terms" %}';
+                if (f.includes('credit_limit')) return '{% trans "Credit Limit" %}';
+                if (f.includes('linked_loan')) return '{% trans "Linked Loan" %}';
+                if (f.includes('linked_physical_asset')) return '{% trans "Linked Asset" %}';
+                return '{% trans "Additional Details" %}';
+            },
             init() {
                 const updateVal = () => {
                     const sel = document.getElementById('id_account_type') || document.querySelector('select[name="account_type"]');
@@ -34,248 +78,398 @@
         };
     }
 </script>
+
 <div class="row fade-in justify-content-center" x-data="accountFormSetup()">
-    <div class="col-md-10 col-lg-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h2 class="h4 fw-bold mb-0">
-                    {% if form.instance.pk %}
-                        {% trans "Edit Account" %}
-                    {% else %}
-                        {% trans "Add New Account" %}
-                    {% endif %}
-                </h2>
-                <p class="text-muted small">{% trans "Wallets, Bank Accounts, Deposits, or Portfolios" %}</p>
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-transparent py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="h4 fw-bold mb-0">
+                            {% if form.instance.pk %}
+                                {% trans "Edit Account" %}
+                            {% else %}
+                                {% trans "Add New Account" %}
+                            {% endif %}
+                        </h2>
+                        <p class="text-muted small mb-0">{% trans "Wallets, Bank Accounts, Deposits, or Portfolios" %}</p>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2" id="stepCounterBadge">{% trans "Step 1 of 2" %}</span>
+                </div>
             </div>
+
             <div class="card-body p-4">
-                <form method="post">
+                <!-- Wizard Progress Indicator Header -->
+                <div class="wizard-steps-header mb-3">
+                    <div class="row g-0 text-center mb-2">
+                        <div class="col-6 wizard-step-tab active" id="stepIndicator1" onclick="goToStep(1)">
+                            <span class="wizard-step-title text-truncate d-block px-1">{% trans "Account Basics" %}</span>
+                        </div>
+                        <div class="col-6 wizard-step-tab" id="stepIndicator2" onclick="goToStep(2)">
+                            <span class="wizard-step-title text-truncate d-block px-1" x-text="step2Title()">{% trans "Additional Details" %}</span>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 3px;">
+                        <div class="progress-bar bg-primary" id="wizardProgressBar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <form method="post" class="needs-validation" id="accountForm" novalidate>
                     {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Name" %}</label>
-                        {{ form.name }}
-                        {% if form.name.errors %}
-                            <div class="text-danger small mt-1">{{ form.name.errors }}</div>
-                        {% endif %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
                     </div>
+                    {% endif %}
 
-                    <div class="row g-2 g-md-3">
-                        <div class="col-6 col-md-6 mb-3">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Type" %}</label>
-                            {{ form.account_type }}
-                            {% if form.account_type.errors %}
-                                <div class="text-danger small mt-1">{{ form.account_type.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-6 col-md-6 mb-3">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Currency" %}</label>
-                            {{ form.currency }}
-                            {% if form.currency.errors %}
-                                <div class="text-danger small mt-1">{{ form.currency.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
+                    <!-- STEP 1: ACCOUNT BASICS -->
+                    <div class="wizard-step-content" id="step1Content">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Name" %}</label>
+                                {{ form.name }}
+                                <div class="form-text">{% trans "Give this account a clear name (e.g. HDFC Savings, Emergency Fund)." %}</div>
+                                {% if form.name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.name.errors|first }}</div>
+                                {% endif %}
+                            </div>
 
-                    <div class="mb-4">
-                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Initial Balance" %}</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-wallet2"></i></span>
-                            {{ form.balance }}
-                        </div>
-                        {% if form.balance.errors %}
-                            <div class="text-danger small mt-1">{{ form.balance.errors }}</div>
-                        {% endif %}
-                        <small class="form-text text-muted">{% trans "Current amount of money in this account." %}</small>
-                    </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Type" %}</label>
+                                {{ form.account_type }}
+                                <div class="form-text">{% trans "Category of bank or asset account." %}</div>
+                                {% if form.account_type.errors %}
+                                    <div class="text-danger small mt-1">{{ form.account_type.errors|first }}</div>
+                                {% endif %}
+                            </div>
 
-                    <!-- Fixed-Income / Deposit Details (DEPOSIT Strategy) -->
-                    <div class="card border border-secondary border-opacity-25 shadow-sm rounded-3 mb-4"
-                         x-show="fieldsMap[accountType] && (fieldsMap[accountType].includes('deposit_principal') || fieldsMap[accountType].includes('deposit_rate'))"
-                         x-cloak
-                         :aria-hidden="!(fieldsMap[accountType] && (fieldsMap[accountType].includes('deposit_principal') || fieldsMap[accountType].includes('deposit_rate')))">
-                        <div class="card-header bg-body-tertiary border-0 py-3 px-4">
-                            <h5 class="h6 fw-bold mb-0 text-body">
-                                <i class="bi bi-piggy-bank text-primary me-2"></i>
-                                {% trans "Fixed-Income / Deposit Details" %}
-                            </h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="row g-2 g-md-3">
-                                <div class="col-6 col-md-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Principal" %}</label>
-                                    {{ form.deposit_principal }}
-                                    {% if form.deposit_principal.errors %}
-                                        <div class="text-danger small mt-1">{{ form.deposit_principal.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted d-block" style="font-size: 0.72rem;">{% trans "Original amount invested." %}</small>
-                                </div>
-                                <div class="col-6 col-md-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Annual Interest Rate (%)" %}</label>
-                                    {{ form.deposit_rate }}
-                                    {% if form.deposit_rate.errors %}
-                                        <div class="text-danger small mt-1">{{ form.deposit_rate.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted d-block" style="font-size: 0.72rem;">{% trans "e.g., 7.25 for 7.25% p.a." %}</small>
-                                </div>
-                                <div class="col-6 col-md-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Start Date" %}</label>
-                                    {{ form.deposit_start_date }}
-                                    {% if form.deposit_start_date.errors %}
-                                        <div class="text-danger small mt-1">{{ form.deposit_start_date.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-6 col-md-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Maturity Date" %}</label>
-                                    {{ form.deposit_maturity_date }}
-                                    {% if form.deposit_maturity_date.errors %}
-                                        <div class="text-danger small mt-1">{{ form.deposit_maturity_date.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-6 col-md-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Closed Date" %}</label>
-                                    {{ form.deposit_closed_date }}
-                                    {% if form.deposit_closed_date.errors %}
-                                        <div class="text-danger small mt-1">{{ form.deposit_closed_date.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted d-block" style="font-size: 0.72rem;">{% trans "If closed early or paid out, interest stops accruing on this date." %}</small>
-                                </div>
-                                <div class="col-6 col-md-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Compounding Frequency" %}</label>
-                                    {{ form.deposit_compounding }}
-                                    {% if form.deposit_compounding.errors %}
-                                        <div class="text-danger small mt-1">{{ form.deposit_compounding.errors }}</div>
-                                    {% endif %}
-                                </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Currency" %}</label>
+                                {{ form.currency }}
+                                <div class="form-text">{% trans "Base currency of this account." %}</div>
+                                {% if form.currency.errors %}
+                                    <div class="text-danger small mt-1">{{ form.currency.errors|first }}</div>
+                                {% endif %}
+                            </div>
 
-                                <!-- RD Specific Sub-section -->
-                                <div class="col-12 border-top border-secondary border-opacity-10 pt-3 mt-3"
-                                     x-show="accountType === 'RD'"
-                                     x-cloak>
-                                    <h6 class="fw-bold text-primary small mb-3">{% trans "Recurring Deposit (RD) Schedule" %}</h6>
-                                    <div class="row g-2 g-md-3">
-                                        <div class="col-6 col-md-6">
-                                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Monthly Installment Amount" %}</label>
-                                            {{ form.rd_installment_amount }}
-                                            {% if form.rd_installment_amount.errors %}
-                                                <div class="text-danger small mt-1">{{ form.rd_installment_amount.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="col-6 col-md-6">
-                                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Installment Day of Month (1-28)" %}</label>
-                                            {{ form.rd_installment_day }}
-                                            {% if form.rd_installment_day.errors %}
-                                                <div class="text-danger small mt-1">{{ form.rd_installment_day.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Initial Balance" %}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-wallet2"></i></span>
+                                    {{ form.balance }}
                                 </div>
-
-                                <div class="col-12 mt-3 pt-2 border-top border-secondary border-opacity-10">
-                                    <div class="form-check form-switch mb-2">
-                                        {{ form.show_accrued_balance }}
-                                        <label class="form-check-label text-body-emphasis fw-semibold ms-1" for="{{ form.show_accrued_balance.id_for_label }}">
-                                            {% trans "Show Accrued Balance" %}
-                                        </label>
-                                        {% if form.show_accrued_balance.errors %}
-                                            <div class="text-danger small mt-1">{{ form.show_accrued_balance.errors }}</div>
-                                        {% endif %}
-                                        <small class="form-text text-muted d-block mt-1" style="font-size: 0.72rem;">
-                                            {% trans "If enabled, projected accrued balance is displayed instead of ledger balance." %}
-                                        </small>
-                                    </div>
-
-                                    <div class="form-check form-switch mt-3 pt-2 border-top border-secondary border-opacity-10">
-                                        {{ form.record_maturity_income }}
-                                        <label class="form-check-label text-body-emphasis fw-semibold ms-1" for="{{ form.record_maturity_income.id_for_label }}">
-                                            {% trans "Record Interest Earned as Income ('Investment Returns')" %}
-                                        </label>
-                                        {% if form.record_maturity_income.errors %}
-                                            <div class="text-danger small mt-1">{{ form.record_maturity_income.errors }}</div>
-                                        {% endif %}
-                                        <small class="form-text text-muted d-block mt-1" style="font-size: 0.72rem;">
-                                            {% trans "Automatically logs an Income transaction under 'Investment Returns' for the accrued interest earned." %}
-                                        </small>
-                                    </div>
-                                </div>
+                                <div class="form-text">{% trans "Current amount of money in this account." %}</div>
+                                {% if form.balance.errors %}
+                                    <div class="text-danger small mt-1">{{ form.balance.errors|first }}</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
 
-                    <!-- Revolving Credit Details (REVOLVING_CREDIT Strategy) -->
-                    <div class="card border border-secondary border-opacity-25 shadow-sm rounded-3 mb-4"
-                         x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('credit_limit')"
-                         x-cloak
-                         :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('credit_limit'))">
-                        <div class="card-header bg-body-tertiary border-0 py-3 px-4">
-                            <h5 class="h6 fw-bold mb-0 text-body">
-                                <i class="bi bi-credit-card text-primary me-2"></i>
-                                {% trans "Credit Card / Revolving Credit Details" %}
-                            </h5>
+                    <!-- STEP 2: STRATEGY & DETAILS -->
+                    <div class="wizard-step-content d-none" id="step2Content">
+                        <!-- Fixed-Income / Deposit Details (DEPOSIT Strategy) -->
+                        <div class="mb-3"
+                             x-show="fieldsMap[accountType] && (fieldsMap[accountType].includes('deposit_principal') || fieldsMap[accountType].includes('deposit_rate'))"
+                             x-cloak
+                             :aria-hidden="!(fieldsMap[accountType] && (fieldsMap[accountType].includes('deposit_principal') || fieldsMap[accountType].includes('deposit_rate')))">
+                            <div class="d-flex align-items-center gap-2 mb-3 text-muted small">
+                                <i class="bi bi-piggy-bank text-primary fs-6"></i>
+                                <span>{% trans "Configure principal, interest rates, compounding schedule, and yield options." %}</span>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Principal" %}</label>
+                                    {{ form.deposit_principal }}
+                                    <div class="form-text">{% trans "Original amount invested." %}</div>
+                                    {% if form.deposit_principal.errors %}
+                                        <div class="text-danger small mt-1">{{ form.deposit_principal.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Annual Interest Rate (%)" %}</label>
+                                    {{ form.deposit_rate }}
+                                    <div class="form-text">{% trans "e.g. 7.25 for 7.25% p.a." %}</div>
+                                    {% if form.deposit_rate.errors %}
+                                        <div class="text-danger small mt-1">{{ form.deposit_rate.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Start Date" %}</label>
+                                    {{ form.deposit_start_date }}
+                                    <div class="form-text">{% trans "Date deposit was booked." %}</div>
+                                    {% if form.deposit_start_date.errors %}
+                                        <div class="text-danger small mt-1">{{ form.deposit_start_date.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Maturity Date" %}</label>
+                                    {{ form.deposit_maturity_date }}
+                                    <div class="form-text">{% trans "Date deposit matures." %}</div>
+                                    {% if form.deposit_maturity_date.errors %}
+                                        <div class="text-danger small mt-1">{{ form.deposit_maturity_date.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Closed Date" %}</label>
+                                    {{ form.deposit_closed_date }}
+                                    <div class="form-text">{% trans "Optional date if closed early." %}</div>
+                                    {% if form.deposit_closed_date.errors %}
+                                        <div class="text-danger small mt-1">{{ form.deposit_closed_date.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Compounding Frequency" %}</label>
+                                    {{ form.deposit_compounding }}
+                                    <div class="form-text">{% trans "Interest compounding schedule." %}</div>
+                                    {% if form.deposit_compounding.errors %}
+                                        <div class="text-danger small mt-1">{{ form.deposit_compounding.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- RD Specific Sub-section -->
+                                <div class="col-12 border-top pt-3 mt-3"
+                                     x-show="accountType === 'RD'"
+                                     x-cloak>
+                                    <h6 class="fw-bold text-primary small mb-3">{% trans "Recurring Deposit (RD) Schedule" %}</h6>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-sm-6">
+                                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Monthly Installment Amount" %}</label>
+                                            {{ form.rd_installment_amount }}
+                                            <div class="form-text">{% trans "Recurring monthly contribution." %}</div>
+                                            {% if form.rd_installment_amount.errors %}
+                                                <div class="text-danger small mt-1">{{ form.rd_installment_amount.errors|first }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-12 col-sm-6">
+                                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Installment Day (1-28)" %}</label>
+                                            {{ form.rd_installment_day }}
+                                            <div class="form-text">{% trans "Day of month installment is paid." %}</div>
+                                            {% if form.rd_installment_day.errors %}
+                                                <div class="text-danger small mt-1">{{ form.rd_installment_day.errors|first }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 mt-3 pt-2 border-top">
+                                    <div class="form-check form-switch m-0 d-flex justify-content-between align-items-start gap-3 ps-0 mb-3">
+                                        <div>
+                                            <label class="form-check-label fw-semibold cursor-pointer d-block mb-1" for="{{ form.show_accrued_balance.id_for_label }}">
+                                                {% trans "Show Accrued Balance" %}
+                                            </label>
+                                            <div class="form-text mt-0">
+                                                {% trans "Displays projected accrued balance instead of ledger balance." %}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            {{ form.show_accrued_balance }}
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check form-switch m-0 d-flex justify-content-between align-items-start gap-3 ps-0">
+                                        <div>
+                                            <label class="form-check-label fw-semibold cursor-pointer d-block mb-1" for="{{ form.record_maturity_income.id_for_label }}">
+                                                {% trans "Record Interest Earned as Income" %}
+                                            </label>
+                                            <div class="form-text mt-0">
+                                                {% trans "Logs an Income transaction under 'Investment Returns' for interest earned." %}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            {{ form.record_maturity_income }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body p-4">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Credit Limit" %}</label>
-                            {{ form.credit_limit }}
-                            {% if form.credit_limit.errors %}
-                                <div class="text-danger small mt-1">{{ form.credit_limit.errors }}</div>
-                            {% endif %}
-                            <small class="form-text text-muted d-block mt-1" style="font-size: 0.72rem;">
-                                {% trans "Total credit line limit granted for this account (optional)." %}
-                            </small>
+
+                        <!-- Revolving Credit Details (REVOLVING_CREDIT Strategy) -->
+                        <div class="mb-3"
+                             x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('credit_limit')"
+                             x-cloak
+                             :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('credit_limit'))">
+                            <div class="d-flex align-items-center gap-2 mb-3 text-muted small">
+                                <i class="bi bi-credit-card text-primary fs-6"></i>
+                                <span>{% trans "Configure credit limit granted for this account." %}</span>
+                            </div>
+                            <div>
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Credit Limit" %}</label>
+                                {{ form.credit_limit }}
+                                <div class="form-text">{% trans "Total credit line limit granted for this account (optional)." %}</div>
+                                {% if form.credit_limit.errors %}
+                                    <div class="text-danger small mt-1">{{ form.credit_limit.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Linked Loan Section (LOAN_OUTSTANDING Strategy) -->
+                        <div class="mb-3"
+                             x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('linked_loan')"
+                             x-cloak
+                             :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('linked_loan'))">
+                            <div class="d-flex align-items-center gap-2 mb-3 text-muted small">
+                                <i class="bi bi-bank text-primary fs-6"></i>
+                                <span>{% trans "Link an existing loan record to track remaining liability." %}</span>
+                            </div>
+                            <div>
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Select Loan" %}</label>
+                                {{ form.linked_loan }}
+                                <div class="form-text">{% trans "Link a loan record to track remaining liability." %}</div>
+                                {% if form.linked_loan.errors %}
+                                    <div class="text-danger small mt-1">{{ form.linked_loan.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Linked Physical Asset Section (PHYSICAL_VALUATION & INSURANCE_SURRENDER Strategies) -->
+                        <div class="mb-3"
+                             x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('linked_physical_asset')"
+                             x-cloak
+                             :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('linked_physical_asset'))">
+                            <div class="d-flex align-items-center gap-2 mb-3 text-muted small">
+                                <i class="bi bi-house-door text-primary fs-6"></i>
+                                <span>{% trans "Link property, vehicle, or real estate asset for valuation." %}</span>
+                            </div>
+                            <div>
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Select Physical Asset" %}</label>
+                                {{ form.linked_physical_asset }}
+                                <div class="form-text">{% trans "Link property, vehicle, or real estate asset." %}</div>
+                                {% if form.linked_physical_asset.errors %}
+                                    <div class="text-danger small mt-1">{{ form.linked_physical_asset.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Default message for standard accounts without extra strategy fields -->
+                        <div class="p-3 rounded bg-body-tertiary text-muted small border-0"
+                             x-show="!fieldsMap[accountType] || (
+                                !fieldsMap[accountType].includes('deposit_principal') && 
+                                !fieldsMap[accountType].includes('deposit_rate') && 
+                                !fieldsMap[accountType].includes('credit_limit') && 
+                                !fieldsMap[accountType].includes('linked_loan') && 
+                                !fieldsMap[accountType].includes('linked_physical_asset')
+                             )">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {% trans "No additional configuration required for this account type. Click Save Account to finish." %}
                         </div>
                     </div>
 
-                    <!-- Linked Loan Section (LOAN_OUTSTANDING Strategy) -->
-                    <div class="card border border-secondary border-opacity-25 shadow-sm rounded-3 mb-4"
-                         x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('linked_loan')"
-                         x-cloak
-                         :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('linked_loan'))">
-                        <div class="card-header bg-body-tertiary border-0 py-3 px-4">
-                            <h5 class="h6 fw-bold mb-0 text-body">
-                                <i class="bi bi-bank text-primary me-2"></i>
-                                {% trans "Linked Loan Record" %}
-                            </h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Select Loan" %}</label>
-                            {{ form.linked_loan }}
-                            {% if form.linked_loan.errors %}
-                                <div class="text-danger small mt-1">{{ form.linked_loan.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Linked Physical Asset Section (PHYSICAL_VALUATION & INSURANCE_SURRENDER Strategies) -->
-                    <div class="card border border-secondary border-opacity-25 shadow-sm rounded-3 mb-4"
-                         x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('linked_physical_asset')"
-                         x-cloak
-                         :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('linked_physical_asset'))">
-                        <div class="card-header bg-body-tertiary border-0 py-3 px-4">
-                            <h5 class="h6 fw-bold mb-0 text-body">
-                                <i class="bi bi-house-door text-primary me-2"></i>
-                                {% trans "Linked Physical Asset" %}
-                            </h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Select Physical Asset" %}</label>
-                            {{ form.linked_physical_asset }}
-                            {% if form.linked_physical_asset.errors %}
-                                <div class="text-danger small mt-1">{{ form.linked_physical_asset.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end align-items-center gap-2">
-                        <a href="{% url 'account-list' %}" class="btn btn-outline-secondary px-4">
-                            {% trans "Cancel" %}
-                        </a>
-                        <button type="submit" class="btn btn-primary px-4 fw-bold">
-                            <i class="bi bi-check-lg me-1"></i> {% trans "Save Account" %}
+                    <!-- WIZARD NAVIGATION FOOTER -->
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center gap-2">
+                        <button type="button" id="prevBtn" class="btn btn-outline-secondary px-3 text-nowrap d-none" onclick="changeStep(-1)">
+                            <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
                         </button>
+                        <div class="ms-auto d-flex align-items-center gap-2">
+                            <a href="{% url 'account-list' %}" class="btn btn-link text-muted text-decoration-none px-2 text-nowrap">{% trans "Cancel" %}</a>
+                            
+                            <button type="button" id="nextBtn" class="btn btn-primary px-3 text-nowrap" onclick="changeStep(1)">
+                                {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+
+                            <button type="submit" id="submitBtn" class="btn btn-success px-3 text-nowrap d-none">
+                                <i class="bi bi-check-lg me-1"></i> {% trans "Save" %}<span class="d-none d-sm-inline"> {% trans "Account" %}</span>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
+<script>
+    let currentStep = 1;
+    const totalSteps = 2;
+
+    function updateWizardUI() {
+        // Step visibility
+        document.getElementById('step1Content').classList.toggle('d-none', currentStep !== 1);
+        document.getElementById('step2Content').classList.toggle('d-none', currentStep !== 2);
+
+        // Header Indicator Tabs
+        for (let i = 1; i <= totalSteps; i++) {
+            const ind = document.getElementById('stepIndicator' + i);
+            if (ind) {
+                ind.classList.toggle('active', i === currentStep);
+                ind.classList.toggle('completed', i < currentStep);
+            }
+        }
+
+        // Progress bar width
+        const progressPercent = Math.round((currentStep / totalSteps) * 100);
+        const progressBar = document.getElementById('wizardProgressBar');
+        if (progressBar) {
+            progressBar.style.width = progressPercent + '%';
+        }
+
+        // Step Counter Badge
+        const counterBadge = document.getElementById('stepCounterBadge');
+        if (counterBadge) {
+            counterBadge.textContent = `{% trans "Step" %} ${currentStep} {% trans "of" %} ${totalSteps}`;
+        }
+
+        // Navigation Buttons
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (prevBtn) prevBtn.classList.toggle('d-none', currentStep === 1);
+        if (nextBtn) nextBtn.classList.toggle('d-none', currentStep === totalSteps);
+        if (submitBtn) submitBtn.classList.toggle('d-none', currentStep !== totalSteps);
+    }
+
+    function validateCurrentStep() {
+        const stepEl = document.getElementById('step' + currentStep + 'Content');
+        if (!stepEl) return true;
+
+        const inputs = stepEl.querySelectorAll('input:not([type="hidden"]), select, textarea');
+        let isValid = true;
+
+        inputs.forEach(input => {
+            if (input.offsetWidth > 0 || input.offsetHeight > 0 || input.getClientRects().length > 0) {
+                if (!input.checkValidity()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                    input.reportValidity();
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            }
+        });
+
+        return isValid;
+    }
+
+    function changeStep(delta) {
+        if (delta > 0) {
+            if (!validateCurrentStep()) return;
+        }
+        const newStep = currentStep + delta;
+        if (newStep >= 1 && newStep <= totalSteps) {
+            currentStep = newStep;
+            updateWizardUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function goToStep(targetStep) {
+        if (targetStep < currentStep) {
+            currentStep = targetStep;
+            updateWizardUI();
+        } else if (targetStep > currentStep) {
+            if (validateCurrentStep()) {
+                currentStep = targetStep;
+                updateWizardUI();
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateWizardUI();
+    });
+</script>
+{% endblock %}
