@@ -84,9 +84,18 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
             elif sub.frequency == 'WEEKLY':
                 total_monthly += amount * 4
                 total_yearly += amount * 52
+            elif sub.frequency == 'BIWEEKLY':
+                total_monthly += amount * 2
+                total_yearly += amount * 26
             elif sub.frequency == 'MONTHLY':
                 total_monthly += amount
                 total_yearly += amount * 12
+            elif sub.frequency == 'QUARTERLY':
+                total_monthly += amount / 3
+                total_yearly += amount * 4
+            elif sub.frequency == 'SEMIANNUALLY':
+                total_monthly += amount / 6
+                total_yearly += amount * 2
             elif sub.frequency == 'YEARLY':
                 total_monthly += amount / 12
                 total_yearly += amount
@@ -287,8 +296,14 @@ class RecurringTransactionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, D
             yearly_saving = amount * 365
         elif obj.frequency == 'WEEKLY':
             yearly_saving = amount * 52
+        elif obj.frequency == 'BIWEEKLY':
+            yearly_saving = amount * 26
         elif obj.frequency == 'MONTHLY':
             yearly_saving = amount * 12
+        elif obj.frequency == 'QUARTERLY':
+            yearly_saving = amount * 4
+        elif obj.frequency == 'SEMIANNUALLY':
+            yearly_saving = amount * 2
         else: # YEARLY
             yearly_saving = amount
             

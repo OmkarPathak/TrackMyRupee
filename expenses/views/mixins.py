@@ -112,7 +112,10 @@ def process_user_recurring_transactions(user, force=False):
             if not rt.last_processed_date:
                 current_date = rt.start_date
             else:
-                current_date = rt.get_next_date(rt.last_processed_date, rt.frequency, rt.start_date)
+                current_date = rt.get_next_date(
+                    rt.last_processed_date, rt.frequency, rt.start_date,
+                    rt.is_last_day_of_month, rt.is_last_working_day
+                )
 
             if rt.end_date and current_date > rt.end_date:
                 rt.is_active = False
@@ -207,7 +210,10 @@ def process_user_recurring_transactions(user, force=False):
                     period_days_map = {
                         'DAILY': Decimal('1'),
                         'WEEKLY': Decimal('7'),
+                        'BIWEEKLY': Decimal('14'),
                         'MONTHLY': Decimal('30'),
+                        'QUARTERLY': Decimal('90'),
+                        'SEMIANNUALLY': Decimal('180'),
                         'YEARLY': Decimal('365'),
                     }
                     period_days = period_days_map.get(rt.frequency, Decimal('30'))
@@ -295,7 +301,10 @@ def process_user_recurring_transactions(user, force=False):
                     break
                 
                 rt.last_processed_date = current_date
-                current_date = rt.get_next_date(current_date, rt.frequency, rt.start_date)
+                current_date = rt.get_next_date(
+                    current_date, rt.frequency, rt.start_date,
+                    rt.is_last_day_of_month, rt.is_last_working_day
+                )
 
             rt.save(update_fields=['last_processed_date', 'is_active'])
 

@@ -996,6 +996,40 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         self.assertEqual(rt.last_processed_date, today)
         self.assertGreater(rt.next_due_date, today)
 
+    def test_last_day_of_month_date_math(self):
+        """Verifies last day of month calculations across months of varying length."""
+        apr30 = date(2026, 4, 30)
+        # Next should be May 31
+        may31 = RecurringTransaction.get_next_date(apr30, 'MONTHLY', apr30, is_last_day_of_month=True)
+        self.assertEqual(may31, date(2026, 5, 31))
+        # Next should be June 30
+        jun30 = RecurringTransaction.get_next_date(may31, 'MONTHLY', apr30, is_last_day_of_month=True)
+        self.assertEqual(jun30, date(2026, 6, 30))
+        # Next should be July 31
+        jul31 = RecurringTransaction.get_next_date(jun30, 'MONTHLY', apr30, is_last_day_of_month=True)
+        self.assertEqual(jul31, date(2026, 7, 31))
+
+    def test_last_working_day_date_math(self):
+        """Verifies last working day of month calculations (shifting weekend to preceding Friday)."""
+        apr30 = date(2026, 4, 30)  # Thursday
+        may_next = RecurringTransaction.get_next_date(apr30, 'MONTHLY', apr30, is_last_working_day=True)
+        # May 31, 2026 is a Sunday -> should shift to Friday May 29, 2026
+        self.assertEqual(may_next, date(2026, 5, 29))
+        self.assertEqual(may_next.weekday(), 4)  # Friday
+
+    def test_extended_frequencies_date_math(self):
+        """Verifies BIWEEKLY, QUARTERLY, and SEMIANNUALLY date math."""
+        start = date(2026, 1, 15)
+        # BIWEEKLY -> +14 days -> 2026-01-29
+        biweekly_next = RecurringTransaction.get_next_date(start, 'BIWEEKLY', start)
+        self.assertEqual(biweekly_next, date(2026, 1, 29))
+        # QUARTERLY -> 2026-04-15
+        quarterly_next = RecurringTransaction.get_next_date(start, 'QUARTERLY', start)
+        self.assertEqual(quarterly_next, date(2026, 4, 15))
+        # SEMIANNUALLY -> 2026-07-15
+        semiannually_next = RecurringTransaction.get_next_date(start, 'SEMIANNUALLY', start)
+        self.assertEqual(semiannually_next, date(2026, 7, 15))
+
 
 # ===========================================================================
 # 5. NET WORTH & ACCOUNTS DASHBOARD TESTS

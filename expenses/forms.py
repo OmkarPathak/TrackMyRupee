@@ -229,7 +229,8 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
                   'loan',
                   'from_account', 'to_account',
-                  'frequency', 'start_date', 'end_date', 'description', 'is_active', 'payment_method',
+                  'frequency', 'start_date', 'end_date', 'is_last_day_of_month', 'is_last_working_day',
+                  'description', 'is_active', 'payment_method',
                   'capital_subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth']
         widgets = {
             'transaction_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleFields()'}),
@@ -241,9 +242,11 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Salary, Rent')}),
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'to_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
-            'frequency': forms.Select(attrs={'class': 'form-select'}),
+            'frequency': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleMonthlyOptions()'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'is_last_day_of_month': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_last_working_day': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'payment_method': forms.Select(attrs={'class': 'form-select'}),

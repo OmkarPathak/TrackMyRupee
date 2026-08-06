@@ -72,6 +72,43 @@
                     {% endif %}
                 </div>
 
+                <!-- Monthly Schedule Nuances (Responsive Layout) -->
+                <div class="col-12" id="monthlyOptionsGroup" style="display: none;">
+                    <div class="card bg-light border-0 shadow-sm p-3">
+                        <label class="form-label fw-bold text-uppercase small text-muted mb-2">
+                            {% trans "Monthly Recurrence Rules" %}
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <div class="p-2 rounded border bg-white h-100 d-flex align-items-center">
+                                    <div class="form-check ms-2 mb-0">
+                                        {{ form.is_last_day_of_month }}
+                                        <label class="form-check-label fw-semibold small cursor-pointer" for="{{ form.is_last_day_of_month.id_for_label }}">
+                                            {% trans "Last Calendar Day of Month" %}
+                                        </label>
+                                        <div class="form-text text-muted small mt-0">
+                                            {% trans "e.g. Apr 30 → May 31 → Jun 30 → Feb 28/29" %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="p-2 rounded border bg-white h-100 d-flex align-items-center">
+                                    <div class="form-check ms-2 mb-0">
+                                        {{ form.is_last_working_day }}
+                                        <label class="form-check-label fw-semibold small cursor-pointer" for="{{ form.is_last_working_day.id_for_label }}">
+                                            {% trans "Last Working Day of Month" %}
+                                        </label>
+                                        <div class="form-text text-muted small mt-0">
+                                            {% trans "Last weekday (Mon–Fri). Steps back if weekend." %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Row 4: Account / Loan -->
                 <div class="col-6" id="accountGroup">
                     <label class="form-label">{% trans "Account" %}</label>
@@ -295,10 +332,23 @@
         }
     }
 
-    // Run on load and on type change
+    function toggleMonthlyOptions() {
+        const freqSelect = document.querySelector('[name="frequency"]');
+        const monthlyGroup = document.getElementById('monthlyOptionsGroup');
+        if (freqSelect && monthlyGroup) {
+            monthlyGroup.style.display = (freqSelect.value === 'MONTHLY') ? 'block' : 'none';
+        }
+    }
+
+    // Run on load and on type / frequency change
     document.addEventListener('DOMContentLoaded', function() {
         toggleFields();
+        toggleMonthlyOptions();
         document.querySelector('[name="transaction_type"]').addEventListener('change', toggleFields);
+        const freqSelect = document.querySelector('[name="frequency"]');
+        if (freqSelect) {
+            freqSelect.addEventListener('change', toggleMonthlyOptions);
+        }
     });
 </script>
 

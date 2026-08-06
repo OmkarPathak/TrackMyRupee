@@ -1135,7 +1135,10 @@ class RecurringTransaction(models.Model):
     FREQUENCY_CHOICES = [
         ('DAILY', _('Daily')),
         ('WEEKLY', _('Weekly')),
+        ('BIWEEKLY', _('Bi-Weekly (Every 2 Weeks)')),
         ('MONTHLY', _('Monthly')),
+        ('QUARTERLY', _('Quarterly (Every 3 Months)')),
+        ('SEMIANNUALLY', _('Semi-Annually (Every 6 Months)')),
         ('YEARLY', _('Yearly')),
     ]
     TRANSACTION_TYPE_CHOICES = [
@@ -1179,9 +1182,11 @@ class RecurringTransaction(models.Model):
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_out', verbose_name=_('From Account'))
     to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_in', verbose_name=_('To Account'))
 
-    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, verbose_name=_('Frequency'))
+    frequency = models.CharField(max_length=15, choices=FREQUENCY_CHOICES, verbose_name=_('Frequency'))
     start_date = models.DateField(verbose_name=_('Start Date'))
     end_date = models.DateField(null=True, blank=True, verbose_name=_('End Date'))
+    is_last_day_of_month = models.BooleanField(default=False, verbose_name=_('Repeat on last day of month'))
+    is_last_working_day = models.BooleanField(default=False, verbose_name=_('Repeat on last working day of month'))
     last_processed_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1197,30 +1202,57 @@ class RecurringTransaction(models.Model):
                 raise ValidationError({'source_fk': _('Another recurring transaction already uses this source.')})
 
     @staticmethod
-    def get_next_date(current_date, frequency, start_date=None):
+    def get_next_date(current_date, frequency, start_date=None, is_last_day_of_month=False, is_last_working_day=False):
         """
         Calculate the next occurrence date after current_date for a given frequency.
-        Anchors to start_date (day-of-month, day-of-year, weekday) to prevent drift.
+        Uses dateutil.rrule for RFC 5545 recurrence compliance.
         """
+        from datetime import datetime, time
+        from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR
+
         if not start_date:
             start_date = current_date
 
+        dt_start = datetime.combine(start_date, time.min)
+        dt_current = datetime.combine(current_date, time.min)
+
         if frequency == 'DAILY':
-            return current_date + timedelta(days=1)
+            rule = rrule(DAILY, interval=1, dtstart=dt_start)
         elif frequency == 'WEEKLY':
-            target = current_date + timedelta(days=1)
-            days_ahead = (start_date.weekday() - target.weekday()) % 7
-            return target + timedelta(days=days_ahead)
+            rule = rrule(WEEKLY, interval=1, dtstart=dt_start)
+        elif frequency == 'BIWEEKLY':
+            rule = rrule(WEEKLY, interval=2, dtstart=dt_start)
         elif frequency == 'MONTHLY':
+            if is_last_working_day:
+                rule = rrule(MONTHLY, interval=1, dtstart=dt_start, bymonthday=(-1, -2, -3), byweekday=(MO, TU, WE, TH, FR))
+                next_dt = rule.after(dt_current)
+                if next_dt:
+                    return next_dt.date()
+            elif is_last_day_of_month:
+                rule = rrule(MONTHLY, interval=1, dtstart=dt_start, bymonthday=-1)
+                next_dt = rule.after(dt_current)
+                if next_dt:
+                    return next_dt.date()
+            else:
+                import calendar
+                max_days_this = calendar.monthrange(current_date.year, current_date.month)[1]
+                this_month_occ = date(current_date.year, current_date.month, min(start_date.day, max_days_this))
+                if current_date < this_month_occ:
+                    return this_month_occ
+                month = current_date.month % 12 + 1
+                year = current_date.year + (current_date.month // 12)
+                max_days_next = calendar.monthrange(year, month)[1]
+                return date(year, month, min(start_date.day, max_days_next))
+        elif frequency == 'QUARTERLY':
             import calendar
-            max_days_this = calendar.monthrange(current_date.year, current_date.month)[1]
-            this_month_occ = date(current_date.year, current_date.month, min(start_date.day, max_days_this))
-            if current_date < this_month_occ:
-                return this_month_occ
-            month = current_date.month % 12 + 1
-            year = current_date.year + (current_date.month // 12)
-            max_days_next = calendar.monthrange(year, month)[1]
-            return date(year, month, min(start_date.day, max_days_next))
+            max_days = calendar.monthrange(dt_start.year, dt_start.month)[1]
+            target_day = min(dt_start.day, max_days)
+            rule = rrule(MONTHLY, interval=3, dtstart=dt_start, bymonthday=target_day)
+        elif frequency == 'SEMIANNUALLY':
+            import calendar
+            max_days = calendar.monthrange(dt_start.year, dt_start.month)[1]
+            target_day = min(dt_start.day, max_days)
+            rule = rrule(MONTHLY, interval=6, dtstart=dt_start, bymonthday=target_day)
         elif frequency == 'YEARLY':
             import calendar
             max_days_this = calendar.monthrange(current_date.year, start_date.month)[1]
@@ -1230,8 +1262,13 @@ class RecurringTransaction(models.Model):
             next_year = current_date.year + 1
             max_days_next = calendar.monthrange(next_year, start_date.month)[1]
             return date(next_year, start_date.month, min(start_date.day, max_days_next))
+        else:
+            return current_date + timedelta(days=365)
 
-        return current_date + timedelta(days=365)
+        next_dt = rule.after(dt_current)
+        if next_dt:
+            return next_dt.date()
+        return current_date + timedelta(days=30)
 
     @property
     def next_due_date(self):
@@ -1243,7 +1280,13 @@ class RecurringTransaction(models.Model):
     def _calculate_next_due_date(self):
         if not self.last_processed_date or self.last_processed_date < self.start_date:
             return self.start_date
-        return self.get_next_date(self.last_processed_date, self.frequency, self.start_date)
+        return self.get_next_date(
+            self.last_processed_date,
+            self.frequency,
+            self.start_date,
+            self.is_last_day_of_month,
+            self.is_last_working_day,
+        )
 
     def save(self, *args, **kwargs):
         # Multi-currency normalization
