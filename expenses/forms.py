@@ -7,6 +7,7 @@ from allauth.socialaccount.models import SocialAccount
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV3
@@ -356,6 +357,10 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
 
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
+        if start_date:
+            today_year = timezone.localdate().year
+            if start_date.year < 2000 or start_date.year > (today_year + 50):
+                self.add_error('start_date', _('Start date must be between year 2000 and 50 years into the future.'))
         if start_date and end_date and end_date < start_date:
             self.add_error('end_date', _('End date must be after or equal to start date.'))
 
@@ -375,6 +380,12 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                 description=description,
                 frequency=frequency,
                 start_date=start_date,
+                account=cleaned_data.get('account'),
+                from_account=cleaned_data.get('from_account'),
+                to_account=cleaned_data.get('to_account'),
+                category=cleaned_data.get('category'),
+                source=cleaned_data.get('source'),
+                loan=cleaned_data.get('loan'),
                 is_active=True
             )
             if self.instance and self.instance.pk:
@@ -383,6 +394,20 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                 self.add_error(None, _('An active recurring transaction with these exact details already exists.'))
 
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if instance.pk:
+            try:
+                old_obj = RecurringTransaction.objects.get(pk=instance.pk)
+                if old_obj.start_date != instance.start_date or old_obj.frequency != instance.frequency:
+                    instance.last_processed_date = None
+            except RecurringTransaction.DoesNotExist:
+                pass
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
     SALARY_DATE_CHOICES = [(i, str(i)) for i in range(1, 32)]

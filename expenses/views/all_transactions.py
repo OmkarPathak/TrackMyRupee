@@ -160,7 +160,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         elif sort_by == 'amount_desc':
             queryset = queryset.order_by('-unified_amount')
         else:
-            queryset = queryset.order_by('-created_at', '-date')
+            queryset = queryset.order_by('-date')
 
         return queryset
 

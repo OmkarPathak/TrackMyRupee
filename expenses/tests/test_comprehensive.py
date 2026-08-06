@@ -528,6 +528,13 @@ class RecurringTransactionDateTest(TestCase):
         result = RecurringTransaction.get_next_date(date(2025, 1, 31), "MONTHLY")
         self.assertEqual(result, date(2025, 2, 28))
 
+    def test_monthly_reanchors_to_31st_after_february(self):
+        start = date(2025, 1, 31)
+        next1 = RecurringTransaction.get_next_date(start, "MONTHLY", start_date=start)
+        self.assertEqual(next1, date(2025, 2, 28))
+        next2 = RecurringTransaction.get_next_date(next1, "MONTHLY", start_date=start)
+        self.assertEqual(next2, date(2025, 3, 31))
+
     def test_monthly_leap_year(self):
         result = RecurringTransaction.get_next_date(date(2024, 1, 31), "MONTHLY")
         self.assertEqual(result, date(2024, 2, 29))
@@ -549,6 +556,23 @@ class RecurringTransactionDateTest(TestCase):
             date(2025, 2, 28),
         )
 
+    def test_yearly_leap_day_return_on_next_leap_year(self):
+        start = date(2024, 2, 29)
+        d1 = RecurringTransaction.get_next_date(start, "YEARLY", start_date=start)
+        self.assertEqual(d1, date(2025, 2, 28))
+        d2 = RecurringTransaction.get_next_date(d1, "YEARLY", start_date=start)
+        self.assertEqual(d2, date(2026, 2, 28))
+        d3 = RecurringTransaction.get_next_date(d2, "YEARLY", start_date=start)
+        self.assertEqual(d3, date(2027, 2, 28))
+        d4 = RecurringTransaction.get_next_date(d3, "YEARLY", start_date=start)
+        self.assertEqual(d4, date(2028, 2, 29))
+
+    def test_weekly_weekday_snap_after_edit(self):
+        start = date(2025, 3, 3)  # Monday
+        # Edited last_processed_date to Wednesday (2025-03-05)
+        next_date = RecurringTransaction.get_next_date(date(2025, 3, 5), "WEEKLY", start_date=start)
+        self.assertEqual(next_date, date(2025, 3, 10))  # Monday
+
 
 class RecurringTransactionNextDueDateTest(_BaseTestCase):
     """next_due_date property logic."""
@@ -568,6 +592,14 @@ class RecurringTransactionNextDueDateTest(_BaseTestCase):
             category="Rent", last_processed_date=date(2025, 3, 1),
         )
         self.assertEqual(rt.next_due_date, date(2025, 4, 1))
+
+    def test_next_due_date_agrees_with_get_next_date(self):
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="EXPENSE", amount=Decimal("100.00"),
+            description="Agrees test", frequency="MONTHLY", start_date=date(2025, 1, 31),
+            last_processed_date=date(2025, 1, 31), category="Bills",
+        )
+        self.assertEqual(rt.next_due_date, date(2025, 2, 28))
 
 
 class RecurringTransactionProcessingTest(_BaseTestCase):
@@ -823,6 +855,146 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
             and 'loan_id' in query.get('sql', '')
         ]
         self.assertLessEqual(len(principal_sum_queries), 1)
+
+    def test_start_date_today_creates_immediately(self):
+        """start_date == today creates a transaction immediately on the next processing run."""
+        from django.utils import timezone
+        today = timezone.localdate()
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="EXPENSE", amount=Decimal("150.00"),
+            description="Same day test", frequency="MONTHLY", start_date=today,
+            category="Bills",
+        )
+        process_user_recurring_transactions(self.user)
+        expenses = Expense.objects.filter(user=self.user, description__contains="Same day test")
+        self.assertEqual(expenses.count(), 1)
+        self.assertEqual(expenses.first().date, today)
+
+    def test_stuck_transfer_with_deleted_account_autodeactivates(self):
+        """A recurring transfer with a missing account auto-deactivates instead of looping endlessly."""
+        from_acc = Account.objects.create(user=self.user, name="Transfer Source Acc", account_type="SAVINGS", balance=Decimal("10000.00"), currency="₹")
+        to_acc = Account.objects.create(user=self.user, name="Transfer Dest Acc", account_type="INVESTMENT", balance=Decimal("5000.00"), currency="₹")
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="TRANSFER", amount=Decimal("1000.00"),
+            description="Broken Transfer", frequency="MONTHLY", start_date=date.today() - timedelta(days=35),
+            from_account=from_acc, to_account=to_acc,
+        )
+        # Delete destination account to simulate SET_NULL deletion
+        to_acc.delete()
+        rt.refresh_from_db()
+        self.assertIsNone(rt.to_account)
+
+        process_user_recurring_transactions(self.user)
+        rt.refresh_from_db()
+        self.assertFalse(rt.is_active)
+
+    def test_stuck_loan_repayment_too_low_autodeactivates(self):
+        """Loan repayment amount too low to cover interest auto-deactivates."""
+        loan = Loan.objects.create(
+            user=self.user, name="High Interest Loan", loan_type="PERSONAL",
+            initial_principal=Decimal("100000.00"), duration_months=12,
+            start_date=date.today(), currency="₹",
+        )
+        LoanInterestRate.objects.create(loan=loan, interest_rate=Decimal("24.00"), effective_date=date.today())
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="LOAN", loan=loan, account=self.bank,
+            amount=Decimal("1.00"), description="Tiny EMI", frequency="MONTHLY",
+            start_date=date.today() - timedelta(days=35),
+        )
+        process_user_recurring_transactions(self.user)
+        rt.refresh_from_db()
+        self.assertFalse(rt.is_active)
+
+    def test_deleting_recurring_transaction_preserves_historical_records(self):
+        """Deleting a RecurringTransaction does not delete generated historical records."""
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="EXPENSE", amount=Decimal("75.00"),
+            description="Gym Sub", frequency="MONTHLY", start_date=date.today() - timedelta(days=35),
+            category="Health",
+        )
+        process_user_recurring_transactions(self.user)
+        count_before = Expense.objects.filter(user=self.user, description__contains="Gym Sub").count()
+        self.assertGreaterEqual(count_before, 1)
+
+        rt.delete()
+        count_after = Expense.objects.filter(user=self.user, description__contains="Gym Sub").count()
+        self.assertEqual(count_after, count_before)
+
+    def test_editing_recurring_transaction_amount_preserves_historical_records(self):
+        """Editing amount on a RecurringTransaction does not retroactively change existing historical records."""
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="EXPENSE", amount=Decimal("100.00"),
+            description="Variable Sub", frequency="MONTHLY", start_date=date.today() - timedelta(days=35),
+            category="Bills",
+        )
+        process_user_recurring_transactions(self.user)
+        expense = Expense.objects.filter(user=self.user, description__contains="Variable Sub").first()
+        self.assertIsNotNone(expense)
+        self.assertEqual(expense.amount, Decimal("100.00"))
+
+        rt.amount = Decimal("150.00")
+        rt.save()
+
+        expense.refresh_from_db()
+        self.assertEqual(expense.amount, Decimal("100.00"))
+
+    def test_form_saves_resets_last_processed_date_on_start_date_change(self):
+        """Editing start_date in RecurringTransactionForm resets last_processed_date."""
+        from expenses.forms import RecurringTransactionForm
+        rt = RecurringTransaction.objects.create(
+            user=self.user, transaction_type="EXPENSE", amount=Decimal("100.00"),
+            description="Edit Test", frequency="MONTHLY", start_date=date(2025, 1, 1),
+            last_processed_date=date(2025, 3, 1), category="Bills",
+        )
+        form_data = {
+            'transaction_type': 'EXPENSE',
+            'amount': '100.00',
+            'currency': '₹',
+            'frequency': 'MONTHLY',
+            'start_date': '2025-02-01',
+            'description': 'Edit Test',
+            'category': 'Bills',
+            'payment_method': 'Cash',
+            'is_active': True,
+        }
+        form = RecurringTransactionForm(data=form_data, instance=rt, user=self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+        saved_rt = form.save()
+        self.assertIsNone(saved_rt.last_processed_date)
+
+    def test_create_view_forces_immediate_processing_despite_cooldown(self):
+        """Creating a new recurring transaction processes immediately even if cache cooldown key exists."""
+        from django.core.cache import cache
+        from django.urls import reverse
+        from django.utils import timezone
+        today = timezone.localdate()
+        cooldown_key = f'recurring_processed_{self.user.id}_{today}'
+        cache.set(cooldown_key, True, 86400)  # Simulate earlier page view today
+
+        form_data = {
+            'transaction_type': 'EXPENSE',
+            'amount': '300.00',
+            'currency': '₹',
+            'frequency': 'MONTHLY',
+            'start_date': today.strftime('%Y-%m-%d'),
+            'description': 'Uber One subscription',
+            'category': 'Cab',
+            'payment_method': 'Cash',
+            'is_active': True,
+        }
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('recurring-create'), form_data)
+        self.assertEqual(response.status_code, 302)
+
+        # Expense should be created immediately for today
+        expenses = Expense.objects.filter(user=self.user, description__contains="Uber One subscription")
+        self.assertEqual(expenses.count(), 1)
+        self.assertEqual(expenses.first().date, today)
+
+        # RT last_processed_date should be updated to today and next_due_date to next month
+        rt = RecurringTransaction.objects.get(user=self.user, description="Uber One subscription")
+        self.assertEqual(rt.last_processed_date, today)
+        self.assertGreater(rt.next_due_date, today)
 
 
 # ===========================================================================

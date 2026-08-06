@@ -1197,25 +1197,40 @@ class RecurringTransaction(models.Model):
                 raise ValidationError({'source_fk': _('Another recurring transaction already uses this source.')})
 
     @staticmethod
-    def get_next_date(current_date, frequency):
+    def get_next_date(current_date, frequency, start_date=None):
+        """
+        Calculate the next occurrence date after current_date for a given frequency.
+        Anchors to start_date (day-of-month, day-of-year, weekday) to prevent drift.
+        """
+        if not start_date:
+            start_date = current_date
+
         if frequency == 'DAILY':
             return current_date + timedelta(days=1)
         elif frequency == 'WEEKLY':
-            return current_date + timedelta(weeks=1)
+            target = current_date + timedelta(days=1)
+            days_ahead = (start_date.weekday() - target.weekday()) % 7
+            return target + timedelta(days=days_ahead)
         elif frequency == 'MONTHLY':
+            import calendar
+            max_days_this = calendar.monthrange(current_date.year, current_date.month)[1]
+            this_month_occ = date(current_date.year, current_date.month, min(start_date.day, max_days_this))
+            if current_date < this_month_occ:
+                return this_month_occ
             month = current_date.month % 12 + 1
             year = current_date.year + (current_date.month // 12)
-            try:
-                return current_date.replace(year=year, month=month)
-            except ValueError:
-                # Handle Feb 29/30/31
-                next_month = current_date + timedelta(days=31)
-                return next_month.replace(day=1) - timedelta(days=1)
+            max_days_next = calendar.monthrange(year, month)[1]
+            return date(year, month, min(start_date.day, max_days_next))
         elif frequency == 'YEARLY':
-            try:
-                return current_date.replace(year=current_date.year + 1)
-            except ValueError:
-                return current_date.replace(year=current_date.year + 1, month=2, day=28)
+            import calendar
+            max_days_this = calendar.monthrange(current_date.year, start_date.month)[1]
+            this_year_occ = date(current_date.year, start_date.month, min(start_date.day, max_days_this))
+            if current_date < this_year_occ:
+                return this_year_occ
+            next_year = current_date.year + 1
+            max_days_next = calendar.monthrange(next_year, start_date.month)[1]
+            return date(next_year, start_date.month, min(start_date.day, max_days_next))
+
         return current_date + timedelta(days=365)
 
     @property
@@ -1228,46 +1243,7 @@ class RecurringTransaction(models.Model):
     def _calculate_next_due_date(self):
         if not self.last_processed_date or self.last_processed_date < self.start_date:
             return self.start_date
-
-        if self.frequency == 'DAILY':
-            return self.last_processed_date + timedelta(days=1)
-            
-        elif self.frequency == 'WEEKLY':
-            target = self.last_processed_date + timedelta(days=1)
-            days_ahead = (self.start_date.weekday() - target.weekday()) % 7
-            return target + timedelta(days=days_ahead)
-            
-        elif self.frequency == 'MONTHLY':
-            target = self.last_processed_date + timedelta(days=1)
-            month = target.month
-            year = target.year
-            
-            if target.day > self.start_date.day:
-                month += 1
-                if month > 12:
-                    month = 1
-                    year += 1
-                    
-            while True:
-                try:
-                    return date(year, month, self.start_date.day)
-                except ValueError:
-                    if month == 12:
-                        return date(year + 1, 1, 1) - timedelta(days=1)
-                    else:
-                        return date(year, month + 1, 1) - timedelta(days=1)
-
-        elif self.frequency == 'YEARLY':
-            target = self.last_processed_date + timedelta(days=1)
-            year = target.year
-            if (target.month, target.day) > (self.start_date.month, self.start_date.day):
-                year += 1
-            try:
-                return date(year, self.start_date.month, self.start_date.day)
-            except ValueError:
-                return date(year, 2, 28)
-                
-        return self.get_next_date(self.last_processed_date, self.frequency)
+        return self.get_next_date(self.last_processed_date, self.frequency, self.start_date)
 
     def save(self, *args, **kwargs):
         # Multi-currency normalization

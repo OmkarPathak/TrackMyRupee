@@ -11,7 +11,12 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import RecurringTransactionForm
 from ..models import RecurringTransaction
-from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .mixins import (
+    HtmxPartialTemplateMixin,
+    RecurringTransactionMixin,
+    UUIDOrIntLookupMixin,
+    process_user_recurring_transactions,
+)
 
 
 class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
@@ -90,71 +95,14 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         renewing_soon = []
         renewals_count = 0
         
-        # Helper to find next date relative to today
         for sub in active_subs:
-            # Calculate next occurrence
-            next_date = sub.start_date
-            
-            # For simpler logic, we reset the year/month to current to check basic interval
-            # But for accurate "days until", we need better logic:
-            
-            if sub.frequency == 'DAILY':
-                next_date = today + timedelta(days=1)
-            elif sub.frequency == 'WEEKLY':
-                # Find days ahead
-                days_ahead = (sub.start_date.weekday() - today.weekday()) % 7
-                if days_ahead == 0 and today > sub.start_date: # if today is the day, but older start
-                     days_ahead = 7
-                elif days_ahead == 0 and today == sub.start_date: # exact match today
-                     days_ahead = 0
-                else: 
-                     # If start_date was future, we wait. If past, we find next.
-                     # Simplified: just next occurrence of that weekday
-                     if days_ahead <= 0: days_ahead += 7
-                
-                # Correction: Standard logic to find next matching weekday
-                days_ahead = (sub.start_date.weekday() - today.weekday()) 
-                if days_ahead <= 0: # Target day already happened this week or is today
-                    days_ahead += 7
-                next_date = today + timedelta(days=days_ahead)
-                
-            elif sub.frequency == 'MONTHLY':
-                # Occurs on sub.start_date.day every month
-                # If today.day > start_date.day, it's next month.
-                # If today.day <= start_date.day, it's this month.
-                try:
-                    if today.day > sub.start_date.day:
-                        # Next month
-                        month = today.month + 1
-                        year = today.year
-                        if month > 12:
-                            month = 1
-                            year += 1
-                        next_date = date(year, month, sub.start_date.day)
-                    else:
-                        # This month
-                        next_date = date(today.year, today.month, sub.start_date.day)
-                except ValueError: 
-                    # Handle end of month issues (e.g. 31st) - simplified to 1st of next-next month
-                    next_date = (today.replace(day=1) + timedelta(days=32)).replace(day=1)
-
-            elif sub.frequency == 'YEARLY':
-                try:
-                    this_year_date = date(today.year, sub.start_date.month, sub.start_date.day)
-                    if today > this_year_date:
-                        next_date = date(today.year + 1, sub.start_date.month, sub.start_date.day)
-                    else:
-                        next_date = this_year_date
-                except ValueError:
-                    next_date = date(today.year, 2, 28)
-
-            # Annotate object
-            if sub.end_date and next_date > sub.end_date:
-                sub.annotated_next_date = None
-                sub.annotated_days_until = 999999
-            else:
+            next_date = sub.next_due_date
+            if next_date:
                 sub.annotated_next_date = next_date
                 sub.annotated_days_until = (next_date - today).days
+            else:
+                sub.annotated_next_date = None
+                sub.annotated_days_until = 999999
             
             # Determine urgency
             is_renewing = False
@@ -166,8 +114,7 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
                 renewing_soon.append(sub)
                 renewals_count += 1
             
-            # Sort renewing soon by days until
-            renewing_soon.sort(key=lambda x: x.annotated_days_until)
+        renewing_soon.sort(key=lambda x: x.annotated_days_until)
 
         # Sort active subs by days until next occurrence (upcoming first)
         active_subs.sort(key=lambda x: x.annotated_days_until)
@@ -246,6 +193,12 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
             description=form.instance.description,
             frequency=form.instance.frequency,
             start_date=form.instance.start_date,
+            account=form.instance.account,
+            from_account=form.instance.from_account,
+            to_account=form.instance.to_account,
+            category=form.instance.category,
+            source=form.instance.source,
+            loan=form.instance.loan,
             is_active=True,
         ).exists()
 
@@ -254,7 +207,9 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
             return self.form_invalid(form)
 
         messages.success(self.request, _("Recurring transaction created successfully!"))
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        process_user_recurring_transactions(self.request.user, force=True)
+        return response
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
@@ -288,7 +243,9 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, U
     def form_valid(self, form):
         form.instance.user = self.request.user
         messages.success(self.request, _("Recurring transaction updated successfully!"))
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        process_user_recurring_transactions(self.request.user, force=True)
+        return response
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
