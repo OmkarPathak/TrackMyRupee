@@ -72,34 +72,64 @@
                     {% endif %}
                 </div>
 
+<style>
+    .monthly-rule-container {
+        background-color: rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .monthly-rule-card {
+        background-color: var(--bs-body-bg, #ffffff);
+        border-color: var(--bs-border-color, #dee2e6) !important;
+        transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .monthly-rule-card:hover {
+        border-color: var(--bs-primary, #0d6efd) !important;
+    }
+    [data-bs-theme="dark"] .monthly-rule-container {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    [data-bs-theme="dark"] .monthly-rule-card {
+        background-color: rgba(255, 255, 255, 0.07) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        color: #f8f9fa !important;
+    }
+    [data-bs-theme="dark"] .monthly-rule-card label {
+        color: #f8f9fa !important;
+    }
+    [data-bs-theme="dark"] .monthly-rule-card .form-text {
+        color: #adb5bd !important;
+    }
+</style>
+
                 <!-- Monthly Schedule Nuances (Responsive Layout) -->
                 <div class="col-12" id="monthlyOptionsGroup" style="display: none;">
-                    <div class="card bg-light border-0 shadow-sm p-3">
+                    <div class="card monthly-rule-container border-0 shadow-sm p-3">
                         <label class="form-label fw-bold text-uppercase small text-muted mb-2">
                             {% trans "Monthly Recurrence Rules" %}
                         </label>
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <div class="p-2 rounded border bg-white h-100 d-flex align-items-center">
+                                <div class="p-2 rounded border monthly-rule-card h-100 d-flex align-items-center">
                                     <div class="form-check ms-2 mb-0">
                                         {{ form.is_last_day_of_month }}
                                         <label class="form-check-label fw-semibold small cursor-pointer" for="{{ form.is_last_day_of_month.id_for_label }}">
                                             {% trans "Last Calendar Day of Month" %}
                                         </label>
-                                        <div class="form-text text-muted small mt-0">
+                                        <div class="form-text small mt-0">
                                             {% trans "e.g. Apr 30 → May 31 → Jun 30 → Feb 28/29" %}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
-                                <div class="p-2 rounded border bg-white h-100 d-flex align-items-center">
+                                <div class="p-2 rounded border monthly-rule-card h-100 d-flex align-items-center">
                                     <div class="form-check ms-2 mb-0">
                                         {{ form.is_last_working_day }}
                                         <label class="form-check-label fw-semibold small cursor-pointer" for="{{ form.is_last_working_day.id_for_label }}">
                                             {% trans "Last Working Day of Month" %}
                                         </label>
-                                        <div class="form-text text-muted small mt-0">
+                                        <div class="form-text small mt-0">
                                             {% trans "Last weekday (Mon–Fri). Steps back if weekend." %}
                                         </div>
                                     </div>
