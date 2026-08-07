@@ -233,17 +233,34 @@ class LoanService:
         return float(total)
 
     @staticmethod
+    def sync_loan_active_status(loan):
+        """
+        Auto-deactivates loan when remaining principal reaches 0 or less.
+        Re-activates if remaining principal > 0.
+        Returns the updated is_active boolean.
+        """
+        rem = loan.remaining_principal
+        should_be_active = rem > Decimal('0.00')
+        if loan.is_active != should_be_active:
+            loan.is_active = should_be_active
+            loan.save(update_fields=['is_active', 'updated_at'])
+        return loan.is_active
+
+    @staticmethod
     def get_loan_summary(loan):
         """
         Calculates total paid and remaining principal based on actual repayments
         and any capital event prepayments linked to the loan.
+        Auto-syncs active status based on remaining principal.
         """
+        LoanService.sync_loan_active_status(loan)
+
         repayments = loan.repayments.aggregate(
             total_principal=Sum('principal_portion'),
             total_interest=Sum('interest_portion'),
             total_amount=Sum('amount')
         )
-        
+
         principal_paid = repayments['total_principal'] or Decimal('0.00')
         interest_paid = repayments['total_interest'] or Decimal('0.00')
         total_paid = repayments['total_amount'] or Decimal('0.00')
@@ -254,9 +271,9 @@ class LoanService:
             .filter(linked_loan=loan, subtype__in=['loan_down_payment', 'loan_prepayment'])
             .aggregate(total=Sum('amount'))['total']
         ) or Decimal('0.00')
-        
+
         remaining_principal = loan.remaining_principal
-            
+
         return {
             'principal_paid': float(principal_paid),
             'capital_prepaid': float(capital_prepaid),

@@ -2070,6 +2070,9 @@ class LoanRepayment(models.Model):
                 }
             )
 
+            from .services import LoanService
+            LoanService.sync_loan_active_status(self.loan)
+
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             if self.from_account:
@@ -2079,7 +2082,7 @@ class LoanRepayment(models.Model):
                 if self.loan.currency != locked_account.currency:
                     rate = get_exchange_rate(self.loan.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
-                
+
                 locked_account.balance += apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
@@ -2113,7 +2116,7 @@ class LoanRepayment(models.Model):
                 self.is_deleted = True
                 self.deleted_at = timezone.now()
                 self.save(update_fields=['is_deleted', 'deleted_at'])
-                
+
                 FinancialAuditLog.objects.create(
                     user=self.loan.user,
                     model_name='LoanRepayment',
@@ -2124,6 +2127,9 @@ class LoanRepayment(models.Model):
                 )
             else:
                 super().delete(*args, **kwargs)
+
+            from .services import LoanService
+            LoanService.sync_loan_active_status(self.loan)
 
 
 class DeletionRequestAuditLog(models.Model):

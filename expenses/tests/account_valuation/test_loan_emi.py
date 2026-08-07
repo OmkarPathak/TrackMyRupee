@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.urls import reverse
 
 from expenses.account_valuation import get_baseline, get_current, get_display_value
 from expenses.models import Account, CapitalEvent, Loan, LoanInterestRate, LoanRepayment, LoanScheduleInstallment, UserProfile
@@ -11,7 +12,10 @@ from expenses.models import Account, CapitalEvent, Loan, LoanInterestRate, LoanR
 class LoanEMITestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testloanemi", password="password")
-        UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
+        profile = self.user.profile
+        profile.tier = 'PRO'
+        profile.is_lifetime = True
+        profile.save()
 
         self.loan = Loan.objects.create(
             user=self.user,
@@ -105,3 +109,25 @@ class LoanEMITestCase(TestCase):
         )
         current = get_current(self.account)
         self.assertEqual(current, Decimal("0.00"))
+
+    def test_auto_inactivation_on_100_percent_paid(self):
+        """When loan is 100% paid off, it automatically becomes inactive (is_active=False)."""
+        self.assertTrue(self.loan.is_active)
+        LoanRepayment.objects.create(
+            loan=self.loan,
+            amount=Decimal("3500000.00"),
+            principal_portion=Decimal("3000000.00"),
+            interest_portion=Decimal("500000.00"),
+            date=date(2024, 1, 1),
+        )
+        self.loan.refresh_from_db()
+        self.assertFalse(self.loan.is_active)
+
+    def test_loan_list_htmx_partial(self):
+        """HTMX request to loan list returns the partial template without base.html layout."""
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('loan-list'), {'status': 'inactive'}, HTTP_HX_REQUEST='true')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.template_name[0], 'expenses/partials/_loan_list_partial.html')
+        self.assertIn('loans-shell', str(response.content))
+        self.assertNotIn('<!DOCTYPE html>', str(response.content))
