@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block htmltitle %}
+  <title>{% if page and page.title %}{{ page.title }} — {{ config.site_name }}{% else %}{{ config.site_name }}{% endif %}</title>
+{% endblock %}
+
+{% block site_name %}
+  <span class="md-header__topic">
+    <span class="md-ellipsis brand-text">TrackMyRupee</span>
+  </span>
+{% endblock %}
