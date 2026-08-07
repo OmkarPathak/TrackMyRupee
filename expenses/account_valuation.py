@@ -319,34 +319,139 @@ def get_current_revolving_credit(account: Account, ledger_balance: Decimal | Non
     return ledger_balance if ledger_balance is not None else _get_account_ledger_balance(account)
 
 
-def get_baseline_loan(account: Account) -> None:
+def get_baseline_loan(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> None:
     """LOAN_OUTSTANDING strategy has no baseline concept for gain toggle."""
     return None
 
 
-def get_current_loan(account: Account) -> Decimal:
-    # TODO(session-5): see SPEC.md §2.4 for full LOAN_OUTSTANDING logic
-    return _get_account_ledger_balance(account)
+def get_current_loan(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
+    """
+    SPEC §2.4 LOAN_OUTSTANDING Current Value (Outstanding Principal):
+    If linked_loan exists:
+      - For BULLET or INTEREST_ONLY: returns loan.remaining_principal (no early EMI amortization).
+      - For EMI: if schedule is up to date (no prepayments after last paid schedule entry),
+        returns latest paid LoanScheduleInstallment.scheduled_balance.
+      - Fallback: initial_principal - sum(principal_portion) - sum(prepayments).
+    Else falls back to ledger balance.
+    """
+    from .utils import get_exchange_rate
+
+    if not account.linked_loan_id or not account.linked_loan:
+        return ledger_balance if ledger_balance is not None else _get_account_ledger_balance(account)
+
+    loan = account.linked_loan
+    repayment_type = getattr(loan, 'repayment_type', 'EMI')
+
+    if repayment_type in ('BULLET', 'INTEREST_ONLY'):
+        outstanding = loan.remaining_principal
+    else:
+        # EMI amortizing schedule logic
+        from .models import LoanScheduleInstallment, CapitalEvent
+        latest_paid = LoanScheduleInstallment.objects.filter(loan=loan, is_paid=True).order_by('-due_date', '-installment_no').first()
+
+        if latest_paid:
+            latest_prep = CapitalEvent.objects.filter(
+                linked_loan=loan,
+                subtype__in=['loan_down_payment', 'loan_prepayment'],
+                date__gt=latest_paid.due_date,
+            ).exists()
+            if not latest_prep:
+                outstanding = max(Decimal('0.00'), latest_paid.scheduled_balance)
+            else:
+                outstanding = loan.remaining_principal
+        else:
+            outstanding = loan.remaining_principal
+
+    if loan.currency and loan.currency != account.currency:
+        rate = get_exchange_rate(loan.currency, account.currency)
+        outstanding = (outstanding * rate).quantize(Decimal('0.01'))
+
+    return outstanding.quantize(Decimal('0.01'))
 
 
-def get_baseline_physical_valuation(account: Account) -> Decimal | None:
-    # TODO(session-5): see SPEC.md §2.5 for full PHYSICAL_VALUATION baseline logic
-    return _get_account_ledger_balance(account)
+def get_baseline_physical_valuation(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
+    """SPEC §2.5 PHYSICAL_VALUATION Baseline = acquisition_cost of linked asset."""
+    from .utils import get_exchange_rate
+
+    if not account.linked_physical_asset_id or not account.linked_physical_asset:
+        return ledger_balance if ledger_balance is not None else _get_account_ledger_balance(account)
+
+    asset = account.linked_physical_asset
+    if asset.acquisition_cost is None:
+        return Decimal('0.00')
+
+    cost = asset.acquisition_cost
+    if asset.currency and asset.currency != account.currency:
+        rate = get_exchange_rate(asset.currency, account.currency)
+        cost = (cost * rate).quantize(Decimal('0.01'))
+
+    return cost.quantize(Decimal('0.01'))
 
 
-def get_current_physical_valuation(account: Account) -> Decimal:
-    # TODO(session-5): see SPEC.md §2.5 for full PHYSICAL_VALUATION current logic
-    return _get_account_ledger_balance(account)
+def get_current_physical_valuation(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
+    """SPEC §2.5 PHYSICAL_VALUATION Current Value = latest AssetValuation value (falling back to acquisition_cost)."""
+    from .utils import get_exchange_rate
+
+    if not account.linked_physical_asset_id or not account.linked_physical_asset:
+        return ledger_balance if ledger_balance is not None else _get_account_ledger_balance(account)
+
+    asset = account.linked_physical_asset
+    latest_val = asset.valuations.order_by('-as_of_date', '-created_at').first()
+    if latest_val:
+        val = latest_val.value
+    else:
+        val = asset.acquisition_cost or Decimal('0.00')
+
+    if asset.currency and asset.currency != account.currency:
+        rate = get_exchange_rate(asset.currency, account.currency)
+        val = (val * rate).quantize(Decimal('0.01'))
+
+    return val.quantize(Decimal('0.01'))
 
 
-def get_baseline_insurance_surrender(account: Account) -> Decimal | None:
-    # TODO(session-5): see SPEC.md §2.6 for full INSURANCE_SURRENDER baseline logic
-    return _get_account_ledger_balance(account)
+def get_baseline_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
+    """SPEC §2.6 INSURANCE_SURRENDER Baseline = sum of linked premium Expense rows."""
+    from .models import Expense
+    from .utils import get_exchange_rate
+
+    if not account.linked_physical_asset_id or not account.linked_physical_asset:
+        return Decimal('0.00')
+
+    asset = account.linked_physical_asset
+    expenses = Expense.objects.filter(linked_physical_asset=asset)
+    total_premiums = Decimal('0.00')
+    for exp in expenses:
+        amt = exp.amount
+        if exp.currency and exp.currency != account.currency:
+            rate = get_exchange_rate(exp.currency, account.currency)
+            amt = (amt * rate).quantize(Decimal('0.01'))
+        total_premiums += amt
+
+    return total_premiums.quantize(Decimal('0.01'))
 
 
-def get_current_insurance_surrender(account: Account) -> Decimal:
-    # TODO(session-5): see SPEC.md §2.6 for full INSURANCE_SURRENDER current logic
-    return _get_account_ledger_balance(account)
+def get_current_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
+    """
+    SPEC §2.6 INSURANCE_SURRENDER Current Value:
+    - Latest AssetValuation value if any exists.
+    - CRITICAL: Falls back to 0.00 when no valuation exists (NEVER baseline/acquisition cost).
+    """
+    from .utils import get_exchange_rate
+
+    if not account.linked_physical_asset_id or not account.linked_physical_asset:
+        return Decimal('0.00')
+
+    asset = account.linked_physical_asset
+    latest_val = asset.valuations.order_by('-as_of_date', '-created_at').first()
+    if not latest_val:
+        return Decimal('0.00')
+
+    val = latest_val.value
+    if asset.currency and asset.currency != account.currency:
+        rate = get_exchange_rate(asset.currency, account.currency)
+        val = (val * rate).quantize(Decimal('0.01'))
+
+    return val.quantize(Decimal('0.01'))
 
 
 # ---------------------------------------------------------------------------

@@ -7,6 +7,7 @@ from allauth.socialaccount.models import SocialAccount
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_recaptcha.fields import ReCaptchaField
@@ -709,6 +710,70 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
 
+    # Inline PhysicalAsset creation fields (used for PHYSICAL_VALUATION & INSURANCE_SURRENDER strategies)
+    create_new_asset = forms.ChoiceField(
+        choices=[('CREATE_NEW', _('+ Create New Asset Inline')), ('SELECT', _('Select Existing Asset'))],
+        initial='CREATE_NEW',
+        required=False,
+        label=_('Asset Source'),
+        widget=forms.RadioSelect(attrs={'class': 'btn-check'}),
+    )
+    asset_name = forms.CharField(
+        required=False,
+        max_length=100,
+        label=_('Physical Asset / Policy Name'),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Pune Apartment, Honda City, LIC Endowment')}),
+    )
+    acquisition_cost = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Acquisition Cost / Purchase Price'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+    acquisition_date = forms.DateField(
+        required=False,
+        label=_('Acquisition / Purchase Date'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+    policy_number = forms.CharField(
+        required=False,
+        max_length=50,
+        label=_('Policy Number'),
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    premium_amount = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Premium Amount'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+    premium_frequency = forms.ChoiceField(
+        choices=[
+            ('ANNUAL', _('Annual')),
+            ('SEMI_ANNUAL', _('Semi-Annual')),
+            ('QUARTERLY', _('Quarterly')),
+            ('MONTHLY', _('Monthly')),
+        ],
+        initial='ANNUAL',
+        required=False,
+        label=_('Premium Frequency'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    policy_start_date = forms.DateField(
+        required=False,
+        label=_('Policy Start Date'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+    sum_assured = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Sum Assured (Display Only)'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+
     class Meta:
         model = Account
         fields = [
@@ -716,6 +781,8 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'linked_loan', 'linked_physical_asset',
             'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'show_accrued_balance', 'record_maturity_income',
             'rd_installment_amount', 'rd_installment_day', 'credit_limit',
+            'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
+            'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
@@ -808,13 +875,20 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 _('This account type requires a linked Loan record for outstanding balance valuation.')
             )
 
-        # Required: physical valuation strategy accounts must link a Physical Asset
-        if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) \
-                and not linked_physical_asset:
-            self.add_error(
-                'linked_physical_asset',
-                _('This account type requires a linked Physical Asset for valuation.')
-            )
+        # Required: physical valuation / insurance strategy accounts must link or create a Physical Asset
+        if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER):
+            create_new = cleaned_data.get('create_new_asset') != 'SELECT'
+            if not linked_physical_asset and not create_new:
+                self.add_error(
+                    'linked_physical_asset',
+                    _('Select an existing physical asset or choose to create a new asset.')
+                )
+            elif create_new:
+                if strategy == STRATEGY.PHYSICAL_VALUATION:
+                    if cleaned_data.get('acquisition_cost') is None and (not self.instance.pk or not self.instance.linked_physical_asset_id):
+                        self.add_error('acquisition_cost', _('Acquisition cost is required when creating a physical asset.'))
+                    if not cleaned_data.get('acquisition_date') and (not self.instance.pk or not self.instance.linked_physical_asset_id):
+                        self.add_error('acquisition_date', _('Acquisition date is required when creating a physical asset.'))
 
         # Null out stray/irrelevant fields not belonging to this account_type strategy
         strategy_fields = {
@@ -822,6 +896,8 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding',
             'rd_installment_amount', 'rd_installment_day', 'credit_limit',
             'linked_loan', 'linked_physical_asset',
+            'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
+            'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
         }
         for field in strategy_fields:
             if field not in allowed_fields:
@@ -830,14 +906,64 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         return cleaned_data
 
     def save(self, commit=True):
+        from .models import PhysicalAsset, AssetValuation
+        from .account_types import strategy_for, STRATEGY
+
         account = super().save(commit=False)
-        for field, value in self.cleaned_data.items():
-            if hasattr(account, field):
-                setattr(account, field, value)
+        if self.user and not getattr(account, 'user_id', None):
+            account.user = self.user
+        strategy = strategy_for(account.account_type)
+
         if commit:
-            account.save()
-            if self.cleaned_data.get('record_maturity_income'):
-                self._record_maturity_income(account)
+            with transaction.atomic():
+                for field, value in self.cleaned_data.items():
+                    if hasattr(account, field):
+                        setattr(account, field, value)
+
+                if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) and self.user:
+                    create_new = self.cleaned_data.get('create_new_asset') != 'SELECT'
+                    if (create_new or not account.linked_physical_asset_id):
+                        asset_class = 'REAL_ESTATE' if account.account_type == 'REAL_ESTATE' else (
+                            'VEHICLE' if account.account_type == 'VEHICLE' else 'INSURANCE'
+                        )
+                        acq_cost = self.cleaned_data.get('acquisition_cost')
+                        acq_date = self.cleaned_data.get('acquisition_date') or date.today()
+
+                        asset = PhysicalAsset.objects.create(
+                            user=self.user,
+                            name=self.cleaned_data.get('asset_name') or account.name,
+                            asset_class=asset_class,
+                            acquisition_cost=acq_cost,
+                            acquisition_date=acq_date,
+                            currency=account.currency,
+                            policy_number=self.cleaned_data.get('policy_number') or '',
+                            premium_amount=self.cleaned_data.get('premium_amount'),
+                            premium_frequency=self.cleaned_data.get('premium_frequency') or 'ANNUAL',
+                            policy_start_date=self.cleaned_data.get('policy_start_date'),
+                            sum_assured=self.cleaned_data.get('sum_assured'),
+                        )
+                        account.linked_physical_asset = asset
+
+                        # Seed initial AssetValuation
+                        if strategy == STRATEGY.PHYSICAL_VALUATION:
+                            initial_val = acq_cost or Decimal('0.00')
+                            AssetValuation.objects.create(
+                                asset=asset,
+                                value=initial_val,
+                                as_of_date=acq_date,
+                            )
+                        elif strategy == STRATEGY.INSURANCE_SURRENDER:
+                            # SPEC §2.6: Initial AssetValuation for insurance defaults to 0.00 (NOT premium_amount)
+                            policy_start = self.cleaned_data.get('policy_start_date') or date.today()
+                            AssetValuation.objects.create(
+                                asset=asset,
+                                value=Decimal('0.00'),
+                                as_of_date=policy_start,
+                            )
+
+                account.save()
+                if self.cleaned_data.get('record_maturity_income'):
+                    self._record_maturity_income(account)
         return account
 
     def _record_maturity_income(self, account):

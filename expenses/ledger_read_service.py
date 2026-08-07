@@ -312,27 +312,30 @@ class LedgerReadService:
 
         Returns: {loan_id: Decimal outstanding_principal}
         """
-        if not loan_ids:
-            return {}
-
-        # Try latest paid schedule installment per loan
-        # Python-side dedup (one query, ordered desc)
-        schedule_rows = (
-            LoanScheduleInstallment.objects
-            .filter(loan_id__in=loan_ids, is_paid=True)
-            .order_by('loan_id', '-due_date', '-installment_no')
-            .values('loan_id', 'scheduled_balance')
+        # Try latest paid schedule installment per loan for EMI loans
+        from .models import Loan
+        bullet_loan_ids = set(
+            Loan.objects.filter(id__in=loan_ids, repayment_type__in=['BULLET', 'INTEREST_ONLY']).values_list('id', flat=True)
         )
-        schedule_map: dict = {}
-        seen_loans: set = set()
-        for row in schedule_rows:
-            lid = row['loan_id']
-            if lid in seen_loans:
-                continue
-            seen_loans.add(lid)
-            schedule_map[lid] = max(Decimal('0.00'), row['scheduled_balance'])
+        emi_loan_ids = [lid for lid in loan_ids if lid not in bullet_loan_ids]
 
-        # For loans without a schedule, aggregate repayments
+        schedule_map: dict = {}
+        if emi_loan_ids:
+            schedule_rows = (
+                LoanScheduleInstallment.objects
+                .filter(loan_id__in=emi_loan_ids, is_paid=True)
+                .order_by('loan_id', '-due_date', '-installment_no')
+                .values('loan_id', 'scheduled_balance')
+            )
+            seen_loans: set = set()
+            for row in schedule_rows:
+                lid = row['loan_id']
+                if lid in seen_loans:
+                    continue
+                seen_loans.add(lid)
+                schedule_map[lid] = max(Decimal('0.00'), row['scheduled_balance'])
+
+        # For loans without a schedule or bullet loans, aggregate repayments
         missing_loan_ids = [lid for lid in loan_ids if lid not in schedule_map]
 
         if missing_loan_ids:
@@ -354,11 +357,11 @@ class LedgerReadService:
             # Prepayments from CapitalEvent
             prep_rows = (
                 CapitalEvent.objects
-                .filter(loan_id__in=missing_loan_ids, event_type='PREPAYMENT')
-                .values('loan_id')
+                .filter(linked_loan_id__in=missing_loan_ids, subtype__in=['loan_down_payment', 'loan_prepayment'])
+                .values('linked_loan_id')
                 .annotate(total=Sum('amount'))
             )
-            prep_map = {p['loan_id']: p['total'] or Decimal('0.00') for p in prep_rows}
+            prep_map = {p['linked_loan_id']: p['total'] or Decimal('0.00') for p in prep_rows}
 
             for lid in missing_loan_ids:
                 init_p = init_map.get(lid, Decimal('0.00'))
@@ -588,7 +591,7 @@ class LedgerReadService:
                         abs(ledger_bal), account.currency, fx_map
                     )
 
-            elif strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER):
+            elif strategy == STRATEGY.PHYSICAL_VALUATION:
                 asset_id = account.linked_physical_asset_id
                 if asset_id and asset_id in asset_val_map:
                     asset_native_val = asset_val_map[asset_id]
@@ -617,6 +620,22 @@ class LedgerReadService:
                         account_value = FXService.convert_using_map(
                             ledger_bal, account.currency, fx_map
                         )
+
+            elif strategy == STRATEGY.INSURANCE_SURRENDER:
+                asset_id = account.linked_physical_asset_id
+                if asset_id and asset_id in asset_val_map:
+                    asset_native_val = asset_val_map[asset_id]
+                    asset_ccy = (
+                        account.linked_physical_asset.currency
+                        if account.linked_physical_asset is not None
+                        else account.currency
+                    )
+                    account_value = FXService.convert_using_map(
+                        asset_native_val, asset_ccy, fx_map
+                    )
+                else:
+                    # SPEC §2.6: Insurance MUST fall back to 0.00 when no valuation exists, NEVER acquisition_cost
+                    account_value = Decimal("0.00")
 
             elif strategy == STRATEGY.REVOLVING_CREDIT:
                 # Ledger balance already negative when owed; use as-is

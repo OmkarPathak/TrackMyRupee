@@ -267,8 +267,23 @@ FIELD_GROUPS_BY_STRATEGY: dict[STRATEGY, list[str]] = {
     STRATEGY.HOLDINGS: [],
     STRATEGY.REVOLVING_CREDIT: ['credit_limit'],
     STRATEGY.LOAN_OUTSTANDING: ['linked_loan'],
-    STRATEGY.PHYSICAL_VALUATION: ['linked_physical_asset'],
-    STRATEGY.INSURANCE_SURRENDER: ['linked_physical_asset'],
+    STRATEGY.PHYSICAL_VALUATION: [
+        'linked_physical_asset',
+        'create_new_asset',
+        'asset_name',
+        'acquisition_cost',
+        'acquisition_date',
+    ],
+    STRATEGY.INSURANCE_SURRENDER: [
+        'linked_physical_asset',
+        'create_new_asset',
+        'asset_name',
+        'policy_number',
+        'premium_amount',
+        'premium_frequency',
+        'policy_start_date',
+        'sum_assured',
+    ],
 }
 
 ACCOUNT_TYPE_EXTRA_FIELDS: dict[str, list[str]] = {

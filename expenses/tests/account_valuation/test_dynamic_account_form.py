@@ -287,3 +287,56 @@ class TestDynamicAccountForm(TestCase):
         self.assertTrue(form_card.is_valid(), form_card.errors)
         account_card = form_card.save(commit=False)
         self.assertEqual(account_card.credit_limit, Decimal('250000.00'))
+
+    def test_loan_outstanding_form_validation(self):
+        """LOAN_OUTSTANDING strategy accounts must link a Loan record."""
+        form_invalid = AccountForm(
+            data={
+                'name': 'Orphan Home Loan Account',
+                'account_type': 'HOME_LOAN',
+                'balance': '-3000000.00',
+                'currency': '₹',
+            },
+            user=self.user,
+        )
+        self.assertFalse(form_invalid.is_valid())
+        self.assertIn('linked_loan', form_invalid.errors)
+
+    def test_physical_valuation_and_insurance_form_validation(self):
+        """PHYSICAL_VALUATION and INSURANCE_SURRENDER forms must require asset fields or linked_physical_asset."""
+        from expenses.models import PhysicalAsset
+        asset = PhysicalAsset.objects.create(
+            user=self.user,
+            name="Existing Villa",
+            asset_class="REAL_ESTATE",
+            acquisition_cost=Decimal("5000000.00"),
+            acquisition_date=date(2020, 1, 1),
+        )
+
+        # 1. Select existing physical asset
+        form_select = AccountForm(
+            data={
+                'name': 'Villa Account',
+                'account_type': 'REAL_ESTATE',
+                'balance': '0.00',
+                'currency': '₹',
+                'create_new_asset': 'SELECT',
+                'linked_physical_asset': asset.id,
+            },
+            user=self.user,
+        )
+        self.assertTrue(form_select.is_valid(), form_select.errors)
+
+        # 2. Invalid inline creation missing required acquisition cost
+        form_invalid_create = AccountForm(
+            data={
+                'name': 'New Villa Account',
+                'account_type': 'REAL_ESTATE',
+                'balance': '0.00',
+                'currency': '₹',
+                'create_new_asset': 'CREATE_NEW',
+            },
+            user=self.user,
+        )
+        self.assertFalse(form_invalid_create.is_valid())
+        self.assertIn('acquisition_cost', form_invalid_create.errors)
