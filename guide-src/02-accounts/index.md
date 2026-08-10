@@ -33,6 +33,7 @@ Learn how to manage your assets, liabilities, and track your overall net worth i
     Before deciding whether to make a ₹60,000 laptop purchase, Rahul opens **Accounts** to check his real net worth across his HDFC Salary Account, SBI Savings Account, and Cash Wallet in one place — instead of opening three separate banking apps. The **Filtered Total Balance** shows ₹1,92,000 across all three, confirming he can comfortably absorb the purchase without dipping below his ₹1,00,000 emergency buffer.
 
 ## Related links
+- [Holdings & Mutual Funds Portfolio](holdings.md)
 - [Getting Started](../01-getting-started/index.md)
 - [Transfers](../06-transfers/index.md)
 - [Analytics, Trends & Financial Health](../11-analytics-and-health/index.md)

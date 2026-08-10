@@ -93,7 +93,9 @@ nav:
   - Home: index.md
   - Philosophy: 00-philosophy.md
   - Getting Started: 01-getting-started/index.md
-  - Accounts & Net Worth: 02-accounts/index.md
+  - Accounts & Net Worth:
+      - Managing Accounts: 02-accounts/index.md
+      - Holdings & Mutual Funds: 02-accounts/holdings.md
   - Transactions:
       - Adding Expenses: 03-transactions-expenses/index.md
       - Adding Income: 04-transactions-income/index.md
