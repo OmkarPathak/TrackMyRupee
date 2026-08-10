@@ -2,236 +2,501 @@
 {% load i18n %}
 
 {% block content %}
+<style>
+    /* Compact Wizard Step Indicator Styling */
+    .wizard-steps-header {
+        position: relative;
+        padding-bottom: 0.25rem;
+    }
+    .wizard-step-tab {
+        cursor: pointer;
+        padding-bottom: 0.35rem;
+        transition: all 0.2s ease;
+    }
+    .wizard-step-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color, #6c757d);
+        transition: color 0.2s ease;
+    }
+    .wizard-step-tab.active .wizard-step-title {
+        color: #10b981;
+        font-weight: 700;
+    }
+    .wizard-step-tab.completed .wizard-step-title {
+        color: #10b981;
+    }
+    
+    /* Monthly & Switch Rule Cards */
+    .monthly-rule-card, .card-switch-wrapper {
+        background-color: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.02));
+        border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.08)) !important;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    .monthly-rule-card:hover, .card-switch-wrapper:hover {
+        border-color: rgba(16, 185, 129, 0.4) !important;
+    }
+
+    [data-bs-theme="dark"] .wizard-step-title {
+        color: #9ca3af !important;
+    }
+    [data-bs-theme="dark"] .wizard-step-tab.active .wizard-step-title {
+        color: #34d399 !important;
+    }
+    [data-bs-theme="dark"] .wizard-step-tab.completed .wizard-step-title {
+        color: #34d399 !important;
+    }
+    [data-bs-theme="dark"] .monthly-rule-card,
+    [data-bs-theme="dark"] .card-switch-wrapper {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        color: #f8f9fa !important;
+    }
+    [data-bs-theme="dark"] .monthly-rule-card label,
+    [data-bs-theme="dark"] .card-switch-wrapper label {
+        color: #f3f4f6 !important;
+    }
+    [data-bs-theme="dark"] .monthly-rule-card .form-text,
+    [data-bs-theme="dark"] .card-switch-wrapper .form-text {
+        color: #9ca3af !important;
+    }
+</style>
+
 <div class="row justify-content-center fade-in">
-    <div class="col-md-8">
-<div class="card shadow-lg border-0 fade-in">
-    <div class="card-header bg-transparent py-3">
-        <h2 class="h4 mb-0 fw-bold">{% if form.instance.pk %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %} {% trans "Subscription" %}</h2>
-    </div>
-
-    <div class="card-body">
-        <form method="post" class="needs-validation" action="{% if next_url %}?next={{ next_url|urlencode }}{% endif %}" novalidate>
-            {% csrf_token %}
-            
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                {% for error in form.non_field_errors %}
-                    {{ error }}
-                {% endfor %}
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-lg border-0 fade-in">
+            <div class="card-header bg-transparent py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0 fw-bold">{% if form.instance.pk %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %} {% trans "Subscription" %}</h2>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2" id="stepCounterBadge">{% trans "Step 1 of 3" %}</span>
+                </div>
             </div>
-            {% endif %}
 
-            <div class="row g-3">
-                <!-- Row 1: Type and Frequency -->
-                <div class="col-6">
-                    <label class="form-label">{% trans "Type" %}</label>
-                    {{ form.transaction_type }}
-                    {% if form.transaction_type.errors %}
-                        <div class="text-danger small">{{ form.transaction_type.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-6">
-                    <label class="form-label">{% trans "Frequency" %}</label>
-                    {{ form.frequency }}
-                    {% if form.frequency.errors %}
-                        <div class="text-danger small">{{ form.frequency.errors|first }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Row 2: Amount and Currency -->
-                <div class="col-6">
-                    <label class="form-label">{% trans "Amount" %}</label>
-                    {{ form.amount }}
-                    {% if form.amount.errors %}
-                        <div class="text-danger small">{{ form.amount.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-6">
-                    <label class="form-label">{% trans "Currency" %}</label>
-                    {{ form.currency }}
-                    {% if form.currency.errors %}
-                        <div class="text-danger small">{{ form.currency.errors|first }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Row 3: Start Date and End Date -->
-                <div class="col-6">
-                    <label class="form-label">{% trans "Start Date" %}</label>
-                    <input type="date" name="{{ form.start_date.name }}" class="form-control" 
-                        value="{{ form.start_date.value|date:'Y-m-d'|default:'' }}{% if not form.start_date.value %}{% now 'Y-m-d' %}{% endif %}" required id="{{ form.start_date.id_for_label }}">
-                    {% if form.start_date.errors %}
-                        <div class="text-danger small">{{ form.start_date.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-6">
-                    <label class="form-label">{% trans "End Date (Optional)" %}</label>
-                    <input type="date" name="{{ form.end_date.name }}" class="form-control" 
-                        value="{{ form.end_date.value|date:'Y-m-d'|default:'' }}" id="{{ form.end_date.id_for_label }}">
-                    {% if form.end_date.errors %}
-                        <div class="text-danger small">{{ form.end_date.errors|first }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Row 4: Account / Loan -->
-                <div class="col-6" id="accountGroup">
-                    <label class="form-label">{% trans "Account" %}</label>
-                    {{ form.account }}
-                    {% if form.account.errors %}
-                        <div class="text-danger small">{{ form.account.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-6" id="loanGroup" style="display: none;">
-                    <label class="form-label">{% trans "Loan" %}</label>
-                    {{ form.loan }}
-                    {% if form.loan.errors %}
-                        <div class="text-danger small">{{ form.loan.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-12" id="loanHelpGroup" style="display: none;">
-                    <p class="small text-muted mb-0">
-                        {% trans "For loan repayments, the amount you enter is used as-is for every occurrence. We calculate the principal and interest split at the time each repayment is posted so the values stay aligned with the current loan balance." %}
-                    </p>
-                </div>
-
-                <!-- Transfer Account Fields -->
-                <div class="col-6" id="fromAccountGroup" style="display: none;">
-                    <label class="form-label">{% trans "From Account" %}</label>
-                    {{ form.from_account }}
-                    {% if form.from_account.errors %}
-                        <div class="text-danger small">{{ form.from_account.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-6" id="toAccountGroup" style="display: none;">
-                    <label class="form-label">{% trans "To Account" %}</label>
-                    {{ form.to_account }}
-                    {% if form.to_account.errors %}
-                        <div class="text-danger small">{{ form.to_account.errors|first }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Row 4: Category / Source / Payment Method -->
-                <div class="col-6" id="categoryGroup">
-                    <label class="form-label">{% trans "Category" %}</label>
-                    {{ form.category }}
-                    {% if form.category.errors %}
-                        <div class="text-danger small">{{ form.category.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-6" id="sourceGroup" style="display: none;">
-                    <label class="form-label">{% trans "Source (For Income)" %}</label>
-                    {{ form.source }}
-                    {% if form.source.errors %}
-                        <div class="text-danger small">{{ form.source.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-12" id="paymentMethodGroup">
-                    <label class="form-label">{% trans "Payment Source Method" %}</label>
-                    <div class="d-none">
-                        {{ form.payment_method }}
-                    </div>
-                    <div class="payment-method-selector horizontal" data-target-id="{{ form.payment_method.id_for_label }}">
-                        <div class="payment-method-item" data-value="Cash">
-                            <div class="icon-wrapper"><i class="bi bi-cash-stack"></i></div>
-                            <div class="label">{% trans "Cash" %}</div>
+            <div class="card-body p-4">
+                <!-- Wizard Progress Indicator (Compact Header) -->
+                <div class="wizard-steps-header mb-3">
+                    <div class="row g-0 text-center mb-2">
+                        <div class="col-4 wizard-step-tab active" id="stepIndicator1" onclick="goToStep(1)">
+                            <span class="wizard-step-title text-truncate d-block px-1">{% trans "Basics" %}</span>
                         </div>
-                        <div class="payment-method-item" data-value="Credit Card">
-                            <div class="icon-wrapper"><i class="bi bi-credit-card"></i></div>
-                            <div class="label">{% trans "Credit Card" %}</div>
+                        <div class="col-4 wizard-step-tab" id="stepIndicator2" onclick="goToStep(2)">
+                            <span class="wizard-step-title text-truncate d-block px-1">{% trans "Schedule" %}</span>
                         </div>
-                        <div class="payment-method-item" data-value="Debit Card">
-                            <div class="icon-wrapper"><i class="bi bi-card-checklist"></i></div>
-                            <div class="label">{% trans "Debit Card" %}</div>
-                        </div>
-                        <div class="payment-method-item" data-value="UPI">
-                            <div class="icon-wrapper"><i class="bi bi-qr-code-scan"></i></div>
-                            <div class="label">{% trans "UPI" %}</div>
-                        </div>
-                        <div class="payment-method-item" data-value="NetBanking">
-                            <div class="icon-wrapper"><i class="bi bi-bank"></i></div>
-                            <div class="label">{% trans "NetBanking" %}</div>
+                        <div class="col-4 wizard-step-tab" id="stepIndicator3" onclick="goToStep(3)">
+                            <span class="wizard-step-title text-truncate d-block px-1">{% trans "Account & Details" %}</span>
                         </div>
                     </div>
-                    {% if form.payment_method.errors %}
-                        <div class="text-danger small mt-1">{{ form.payment_method.errors|first }}</div>
-                    {% endif %}
+                    <div class="progress" style="height: 3px;">
+                        <div class="progress-bar bg-primary" id="wizardProgressBar" style="width: 33%;"></div>
+                    </div>
                 </div>
 
-                <!-- Capital Event Specific Fields -->
-                <div class="col-12" id="capitalEventGroup" style="display: none;">
-                    <div class="card border-warning border-opacity-25 shadow-sm mb-3">
-                        <div class="card-header bg-warning bg-opacity-10 border-warning border-opacity-25 py-3">
-                            <h6 class="fw-bold mb-0 text-warning-emphasis d-flex align-items-center gap-2">
-                                <i class="bi bi-wallet2 fs-5"></i> {% trans "Capital Event Details" %}
-                            </h6>
-                        </div>
-                        <div class="card-body py-3">
-                            <div class="row g-3">
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label fw-bold">{% trans "Subtype" %}</label>
-                                    {{ form.capital_subtype }}
-                                    {% if form.capital_subtype.errors %}
-                                        <div class="text-danger small mt-1">{{ form.capital_subtype.errors|first }}</div>
-                                    {% endif %}
+                <form method="post" class="needs-validation" id="subscriptionForm" action="{% if next_url %}?next={{ next_url|urlencode }}{% endif %}" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- STEP 1: BASICS -->
+                    <div class="wizard-step-content" id="step1Content">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold">{% trans "Transaction Type" %}</label>
+                                {{ form.transaction_type }}
+                                <div class="form-text">{% trans "Choose expense, income, transfer, loan repayment, or capital event." %}</div>
+                                {% if form.transaction_type.errors %}
+                                    <div class="text-danger small">{{ form.transaction_type.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold">{% trans "Description / Name" %}</label>
+                                {{ form.description }}
+                                <div class="form-text">{% trans "Name of the subscription (e.g. Netflix, Rent, Uber One)." %}</div>
+                                {% if form.description.errors %}
+                                    <div class="text-danger small">{{ form.description.errors|first }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-bold">{% trans "Amount" %}</label>
+                                {{ form.amount }}
+                                <div class="form-text">{% trans "Billing amount per cycle." %}</div>
+                                {% if form.amount.errors %}
+                                    <div class="text-danger small">{{ form.amount.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-bold">{% trans "Currency" %}</label>
+                                {{ form.currency }}
+                                <div class="form-text">{% trans "Primary transaction currency." %}</div>
+                                {% if form.currency.errors %}
+                                    <div class="text-danger small">{{ form.currency.errors|first }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12" id="paymentMethodGroup">
+                                <label class="form-label fw-bold">{% trans "Payment Source Method" %}</label>
+                                <div class="d-none">
+                                    {{ form.payment_method }}
                                 </div>
-                                <div class="col-12 mt-3 pt-2 border-top">
-                                    <div class="form-check form-switch mb-3">
-                                        {{ form.exclude_from_averages }}
-                                        <label class="form-check-label fw-semibold text-dark" for="{{ form.exclude_from_averages.id_for_label }}">
-                                            {{ form.exclude_from_averages.label }}
-                                        </label>
-                                        <div class="form-text text-muted">{% trans "Exclude this event from normal monthly averages and trends so it doesn't skew your regular patterns." %}</div>
+                                <div class="payment-method-selector horizontal" data-target-id="{{ form.payment_method.id_for_label }}">
+                                    <div class="payment-method-item" data-value="Cash">
+                                        <div class="icon-wrapper"><i class="bi bi-cash-stack"></i></div>
+                                        <div class="label">{% trans "Cash" %}</div>
                                     </div>
-                                    <div class="form-check form-switch mb-3">
-                                        {{ form.exclude_from_budget }}
-                                        <label class="form-check-label fw-semibold text-dark" for="{{ form.exclude_from_budget.id_for_label }}">
-                                            {{ form.exclude_from_budget.label }}
-                                        </label>
-                                        <div class="form-text text-muted">{% trans "Do not count this event towards your monthly budget limits." %}</div>
+                                    <div class="payment-method-item" data-value="Credit Card">
+                                        <div class="icon-wrapper"><i class="bi bi-credit-card"></i></div>
+                                        <div class="label">{% trans "Credit Card" %}</div>
                                     </div>
-                                    <div class="form-check form-switch mb-0">
-                                        {{ form.include_in_net_worth }}
-                                        <label class="form-check-label fw-semibold text-dark" for="{{ form.include_in_net_worth.id_for_label }}">
-                                            {{ form.include_in_net_worth.label }}
-                                        </label>
-                                        <div class="form-text text-muted">{% trans "Include this event in cash flow summaries and deduct from the linked account balance." %}</div>
+                                    <div class="payment-method-item" data-value="Debit Card">
+                                        <div class="icon-wrapper"><i class="bi bi-card-checklist"></i></div>
+                                        <div class="label">{% trans "Debit Card" %}</div>
+                                    </div>
+                                    <div class="payment-method-item" data-value="UPI">
+                                        <div class="icon-wrapper"><i class="bi bi-qr-code-scan"></i></div>
+                                        <div class="label">{% trans "UPI" %}</div>
+                                    </div>
+                                    <div class="payment-method-item" data-value="NetBanking">
+                                        <div class="icon-wrapper"><i class="bi bi-bank"></i></div>
+                                        <div class="label">{% trans "NetBanking" %}</div>
+                                    </div>
+                                </div>
+                                <div class="form-text mt-1">{% trans "Select the default payment method for auto-posted entries." %}</div>
+                                {% if form.payment_method.errors %}
+                                    <div class="text-danger small mt-1">{{ form.payment_method.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: SCHEDULE -->
+                    <div class="wizard-step-content d-none" id="step2Content">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold">{% trans "Frequency" %}</label>
+                                {{ form.frequency }}
+                                <div class="form-text">{% trans "How frequently this subscription recurs." %}</div>
+                                {% if form.frequency.errors %}
+                                    <div class="text-danger small">{{ form.frequency.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-bold">{% trans "Start Date" %}</label>
+                                <input type="date" name="{{ form.start_date.name }}" class="form-control" 
+                                    value="{{ form.start_date.value|date:'Y-m-d'|default:'' }}{% if not form.start_date.value %}{% now 'Y-m-d' %}{% endif %}" required id="{{ form.start_date.id_for_label }}">
+                                <div class="form-text">{% trans "First occurrence date." %}</div>
+                                {% if form.start_date.errors %}
+                                    <div class="text-danger small">{{ form.start_date.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-bold">{% trans "End Date (Optional)" %}</label>
+                                <div class="input-group">
+                                    <input type="date" name="{{ form.end_date.name }}" class="form-control" 
+                                        value="{{ form.end_date.value|date:'Y-m-d'|default:'' }}" id="{{ form.end_date.id_for_label }}">
+                                    <button type="button" class="btn btn-outline-secondary px-2" onclick="document.getElementById('{{ form.end_date.id_for_label }}').value='';" title="{% trans 'Clear End Date' %}">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">{% trans "Leave blank for endless." %}</div>
+                                {% if form.end_date.errors %}
+                                    <div class="text-danger small">{{ form.end_date.errors|first }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Monthly Schedule Nuances (Responsive Layout) -->
+                            <div class="col-12" id="monthlyOptionsGroup" style="display: none;">
+                                <div class="pt-1">
+                                    <label class="form-label fw-bold text-uppercase small text-muted mb-2">
+                                        <i class="bi bi-calendar-event me-1"></i> {% trans "Monthly Recurrence Rules" %}
+                                    </label>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">
+                                            <div class="p-3 rounded border monthly-rule-card h-100">
+                                                <div class="form-check form-switch m-0 d-flex align-items-start gap-2 ps-0">
+                                                    <div class="flex-grow-1 ms-1">
+                                                        <label class="form-check-label fw-semibold small cursor-pointer d-block" for="{{ form.is_last_day_of_month.id_for_label }}">
+                                                            {% trans "Last Calendar Day of Month" %}
+                                                        </label>
+                                                        <div class="form-text small mt-1">
+                                                            {% trans "e.g. Apr 30 → May 31 → Jun 30 → Feb 28/29" %}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        {{ form.is_last_day_of_month }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <div class="p-3 rounded border monthly-rule-card h-100">
+                                                <div class="form-check form-switch m-0 d-flex align-items-start gap-2 ps-0">
+                                                    <div class="flex-grow-1 ms-1">
+                                                        <label class="form-check-label fw-semibold small cursor-pointer d-block" for="{{ form.is_last_working_day.id_for_label }}">
+                                                            {% trans "Last Working Day of Month" %}
+                                                        </label>
+                                                        <div class="form-text small mt-1">
+                                                            {% trans "Last weekday (Mon–Fri). Steps back if weekend." %}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        {{ form.is_last_working_day }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <div class="p-3 border rounded card-switch-wrapper">
+                                    <div class="form-check form-switch m-0 d-flex align-items-start gap-3 ps-0">
+                                        <div class="flex-grow-1">
+                                            <label class="form-check-label fw-semibold cursor-pointer mb-1 d-block" for="{{ form.is_active.id_for_label }}">
+                                                {% trans "Active Subscription" %}
+                                            </label>
+                                            <div class="form-text mt-0">
+                                                {% trans "When enabled, transactions automatically post on due dates." %}
+                                            </div>
+                                        </div>
+                                        <div class="pt-1">
+                                            {{ form.is_active }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Row 5: Description -->
-                <div class="col-12">
-                    <label class="form-label">{% trans "Description" %}</label>
-                    {{ form.description }}
-                    {% if form.description.errors %}
-                        <div class="text-danger small">{{ form.description.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-12">
-                    <div class="form-check">
-                        {{ form.is_active }}
-                        <label class="form-check-label">{% trans "Active" %}</label>
+                    <!-- STEP 3: ACCOUNT & DETAILS -->
+                    <div class="wizard-step-content d-none" id="step3Content">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6" id="accountGroup">
+                                <label class="form-label fw-bold">{% trans "Account" %}</label>
+                                {{ form.account }}
+                                <div class="form-text">{% trans "Select the bank or cash account." %}</div>
+                                {% if form.account.errors %}
+                                    <div class="text-danger small">{{ form.account.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 col-md-6" id="loanGroup" style="display: none;">
+                                <label class="form-label fw-bold">{% trans "Loan" %}</label>
+                                {{ form.loan }}
+                                <div class="form-text">{% trans "Select the linked loan account." %}</div>
+                                {% if form.loan.errors %}
+                                    <div class="text-danger small">{{ form.loan.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12" id="loanHelpGroup" style="display: none;">
+                                <p class="small text-muted mb-0">
+                                    {% trans "For loan repayments, the amount entered is used for every occurrence. Principal/interest split is calculated automatically." %}
+                                </p>
+                            </div>
+
+                            <div class="col-12 col-md-6" id="fromAccountGroup" style="display: none;">
+                                <label class="form-label fw-bold">{% trans "From Account" %}</label>
+                                {{ form.from_account }}
+                                <div class="form-text">{% trans "Account to transfer funds out from." %}</div>
+                                {% if form.from_account.errors %}
+                                    <div class="text-danger small">{{ form.from_account.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 col-md-6" id="toAccountGroup" style="display: none;">
+                                <label class="form-label fw-bold">{% trans "To Account" %}</label>
+                                {{ form.to_account }}
+                                <div class="form-text">{% trans "Account to receive transferred funds." %}</div>
+                                {% if form.to_account.errors %}
+                                    <div class="text-danger small">{{ form.to_account.errors|first }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6" id="categoryGroup">
+                                <label class="form-label fw-bold">{% trans "Category" %}</label>
+                                {{ form.category }}
+                                <div class="form-text">{% trans "Expense category for budget tracking." %}</div>
+                                {% if form.category.errors %}
+                                    <div class="text-danger small">{{ form.category.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 col-md-6" id="sourceGroup" style="display: none;">
+                                <label class="form-label fw-bold">{% trans "Source (For Income)" %}</label>
+                                {{ form.source }}
+                                <div class="form-text">{% trans "Income source label (e.g. Employer, Dividends)." %}</div>
+                                {% if form.source.errors %}
+                                    <div class="text-danger small">{{ form.source.errors|first }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12" id="capitalEventGroup" style="display: none;">
+                                <div class="card border-warning border-opacity-25 shadow-sm mb-3">
+                                    <div class="card-header bg-warning bg-opacity-10 border-warning border-opacity-25 py-3">
+                                        <h6 class="fw-bold mb-0 text-warning-emphasis d-flex align-items-center gap-2">
+                                            <i class="bi bi-wallet2 fs-5"></i> {% trans "Capital Event Details" %}
+                                        </h6>
+                                    </div>
+                                    <div class="card-body py-3">
+                                        <div class="row g-3">
+                                            <div class="col-12 col-md-6">
+                                                <label class="form-label fw-bold">{% trans "Subtype" %}</label>
+                                                {{ form.capital_subtype }}
+                                                {% if form.capital_subtype.errors %}
+                                                    <div class="text-danger small mt-1">{{ form.capital_subtype.errors|first }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-12 mt-3 pt-2 border-top">
+                                                <div class="form-check form-switch mb-3">
+                                                    {{ form.exclude_from_averages }}
+                                                    <label class="form-check-label fw-semibold" for="{{ form.exclude_from_averages.id_for_label }}">
+                                                        {{ form.exclude_from_averages.label }}
+                                                    </label>
+                                                    <div class="form-text">{% trans "Exclude from monthly averages and trends." %}</div>
+                                                </div>
+                                                <div class="form-check form-switch mb-3">
+                                                    {{ form.exclude_from_budget }}
+                                                    <label class="form-check-label fw-semibold" for="{{ form.exclude_from_budget.id_for_label }}">
+                                                        {{ form.exclude_from_budget.label }}
+                                                    </label>
+                                                    <div class="form-text">{% trans "Do not count towards monthly budget limits." %}</div>
+                                                </div>
+                                                <div class="form-check form-switch mb-0">
+                                                    {{ form.include_in_net_worth }}
+                                                    <label class="form-check-label fw-semibold" for="{{ form.include_in_net_worth.id_for_label }}">
+                                                        {{ form.include_in_net_worth.label }}
+                                                    </label>
+                                                    <div class="form-text">{% trans "Include in cash flow summaries and net worth." %}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="mt-4 d-flex justify-content-end gap-2">
-                <input type="hidden" name="next" value="{{ next_url }}">
-                <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'recurring-list' %}{% endif %}" class="btn btn-outline-secondary px-4">{% trans "Cancel" %}</a>
+                    <!-- WIZARD NAVIGATION FOOTER -->
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center gap-2">
+                        <button type="button" id="prevBtn" class="btn btn-outline-secondary px-3 text-nowrap d-none" onclick="changeStep(-1)">
+                            <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
+                        </button>
+                        <div class="ms-auto d-flex align-items-center gap-2">
+                            <input type="hidden" name="next" value="{{ next_url }}">
+                            <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'recurring-list' %}{% endif %}" class="btn btn-link text-muted text-decoration-none px-2 text-nowrap">{% trans "Cancel" %}</a>
+                            
+                            <button type="button" id="nextBtn" class="btn btn-primary px-3 text-nowrap" onclick="changeStep(1)">
+                                {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
 
-                <button type="submit" class="btn btn-primary px-4">
-                    <i class="bi bi-check-lg me-1"></i> {% trans "Save" %}
-                </button>
+                            <button type="submit" id="submitBtn" class="btn btn-success px-3 text-nowrap d-none">
+                                <i class="bi bi-check-lg me-1"></i> {% trans "Save" %}<span class="d-none d-sm-inline"> {% trans "Subscription" %}</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
 <script>
+    let currentStep = 1;
+    const totalSteps = 3;
+
+    function updateWizardUI() {
+        // Step visibility
+        document.getElementById('step1Content').classList.toggle('d-none', currentStep !== 1);
+        document.getElementById('step2Content').classList.toggle('d-none', currentStep !== 2);
+        document.getElementById('step3Content').classList.toggle('d-none', currentStep !== 3);
+
+        // Header Indicator Tabs
+        for (let i = 1; i <= totalSteps; i++) {
+            const ind = document.getElementById('stepIndicator' + i);
+            if (ind) {
+                ind.classList.toggle('active', i === currentStep);
+                ind.classList.toggle('completed', i < currentStep);
+            }
+        }
+
+        // Progress bar width
+        const progressPercent = Math.round((currentStep / totalSteps) * 100);
+        const progressBar = document.getElementById('wizardProgressBar');
+        if (progressBar) {
+            progressBar.style.width = progressPercent + '%';
+        }
+
+        // Step Counter Badge
+        const counterBadge = document.getElementById('stepCounterBadge');
+        if (counterBadge) {
+            counterBadge.textContent = `{% trans "Step" %} ${currentStep} {% trans "of" %} ${totalSteps}`;
+        }
+
+        // Navigation Buttons
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (prevBtn) prevBtn.classList.toggle('d-none', currentStep === 1);
+        if (nextBtn) nextBtn.classList.toggle('d-none', currentStep === totalSteps);
+        if (submitBtn) submitBtn.classList.toggle('d-none', currentStep !== totalSteps);
+    }
+
+    function validateCurrentStep() {
+        const stepEl = document.getElementById('step' + currentStep + 'Content');
+        if (!stepEl) return true;
+
+        const inputs = stepEl.querySelectorAll('input:not([type="hidden"]), select, textarea');
+        let isValid = true;
+
+        inputs.forEach(input => {
+            // Only validate visible inputs in current step
+            if (input.offsetWidth > 0 || input.offsetHeight > 0 || input.getClientRects().length > 0) {
+                if (!input.checkValidity()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                    input.reportValidity();
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            }
+        });
+
+        return isValid;
+    }
+
+    function changeStep(delta) {
+        if (delta > 0) {
+            if (!validateCurrentStep()) return;
+        }
+        const newStep = currentStep + delta;
+        if (newStep >= 1 && newStep <= totalSteps) {
+            currentStep = newStep;
+            updateWizardUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function goToStep(targetStep) {
+        if (targetStep < currentStep) {
+            currentStep = targetStep;
+            updateWizardUI();
+        } else if (targetStep > currentStep) {
+            if (validateCurrentStep()) {
+                currentStep = targetStep;
+                updateWizardUI();
+            }
+        }
+    }
+
     function toggleFields() {
         const typeSelect = document.querySelector('[name="transaction_type"]');
+        if (!typeSelect) return;
+
         const categoryGroup = document.getElementById('categoryGroup');
         const sourceGroup = document.getElementById('sourceGroup');
         const paymentMethodGroup = document.getElementById('paymentMethodGroup');
@@ -243,62 +508,76 @@
         const capitalEventGroup = document.getElementById('capitalEventGroup');
 
         if (typeSelect.value === 'EXPENSE') {
-            categoryGroup.style.display = 'block';
-            paymentMethodGroup.style.display = 'block';
-            sourceGroup.style.display = 'none';
-            accountGroup.style.display = 'block';
-            loanGroup.style.display = 'none';
-            loanHelpGroup.style.display = 'none';
-            fromAccountGroup.style.display = 'none';
-            toAccountGroup.style.display = 'none';
-            capitalEventGroup.style.display = 'none';
+            if (categoryGroup) categoryGroup.style.display = 'block';
+            if (paymentMethodGroup) paymentMethodGroup.style.display = 'block';
+            if (sourceGroup) sourceGroup.style.display = 'none';
+            if (accountGroup) accountGroup.style.display = 'block';
+            if (loanGroup) loanGroup.style.display = 'none';
+            if (loanHelpGroup) loanHelpGroup.style.display = 'none';
+            if (fromAccountGroup) fromAccountGroup.style.display = 'none';
+            if (toAccountGroup) toAccountGroup.style.display = 'none';
+            if (capitalEventGroup) capitalEventGroup.style.display = 'none';
         } else if (typeSelect.value === 'LOAN') {
-            categoryGroup.style.display = 'none';
-            paymentMethodGroup.style.display = 'none';
-            sourceGroup.style.display = 'none';
-            accountGroup.style.display = 'block';
-            loanGroup.style.display = 'block';
-            loanHelpGroup.style.display = 'block';
-            fromAccountGroup.style.display = 'none';
-            toAccountGroup.style.display = 'none';
-            capitalEventGroup.style.display = 'none';
+            if (categoryGroup) categoryGroup.style.display = 'none';
+            if (paymentMethodGroup) paymentMethodGroup.style.display = 'none';
+            if (sourceGroup) sourceGroup.style.display = 'none';
+            if (accountGroup) accountGroup.style.display = 'block';
+            if (loanGroup) loanGroup.style.display = 'block';
+            if (loanHelpGroup) loanHelpGroup.style.display = 'block';
+            if (fromAccountGroup) fromAccountGroup.style.display = 'none';
+            if (toAccountGroup) toAccountGroup.style.display = 'none';
+            if (capitalEventGroup) capitalEventGroup.style.display = 'none';
         } else if (typeSelect.value === 'TRANSFER') {
-            categoryGroup.style.display = 'none';
-            paymentMethodGroup.style.display = 'none';
-            sourceGroup.style.display = 'none';
-            accountGroup.style.display = 'none';
-            loanGroup.style.display = 'none';
-            loanHelpGroup.style.display = 'none';
-            fromAccountGroup.style.display = 'block';
-            toAccountGroup.style.display = 'block';
-            capitalEventGroup.style.display = 'none';
+            if (categoryGroup) categoryGroup.style.display = 'none';
+            if (paymentMethodGroup) paymentMethodGroup.style.display = 'none';
+            if (sourceGroup) sourceGroup.style.display = 'none';
+            if (accountGroup) accountGroup.style.display = 'none';
+            if (loanGroup) loanGroup.style.display = 'none';
+            if (loanHelpGroup) loanHelpGroup.style.display = 'none';
+            if (fromAccountGroup) fromAccountGroup.style.display = 'block';
+            if (toAccountGroup) toAccountGroup.style.display = 'block';
+            if (capitalEventGroup) capitalEventGroup.style.display = 'none';
         } else if (typeSelect.value === 'CAPITAL') {
-            categoryGroup.style.display = 'none';
-            paymentMethodGroup.style.display = 'none';
-            sourceGroup.style.display = 'none';
-            accountGroup.style.display = 'block';
-            loanGroup.style.display = 'block';
-            loanHelpGroup.style.display = 'block';
-            fromAccountGroup.style.display = 'none';
-            toAccountGroup.style.display = 'none';
-            capitalEventGroup.style.display = 'block';
+            if (categoryGroup) categoryGroup.style.display = 'none';
+            if (paymentMethodGroup) paymentMethodGroup.style.display = 'none';
+            if (sourceGroup) sourceGroup.style.display = 'none';
+            if (accountGroup) accountGroup.style.display = 'block';
+            if (loanGroup) loanGroup.style.display = 'block';
+            if (loanHelpGroup) loanHelpGroup.style.display = 'block';
+            if (fromAccountGroup) fromAccountGroup.style.display = 'none';
+            if (toAccountGroup) toAccountGroup.style.display = 'none';
+            if (capitalEventGroup) capitalEventGroup.style.display = 'block';
         } else {
-            categoryGroup.style.display = 'none';
-            paymentMethodGroup.style.display = 'none';
-            sourceGroup.style.display = 'block';
-            accountGroup.style.display = 'block';
-            loanGroup.style.display = 'none';
-            loanHelpGroup.style.display = 'none';
-            fromAccountGroup.style.display = 'none';
-            toAccountGroup.style.display = 'none';
-            capitalEventGroup.style.display = 'none';
+            if (categoryGroup) categoryGroup.style.display = 'none';
+            if (paymentMethodGroup) paymentMethodGroup.style.display = 'none';
+            if (sourceGroup) sourceGroup.style.display = 'block';
+            if (accountGroup) accountGroup.style.display = 'block';
+            if (loanGroup) loanGroup.style.display = 'none';
+            if (loanHelpGroup) loanHelpGroup.style.display = 'none';
+            if (fromAccountGroup) fromAccountGroup.style.display = 'none';
+            if (toAccountGroup) toAccountGroup.style.display = 'none';
+            if (capitalEventGroup) capitalEventGroup.style.display = 'none';
         }
     }
 
-    // Run on load and on type change
+    function toggleMonthlyOptions() {
+        const freqSelect = document.querySelector('[name="frequency"]');
+        const monthlyGroup = document.getElementById('monthlyOptionsGroup');
+        if (freqSelect && monthlyGroup) {
+            monthlyGroup.style.display = (freqSelect.value === 'MONTHLY') ? 'block' : 'none';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        updateWizardUI();
         toggleFields();
-        document.querySelector('[name="transaction_type"]').addEventListener('change', toggleFields);
+        toggleMonthlyOptions();
+        
+        const typeSelect = document.querySelector('[name="transaction_type"]');
+        if (typeSelect) typeSelect.addEventListener('change', toggleFields);
+
+        const freqSelect = document.querySelector('[name="frequency"]');
+        if (freqSelect) freqSelect.addEventListener('change', toggleMonthlyOptions);
     });
 </script>
 
@@ -312,7 +591,6 @@
             const targetSelect = document.getElementById(targetId);
             const items = selector.querySelectorAll('.payment-method-item');
             
-            // Set initial active state
             if (targetSelect) {
                 const currentValue = targetSelect.value;
                 items.forEach(item => {
@@ -325,15 +603,11 @@
             items.forEach(item => {
                 item.addEventListener('click', function() {
                     const value = this.dataset.value;
-                    
-                    // Update visual state
                     items.forEach(i => i.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // Update hidden select
                     if (targetSelect) {
                         targetSelect.value = value;
-                        // Trigger change event for any listeners
                         targetSelect.dispatchEvent(new Event('change'));
                     }
                 });
@@ -341,6 +615,4 @@
         });
     });
 </script>
-    </div>
-</div>
 {% endblock %}

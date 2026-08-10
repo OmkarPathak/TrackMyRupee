@@ -1183,10 +1183,21 @@
             }
         });
 
+        // Disable HTMX default auto-focusing behavior globally
+        if (window.htmx) {
+            htmx.config.defaultFocus = false;
+        }
+
         const clearHtmxLoader = function () {
             const bar = document.getElementById('global-progress-bar');
             if (bar) {
                 bar.classList.remove('active');
+            }
+            // Prevent mobile/PWA soft keyboard auto-opening on HTMX swaps/settles (except #nl-input on expense_form)
+            if (document.activeElement && 
+                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') && 
+                document.activeElement.id !== 'nl-input') {
+                document.activeElement.blur();
             }
         };
 
@@ -1352,6 +1363,20 @@
             if (window.initSearchableSelects) {
                 window.initSearchableSelects();
             }
+            // Re-init Bootstrap tooltips for any newly swapped-in elements
+            var swappedRoot = event.target || document;
+            swappedRoot.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                var existing = bootstrap.Tooltip.getInstance(el);
+                if (existing) existing.dispose();
+                new bootstrap.Tooltip(el);
+            });
+        });
+
+        // Also init tooltips on first page load (Bootstrap is already loaded at this point)
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                new bootstrap.Tooltip(el);
+            });
         });
     </script>
 
@@ -1433,10 +1458,9 @@
 
                             if (groupHasVisible) {
                                 const header = document.createElement('div');
-                                header.className = 'searchable-select-header text-muted fw-bold small';
+                                header.className = 'searchable-select-header fw-bold small text-uppercase';
                                 header.style.padding = '0.375rem 0.75rem';
                                 header.style.pointerEvents = 'none';
-                                header.style.backgroundColor = '#f8f9fa';
                                 header.textContent = groupLabel;
                                 list.appendChild(header);
                                 list.appendChild(groupContainer);
@@ -1599,6 +1623,17 @@
         text-align: center;
         color: var(--bs-secondary-color);
         font-size: 0.85rem;
+    }
+    .searchable-select-header {
+        background-color: var(--bs-tertiary-bg, #f8f9fa);
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+    [data-bs-theme="dark"] .searchable-select-header {
+        background-color: rgba(255, 255, 255, 0.06) !important;
+        color: #9ca3af !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
     
     /* Fix Convert to Capital Event dropdown button readability in dark mode */

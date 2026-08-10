@@ -78,6 +78,15 @@
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                 {% endif %}
+                                {% if account.holdings.exists %}
+                                    {% for h in account.holdings.all %}
+                                        {% if h.scheme_code and h.is_active %}
+                                            <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm hero-action-btn rounded-circle fw-semibold transition-all d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0; background-color: transparent; color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
                             </div>
                         </div>
 
@@ -90,6 +99,9 @@
                                 {% endif %}
                                 {% if account.deposit_maturity_date %}
                                     • <span class="fw-medium">{% trans "Matures on:" %} {{ account.deposit_maturity_date|date:"d M Y" }}</span>
+                                {% endif %}
+                                {% if account.has_credit_limit %}
+                                    • <span class="fw-medium">{% trans "Limit:" %} {{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>
                                 {% endif %}
                             </p>
                         </div>
@@ -110,6 +122,12 @@
                                 {% if account.has_accrued_value %}
                                     <div class="mt-2 text-body-secondary" style="font-size: 0.8rem;">
                                         {% trans "Original Deposit:" %} {{ currency_symbol }}{{ account.effective_principal|ind_comma:currency_symbol|translate_digits }}
+                                    </div>
+                                {% endif %}
+                                {% if account.has_credit_limit %}
+                                    <div class="mt-2 text-body-secondary" style="font-size: 0.82rem;">
+                                        {% trans "Available:" %} <span class="fw-semibold text-body-emphasis">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</span>
+                                        <span class="ms-1 opacity-75">({{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %})</span>
                                     </div>
                                 {% endif %}
                             </div>

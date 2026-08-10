@@ -19,7 +19,7 @@ from ..models import (
     RecurringTransaction,
 )
 from ..services import LoanService
-from .mixins import UUIDOrIntLookupMixin
+from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
@@ -31,22 +31,44 @@ class LoanFeatureGateMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
-class LoanListView(LoginRequiredMixin, LoanFeatureGateMixin, ListView):
+class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGateMixin, ListView):
     model = Loan
     template_name = 'expenses/loan_list.html'
+    htmx_template_name = 'expenses/partials/_loan_list_partial.html'
     context_object_name = 'loans'
 
     def get_queryset(self):
-        return Loan.objects.filter(user=self.request.user).prefetch_related('repayments').order_by('-start_date')
+        # Auto-sync active status for all loans belonging to this user
+        all_user_loans = list(Loan.objects.filter(user=self.request.user).prefetch_related('repayments'))
+        for loan in all_user_loans:
+            LoanService.sync_loan_active_status(loan)
+
+        status_filter = self.request.GET.get('status', 'active').lower()
+        if status_filter == 'inactive':
+            return Loan.objects.filter(user=self.request.user, is_active=False).prefetch_related('repayments').order_by('-start_date')
+        elif status_filter == 'all':
+            return Loan.objects.filter(user=self.request.user).prefetch_related('repayments').order_by('-start_date')
+        else:
+            return Loan.objects.filter(user=self.request.user, is_active=True).prefetch_related('repayments').order_by('-start_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        loans = self.get_queryset()
+        status_filter = self.request.GET.get('status', 'active').lower()
+        if status_filter not in ('active', 'inactive', 'all'):
+            status_filter = 'active'
 
-        # Bulk-aggregate repayment totals in a single query instead of one per loan
+        # Compute pill counts across ALL user loans
+        all_loans = list(Loan.objects.filter(user=self.request.user))
+        active_count = sum(1 for l in all_loans if l.is_active)
+        inactive_count = sum(1 for l in all_loans if not l.is_active)
+        all_count = len(all_loans)
+
+        filtered_loans = self.object_list
+
         from django.db.models import Sum
 
-        from ..models import LoanRepayment
+        from ..models import CapitalEvent, LoanRepayment
+
         repayment_totals = (
             LoanRepayment.objects
             .filter(loan__user=self.request.user)
@@ -59,15 +81,11 @@ class LoanListView(LoginRequiredMixin, LoanFeatureGateMixin, ListView):
         )
         repayment_map = {r['loan_id']: r for r in repayment_totals}
 
-        # Bulk-aggregate capital event prepayments per loan in a single query
-        from django.db.models import Sum as _Sum
-
-        from ..models import CapitalEvent
         capital_prepayment_totals = (
             CapitalEvent.objects
             .filter(linked_loan__user=self.request.user, subtype__in=['loan_down_payment', 'loan_prepayment'])
             .values('linked_loan_id')
-            .annotate(total_prepaid=_Sum('amount'))
+            .annotate(total_prepaid=Sum('amount'))
         )
         capital_prepayment_map = {
             r['linked_loan_id']: float(r['total_prepaid'] or 0)
@@ -75,8 +93,7 @@ class LoanListView(LoginRequiredMixin, LoanFeatureGateMixin, ListView):
         }
 
         loan_summaries = []
-        total_debt = 0
-        for loan in loans:
+        for loan in filtered_loans:
             r = repayment_map.get(loan.id, {})
             principal_paid = float(r.get('total_principal') or 0)
             interest_paid = float(r.get('total_interest') or 0)
@@ -84,7 +101,7 @@ class LoanListView(LoginRequiredMixin, LoanFeatureGateMixin, ListView):
             capital_prepaid = capital_prepayment_map.get(loan.id, 0)
             remaining_principal = max(float(loan.initial_principal) - principal_paid - capital_prepaid, 0)
             initial = float(loan.initial_principal)
-            progress = min((1 - remaining_principal / initial) * 100, 100) if initial > 0 else 0
+            progress = min((1 - remaining_principal / initial) * 100, 100) if initial > 0 else 100
             summary = {
                 'loan': loan,
                 'principal_paid': principal_paid,
@@ -95,10 +112,19 @@ class LoanListView(LoginRequiredMixin, LoanFeatureGateMixin, ListView):
                 'progress': progress,
             }
             loan_summaries.append(summary)
-            total_debt += remaining_principal
+
+        # Total remaining debt across all active loans for top summary card
+        total_debt = sum(
+            max(float(l.initial_principal) - float(repayment_map.get(l.id, {}).get('total_principal') or 0) - capital_prepayment_map.get(l.id, 0), 0)
+            for l in all_loans if l.is_active
+        )
 
         context['loan_summaries'] = loan_summaries
         context['total_debt'] = total_debt
+        context['status_filter'] = status_filter
+        context['active_count'] = active_count
+        context['inactive_count'] = inactive_count
+        context['all_count'] = all_count
         return context
 
 class LoanCreateView(LoginRequiredMixin, LoanFeatureGateMixin, CreateView):

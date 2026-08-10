@@ -53,6 +53,7 @@ from .models import (
 )
 from .fx import FXService
 from .utils import get_exchange_rate
+from .models import LedgerAccount
 
 logger = logging.getLogger(__name__)
 
@@ -60,41 +61,11 @@ logger = logging.getLogger(__name__)
 def _compute_deposit_value(account, ledger_balance: Decimal) -> Decimal:
     """
     Compute accrued DEPOSIT value for an account.
-
-    If the optional deposit_* fields are set, computes principal * (1+r)^t-style accrual.
-    Otherwise returns the ledger_balance unchanged (fully backward compatible).
+    Delegates to expenses.account_valuation.get_current_deposit(account)
+    for unified FD and RD accrual math (including maturity/closed date caps).
     """
-    if (
-        account.deposit_rate is None
-        or account.deposit_start_date is None
-    ):
-        return ledger_balance
-
-    principal = account.deposit_principal if account.deposit_principal is not None else ledger_balance
-    if principal is None or principal == Decimal('0.00'):
-        return ledger_balance
-
-    today = date_type.today()
-    start = account.deposit_start_date
-    if start > today:
-        return principal
-
-    # Years elapsed (fractional)
-    days_elapsed = (today - start).days
-    years = Decimal(str(days_elapsed)) / Decimal('365.25')
-    rate = account.deposit_rate / Decimal('100')  # convert % to decimal
-    compounding = account.deposit_compounding or 'SIMPLE'
-
-    if compounding == 'SIMPLE':
-        value = principal * (Decimal('1') + rate * years)
-    elif compounding == 'QUARTERLY':
-        # (1 + r/4)^(4*t)
-        n = Decimal('4')
-        value = principal * ((Decimal('1') + rate / n) ** (n * years))
-    else:  # ANNUAL
-        value = principal * ((Decimal('1') + rate) ** years)
-
-    return value.quantize(Decimal('0.01'))
+    from .account_valuation import get_current_deposit
+    return get_current_deposit(account, ledger_balance=ledger_balance)
 
 
 class LedgerReadService:
@@ -170,19 +141,39 @@ class LedgerReadService:
 
         account_ids = [account.id for account in accounts]
         account_map = {account.id: account for account in accounts}
+
+        # SPEC §4: Check if cached_balance is available on LedgerAccount (O(1) read)
+        ledger_codes = [f"USR:{user.id}:ASSET:ACCOUNT:{aid}" for aid in account_ids]
+        ledger_accounts = LedgerAccount.objects.filter(code__in=ledger_codes).only('id', 'code', 'cached_balance')
+        ledger_map = {la.code: la for la in ledger_accounts}
+
+        balances = {}
+        missing_account_ids = []
+
+        for account_id in account_ids:
+            code = f"USR:{user.id}:ASSET:ACCOUNT:{account_id}"
+            la = ledger_map.get(code)
+            if la is not None and la.cached_balance is not None:
+                balances[account_id] = la.cached_balance
+            else:
+                missing_account_ids.append(account_id)
+
+        if not missing_account_ids:
+            return balances
+
+        # Fall back to full-sum calculation for accounts where cached_balance is null
         lines = JournalLine.objects.filter(
-            account_ref_id__in=account_ids,
+            account_ref_id__in=missing_account_ids,
             journal_entry__status="POSTED",
         ).only("account_ref_id", "direction", "amount", "currency")
 
-        lines_by_account = {account_id: [] for account_id in account_ids}
+        lines_by_account = {account_id: [] for account_id in missing_account_ids}
         for line in lines:
             lines_by_account[line.account_ref_id].append(line)
 
         opening_account_ids = cls._get_opening_account_ids(user)
-        balances = {}
 
-        for account_id in account_ids:
+        for account_id in missing_account_ids:
             account = account_map[account_id]
             debit = Decimal("0.00")
             credit = Decimal("0.00")
@@ -210,6 +201,11 @@ class LedgerReadService:
 
     @classmethod
     def get_account_ledger_delta(cls, account):
+        code = f"USR:{account.user_id}:ASSET:ACCOUNT:{account.id}"
+        la = LedgerAccount.objects.filter(code=code).only('cached_balance').first()
+        if la is not None and la.cached_balance is not None:
+            return la.cached_balance
+
         lines = JournalLine.objects.filter(
             account_ref=account,
             journal_entry__status="POSTED",
@@ -243,41 +239,53 @@ class LedgerReadService:
     def _fetch_latest_holding_valuations(cls, account_ids: list) -> dict:
         """
         Fetch latest Valuation per active Holding for all given account IDs.
-        ONE query using Python-side DISTINCT (compatible with all DB backends).
+        ONE query via LEFT JOIN on Valuation.
+        Falls back to units * avg_cost for active holdings with zero Valuation rows.
 
-        Returns: {account_id: Decimal total_value} in each holding's own currency.
+        Returns: {account_id: list of {'value': Decimal, 'currency': str}}
         Note: the caller is responsible for FX conversion.
         """
-
-        # Fetch all latest valuations across all holdings in these accounts
-        # Ordered by holding_id then -as_of_date so we can Python-dedup to latest per holding
-        rows = (
-            Valuation.objects
-            .filter(
-                holding__account_id__in=account_ids,
-                holding__is_active=True,
-            )
-            .select_related('holding')
-            .order_by('holding_id', '-as_of_date', '-created_at')
-            .values('holding_id', 'holding__account_id', 'holding__currency', 'value')
+        rows = list(
+            Holding.objects
+            .filter(account_id__in=account_ids, is_active=True)
+            .order_by('id', '-valuations__as_of_date', '-valuations__created_at')
+            .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'scheme_code', 'valuations__value')
         )
 
-        # Python-side dedup: keep first row per holding_id (= latest valuation)
-        seen_holdings: set = set()
-        # {account_id: list of (value, holding_currency)}
-        account_holding_vals: dict = {}
+        scheme_codes = {r['scheme_code'] for r in rows if r['scheme_code']}
+        nav_caches = {}
+        if scheme_codes:
+            from .models import FundNAVCache
+            nav_caches = dict(
+                FundNAVCache.objects.filter(scheme_code__in=scheme_codes)
+                .values_list('scheme_code', 'latest_nav')
+            )
 
-        for row in rows:
-            hid = row['holding_id']
+        seen_holdings: set = set()
+        account_holding_vals: dict = {}
+        for r in rows:
+            hid = r['id']
             if hid in seen_holdings:
                 continue
             seen_holdings.add(hid)
-            acc_id = row['holding__account_id']
+
+            acc_id = r['account_id']
+            val = r['valuations__value']
+            if val is None:
+                units = r['units'] or Decimal('0.00')
+                scheme_code = r['scheme_code']
+                cache_nav = nav_caches.get(scheme_code) if scheme_code else None
+                if cache_nav is not None:
+                    val = (units * cache_nav).quantize(Decimal('0.01'))
+                else:
+                    avg_cost = r['avg_cost'] or Decimal('0.00')
+                    val = (units * avg_cost).quantize(Decimal('0.01'))
+
             if acc_id not in account_holding_vals:
                 account_holding_vals[acc_id] = []
             account_holding_vals[acc_id].append({
-                'value': row['value'],
-                'currency': row['holding__currency'],
+                'value': val,
+                'currency': r['currency'],
             })
 
         return account_holding_vals
@@ -318,35 +326,64 @@ class LedgerReadService:
 
         Returns: {loan_id: Decimal outstanding_principal}
         """
-        if not loan_ids:
-            return {}
-
-        # Try latest paid schedule installment per loan
-        # Python-side dedup (one query, ordered desc)
-        schedule_rows = (
-            LoanScheduleInstallment.objects
-            .filter(loan_id__in=loan_ids, is_paid=True)
-            .order_by('loan_id', '-due_date', '-installment_no')
-            .values('loan_id', 'scheduled_balance')
+        # Try latest paid schedule installment per loan for EMI loans
+        from .models import Loan
+        bullet_loan_ids = set(
+            Loan.objects.filter(id__in=loan_ids, repayment_type__in=['BULLET', 'INTEREST_ONLY']).values_list('id', flat=True)
         )
+        emi_loan_ids = [lid for lid in loan_ids if lid not in bullet_loan_ids]
+
         schedule_map: dict = {}
-        seen_loans: set = set()
-        for row in schedule_rows:
-            lid = row['loan_id']
-            if lid not in seen_loans:
+        if emi_loan_ids:
+            schedule_rows = (
+                LoanScheduleInstallment.objects
+                .filter(loan_id__in=emi_loan_ids, is_paid=True)
+                .order_by('loan_id', '-due_date', '-installment_no')
+                .values('loan_id', 'scheduled_balance')
+            )
+            seen_loans: set = set()
+            for row in schedule_rows:
+                lid = row['loan_id']
+                if lid in seen_loans:
+                    continue
                 seen_loans.add(lid)
                 schedule_map[lid] = max(Decimal('0.00'), row['scheduled_balance'])
 
-        # For loans without a schedule, aggregate repayments
+        # For loans without a schedule or bullet loans, aggregate repayments
         missing_loan_ids = [lid for lid in loan_ids if lid not in schedule_map]
-        result = dict(schedule_map)
 
         if missing_loan_ids:
-            loans = Loan.objects.filter(id__in=missing_loan_ids)
-            for loan in loans:
-                result[loan.id] = loan.remaining_principal
+            from .models import LoanRepayment, CapitalEvent
+            # Fallback for loans without schedule entries
+            # Fetch initial_principal
+            loan_objs = Loan.objects.filter(id__in=missing_loan_ids).values('id', 'initial_principal')
+            init_map = {l['id']: l['initial_principal'] for l in loan_objs}
 
-        return result
+            # Principal repaid from LoanRepayment
+            repaid_rows = (
+                LoanRepayment.objects
+                .filter(loan_id__in=missing_loan_ids)
+                .values('loan_id')
+                .annotate(total=Sum('principal_amount'))
+            )
+            repaid_map = {r['loan_id']: r['total'] or Decimal('0.00') for r in repaid_rows}
+
+            # Prepayments from CapitalEvent
+            prep_rows = (
+                CapitalEvent.objects
+                .filter(linked_loan_id__in=missing_loan_ids, subtype__in=['loan_down_payment', 'loan_prepayment'])
+                .values('linked_loan_id')
+                .annotate(total=Sum('amount'))
+            )
+            prep_map = {p['linked_loan_id']: p['total'] or Decimal('0.00') for p in prep_rows}
+
+            for lid in missing_loan_ids:
+                init_p = init_map.get(lid, Decimal('0.00'))
+                rep = repaid_map.get(lid, Decimal('0.00'))
+                prep = prep_map.get(lid, Decimal('0.00'))
+                schedule_map[lid] = max(Decimal('0.00'), init_p - rep - prep)
+
+        return schedule_map
 
     # ──────────────────────────────────────────────────────────────────────────
     # Main net-worth computation (set-based, ≤ 8 total queries)
@@ -528,28 +565,32 @@ class LedgerReadService:
                 continue
 
             # ── Full extended valuation (flag on) ──────────────────────────
+            is_accrued = getattr(account, 'show_accrued_balance', True)
+
             if strategy == STRATEGY.HOLDINGS:
-                vals_list = holding_vals_by_account.get(account.id)
-                if vals_list:
-                    # Sum holdings across potentially different holding currencies
+                if is_accrued:
+                    vals_list = holding_vals_by_account.get(account.id)
                     holdings_val = Decimal("0.00")
-                    for v in vals_list:
-                        holdings_val += FXService.convert_using_map(
-                            v['value'], v['currency'], fx_map
-                        )
-                    account_value = holdings_val
+                    if vals_list:
+                        for v in vals_list:
+                            holdings_val += FXService.convert_using_map(
+                                v['value'], v['currency'], fx_map
+                            )
+                    # Additive cash fix: holdings_val + uninvested ledger balance
+                    cash_val = FXService.convert_using_map(ledger_bal, account.currency, fx_map)
+                    account_value = holdings_val + cash_val
                 else:
-                    # No active holdings → fallback to ledger balance
-                    account_value = FXService.convert_using_map(
-                        ledger_bal, account.currency, fx_map
-                    )
+                    from .account_valuation import get_baseline_holdings
+                    native_val = get_baseline_holdings(account, ledger_balance=ledger_bal) or Decimal("0.00")
+                    account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
 
             elif strategy == STRATEGY.DEPOSIT:
-                # Accrual if deposit fields set and show_accrued_balance is True, else ledger balance
-                if getattr(account, 'show_accrued_balance', True):
+                # Accrual if deposit fields set and show_accrued_balance is True, else baseline deposit
+                if is_accrued:
                     native_val = _compute_deposit_value(account, ledger_bal)
                 else:
-                    native_val = ledger_bal
+                    from .account_valuation import get_baseline_deposit
+                    native_val = get_baseline_deposit(account, ledger_balance=ledger_bal) or ledger_bal
                 account_value = FXService.convert_using_map(
                     native_val, account.currency, fx_map
                 )
@@ -572,35 +613,61 @@ class LedgerReadService:
                         abs(ledger_bal), account.currency, fx_map
                     )
 
-            elif strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER):
-                asset_id = account.linked_physical_asset_id
-                if asset_id and asset_id in asset_val_map:
-                    asset_native_val = asset_val_map[asset_id]
-                    # Use the linked physical asset's currency; fall back to account currency if unavailable
-                    asset_ccy = (
-                        account.linked_physical_asset.currency
-                        if account.linked_physical_asset is not None
-                        else account.currency
-                    )
-                    account_value = FXService.convert_using_map(
-                        asset_native_val, asset_ccy, fx_map
-                    )
-                else:
-                    # Fallback: acquisition_cost from linked asset if available, else ledger balance
-                    if (
-                        account.linked_physical_asset_id is not None
-                        and account.linked_physical_asset is not None
-                        and account.linked_physical_asset.acquisition_cost is not None
-                    ):
-                        asset_ccy = account.linked_physical_asset.currency
+            elif strategy == STRATEGY.PHYSICAL_VALUATION:
+                if is_accrued:
+                    asset_id = account.linked_physical_asset_id
+                    if asset_id and asset_id in asset_val_map:
+                        asset_native_val = asset_val_map[asset_id]
+                        # Use the linked physical asset's currency; fall back to account currency if unavailable
+                        asset_ccy = (
+                            account.linked_physical_asset.currency
+                            if account.linked_physical_asset is not None
+                            else account.currency
+                        )
                         account_value = FXService.convert_using_map(
-                            account.linked_physical_asset.acquisition_cost,
-                            asset_ccy, fx_map,
+                            asset_native_val, asset_ccy, fx_map
                         )
                     else:
-                        account_value = FXService.convert_using_map(
-                            ledger_bal, account.currency, fx_map
+                        # Fallback: acquisition_cost from linked asset if available, else ledger balance
+                        if (
+                            account.linked_physical_asset_id is not None
+                            and account.linked_physical_asset is not None
+                            and account.linked_physical_asset.acquisition_cost is not None
+                        ):
+                            asset_ccy = account.linked_physical_asset.currency
+                            account_value = FXService.convert_using_map(
+                                account.linked_physical_asset.acquisition_cost,
+                                asset_ccy, fx_map,
+                            )
+                        else:
+                            account_value = FXService.convert_using_map(
+                                ledger_bal, account.currency, fx_map
+                            )
+                else:
+                    from .account_valuation import get_baseline_physical_valuation
+                    native_val = get_baseline_physical_valuation(account, ledger_balance=ledger_bal) or Decimal("0.00")
+                    account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
+
+            elif strategy == STRATEGY.INSURANCE_SURRENDER:
+                if is_accrued:
+                    asset_id = account.linked_physical_asset_id
+                    if asset_id and asset_id in asset_val_map:
+                        asset_native_val = asset_val_map[asset_id]
+                        asset_ccy = (
+                            account.linked_physical_asset.currency
+                            if account.linked_physical_asset is not None
+                            else account.currency
                         )
+                        account_value = FXService.convert_using_map(
+                            asset_native_val, asset_ccy, fx_map
+                        )
+                    else:
+                        # SPEC §2.6: Insurance MUST fall back to 0.00 when no valuation exists, NEVER acquisition_cost
+                        account_value = Decimal("0.00")
+                else:
+                    from .account_valuation import get_baseline_insurance_surrender
+                    native_val = get_baseline_insurance_surrender(account, ledger_balance=ledger_bal) or Decimal("0.00")
+                    account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
 
             elif strategy == STRATEGY.REVOLVING_CREDIT:
                 # Ledger balance already negative when owed; use as-is

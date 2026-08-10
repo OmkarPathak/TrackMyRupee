@@ -1,0 +1,118 @@
+site_name: TrackMyRupee Docs
+site_url: https://docs.trackmyrupee.com
+site_description: User guide and tutorials for TrackMyRupee — personal finance tracking made simple.
+site_author: TrackMyRupee
+repo_url: https://github.com/OmkarPathak/django-finance-tracker
+repo_name: TrackMyRupee
+edit_uri: ""          # hide "edit this page" links — content is curated, not wiki-style
+
+docs_dir: guide-src
+site_dir: site
+
+not_in_nav: |
+  screenshots/MANIFEST.md
+
+validation:
+  nav:
+    omits_configured: ignore
+  links:
+    not_found: ignore
+
+theme:
+  name: material
+  custom_dir: guide-src/overrides
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+
+  # Disable Material's Roboto; we load our own fonts via extra.css
+  font: false
+
+  palette:
+    # Light mode — follows OS preference
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Dark mode — follows OS preference
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    # Sidebar navigation
+    - navigation.sections          # group nav items under collapsible sections
+    - navigation.expand            # auto-expand active section
+    - navigation.top               # back-to-top button
+    - toc.follow                   # TOC auto-scrolls to highlight current heading
+    - search.highlight             # highlight search terms on landing page
+    - search.suggest               # search suggestions as you type
+    - content.code.copy            # copy button on code blocks
+    - content.tabs.link            # sync tabbed content across the page
+
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  # Callout boxes (!!! note / tip / warning / example / danger)
+  - admonition
+  - pymdownx.details             # collapsible admonitions
+  # Code highlighting
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  # Tabbed content
+  - pymdownx.tabbed:
+      alternate_style: true
+  # Heading anchors and TOC
+  - toc:
+      permalink: true
+      title: "In this article"
+  # Attribute lists (for image sizing / CSS classes)
+  - attr_list
+  - md_in_html
+  # Typographic improvements
+  - pymdownx.smartsymbols
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Philosophy: 00-philosophy.md
+  - Getting Started: 01-getting-started/index.md
+  - Accounts & Net Worth:
+      - Managing Accounts: 02-accounts/index.md
+      - Holdings & Mutual Funds: 02-accounts/holdings.md
+  - Transactions:
+      - Adding Expenses: 03-transactions-expenses/index.md
+      - Adding Income: 04-transactions-income/index.md
+      - Recurring & Subscriptions: 05-transactions-recurring/index.md
+      - Transfers: 06-transfers/index.md
+  - Budgets: 07-budgets/index.md
+  - Loans: 08-loans/index.md
+  - Capital Events: 09-capital-events/index.md
+  - Calendar: 10-calendar/index.md
+  - Analytics & Health: 11-analytics-and-health/index.md
+  - Savings Goals: 12-goals/index.md
+  - Mobile App (iOS): 20-mobile-app/index.md
+  - Self-Hosting: 21-self-hosting/index.md
+  - FAQ: 22-faq/index.md
+
+extra:
+  social:
+    - icon: fontawesome/solid/globe
+      link: https://trackmyrupee.com
+      name: TrackMyRupee App

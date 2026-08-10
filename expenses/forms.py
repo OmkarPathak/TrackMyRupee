@@ -7,6 +7,8 @@ from allauth.socialaccount.models import SocialAccount
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV3
@@ -19,6 +21,7 @@ from .models import (
     Category,
     Expense,
     GoalContribution,
+    Holding,
     Income,
     Loan,
     LoanInterestRate,
@@ -30,6 +33,7 @@ from .models import (
     UserProfile,
 )
 from .utils import BOOTSTRAP_ICONS
+from .account_valuation import get_baseline, get_current
 
 
 class CachedModelChoiceField(forms.ModelChoiceField):
@@ -227,7 +231,8 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
                   'loan',
                   'from_account', 'to_account',
-                  'frequency', 'start_date', 'end_date', 'description', 'is_active', 'payment_method',
+                  'frequency', 'start_date', 'end_date', 'is_last_day_of_month', 'is_last_working_day',
+                  'description', 'is_active', 'payment_method',
                   'capital_subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth']
         widgets = {
             'transaction_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleFields()'}),
@@ -239,9 +244,11 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Salary, Rent')}),
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'to_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
-            'frequency': forms.Select(attrs={'class': 'form-select'}),
+            'frequency': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleMonthlyOptions()'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'is_last_day_of_month': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_last_working_day': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'payment_method': forms.Select(attrs={'class': 'form-select'}),
@@ -355,6 +362,10 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
 
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
+        if start_date:
+            today_year = timezone.localdate().year
+            if start_date.year < 2000 or start_date.year > (today_year + 50):
+                self.add_error('start_date', _('Start date must be between year 2000 and 50 years into the future.'))
         if start_date and end_date and end_date < start_date:
             self.add_error('end_date', _('End date must be after or equal to start date.'))
 
@@ -374,6 +385,12 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                 description=description,
                 frequency=frequency,
                 start_date=start_date,
+                account=cleaned_data.get('account'),
+                from_account=cleaned_data.get('from_account'),
+                to_account=cleaned_data.get('to_account'),
+                category=cleaned_data.get('category'),
+                source=cleaned_data.get('source'),
+                loan=cleaned_data.get('loan'),
                 is_active=True
             )
             if self.instance and self.instance.pk:
@@ -382,6 +399,20 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                 self.add_error(None, _('An active recurring transaction with these exact details already exists.'))
 
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if instance.pk:
+            try:
+                old_obj = RecurringTransaction.objects.get(pk=instance.pk)
+                if old_obj.start_date != instance.start_date or old_obj.frequency != instance.frequency:
+                    instance.last_processed_date = None
+            except RecurringTransaction.DoesNotExist:
+                pass
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
     SALARY_DATE_CHOICES = [(i, str(i)) for i in range(1, 32)]
@@ -634,6 +665,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         choices=[('', '—')] + [
             ('SIMPLE', _('Simple Interest')),
             ('QUARTERLY', _('Quarterly Compounding')),
+            ('MONTHLY', _('Monthly Compounding')),
             ('ANNUAL', _('Annual Compounding')),
         ],
         required=False,
@@ -645,23 +677,131 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         label=_('Deposit Maturity Date'),
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
     )
+    deposit_closed_date = forms.DateField(
+        required=False,
+        label=_('Deposit Closed Date'),
+        help_text=_('Date when the deposit was closed or broken early. Interest stops accruing on this date.'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+    record_maturity_income = forms.BooleanField(
+        required=False,
+        label=_("Record Interest Earned as Income ('Investment Returns')"),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_("Automatically logs an Income transaction under 'Investment Returns' for the accrued interest earned."),
+    )
+    rd_installment_amount = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('RD Installment Amount'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+    rd_installment_day = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=28,
+        label=_('RD Installment Day of Month (1-28)'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '28'}),
+    )
+    credit_limit = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Credit Limit'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+
+    # Inline PhysicalAsset creation fields (used for PHYSICAL_VALUATION & INSURANCE_SURRENDER strategies)
+    create_new_asset = forms.ChoiceField(
+        choices=[('CREATE_NEW', _('+ Create New Asset Inline')), ('SELECT', _('Select Existing Asset'))],
+        initial='CREATE_NEW',
+        required=False,
+        label=_('Asset Source'),
+        widget=forms.RadioSelect(attrs={'class': 'btn-check'}),
+    )
+    asset_name = forms.CharField(
+        required=False,
+        max_length=100,
+        label=_('Physical Asset / Policy Name'),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Pune Apartment, Honda City, LIC Endowment')}),
+    )
+    acquisition_cost = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Acquisition Cost / Purchase Price'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+    acquisition_date = forms.DateField(
+        required=False,
+        label=_('Acquisition / Purchase Date'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+    policy_number = forms.CharField(
+        required=False,
+        max_length=50,
+        label=_('Policy Number'),
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    premium_amount = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Premium Amount'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+    premium_frequency = forms.ChoiceField(
+        choices=[
+            ('ANNUAL', _('Annual')),
+            ('SEMI_ANNUAL', _('Semi-Annual')),
+            ('QUARTERLY', _('Quarterly')),
+            ('MONTHLY', _('Monthly')),
+        ],
+        initial='ANNUAL',
+        required=False,
+        label=_('Premium Frequency'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    policy_start_date = forms.DateField(
+        required=False,
+        label=_('Policy Start Date'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+    sum_assured = forms.DecimalField(
+        required=False,
+        max_digits=15,
+        decimal_places=2,
+        label=_('Sum Assured (Display Only)'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
 
     class Meta:
         model = Account
         fields = [
             'name', 'account_type', 'balance', 'currency',
             'linked_loan', 'linked_physical_asset',
-            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_compounding', 'show_accrued_balance',
+            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'show_accrued_balance', 'record_maturity_income',
+            'rd_installment_amount', 'rd_installment_day', 'credit_limit',
+            'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
+            'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
-            # Django renders grouped choices as <optgroup> automatically — no extra work needed
             'account_type': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'balance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'credit_limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
+
+    @property
+    def fields_by_type_json(self):
+        import json
+        from .account_types import ACCOUNT_TYPE_META, get_fields_for_account_type
+        mapping = {code: get_fields_for_account_type(code) for code in ACCOUNT_TYPE_META}
+        return json.dumps(mapping)
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -678,11 +818,15 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             self.fields['linked_loan'].queryset = Loan.objects.none()
             self.fields['linked_physical_asset'].queryset = PhysicalAsset.objects.none()
 
+        if self.instance and self.instance.pk:
+            has_income = Income.objects.filter(account=self.instance, source_type='Investment Returns').exists()
+            if getattr(self.instance, 'record_maturity_income', False) or has_income:
+                self.initial['record_maturity_income'] = True
+
     def clean_name(self):
         name = self.cleaned_data.get('name')
         if name and self.user:
-            # Check for uniqueness, excluding current instance if updating
-            queryset = Account.objects.filter(user=self.user, name__iexact=name)
+            queryset = Account.objects.filter(user=self.user, name__iexact=name, is_active=True)
             if self.instance.pk:
                 queryset = queryset.exclude(pk=self.instance.pk)
 
@@ -693,29 +837,155 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         account_type = cleaned_data.get('account_type')
+        if not account_type:
+            return cleaned_data
+
+        from .account_types import strategy_for, STRATEGY, get_fields_for_account_type
+        strategy = strategy_for(account_type)
+        allowed_fields = set(get_fields_for_account_type(account_type))
+
         linked_loan = cleaned_data.get('linked_loan')
         linked_physical_asset = cleaned_data.get('linked_physical_asset')
 
-        if account_type:
-            from .account_types import strategy_for, STRATEGY
-            strategy = strategy_for(account_type)
+        # Validation for DEPOSIT strategy
+        if strategy == STRATEGY.DEPOSIT:
+            deposit_principal = cleaned_data.get('deposit_principal')
+            if deposit_principal is None and (not self.instance.pk or self.instance.account_type != account_type):
+                self.add_error('deposit_principal', _('Deposit principal is required for deposit accounts.'))
 
-            # Required: LOAN_OUTSTANDING strategy accounts must link a Loan record
-            if strategy == STRATEGY.LOAN_OUTSTANDING and not linked_loan:
-                self.add_error(
-                    'linked_loan',
-                    _('This account type requires a linked Loan record for outstanding balance valuation.')
-                )
+            if cleaned_data.get('deposit_rate') is None:
+                self.add_error('deposit_rate', _('Interest rate is required for deposit accounts.'))
 
-            # Required: physical valuation strategy accounts must link a Physical Asset
-            if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) \
-                    and not linked_physical_asset:
+            if not cleaned_data.get('deposit_start_date'):
+                self.add_error('deposit_start_date', _('Start date is required for deposit accounts.'))
+
+            if account_type == 'RD':
+                if not cleaned_data.get('rd_installment_amount'):
+                    self.add_error('rd_installment_amount', _('Installment amount is required for Recurring Deposits.'))
+
+                rd_day = cleaned_data.get('rd_installment_day')
+                if not rd_day:
+                    self.add_error('rd_installment_day', _('Installment day (1-28) is required for Recurring Deposits.'))
+                elif not (1 <= rd_day <= 28):
+                    self.add_error('rd_installment_day', _('Installment day must be between 1 and 28.'))
+
+        # Required: LOAN_OUTSTANDING strategy accounts must link a Loan record
+        if strategy == STRATEGY.LOAN_OUTSTANDING and not linked_loan:
+            self.add_error(
+                'linked_loan',
+                _('This account type requires a linked Loan record for outstanding balance valuation.')
+            )
+
+        # Required: physical valuation / insurance strategy accounts must link or create a Physical Asset
+        if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER):
+            create_new = cleaned_data.get('create_new_asset') != 'SELECT'
+            if not linked_physical_asset and not create_new:
                 self.add_error(
                     'linked_physical_asset',
-                    _('This account type requires a linked Physical Asset for valuation.')
+                    _('Select an existing physical asset or choose to create a new asset.')
                 )
+            elif create_new:
+                if strategy == STRATEGY.PHYSICAL_VALUATION:
+                    if cleaned_data.get('acquisition_cost') is None and (not self.instance.pk or not self.instance.linked_physical_asset_id):
+                        self.add_error('acquisition_cost', _('Acquisition cost is required when creating a physical asset.'))
+                    if not cleaned_data.get('acquisition_date') and (not self.instance.pk or not self.instance.linked_physical_asset_id):
+                        self.add_error('acquisition_date', _('Acquisition date is required when creating a physical asset.'))
+
+        # Null out stray/irrelevant fields not belonging to this account_type strategy
+        strategy_fields = {
+            'deposit_principal', 'deposit_rate', 'deposit_start_date',
+            'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding',
+            'rd_installment_amount', 'rd_installment_day', 'credit_limit',
+            'linked_loan', 'linked_physical_asset',
+            'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
+            'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
+        }
+        for field in strategy_fields:
+            if field not in allowed_fields:
+                cleaned_data[field] = None
 
         return cleaned_data
+
+    def save(self, commit=True):
+        from .models import PhysicalAsset, AssetValuation
+        from .account_types import strategy_for, STRATEGY
+
+        account = super().save(commit=False)
+        if self.user and not getattr(account, 'user_id', None):
+            account.user = self.user
+        strategy = strategy_for(account.account_type)
+
+        if commit:
+            with transaction.atomic():
+                for field, value in self.cleaned_data.items():
+                    if hasattr(account, field):
+                        setattr(account, field, value)
+
+                if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) and self.user:
+                    create_new = self.cleaned_data.get('create_new_asset') != 'SELECT'
+                    if (create_new or not account.linked_physical_asset_id):
+                        asset_class = 'REAL_ESTATE' if account.account_type == 'REAL_ESTATE' else (
+                            'VEHICLE' if account.account_type == 'VEHICLE' else 'INSURANCE'
+                        )
+                        acq_cost = self.cleaned_data.get('acquisition_cost')
+                        acq_date = self.cleaned_data.get('acquisition_date') or date.today()
+
+                        asset = PhysicalAsset.objects.create(
+                            user=self.user,
+                            name=self.cleaned_data.get('asset_name') or account.name,
+                            asset_class=asset_class,
+                            acquisition_cost=acq_cost,
+                            acquisition_date=acq_date,
+                            currency=account.currency,
+                            policy_number=self.cleaned_data.get('policy_number') or '',
+                            premium_amount=self.cleaned_data.get('premium_amount'),
+                            premium_frequency=self.cleaned_data.get('premium_frequency') or 'ANNUAL',
+                            policy_start_date=self.cleaned_data.get('policy_start_date'),
+                            sum_assured=self.cleaned_data.get('sum_assured'),
+                        )
+                        account.linked_physical_asset = asset
+
+                        # Seed initial AssetValuation
+                        if strategy == STRATEGY.PHYSICAL_VALUATION:
+                            initial_val = acq_cost or Decimal('0.00')
+                            AssetValuation.objects.create(
+                                asset=asset,
+                                value=initial_val,
+                                as_of_date=acq_date,
+                            )
+                        elif strategy == STRATEGY.INSURANCE_SURRENDER:
+                            # SPEC §2.6: Initial AssetValuation for insurance defaults to 0.00 (NOT premium_amount)
+                            policy_start = self.cleaned_data.get('policy_start_date') or date.today()
+                            AssetValuation.objects.create(
+                                asset=asset,
+                                value=Decimal('0.00'),
+                                as_of_date=policy_start,
+                            )
+
+                account.save()
+                if self.cleaned_data.get('record_maturity_income'):
+                    self._record_maturity_income(account)
+        return account
+
+    def _record_maturity_income(self, account):
+        today_val = account.deposit_closed_date or account.deposit_maturity_date or date.today()
+        current_val = get_current(account, today=today_val)
+        baseline_val = get_baseline(account, today=today_val) or Decimal('0.00')
+        interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
+
+        if interest_earned > Decimal('0.00'):
+            # Only create Income if one does not exist for this account under Investment Returns
+            if not Income.objects.filter(account=account, source_type='Investment Returns').exists():
+                Income.objects.create(
+                    user=account.user,
+                    date=today_val,
+                    amount=interest_earned,
+                    currency=account.currency,
+                    source_type='Investment Returns',
+                    source=f"Interest from {account.name}",
+                    account=account,
+                    description=f"Accrued interest earned on deposit {account.name}",
+                )
 
 class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
@@ -975,3 +1245,18 @@ class CapitalEventForm(SearchableSelectFormMixin, forms.ModelForm):
         if amount is not None and amount <= 0:
             raise forms.ValidationError(_("Amount must be greater than zero."))
         return amount
+
+
+class HoldingForm(forms.ModelForm):
+    class Meta:
+        model = Holding
+        fields = ['instrument_name', 'instrument_type', 'units', 'avg_cost', 'currency', 'scheme_code', 'isin']
+        widgets = {
+            'instrument_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. HDFC Top 100 Fund'}),
+            'instrument_type': forms.Select(attrs={'class': 'form-select'}),
+            'units': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'placeholder': '0.00'}),
+            'avg_cost': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'currency': forms.Select(attrs={'class': 'form-select'}),
+            'scheme_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 101234'}),
+            'isin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional ISIN'}),
+        }

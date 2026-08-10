@@ -1,0 +1,54 @@
+name: Deploy Docs to GitHub Pages
+
+# Triggers on push to main, but ONLY when guide-src/ or mkdocs.yml change.
+# Regular app code changes do not trigger a docs rebuild.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "guide-src/**"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+  # Allow manual trigger from the GitHub Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to push to gh-pages branch
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      # ── 1. Checkout full history (allows mkdocs to read git dates if needed) ──
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 2. Set up Python ──────────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements-docs.txt
+
+      # ── 3. Install MkDocs + Material theme ───────────────────────────────────
+      - name: Install MkDocs dependencies
+        run: pip install -r requirements-docs.txt
+
+      # ── 4. Build the site (dry-run — catches broken links/refs before deploy) ─
+      - name: Build docs (strict mode)
+        run: mkdocs build --strict --verbose
+
+      # ── 5. Deploy to gh-pages branch ─────────────────────────────────────────
+      # mkdocs gh-deploy pushes site/ to the gh-pages branch and nothing else.
+      # --force overwrites previous gh-pages content cleanly.
+      # --message stamps the commit with the triggering SHA.
+      - name: Deploy to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdocs gh-deploy --force --clean \
+            --message "docs: deploy from {sha} [skip ci]"

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <!-- Background: Rounded Square (Edge-to-edge) -->
+  <rect width="32" height="32" rx="6" fill="#1D9E75" />
+  
+  <!-- Foreground: Growth Chart Line (Adjusted for no padding) -->
+  <path d="M6 23L12 17L16 21L26 9" 
+        stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- A dot at the peak -->
+  <circle cx="26" cy="9" r="2.5" fill="white" />
+</svg>

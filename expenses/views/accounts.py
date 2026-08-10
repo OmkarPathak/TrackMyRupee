@@ -28,12 +28,14 @@ from ..models import (
     CapitalEvent,
     Expense,
     GoalContribution,
+    Holding,
     Income,
     LoanRepayment,
     Transfer,
     _run_ledger_shadow,
 )
 from ..utils import get_exchange_rate
+from ..account_valuation import get_interest_summary, get_baseline, get_current
 from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
@@ -230,6 +232,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         context['current_status'] = current_status
         context['total_balance'] = total_balance.quantize(Decimal('0.01'))
         context['total_balance_currency'] = user_currency
+
+        context['interest_summary'] = get_interest_summary(self.request.user)
         return context
 
 class AccountCreateView(LoginRequiredMixin, CreateView):
@@ -915,3 +919,269 @@ class AccountDetailView(LoginRequiredMixin, View):
                 return self[0] if self else None
                 
         return PseudoQS(all_tx)
+
+
+class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
+    """
+    Action view to record accrued interest earned on an FD/RD account as an
+    Income entry under 'Investment Returns'.
+    """
+    def post(self, request, *args, **kwargs):
+        account = get_object_by_uuid_or_pk(Account, kwargs.get('pk') or kwargs.get('uuid'), user=request.user)
+
+        today_val = account.deposit_closed_date or account.deposit_maturity_date or date.today()
+        current_val = get_current(account, today=today_val)
+        baseline_val = get_baseline(account, today=today_val) or Decimal('0.00')
+        interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
+
+        if interest_earned <= Decimal('0.00'):
+            messages.warning(request, _("No accrued interest earned to record for %(name)s.") % {'name': account.name})
+        else:
+            Income.objects.create(
+                user=request.user,
+                date=today_val,
+                amount=interest_earned,
+                currency=account.currency,
+                source_type='Investment Returns',
+                source=f"Interest from {account.name}",
+                account=account,
+                description=f"Accrued interest earned on deposit {account.name}",
+            )
+            messages.success(
+                request,
+                _("Recorded %(currency)s%(amount)s interest for %(name)s as Income under 'Investment Returns'.") % {
+                    'currency': account.currency,
+                    'amount': interest_earned,
+                    'name': account.name,
+                }
+            )
+
+        redirect_url = request.META.get('HTTP_REFERER') or reverse_lazy('account-list')
+        return redirect(redirect_url)
+
+
+def search_amfi_schemes(request):
+    """
+    Search endpoint over local AMFIScheme search mirror with live MFapi fallback (SPEC §3a).
+    Returns top 15 matching scheme names/codes.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'results': []}, status=401)
+    
+    q = request.GET.get('q', '').strip()
+    if not q or len(q) < 2:
+        return JsonResponse({'results': []})
+    
+    from ..models import AMFIScheme
+    results = []
+    
+    # 1. Try local AMFIScheme table first
+    schemes = AMFIScheme.objects.filter(
+        Q(scheme_name__icontains=q) | Q(scheme_code__icontains=q)
+    )[:15]
+    
+    if schemes.exists():
+        results = [
+            {'scheme_code': s.scheme_code, 'scheme_name': s.scheme_name, 'isin': s.isin}
+            for s in schemes
+        ]
+    else:
+        # 2. Live fallback to MFapi.in search API
+        try:
+            import urllib.parse
+            import requests
+            encoded_q = urllib.parse.quote(q)
+            url = f"https://api.mfapi.in/mf/search?q={encoded_q}"
+            resp = requests.get(url, headers={'User-Agent': 'TrackMyRupee/1.0'}, timeout=5)
+            if resp.status_code == 200:
+                data = resp.json()
+                for item in data[:15]:
+                    code = str(item.get('schemeCode'))
+                    name = item.get('schemeName')
+                    if code and name:
+                        results.append({'scheme_code': code, 'scheme_name': name, 'isin': None})
+        except Exception:
+            pass
+            
+    return JsonResponse({'results': results})
+
+
+def refresh_holding_nav(request, pk):
+    """
+    Manual "Refresh Now" action on a holding (SPEC §3a point 3).
+    Bypasses circuit-breaker backoff and forces immediate fetch.
+    """
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+    
+    from django.shortcuts import get_object_or_404
+    from ..models import Holding
+    from ..nav_provider import NAVFetchService
+
+    holding = get_object_or_404(Holding, pk=pk, account__user=request.user)
+    if not holding.scheme_code:
+        messages.warning(request, _("No scheme code configured for this holding."))
+    else:
+        service = NAVFetchService()
+        cache, success = service.fetch_scheme(holding.scheme_code, force=True)
+        if success:
+            messages.success(
+                request,
+                _("Successfully updated NAV for %(name)s (latest NAV: %(nav)s).") % {
+                    'name': holding.instrument_name,
+                    'nav': cache.latest_nav if cache else '',
+                }
+            )
+        else:
+            messages.warning(
+                request,
+                _("Failed to fetch fresh NAV for %(name)s. Using cached valuation.") % {
+                    'name': holding.instrument_name,
+                }
+            )
+            
+    return redirect('account-detail', pk=holding.account.pk)
+
+
+def holding_create_view(request, pk=None):
+    """
+    Creates a new Holding under an account.
+    """
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+        
+    from decimal import InvalidOperation
+    from ..models import Holding, AMFIScheme
+    from ..nav_provider import NAVFetchService
+
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse_lazy('holding-list')
+    account_id = pk or request.POST.get('account_id')
+    
+    if not account_id:
+        messages.error(request, _("Please select an investment account."))
+        return redirect(next_url)
+
+    account = get_object_by_uuid_or_pk(Account, account_id, user=request.user)
+    if request.method == 'POST':
+        name = request.POST.get('instrument_name', '').strip()
+        scheme_code = request.POST.get('scheme_code', '').strip()
+        isin = request.POST.get('isin', '').strip()
+        units_str = request.POST.get('units', '0')
+        avg_cost_str = request.POST.get('avg_cost', '0')
+        
+        if not name:
+            messages.error(request, _("Holding name is required."))
+            return redirect(next_url)
+
+        # Smart Auto-Resolution: if scheme_code is blank, search by fund name
+        if not scheme_code and name:
+            local_match = AMFIScheme.objects.filter(scheme_name__icontains=name).first()
+            if local_match:
+                scheme_code = local_match.scheme_code
+            else:
+                try:
+                    import urllib.parse
+                    import requests
+                    encoded_q = urllib.parse.quote(name)
+                    url = f"https://api.mfapi.in/mf/search?q={encoded_q}"
+                    resp = requests.get(url, headers={'User-Agent': 'TrackMyRupee/1.0'}, timeout=5)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        if data:
+                            scheme_code = str(data[0].get('schemeCode'))
+                except Exception:
+                    pass
+
+        try:
+            units = Decimal(units_str)
+            avg_cost = Decimal(avg_cost_str)
+        except (ValueError, InvalidOperation):
+            messages.error(request, _("Invalid units or purchase price format."))
+            return redirect(next_url)
+            
+        if units <= Decimal('0') or avg_cost <= Decimal('0'):
+            messages.error(request, _("Units and average price must be greater than zero."))
+            return redirect(next_url)
+            
+        holding = Holding.objects.create(
+            account=account,
+            instrument_name=name,
+            instrument_type='MF' if account.account_type in ('MUTUAL_FUND', 'INVESTMENT') else 'OTHER',
+            units=units,
+            avg_cost=avg_cost,
+            currency=account.currency,
+            scheme_code=scheme_code or None,
+            isin=isin or None,
+            is_active=True,
+        )
+        
+        if scheme_code:
+            service = NAVFetchService()
+            service.fetch_scheme(scheme_code, force=True)
+            
+        messages.success(request, _("Holding '%(name)s' added successfully.") % {'name': name})
+    return redirect(next_url)
+
+
+def holding_delete_view(request, pk):
+    """
+    Deactivates a Holding from an account.
+    """
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+        
+    from django.shortcuts import get_object_or_404
+    from ..models import Holding
+
+    holding = get_object_or_404(Holding, pk=pk, account__user=request.user)
+    holding.is_active = False
+    holding.save()
+    messages.success(request, _("Holding '%(name)s' removed.") % {'name': holding.instrument_name})
+    
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or reverse_lazy('holding-list')
+    return redirect(next_url)
+
+
+class HoldingsListView(LoginRequiredMixin, ListView):
+    """
+    Dedicated Holdings & Investment Portfolio page for all active user holdings.
+    """
+    model = Holding
+    template_name = 'expenses/holding_list.html'
+    context_object_name = 'holdings'
+
+    def get_queryset(self):
+        return Holding.objects.filter(
+            account__user=self.request.user,
+            is_active=True,
+        ).select_related('account').prefetch_related('valuations')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        holdings = context['holdings']
+        
+        total_valuation = Decimal('0.00')
+        total_cost = Decimal('0.00')
+        
+        for h in holdings:
+            val = h.valuations.first()
+            if val:
+                total_valuation += val.value
+            else:
+                total_valuation += h.cost_basis
+            total_cost += h.cost_basis
+            
+        unrealized_gain = total_valuation - total_cost
+        gain_pct = ((unrealized_gain / total_cost) * Decimal('100')).quantize(Decimal('0.1')) if total_cost > 0 else Decimal('0.0')
+        
+        context['total_valuation'] = total_valuation
+        context['total_cost'] = total_cost
+        context['unrealized_gain'] = unrealized_gain
+        context['gain_pct'] = gain_pct
+        context['user_currency'] = self.request.user.profile.currency
+        context['user_accounts'] = Account.objects.filter(
+            user=self.request.user,
+            is_active=True,
+            account_type__in=['MUTUAL_FUND', 'INVESTMENT', 'STOCKS', 'OTHER_ASSETS', 'NPS', 'PF', 'GOLD', 'SAVINGS']
+        )
+        return context

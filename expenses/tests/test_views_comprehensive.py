@@ -1273,6 +1273,28 @@ class AllTransactionsViewTest(BaseComprehensiveTest):
         desc_amounts = [tx['unified_amount'] for tx in desc_response.context['transactions']]
         self.assertEqual(desc_amounts, [Decimal('300.00'), Decimal('100.00')])
 
+    def test_all_transactions_default_sorting_by_created_at_desc(self):
+        """Test default sorting of all transactions page is by creation date descending."""
+        tx_date = date.today()
+        e1 = Expense.objects.create(
+            user=self.user,
+            amount=100,
+            category='First Created',
+            date=tx_date
+        )
+        e2 = Expense.objects.create(
+            user=self.user,
+            amount=200,
+            category='Second Created',
+            date=tx_date
+        )
+
+        response = self.client.get(reverse('all-transactions'))
+        self.assertEqual(response.status_code, 200)
+        transactions = list(response.context['transactions'])
+        self.assertEqual(transactions[0]['cat'], 'Second Created')
+        self.assertEqual(transactions[1]['cat'], 'First Created')
+
     def test_all_transactions_cc_balances_and_summary_bar(self):
         """Test summary amounts and CC balance after payment calculations."""
         # 1. Create a Credit Card account

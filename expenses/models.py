@@ -179,6 +179,7 @@ class Account(models.Model):
     COMPOUNDING_CHOICES = [
         ('SIMPLE', _('Simple Interest')),
         ('QUARTERLY', _('Quarterly Compounding')),
+        ('MONTHLY', _('Monthly Compounding')),
         ('ANNUAL', _('Annual Compounding')),
     ]
     deposit_principal = models.DecimalField(
@@ -210,10 +211,64 @@ class Account(models.Model):
         verbose_name=_('Show Accrued Balance'),
         help_text=_('If enabled, the dashboard and account lists will display the projected accrued balance instead of the ledger balance.')
     )
+    rd_installment_amount = models.DecimalField(
+        max_digits=15, decimal_places=2,
+        null=True, blank=True,
+        verbose_name=_('RD Installment Amount'),
+    )
+    rd_installment_day = models.PositiveIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(28)],
+        verbose_name=_('RD Installment Day'),
+    )
+    deposit_closed_date = models.DateField(
+        null=True, blank=True,
+        verbose_name=_('Deposit Closed Date'),
+    )
+    record_maturity_income = models.BooleanField(
+        default=False,
+        verbose_name=_('Record Interest Earned as Income'),
+        help_text=_('If enabled, accrued interest is recorded as Income under Investment Returns.')
+    )
+    credit_limit = models.DecimalField(
+        max_digits=15, decimal_places=2,
+        null=True, blank=True,
+        verbose_name=_('Credit Limit'),
+    )
+
+    @property
+    def has_credit_limit(self) -> bool:
+        return self.credit_limit is not None and self.credit_limit > Decimal('0.00')
+
+    @property
+    def used_credit(self) -> Decimal:
+        """Amount of credit used (positive decimal balance)."""
+        bal = getattr(self, 'display_balance', self.balance)
+        if bal and bal < Decimal('0.00'):
+            return abs(bal)
+        return Decimal('0.00')
+
+    @property
+    def available_credit(self) -> Decimal:
+        """Remaining available credit limit."""
+        if not self.has_credit_limit:
+            return Decimal('0.00')
+        return max(Decimal('0.00'), self.credit_limit - self.used_credit)
+
+    @property
+    def credit_utilization_pct(self) -> Decimal:
+        """Credit limit utilization percentage (0-100+)."""
+        if not self.has_credit_limit:
+            return Decimal('0.00')
+        return ((self.used_credit / self.credit_limit) * Decimal('100')).quantize(Decimal('0.1'))
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'name'], name='unique_account_per_user')
+            models.UniqueConstraint(
+                fields=['user', 'name'],
+                condition=models.Q(is_active=True),
+                name='unique_account_per_user'
+            )
         ]
         indexes = [
             models.Index(fields=['user', 'account_type', 'is_active'], name='acc_user_type_active_idx'),
@@ -259,6 +314,10 @@ class LedgerAccount(models.Model):
     name = models.CharField(max_length=150)
     account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES)
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, null=True, blank=True)
+    cached_balance = models.DecimalField(
+        max_digits=15, decimal_places=2, null=True, blank=True,
+        verbose_name=_('Cached Balance'),
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -425,6 +484,7 @@ class Expense(models.Model):
     base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Account'))
+    linked_physical_asset = models.ForeignKey('PhysicalAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Linked Physical Asset'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -603,6 +663,7 @@ class Expense(models.Model):
             models.Index(fields=['user', 'payment_method']),
             models.Index(fields=['user', 'date']),
             models.Index(fields=['user', 'account']),
+            models.Index(fields=['linked_physical_asset']),
         ]
 
     def __str__(self):
@@ -614,6 +675,7 @@ class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name=_('Category Name'))
     icon = models.CharField(max_length=50, default='bi-tag', verbose_name=_('Icon'))
     limit = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Monthly Limit'))
+    is_interest_category = models.BooleanField(default=False, verbose_name=_('Is Interest Category'))
 
     def save(self, *args, **kwargs):
         if self.name:
@@ -1073,7 +1135,10 @@ class RecurringTransaction(models.Model):
     FREQUENCY_CHOICES = [
         ('DAILY', _('Daily')),
         ('WEEKLY', _('Weekly')),
+        ('BIWEEKLY', _('Bi-Weekly (Every 2 Weeks)')),
         ('MONTHLY', _('Monthly')),
+        ('QUARTERLY', _('Quarterly (Every 3 Months)')),
+        ('SEMIANNUALLY', _('Semi-Annually (Every 6 Months)')),
         ('YEARLY', _('Yearly')),
     ]
     TRANSACTION_TYPE_CHOICES = [
@@ -1117,9 +1182,11 @@ class RecurringTransaction(models.Model):
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_out', verbose_name=_('From Account'))
     to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_in', verbose_name=_('To Account'))
 
-    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, verbose_name=_('Frequency'))
+    frequency = models.CharField(max_length=15, choices=FREQUENCY_CHOICES, verbose_name=_('Frequency'))
     start_date = models.DateField(verbose_name=_('Start Date'))
     end_date = models.DateField(null=True, blank=True, verbose_name=_('End Date'))
+    is_last_day_of_month = models.BooleanField(default=False, verbose_name=_('Repeat on last day of month'))
+    is_last_working_day = models.BooleanField(default=False, verbose_name=_('Repeat on last working day of month'))
     last_processed_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1135,26 +1202,73 @@ class RecurringTransaction(models.Model):
                 raise ValidationError({'source_fk': _('Another recurring transaction already uses this source.')})
 
     @staticmethod
-    def get_next_date(current_date, frequency):
+    def get_next_date(current_date, frequency, start_date=None, is_last_day_of_month=False, is_last_working_day=False):
+        """
+        Calculate the next occurrence date after current_date for a given frequency.
+        Uses dateutil.rrule for RFC 5545 recurrence compliance.
+        """
+        from datetime import datetime, time
+        from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR
+
+        if not start_date:
+            start_date = current_date
+
+        dt_start = datetime.combine(start_date, time.min)
+        dt_current = datetime.combine(current_date, time.min)
+
         if frequency == 'DAILY':
-            return current_date + timedelta(days=1)
+            rule = rrule(DAILY, interval=1, dtstart=dt_start)
         elif frequency == 'WEEKLY':
-            return current_date + timedelta(weeks=1)
+            rule = rrule(WEEKLY, interval=1, dtstart=dt_start)
+        elif frequency == 'BIWEEKLY':
+            rule = rrule(WEEKLY, interval=2, dtstart=dt_start)
         elif frequency == 'MONTHLY':
-            month = current_date.month % 12 + 1
-            year = current_date.year + (current_date.month // 12)
-            try:
-                return current_date.replace(year=year, month=month)
-            except ValueError:
-                # Handle Feb 29/30/31
-                next_month = current_date + timedelta(days=31)
-                return next_month.replace(day=1) - timedelta(days=1)
+            if is_last_working_day:
+                rule = rrule(MONTHLY, interval=1, dtstart=dt_start, bymonthday=(-1, -2, -3), byweekday=(MO, TU, WE, TH, FR))
+                next_dt = rule.after(dt_current)
+                if next_dt:
+                    return next_dt.date()
+            elif is_last_day_of_month:
+                rule = rrule(MONTHLY, interval=1, dtstart=dt_start, bymonthday=-1)
+                next_dt = rule.after(dt_current)
+                if next_dt:
+                    return next_dt.date()
+            else:
+                import calendar
+                max_days_this = calendar.monthrange(current_date.year, current_date.month)[1]
+                this_month_occ = date(current_date.year, current_date.month, min(start_date.day, max_days_this))
+                if current_date < this_month_occ:
+                    return this_month_occ
+                month = current_date.month % 12 + 1
+                year = current_date.year + (current_date.month // 12)
+                max_days_next = calendar.monthrange(year, month)[1]
+                return date(year, month, min(start_date.day, max_days_next))
+        elif frequency == 'QUARTERLY':
+            import calendar
+            max_days = calendar.monthrange(dt_start.year, dt_start.month)[1]
+            target_day = min(dt_start.day, max_days)
+            rule = rrule(MONTHLY, interval=3, dtstart=dt_start, bymonthday=target_day)
+        elif frequency == 'SEMIANNUALLY':
+            import calendar
+            max_days = calendar.monthrange(dt_start.year, dt_start.month)[1]
+            target_day = min(dt_start.day, max_days)
+            rule = rrule(MONTHLY, interval=6, dtstart=dt_start, bymonthday=target_day)
         elif frequency == 'YEARLY':
-            try:
-                return current_date.replace(year=current_date.year + 1)
-            except ValueError:
-                return current_date.replace(year=current_date.year + 1, month=2, day=28)
-        return current_date + timedelta(days=365)
+            import calendar
+            max_days_this = calendar.monthrange(current_date.year, start_date.month)[1]
+            this_year_occ = date(current_date.year, start_date.month, min(start_date.day, max_days_this))
+            if current_date < this_year_occ:
+                return this_year_occ
+            next_year = current_date.year + 1
+            max_days_next = calendar.monthrange(next_year, start_date.month)[1]
+            return date(next_year, start_date.month, min(start_date.day, max_days_next))
+        else:
+            return current_date + timedelta(days=365)
+
+        next_dt = rule.after(dt_current)
+        if next_dt:
+            return next_dt.date()
+        return current_date + timedelta(days=30)
 
     @property
     def next_due_date(self):
@@ -1166,46 +1280,13 @@ class RecurringTransaction(models.Model):
     def _calculate_next_due_date(self):
         if not self.last_processed_date or self.last_processed_date < self.start_date:
             return self.start_date
-
-        if self.frequency == 'DAILY':
-            return self.last_processed_date + timedelta(days=1)
-            
-        elif self.frequency == 'WEEKLY':
-            target = self.last_processed_date + timedelta(days=1)
-            days_ahead = (self.start_date.weekday() - target.weekday()) % 7
-            return target + timedelta(days=days_ahead)
-            
-        elif self.frequency == 'MONTHLY':
-            target = self.last_processed_date + timedelta(days=1)
-            month = target.month
-            year = target.year
-            
-            if target.day > self.start_date.day:
-                month += 1
-                if month > 12:
-                    month = 1
-                    year += 1
-                    
-            while True:
-                try:
-                    return date(year, month, self.start_date.day)
-                except ValueError:
-                    if month == 12:
-                        return date(year + 1, 1, 1) - timedelta(days=1)
-                    else:
-                        return date(year, month + 1, 1) - timedelta(days=1)
-
-        elif self.frequency == 'YEARLY':
-            target = self.last_processed_date + timedelta(days=1)
-            year = target.year
-            if (target.month, target.day) > (self.start_date.month, self.start_date.day):
-                year += 1
-            try:
-                return date(year, self.start_date.month, self.start_date.day)
-            except ValueError:
-                return date(year, 2, 28)
-                
-        return self.get_next_date(self.last_processed_date, self.frequency)
+        return self.get_next_date(
+            self.last_processed_date,
+            self.frequency,
+            self.start_date,
+            self.is_last_day_of_month,
+            self.is_last_working_day,
+        )
 
     def save(self, *args, **kwargs):
         # Multi-currency normalization
@@ -1774,6 +1855,15 @@ class Loan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='loans')
     name = models.CharField(max_length=100, verbose_name=_('Loan Name'))
     loan_type = models.CharField(max_length=20, choices=LOAN_TYPES, default='HOME', verbose_name=_('Loan Type'))
+    REPAYMENT_TYPE_CHOICES = [
+        ('EMI', _('EMI Amortizing')),
+        ('BULLET', _('Bullet Repayment')),
+        ('INTEREST_ONLY', _('Interest Only')),
+    ]
+    repayment_type = models.CharField(
+        max_length=20, choices=REPAYMENT_TYPE_CHOICES, default='EMI',
+        verbose_name=_('Repayment Type'),
+    )
     initial_principal = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Initial Principal Amount'))
     duration_months = models.IntegerField(verbose_name=_('Duration (Months)'))
     start_date = models.DateField(default=timezone.now, verbose_name=_('Start Date'))
@@ -1980,6 +2070,9 @@ class LoanRepayment(models.Model):
                 }
             )
 
+            from .services import LoanService
+            LoanService.sync_loan_active_status(self.loan)
+
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             if self.from_account:
@@ -1989,7 +2082,7 @@ class LoanRepayment(models.Model):
                 if self.loan.currency != locked_account.currency:
                     rate = get_exchange_rate(self.loan.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
-                
+
                 locked_account.balance += apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
@@ -2023,7 +2116,7 @@ class LoanRepayment(models.Model):
                 self.is_deleted = True
                 self.deleted_at = timezone.now()
                 self.save(update_fields=['is_deleted', 'deleted_at'])
-                
+
                 FinancialAuditLog.objects.create(
                     user=self.loan.user,
                     model_name='LoanRepayment',
@@ -2034,6 +2127,9 @@ class LoanRepayment(models.Model):
                 )
             else:
                 super().delete(*args, **kwargs)
+
+            from .services import LoanService
+            LoanService.sync_loan_active_status(self.loan)
 
 
 class DeletionRequestAuditLog(models.Model):
@@ -2273,6 +2369,8 @@ class Holding(models.Model):
     avg_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
     is_active = models.BooleanField(default=True)
+    scheme_code = models.CharField(max_length=50, null=True, blank=True, db_index=True)
+    isin = models.CharField(max_length=50, null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -2280,7 +2378,14 @@ class Holding(models.Model):
         indexes = [
             # Backs the filter on active holdings per account in net-worth computation
             models.Index(fields=['account', 'is_active'], name='holding_account_active_idx'),
+            models.Index(fields=['scheme_code', 'is_active'], name='holding_scheme_active_idx'),
         ]
+
+    @property
+    def cost_basis(self):
+        units = self.units or Decimal('0.00')
+        avg_cost = self.avg_cost or Decimal('0.00')
+        return (units * avg_cost).quantize(Decimal('0.01'))
 
     def __str__(self):
         return f"{self.instrument_name} in {self.account.name}"
@@ -2306,6 +2411,51 @@ class Valuation(models.Model):
         return f"{self.holding.instrument_name} - {self.value} on {self.as_of_date}"
 
 
+class FundNAVCache(models.Model):
+    """
+    SPEC §3a: Explicitly justified model to deduplicate NAV fetches across users.
+    If 500 users hold the same scheme, the daily fetch job queries the provider ONCE.
+    """
+    scheme_code = models.CharField(max_length=50, unique=True, db_index=True)
+    scheme_name = models.CharField(max_length=255, null=True, blank=True)
+    isin = models.CharField(max_length=50, null=True, blank=True, db_index=True)
+    latest_nav = models.DecimalField(max_digits=15, decimal_places=4, null=True, blank=True)
+    nav_as_of_date = models.DateField(null=True, blank=True)
+    last_fetch_attempt_at = models.DateTimeField(null=True, blank=True)
+    last_fetch_error = models.TextField(null=True, blank=True)
+    consecutive_failure_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Fund NAV Cache'
+        verbose_name_plural = 'Fund NAV Caches'
+
+    def __str__(self):
+        return f"{self.scheme_code} - {self.scheme_name or 'Unknown'} ({self.latest_nav})"
+
+
+class AMFIScheme(models.Model):
+    """
+    Local search mirror for AMFI scheme list (code + name + ISIN).
+    Used purely for fund-search autocomplete UX when populating Holding.scheme_code.
+    Distinct from FundNAVCache (which stores cached NAV values).
+    """
+    scheme_code = models.CharField(max_length=50, unique=True, db_index=True)
+    scheme_name = models.CharField(max_length=255, db_index=True)
+    isin = models.CharField(max_length=50, null=True, blank=True, db_index=True)
+
+    class Meta:
+        verbose_name = 'AMFI Scheme'
+        verbose_name_plural = 'AMFI Schemes'
+        indexes = [
+            models.Index(fields=['scheme_name'], name='amfi_scheme_name_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.scheme_code} - {self.scheme_name}"
+
+
 class PhysicalAsset(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='physical_assets')
@@ -2314,12 +2464,27 @@ class PhysicalAsset(models.Model):
         ('REAL_ESTATE', 'Real Estate'),
         ('VEHICLE', 'Vehicle'),
         ('GOLD', 'Gold/Jewelry'),
+        ('INSURANCE', 'Insurance Policy'),
         ('OTHER', 'Other'),
     ]
     asset_class = models.CharField(max_length=20, choices=ASSET_CLASSES, default='OTHER')
     acquisition_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     acquisition_date = models.DateField(null=True, blank=True)
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
+    policy_number = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('Policy Number'))
+    premium_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Premium Amount'))
+    PREMIUM_FREQUENCY_CHOICES = [
+        ('ANNUAL', _('Annual')),
+        ('SEMI_ANNUAL', _('Semi-Annual')),
+        ('QUARTERLY', _('Quarterly')),
+        ('MONTHLY', _('Monthly')),
+    ]
+    premium_frequency = models.CharField(
+        max_length=20, choices=PREMIUM_FREQUENCY_CHOICES, null=True, blank=True,
+        verbose_name=_('Premium Frequency'),
+    )
+    policy_start_date = models.DateField(null=True, blank=True, verbose_name=_('Policy Start Date'))
+    sum_assured = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Sum Assured'))
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

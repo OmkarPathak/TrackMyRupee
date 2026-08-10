@@ -107,6 +107,11 @@
                         </a>
                     </li>
                     <li class="nav-item d-lg-none">
+                        <a href="{% url 'holding-list' %}" class="nav-link {% if 'holding' in request.resolver_match.url_name %}active{% endif %}">
+                            {% trans "Holdings Portfolio" %}
+                        </a>
+                    </li>
+                    <li class="nav-item d-lg-none">
                         <a href="{% url 'calendar' %}" class="nav-link {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
                             {% trans "Calendar" %}
                         </a>
@@ -372,7 +377,7 @@
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body p-0" style="overflow-y: auto;">
+    <div class="offcanvas-body p-0" style="overflow-y: auto; overflow-x: hidden;">
         <!-- User Profile Header -->
         <div class="px-4 py-4 border-bottom bg-body-tertiary">
             <div class="d-flex align-items-center gap-3">
@@ -401,6 +406,11 @@
             }
             .mobile-grid-item:active, .mobile-grid-item:hover {
                 background-color: var(--bs-tertiary-bg);
+            }
+            /* Prevent any row-level negative margin bleed */
+            #moreMenuSheet .offcanvas-body .row {
+                margin-left: 0;
+                margin-right: 0;
             }
         </style>
         <div class="pb-3 mt-2">
@@ -458,7 +468,14 @@
                         <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Accounts" %}</span>
                     </a>
                 </div>
-                
+
+                <div class="col">
+                    <a href="{% url 'holding-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-graph-up-arrow text-success mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Holdings" %}</span>
+                    </a>
+                </div>
+
                 <div class="col">
                     {% if user.profile.can_track_loans %}
                     <a href="{% url 'loan-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
@@ -479,7 +496,7 @@
                         <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Capital Events" %}</span>
                     </a>
                 </div>
-                
+
                 {% if user.profile.active_tier == 'PRO' %}
                 <div class="col">
                     <a href="{% url 'goal-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">

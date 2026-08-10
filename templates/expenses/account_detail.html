@@ -221,17 +221,8 @@ function renderAccountTrendChart() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.querySelector('input[name="q"]');
-    if (searchInput) {
-        searchInput.blur();
-        const preventAutoKeyboard = function() {
-            searchInput.blur();
-            searchInput.removeEventListener('focus', preventAutoKeyboard);
-        };
-        searchInput.addEventListener('focus', preventAutoKeyboard);
-        setTimeout(function() {
-            searchInput.removeEventListener('focus', preventAutoKeyboard);
-        }, 1000);
+    if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+        document.activeElement.blur();
     }
     renderAccountTrendChart();
 });
@@ -239,6 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
 document.body.addEventListener('htmx:afterSwap', function(e) {
     if (e.detail.target && e.detail.target.id === 'account-detail-shell') {
         renderAccountTrendChart();
+        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+            document.activeElement.blur();
+        }
     }
 });
 </script>

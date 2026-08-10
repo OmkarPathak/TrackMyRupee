@@ -5,6 +5,8 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from expenses.models import Expense
+from datetime import date, timedelta
+from allauth.account.models import EmailAddress
 
 
 class SecurityReportsTests(TestCase):
@@ -13,14 +15,16 @@ class SecurityReportsTests(TestCase):
         self.user.profile.is_verified = True
         self.user.profile.save()
         
-        from allauth.account.models import EmailAddress
         EmailAddress.objects.create(user=self.user, email=self.user.email, verified=True, primary=True)
         
+        today = date.today()
+        prev_month_date = (today.replace(day=1) - timedelta(days=15)).replace(day=15)
+
         # Log a massive expense to ensure this becomes the 'top category'
         Expense.objects.create(
             user=self.user,
             amount=50000,
-            date='2026-06-15', # Will be captured by month calculation
+            date=prev_month_date, # Will be captured by month calculation
             category='<script>alert("XSS")</script>',
             description='Malicious Expense'
         )

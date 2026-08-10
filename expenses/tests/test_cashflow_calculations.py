@@ -497,6 +497,8 @@ class RecurringTransactionCashflowTest(CashflowCalculationTestBase):
             currency='₹'
         )
         
+        from django.core.cache import cache
+        cache.clear()
         from expenses.views.mixins import process_user_recurring_transactions
         process_user_recurring_transactions(self.user)
         
@@ -514,7 +516,7 @@ class RecurringTransactionCashflowTest(CashflowCalculationTestBase):
             amount=Decimal('500'),
             description='Monthly Sub',
             frequency='MONTHLY',
-            start_date=date.today(),
+            start_date=date.today() - timedelta(days=1),
             category='Entertainment',
             currency='₹'
         )

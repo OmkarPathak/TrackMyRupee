@@ -247,3 +247,56 @@ ACCOUNT_TYPES = [
         ('OTHER', 'Other (legacy)'),
     )),
 ]
+
+
+# ---------------------------------------------------------------------------
+# FIELD_GROUPS_BY_STRATEGY (SPEC §8, point 1)
+# Single source of truth for form field visibility per strategy and account type.
+# ---------------------------------------------------------------------------
+FIELD_GROUPS_BY_STRATEGY: dict[STRATEGY, list[str]] = {
+    STRATEGY.BALANCE: [],
+    STRATEGY.DEPOSIT: [
+        'deposit_principal',
+        'deposit_rate',
+        'deposit_start_date',
+        'deposit_compounding',
+        'deposit_maturity_date',
+        'deposit_closed_date',
+        'show_accrued_balance',
+    ],
+    STRATEGY.HOLDINGS: [],
+    STRATEGY.REVOLVING_CREDIT: ['credit_limit'],
+    STRATEGY.LOAN_OUTSTANDING: ['linked_loan'],
+    STRATEGY.PHYSICAL_VALUATION: [
+        'linked_physical_asset',
+        'create_new_asset',
+        'asset_name',
+        'acquisition_cost',
+        'acquisition_date',
+    ],
+    STRATEGY.INSURANCE_SURRENDER: [
+        'linked_physical_asset',
+        'create_new_asset',
+        'asset_name',
+        'policy_number',
+        'premium_amount',
+        'premium_frequency',
+        'policy_start_date',
+        'sum_assured',
+    ],
+}
+
+ACCOUNT_TYPE_EXTRA_FIELDS: dict[str, list[str]] = {
+    'RD': ['rd_installment_amount', 'rd_installment_day'],
+}
+
+
+def get_fields_for_account_type(code: str) -> list[str]:
+    """
+    Return the list of strategy-specific field names relevant for the given account_type code.
+    """
+    strategy = strategy_for(code)
+    base_fields = list(FIELD_GROUPS_BY_STRATEGY.get(strategy, []))
+    extra_fields = ACCOUNT_TYPE_EXTRA_FIELDS.get(code, [])
+    return base_fields + extra_fields
+

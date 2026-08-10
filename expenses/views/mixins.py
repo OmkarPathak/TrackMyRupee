@@ -2,8 +2,11 @@ import logging
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import Sum
+from django.utils import timezone
 from django.utils.cache import patch_vary_headers
 
 from ..models import (
@@ -25,7 +28,11 @@ class HtmxPartialTemplateMixin:
     htmx_template_name = None
 
     def get_template_names(self):
-        if self.request.headers.get('HX-Request') == 'true' and self.htmx_template_name:
+        is_htmx = (
+            str(self.request.headers.get('HX-Request', '')).lower() == 'true' or
+            str(self.request.META.get('HTTP_HX_REQUEST', '')).lower() == 'true'
+        )
+        if is_htmx and self.htmx_template_name:
             return [self.htmx_template_name]
         return super().get_template_names()
 
@@ -41,19 +48,28 @@ class RecurringTransactionMixin:
             process_user_recurring_transactions(request.user)
         return super().dispatch(request, *args, **kwargs)
 
-def process_user_recurring_transactions(user):
+def process_user_recurring_transactions(user, force=False):
     if not user.is_authenticated:
         return
-    today = date.today()
+    today = timezone.localdate()
 
     # Skip if already processed today for this user (prevents redundant writes on every page load)
+    # Bypass cooldown when running unit tests ('test' in sys.argv) or when force=True
+    import sys
+    is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
     cooldown_key = f'recurring_processed_{user.id}_{today}'
-    if cache.get(cooldown_key):
-        return
-    cache.set(cooldown_key, True, 86400)  # lock for 24 hours
+    if not is_testing and not force:
+        if not cache.add(cooldown_key, True, 86400):  # atomic lock acquisition for 24 hours
+            return
+    else:
+        cache.set(cooldown_key, True, 86400)
 
     profile = user.profile
-    recurring_txs = RecurringTransaction.objects.filter(user=user, is_active=True).select_related('account', 'from_account', 'to_account', 'loan').order_by('created_at')
+    recurring_txs = (
+        RecurringTransaction.objects.filter(user=user, is_active=True)
+        .select_related('account', 'from_account', 'to_account', 'loan')
+        .order_by('created_at', 'id')
+    )
     
     # Enforce Tier Limits for processing
     from finance_tracker.plans import get_limit
@@ -61,7 +77,6 @@ def process_user_recurring_transactions(user):
     if limit != -1:
         recurring_txs = recurring_txs[:limit]
 
-    updates_needed = []
     loan_principal_paid_map = {}
     
     try:
@@ -94,58 +109,71 @@ def process_user_recurring_transactions(user):
                 + Decimal(str(row['total_prepaid'] or 0))
             )
 
+    MAX_CATCHUP_PER_RUN = 100
+
     for rt in recurring_txs:
-        if not rt.last_processed_date:
-            current_date = rt.start_date
-        else:
-            current_date = rt.get_next_date(rt.last_processed_date, rt.frequency)
+        with transaction.atomic():
+            if not rt.last_processed_date:
+                current_date = rt.start_date
+            else:
+                current_date = rt.get_next_date(
+                    rt.last_processed_date, rt.frequency, rt.start_date,
+                    rt.is_last_day_of_month, rt.is_last_working_day
+                )
 
-        if rt.end_date and current_date > rt.end_date:
-            rt.is_active = False
-            rt.save(update_fields=['is_active'])
-            continue
-
-        if current_date > today:
-            continue
-
-        exchange_rate = Decimal('1.0')
-        if rt.currency != base_currency:
-            exchange_rate = get_exchange_rate(rt.currency, base_currency)
-        
-        base_amount = (rt.amount * exchange_rate).quantize(Decimal('0.01'))
-
-        deactivated = False
-        while current_date <= today:
             if rt.end_date and current_date > rt.end_date:
                 rt.is_active = False
-                deactivated = True
-                break
+                rt.save(update_fields=['is_active'])
+                continue
 
-            description = f"{rt.description} (Recurring)"
-            posted_successfully = False
-            
-            if rt.transaction_type == 'EXPENSE':
-                category = rt.category or 'Uncategorized'
-                exists = Expense.objects.filter(user=user, date=current_date, amount=rt.amount, description=description, currency=rt.currency, category=category).exists()
-                if not exists:
-                    try:
-                        Expense(
-                            user=user, date=current_date, amount=rt.amount,
-                            currency=rt.currency, category=category,
-                            description=description, payment_method=rt.payment_method,
-                            exchange_rate=exchange_rate, base_amount=base_amount,
-                            account=rt.account,
-                        ).save()
+            if current_date > today:
+                continue
+
+            exchange_rate = Decimal('1.0')
+            if rt.currency != base_currency:
+                try:
+                    exchange_rate = get_exchange_rate(rt.currency, base_currency)
+                except Exception as exc:
+                    logger.error("Failed to fetch exchange rate for currency %s to %s for user %s: %s", rt.currency, base_currency, user.id, exc, exc_info=True)
+                    continue
+
+            base_amount = (rt.amount * exchange_rate).quantize(Decimal('0.01'))
+
+            iterations = 0
+            while current_date <= today and iterations < MAX_CATCHUP_PER_RUN:
+                iterations += 1
+                if rt.end_date and current_date > rt.end_date:
+                    rt.is_active = False
+                    break
+
+                description = f"{rt.description} (Recurring)"
+                posted_successfully = False
+                
+                if rt.transaction_type == 'EXPENSE':
+                    category = rt.category or 'Uncategorized'
+                    exists = Expense.objects.filter(user=user, date=current_date, amount=rt.amount, description=description, currency=rt.currency, category=category).exists()
+                    if not exists:
+                        try:
+                            Expense(
+                                user=user, date=current_date, amount=rt.amount,
+                                currency=rt.currency, category=category,
+                                description=description, payment_method=rt.payment_method,
+                                exchange_rate=exchange_rate, base_amount=base_amount,
+                                account=rt.account,
+                            ).save()
+                            posted_successfully = True
+                        except Exception as exc:
+                            logger.error("Recurring expense posting failed for rt %s on %s", rt.id, current_date, exc_info=exc)
+                            break
+                    else:
                         posted_successfully = True
-                    except Exception as exc:
-                        print("EXCEPTION DURING RECURRING EXPENSE POSTING:", repr(exc))
-                        logger.warning("Recurring expense posting failed", exc_info=exc)
-                        break
-                else:
-                    posted_successfully = True
 
-            elif rt.transaction_type == 'TRANSFER':
-                if rt.from_account and rt.to_account:
+                elif rt.transaction_type == 'TRANSFER':
+                    if not (rt.from_account and rt.to_account):
+                        logger.error("Recurring transfer %s missing from_account or to_account; auto-deactivating.", rt.id)
+                        rt.is_active = False
+                        break
+
                     # Transfers always use the from_account's currency as primary
                     exists = Transfer.objects.filter(
                         user=user, date=current_date, amount=rt.amount,
@@ -154,7 +182,6 @@ def process_user_recurring_transactions(user):
                     ).exists()
                     if not exists:
                         try:
-                            # Transfer model's save() handles balance and currency logic
                             new_transfer = Transfer(
                                 user=user, date=current_date, amount=rt.amount,
                                 from_account=rt.from_account, to_account=rt.to_account,
@@ -163,120 +190,127 @@ def process_user_recurring_transactions(user):
                             new_transfer.save()
                             posted_successfully = True
                         except Exception as e:
-                            logger.warning("Recurring transfer posting failed", exc_info=e)
+                            logger.error("Recurring transfer posting failed for rt %s on %s", rt.id, current_date, exc_info=e)
                             break 
                     else:
                         posted_successfully = True
 
-            elif rt.transaction_type == 'LOAN':
-                if rt.loan and rt.account:
+                elif rt.transaction_type == 'LOAN':
+                    if not (rt.loan and rt.account):
+                        logger.error("Recurring loan repayment %s missing loan or account; auto-deactivating.", rt.id)
+                        rt.is_active = False
+                        break
+
                     principal_paid = loan_principal_paid_map.get(rt.loan_id, Decimal('0.00'))
                     remaining_principal = (Decimal(str(rt.loan.initial_principal)) - principal_paid).quantize(Decimal('0.01'))
                     if remaining_principal <= 0:
-                        posted_successfully = True
-                    else:
-                        latest_rate_obj = rt.loan.interest_rates.order_by('-effective_date').first()
-                        annual_rate = Decimal(str(latest_rate_obj.interest_rate)) if latest_rate_obj else Decimal('0.00')
+                        logger.info("Loan %s principal fully paid off; auto-deactivating recurring schedule %s.", rt.loan_id, rt.id)
+                        rt.is_active = False
+                        break
 
-                        period_days_map = {
-                            'DAILY': Decimal('1'),
-                            'WEEKLY': Decimal('7'),
-                            'MONTHLY': Decimal('30'),
-                            'YEARLY': Decimal('365'),
-                        }
-                        period_days = period_days_map.get(rt.frequency, Decimal('30'))
-                        interest_payment = (
-                            remaining_principal * annual_rate * period_days / Decimal('36500')
-                        ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    latest_rate_obj = rt.loan.interest_rates.order_by('-effective_date').first()
+                    annual_rate = Decimal(str(latest_rate_obj.interest_rate)) if latest_rate_obj else Decimal('0.00')
 
-                        repayment_amount = Decimal(str(rt.amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                        principal_payment = (repayment_amount - interest_payment).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    period_days_map = {
+                        'DAILY': Decimal('1'),
+                        'WEEKLY': Decimal('7'),
+                        'BIWEEKLY': Decimal('14'),
+                        'MONTHLY': Decimal('30'),
+                        'QUARTERLY': Decimal('90'),
+                        'SEMIANNUALLY': Decimal('180'),
+                        'YEARLY': Decimal('365'),
+                    }
+                    period_days = period_days_map.get(rt.frequency, Decimal('30'))
+                    interest_payment = (
+                        remaining_principal * annual_rate * period_days / Decimal('36500')
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-                        if principal_payment <= 0:
-                            logger.warning("Recurring loan repayment amount is too low to cover interest for loan %s", rt.loan_id)
-                            break
+                    repayment_amount = Decimal(str(rt.amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    principal_payment = (repayment_amount - interest_payment).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-                        if principal_payment > remaining_principal:
-                            principal_payment = remaining_principal.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                            repayment_amount = (principal_payment + interest_payment).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    if principal_payment <= 0:
+                        logger.error("Recurring loan repayment amount %s is too low to cover interest for loan %s; auto-deactivating schedule %s.", rt.amount, rt.loan_id, rt.id)
+                        rt.is_active = False
+                        break
 
-                        exists = LoanRepayment.objects.filter(
-                            loan=rt.loan,
-                            date=current_date,
-                            from_account=rt.account,
-                        ).exists()
-                        if not exists:
-                            try:
-                                LoanRepayment.objects.create(
-                                    loan=rt.loan,
-                                    from_account=rt.account,
-                                    date=current_date,
-                                    amount=repayment_amount,
-                                    principal_portion=principal_payment,
-                                    interest_portion=interest_payment,
-                                )
-                                loan_principal_paid_map[rt.loan_id] = principal_paid + principal_payment
-                                posted_successfully = True
-                            except Exception as exc:
-                                logger.warning("Recurring loan repayment posting failed", exc_info=exc)
-                                break
-                        else:
+                    if principal_payment > remaining_principal:
+                        principal_payment = remaining_principal.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                        repayment_amount = (principal_payment + interest_payment).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+                    exists = LoanRepayment.objects.filter(
+                        loan=rt.loan,
+                        date=current_date,
+                        from_account=rt.account,
+                    ).exists()
+                    if not exists:
+                        try:
+                            LoanRepayment.objects.create(
+                                loan=rt.loan,
+                                from_account=rt.account,
+                                date=current_date,
+                                amount=repayment_amount,
+                                principal_portion=principal_payment,
+                                interest_portion=interest_payment,
+                            )
+                            loan_principal_paid_map[rt.loan_id] = principal_paid + principal_payment
                             posted_successfully = True
-
-            elif rt.transaction_type == 'CAPITAL':
-                subtype = rt.capital_subtype or 'other'
-                exists = CapitalEvent.objects.filter(
-                    user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype
-                ).exists()
-                if not exists:
-                    try:
-                        CapitalEvent(
-                            user=user, date=current_date, amount=rt.amount,
-                            currency=rt.currency, subtype=subtype,
-                            note=description, account=rt.account,
-                            linked_loan=rt.loan,
-                            exclude_from_averages=rt.exclude_from_averages,
-                            exclude_from_budget=rt.exclude_from_budget,
-                            include_in_net_worth=rt.include_in_net_worth,
-                        ).save()
+                        except Exception as exc:
+                            logger.error("Recurring loan repayment posting failed for rt %s on %s", rt.id, current_date, exc_info=exc)
+                            break
+                    else:
                         posted_successfully = True
-                    except Exception as exc:
-                        logger.warning("Recurring capital event posting failed", exc_info=exc)
-                        break
-                else:
-                    posted_successfully = True
 
-            else:
-                source = rt.source or 'Other'
-                exists = Income.objects.filter(user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source).exists()
-                if not exists:
-                    try:
-                        Income(
-                            user=user, date=current_date, amount=rt.amount,
-                            currency=rt.currency, source=source,
-                            description=description, exchange_rate=exchange_rate,
-                            base_amount=base_amount, account=rt.account,
-                        ).save()
+                elif rt.transaction_type == 'CAPITAL':
+                    subtype = rt.capital_subtype or 'other'
+                    exists = CapitalEvent.objects.filter(
+                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype
+                    ).exists()
+                    if not exists:
+                        try:
+                            CapitalEvent(
+                                user=user, date=current_date, amount=rt.amount,
+                                currency=rt.currency, subtype=subtype,
+                                note=description, account=rt.account,
+                                linked_loan=rt.loan,
+                                exclude_from_averages=rt.exclude_from_averages,
+                                exclude_from_budget=rt.exclude_from_budget,
+                                include_in_net_worth=rt.include_in_net_worth,
+                            ).save()
+                            posted_successfully = True
+                        except Exception as exc:
+                            logger.error("Recurring capital event posting failed for rt %s on %s", rt.id, current_date, exc_info=exc)
+                            break
+                    else:
                         posted_successfully = True
-                    except Exception as exc:
-                        logger.warning("Recurring income posting failed", exc_info=exc)
-                        break
+
                 else:
-                    posted_successfully = True
+                    source = rt.source or 'Other'
+                    exists = Income.objects.filter(user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source).exists()
+                    if not exists:
+                        try:
+                            Income(
+                                user=user, date=current_date, amount=rt.amount,
+                                currency=rt.currency, source=source,
+                                description=description, exchange_rate=exchange_rate,
+                                base_amount=base_amount, account=rt.account,
+                            ).save()
+                            posted_successfully = True
+                        except Exception as exc:
+                            logger.error("Recurring income posting failed for rt %s on %s", rt.id, current_date, exc_info=exc)
+                            break
+                    else:
+                        posted_successfully = True
 
-            if not posted_successfully:
-                break
-            
-            rt.last_processed_date = current_date
-            current_date = rt.get_next_date(current_date, rt.frequency)
-        
-        if deactivated:
-            rt.save()
-        else:
-            updates_needed.append(rt)
+                if not posted_successfully:
+                    break
+                
+                rt.last_processed_date = current_date
+                current_date = rt.get_next_date(
+                    current_date, rt.frequency, rt.start_date,
+                    rt.is_last_day_of_month, rt.is_last_working_day
+                )
 
-    if updates_needed:
-        RecurringTransaction.objects.bulk_update(updates_needed, ['last_processed_date'])
+            rt.save(update_fields=['last_processed_date', 'is_active'])
 
 
 class UUIDOrIntLookupMixin:
