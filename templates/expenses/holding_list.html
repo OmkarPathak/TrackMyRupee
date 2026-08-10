@@ -190,10 +190,12 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block modals %}
 <!-- Modal for Adding Holding -->
 {% if user_accounts %}
-<div class="modal fade" id="addHoldingModal" tabindex="-1" aria-labelledby="addHoldingModalLabel" aria-hidden="true" style="z-index: 1060;">
+<div class="modal fade" id="addHoldingModal" tabindex="-1" aria-labelledby="addHoldingModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <form method="POST" action="{% url 'holding-create-global' %}">
@@ -207,7 +209,7 @@
                         <label class="form-label fw-semibold">{% trans "Investment Account" %}</label>
                         <select name="account_id" class="form-select rounded-3" required>
                             {% for acc in user_accounts %}
-                                <option value="{{ acc.pk }}">{{ acc.name }} ({{ acc.account_type_display }})</option>
+                                <option value="{{ acc.pk }}">{{ acc.name }} ({{ acc.currency }}{{ acc.balance|ind_comma:acc.currency|translate_digits }})</option>
                             {% endfor %}
                         </select>
                     </div>

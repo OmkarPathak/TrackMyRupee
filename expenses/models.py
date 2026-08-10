@@ -237,6 +237,10 @@ class Account(models.Model):
     )
 
     @property
+    def account_type_display(self) -> str:
+        return self.get_account_type_display()
+
+    @property
     def has_credit_limit(self) -> bool:
         return self.credit_limit is not None and self.credit_limit > Decimal('0.00')
 
@@ -290,8 +294,15 @@ class Account(models.Model):
                 repayment.delete()
             super().delete(*args, **kwargs)
 
+    @property
+    def formatted_balance(self) -> str:
+        from .utils import format_indian_number
+        if str(self.currency).upper() in ['INR', '₹']:
+            return format_indian_number(self.balance)
+        return f"{float(self.balance):,.2f}"
+
     def __str__(self):
-        return f"{self.name} ({self.currency}{self.balance})"
+        return f"{self.name} ({self.currency}{self.formatted_balance})"
 
 
 class LedgerAccount(models.Model):

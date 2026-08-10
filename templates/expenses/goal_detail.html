@@ -462,6 +462,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+{% endblock %}
+
+{% block modals %}
 {% if not goal.is_completed and not is_locked %}
 <div class="modal fade" id="addContributionModal" tabindex="-1" aria-labelledby="addContributionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

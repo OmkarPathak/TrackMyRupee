@@ -95,7 +95,7 @@ urlpatterns = [
     path('goals/contribution/<uuid_or_int:pk>/delete/', views.GoalContributionDeleteView.as_view(), name='goal-contribution-delete'),
     
     # Static Pages
-    path('tutorial/', TemplateView.as_view(template_name='trackmyrupee-tutorial.html'), name='tutorial'),
+    path('tutorial/', RedirectView.as_view(url='https://docs.trackmyrupee.com', permanent=True), name='tutorial'),
     path('privacy-policy/', TemplateView.as_view(template_name='privacy_policy.html'), name='privacy-policy'),
     path('terms-of-service/', TemplateView.as_view(template_name='terms_of_service.html'), name='terms-of-service'),
     path('refund-policy/', TemplateView.as_view(template_name='refund_policy.html'), name='refund-policy'),

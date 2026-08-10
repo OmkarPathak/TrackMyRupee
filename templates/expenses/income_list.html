@@ -219,7 +219,7 @@
                             <label for="edit_account" class="form-label text-muted small text-uppercase">{% trans "Account" %}</label>
                             <select class="form-select searchable-select" id="edit_account" name="account">
                                 {% for account in accounts %}
-                                    <option value="{{ account.pk }}">{{ account.name }}</option>
+                                    <option value="{{ account.pk }}">{{ account.name }} ({{ account.currency }}{{ account.balance|ind_comma:account.currency|translate_digits }})</option>
                                 {% endfor %}
                             </select>
                         </div>
