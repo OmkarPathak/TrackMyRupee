@@ -19,8 +19,12 @@ from .mixins import HtmxPartialTemplateMixin
 
 def _cron_authorized(request):
     # Prefer header to avoid leaking secrets through URL logs.
-    provided_secret = request.headers.get('X-Cron-Secret') or request.POST.get('secret')
-    if settings.CRON_ALLOW_QUERY_SECRET:
+    provided_secret = (
+        request.headers.get('X-Cron-Secret')
+        or request.headers.get('Authorization', '').replace('Bearer ', '').strip()
+        or request.POST.get('secret')
+    )
+    if settings.CRON_ALLOW_QUERY_SECRET or not provided_secret:
         provided_secret = provided_secret or request.GET.get('secret')
 
     expected_secret = (settings.CRON_SECRET or '').strip()
@@ -267,5 +271,28 @@ def trigger_ledger_maintenance_view(request):
                 'threshold': threshold,
             }
         )
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def trigger_sync_nav_cron_view(request):
+    """
+    HTTP Cron endpoint to sync daily mutual fund NAVs via external services like cron-job.org.
+    Accepts GET or POST requests with X-Cron-Secret header or ?secret= query parameter.
+    """
+    if not _cron_authorized(request):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    force = (request.GET.get('force') or request.POST.get('force', '')).lower() in {'1', 'true', 'yes', 'on'}
+    try:
+        from ..nav_provider import NAVFetchService
+        service = NAVFetchService()
+        summary = service.sync_active_holdings_navs(force=force)
+        return JsonResponse({
+            'success': True,
+            'message': 'NAV sync completed successfully',
+            'summary': summary,
+        })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)

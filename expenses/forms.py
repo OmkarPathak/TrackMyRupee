@@ -21,6 +21,7 @@ from .models import (
     Category,
     Expense,
     GoalContribution,
+    Holding,
     Income,
     Loan,
     LoanInterestRate,
@@ -1244,3 +1245,18 @@ class CapitalEventForm(SearchableSelectFormMixin, forms.ModelForm):
         if amount is not None and amount <= 0:
             raise forms.ValidationError(_("Amount must be greater than zero."))
         return amount
+
+
+class HoldingForm(forms.ModelForm):
+    class Meta:
+        model = Holding
+        fields = ['instrument_name', 'instrument_type', 'units', 'avg_cost', 'currency', 'scheme_code', 'isin']
+        widgets = {
+            'instrument_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. HDFC Top 100 Fund'}),
+            'instrument_type': forms.Select(attrs={'class': 'form-select'}),
+            'units': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'placeholder': '0.00'}),
+            'avg_cost': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'currency': forms.Select(attrs={'class': 'form-select'}),
+            'scheme_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 101234'}),
+            'isin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional ISIN'}),
+        }

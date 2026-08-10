@@ -957,3 +957,178 @@ class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
 
         redirect_url = request.META.get('HTTP_REFERER') or reverse_lazy('account-list')
         return redirect(redirect_url)
+
+
+def search_amfi_schemes(request):
+    """
+    Search endpoint over local AMFIScheme search mirror with live MFapi fallback (SPEC §3a).
+    Returns top 15 matching scheme names/codes.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'results': []}, status=401)
+    
+    q = request.GET.get('q', '').strip()
+    if not q or len(q) < 2:
+        return JsonResponse({'results': []})
+    
+    from ..models import AMFIScheme
+    results = []
+    
+    # 1. Try local AMFIScheme table first
+    schemes = AMFIScheme.objects.filter(
+        Q(scheme_name__icontains=q) | Q(scheme_code__icontains=q)
+    )[:15]
+    
+    if schemes.exists():
+        results = [
+            {'scheme_code': s.scheme_code, 'scheme_name': s.scheme_name, 'isin': s.isin}
+            for s in schemes
+        ]
+    else:
+        # 2. Live fallback to MFapi.in search API
+        try:
+            import urllib.parse
+            import requests
+            encoded_q = urllib.parse.quote(q)
+            url = f"https://api.mfapi.in/mf/search?q={encoded_q}"
+            resp = requests.get(url, headers={'User-Agent': 'TrackMyRupee/1.0'}, timeout=5)
+            if resp.status_code == 200:
+                data = resp.json()
+                for item in data[:15]:
+                    code = str(item.get('schemeCode'))
+                    name = item.get('schemeName')
+                    if code and name:
+                        results.append({'scheme_code': code, 'scheme_name': name, 'isin': None})
+        except Exception:
+            pass
+            
+    return JsonResponse({'results': results})
+
+
+def refresh_holding_nav(request, pk):
+    """
+    Manual "Refresh Now" action on a holding (SPEC §3a point 3).
+    Bypasses circuit-breaker backoff and forces immediate fetch.
+    """
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+    
+    from django.shortcuts import get_object_or_404
+    from ..models import Holding
+    from ..nav_provider import NAVFetchService
+
+    holding = get_object_or_404(Holding, pk=pk, account__user=request.user)
+    if not holding.scheme_code:
+        messages.warning(request, _("No scheme code configured for this holding."))
+    else:
+        service = NAVFetchService()
+        cache, success = service.fetch_scheme(holding.scheme_code, force=True)
+        if success:
+            messages.success(
+                request,
+                _("Successfully updated NAV for %(name)s (latest NAV: %(nav)s).") % {
+                    'name': holding.instrument_name,
+                    'nav': cache.latest_nav if cache else '',
+                }
+            )
+        else:
+            messages.warning(
+                request,
+                _("Failed to fetch fresh NAV for %(name)s. Using cached valuation.") % {
+                    'name': holding.instrument_name,
+                }
+            )
+            
+    return redirect('account-detail', pk=holding.account.pk)
+
+
+def holding_create_view(request, pk):
+    """
+    Add a new Holding to an investment/mutual fund account.
+    Auto-resolves scheme_code from fund name if left blank.
+    """
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+        
+    from decimal import InvalidOperation
+    from ..models import Holding, AMFIScheme
+    from ..nav_provider import NAVFetchService
+
+    account = get_object_by_uuid_or_pk(Account, pk, user=request.user)
+    if request.method == 'POST':
+        name = request.POST.get('instrument_name', '').strip()
+        scheme_code = request.POST.get('scheme_code', '').strip()
+        isin = request.POST.get('isin', '').strip()
+        units_str = request.POST.get('units', '0')
+        avg_cost_str = request.POST.get('avg_cost', '0')
+        
+        if not name:
+            messages.error(request, _("Holding name is required."))
+            return redirect('account-detail', pk=account.uuid)
+
+        # Smart Auto-Resolution: if scheme_code is blank, search by fund name
+        if not scheme_code and name:
+            local_match = AMFIScheme.objects.filter(scheme_name__icontains=name).first()
+            if local_match:
+                scheme_code = local_match.scheme_code
+            else:
+                try:
+                    import urllib.parse
+                    import requests
+                    encoded_q = urllib.parse.quote(name)
+                    url = f"https://api.mfapi.in/mf/search?q={encoded_q}"
+                    resp = requests.get(url, headers={'User-Agent': 'TrackMyRupee/1.0'}, timeout=5)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        if data:
+                            scheme_code = str(data[0].get('schemeCode'))
+                except Exception:
+                    pass
+
+        try:
+            units = Decimal(units_str)
+            avg_cost = Decimal(avg_cost_str)
+        except (ValueError, InvalidOperation):
+            messages.error(request, _("Invalid units or purchase price format."))
+            return redirect('account-detail', pk=account.uuid)
+            
+        if units <= Decimal('0') or avg_cost <= Decimal('0'):
+            messages.error(request, _("Units and average price must be greater than zero."))
+            return redirect('account-detail', pk=account.uuid)
+            
+        holding = Holding.objects.create(
+            account=account,
+            instrument_name=name,
+            instrument_type='MF' if account.account_type in ('MUTUAL_FUND', 'INVESTMENT') else 'OTHER',
+            units=units,
+            avg_cost=avg_cost,
+            currency=account.currency,
+            scheme_code=scheme_code or None,
+            isin=isin or None,
+            is_active=True,
+        )
+        
+        if scheme_code:
+            service = NAVFetchService()
+            service.fetch_scheme(scheme_code, force=True)
+            
+        messages.success(request, _("Holding '%(name)s' added successfully.") % {'name': name})
+    return redirect('account-detail', pk=account.uuid)
+
+
+def holding_delete_view(request, pk):
+    """
+    Deactivates a Holding from an account.
+    """
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+        
+    from django.shortcuts import get_object_or_404
+    from ..models import Holding
+
+    holding = get_object_or_404(Holding, pk=pk, account__user=request.user)
+    account_pk = holding.account.uuid
+    holding.is_active = False
+    holding.save()
+    messages.success(request, _("Holding '%(name)s' removed.") % {'name': holding.instrument_name})
+    return redirect('account-detail', pk=account_pk)

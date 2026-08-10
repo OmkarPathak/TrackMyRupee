@@ -245,12 +245,21 @@ class LedgerReadService:
         Returns: {account_id: list of {'value': Decimal, 'currency': str}}
         Note: the caller is responsible for FX conversion.
         """
-        rows = (
+        rows = list(
             Holding.objects
             .filter(account_id__in=account_ids, is_active=True)
             .order_by('id', '-valuations__as_of_date', '-valuations__created_at')
-            .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'valuations__value')
+            .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'scheme_code', 'valuations__value')
         )
+
+        scheme_codes = {r['scheme_code'] for r in rows if r['scheme_code']}
+        nav_caches = {}
+        if scheme_codes:
+            from .models import FundNAVCache
+            nav_caches = dict(
+                FundNAVCache.objects.filter(scheme_code__in=scheme_codes)
+                .values_list('scheme_code', 'latest_nav')
+            )
 
         seen_holdings: set = set()
         account_holding_vals: dict = {}
@@ -264,8 +273,13 @@ class LedgerReadService:
             val = r['valuations__value']
             if val is None:
                 units = r['units'] or Decimal('0.00')
-                avg_cost = r['avg_cost'] or Decimal('0.00')
-                val = (units * avg_cost).quantize(Decimal('0.01'))
+                scheme_code = r['scheme_code']
+                cache_nav = nav_caches.get(scheme_code) if scheme_code else None
+                if cache_nav is not None:
+                    val = (units * cache_nav).quantize(Decimal('0.01'))
+                else:
+                    avg_cost = r['avg_cost'] or Decimal('0.00')
+                    val = (units * avg_cost).quantize(Decimal('0.01'))
 
             if acc_id not in account_holding_vals:
                 account_holding_vals[acc_id] = []

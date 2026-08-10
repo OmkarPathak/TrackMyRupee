@@ -297,8 +297,19 @@ def get_current_holdings(account: Account, ledger_balance: Decimal | None = None
         if latest_val:
             val = latest_val.value
         else:
-            # Fallback to cost basis if no valuation posted yet
-            val = (units * avg_cost).quantize(Decimal('0.01'))
+            # SPEC §3a point 5: Staleness fallback to FundNAVCache if scheme_code set
+            cache_nav = None
+            if holding.scheme_code:
+                from .models import FundNAVCache
+                c = FundNAVCache.objects.filter(scheme_code=holding.scheme_code).first()
+                if c and c.latest_nav is not None:
+                    cache_nav = c.latest_nav
+
+            if cache_nav is not None:
+                val = (units * cache_nav).quantize(Decimal('0.01'))
+            else:
+                # Fallback to cost basis if no valuation posted yet
+                val = (units * avg_cost).quantize(Decimal('0.01'))
 
         if holding.currency and holding.currency != account.currency:
             rate = get_exchange_rate(holding.currency, account.currency)

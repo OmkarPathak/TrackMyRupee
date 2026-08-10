@@ -78,6 +78,15 @@
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                 {% endif %}
+                                {% if account.holdings.exists %}
+                                    {% for h in account.holdings.all %}
+                                        {% if h.scheme_code and h.is_active %}
+                                            <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm hero-action-btn rounded-circle fw-semibold transition-all d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0; background-color: transparent; color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
                             </div>
                         </div>
 
@@ -147,6 +156,208 @@
         </div>
         {% endif %}
     </div>
+
+    <!-- Holdings & Portfolio Section (For Mutual Funds / Investment Accounts) -->
+    {% if account.account_type in 'MUTUAL_FUND INVESTMENT STOCKS OTHER_ASSETS NPS PF GOLD' or account.holdings.exists %}
+    <div class="card rounded-4 border-0 mb-4 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+        <div class="card-header bg-transparent border-bottom p-3 p-md-4 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-pie-chart-fill text-primary fs-5"></i>
+                <h5 class="mb-0 fw-bold">{% trans "Holdings & Investments" %}</h5>
+            </div>
+            {% if account.is_active %}
+            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#addHoldingModal">
+                <i class="bi bi-plus-lg me-1"></i>{% trans "Add Holding" %}
+            </button>
+            {% endif %}
+        </div>
+        <div class="card-body p-0">
+            {% if account.holdings.exists %}
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th class="ps-3 ps-md-4">{% trans "Holding / Fund Name" %}</th>
+                                <th>{% trans "Units" %}</th>
+                                <th>{% trans "Avg Cost" %}</th>
+                                <th>{% trans "Current Val / NAV" %}</th>
+                                <th class="text-end pe-3 pe-md-4">{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in account.holdings.all %}
+                                {% if h.is_active %}
+                                    <tr>
+                                        <td class="ps-3 ps-md-4">
+                                            <div class="fw-bold text-body-emphasis">{{ h.instrument_name }}</div>
+                                            {% if h.scheme_code %}
+                                                <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.7rem;">{% trans "AMFI Code:" %} {{ h.scheme_code }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ h.units|ind_comma|translate_digits }}</td>
+                                        <td>{{ account.currency }}{{ h.avg_cost|ind_comma:account.currency|translate_digits }}</td>
+                                        <td>
+                                            {% with val=h.valuations.first %}
+                                                {% if val %}
+                                                    <span class="fw-bold text-success">{{ account.currency }}{{ val.value|ind_comma:account.currency|translate_digits }}</span>
+                                                    {% if val.unit_nav %}
+                                                        <div class="small text-muted" style="font-size: 0.75rem;">NAV: {{ account.currency }}{{ val.unit_nav|translate_digits }}</div>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="fw-bold text-body-emphasis">{{ account.currency }}{{ h.cost_basis|ind_comma:account.currency|translate_digits }}</span>
+                                                    <div class="small text-muted" style="font-size: 0.75rem;">({% trans "Cost Basis" %})</div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td class="text-end pe-3 pe-md-4">
+                                            <div class="d-flex justify-content-end gap-1">
+                                                {% if h.scheme_code %}
+                                                    <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}">
+                                                        <i class="bi bi-arrow-repeat"></i>
+                                                    </a>
+                                                {% endif %}
+                                                <a href="{% url 'holding-delete' h.pk %}" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Delete' %}" onclick="return confirm('{% trans "Are you sure you want to remove this holding?" %}');">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-box-seam fs-1 opacity-50 mb-2 d-block"></i>
+                    <p class="mb-2 fw-medium">{% trans "No mutual fund holdings added to this account yet." %}</p>
+                    {% if account.is_active %}
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 mt-1" data-bs-toggle="modal" data-bs-target="#addHoldingModal">
+                        {% trans "Add First Holding" %}
+                    </button>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal for Adding Holding -->
+    <div class="modal fade" id="addHoldingModal" tabindex="-1" aria-labelledby="addHoldingModalLabel" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <form method="POST" action="{% url 'holding-create' account.uuid %}">
+                    {% csrf_token %}
+                    <div class="modal-header border-bottom">
+                        <h5 class="modal-title fw-bold" id="addHoldingModalLabel">{% trans "Add Investment / Holding" %}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3 position-relative">
+                            <label class="form-label fw-semibold">{% trans "Fund / Stock Name" %}</label>
+                            <input type="text" name="instrument_name" id="holding_fund_search_input" class="form-control rounded-3" placeholder="{% trans 'Type fund name e.g. Parag Parikh...' %}" autocomplete="off" required>
+                            <input type="hidden" name="scheme_code" id="holding_scheme_code_input">
+                            <div id="holding_fund_suggestions" class="dropdown-menu shadow w-100 mt-1 overflow-auto" style="max-height: 220px; display: none; z-index: 1070;"></div>
+                            <div class="form-text small text-muted mt-1">{% trans "Type to search and select from thousands of mutual funds for automatic daily NAV tracking." %}</div>
+                        </div>
+                        <div class="mb-3">
+                            <a class="small text-decoration-none" data-bs-toggle="collapse" href="#manualCodeCollapse" role="button" aria-expanded="false">
+                                <i class="bi bi-code-slash me-1"></i>{% trans "Advanced: Manual Scheme Code" %}
+                            </a>
+                            <div class="collapse mt-2" id="manualCodeCollapse">
+                                <input type="text" id="holding_manual_scheme_code" class="form-control rounded-3 form-control-sm" placeholder="{% trans '6-digit AMFI code e.g. 122639' %}" oninput="document.getElementById('holding_scheme_code_input').value=this.value.strip();">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">{% trans "Units" %}</label>
+                                <input type="number" step="0.000001" name="units" class="form-control rounded-3" placeholder="100.00" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">{% trans "Avg Purchase Price" %}</label>
+                                <input type="number" step="0.01" name="avg_cost" class="form-control rounded-3" placeholder="150.00" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">{% trans "Save Holding" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            function moveHoldingModalToBody() {
+                const m = document.getElementById('addHoldingModal');
+                if (m && m.parentElement !== document.body) {
+                    document.body.appendChild(m);
+                }
+            }
+
+            function initFundSearch() {
+                moveHoldingModalToBody();
+                const searchInput = document.getElementById('holding_fund_search_input');
+                const schemeInput = document.getElementById('holding_scheme_code_input');
+                const suggestionsBox = document.getElementById('holding_fund_suggestions');
+                if (!searchInput || !suggestionsBox) return;
+
+                let debounceTimer = null;
+                searchInput.addEventListener('input', function() {
+                    const q = this.value.trim();
+                    schemeInput.value = '';
+                    if (q.length < 2) {
+                        suggestionsBox.style.display = 'none';
+                        return;
+                    }
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        fetch('/api/amfi-schemes/search/?q=' + encodeURIComponent(q))
+                            .then(r => r.json())
+                            .then(data => {
+                                const results = data.results || [];
+                                if (results.length === 0) {
+                                    suggestionsBox.style.display = 'none';
+                                    return;
+                                }
+                                suggestionsBox.innerHTML = '';
+                                results.forEach(item => {
+                                    const a = document.createElement('a');
+                                    a.className = 'dropdown-item py-2 border-bottom text-wrap';
+                                    a.style.cursor = 'pointer';
+                                    a.innerHTML = `<div class="fw-bold text-body-emphasis small">${item.scheme_name}</div><div class="text-muted" style="font-size:0.72rem;">Code: ${item.scheme_code}</div>`;
+                                    a.addEventListener('click', function(e) {
+                                        e.preventDefault();
+                                        searchInput.value = item.scheme_name;
+                                        schemeInput.value = item.scheme_code;
+                                        const manualCodeEl = document.getElementById('holding_manual_scheme_code');
+                                        if (manualCodeEl) manualCodeEl.value = item.scheme_code;
+                                        suggestionsBox.style.display = 'none';
+                                    });
+                                    suggestionsBox.appendChild(a);
+                                });
+                                suggestionsBox.style.display = 'block';
+                            })
+                            .catch(() => { suggestionsBox.style.display = 'none'; });
+                    }, 300);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                        suggestionsBox.style.display = 'none';
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initFundSearch);
+            } else {
+                initFundSearch();
+            }
+            document.body.addEventListener('htmx:afterSwap', initFundSearch);
+        })();
+    </script>
+    {% endif %}
 
     <!-- Transaction History Container -->
     <div class="card rounded-4 transaction-ledger-card">

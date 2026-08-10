@@ -2369,6 +2369,8 @@ class Holding(models.Model):
     avg_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
     is_active = models.BooleanField(default=True)
+    scheme_code = models.CharField(max_length=50, null=True, blank=True, db_index=True)
+    isin = models.CharField(max_length=50, null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -2376,7 +2378,14 @@ class Holding(models.Model):
         indexes = [
             # Backs the filter on active holdings per account in net-worth computation
             models.Index(fields=['account', 'is_active'], name='holding_account_active_idx'),
+            models.Index(fields=['scheme_code', 'is_active'], name='holding_scheme_active_idx'),
         ]
+
+    @property
+    def cost_basis(self):
+        units = self.units or Decimal('0.00')
+        avg_cost = self.avg_cost or Decimal('0.00')
+        return (units * avg_cost).quantize(Decimal('0.01'))
 
     def __str__(self):
         return f"{self.instrument_name} in {self.account.name}"
@@ -2400,6 +2409,51 @@ class Valuation(models.Model):
 
     def __str__(self):
         return f"{self.holding.instrument_name} - {self.value} on {self.as_of_date}"
+
+
+class FundNAVCache(models.Model):
+    """
+    SPEC §3a: Explicitly justified model to deduplicate NAV fetches across users.
+    If 500 users hold the same scheme, the daily fetch job queries the provider ONCE.
+    """
+    scheme_code = models.CharField(max_length=50, unique=True, db_index=True)
+    scheme_name = models.CharField(max_length=255, null=True, blank=True)
+    isin = models.CharField(max_length=50, null=True, blank=True, db_index=True)
+    latest_nav = models.DecimalField(max_digits=15, decimal_places=4, null=True, blank=True)
+    nav_as_of_date = models.DateField(null=True, blank=True)
+    last_fetch_attempt_at = models.DateTimeField(null=True, blank=True)
+    last_fetch_error = models.TextField(null=True, blank=True)
+    consecutive_failure_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Fund NAV Cache'
+        verbose_name_plural = 'Fund NAV Caches'
+
+    def __str__(self):
+        return f"{self.scheme_code} - {self.scheme_name or 'Unknown'} ({self.latest_nav})"
+
+
+class AMFIScheme(models.Model):
+    """
+    Local search mirror for AMFI scheme list (code + name + ISIN).
+    Used purely for fund-search autocomplete UX when populating Holding.scheme_code.
+    Distinct from FundNAVCache (which stores cached NAV values).
+    """
+    scheme_code = models.CharField(max_length=50, unique=True, db_index=True)
+    scheme_name = models.CharField(max_length=255, db_index=True)
+    isin = models.CharField(max_length=50, null=True, blank=True, db_index=True)
+
+    class Meta:
+        verbose_name = 'AMFI Scheme'
+        verbose_name_plural = 'AMFI Schemes'
+        indexes = [
+            models.Index(fields=['scheme_name'], name='amfi_scheme_name_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.scheme_code} - {self.scheme_name}"
 
 
 class PhysicalAsset(models.Model):

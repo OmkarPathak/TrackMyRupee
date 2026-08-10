@@ -52,6 +52,10 @@ urlpatterns = [
     path('accounts/<uuid_or_int:pk>/', views.AccountDetailView.as_view(), name='account-detail'),
     path('accounts/<uuid_or_int:pk>/record-maturity-income/', views.RecordMaturityIncomeView.as_view(), name='account-record-maturity-income'),
     path('accounts/quick-add/', views.AccountQuickCreateView.as_view(), name='account-quick-create'),
+    path('api/amfi-schemes/search/', views.search_amfi_schemes, name='search-amfi-schemes'),
+    path('holdings/<int:pk>/refresh-nav/', views.refresh_holding_nav, name='refresh-holding-nav'),
+    path('accounts/<uuid_or_int:pk>/holdings/add/', views.holding_create_view, name='holding-create'),
+    path('holdings/<int:pk>/delete/', views.holding_delete_view, name='holding-delete'),
     
     # Transfers
     path('transfers/', views.TransferListView.as_view(), name='transfer-list'), 
@@ -131,6 +135,7 @@ urlpatterns = [
     path('api/cron/ledger/retry-failures/', views.trigger_ledger_retry_view, name='cron-ledger-retry-failures'),
     path('api/cron/ledger/reconcile/', views.trigger_ledger_reconcile_view, name='cron-ledger-reconcile'),
     path('api/cron/ledger/maintenance/', views.trigger_ledger_maintenance_view, name='cron-ledger-maintenance'),
+    path('api/cron/sync-nav/', views.trigger_sync_nav_cron_view, name='cron-sync-nav'),
 
     # Loans
     path('loans/', views.LoanListView.as_view(), name='loan-list'),
