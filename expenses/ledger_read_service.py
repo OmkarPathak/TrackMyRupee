@@ -565,24 +565,32 @@ class LedgerReadService:
                 continue
 
             # ── Full extended valuation (flag on) ──────────────────────────
+            is_accrued = getattr(account, 'show_accrued_balance', True)
+
             if strategy == STRATEGY.HOLDINGS:
-                vals_list = holding_vals_by_account.get(account.id)
-                holdings_val = Decimal("0.00")
-                if vals_list:
-                    for v in vals_list:
-                        holdings_val += FXService.convert_using_map(
-                            v['value'], v['currency'], fx_map
-                        )
-                # Additive cash fix: holdings_val + uninvested ledger balance
-                cash_val = FXService.convert_using_map(ledger_bal, account.currency, fx_map)
-                account_value = holdings_val + cash_val
+                if is_accrued:
+                    vals_list = holding_vals_by_account.get(account.id)
+                    holdings_val = Decimal("0.00")
+                    if vals_list:
+                        for v in vals_list:
+                            holdings_val += FXService.convert_using_map(
+                                v['value'], v['currency'], fx_map
+                            )
+                    # Additive cash fix: holdings_val + uninvested ledger balance
+                    cash_val = FXService.convert_using_map(ledger_bal, account.currency, fx_map)
+                    account_value = holdings_val + cash_val
+                else:
+                    from .account_valuation import get_baseline_holdings
+                    native_val = get_baseline_holdings(account, ledger_balance=ledger_bal) or Decimal("0.00")
+                    account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
 
             elif strategy == STRATEGY.DEPOSIT:
-                # Accrual if deposit fields set and show_accrued_balance is True, else ledger balance
-                if getattr(account, 'show_accrued_balance', True):
+                # Accrual if deposit fields set and show_accrued_balance is True, else baseline deposit
+                if is_accrued:
                     native_val = _compute_deposit_value(account, ledger_bal)
                 else:
-                    native_val = ledger_bal
+                    from .account_valuation import get_baseline_deposit
+                    native_val = get_baseline_deposit(account, ledger_balance=ledger_bal) or ledger_bal
                 account_value = FXService.convert_using_map(
                     native_val, account.currency, fx_map
                 )
@@ -606,50 +614,60 @@ class LedgerReadService:
                     )
 
             elif strategy == STRATEGY.PHYSICAL_VALUATION:
-                asset_id = account.linked_physical_asset_id
-                if asset_id and asset_id in asset_val_map:
-                    asset_native_val = asset_val_map[asset_id]
-                    # Use the linked physical asset's currency; fall back to account currency if unavailable
-                    asset_ccy = (
-                        account.linked_physical_asset.currency
-                        if account.linked_physical_asset is not None
-                        else account.currency
-                    )
-                    account_value = FXService.convert_using_map(
-                        asset_native_val, asset_ccy, fx_map
-                    )
-                else:
-                    # Fallback: acquisition_cost from linked asset if available, else ledger balance
-                    if (
-                        account.linked_physical_asset_id is not None
-                        and account.linked_physical_asset is not None
-                        and account.linked_physical_asset.acquisition_cost is not None
-                    ):
-                        asset_ccy = account.linked_physical_asset.currency
+                if is_accrued:
+                    asset_id = account.linked_physical_asset_id
+                    if asset_id and asset_id in asset_val_map:
+                        asset_native_val = asset_val_map[asset_id]
+                        # Use the linked physical asset's currency; fall back to account currency if unavailable
+                        asset_ccy = (
+                            account.linked_physical_asset.currency
+                            if account.linked_physical_asset is not None
+                            else account.currency
+                        )
                         account_value = FXService.convert_using_map(
-                            account.linked_physical_asset.acquisition_cost,
-                            asset_ccy, fx_map,
+                            asset_native_val, asset_ccy, fx_map
                         )
                     else:
-                        account_value = FXService.convert_using_map(
-                            ledger_bal, account.currency, fx_map
-                        )
+                        # Fallback: acquisition_cost from linked asset if available, else ledger balance
+                        if (
+                            account.linked_physical_asset_id is not None
+                            and account.linked_physical_asset is not None
+                            and account.linked_physical_asset.acquisition_cost is not None
+                        ):
+                            asset_ccy = account.linked_physical_asset.currency
+                            account_value = FXService.convert_using_map(
+                                account.linked_physical_asset.acquisition_cost,
+                                asset_ccy, fx_map,
+                            )
+                        else:
+                            account_value = FXService.convert_using_map(
+                                ledger_bal, account.currency, fx_map
+                            )
+                else:
+                    from .account_valuation import get_baseline_physical_valuation
+                    native_val = get_baseline_physical_valuation(account, ledger_balance=ledger_bal) or Decimal("0.00")
+                    account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
 
             elif strategy == STRATEGY.INSURANCE_SURRENDER:
-                asset_id = account.linked_physical_asset_id
-                if asset_id and asset_id in asset_val_map:
-                    asset_native_val = asset_val_map[asset_id]
-                    asset_ccy = (
-                        account.linked_physical_asset.currency
-                        if account.linked_physical_asset is not None
-                        else account.currency
-                    )
-                    account_value = FXService.convert_using_map(
-                        asset_native_val, asset_ccy, fx_map
-                    )
+                if is_accrued:
+                    asset_id = account.linked_physical_asset_id
+                    if asset_id and asset_id in asset_val_map:
+                        asset_native_val = asset_val_map[asset_id]
+                        asset_ccy = (
+                            account.linked_physical_asset.currency
+                            if account.linked_physical_asset is not None
+                            else account.currency
+                        )
+                        account_value = FXService.convert_using_map(
+                            asset_native_val, asset_ccy, fx_map
+                        )
+                    else:
+                        # SPEC §2.6: Insurance MUST fall back to 0.00 when no valuation exists, NEVER acquisition_cost
+                        account_value = Decimal("0.00")
                 else:
-                    # SPEC §2.6: Insurance MUST fall back to 0.00 when no valuation exists, NEVER acquisition_cost
-                    account_value = Decimal("0.00")
+                    from .account_valuation import get_baseline_insurance_surrender
+                    native_val = get_baseline_insurance_surrender(account, ledger_balance=ledger_bal) or Decimal("0.00")
+                    account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
 
             elif strategy == STRATEGY.REVOLVING_CREDIT:
                 # Ledger balance already negative when owed; use as-is

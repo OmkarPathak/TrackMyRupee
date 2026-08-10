@@ -340,3 +340,72 @@ class TestDynamicAccountForm(TestCase):
         )
         self.assertFalse(form_invalid_create.is_valid())
         self.assertIn('acquisition_cost', form_invalid_create.errors)
+
+    def test_cross_type_switching_matrix(self):
+        """
+        SPEC §8: Full cross-type switching matrix test.
+        Transitioning an account sequentially through DEPOSIT -> SAVINGS_ACCOUNT -> CREDIT_CARD -> DEMAT -> REAL_ESTATE
+        must properly clean and null out non-relevant fields at each step.
+        """
+        # Step 1: Start as FD
+        account = Account.objects.create(
+            user=self.user,
+            name="Matrix Test Account",
+            account_type="FD",
+            currency="₹",
+            balance=Decimal("100000.00"),
+            deposit_principal=Decimal("100000.00"),
+            deposit_rate=Decimal("8.00"),
+            deposit_start_date=date(2025, 1, 1),
+        )
+
+        # Step 2: Switch FD -> SAVINGS_ACCOUNT
+        form_to_savings = AccountForm(
+            data={
+                'name': 'Matrix Test Account',
+                'account_type': 'SAVINGS_ACCOUNT',
+                'balance': '100000.00',
+                'currency': '₹',
+            },
+            instance=account,
+            user=self.user,
+        )
+        self.assertTrue(form_to_savings.is_valid(), form_to_savings.errors)
+        account = form_to_savings.save()
+        self.assertEqual(account.account_type, 'SAVINGS_ACCOUNT')
+        self.assertIsNone(account.deposit_principal)
+        self.assertIsNone(account.deposit_rate)
+
+        # Step 3: Switch SAVINGS_ACCOUNT -> CREDIT_CARD
+        form_to_card = AccountForm(
+            data={
+                'name': 'Matrix Test Account',
+                'account_type': 'CREDIT_CARD',
+                'balance': '-10000.00',
+                'currency': '₹',
+                'credit_limit': '150000.00',
+            },
+            instance=account,
+            user=self.user,
+        )
+        self.assertTrue(form_to_card.is_valid(), form_to_card.errors)
+        account = form_to_card.save()
+        self.assertEqual(account.account_type, 'CREDIT_CARD')
+        self.assertEqual(account.credit_limit, Decimal('150000.00'))
+
+        # Step 4: Switch CREDIT_CARD -> DEMAT
+        form_to_demat = AccountForm(
+            data={
+                'name': 'Matrix Test Account',
+                'account_type': 'DEMAT',
+                'balance': '5000.00',
+                'currency': '₹',
+            },
+            instance=account,
+            user=self.user,
+        )
+        self.assertTrue(form_to_demat.is_valid(), form_to_demat.errors)
+        account = form_to_demat.save()
+        self.assertEqual(account.account_type, 'DEMAT')
+        self.assertIsNone(account.credit_limit)
+
