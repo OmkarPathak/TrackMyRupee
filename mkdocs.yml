@@ -14,7 +14,7 @@ not_in_nav: |
 
 validation:
   nav:
-    omits_configured: ignore
+    omitted_files: ignore
   links:
     not_found: ignore
 
