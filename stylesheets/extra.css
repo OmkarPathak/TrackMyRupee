@@ -1,0 +1,405 @@
+/* ==========================================================================
+   TrackMyRupee Docs — extra.css
+   Overrides mkdocs-material defaults to match the live app's design tokens.
+   Primary: #1D9E75  |  RGB: 29, 158, 117
+   Fonts: DM Sans (body), Instrument Serif (h1), Inter (code alt)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Google Fonts — exact same request as templates/base.html
+   -------------------------------------------------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* --------------------------------------------------------------------------
+   2. Font stack overrides
+   -------------------------------------------------------------------------- */
+:root {
+  --md-text-font: "DM Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --md-code-font: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+body,
+.md-typeset {
+  font-family: "DM Sans", "Inter", system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* H1 uses Instrument Serif — matching the app's branded headings */
+.md-typeset h1 {
+  font-family: "Instrument Serif", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* H2–H4 stay DM Sans bold */
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  font-family: "DM Sans", "Inter", system-ui, sans-serif;
+  font-weight: 600;
+}
+
+/* Site header brand name — bold DM Sans, matching navbar */
+.md-header__title {
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   3. Primary / accent palette — #1D9E75 (RGB 29 158 117)
+   Material uses --md-primary-* vars throughout.
+   -------------------------------------------------------------------------- */
+
+/* Light scheme */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:          #1D9E75;
+  --md-primary-fg-color--light:   #2dbb8e;
+  --md-primary-fg-color--dark:    #176f52;
+  --md-accent-fg-color:           #1D9E75;
+  --md-accent-fg-color--transparent: rgba(29, 158, 117, 0.10);
+
+  /* Sidebar active indicator */
+  --md-primary-bg-color:          #ffffff;
+  --md-primary-bg-color--light:   rgba(255,255,255,0.85);
+
+  /* Subtle tint for admonition / callout backgrounds */
+  --tmr-primary-subtle:           rgba(29, 158, 117, 0.08);
+  --tmr-primary-border:           rgba(29, 158, 117, 0.25);
+}
+
+/* Dark / slate scheme */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:          #2dbb8e;
+  --md-primary-fg-color--light:   #40d4a6;
+  --md-primary-fg-color--dark:    #1D9E75;
+  --md-accent-fg-color:           #2dbb8e;
+  --md-accent-fg-color--transparent: rgba(45, 187, 142, 0.12);
+
+  --tmr-primary-subtle:           rgba(45, 187, 142, 0.10);
+  --tmr-primary-border:           rgba(45, 187, 142, 0.30);
+}
+
+/* --------------------------------------------------------------------------
+   4. Header — matching app navbar (light background in light mode, dark in dark)
+   -------------------------------------------------------------------------- */
+.md-header {
+  background-color: var(--md-default-bg-color, #ffffff);
+  color: var(--md-default-fg-color, #212529);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest, rgba(0, 0, 0, 0.08));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.md-header__button,
+.md-header__title,
+.md-search__icon,
+.md-header-nav__button {
+  color: var(--md-default-fg-color, #212529) !important;
+}
+
+/* Search input on header */
+.md-search__input {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--md-default-fg-color, #212529);
+}
+.md-search__input::placeholder {
+  color: var(--md-default-fg-color--light, #6c757d);
+}
+
+/* Dark mode header overrides */
+[data-md-color-scheme="slate"] .md-header {
+  background-color: var(--md-default-bg-color, #1e293b);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-md-color-scheme="slate"] .md-header__button,
+[data-md-color-scheme="slate"] .md-header__title,
+[data-md-color-scheme="slate"] .md-search__icon,
+[data-md-color-scheme="slate"] .md-header-nav__button {
+  color: #ffffff !important;
+}
+
+[data-md-color-scheme="slate"] .md-search__input {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   5. Sidebar Navigation — Balanced & Comfortable Layout
+   -------------------------------------------------------------------------- */
+
+/* Remove default heavy margins */
+.md-nav--primary .md-nav__item {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* All navigation links (balanced vertical spacing & line height) */
+.md-nav--primary .md-nav__link {
+  font-family: "DM Sans", system-ui, sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+  color: var(--md-default-fg-color--light, #4b5563);
+  padding-top: 0.22rem !important;
+  padding-bottom: 0.22rem !important;
+  margin-top: 0.04rem !important;
+  margin-bottom: 0.04rem !important;
+  transition: color 0.15s ease;
+}
+
+/* Hover & Focus states */
+.md-nav--primary .md-nav__link:hover,
+.md-nav--primary .md-nav__link:focus {
+  color: #1D9E75 !important;
+}
+
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__link:hover,
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__link:focus {
+  color: #2dbb8e !important;
+}
+
+/* Active navigation item */
+.md-nav--primary .md-nav__link--active,
+.md-nav--primary .md-nav__item--active > .md-nav__link {
+  color: #1D9E75 !important;
+  font-weight: 600 !important;
+}
+
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__link--active,
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__item--active > .md-nav__link {
+  color: #2dbb8e !important;
+}
+
+/* Sub-list indentation (smooth, borderless left indent for subpages) */
+.md-nav--primary .md-nav__list .md-nav__list {
+  padding-left: 0.85rem !important;
+  margin: 0 !important;
+  border-left: none !important;
+}
+
+/* Section titles / Parent category headers (e.g. Transactions) */
+.md-nav--primary .md-nav__item--nested > .md-nav__link,
+.md-nav--primary .md-nav__title {
+  font-family: "DM Sans", system-ui, sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--md-default-fg-color, #1a1a18) !important;
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.15rem !important;
+  margin-top: 0.2rem !important;
+}
+
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__item--nested > .md-nav__link,
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__title {
+  color: #ffffff !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. "In this article" TOC
+   -------------------------------------------------------------------------- */
+.md-nav--secondary .md-nav__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-nav--secondary .md-nav__link--active {
+  color: #1D9E75;
+  border-left: 2px solid #1D9E75;
+  padding-left: 0.6rem;
+}
+
+[data-md-color-scheme="slate"] .md-nav--secondary .md-nav__link--active {
+  color: #2dbb8e;
+  border-left-color: #2dbb8e;
+}
+
+/* --------------------------------------------------------------------------
+   7. Buttons and links
+   -------------------------------------------------------------------------- */
+.md-typeset a {
+  color: #1D9E75;
+}
+.md-typeset a:hover {
+  color: #176f52;
+}
+
+[data-md-color-scheme="slate"] .md-typeset a {
+  color: #2dbb8e;
+}
+[data-md-color-scheme="slate"] .md-typeset a:hover {
+  color: #40d4a6;
+}
+
+/* --------------------------------------------------------------------------
+   8. Admonitions — keep Material's icons, override accent colors
+   -------------------------------------------------------------------------- */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: #1D9E75;
+}
+.md-typeset .admonition.note > .admonition-title,
+.md-typeset details.note > summary {
+  background-color: var(--tmr-primary-subtle);
+}
+.md-typeset .admonition.note > .admonition-title::before,
+.md-typeset details.note > summary::before {
+  background-color: #1D9E75;
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: #1D9E75;
+}
+.md-typeset .admonition.tip > .admonition-title,
+.md-typeset details.tip > summary {
+  background-color: var(--tmr-primary-subtle);
+}
+.md-typeset .admonition.tip > .admonition-title::before,
+.md-typeset details.tip > summary::before {
+  background-color: #1D9E75;
+}
+
+/* --------------------------------------------------------------------------
+   9. Code blocks
+   -------------------------------------------------------------------------- */
+.md-typeset code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.85em;
+  background-color: var(--tmr-primary-subtle);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+.md-typeset pre > code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   10. Responsive — images, tables, code blocks
+   -------------------------------------------------------------------------- */
+.md-typeset img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  display: block;
+  margin: 1.2rem auto;
+}
+
+/* Horizontal scroll for wide tables instead of layout break */
+.md-typeset table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Horizontal scroll for wide code blocks */
+.md-typeset pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* On narrow screens reduce sidebar padding */
+@media screen and (max-width: 76.1875em) {
+  .md-sidebar {
+    padding-top: 0.5rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   11. Footer
+   -------------------------------------------------------------------------- */
+.md-footer {
+  background-color: #145c44;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.md-footer-meta {
+  background-color: #0f4332;
+}
+
+.md-footer__link:hover {
+  color: #2dbb8e;
+}
+
+/* --------------------------------------------------------------------------
+   12. Search results highlight
+   -------------------------------------------------------------------------- */
+.md-search-result mark {
+  background-color: rgba(29, 158, 117, 0.20);
+  color: inherit;
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   13. Step-number styling for tutorial numbered lists
+   Tutorial pages use ordered lists whose items are the "steps".
+   Give them a bit more visual weight.
+   -------------------------------------------------------------------------- */
+.md-typeset ol li {
+  margin-bottom: 0.75rem;
+  line-height: 1.7;
+}
+
+.md-typeset ol li strong:first-child,
+.md-typeset ol li > p > strong:first-child {
+  color: #1D9E75;
+}
+
+[data-md-color-scheme="slate"] .md-typeset ol li strong:first-child,
+[data-md-color-scheme="slate"] .md-typeset ol li > p > strong:first-child {
+  color: #2dbb8e;
+}
+
+/* --------------------------------------------------------------------------
+   14. Logo image & brand text in header (matching app navbar 1:1)
+   -------------------------------------------------------------------------- */
+
+/* Collapse excess Material theme default margins/paddings between logo and title */
+.md-header__button.md-logo {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
+
+.md-header__title {
+  margin-left: 0.4rem !important;
+  padding-left: 0 !important;
+}
+
+/* Logo image matching app's rounded-3 shadow-sm */
+.md-header__button.md-logo img,
+.md-header__title .md-logo img,
+.md-logo img {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important; /* rounded-3 */
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important; /* shadow-sm */
+  object-fit: contain;
+  margin-right: 0 !important;
+}
+
+/* Brand text matching app's sidebar-brand / brand-text fw-bold fs-5 */
+.brand-text,
+.md-header__title,
+.md-header__topic {
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif !important;
+  font-size: 1.25rem !important; /* fs-5 / 20px */
+  font-weight: 700 !important;   /* fw-bold */
+  letter-spacing: -0.02em !important; /* style.css line 345 */
+  color: var(--md-default-fg-color, #1a1a18) !important;
+}
+
+[data-md-color-scheme="slate"] .brand-text,
+[data-md-color-scheme="slate"] .md-header__title,
+[data-md-color-scheme="slate"] .md-header__topic {
+  color: #ffffff !important;
+}
