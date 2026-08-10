@@ -1,35 +1,64 @@
 # Adding Expenses
 
-Easily log and track all your outgoings so you can stay on top of your budget and spending habits.
+Log every outgoing payment so your budget, analytics, and net worth stay accurate.
 
-1. Opening the expense form — **Desktop:** click **Add** in the top navbar → **Add Expense**. **Mobile:** tap the **+** FAB in the bottom tab bar → **Add Expense** from the 'Add New' sheet. You can also use the **+ Add** shortcut next to **Expenses** in the sidebar (desktop).
-2. Filling the form — the top section is a 'Quick Add' natural-language box (e.g. type 'swiggy 320' and tap **Go** to auto-fill the form below). Or fill manually: **Amount** (required), **Category** (required), **Description** (optional, placeholder: 'What did you spend on?'), **Account** (required). Expand **More options** to set **Date**, **Currency**, and **Payment Method** (tap one of: Cash / Credit Card / Debit Card / UPI / NetBanking). Tap **Save** to submit.
-3. Where the expense appears — immediately after saving: the entry appears in the **Expenses** list (/expenses/), the **Transactions** list (/transactions/), the **Dashboard** 'Spent' tile for the current period, and the relevant **Budget** category's progress bar.
-4. Editing or deleting — find the expense in the Expenses list, click/tap the row to open it, then use the edit icon to open the 'Edit Expense' form and change any field. To delete, use the delete (trash) action on the expense, which shows a confirmation screen before removal.
-5. Note: there is no bulk-select or CSV import feature in the current version. Log expenses one at a time or use the Quick Add text box for speed.
+---
 
-<!-- TODO: screenshot (desktop, 1280x800) of Add ▾ → Expense form (date, category, account, payment method fields) -->
-![Add expense form on desktop](../screenshots/03-transactions-expenses/add-expense-form-desktop.png)
+## 1. Opening the Expense Form
 
-<!-- TODO: screenshot (mobile, 375x812) of the expense form after tapping FAB → Add Expense -->
-![Add expense form on mobile](../screenshots/03-transactions-expenses/add-expense-form-mobile.png)
+- **Desktop**: Click **Add** in the top navbar, then select **Add Expense**.
+- **Mobile**: Tap the **+** button in the bottom tab bar, then tap **Add Expense** from the sheet that appears.
 
-<!-- TODO: screenshot (desktop, 1280x800) of /expenses/ with a few rows populated -->
-![Expenses list on desktop](../screenshots/03-transactions-expenses/expenses-list-desktop.png)
+You can also use the **+ Add** shortcut next to **Expenses** in the sidebar on desktop.
 
-<!-- TODO: screenshot (mobile, 375x812) of /expenses/ list -->
-![Expenses list on mobile](../screenshots/03-transactions-expenses/expenses-list-mobile.png)
+---
 
-<!-- TODO: screenshot (desktop, 1280x800) of category dropdown open, showing category options -->
-![Category picker on desktop](../screenshots/03-transactions-expenses/expense-category-picker-desktop.png)
+## 2. Using Quick Add
 
-<!-- TODO: screenshot (mobile, 375x812) of category picker -->
-![Category picker on mobile](../screenshots/03-transactions-expenses/expense-category-picker-mobile.png)
+The top of the expense form has a **Quick Add** text box. Type a plain description such as "swiggy 320" and tap **Go**. The app will auto-fill the amount and suggest a category, which you can confirm or change before saving.
+
+This is the fastest way to log an expense when you are in a hurry.
+
+---
+
+## 3. Filling the Form Manually
+
+If you prefer to fill in the form yourself, complete the following fields:
+
+1. **Amount** (required): The rupee amount you spent.
+2. **Category** (required): The spending category, such as Food, Transport, or Bills.
+3. **Description** (optional): A short note about what you spent on.
+4. **Account** (required): The account the money came from.
+5. **Date**: Defaults to today. Tap **More options** to change it.
+6. **Payment Method**: Tap one of Cash, Credit Card, Debit Card, UPI, or NetBanking.
+
+Click **Save** when you are done.
+
+---
+
+## 4. Where the Expense Appears
+
+After saving, the expense appears in several places at once:
+
+- The **Expenses** list at `/expenses/`
+- The **Transactions** list at `/transactions/`
+- The **Dashboard** Spent tile for the current period
+- The **Budget** bar for the category you selected
+
+---
+
+## 5. Editing or Deleting an Expense
+
+Find the expense in the Expenses list and click or tap the row to open it. Use the edit icon to open the form and change any field. Click **Save** to apply the changes.
+
+To delete, use the delete (trash) icon on the expense detail screen. A confirmation prompt will appear before the record is removed.
 
 !!! example "Real-world use case"
-    After the Swiggy delivery arrives, Meera spends under 15 seconds logging it: she taps the **+** FAB, selects **Add Expense**, types **450** in Amount, picks **Dining Out** (or her nearest equivalent category) from the Category picker, selects **HDFC Savings** as the Account, taps **UPI** in Payment Method, and hits **Save**. She immediately sees her Dining Out budget bar inch forward on the Dashboard — a small visual nudge that keeps her honest for the rest of the month.
+    After a Swiggy delivery arrives, Meera logs it in under 15 seconds: she taps the + button, selects Add Expense, enters 450 as the amount, picks Dining Out as the category, selects HDFC Savings as the account, taps UPI as the payment method, and hits Save. She immediately sees her Dining Out budget bar move forward on the Dashboard, which reminds her how close she is to her monthly limit.
 
-## Related links
+---
+
+## Related Links
 - [Adding Income](../04-transactions-income/index.md)
 - [Budgets](../07-budgets/index.md)
 - [Calendar](../10-calendar/index.md)

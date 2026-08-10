@@ -1,28 +1,52 @@
 # Calendar
 
-The Calendar provides a daily, colour-coded view of all your transactions and cash flow events.
+Get a daily, colour-coded view of all your transactions and cash flow events.
 
-1. Navigating months — open the Calendar via **Sidebar → Calendar** (desktop) or **More → Calendar** (mobile). Use the left and right arrow buttons to step through months.
-2. Reading the legend and activity heat scale — the calendar uses a colour-coded legend: **Income** (money received days), **Expense** (spending days), **Investments** (investment transfer days), **Pending** (upcoming scheduled transactions), **Salary Day** (the day your salary cycle starts), **Upcoming Sub** (a subscription due soon). Days with more activity appear darker on the heat scale.
-3. Clicking into a day — tap or click any day cell to see all transactions logged on that date: their amounts, categories, and accounts. This is useful for auditing individual days.
-4. Using the search box — the Calendar page includes a search box. Type a keyword (e.g. 'Swiggy' or a category name) to highlight or filter matching entries across the month.
+---
+
+## 1. Opening the Calendar
+
+Navigate to **Sidebar → Calendar** on desktop, or go to **More → Calendar** on mobile (URL: `/calendar/`).
+
+Use the left and right arrow buttons to step through months.
+
+---
+
+## 2. Reading the Colour Legend
+
+The calendar uses colours to distinguish different types of activity on each day:
+
+| Colour label | What it means |
+|---|---|
+| Income | A day when money was received |
+| Expense | A day when money was spent |
+| Investments | A day when an investment transfer was made |
+| Pending | An upcoming scheduled transaction |
+| Salary Day | The day your salary cycle starts |
+| Upcoming Sub | A subscription due soon |
+
+Days with more activity appear darker on the heat scale. A day with just one small transaction will appear lighter than a day with several large ones.
+
+---
+
+## 3. Clicking Into a Day
+
+Tap or click any day cell to see all transactions logged on that date. The detail view shows each transaction's amount, category, and account.
+
+This is the fastest way to audit a specific day if you notice an unexpected balance change.
+
+---
+
+## 4. Using the Search Box
+
+The Calendar page includes a search box at the top. Type a keyword such as a merchant name or a category name to highlight or filter matching entries across the month.
 
 !!! example "Real-world use case"
-    Deepak notices an unusually dark day on the August calendar. He clicks into it and finds three separate Zepto orders totalling ₹2,400 — orders he doesn't remember placing. He checks the descriptions and realizes a household member used his account. The Calendar's day-detail view gave him the audit trail in seconds, prompting him to enable spending notifications so he's alerted the moment any transaction is logged.
+    Deepak notices an unusually dark day on the August calendar. He clicks into it and finds three separate grocery orders totalling Rs. 2,400 that he does not remember placing. He checks the descriptions and realises a household member used his account. The Calendar's day detail view gave him the full audit trail in seconds, prompting him to enable spending notifications so he is alerted the moment any transaction is logged.
 
-<!-- TODO: screenshot (desktop, 1280x800) of /calendar/ full month grid with legend -->
-![Calendar month view on desktop](../screenshots/10-calendar/calendar-month-view-desktop.png)
+---
 
-<!-- TODO: screenshot (mobile, 375x812) of /calendar/ full month grid -->
-![Calendar month view on mobile](../screenshots/10-calendar/calendar-month-view-mobile.png)
-
-<!-- TODO: screenshot (desktop, 1280x800) of a day cell expanded/clicked showing its transactions -->
-![Calendar day detail on desktop](../screenshots/10-calendar/calendar-day-detail-desktop.png)
-
-<!-- TODO: screenshot (mobile, 375x812) of a day cell expanded -->
-![Calendar day detail on mobile](../screenshots/10-calendar/calendar-day-detail-mobile.png)
-
-## Related links
+## Related Links
 - [Adding Expenses](../03-transactions-expenses/index.md)
-- [Recurring Transactions & Subscriptions](../05-transactions-recurring/index.md)
-- [Analytics, Trends & Financial Health](../11-analytics-and-health/index.md)
+- [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md)
+- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)

@@ -1,31 +1,63 @@
 # Getting Started
+
 Set up your accounts, configure your salary cycle, and establish your financial baseline in TrackMyRupee.
 
-1. **First login**: When starting out, you can choose between entering demo mode or creating a real account. You will see a banner stating: "You're in Demo Mode. This is a demo with sample data for illustration." with links to "Save your data — Create free account" and "Exit". Demo data is temporary; real accounts persist.
-2. **Setting the salary cycle start date**: Find the pencil-edit icon next to 'Salary cycle: 01 Aug – 31 Aug' on the Dashboard. You should do this before logging any transactions because every budget period calculation depends on it matching how your money actually flows.
-3. **Creating the first account**: Navigate to **Sidebar → Accounts → + Add** (desktop) or **Bottom tab → Accounts → + Add** (mobile). The form operates as a 2-step wizard: first 'Account Basics' (Account Name, Account Type, Currency, Initial Balance) followed by a type-specific step. Use types like Cash Wallet for physical cash, Savings Account or Salary Account for bank accounts, and Demat Account or Mutual Funds for your investments.
-4. **Setting an accurate opening balance**: This is the base every later net-worth number builds on. Make sure to enter the exact real-world balance on setup day.
-5. **Default categories**: New accounts start with 3 default categories: Food, Shopping, Bills (created at signup via signals). These can be edited or extended later in the app's settings.
+---
 
-!!! tip "Create all accounts first"
-    Create every real-world account you own — including a **Cash Wallet** for physical cash spends — before logging your first transaction. Every expense and income must be attached to an account, and having them all set up first means your Day 1 net worth is accurate rather than artificially low.
+## 1. First Login
 
-<!-- TODO: screenshot (desktop, 1280x800) of Dashboard on first login/demo entry, full month view -->
-![Dashboard first look on desktop](../screenshots/01-getting-started/dashboard-first-look-desktop.png)
+When you open TrackMyRupee for the first time, you can choose between entering demo mode or creating a real account.
 
-<!-- TODO: screenshot (mobile, 375x812) of Dashboard on first login/demo entry -->
-![Dashboard first look on mobile](../screenshots/01-getting-started/dashboard-first-look-mobile.png)
+If you enter demo mode, you will see a banner at the top: "You are in Demo Mode. This is a demo with sample data for illustration." The banner has links to create a free account or exit. Demo data is temporary and does not save any changes.
 
-<!-- TODO: screenshot (desktop, 1280x800) of the pencil-edit on 'Salary cycle: 01 Aug – 31 Aug' -->
-![Salary cycle editor on desktop](../screenshots/01-getting-started/salary-cycle-editor-desktop.png)
+---
 
-<!-- TODO: screenshot (mobile, 375x812) of the salary cycle editor -->
-![Salary cycle editor on mobile](../screenshots/01-getting-started/salary-cycle-editor-mobile.png)
+## 2. Setting the Salary Cycle Start Date
+
+Find the pencil icon next to "Salary cycle: 01 Aug - 31 Aug" on the Dashboard. Click it and enter the day of the month when your salary typically arrives (for example, 28).
+
+Do this before logging any transactions. Every budget period calculation depends on this date matching how money actually flows into your account.
+
+---
+
+## 3. Creating Your First Account
+
+Navigate to **Sidebar → Accounts → Add** on desktop, or **Bottom tab → Accounts → Add** on mobile.
+
+The form works as a two-step wizard:
+
+1. **Account Basics**: Enter Account Name, Account Type, Currency, and Initial Balance.
+2. **Type-specific step**: Fill in fields that apply to your account type.
+
+Use these account types as a guide:
+
+- **Cash Wallet** for physical cash you carry
+- **Savings Account** or **Salary Account** for your bank accounts
+- **Demat Account** or **Mutual Funds** for investment accounts
+
+---
+
+## 4. Setting an Accurate Opening Balance
+
+The opening balance you enter becomes the base that every future net worth calculation builds on. Enter the exact real-world balance of that account on the day you set it up.
+
+If you set an incorrect opening balance and correct it later, all historical net worth data points will change.
+
+!!! tip "Create all accounts before your first transaction"
+    Add every real-world account you own, including a Cash Wallet for physical cash, before logging your first transaction. Every expense and income entry must be attached to an account. Having them all set up from the start means your Day 1 net worth is accurate rather than artificially low.
+
+---
+
+## 5. Default Categories
+
+When you sign up, three default expense categories are created automatically: Food, Shopping, and Bills. You can edit, rename, or add more categories at any time in **Settings → Categories**.
 
 !!! example "Real-world use case"
-    Ananya joins TrackMyRupee for the first time. She has an HDFC Salary Account (balance: ₹42,000), an SBI Savings Account (balance: ₹1,15,000), and ₹3,500 cash in her wallet. She creates all three accounts before logging a single transaction — using **Salary Account** for HDFC, **Savings Account** for SBI, and **Cash Wallet** for the physical cash. Her Day 1 net worth shows ₹1,60,500 — an accurate baseline she can track against. If she had skipped the SBI account and added it later, every historical net-worth data point would be wrong.
+    Ananya joins TrackMyRupee for the first time. She has an HDFC Salary Account (balance: Rs. 42,000), an SBI Savings Account (balance: Rs. 1,15,000), and Rs. 3,500 cash in her wallet. She creates all three accounts before logging a single transaction, using Salary Account for HDFC, Savings Account for SBI, and Cash Wallet for physical cash. Her Day 1 net worth shows Rs. 1,60,500, which is an accurate baseline she can track against going forward.
+
+---
 
 ## Related Links
 - [Philosophy](../00-philosophy.md)
-- [Accounts & Net Worth](../02-accounts/index.md)
+- [Accounts and Net Worth](../02-accounts/index.md)
 - [Adding Expenses](../03-transactions-expenses/index.md)

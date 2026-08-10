@@ -1,39 +1,88 @@
-# Accounts & Net Worth
+# Accounts and Net Worth
 
-Learn how to manage your assets, liabilities, and track your overall net worth in one central place.
+Manage all your assets and liabilities in one place and track your overall net worth accurately.
 
-1. Viewing the Accounts page — navigate via **Sidebar → Accounts** (desktop) or **Bottom tab → Accounts** (mobile). The page groups accounts into assets and liabilities. A 'Filtered Total Balance' bar at top shows the combined balance.
-2. Adding an account — click the **+ Add** shortcut next to Accounts in the sidebar (desktop) or **+ Add** on the Accounts page (mobile). The form is a 2-step wizard. Required fields: **Account Name**, **Account Type**, **Currency**, **Initial Balance**. Step 2 shows type-specific fields (e.g. deposit terms for FD/RD, credit limit for Credit Card).
-3. Editing an account's balance/details — click the account row, then use the edit (pencil) icon. Marking an account **inactive** hides it from future transaction pickers but keeps all historical transaction records. **Deleting** an account removes the account record; any past transactions linked to it will lose their account reference (the account field becomes blank on those transactions). Prefer inactive over delete if the account has history.
-4. Reading account history — on an account's detail page, transaction rows show relative timestamps ('3 days ago', '7 days ago'). The **History** button (top-right of the detail page) shows the full ledger of all credits and debits for that account.
-5. Net worth roll-up — all active account balances sum into the **Net Worth** tile on the Dashboard. Liabilities (credit cards, loans) subtract from assets.
+---
 
-!!! warning "Deleting vs. Deactivating"
-    If you delete an account, any expenses, incomes, and transfers previously linked to it will lose their account reference — the account field on those records becomes blank. This does **not** delete the transactions themselves, but it makes them harder to audit. If you just want to stop using an account (e.g. a closed bank account), mark it **inactive** instead — it stays out of your transaction pickers but its history is fully preserved.
+## 1. Opening the Accounts Page
 
-<!-- TODO: screenshot (desktop, 1280x800) of /accounts/list/ grouped by Cash & Bank / Investments -->
-![Accounts list on desktop](../screenshots/02-accounts/accounts-list-desktop.png)
+Navigate to **Sidebar → Accounts** on desktop, or tap the **Accounts** tab in the bottom navigation on mobile. The page groups your accounts into asset categories such as Cash and Bank, Fixed-Income, and Investments.
 
-<!-- TODO: screenshot (mobile, 375x812) of /accounts/list/ -->
-![Accounts list on mobile](../screenshots/02-accounts/accounts-list-mobile.png)
+The **Filtered Total Balance** card at the top shows the combined cash and ledger balance of all accounts matching your current filter.
 
-<!-- TODO: screenshot (desktop, 1280x800) of the Add New Account form -->
-![Add account form on desktop](../screenshots/02-accounts/add-account-form-desktop.png)
+!!! info "Filtered Total Balance vs. Net Worth"
+    The Filtered Total Balance shows the sum of cash and accrued deposit balances for the accounts listed. It does not include the live market value of mutual fund holdings, real estate appraisals, or the deduction of outstanding loans. The Dashboard **Net Worth** card gives you the complete picture.
 
-<!-- TODO: screenshot (mobile, 375x812) of the Add New Account form -->
-![Add account form on mobile](../screenshots/02-accounts/add-account-form-mobile.png)
+---
 
-<!-- TODO: screenshot (desktop, 1280x800) of a single account's transaction history -->
-![Account detail on desktop](../screenshots/02-accounts/account-detail-desktop.png)
+## 2. Adding an Account
 
-<!-- TODO: screenshot (mobile, 375x812) of a single account's transaction history -->
-![Account detail on mobile](../screenshots/02-accounts/account-detail-mobile.png)
+Click **+ Add** next to Accounts in the sidebar on desktop, or tap **+ Add** on the Accounts page on mobile.
+
+The form is a two-step wizard:
+
+1. **Account Basics**: Enter Account Name, Account Type, Currency, and Initial Balance.
+2. **Type-specific fields**: Fill in details that apply to your account type. For example, Fixed Deposits show deposit terms and maturity date fields. Credit Cards show a credit limit field.
+
+Click **Save** when done.
+
+---
+
+## 3. Account Types Reference
+
+| Type | Use for |
+|---|---|
+| Cash Wallet | Physical cash you carry |
+| Savings Account | Regular bank savings account |
+| Salary Account | Bank account where your salary lands |
+| Fixed Deposit | FD or RD with interest accrual |
+| Mutual Funds | Mutual fund or SIP investment account |
+| Demat Account | Stock trading and brokerage account |
+| NPS / PF | Provident fund or pension account |
+| Credit Card | Credit card (tracked as a liability) |
+| Loan Account | Linked to a loan for repayment tracking |
+| Physical Asset | Real estate, vehicle, or other asset |
+| Insurance | Life or endowment policy |
+
+---
+
+## 4. Editing Account Details and Balance
+
+Click any account row to open its detail page. Use the pencil (edit) icon to update the Account Name, Initial Balance, or any type-specific fields.
+
+If an account no longer needs new transactions but has transaction history you want to keep, mark it **Inactive** instead of deleting it. Inactive accounts are hidden from transaction pickers but their full history is preserved.
+
+!!! warning "Deleting vs. deactivating"
+    Deleting an account removes the account record. Any past expenses, incomes, and transfers linked to it will lose their account reference - those transaction records stay in the system but the account field becomes blank on them. If the account has any history, deactivate it instead.
+
+---
+
+## 5. Reading Account Transaction History
+
+Click any account row to open its detail page. The page shows a ledger of all credits and debits, with relative timestamps such as "3 days ago" and "7 days ago".
+
+Click the **History** button at the top right of the detail page to view the full unfiltered ledger for that account.
+
+---
+
+## 6. How Net Worth Is Calculated
+
+The **Net Worth** tile on the Dashboard sums all your active account valuations and subtracts liabilities:
+
+- **Cash and Bank accounts**: ledger balance
+- **Fixed Deposits**: principal plus accrued interest
+- **Mutual Funds and Demat**: live market value using NAV (units x current NAV)
+- **Physical Assets**: latest appraised valuation or acquisition cost
+- **Insurance**: latest surrender value
+- **Credit Cards and Loans**: subtracted as liabilities
 
 !!! example "Real-world use case"
-    Before deciding whether to make a ₹60,000 laptop purchase, Rahul opens **Accounts** to check his real net worth across his HDFC Salary Account, SBI Savings Account, and Cash Wallet in one place — instead of opening three separate banking apps. The **Filtered Total Balance** shows ₹1,92,000 across all three, confirming he can comfortably absorb the purchase without dipping below his ₹1,00,000 emergency buffer.
+    Before deciding whether to make a Rs. 60,000 laptop purchase, Rahul opens Accounts to check his real net worth across his HDFC Salary Account, SBI Savings Account, and Cash Wallet in one place rather than opening three separate banking apps. The Filtered Total Balance shows Rs. 1,92,000 across all three, confirming he can absorb the purchase without going below his Rs. 1,00,000 emergency reserve.
 
-## Related links
-- [Holdings & Mutual Funds Portfolio](holdings.md)
+---
+
+## Related Links
+- [Holdings and Mutual Funds Portfolio](holdings.md)
 - [Getting Started](../01-getting-started/index.md)
 - [Transfers](../06-transfers/index.md)
-- [Analytics, Trends & Financial Health](../11-analytics-and-health/index.md)
+- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)

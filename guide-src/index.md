@@ -1,6 +1,6 @@
 # Welcome to TrackMyRupee Docs
 
-**TrackMyRupee** is a privacy-first personal finance tracker built for India — no bank sync, no SMS access, just honest numbers from your own entries.
+**TrackMyRupee** is a privacy-first personal finance tracker built for India. No bank sync, no SMS access, just honest numbers from your own entries.
 
 This guide walks you through every feature, step by step.
 
@@ -30,7 +30,7 @@ This guide walks you through every feature, step by step.
 
     ---
 
-    Record expenses, income, recurring bills, and internal transfers — manually, fast, and accurately.
+    Record expenses, income, recurring bills, and internal transfers. Manually, fast, and accurately.
 
     [:octicons-arrow-right-24: Expenses](03-transactions-expenses/index.md)
 
@@ -86,4 +86,4 @@ This guide walks you through every feature, step by step.
 ---
 
 !!! tip "Try the live demo first"
-    Not signed up yet? Visit [trackmyrupee.com/demo](https://trackmyrupee.com/demo) to explore the full app with sample data — no account required.
+    Not signed up yet? Visit [trackmyrupee.com/demo](https://trackmyrupee.com/demo) to explore the full app with sample data. No account required.

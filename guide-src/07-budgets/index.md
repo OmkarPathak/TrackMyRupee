@@ -1,34 +1,56 @@
 # Budgets
 
-Track and manage your spending limits across categories to stay on top of your financial goals.
+Set per-category monthly spending limits and get alerted before you overshoot.
 
-1. **Opening the Budgets page** — **Sidebar → Budgets** (desktop) or **More → Budgets** from the mobile bottom sheet. The page shows a **Total Budget Goal** bar at the top (how much of your total budget envelope is used) and individual category bars below. Status pill counts show how many categories are: over budget / at limit / on track / no limit set.
-2. **Setting a category limit** — click the **pencil (edit) icon** next to a category name. Enter the monthly limit in ₹. Hit save. The progress bar for that category immediately updates to reflect the new limit against existing spend.
-3. **Reading the 'Needs Attention' section** — categories appear in 'Needs Attention' when they are over budget (spent > limit) or at limit (spent = limit). This section is your primary action list each cycle.
-4. **Adjusting a limit mid-cycle** — you can raise or lower a limit at any time. Changing the limit does **not** alter past transactions. Your existing spend stays as-is; only the % threshold recalculates. Use this to course-correct if a limit was set too tightly.
-5. **Sorting / filtering** — the Budget page can be filtered by month or year using the date selectors at the top, letting you compare budget adherence across periods.
+---
+
+## 1. Opening the Budgets Page
+
+Navigate to **Sidebar → Budgets** on desktop, or go to **More → Budgets** from the mobile bottom sheet.
+
+The page shows a **Total Budget Goal** bar at the top, which displays how much of your overall budget envelope has been used. Below that, individual category bars show the spend versus the limit for each category. Status pill counts at the top tell you at a glance how many categories are over budget, at their limit, on track, or have no limit set.
+
+---
+
+## 2. Setting a Category Limit
+
+1. Find the category you want to limit in the list.
+2. Click the **pencil (edit) icon** next to the category name.
+3. Enter the monthly limit in rupees.
+4. Click **Save**.
+
+The progress bar for that category updates immediately to show the new limit against your existing spend for the current period.
+
+!!! info "Categories without a limit"
+    If a category has no limit set, it appears in the list but without a progress bar. The budget bar only activates once you set a limit.
+
+---
+
+## 3. Reading the "Needs Attention" Section
+
+The **Needs Attention** section lists categories that are over budget (spent is more than the limit) or exactly at their limit. This is your primary action list for the current cycle.
+
+When a category goes over budget, the bar turns red. When it reaches 90 percent or more of the limit, it turns amber as an early warning.
+
+---
+
+## 4. Adjusting a Limit Mid-Cycle
+
+You can raise or lower a category limit at any time during the month. Changing the limit does not alter any past transactions. Your existing spend stays as it is; only the percentage threshold recalculates.
+
+Use this to course-correct if a limit was set too tightly for an unusual month.
+
+---
+
+## 5. Filtering by Period
+
+The Budget page has date selectors at the top. Use these to view budget adherence for a specific month or year, and to compare how a category has performed across different periods.
 
 !!! example "Real-world use case"
-    Mid-cycle, Pooja notices her Dining Out bar has hit 210% of its ₹5,000 limit. She has two choices: raise the limit to ₹10,000 to match reality (useful if she had a special occasion this cycle), or commit to cooking at home for the remaining two weeks and use the budget bar as a daily check-in. She raises the limit for this cycle but resolves to keep it at ₹5,000 next cycle — using the historical filter to check if last cycle's actual spend was also over ₹5,000 before deciding.
+    Mid-cycle, Pooja notices her Dining Out bar has reached 210 percent of its Rs. 5,000 limit. She has two choices: raise the limit to Rs. 10,000 to match reality for this cycle (useful if she had a special occasion), or commit to cooking at home for the remaining weeks and use the budget bar as a daily check-in. She raises the limit for this cycle but uses the historical filter to verify whether last cycle's spend was also over Rs. 5,000 before deciding whether to update her default limit going forward.
 
-<!-- TODO: screenshot (desktop, 1280x800) of /budget/ total budget goal + status pills -->
-![Budget overview on desktop](../screenshots/07-budgets/budget-overview-desktop.png)
+---
 
-<!-- TODO: screenshot (mobile, 375x812) of /budget/ -->
-![Budget overview on mobile](../screenshots/07-budgets/budget-overview-mobile.png)
-
-<!-- TODO: screenshot (desktop, 1280x800) of the 'Needs attention' over-budget category cards -->
-![Budget needs attention on desktop](../screenshots/07-budgets/budget-needs-attention-desktop.png)
-
-<!-- TODO: screenshot (mobile, 375x812) of 'Needs attention' cards -->
-![Budget needs attention on mobile](../screenshots/07-budgets/budget-needs-attention-mobile.png)
-
-<!-- TODO: screenshot (desktop, 1280x800) of the pencil-edit on a category limit -->
-![Edit budget limit on desktop](../screenshots/07-budgets/edit-budget-limit-desktop.png)
-
-<!-- TODO: screenshot (mobile, 375x812) of the edit budget limit form -->
-![Edit budget limit on mobile](../screenshots/07-budgets/edit-budget-limit-mobile.png)
-
-Related links:
+## Related Links
 - [Adding Expenses](../03-transactions-expenses/index.md)
-- [Analytics, Trends & Financial Health](../11-analytics-and-health/index.md)
+- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)
