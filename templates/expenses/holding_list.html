@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% load i18n humanize currency_filters digit_filters expense_extras %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header Row -->
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>{% trans "Investment & Holdings Portfolio" %}</h3>
+            <p class="text-muted small mb-0">{% trans "Track your mutual funds, stocks, and asset valuations across all accounts in real-time." %}</p>
+        </div>
+        {% if user_accounts %}
+        <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addHoldingModal">
+            <i class="bi bi-plus-lg"></i>
+            <span>{% trans "Add Holding" %}</span>
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Summary Hero Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 rounded-4 p-3 shadow-sm h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08); border: 1px solid rgba(29, 158, 117, 0.15) !important;">
+                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Total Portfolio Value" %}</div>
+                <div class="fs-3 fw-extrabold text-success mb-1">{{ user_currency }}{{ total_valuation|ind_comma:user_currency|translate_digits }}</div>
+                <div class="small text-muted">{{ holdings.count|translate_digits }} {% trans "active holdings" %}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card border-0 rounded-4 p-3 shadow-sm h-100 bg-body-tertiary">
+                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Total Invested (Cost)" %}</div>
+                <div class="fs-4 fw-bold text-body-emphasis mb-1">{{ user_currency }}{{ total_cost|ind_comma:user_currency|translate_digits }}</div>
+                <div class="small text-muted">{% trans "Baseline purchase cost" %}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card border-0 rounded-4 p-3 shadow-sm h-100 bg-body-tertiary">
+                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Unrealized Gain / Loss" %}</div>
+                <div class="fs-4 fw-bold {% if unrealized_gain >= 0 %}text-success{% else %}text-danger{% endif %} mb-1">
+                    {% if unrealized_gain >= 0 %}+{% endif %}{{ user_currency }}{{ unrealized_gain|ind_comma:user_currency|translate_digits }}
+                    <span class="fs-6 fw-semibold ms-1">({{ gain_pct|translate_digits }}%)</span>
+                </div>
+                <div class="small text-muted">{% trans "Net portfolio growth" %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Holdings Card Container -->
+    <div class="card rounded-4 border-0 shadow-sm overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+        <div class="card-header bg-transparent border-bottom p-3 p-md-4 d-flex align-items-center justify-content-between">
+            <h5 class="mb-0 fw-bold">{% trans "All Holdings" %}</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if holdings %}
+                <!-- Desktop Table View -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th class="ps-4">{% trans "Holding / Fund" %}</th>
+                                <th>{% trans "Account" %}</th>
+                                <th>{% trans "Units" %}</th>
+                                <th>{% trans "Avg Cost" %}</th>
+                                <th>{% trans "Current Val / NAV" %}</th>
+                                <th class="text-end pe-4">{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in holdings %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-body-emphasis">{{ h.instrument_name }}</div>
+                                        {% if h.scheme_code %}
+                                            <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.7rem;">AMFI Code: {{ h.scheme_code }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'account-detail' h.account.uuid %}" class="text-decoration-none fw-semibold text-body">
+                                            {{ h.account.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ h.units|ind_comma|translate_digits }}</td>
+                                    <td>{{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</td>
+                                    <td>
+                                        {% with val=h.valuations.first %}
+                                            {% if val %}
+                                                <span class="fw-bold text-success">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</span>
+                                                {% if val.unit_nav %}
+                                                    <div class="small text-muted" style="font-size: 0.75rem;">NAV: {{ h.currency }}{{ val.unit_nav|translate_digits }}</div>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="fw-bold text-body-emphasis">{{ h.currency }}{{ h.cost_basis|ind_comma:h.currency|translate_digits }}</span>
+                                                <div class="small text-muted" style="font-size: 0.75rem;">({% trans "Cost Basis" %})</div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-1">
+                                            {% if h.scheme_code %}
+                                                <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </a>
+                                            {% endif %}
+                                            <a href="{% url 'holding-delete' h.pk %}" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Delete' %}" onclick="return confirm('{% trans "Are you sure you want to remove this holding?" %}');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile List View (Clean Single Card Container) -->
+                <div class="d-md-none">
+                    {% for h in holdings %}
+                        <div class="p-3 {% if not forloop.last %}border-bottom{% endif %} bg-body">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="d-flex align-items-start gap-2.5 min-w-0 flex-grow-1">
+                                    <div class="min-w-0 flex-grow-1">
+                                        <div class="fw-bold text-body-emphasis text-wrap" style="font-size: 0.92rem; line-height: 1.3;">{{ h.instrument_name }}</div>
+                                        <div class="small text-muted mt-0.5" style="font-size: 0.78rem;">{{ h.account.name }}</div>
+                                        {% if h.scheme_code %}
+                                            <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.68rem;">AMFI: {{ h.scheme_code }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- 3-Dot Actions Menu -->
+                                <div class="dropdown flex-shrink-0">
+                                    <button class="btn btn-link text-body-secondary p-0 border-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical fs-6"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-1">
+                                        {% if h.scheme_code %}
+                                            <li>
+                                                <a class="dropdown-item py-2 px-3 small" href="{% url 'refresh-holding-nav' h.pk %}">
+                                                    <i class="bi bi-arrow-repeat me-2"></i>{% trans "Refresh NAV" %}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                        <li>
+                                            <a class="dropdown-item py-2 px-3 small text-danger" href="{% url 'holding-delete' h.pk %}" onclick="return confirm('{% trans "Are you sure you want to remove this holding?" %}');">
+                                                <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-end justify-content-between pt-2 border-top mt-1" style="font-size: 0.82rem;">
+                                <div class="text-body-secondary">
+                                    <div><span class="fw-semibold text-body-emphasis">{{ h.units|ind_comma|translate_digits }}</span> {% trans "units" %}</div>
+                                    <div class="small opacity-75">Avg: {{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</div>
+                                </div>
+                                <div class="text-end">
+                                    {% with val=h.valuations.first %}
+                                        {% if val %}
+                                            <div class="fw-bold text-success fs-6">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</div>
+                                            {% if val.unit_nav %}
+                                                <div class="small text-muted" style="font-size: 0.72rem;">NAV: {{ h.currency }}{{ val.unit_nav|translate_digits }}</div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="fw-bold text-body-emphasis fs-6">{{ h.currency }}{{ h.cost_basis|ind_comma:h.currency|translate_digits }}</div>
+                                            <div class="small text-muted" style="font-size: 0.72rem;">({% trans "Cost Basis" %})</div>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-pie-chart fs-1 opacity-50 mb-3 d-block"></i>
+                    <h5>{% trans "No Holdings Found" %}</h5>
+                    <p class="mb-3 text-muted small">{% trans "You haven't added any mutual funds or stock holdings yet." %}</p>
+                    {% if user_accounts %}
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addHoldingModal">
+                        {% trans "Add First Holding" %}
+                    </button>
+                    {% else %}
+                    <a href="{% url 'account-create' %}" class="btn btn-sm btn-primary rounded-pill px-4">
+                        {% trans "Create Investment Account" %}
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Adding Holding -->
+{% if user_accounts %}
+<div class="modal fade" id="addHoldingModal" tabindex="-1" aria-labelledby="addHoldingModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <form method="POST" action="{% url 'holding-create-global' %}">
+                {% csrf_token %}
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold" id="addHoldingModalLabel">{% trans "Add Investment / Holding" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{% trans "Investment Account" %}</label>
+                        <select name="account_id" class="form-select rounded-3" required>
+                            {% for acc in user_accounts %}
+                                <option value="{{ acc.pk }}">{{ acc.name }} ({{ acc.account_type_display }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3 position-relative">
+                        <label class="form-label fw-semibold">{% trans "Fund / Stock Name" %}</label>
+                        <input type="text" name="instrument_name" id="global_fund_search_input" class="form-control rounded-3" placeholder="{% trans 'Type fund name e.g. Parag Parikh...' %}" autocomplete="off" required>
+                        <input type="hidden" name="scheme_code" id="global_scheme_code_input">
+                        <div id="global_fund_suggestions" class="dropdown-menu shadow w-100 mt-1 overflow-auto" style="max-height: 220px; display: none; z-index: 1070;"></div>
+                        <div class="form-text small text-muted mt-1">{% trans "Type to search and select from thousands of mutual funds for automatic daily NAV tracking." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <a class="small text-decoration-none" data-bs-toggle="collapse" href="#manualCodeCollapse" role="button" aria-expanded="false">
+                            <i class="bi bi-code-slash me-1"></i>{% trans "Advanced: Manual Scheme Code" %}
+                        </a>
+                        <div class="collapse mt-2" id="manualCodeCollapse">
+                            <input type="text" id="global_manual_scheme_code" class="form-control rounded-3 form-control-sm" placeholder="{% trans '6-digit AMFI code e.g. 122639' %}" oninput="document.getElementById('global_scheme_code_input').value=this.value.trim();">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">{% trans "Units" %}</label>
+                            <input type="number" step="0.000001" name="units" class="form-control rounded-3" placeholder="100.00" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">{% trans "Avg Purchase Price" %}</label>
+                            <input type="number" step="0.01" name="avg_cost" class="form-control rounded-3" placeholder="150.00" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">{% trans "Save Holding" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        function initGlobalFundSearch() {
+            const searchInput = document.getElementById('global_fund_search_input');
+            const schemeInput = document.getElementById('global_scheme_code_input');
+            const suggestionsBox = document.getElementById('global_fund_suggestions');
+            if (!searchInput || !suggestionsBox) return;
+
+            let debounceTimer = null;
+            searchInput.addEventListener('input', function() {
+                const q = this.value.trim();
+                schemeInput.value = '';
+                if (q.length < 2) {
+                    suggestionsBox.style.display = 'none';
+                    return;
+                }
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    fetch('/api/amfi-schemes/search/?q=' + encodeURIComponent(q))
+                        .then(r => r.json())
+                        .then(data => {
+                            const results = data.results || [];
+                            if (results.length === 0) {
+                                suggestionsBox.style.display = 'none';
+                                return;
+                            }
+                            suggestionsBox.innerHTML = '';
+                            results.forEach(item => {
+                                const a = document.createElement('a');
+                                a.className = 'dropdown-item py-2 border-bottom text-wrap';
+                                a.style.cursor = 'pointer';
+                                a.innerHTML = `<div class="fw-bold text-body-emphasis small">${item.scheme_name}</div><div class="text-muted" style="font-size:0.72rem;">Code: ${item.scheme_code}</div>`;
+                                a.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    searchInput.value = item.scheme_name;
+                                    schemeInput.value = item.scheme_code;
+                                    const manualCodeEl = document.getElementById('global_manual_scheme_code');
+                                    if (manualCodeEl) manualCodeEl.value = item.scheme_code;
+                                    suggestionsBox.style.display = 'none';
+                                });
+                                suggestionsBox.appendChild(a);
+                            });
+                            suggestionsBox.style.display = 'block';
+                        })
+                        .catch(() => { suggestionsBox.style.display = 'none'; });
+                }, 300);
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                    suggestionsBox.style.display = 'none';
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGlobalFundSearch);
+        } else {
+            initGlobalFundSearch();
+        }
+    })();
+</script>
+{% endif %}
+{% endblock %}

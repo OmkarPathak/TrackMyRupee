@@ -232,3 +232,14 @@ class NAVIntegrationTests(TestCase):
         # Both valuations exist for today
         vals = list(Valuation.objects.filter(holding=self.holding_a, as_of_date=date.today()))
         self.assertEqual(len(vals), 2)
+
+    def test_holdings_list_view(self):
+        """Test dedicated Holdings & Investment Portfolio page rendering."""
+        self.client.login(username='user_a', password='password123')
+        resp = self.client.get('/holdings/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'expenses/holding_list.html')
+        self.assertIn('holdings', resp.context)
+        self.assertIn('total_valuation', resp.context)
+        self.assertContains(resp, 'HDFC Top 100 Fund')
+

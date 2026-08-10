@@ -114,6 +114,14 @@
                 </a>
             </div>
 
+            <!-- Holdings -->
+            <div class="d-flex align-items-center position-relative px-0">
+                <a href="{% url 'holding-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'holding' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Holdings Portfolio' %}">
+                    <i class="bi bi-pie-chart fs-5"></i>
+                    <span class="nav-text">{% trans "Holdings" %}</span>
+                </a>
+            </div>
+
             <!-- Loans -->
             {% if user.profile.can_track_loans %}
             <div class="d-flex align-items-center position-relative px-0">

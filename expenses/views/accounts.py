@@ -28,6 +28,7 @@ from ..models import (
     CapitalEvent,
     Expense,
     GoalContribution,
+    Holding,
     Income,
     LoanRepayment,
     Transfer,
@@ -1042,10 +1043,9 @@ def refresh_holding_nav(request, pk):
     return redirect('account-detail', pk=holding.account.pk)
 
 
-def holding_create_view(request, pk):
+def holding_create_view(request, pk=None):
     """
-    Add a new Holding to an investment/mutual fund account.
-    Auto-resolves scheme_code from fund name if left blank.
+    Creates a new Holding under an account.
     """
     if not request.user.is_authenticated:
         return redirect('account_login')
@@ -1054,7 +1054,14 @@ def holding_create_view(request, pk):
     from ..models import Holding, AMFIScheme
     from ..nav_provider import NAVFetchService
 
-    account = get_object_by_uuid_or_pk(Account, pk, user=request.user)
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse_lazy('holding-list')
+    account_id = pk or request.POST.get('account_id')
+    
+    if not account_id:
+        messages.error(request, _("Please select an investment account."))
+        return redirect(next_url)
+
+    account = get_object_by_uuid_or_pk(Account, account_id, user=request.user)
     if request.method == 'POST':
         name = request.POST.get('instrument_name', '').strip()
         scheme_code = request.POST.get('scheme_code', '').strip()
@@ -1064,7 +1071,7 @@ def holding_create_view(request, pk):
         
         if not name:
             messages.error(request, _("Holding name is required."))
-            return redirect('account-detail', pk=account.uuid)
+            return redirect(next_url)
 
         # Smart Auto-Resolution: if scheme_code is blank, search by fund name
         if not scheme_code and name:
@@ -1090,11 +1097,11 @@ def holding_create_view(request, pk):
             avg_cost = Decimal(avg_cost_str)
         except (ValueError, InvalidOperation):
             messages.error(request, _("Invalid units or purchase price format."))
-            return redirect('account-detail', pk=account.uuid)
+            return redirect(next_url)
             
         if units <= Decimal('0') or avg_cost <= Decimal('0'):
             messages.error(request, _("Units and average price must be greater than zero."))
-            return redirect('account-detail', pk=account.uuid)
+            return redirect(next_url)
             
         holding = Holding.objects.create(
             account=account,
@@ -1113,7 +1120,7 @@ def holding_create_view(request, pk):
             service.fetch_scheme(scheme_code, force=True)
             
         messages.success(request, _("Holding '%(name)s' added successfully.") % {'name': name})
-    return redirect('account-detail', pk=account.uuid)
+    return redirect(next_url)
 
 
 def holding_delete_view(request, pk):
@@ -1127,8 +1134,54 @@ def holding_delete_view(request, pk):
     from ..models import Holding
 
     holding = get_object_or_404(Holding, pk=pk, account__user=request.user)
-    account_pk = holding.account.uuid
     holding.is_active = False
     holding.save()
     messages.success(request, _("Holding '%(name)s' removed.") % {'name': holding.instrument_name})
-    return redirect('account-detail', pk=account_pk)
+    
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or reverse_lazy('holding-list')
+    return redirect(next_url)
+
+
+class HoldingsListView(LoginRequiredMixin, ListView):
+    """
+    Dedicated Holdings & Investment Portfolio page for all active user holdings.
+    """
+    model = Holding
+    template_name = 'expenses/holding_list.html'
+    context_object_name = 'holdings'
+
+    def get_queryset(self):
+        return Holding.objects.filter(
+            account__user=self.request.user,
+            is_active=True,
+        ).select_related('account').prefetch_related('valuations')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        holdings = context['holdings']
+        
+        total_valuation = Decimal('0.00')
+        total_cost = Decimal('0.00')
+        
+        for h in holdings:
+            val = h.valuations.first()
+            if val:
+                total_valuation += val.value
+            else:
+                total_valuation += h.cost_basis
+            total_cost += h.cost_basis
+            
+        unrealized_gain = total_valuation - total_cost
+        gain_pct = ((unrealized_gain / total_cost) * Decimal('100')).quantize(Decimal('0.1')) if total_cost > 0 else Decimal('0.0')
+        
+        context['total_valuation'] = total_valuation
+        context['total_cost'] = total_cost
+        context['unrealized_gain'] = unrealized_gain
+        context['gain_pct'] = gain_pct
+        context['user_currency'] = self.request.user.profile.currency
+        context['user_accounts'] = Account.objects.filter(
+            user=self.request.user,
+            is_active=True,
+            account_type__in=['MUTUAL_FUND', 'INVESTMENT', 'STOCKS', 'OTHER_ASSETS', 'NPS', 'PF', 'GOLD', 'SAVINGS']
+        )
+        return context

@@ -107,6 +107,11 @@
                         </a>
                     </li>
                     <li class="nav-item d-lg-none">
+                        <a href="{% url 'holding-list' %}" class="nav-link {% if 'holding' in request.resolver_match.url_name %}active{% endif %}">
+                            {% trans "Holdings Portfolio" %}
+                        </a>
+                    </li>
+                    <li class="nav-item d-lg-none">
                         <a href="{% url 'calendar' %}" class="nav-link {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
                             {% trans "Calendar" %}
                         </a>
