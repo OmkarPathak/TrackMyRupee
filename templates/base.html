@@ -1363,6 +1363,20 @@
             if (window.initSearchableSelects) {
                 window.initSearchableSelects();
             }
+            // Re-init Bootstrap tooltips for any newly swapped-in elements
+            var swappedRoot = event.target || document;
+            swappedRoot.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                var existing = bootstrap.Tooltip.getInstance(el);
+                if (existing) existing.dispose();
+                new bootstrap.Tooltip(el);
+            });
+        });
+
+        // Also init tooltips on first page load (Bootstrap is already loaded at this point)
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                new bootstrap.Tooltip(el);
+            });
         });
     </script>
 
