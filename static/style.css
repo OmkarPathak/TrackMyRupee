@@ -899,6 +899,15 @@ body.demo-mode .sidebar {
   color: #8db5c0;
 }
 
+/* Amount sign/color utilities — used consistently across all list views.
+   Outflow = expenses, loan repayments, capital events, transfer-out.
+   Inflow  = income, transfer-in. */
+.amount-outflow { color: #E05C45 !important; }
+.amount-inflow  { color: #1D9E75 !important; }
+
+[data-bs-theme="dark"] .amount-outflow { color: #F49C8C !important; }
+[data-bs-theme="dark"] .amount-inflow  { color: #9FE1CB !important; }
+
 .form-check-input:focus {
   border-color: #1D9E75;
   box-shadow: 0 0 0 0.25rem rgba(29, 158, 117, 0.25);

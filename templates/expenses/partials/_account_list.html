@@ -45,10 +45,8 @@
             <h2 class="h2 fw-bold text-body mb-0">
                 {% if current_status == 'inactive' %}{% trans "Inactive" %}{% else %}{% trans "Accounts" %}{% endif %}
             </h2>
-            <a href="{% url 'account-create' %}"
-               class="d-flex align-items-center justify-content-center text-white rounded-3"
-               style="width: 35px; height: 35px; background-color: #1D9E75; flex-shrink: 0;">
-                <i class="bi bi-plus-lg" style="font-size: 1rem;"></i>
+            <a href="{% url 'account-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center">
+                <i class="bi bi-plus-lg me-1"></i> {% trans "Add" %}
             </a>
         </div>
     </div>

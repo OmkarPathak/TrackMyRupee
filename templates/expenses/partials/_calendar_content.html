@@ -1,6 +1,12 @@
 {% load i18n digit_filters expense_extras %}
 
 <div id="calendar-shell">
+    <style>
+        .text-investment { color: #0284c7 !important; }
+        .bg-investment { background-color: #0284c7 !important; }
+        [data-bs-theme="dark"] .text-investment { color: #38bdf8 !important; }
+        [data-bs-theme="dark"] .bg-investment { background-color: #38bdf8 !important; }
+    </style>
     <!-- Header -->
     <div class="card-header bg-transparent d-flex flex-column flex-md-row justify-content-between align-items-center py-3 gap-3">
         <div class="d-flex align-items-center gap-3">
@@ -44,7 +50,7 @@
                     <input class="form-control border-start-0 border-end-0" 
                            type="search" 
                            name="search" 
-                           placeholder="{% trans 'Search entries...' %}" 
+                           placeholder="{% trans 'Search by description, category or amount…' %}" 
                            value="{{ search_query }}" 
                            aria-label="{% trans 'Search' %}"
                            hx-trigger="keyup changed delay:400ms, search, input">
@@ -81,7 +87,7 @@
                 <span class="d-inline-block rounded-circle bg-danger" style="width: 10px; height: 10px;"></span> {% trans "Expense" %}
             </div>
             <div class="d-flex align-items-center gap-1">
-                <span class="d-inline-block rounded-circle bg-primary" style="width: 10px; height: 10px;"></span> {% trans "Investments" %}
+                <span class="d-inline-block rounded-circle bg-investment" style="width: 10px; height: 10px;"></span> {% trans "Investments" %}
             </div>
             <div class="d-flex align-items-center gap-1">
                 <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #6c757d;"></span> {% trans "Pending" %}
@@ -132,7 +138,7 @@
                          data-bs-html="true"
                          data-bs-custom-class="custom-popover"
                          data-bs-title="<b>{{ day_data.day|translate_digits }} {{ month_name }}</b>"
-                         data-bs-content="{% if day_data.income > 0 %}<div class='text-success mb-1'>{% trans 'Income' %}: <b>{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.income_count|translate_digits }})</small></div>{% endif %}{% if day_data.expense > 0 %}<div class='text-danger mb-1'>{% trans 'Expense' %}: <b>{{ currency_symbol }}{{ day_data.expense|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.expense_count|translate_digits }})</small></div>{% endif %}{% if day_data.investment > 0 %}<div class='text-primary mb-1'>{% trans 'Investment' %}: <b>{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.investment_count|translate_digits }})</small></div>{% endif %}{% if day_data.pending_recurring %}<div class='border-top mt-2 pt-2'><div class='small fw-bold text-muted mb-1 text-uppercase' style='font-size: 0.65rem;'>{% trans 'Pending Recurring' %}</div>{% for pr in day_data.pending_recurring %}<div class='d-flex justify-content-between small mb-1' style='color: #6c757d;'><span class='text-truncate me-2'>{{ pr.description }}</span><b>{{ currency_symbol }}{{ pr.amount|compact_amount:currency_symbol|translate_digits }}</b></div>{% endfor %}</div>{% endif %}{% if day_data.total_count > 0 %}<div class='border-top mt-2 pt-1 border-secondary border-opacity-10 small'><b>{{ day_data.total_count|translate_digits }}</b> {% trans 'total transactions' %}</div>{% endif %}{% if day_data.income == 0 and day_data.expense == 0 and day_data.investment == 0 and not day_data.pending_recurring %}<div class='text-muted mb-1'>{% trans 'No activity' %}</div>{% endif %}<a href='{% url 'all-transactions' %}?start_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}&end_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}' class='btn btn-sm btn-outline-secondary w-100 mt-2'>{% trans 'View Details' %}</a>">
+                         data-bs-content="{% if day_data.income > 0 %}<div class='text-success mb-1'>{% trans 'Income' %}: <b>{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.income_count|translate_digits }})</small></div>{% endif %}{% if day_data.expense > 0 %}<div class='text-danger mb-1'>{% trans 'Expense' %}: <b>{{ currency_symbol }}{{ day_data.expense|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.expense_count|translate_digits }})</small></div>{% endif %}{% if day_data.investment > 0 %}<div class='text-investment mb-1'>{% trans 'Investment' %}: <b>{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</b> <small class='text-muted'>({{ day_data.investment_count|translate_digits }})</small></div>{% endif %}{% if day_data.pending_recurring %}<div class='border-top mt-2 pt-2'><div class='small fw-bold text-muted mb-1 text-uppercase' style='font-size: 0.65rem;'>{% trans 'Pending Recurring' %}</div>{% for pr in day_data.pending_recurring %}<div class='d-flex justify-content-between small mb-1' style='color: #6c757d;'><span class='text-truncate me-2'>{{ pr.description }}</span><b>{{ currency_symbol }}{{ pr.amount|compact_amount:currency_symbol|translate_digits }}</b></div>{% endfor %}</div>{% endif %}{% if day_data.total_count > 0 %}<div class='border-top mt-2 pt-1 border-secondary border-opacity-10 small'><b>{{ day_data.total_count|translate_digits }}</b> {% trans 'total transactions' %}</div>{% endif %}{% if day_data.income == 0 and day_data.expense == 0 and day_data.investment == 0 and not day_data.pending_recurring %}<div class='text-muted mb-1'>{% trans 'No activity' %}</div>{% endif %}<a href='{% url 'all-transactions' %}?start_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}&end_date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day_data.day|stringformat:'02d' }}' class='btn btn-sm btn-outline-secondary w-100 mt-2'>{% trans 'View Details' %}</a>">
                         
                         <!-- Date Number & Link -->
                         <div class="d-flex justify-content-between w-100 px-1 mb-1 mb-md-2">
@@ -174,7 +180,7 @@
 
                             {% if day_data.investment > 0 %}
                             <div class="d-flex justify-content-between align-items-center px-1">
-                                <span class="text-primary fw-bold" style="font-size: 0.85rem;">{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</span>
+                                <span class="fw-bold text-investment" style="font-size: 0.85rem;">{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</span>
                                 <span class="text-muted small-xs opacity-75">{{ day_data.investment_count|translate_digits }} trans.</span>
                             </div>
                             {% endif %}
@@ -199,7 +205,7 @@
                             {% if day_data.expense > 0 %}
                                 <span class="text-danger fw-bold" style="font-size: 0.72rem;">{{ currency_symbol }}{{ day_data.expense|compact_amount:currency_symbol|translate_digits }}</span>
                             {% elif day_data.investment > 0 %}
-                                <span class="text-primary fw-bold" style="font-size: 0.72rem;">{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</span>
+                                <span class="fw-bold text-investment" style="font-size: 0.72rem;">{{ currency_symbol }}{{ day_data.investment|compact_amount:currency_symbol|translate_digits }}</span>
                             {% elif day_data.income > 0 %}
                                 <span class="text-success fw-bold" style="font-size: 0.72rem;">+{{ currency_symbol }}{{ day_data.income|compact_amount:currency_symbol|translate_digits }}</span>
                             {% elif day_data.pending_recurring %}
@@ -215,7 +221,7 @@
                                         <div class="rounded-circle bg-danger" style="width: 4px; height: 4px;"></div>
                                     {% endif %}
                                     {% if day_data.investment > 0 %}
-                                        <div class="rounded-circle bg-primary" style="width: 4px; height: 4px;"></div>
+                                        <div class="rounded-circle bg-investment" style="width: 4px; height: 4px;"></div>
                                     {% endif %}
                                     {% if day_data.pending_recurring %}
                                         <div class="rounded-circle" style="width: 4px; height: 4px; background-color: #6c757d;"></div>

@@ -79,6 +79,37 @@
     [data-bs-theme="dark"] .hover-bg-child:hover {
         background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
     }
+
+    /* Button stylings — matching all other list pages */
+    .view-toggle-btn, .filter-toggle-btn, .header-action-btn {
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px !important;
+        transition: all 0.2s ease;
+        border: 1px solid var(--bs-border-color);
+        background: transparent;
+    }
+    .view-toggle-btn, .filter-toggle-btn {
+        width: 36px;
+        padding: 0;
+        color: var(--bs-secondary);
+    }
+    .header-action-btn {
+        padding: 0 0.75rem;
+        font-size: 0.875rem;
+        text-decoration: none;
+        color: var(--bs-body-color);
+    }
+    .header-action-btn.btn-primary {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+        border: none !important;
+    }
+    .header-action-btn:hover {
+        opacity: 0.9;
+    }
 </style>
 <div class="fade-in">
     {% include 'expenses/partials/_account_list.html' %}

@@ -17,7 +17,7 @@
                     </span>
                     {% endif %}
                 </button>
-                <a href="{% url 'income-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap p-2">
+                <a href="{% url 'income-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center">
                     <i class="bi bi-plus-lg me-1"></i> {% trans "Add" %}
                 </a>
             </div>
@@ -32,16 +32,16 @@
 
     <!-- Desktop Header -->
     <div class="card-header bg-transparent d-none d-md-block pt-1 pb-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
-                <span class="h3 mb-0">{% trans "Income" %}</span>
-            </h2>
-
-            <!-- Stats Line (Desktop Center) -->
-            <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
-                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "records" %} &middot; 
-                <span class="fw-bold text-primary">{{ user.profile.currency }}{{ filtered_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
-            </p>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="mb-0 fw-bold d-flex align-items-center gap-3 mb-1">
+                    <span class="h3 mb-0">{% trans "Income" %}</span>
+                </h2>
+                <p class="text-muted small mb-0 fw-medium">
+                    <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "records" %} &middot; 
+                    <span class="fw-bold text-primary">{{ user.profile.currency }}{{ filtered_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
+                </p>
+            </div>
 
             <div class="d-flex align-items-center gap-2">
                 <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#incomeFilters" aria-expanded="false" aria-controls="incomeFilters" title="{% trans 'Toggle Filters' %}">
@@ -229,7 +229,7 @@
                                     </td>
                                     <td>{{ income.description|default:"-"|truncatechars:30 }}</td>
                                     <td class="fw-bold text-success">
-                                        {{ user.profile.currency}}{{ income.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                        +{{ user.profile.currency}}{{ income.base_amount|compact_amount:user.profile.currency|translate_digits }}
                                         {% if income.currency != user.profile.currency %}
                                         <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
                                             ({{ income.currency }}{{ income.amount|compact_amount:income.currency|translate_digits }})
@@ -237,28 +237,38 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-end pe-4 text-nowrap">
-                                        <div class="hstack gap-3 justify-content-end">
-                                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" 
-                                                    data-bs-toggle="modal" data-bs-target="#editIncomeModal"
-                                                    data-url="{% url 'income-edit' income.uuid %}"
-                                                    data-date="{{ income.date|date:'Y-m-d' }}"
-                                                    data-source="{{ income.source }}"
-                                                    data-source-type="{{ income.source_type }}"
-                                                    data-description="{{ income.description|default_if_none:'' }}"
-                                                    data-amount="{{ income.amount }}"
-                                                    data-currency="{{ income.currency }}"
-                                                    data-account="{{ income.account.pk }}"
-                                                    data-is-recurring="{% if income.source in recurring_data %}true{% else %}false{% endif %}"
-                                                    data-frequency="{{ recurring_data|get_dict_item:income.source }}"
-                                                    title="{% trans 'Edit' %}">
-                                                <i class="bi bi-pencil-square text-primary fs-6"></i>
+                                        <div class="dropdown">
+                                            <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                                                <i class="bi bi-three-dots-vertical text-muted"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 delete-btn d-inline-flex align-items-center" 
-                                                    data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                                    data-url="{% url 'income-delete' income.uuid %}"
-                                                    data-message="{% blocktrans with source=income.source_type %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
-                                                <i class="bi bi-trash text-danger fs-6"></i>
-                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                                <li>
+                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                                            data-bs-toggle="modal" data-bs-target="#editIncomeModal"
+                                                            data-url="{% url 'income-edit' income.uuid %}"
+                                                            data-date="{{ income.date|date:'Y-m-d' }}"
+                                                            data-source="{{ income.source }}"
+                                                            data-source-type="{{ income.source_type }}"
+                                                            data-description="{{ income.description|default_if_none:'' }}"
+                                                            data-amount="{{ income.amount }}"
+                                                            data-currency="{{ income.currency }}"
+                                                            data-account="{{ income.account.pk }}"
+                                                            data-is-recurring="{% if income.source in recurring_data %}true{% else %}false{% endif %}"
+                                                            data-frequency="{{ recurring_data|get_dict_item:income.source }}">
+                                                        <i class="bi bi-pencil-square text-primary"></i>
+                                                        <span>{% trans "Edit" %}</span>
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn"
+                                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                            data-url="{% url 'income-delete' income.uuid %}"
+                                                            data-message="{% blocktrans with source=income.source_type %}Are you sure you want to delete '{{ source }}'?{% endblocktrans %}">
+                                                        <i class="bi bi-trash"></i>
+                                                        <span>{% trans "Delete" %}</span>
+                                                    </button>
+                                                </li>
+                                            </ul>
                                         </div>
                                     </td>
                                 </tr>

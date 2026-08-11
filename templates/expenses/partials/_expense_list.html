@@ -2,33 +2,35 @@
 
 <div id="expense-list-shell">
     <div class="bg-transparent d-none d-md-block pt-1 pb-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
-                {% if prev_month_url %}
-                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}" hx-get="{{ prev_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                        <i class="bi bi-chevron-left fs-5"></i>
-                    </button>
-                {% endif %}
-                <span class="h3 mb-0">
-                {% if display_month and display_year %}
-                    {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
-                {% else %}
-                    {% trans "Expenses" %}
-                {% endif %}
-                </span>
-                {% if next_month_url %}
-                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}" hx-get="{{ next_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                        <i class="bi bi-chevron-right fs-5"></i>
-                    </button>
-                {% endif %}
-            </h2>
-            <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
-                <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot;
-                <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
-                {% if days_left is not None %}
-                &middot; <span class="fw-bold text-primary">{{ days_left|translate_digits }}</span> {% trans "days left in cycle" %}
-                {% endif %}
-            </p>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="mb-0 fw-bold d-flex align-items-center gap-3 mb-1">
+                    {% if prev_month_url %}
+                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}" hx-get="{{ prev_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                            <i class="bi bi-chevron-left fs-5"></i>
+                        </button>
+                    {% endif %}
+                    <span class="h3 mb-0">
+                    {% if display_month and display_year %}
+                        {{ display_month|slice:":3" }} {{ display_year|translate_digits }}
+                    {% else %}
+                        {% trans "Expenses" %}
+                    {% endif %}
+                    </span>
+                    {% if next_month_url %}
+                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}" hx-get="{{ next_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                            <i class="bi bi-chevron-right fs-5"></i>
+                        </button>
+                    {% endif %}
+                </h2>
+                <p class="text-muted small mb-0 fw-medium">
+                    <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot;
+                    <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
+                    {% if days_left is not None %}
+                    &middot; <span class="fw-bold text-primary">{{ days_left|translate_digits }}</span> {% trans "days left in cycle" %}
+                    {% endif %}
+                </p>
+            </div>
             <div class="d-flex align-items-center gap-2">
                 <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
                     <i class="bi bi-funnel"></i>
@@ -99,6 +101,9 @@
                     <i class="bi bi-download"></i>
                 </a>
                 {% endif %}
+                <a href="{% url 'expense-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center">
+                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add" %}
+                </a>
             </div>
         </div>
         <p class="text-muted text-center small mb-0 mt-2 fw-medium py-1 lh-base">
@@ -445,8 +450,8 @@
                                     </td>
                                     <td>{{ expense.payment_method }}</td>
                                     <td>{{ expense.account.name }}</td>
-                                    <td class="fw-bold">
-                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                    <td class="fw-bold amount-outflow">
+                                        –{{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
                                         {% if expense.currency != user.profile.currency %}
                                         <div class="text-muted small fw-normal" style="font-size: 0.75rem;">({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})</div>
                                         {% endif %}
@@ -520,8 +525,8 @@
                                     </div>
                                 </div>
                                 <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
-                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
-                                        {{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
+                                    <div class="fw-bold amount-outflow mb-1" style="font-size: 1.02rem; line-height: 1.2;">
+                                        –{{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
                                         {% if expense.currency != user.profile.currency %}
                                         <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})</div>
                                         {% endif %}
