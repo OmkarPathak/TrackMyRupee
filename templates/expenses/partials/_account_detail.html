@@ -92,49 +92,55 @@
 
                         <!-- Subtitle Row -->
                         <div class="min-w-0">
-                            <p class="mb-0 lh-sm text-truncate text-body-secondary" style="font-size: 0.82rem;">
-                                {{ account.get_account_type_display }} • {{ account.currency }}
+                            <div class="d-flex flex-wrap align-items-center gap-1 gap-sm-2 text-body-secondary" style="font-size: 0.82rem;">
+                                <span>{{ account.get_account_type_display }}</span>
+                                <span class="opacity-50">•</span>
+                                <span>{{ account.currency }}</span>
                                 {% if account.deposit_rate %}
-                                    • <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25 fw-normal">{{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.</span>
+                                    <span class="opacity-50">•</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25 fw-normal">{{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.</span>
                                 {% endif %}
                                 {% if account.deposit_maturity_date %}
-                                    • <span class="fw-medium">{% trans "Matures on:" %} {{ account.deposit_maturity_date|date:"d M Y" }}</span>
+                                    <span class="opacity-50">•</span>
+                                    <span class="fw-medium">{% trans "Matures on:" %} {{ account.deposit_maturity_date|date:"d M Y" }}</span>
                                 {% endif %}
                                 {% if account.has_credit_limit %}
-                                    • <span class="fw-medium">{% trans "Limit:" %} {{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>
+                                    <span class="opacity-50">•</span>
+                                    <span class="fw-medium">{% trans "Limit:" %} {{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>
                                 {% endif %}
-                            </p>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Bottom Section: Balance Hero Figure -->
                     <div class="mt-auto pt-3 border-top">
-                        <div class="fw-semibold text-uppercase mb-2 mt-2 text-body-secondary" style="font-size: 0.62rem; letter-spacing: 0.10em;">{% trans "Current Balance" %}</div>
-                        <div class="d-flex align-items-end justify-content-between gap-3">
-                            <div>
-                                <div class="text-body-emphasis" style="font-size: clamp(2.2rem, 8vw, 3rem); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 800;">
-                                    {% if account.has_accrued_value %}
-                                        {{ currency_symbol }}{{ account.accrued_value|ind_comma:currency_symbol|translate_digits }}
-                                    {% else %}
-                                        {{ currency_symbol }}{{ account.display_balance|ind_comma:currency_symbol|translate_digits }}
-                                    {% endif %}
-                                </div>
-                                {% if account.has_accrued_value %}
-                                    <div class="mt-2 text-body-secondary" style="font-size: 0.8rem;">
-                                        {% trans "Original Deposit:" %} {{ currency_symbol }}{{ account.effective_principal|ind_comma:currency_symbol|translate_digits }}
-                                    </div>
-                                {% endif %}
-                                {% if account.has_credit_limit %}
-                                    <div class="mt-2 text-body-secondary" style="font-size: 0.82rem;">
-                                        {% trans "Available:" %} <span class="fw-semibold text-body-emphasis">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</span>
-                                        <span class="ms-1 opacity-75">({{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %})</span>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="text-end pb-1 flex-shrink-0 text-body-secondary" style="font-size: 0.82rem;">
+                        <div class="d-flex align-items-center justify-content-between mb-2 mt-1">
+                            <div class="fw-semibold text-uppercase text-body-secondary" style="font-size: 0.62rem; letter-spacing: 0.10em;">{% trans "Current Balance" %}</div>
+                            <div class="text-body-secondary" style="font-size: 0.78rem;">
                                 <span class="fw-bold fs-6 text-body-emphasis">{{ page_obj.paginator.count|translate_digits }}</span> <span class="opacity-75">{% trans "transactions" %}</span>
                             </div>
                         </div>
+                        <div class="text-body-emphasis" style="font-size: clamp(2rem, 7vw, 3rem); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 800;">
+                            {% if account.has_accrued_value %}
+                                {{ currency_symbol }}{{ account.accrued_value|ind_comma:currency_symbol|translate_digits }}
+                            {% else %}
+                                {{ currency_symbol }}{{ account.display_balance|ind_comma:currency_symbol|translate_digits }}
+                            {% endif %}
+                        </div>
+                        {% if account.has_accrued_value %}
+                            <div class="mt-2 pt-1 text-body-secondary d-flex flex-wrap align-items-center row-gap-1 column-gap-3" style="font-size: 0.8rem;">
+                                <div>{% trans "Original Deposit:" %} <span class="fw-medium text-body-emphasis">{{ currency_symbol }}{{ account.effective_principal|ind_comma:currency_symbol|translate_digits }}</span></div>
+                                {% if account.has_maturity_value %}
+                                    <div>{% trans "Expected at Maturity:" %} <strong class="text-success">{{ currency_symbol }}{{ account.maturity_value|ind_comma:currency_symbol|translate_digits }}</strong></div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        {% if account.has_credit_limit %}
+                            <div class="mt-2 text-body-secondary" style="font-size: 0.82rem;">
+                                {% trans "Available:" %} <span class="fw-semibold text-body-emphasis">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</span>
+                                <span class="ms-1 opacity-75">({{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %})</span>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

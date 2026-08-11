@@ -122,8 +122,16 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                     account.has_accrued_value = True
                 else:
                     account.has_accrued_value = False
+
+                if account.deposit_maturity_date and account.deposit_rate is not None:
+                    from ..account_valuation import get_current_deposit
+                    account.maturity_value = get_current_deposit(account, ledger_balance=Decimal(str(account.display_balance)), today=account.deposit_maturity_date)
+                    account.has_maturity_value = True
+                else:
+                    account.has_maturity_value = False
             else:
                 account.has_accrued_value = False
+                account.has_maturity_value = False
 
             delta = now - account.updated_at
             account.days_since_update = delta.days
@@ -555,8 +563,16 @@ class AccountDetailView(LoginRequiredMixin, View):
                 account.has_accrued_value = True
             else:
                 account.has_accrued_value = False
+
+            if account.deposit_maturity_date and account.deposit_rate is not None:
+                from ..account_valuation import get_current_deposit
+                account.maturity_value = get_current_deposit(account, ledger_balance=Decimal(str(account.display_balance)), today=account.deposit_maturity_date)
+                account.has_maturity_value = True
+            else:
+                account.has_maturity_value = False
         else:
             account.has_accrued_value = False
+            account.has_maturity_value = False
 
         query = request.GET.get('q', '')
         selected_tx_type = request.GET.get('tx_type', '')

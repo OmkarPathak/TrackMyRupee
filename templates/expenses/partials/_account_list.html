@@ -288,7 +288,12 @@
                                     </div>
                                     <!-- Deposit sub-line (FD/RD) -->
                                     {% if account.has_accrued_value %}
-                                        <div class="text-muted" style="font-size: 0.7rem; white-space: nowrap; opacity: 0.65;">{% trans "Deposit" %} {{ account.currency }}{{ account.effective_principal|ind_comma:account.currency|translate_digits }}</div>
+                                        <div class="text-muted" style="font-size: 0.7rem; white-space: nowrap; opacity: 0.65;">
+                                            {% trans "Deposit" %} {{ account.currency }}{{ account.effective_principal|ind_comma:account.currency|translate_digits }}
+                                            {% if account.has_maturity_value %}
+                                                • {% trans "Maturity" %} {{ account.currency }}{{ account.maturity_value|ind_comma:account.currency|translate_digits }}
+                                            {% endif %}
+                                        </div>
                                     {% endif %}
                                 </div>
 
