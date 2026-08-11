@@ -568,3 +568,46 @@ def get_interest_summary(user: User, start_date=None, end_date=None) -> dict[str
         'interest_earned': income_interest,
         'interest_charged': expense_interest,
     }
+
+
+def process_matured_deposit_incomes(user=None):
+    """
+    Checks active deposit accounts with `record_maturity_income=True`
+    whose maturity or closed date has arrived (<= date.today()), but no Income entry
+    has been recorded under 'Investment Returns' yet.
+    Automatically creates the Income record on the maturity/closed date.
+    """
+    from .models import Account, Income
+    from django.db.models import Q
+
+    today = date.today()
+    qs = Account.objects.filter(record_maturity_income=True, is_active=True)
+    if user:
+        qs = qs.filter(user=user)
+
+    qs = qs.filter(
+        Q(deposit_closed_date__lte=today) | Q(deposit_maturity_date__lte=today)
+    )
+
+    created_incomes = []
+    for account in qs:
+        if not Income.objects.filter(account=account, source_type='Investment Returns').exists():
+            maturity_or_closed_date = account.deposit_closed_date or account.deposit_maturity_date or today
+            current_val = get_current(account, today=maturity_or_closed_date)
+            baseline_val = get_baseline(account, today=maturity_or_closed_date) or Decimal('0.00')
+            interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
+
+            if interest_earned > Decimal('0.00'):
+                inc = Income.objects.create(
+                    user=account.user,
+                    date=maturity_or_closed_date,
+                    amount=interest_earned,
+                    currency=account.currency,
+                    source_type='Investment Returns',
+                    source=f"Interest from {account.name}",
+                    account=account,
+                    description=f"Accrued interest earned on deposit {account.name}",
+                )
+                created_incomes.append(inc)
+    return created_incomes
+

@@ -968,7 +968,14 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         return account
 
     def _record_maturity_income(self, account):
-        today_val = account.deposit_closed_date or account.deposit_maturity_date or date.today()
+        if not account.is_active:
+            return
+        maturity_or_closed_date = account.deposit_closed_date or account.deposit_maturity_date
+        # Do not create Income entry immediately if the deposit matures in the future
+        if maturity_or_closed_date and maturity_or_closed_date > date.today():
+            return
+
+        today_val = maturity_or_closed_date or date.today()
         current_val = get_current(account, today=today_val)
         baseline_val = get_baseline(account, today=today_val) or Decimal('0.00')
         interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))

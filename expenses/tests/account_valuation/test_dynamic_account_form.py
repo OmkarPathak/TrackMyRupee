@@ -255,6 +255,62 @@ class TestDynamicAccountForm(TestCase):
         self.assertTrue(form.initial.get('record_maturity_income'))
         self.assertIn('checked', form['record_maturity_income'].as_widget())
 
+    def test_future_maturing_deposit_income_recorded_only_on_maturity(self):
+        """
+        Test that creating an FD maturing in the future with record_maturity_income=True
+        does NOT create an Income entry immediately, but process_matured_deposit_incomes
+        creates it once maturity date arrives/passes.
+        """
+        from expenses.account_valuation import process_matured_deposit_incomes
+        from expenses.models import Income
+        from datetime import timedelta
+
+        start_date = date.today() - timedelta(days=365)
+        future_maturity = date.today() + timedelta(days=365)
+        form = AccountForm(
+            data={
+                'name': 'Future FD',
+                'account_type': 'FD',
+                'balance': '100000.00',
+                'currency': '₹',
+                'deposit_principal': '100000.00',
+                'deposit_rate': '10.0',
+                'deposit_start_date': start_date.strftime('%Y-%m-%d'),
+                'deposit_maturity_date': future_maturity.strftime('%Y-%m-%d'),
+                'deposit_compounding': 'SIMPLE',
+                'record_maturity_income': True,
+            },
+            user=self.user,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        account = form.save(commit=False)
+        account.user = self.user
+        account.save()
+        form._record_maturity_income(account)
+
+        # Confirm no Income entry was created immediately because maturity is in the future
+        income_count = Income.objects.filter(user=self.user, account=account).count()
+        self.assertEqual(income_count, 0)
+
+        # Now simulate maturity date passing
+        account.deposit_maturity_date = date.today() - timedelta(days=1)
+        account.save()
+
+        # Run process_matured_deposit_incomes
+        process_matured_deposit_incomes(self.user)
+
+        # Confirm Income entry is now created for active account
+        income = Income.objects.filter(user=self.user, account=account, source_type='Investment Returns').first()
+        self.assertIsNotNone(income)
+        self.assertEqual(income.date, account.deposit_maturity_date)
+
+        # Confirm inactive accounts are skipped
+        account.is_active = False
+        account.save()
+        Income.objects.filter(account=account).delete()
+        process_matured_deposit_incomes(self.user)
+        self.assertEqual(Income.objects.filter(account=account).count(), 0)
+
     def test_holdings_and_revolving_credit_form_rendering_and_cleaning(self):
         """Test form validation and cleaning for HOLDINGS and REVOLVING_CREDIT account types."""
         # 1. HOLDINGS platform account creation (e.g. DEMAT)

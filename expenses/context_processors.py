@@ -51,6 +51,11 @@ def currency_symbol(request):
 def user_accounts(request):
     """Provides user accounts to all templates for the sidebar."""
     if request.user.is_authenticated:
+        try:
+            from .account_valuation import process_matured_deposit_incomes
+            process_matured_deposit_incomes(request.user)
+        except Exception:
+            pass
         cache_key = f'sidebar_accounts_{request.user.id}'
         result = cache.get(cache_key)
         if result is None:
