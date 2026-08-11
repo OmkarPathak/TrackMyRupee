@@ -1,9 +1,17 @@
-from django.core.management.base import BaseCommand
 from django.core.exceptions import FieldDoesNotExist
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
-from expenses.models import Category, Expense, GoalContribution, Income, Loan, LoanRepayment, SavingsGoal
+from expenses.models import (
+    Category,
+    Expense,
+    GoalContribution,
+    Income,
+    Loan,
+    LoanRepayment,
+    SavingsGoal,
+)
 
 
 class Command(BaseCommand):

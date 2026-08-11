@@ -27,6 +27,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View
 
+from ..account_types import investment_codes
 from ..forms import ContactForm
 from ..models import (
     CURRENCY_CHOICES,
@@ -36,7 +37,6 @@ from ..models import (
     RecurringTransaction,
     Transfer,
 )
-from ..account_types import investment_codes
 from .mixins import HtmxPartialTemplateMixin
 
 

@@ -1,4 +1,5 @@
 import calendar
+import logging
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -6,7 +7,6 @@ from django.db.models import F, Sum
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 
-import logging
 from .models import CapitalEvent, Expense, Income, Loan, LoanRepayment
 
 logger = logging.getLogger(__name__)

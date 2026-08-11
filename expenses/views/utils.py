@@ -83,8 +83,9 @@ def apply_date_filters(queryset, request, date_field='date'):
     Applies time_period, start_date, or end_date filtering to a queryset.
     time_period can be: 'this_month', 'last_month', 'last_3_months', 'this_year', 'all', 'custom'
     """
-    from datetime import datetime, timedelta
     import calendar
+    from datetime import datetime, timedelta
+
     from django.utils import timezone
 
     time_period = request.GET.get('time_period')

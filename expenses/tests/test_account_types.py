@@ -11,8 +11,8 @@ from decimal import Decimal
 from django.test import TestCase
 
 from expenses.account_types import (
-    ACCOUNT_TYPES,
     ACCOUNT_TYPE_META,
+    ACCOUNT_TYPES,
     KIND,
     STRATEGY,
     asset_codes,

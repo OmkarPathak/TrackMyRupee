@@ -39,21 +39,21 @@ from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 
 from .account_types import KIND, STRATEGY, classify, strategy_for
+from .fx import FXService
 from .ledger_rollout import is_user_in_read_cohort
 from .models import (
     AssetValuation,
     Holding,
     JournalEntry,
     JournalLine,
+    LedgerAccount,
     Loan,
     LoanScheduleInstallment,
     PhysicalAsset,
     SavingsGoal,
     Valuation,
 )
-from .fx import FXService
 from .utils import get_exchange_rate
-from .models import LedgerAccount
 
 logger = logging.getLogger(__name__)
 
@@ -353,7 +353,7 @@ class LedgerReadService:
         missing_loan_ids = [lid for lid in loan_ids if lid not in schedule_map]
 
         if missing_loan_ids:
-            from .models import LoanRepayment, CapitalEvent
+            from .models import CapitalEvent, LoanRepayment
             # Fallback for loans without schedule entries
             # Fetch initial_principal
             loan_objs = Loan.objects.filter(id__in=missing_loan_ids).values('id', 'initial_principal')

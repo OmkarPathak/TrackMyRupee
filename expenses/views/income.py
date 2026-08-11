@@ -17,7 +17,11 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
-from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .mixins import (
+    HtmxPartialTemplateMixin,
+    RecurringTransactionMixin,
+    UUIDOrIntLookupMixin,
+)
 from .utils import apply_date_filters
 
 

@@ -17,7 +17,11 @@ from expenses.views.utils import get_safe_redirect_url
 from ..forms import CapitalEventForm
 from ..models import CapitalEvent, Expense, Loan
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
-from .utils import apply_date_filters, get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
+from .utils import (
+    apply_date_filters,
+    get_object_by_uuid_or_pk,
+    redirect_to_uuid_url_if_needed,
+)
 
 
 class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):

@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from .fx import FXService
 from .models import (
     Account,
     CapitalEvent,
@@ -21,7 +22,6 @@ from .models import (
     SavingsGoal,
     Transfer,
 )
-from .fx import FXService
 from .utils import get_exchange_rate
 
 

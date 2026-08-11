@@ -1,15 +1,16 @@
-import os
 import json
-from urllib.parse import urlparse
-from email.mime.image import MIMEImage
 import logging
+import os
+from email.mime.image import MIMEImage
+from urllib.parse import urlparse
 
-from django.core.management.base import BaseCommand
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
-from django.template import Template, Context as DjangoContext
+from django.core.management.base import BaseCommand
+from django.template import Context as DjangoContext
+from django.template import Template
 from django.template.loader import render_to_string
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 

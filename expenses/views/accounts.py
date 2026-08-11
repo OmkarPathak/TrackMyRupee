@@ -4,11 +4,11 @@ from decimal import Decimal
 from itertools import chain
 
 from django.conf import settings
-from django.db import IntegrityError
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.db import IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -21,6 +21,7 @@ from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..account_types import deposit_codes
+from ..account_valuation import get_baseline, get_current, get_interest_summary
 from ..forms import AccountForm, TransferForm
 from ..ledger_read_service import LedgerReadService, _compute_deposit_value
 from ..models import (
@@ -35,8 +36,11 @@ from ..models import (
     _run_ledger_shadow,
 )
 from ..utils import get_exchange_rate
-from ..account_valuation import get_interest_summary, get_baseline, get_current
-from .mixins import HtmxPartialTemplateMixin, RecurringTransactionMixin, UUIDOrIntLookupMixin
+from .mixins import (
+    HtmxPartialTemplateMixin,
+    RecurringTransactionMixin,
+    UUIDOrIntLookupMixin,
+)
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
 
@@ -989,6 +993,7 @@ def search_amfi_schemes(request):
         # 2. Live fallback to MFapi.in search API
         try:
             import urllib.parse
+
             import requests
             encoded_q = urllib.parse.quote(q)
             url = f"https://api.mfapi.in/mf/search?q={encoded_q}"
@@ -1015,6 +1020,7 @@ def refresh_holding_nav(request, pk):
         return redirect('account_login')
     
     from django.shortcuts import get_object_or_404
+
     from ..models import Holding
     from ..nav_provider import NAVFetchService
 
@@ -1051,7 +1057,8 @@ def holding_create_view(request, pk=None):
         return redirect('account_login')
         
     from decimal import InvalidOperation
-    from ..models import Holding, AMFIScheme
+
+    from ..models import AMFIScheme, Holding
     from ..nav_provider import NAVFetchService
 
     next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse_lazy('holding-list')
@@ -1081,6 +1088,7 @@ def holding_create_view(request, pk=None):
             else:
                 try:
                     import urllib.parse
+
                     import requests
                     encoded_q = urllib.parse.quote(name)
                     url = f"https://api.mfapi.in/mf/search?q={encoded_q}"
@@ -1131,6 +1139,7 @@ def holding_delete_view(request, pk):
         return redirect('account_login')
         
     from django.shortcuts import get_object_or_404
+
     from ..models import Holding
 
     holding = get_object_or_404(Holding, pk=pk, account__user=request.user)

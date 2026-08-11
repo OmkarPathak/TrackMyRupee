@@ -10,8 +10,8 @@ from django.core.management import call_command
 from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import gettext as _
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import TemplateView
 

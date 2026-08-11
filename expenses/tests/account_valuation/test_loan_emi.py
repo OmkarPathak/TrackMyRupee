@@ -6,7 +6,15 @@ from django.test import TestCase
 from django.urls import reverse
 
 from expenses.account_valuation import get_baseline, get_current, get_display_value
-from expenses.models import Account, CapitalEvent, Loan, LoanInterestRate, LoanRepayment, LoanScheduleInstallment, UserProfile
+from expenses.models import (
+    Account,
+    CapitalEvent,
+    Loan,
+    LoanInterestRate,
+    LoanRepayment,
+    LoanScheduleInstallment,
+    UserProfile,
+)
 
 
 class LoanEMITestCase(TestCase):

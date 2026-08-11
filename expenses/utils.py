@@ -16,6 +16,7 @@ def get_exchange_rate(from_curr, to_curr):
     Uses Django cache to avoid repeated external requests.
     """
     from django.utils import timezone
+
     from .models import FXRate
     if from_curr == to_curr:
         return Decimal('1.0')

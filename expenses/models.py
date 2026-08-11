@@ -10,9 +10,9 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
+from django.db.models import Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Sum
 
 from finance_tracker.plans import get_limit
 
@@ -130,7 +130,9 @@ class Account(models.Model):
     # Grouped account types — imported from account_types.py (single source of truth).
     # Legacy codes (CASH, BANK, CREDIT_CARD, INVESTMENT, FIXED_DEPOSIT, OTHER) are
     # retained in the 'Legacy' group so existing rows validate and forms keep working.
-    from .account_types import ACCOUNT_TYPES  # noqa: E402 (class-level import is intentional)
+    from .account_types import (
+        ACCOUNT_TYPES,  # noqa: E402 (class-level import is intentional)
+    )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts')
     name = models.CharField(max_length=100, verbose_name=_('Account Name'))
@@ -1219,7 +1221,19 @@ class RecurringTransaction(models.Model):
         Uses dateutil.rrule for RFC 5545 recurrence compliance.
         """
         from datetime import datetime, time
-        from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR
+
+        from dateutil.rrule import (
+            DAILY,
+            FR,
+            MO,
+            MONTHLY,
+            TH,
+            TU,
+            WE,
+            WEEKLY,
+            YEARLY,
+            rrule,
+        )
 
         if not start_date:
             start_date = current_date

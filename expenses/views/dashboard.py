@@ -17,8 +17,6 @@ from django.utils.html import escape, format_html, format_html_join, mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
-from .mixins import HtmxPartialTemplateMixin
-
 from ..account_types import investment_codes
 from ..ledger_read_service import LedgerReadService
 from ..models import (
@@ -42,7 +40,7 @@ from ..utils import (
     generate_year_in_review_data,
     get_exchange_rate,
 )
-from .mixins import process_user_recurring_transactions
+from .mixins import HtmxPartialTemplateMixin, process_user_recurring_transactions
 
 
 @login_required

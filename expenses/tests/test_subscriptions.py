@@ -157,13 +157,13 @@ class SubscriptionTierTest(TestCase):
 
     def test_email_reminder_gate(self):
         """Only Plus/Pro receive email reminders."""
+        from datetime import timedelta
         from io import StringIO
 
         from django.core.management import call_command
+        from django.utils import timezone
 
         from expenses.models import Notification, RecurringTransaction
-        from datetime import timedelta
-        from django.utils import timezone
         
         target_due = timezone.now().date() + timedelta(days=3)
         

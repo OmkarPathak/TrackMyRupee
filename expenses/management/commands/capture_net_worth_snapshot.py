@@ -45,7 +45,7 @@ class Command(BaseCommand):
                     # We derive assets/liabilities from per-account classification here.
                     from django.conf import settings
                     if getattr(settings, 'NET_WORTH_EXTENDED_MODELS_ENABLED', False):
-                        from expenses.account_types import classify, KIND
+                        from expenses.account_types import KIND, classify
                         accounts = list(user.accounts.filter(is_active=True))
                         total_assets = sum(
                             v for a in accounts

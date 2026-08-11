@@ -1,12 +1,12 @@
 import io
+from datetime import date, timedelta
 
+from allauth.account.models import EmailAddress
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import TestCase
 
 from expenses.models import Expense
-from datetime import date, timedelta
-from allauth.account.models import EmailAddress
 
 
 class SecurityReportsTests(TestCase):

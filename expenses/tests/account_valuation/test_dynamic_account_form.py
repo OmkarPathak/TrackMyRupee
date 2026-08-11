@@ -261,9 +261,10 @@ class TestDynamicAccountForm(TestCase):
         does NOT create an Income entry immediately, but process_matured_deposit_incomes
         creates it once maturity date arrives/passes.
         """
+        from datetime import timedelta
+
         from expenses.account_valuation import process_matured_deposit_incomes
         from expenses.models import Income
-        from datetime import timedelta
 
         start_date = date.today() - timedelta(days=365)
         future_maturity = date.today() + timedelta(days=365)

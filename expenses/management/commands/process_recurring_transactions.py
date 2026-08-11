@@ -1,6 +1,8 @@
 import logging
+
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
+
 from expenses.views.mixins import process_user_recurring_transactions
 
 logger = logging.getLogger(__name__)

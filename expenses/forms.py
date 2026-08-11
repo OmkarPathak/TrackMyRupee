@@ -1,5 +1,4 @@
 import uuid
-
 from datetime import date
 from decimal import Decimal
 
@@ -15,6 +14,7 @@ from django_recaptcha.widgets import ReCaptchaV3
 
 from finance_tracker.plans import get_limit
 
+from .account_valuation import get_baseline, get_current
 from .models import (
     Account,
     CapitalEvent,
@@ -33,7 +33,6 @@ from .models import (
     UserProfile,
 )
 from .utils import BOOTSTRAP_ICONS
-from .account_valuation import get_baseline, get_current
 
 
 class CachedModelChoiceField(forms.ModelChoiceField):
@@ -799,6 +798,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     @property
     def fields_by_type_json(self):
         import json
+
         from .account_types import ACCOUNT_TYPE_META, get_fields_for_account_type
         mapping = {code: get_fields_for_account_type(code) for code in ACCOUNT_TYPE_META}
         return json.dumps(mapping)
@@ -840,7 +840,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         if not account_type:
             return cleaned_data
 
-        from .account_types import strategy_for, STRATEGY, get_fields_for_account_type
+        from .account_types import STRATEGY, get_fields_for_account_type, strategy_for
         strategy = strategy_for(account_type)
         allowed_fields = set(get_fields_for_account_type(account_type))
 
@@ -907,8 +907,8 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         return cleaned_data
 
     def save(self, commit=True):
-        from .models import PhysicalAsset, AssetValuation
-        from .account_types import strategy_for, STRATEGY
+        from .account_types import STRATEGY, strategy_for
+        from .models import AssetValuation, PhysicalAsset
 
         account = super().save(commit=False)
         if self.user and not getattr(account, 'user_id', None):

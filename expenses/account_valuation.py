@@ -10,6 +10,7 @@ from .account_types import STRATEGY, strategy_for
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
+
     from .models import Account
 
 
@@ -89,6 +90,7 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
       treats as skipped.
     """
     import calendar
+
     from .models import Transfer
 
     start_date = account.deposit_start_date
@@ -357,7 +359,7 @@ def get_current_loan(account: Account, ledger_balance: Decimal | None = None, to
         outstanding = loan.remaining_principal
     else:
         # EMI amortizing schedule logic
-        from .models import LoanScheduleInstallment, CapitalEvent
+        from .models import CapitalEvent, LoanScheduleInstallment
         latest_paid = LoanScheduleInstallment.objects.filter(loan=loan, is_paid=True).order_by('-due_date', '-installment_no').first()
 
         if latest_paid:
@@ -577,8 +579,9 @@ def process_matured_deposit_incomes(user=None):
     has been recorded under 'Investment Returns' yet.
     Automatically creates the Income record on the maturity/closed date.
     """
-    from .models import Account, Income
     from django.db.models import Q
+
+    from .models import Account, Income
 
     today = date.today()
     qs = Account.objects.filter(record_maturity_income=True, is_active=True)

@@ -1,8 +1,8 @@
+import json
 import logging
 import time
 import urllib.request
-import json
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Optional, Tuple
 
@@ -10,7 +10,7 @@ from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
-from .models import Holding, Valuation, FundNAVCache, AMFIScheme
+from .models import AMFIScheme, FundNAVCache, Holding, Valuation
 
 logger = logging.getLogger(__name__)
 

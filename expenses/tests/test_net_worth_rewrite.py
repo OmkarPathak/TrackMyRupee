@@ -64,9 +64,9 @@ def _post_transaction(user, account, amount, direction='DEBIT', description='Tes
     """Post a simple one-sided test entry (for testing only — not a balanced entry)."""
     # Use post_account_balance_adjustment to test the net worth reading
     # Instead, use the adjustment helper that creates a balanced entry.
-    from expenses.models import Income
     # Post income to credit the account (increase balance)
     from expenses.ledger_service import LedgerPostingService as LPS
+    from expenses.models import Income
     version = 'TST-001'
     if direction == 'DEBIT':
         LPS.post_account_balance_adjustment(
@@ -235,8 +235,8 @@ class TestRevolvingCreditStrategy(TestCase):
 
     def test_credit_card_negative_balance_is_liability(self):
         """CREDIT_CARD account with negative ledger balance contributes to liabilities."""
-        from expenses.ledger_read_service import LedgerReadService
         from expenses.account_types import KIND, classify
+        from expenses.ledger_read_service import LedgerReadService
 
         # Credit card: negative balance means owed
         account = _make_account(self.user, 'Credit Card', account_type='CREDIT_CARD', balance=Decimal('-5000.00'))

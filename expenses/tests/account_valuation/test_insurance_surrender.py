@@ -6,7 +6,14 @@ from django.test import TestCase
 
 from expenses.account_valuation import get_baseline, get_current, get_display_value
 from expenses.forms import AccountForm
-from expenses.models import Account, AssetValuation, Category, Expense, PhysicalAsset, UserProfile
+from expenses.models import (
+    Account,
+    AssetValuation,
+    Category,
+    Expense,
+    PhysicalAsset,
+    UserProfile,
+)
 
 
 class InsuranceSurrenderTestCase(TestCase):

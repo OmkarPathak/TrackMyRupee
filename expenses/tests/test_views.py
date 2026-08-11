@@ -7,7 +7,14 @@ from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from expenses.models import Account, Category, Expense, Income, RecurringTransaction, Transfer
+from expenses.models import (
+    Account,
+    Category,
+    Expense,
+    Income,
+    RecurringTransaction,
+    Transfer,
+)
 
 
 class BaseViewTest(TestCase):
