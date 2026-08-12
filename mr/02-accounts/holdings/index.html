@@ -1081,31 +1081,27 @@
 <p>TrackMyRupee तुमच्या गुंतवणुकीचे चालू मूल्य मोजण्यासाठी थेट NAV प्रणाली वापरते.</p>
 <h3 id="_1">सूत्रे<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li>
-<p><strong>होल्डिंग मूल्य</strong>:
-  $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$</p>
-</li>
-<li>
-<p><strong>खात्याची एकूण शिल्लक</strong>:
-  $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
-  $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
-  $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$</p>
-</li>
+<li><strong>होल्डिंग मूल्य</strong></li>
 </ul>
+<p>$<span class="arithmatex">\(\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}\)</span>$</p>
+<ul>
+<li><strong>खात्याची एकूण शिल्लक</strong></li>
+</ul>
+<p>$<span class="arithmatex">\(\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)\)</span>$</p>
+<p>$<span class="arithmatex">\(\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)\)</span>$</p>
+<p>$<span class="arithmatex">\(\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}\)</span>$</p>
 <div class="admonition note">
 <p class="admonition-title">दुरुस्ती लागू</p>
 <p>ऑगस्ट 2026 पूर्वी, ट्रान्सफर केलेली रक्कम होल्डिंग लॉग केल्यानंतर दुप्पट मोजली जाण्याची शक्यता होती. आता ही गणना दुरुस्त केली आहे.</p>
 </div>
 <ul>
-<li>
-<p><strong>एकूण गुंतवणूक किंमत</strong>:
-  $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$</p>
-</li>
-<li>
-<p><strong>नफा / तोटा</strong>:
-  $$\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}$$</p>
-</li>
+<li><strong>एकूण गुंतवणूक किंमत</strong></li>
 </ul>
+<p>$<span class="arithmatex">\(\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)\)</span>$</p>
+<ul>
+<li><strong>नफा / तोटा</strong></li>
+</ul>
+<p>$<span class="arithmatex">\(\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}\)</span>$</p>
 <hr />
 <h2 id="3-sip-recurring-transfer">3. SIP साठी आवर्ती हस्तांतरण (Recurring Transfer) कसे सेट करावे?<a class="headerlink" href="#3-sip-recurring-transfer" title="Permanent link">&para;</a></h2>
 <p>एसआयपी (SIP) म्हणजे तुमच्या बँक खात्यातून दरमहा ठराविक रक्कम तुमच्या म्युच्युअल फंड खात्यात हस्तांतरित करणे.</p>
@@ -1219,6 +1215,10 @@
     
     
       <script src="../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>

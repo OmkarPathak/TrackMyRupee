@@ -1124,35 +1124,31 @@
 </ol>
 <h3 id="formulas">Formulas<a class="headerlink" href="#formulas" title="Permanent link">&para;</a></h3>
 <ul>
-<li>
-<p><strong>Holding Valuation</strong>:
-  $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$</p>
-</li>
-<li>
-<p><strong>Account Total Balance</strong>:
-  $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
-  $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
-  $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$</p>
-</li>
+<li><strong>Holding Valuation</strong></li>
 </ul>
+<p>$<span class="arithmatex">\(\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}\)</span>$</p>
+<ul>
+<li><strong>Account Total Balance</strong></li>
+</ul>
+<p>$<span class="arithmatex">\(\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)\)</span>$</p>
+<p>$<span class="arithmatex">\(\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)\)</span>$</p>
+<p>$<span class="arithmatex">\(\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}\)</span>$</p>
 <div class="admonition note">
 <p class="admonition-title">Correction applied</p>
 <p>Before this fix (August 2026), transferred cash could be double-counted after the related holding was logged. This has been corrected by netting uninvested cash against active holdings cost basis.</p>
 </div>
 <ul>
-<li>
-<p><strong>Total Cost Basis</strong>:
-  $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$</p>
-</li>
-<li>
-<p><strong>Unrealized Gain / Loss</strong>:
-  $$\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}$$</p>
-</li>
-<li>
-<p><strong>Growth Return Percentage</strong>:
-  $$\text{Gain \%} = \left( \frac{\text{Unrealized Gain}}{\text{Total Invested Cost}} \right) \times 100$$</p>
-</li>
+<li><strong>Total Cost Basis</strong></li>
 </ul>
+<p>$<span class="arithmatex">\(\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)\)</span>$</p>
+<ul>
+<li><strong>Unrealized Gain / Loss</strong></li>
+</ul>
+<p>$<span class="arithmatex">\(\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}\)</span>$</p>
+<ul>
+<li><strong>Growth Return Percentage</strong></li>
+</ul>
+<p>$<span class="arithmatex">\(\text{Gain \%} = \left( \frac{\text{Unrealized Gain}}{\text{Total Invested Cost}} \right) \times 100\)</span>$</p>
 <hr />
 <h2 id="3-how-to-set-up-recurring-transfers-for-sips">3. How to Set Up Recurring Transfers for SIPs<a class="headerlink" href="#3-how-to-set-up-recurring-transfers-for-sips" title="Permanent link">&para;</a></h2>
 <p>A <strong>Systematic Investment Plan (SIP)</strong> involves transferring a fixed amount regularly (for example, Rs. 5,000 monthly) from your primary bank account into your mutual fund account.</p>
@@ -1181,7 +1177,7 @@
 <li>Click <strong>Add Holding</strong> (or open your existing holding to update it).</li>
 <li>Enter your updated cumulative <strong>Units</strong> and updated average purchase price (<strong>Avg Cost</strong>).</li>
 <li>The system updates your cost basis immediately:
-   $$\text{New Cost Basis} = \text{Updated Units} \times \text{New Avg Cost}$$</li>
+   $<span class="arithmatex">\(\text{New Cost Basis} = \text{Updated Units} \times \text{New Avg Cost}\)</span>$</li>
 </ol>
 <h3 id="automatic-daily-nav-updates">Automatic Daily NAV Updates<a class="headerlink" href="#automatic-daily-nav-updates" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1277,6 +1273,10 @@
     
     
       <script src="../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>

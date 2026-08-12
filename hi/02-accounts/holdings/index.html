@@ -1106,35 +1106,31 @@
 </ol>
 <h3 id="_2">सूत्र<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <ul>
-<li>
-<p><strong>होल्डिंग मूल्यांकन</strong>:
-  $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$</p>
-</li>
-<li>
-<p><strong>खाता कुल शेष राशि</strong>:
-  $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
-  $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
-  $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$</p>
-</li>
+<li><strong>होल्डिंग मूल्यांकन</strong></li>
 </ul>
+<p>$<span class="arithmatex">\(\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}\)</span>$</p>
+<ul>
+<li><strong>खाता कुल शेष राशि</strong></li>
+</ul>
+<p>$<span class="arithmatex">\(\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)\)</span>$</p>
+<p>$<span class="arithmatex">\(\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)\)</span>$</p>
+<p>$<span class="arithmatex">\(\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}\)</span>$</p>
 <div class="admonition note">
 <p class="admonition-title">सुधार लागू</p>
 <p>अगस्त 2026 से पहले, लॉग की गई होल्डिंग्स के बाद ट्रांसफर किया गया कैश दो बार गिना जा सकता था। अब यह गणना सही कर दी गई है।</p>
 </div>
 <ul>
-<li>
-<p><strong>कुल लागत आधार</strong>:
-  $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$</p>
-</li>
-<li>
-<p><strong>अप्रत्यक्ष लाभ / हानि</strong>:
-  $$\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}$$</p>
-</li>
-<li>
-<p><strong>वृद्धि रिटर्न प्रतिशत</strong>:
-  $$\text{Gain \%} = \left( \frac{\text{Unrealized Gain}}{\text{Total Invested Cost}} \right) \times 100$$</p>
-</li>
+<li><strong>कुल लागत आधार</strong></li>
 </ul>
+<p>$<span class="arithmatex">\(\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)\)</span>$</p>
+<ul>
+<li><strong>अप्रत्यक्ष लाभ / हानि</strong></li>
+</ul>
+<p>$<span class="arithmatex">\(\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}\)</span>$</p>
+<ul>
+<li><strong>वृद्धि रिटर्न प्रतिशत</strong></li>
+</ul>
+<p>$<span class="arithmatex">\(\text{Gain \%} = \left( \frac{\text{Unrealized Gain}}{\text{Total Invested Cost}} \right) \times 100\)</span>$</p>
 <hr />
 <h2 id="3-sip">3. SIP के लिए आवर्ती हस्तांतरण कैसे सेट करें<a class="headerlink" href="#3-sip" title="Permanent link">&para;</a></h2>
 <p>एक <strong>सिस्टमैटिक इन्वेस्टमेंट प्लान (SIP)</strong> में आपके प्राथमिक बैंक खाते से आपके म्यूचुअल फंड खाते में नियमित रूप से एक निश्चित राशि (उदाहरण के लिए, ₹5,000 मासिक) स्थानांतरित करना शामिल है।</p>
@@ -1163,7 +1159,7 @@
 <li><strong>Add Holding</strong> पर क्लिक करें (या अपडेट करने के लिए अपनी मौजूदा होल्डिंग खोलें)।</li>
 <li>अपनी अद्यतन संचयी <strong>Units</strong> और अद्यतन औसत खरीद मूल्य (<strong>Avg Cost</strong>) दर्ज करें।</li>
 <li>सिस्टम आपकी लागत के आधार को तुरंत अपडेट करता है:
-   $$\text{New Cost Basis} = \text{Updated Units} \times \text{New Avg Cost}$$</li>
+   $<span class="arithmatex">\(\text{New Cost Basis} = \text{Updated Units} \times \text{New Avg Cost}\)</span>$</li>
 </ol>
 <h3 id="nav">स्वचालित दैनिक NAV अपडेट<a class="headerlink" href="#nav" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1251,6 +1247,10 @@
     
     
       <script src="../../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>
