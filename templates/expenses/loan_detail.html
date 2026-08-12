@@ -66,9 +66,44 @@
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Main Content: Schedule & History -->
+    <div class="row g-4 mb-4">
+        <!-- Main Content: Amortization Trend & Schedule & History -->
         <div class="col-lg-8 order-2 order-lg-1">
+            <!-- Amortization Trend Chart Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            {% if amortization_chart_data.is_historical %}
+                                {% trans "Historical Repayment Trajectory" %}
+                            {% else %}
+                                {% trans "Amortization Trajectory" %}
+                            {% endif %}
+                        </h5>
+                        <p class="text-muted small mb-0">
+                            {% if amortization_chart_data.is_historical %}
+                                {% trans "Historical principal vs. interest breakdown and balance reduction over time." %}
+                            {% else %}
+                                {% trans "Monthly principal vs interest breakdown and balance trajectory." %}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if amortization_chart_data.labels %}
+                    <div style="position: relative; min-height: 260px; max-height: 320px;">
+                        <canvas id="loanAmortizationChart"></canvas>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-bar-chart-line fs-2 text-secondary d-block mb-2"></i>
+                        <h6 class="fw-bold mb-1">{% trans "No Amortization Trajectory Yet" %}</h6>
+                        <p class="small mb-0 text-muted">{% trans "Record your first repayment to start tracking your repayment trajectory." %}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Repayment History -->
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-transparent border-0 p-4 pb-0">
@@ -173,8 +208,21 @@
             </div>
         </div>
 
-        <!-- Sidebar Info -->
+        <!-- Sidebar Info & Breakdown Chart -->
         <div class="col-lg-4 order-1 order-lg-2">
+            <!-- Doughnut Chart Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <h5 class="fw-bold mb-0">{% trans "Loan Structure Breakdown" %}</h5>
+                    <p class="text-muted small">{% trans "Principal vs. Interest distribution." %}</p>
+                </div>
+                <div class="card-body p-4">
+                    <div style="position: relative; height: 220px;">
+                        <canvas id="loanBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <div class="card border-0 shadow-sm rounded-4 loan-summary mb-4">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-3">{% trans "Loan Summary" %}</h5>
@@ -502,6 +550,224 @@
                 recurringToggle.addEventListener('change', syncRecurringVisibility);
             }
         });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {{ breakdown_chart_data|json_script:"breakdown-chart-data" }}
+    {{ amortization_chart_data|json_script:"amortization-chart-data" }}
+
+    <script>
+    function renderLoanDetailCharts() {
+        if (typeof Chart === 'undefined') return;
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const textColor = isDark ? '#e2e8f0' : '#475569';
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+
+        // 1. Doughnut Chart: Structure Breakdown
+        const breakdownCtx = document.getElementById('loanBreakdownChart');
+        const breakdownDataEl = document.getElementById('breakdown-chart-data');
+        if (breakdownCtx && breakdownDataEl) {
+            if (Chart.getChart(breakdownCtx)) {
+                Chart.getChart(breakdownCtx).destroy();
+            }
+            const data = JSON.parse(breakdownDataEl.textContent);
+            new Chart(breakdownCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: ['#1D9E75', '#F59E0B', '#EF4444'],
+                        borderWidth: 2,
+                        borderColor: isDark ? '#1e293b' : '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: textColor,
+                                font: { size: 11, weight: '500' },
+                                padding: 12,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const val = ctx.parsed || 0;
+                                    return ` ${ctx.label}: {{ loan.currency }}${val.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // 2. Amortization Trajectory (Stacked Bar + Line Chart)
+        const amortCtx = document.getElementById('loanAmortizationChart');
+        const amortDataEl = document.getElementById('amortization-chart-data');
+        if (amortCtx && amortDataEl) {
+            if (Chart.getChart(amortCtx)) {
+                Chart.getChart(amortCtx).destroy();
+            }
+            const data = JSON.parse(amortDataEl.textContent);
+            const histCount = data.history_count || 0;
+            const totalPoints = data.labels.length;
+
+            // Color arrays: solid for historical (paid), faded for projected
+            const principalColors = data.labels.map((_, i) =>
+                i < histCount ? 'rgba(29, 158, 117, 0.95)' : 'rgba(29, 158, 117, 0.35)'
+            );
+            const interestColors = data.labels.map((_, i) =>
+                i < histCount ? 'rgba(245, 158, 11, 0.95)' : 'rgba(245, 158, 11, 0.35)'
+            );
+            const balanceColors = data.labels.map((_, i) =>
+                i < histCount ? '#EF4444' : 'rgba(239, 68, 68, 0.4)'
+            );
+
+            // Vertical divider plugin: draw a line between history and projection
+            const dividerPlugin = {
+                id: 'historyDivider',
+                afterDraw(chart) {
+                    if (histCount <= 0 || histCount >= totalPoints) return;
+                    const ctx2 = chart.ctx;
+                    const xAxis = chart.scales.x;
+                    const yAxis = chart.scales.y;
+                    // Position between the last historical bar and first projected bar
+                    const x = (xAxis.getPixelForValue(histCount - 1) + xAxis.getPixelForValue(histCount)) / 2;
+                    ctx2.save();
+                    ctx2.setLineDash([5, 4]);
+                    ctx2.strokeStyle = 'rgba(99, 102, 241, 0.6)';
+                    ctx2.lineWidth = 2;
+                    ctx2.beginPath();
+                    ctx2.moveTo(x, yAxis.top);
+                    ctx2.lineTo(x, yAxis.bottom);
+                    ctx2.stroke();
+                    // "Now" label
+                    ctx2.setLineDash([]);
+                    ctx2.fillStyle = 'rgba(99, 102, 241, 0.9)';
+                    ctx2.font = 'bold 10px Inter, sans-serif';
+                    ctx2.textAlign = 'center';
+                    ctx2.fillText('NOW', x, yAxis.top - 4);
+                    ctx2.restore();
+                }
+            };
+
+            new Chart(amortCtx, {
+                type: 'bar',
+                plugins: [dividerPlugin],
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: '{% trans "Principal" %}',
+                            data: data.principal,
+                            backgroundColor: principalColors,
+                            stack: 'Stack 0',
+                            order: 2
+                        },
+                        {
+                            label: '{% trans "Interest" %}',
+                            data: data.interest,
+                            backgroundColor: interestColors,
+                            stack: 'Stack 0',
+                            order: 2
+                        },
+                        {
+                            label: '{% trans "Remaining Balance" %}',
+                            data: data.balance,
+                            type: 'line',
+                            borderColor: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                            borderWidth: 2,
+                            pointRadius: data.labels.map((_, i) => i < histCount ? 3 : 2),
+                            pointBackgroundColor: balanceColors,
+                            fill: false,
+                            tension: 0.3,
+                            segment: {
+                                borderDash: ctx => ctx.p0DataIndex >= histCount - 1 ? [5, 4] : [],
+                                borderColor: ctx => ctx.p0DataIndex < histCount ? '#EF4444' : 'rgba(239,68,68,0.5)',
+                            },
+                            yAxisID: 'y1',
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: textColor,
+                                font: { size: 11, weight: '500' },
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(items) {
+                                    const idx = items[0].dataIndex;
+                                    const suffix = idx < histCount ? ' ✓ Paid' : ' ⟶ Projected';
+                                    return items[0].label + suffix;
+                                },
+                                label: function(ctx) {
+                                    const val = ctx.parsed.y || 0;
+                                    return ` ${ctx.dataset.label}: {{ loan.currency }}${val.toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { size: 10 }, maxRotation: 45, autoSkip: true }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 10 },
+                                callback: function(val) {
+                                    return '{{ loan.currency }}' + (val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val);
+                                }
+                            }
+                        },
+                        y1: {
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { display: false },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 10 },
+                                callback: function(val) {
+                                    return '{{ loan.currency }}' + (val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', renderLoanDetailCharts);
+    document.body.addEventListener('htmx:afterSwap', function(e) {
+        renderLoanDetailCharts();
+    });
     </script>
 
 

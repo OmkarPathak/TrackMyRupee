@@ -44,8 +44,13 @@
             </div>
             <div class="col-md-6 text-md-end">
                 <div class="bg-body-tertiary p-3 rounded d-inline-block text-start shadow-sm border">
+                    {% if status_filter == 'inactive' %}
+                    <p class="text-muted small mb-1">{% trans "Remaining Debt (Paid Off)" %}</p>
+                    <h4 class="mb-0 fw-bold text-success">{{ user.profile.currency }}0</h4>
+                    {% else %}
                     <p class="text-muted small mb-1">{% trans "Total Remaining Debt" %}</p>
                     <h4 class="mb-0 fw-bold text-danger">{{ user.profile.currency }}{{ total_debt|compact_amount:user.profile.currency|translate_digits }}</h4>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -100,6 +105,38 @@
             <i class="bi bi-plus-lg me-1"></i> {% trans "New Loan" %}
         </a>
     </div>
+
+    {% if loan_summaries %}
+    <!-- Loan Portfolio Visual Analytics Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <h5 class="fw-bold mb-0">{% trans "Portfolio Debt Breakdown" %}</h5>
+                    <p class="text-muted small mb-0">{% trans "Distribution of Principal Paid vs. Interest Paid vs. Debt Remaining" %}</p>
+                </div>
+                <div class="card-body p-4">
+                    <div style="position: relative; height: 210px;">
+                        <canvas id="portfolioBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <h5 class="fw-bold mb-0">{% trans "Loan Principal Progress Comparison" %}</h5>
+                    <p class="text-muted small mb-0">{% trans "Principal paid off vs. remaining principal per loan" %}</p>
+                </div>
+                <div class="card-body p-4">
+                    <div style="position: relative; height: 210px;">
+                        <canvas id="loanComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="row g-4">
         {% for summary in loan_summaries %}
@@ -190,6 +227,15 @@
         {% endfor %}
     </div>
 </div>
+
+{{ portfolio_breakdown_chart|json_script:"portfolio-breakdown-data" }}
+{{ loan_comparison_chart|json_script:"loan-comparison-data" }}
+
+<script>
+if (typeof renderLoanListCharts === 'function') {
+    renderLoanListCharts();
+}
+</script>
 
 <style>
 .hover-elevate {
