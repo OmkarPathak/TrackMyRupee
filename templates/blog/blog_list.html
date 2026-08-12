@@ -1,48 +1,203 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block title %}{% trans "Blog" %} — TrackMyRupee{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="{% trans 'Personal finance insights, expense tracking tips, debt calculation arithmetic, and wealth building for Indian salaries.' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h1 class="display-4 fw-bold mb-5 text-center">{% trans "Blogs" %}</h1>
-    <div class="row g-4 justify-content-center">
+<div class="container py-4 py-lg-5" style="max-width: 1040px;">
+
+    <!-- Header Section -->
+    <div class="mb-5">
+        <h1 class="fw-extrabold display-5 mb-3" style="letter-spacing: -0.03em;">{% trans "Blog" %}</h1>
+        <p class="fs-5 text-body-secondary mb-4" style="max-width: 680px; line-height: 1.6;">
+            {% trans "Practical personal finance insights, privacy-first expense tracking, debt management, and net worth growth, built for Indian salaried professionals." %}
+        </p>
+
+        <!-- Dynamic Category Filter Pills -->
+        <div class="d-flex flex-wrap gap-2 pt-2" id="blog-category-filters">
+            <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold filter-pill active" data-category="all">
+                {% trans "All posts" %}
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold filter-pill" data-category="expense-tracking">
+                {% trans "Expense tracking" %}
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold filter-pill" data-category="debt-emis">
+                {% trans "Debt & EMIs" %}
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold filter-pill" data-category="investing">
+                {% trans "Investing" %}
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold filter-pill" data-category="payments">
+                {% trans "Payments" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Posts Grid -->
+    <div class="row row-cols-1 row-cols-md-2 g-4" id="blog-posts-grid">
         {% for post in posts %}
-        <div class="col-md-8 col-lg-6">
-            <div class="card h-100 shadow-sm border-0 hover-lift">
-                <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-3">
-                        <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none text-body stretched-link">
+        <div class="col blog-post-card-item" data-keywords="{{ post.keywords|lower }}">
+            <article class="card h-100 border rounded-4 p-4 shadow-sm hover-tldr-card bg-body">
+                <div class="card-body p-0 d-flex flex-column">
+                    <!-- Eyebrow Meta -->
+                    <div class="blog-card-meta mb-3 small text-body-tertiary fw-medium">
+                        <span class="tracking-wider fw-bold text-primary opacity-90 me-1">
+                            {% if post.keywords %}
+                                {{ post.keywords.split.0|title|cut:"," }}
+                            {% else %}
+                                {% trans "Personal Finance" %}
+                            {% endif %}
+                        </span>
+                        <span class="mx-1">·</span>
+                        <span>{{ post.published_date|date:"j M Y" }}</span>
+                        <span class="mx-1">·</span>
+                        <span>{{ post.read_time }} min read</span>
+                    </div>
+
+                    <!-- Title -->
+                    <h2 class="h4 fw-extrabold mb-3 line-clamp-2">
+                        <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none text-body tldr-title-link">
                             {{ post.title }}
                         </a>
-                    </h5>
-                    <p class="card-text text-muted mb-4">
+                    </h2>
+
+                    <!-- Summary -->
+                    <p class="text-body-secondary mb-4 flex-grow-1 line-clamp-3" style="font-size: 0.95rem; line-height: 1.6;">
                         {{ post.summary }}
                     </p>
-                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
-                        <small class="text-muted"><i class="bi bi-calendar3 me-1"></i> {{ post.published_date|date:"F j, Y" }}</small>
-                        <span class="text-primary fw-medium">
-                            {% trans "Read Article" %} <i class="bi bi-arrow-right ms-1"></i>
-                        </span>
+
+                    <!-- Action Link -->
+                    <div class="pt-2">
+                        <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none fw-bold text-primary tldr-read-link d-inline-flex align-items-center gap-1">
+                            <span>{% trans "Read the numbers" %}</span>
+                            <i class="bi bi-arrow-right arrow-icon"></i>
+                        </a>
                     </div>
                 </div>
-            </div>
+            </article>
         </div>
         {% empty %}
-        <div class="col-12 text-center">
-            <p class="lead text-muted">
-                {% trans "No blog posts yet. Check back soon!" %}
-            </p>
+        <div class="col-12 text-center py-5">
+            <div class="p-5 rounded-4 bg-body-tertiary">
+                <i class="bi bi-journal-text fs-1 text-muted mb-3 d-block"></i>
+                <h4 class="fw-bold mb-2">{% trans "No posts found" %}</h4>
+                <p class="text-muted mb-0">{% trans "Check back soon for new articles!" %}</p>
+            </div>
         </div>
         {% endfor %}
+    </div>
+
+    <!-- RSS Feed Box Footer -->
+    <div class="mt-5 pt-4 border-top">
+        <div class="p-4 rounded-4 bg-body-tertiary d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+                <h6 class="fw-bold mb-1">{% trans "Read in a feed reader instead?" %}</h6>
+                <p class="text-body-secondary small mb-0">{% trans "Every post goes out on the RSS feed. No email address needed, no list to leave." %}</p>
+            </div>
+            <a href="{% url 'django.contrib.sitemaps.views.sitemap' %}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 text-nowrap align-self-start align-self-md-center">
+                <i class="bi bi-rss me-1"></i> {% trans "RSS Feed" %}
+            </a>
+        </div>
     </div>
 </div>
 
 <style>
-.hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.fw-extrabold {
+    font-weight: 800;
 }
-.hover-lift:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+.tracking-wider {
+    letter-spacing: 0.02em;
+}
+
+/* Filter Pills */
+.filter-pill {
+    background-color: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+}
+.filter-pill:hover {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+}
+.filter-pill.active {
+    background-color: var(--bs-body-color) !important;
+    color: var(--bs-body-bg) !important;
+    border-color: var(--bs-body-color) !important;
+}
+
+/* Post Cards */
+.hover-tldr-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border-color: var(--bs-border-color) !important;
+}
+.hover-tldr-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06) !important;
+    border-color: var(--bs-primary) !important;
+}
+
+.tldr-title-link {
+    transition: color 0.2s ease;
+}
+.hover-tldr-card:hover .tldr-title-link {
+    color: var(--bs-primary) !important;
+}
+
+.tldr-read-link .arrow-icon {
+    transition: transform 0.2s ease;
+}
+.hover-tldr-card:hover .tldr-read-link .arrow-icon {
+    transform: translateX(4px);
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterPills = document.querySelectorAll('.filter-pill');
+    const postCards = document.querySelectorAll('.blog-post-card-item');
+
+    filterPills.forEach(pill => {
+        pill.addEventListener('click', function() {
+            filterPills.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+
+            const category = this.getAttribute('data-category');
+
+            postCards.forEach(card => {
+                const keywords = card.getAttribute('data-keywords') || '';
+                if (category === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    const matchCategory = category.replace('-', ' ');
+                    const matchTag = category.replace('-', '');
+                    if (keywords.includes(matchCategory) || keywords.includes(matchTag) || keywords.includes(category)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

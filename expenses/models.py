@@ -2251,7 +2251,8 @@ class CapitalEvent(models.Model):
         with transaction.atomic():
             old_instance = None
             if self.pk:
-                old_instance = CapitalEvent.objects.select_related('account').select_for_update().get(pk=self.pk)
+                # Do not join nullable account relation under FOR UPDATE (unsupported on Postgres outer joins).
+                old_instance = CapitalEvent.objects.select_related(None).select_for_update().get(pk=self.pk)
                 if old_instance.account_id and old_instance.include_in_net_worth:
                     old_account = Account.objects.select_for_update().get(pk=old_instance.account_id)
                     reversal_amount = old_instance.amount

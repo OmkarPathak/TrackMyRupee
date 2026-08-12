@@ -48,3 +48,22 @@
     <a href="{% url 'demo_login' %}">{% trans "Live Demo" %}</a>
     <a href="{% url 'account_signup' %}" class="nav-cta">{% trans "Start Free" %}</a>
 </div>
+
+<script>
+    if (typeof toggleMenu !== 'function') {
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const hamburger = document.getElementById('hamburger-btn');
+            if (menu) menu.classList.toggle('active');
+            if (hamburger) hamburger.classList.toggle('active');
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const hamburger = document.getElementById('hamburger-btn');
+        if (hamburger && !hamburger.dataset.bound) {
+            hamburger.dataset.bound = 'true';
+            hamburger.addEventListener('click', toggleMenu);
+        }
+    });
+</script>
+

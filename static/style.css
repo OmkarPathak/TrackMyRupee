@@ -2450,3 +2450,178 @@ a:hover {
 .bg-indigo {
     background-color: rgba(102, 16, 242, var(--bs-bg-opacity, 1)) !important;
 }
+
+/* --- Public / Landing Navbar & Footer Unified Styles --- */
+.landing-nav {
+  position: sticky;
+  top: 0;
+  z-index: 102;
+  background: rgba(250, 249, 246, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border, var(--bs-border-color, #e0edea));
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 65px;
+}
+[data-bs-theme="dark"] .landing-nav {
+  background: rgba(26, 26, 24, 0.92);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+.nav-logo {
+  font-family: var(--sans, "DM Sans", sans-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink, var(--tmr-ink-900, #1a1a18));
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+[data-bs-theme="dark"] .nav-logo {
+  color: #ffffff;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink2, var(--tmr-ink-600, #4a4a46));
+  text-decoration: none;
+  transition: color 0.2s;
+}
+[data-bs-theme="dark"] .nav-links a {
+  color: rgba(255, 255, 255, 0.7);
+}
+.nav-links a:hover {
+  color: var(--ink, var(--tmr-ink-900, #1a1a18));
+}
+[data-bs-theme="dark"] .nav-links a:hover {
+  color: #ffffff;
+}
+.nav-cta {
+  background: var(--ink, #1a1a18);
+  color: var(--paper, #ffffff) !important;
+  padding: 10px 24px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.15s;
+}
+[data-bs-theme="dark"] .nav-cta {
+  background: var(--tmr-teal-400, #1d9e75);
+  color: #ffffff !important;
+}
+.nav-cta:hover {
+  background: var(--tmr-teal-400, #1d9e75) !important;
+  transform: translateY(-1px);
+}
+.mobile-nav-actions {
+  display: none;
+  align-items: center;
+  gap: 16px;
+}
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px;
+  z-index: 101;
+  margin-right: -4px;
+}
+.hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--ink, var(--tmr-ink-900, #1a1a18));
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+[data-bs-theme="dark"] .hamburger span {
+  background: #ffffff;
+}
+.hamburger.active span:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.active span:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--paper, #faf9f6);
+  z-index: 1000;
+  padding: 100px 32px;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+[data-bs-theme="dark"] .mobile-menu {
+  background: #1a1a18;
+}
+.mobile-menu.active {
+  transform: translateX(0);
+}
+.mobile-menu a {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--ink, var(--tmr-ink-900, #1a1a18));
+  text-decoration: none;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+}
+[data-bs-theme="dark"] .mobile-menu a {
+  color: #ffffff;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+.mobile-menu .nav-cta {
+  text-align: center;
+  margin-top: 10px;
+  border-bottom: none;
+}
+
+@media (max-width: 991px) {
+  .landing-nav .nav-links {
+    display: none !important;
+  }
+  .landing-nav .mobile-nav-actions {
+    display: flex !important;
+  }
+}
+
+.landing-footer {
+  background: var(--tmr-surface-1, #faf9f6);
+  border-top: 1px solid var(--tmr-surface-3, #e0edea);
+  padding: var(--space-10, 40px) 0 var(--space-6, 24px);
+}
+[data-bs-theme="dark"] .landing-footer {
+  background: rgba(255, 255, 255, 0.02);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+.footer-brand p {
+  font-size: 13px;
+  color: var(--tmr-ink-400, #7f8c8d);
+  margin-top: 10px;
+  line-height: 1.6;
+  max-width: 240px;
+}
+

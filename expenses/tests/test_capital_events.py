@@ -723,6 +723,32 @@ class CapitalEventUpdateViewTest(TestCase):
         self.assertEqual(self.event.amount, Decimal('6000.00'))
         self.assertEqual(self.event.note, 'New note')
 
+    def test_post_can_uncheck_averages_and_net_worth_flags(self):
+        self.event.account = self.account
+        self.event.include_in_net_worth = True
+        self.event.exclude_from_averages = True
+        self.event.save()
+
+        data = {
+            'date': date.today().isoformat(),
+            'amount': '5000.00',
+            'currency': '₹',
+            'account': self.account.id,
+            'subtype': 'other',
+            'note': 'Updated flags',
+            'exclude_from_budget': '1',
+            # Intentionally omit exclude_from_averages and include_in_net_worth to uncheck them.
+        }
+        response = self.client.post(self.url, data)
+        self.assertRedirects(response, reverse('capital-event-list'))
+
+        self.event.refresh_from_db()
+        self.account.refresh_from_db()
+        self.assertFalse(self.event.exclude_from_averages)
+        self.assertTrue(self.event.exclude_from_budget)
+        self.assertFalse(self.event.include_in_net_worth)
+        self.assertEqual(self.account.balance, Decimal('10000.00'))
+
     def test_post_invalid_data_re_renders_form(self):
         data = {
             'date': date.today().isoformat(),

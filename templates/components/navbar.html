@@ -1,273 +1,213 @@
 {% load static i18n %}
-<!-- Unified Navbar -->
-<nav class="navbar navbar-expand-lg sticky-top {% if user.is_authenticated %}d-none d-lg-flex{% endif %} {% if is_landing %}navbar-landing{% else %}bg-body-tertiary border-bottom{% endif %}">
-    <div class="{% if user.is_authenticated %}d-flex w-100 px-3{% else %}container{% endif %}">
-        <a class="navbar-brand fw-bold d-flex align-items-center gap-2 {% if user.is_authenticated %}d-lg-none{% endif %}" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'landing' %}{% endif %}">
+{% if user.is_authenticated %}
+<!-- Unified Navbar for Authenticated Users -->
+<nav class="navbar navbar-expand-lg sticky-top d-none d-lg-flex bg-body-tertiary border-bottom">
+    <div class="d-flex w-100 px-3">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2 d-lg-none" href="{% url 'home' %}">
             <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" width="32" height="32" class="d-inline-block align-text-top rounded-3">
             <span class="fs-4">TrackMyRupee</span>
         </a>
-        
-        {% if not user.is_authenticated and is_landing %}
-            <a href="{% url 'account_login' %}" class="btn btn-primary btn-sm d-lg-none ms-auto me-2">{% trans "Login" %}</a>
-        {% endif %}
 
-        {% if user.is_authenticated %}
-            <!-- Mobile Notification Bell (Kept for landing if needed, but will be hidden by d-none on nav) -->
-            <div class="d-lg-none ms-auto me-3 dropdown">
-                <a class="nav-link dropdown-toggle no-arrow p-0 d-flex align-items-center justify-content-center position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 38px; height: 38px;">
-                    <i class="bi bi-bell fs-4"></i>
-                    <span class="position-absolute translate-middle badge rounded-pill bg-danger border border-light {% if not has_unread_notifications %}visually-hidden{% endif %}" 
-                          id="notification-badge-mobile"
-                          style="top: 5px; right: -5px; font-size: 0.65rem; padding: 0.25em 0.4em;">
-                        {{ unread_notifications_count }}
-                        <span class="visually-hidden">New alerts</span>
-                    </span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0" style="width: 300px; max-height: 80vh; overflow-y: auto;">
-                    <li>
-                        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-bold">{% trans "Notifications" %}</h6>
-                            <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">
-                                <i class="bi bi-bell-fill me-1"></i> {% trans "Enable Push" %}
-                            </button>
-                        </div>
-                    </li>
-                    <div id="notification-list-mobile">
-                        {% if notifications %}
-                            {% for notification in notifications %}
-                            <li>
-                                <a class="dropdown-item py-2 border-bottom" href="{% if notification.link %}{% url 'notification-redirect' notification.pk %}{% else %}#{% endif %}">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <i class="bi 
-                                            {% if notification.notification_type == 'RECURRING' %}bi-arrow-repeat text-info
-                                            {% elif notification.notification_type == 'ANALYTICS' %}bi-lightning-charge text-warning
-                                            {% elif notification.notification_type == 'MILESTONE' %}bi-trophy text-success
-                                            {% else %}bi-info-circle-fill text-primary{% endif %} mt-1">
-                                        </i>
-                                        <div>
-                                            <p class="mb-0 small fw-bold text-wrap {% if not notification.is_read %}text-primary{% endif %}" style="line-height: 1.2;">{{ notification.title }}</p>
-                                            <small class="text-muted d-block text-wrap" style="font-size: 0.7rem;">{{ notification.message|truncatechars:60 }}</small>
-                                            <small class="text-body-tertiary" style="font-size: 0.65rem;">{{ notification.created_at|timesince }} ago</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            {% endfor %}
-                        {% else %}
-                            <li><a class="dropdown-item py-3 text-center text-muted small" href="#">{% trans "No new notifications" %}</a></li>
-                        {% endif %}
+        <!-- Mobile Notification Bell -->
+        <div class="d-lg-none ms-auto me-3 dropdown">
+            <a class="nav-link dropdown-toggle no-arrow p-0 d-flex align-items-center justify-content-center position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 38px; height: 38px;">
+                <i class="bi bi-bell fs-4"></i>
+                <span class="position-absolute translate-middle badge rounded-pill bg-danger border border-light {% if not has_unread_notifications %}visually-hidden{% endif %}" 
+                      id="notification-badge-mobile"
+                      style="top: 5px; right: -5px; font-size: 0.65rem; padding: 0.25em 0.4em;">
+                    {{ unread_notifications_count }}
+                    <span class="visually-hidden">New alerts</span>
+                </span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0" style="width: 300px; max-height: 80vh; overflow-y: auto;">
+                <li>
+                    <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold">{% trans "Notifications" %}</h6>
+                        <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">
+                            <i class="bi bi-bell-fill me-1"></i> {% trans "Enable Push" %}
+                        </button>
                     </div>
-                    <li><hr class="dropdown-divider my-0"></li>
-                    <li><a class="dropdown-item py-2 text-center small text-primary fw-bold" href="{% url 'notification-list' %}">{% trans "View All" %}</a></li>
-                </ul>
-            </div>
-        {% endif %}
+                </li>
+                <div id="notification-list-mobile">
+                    {% if notifications %}
+                        {% for notification in notifications %}
+                        <li>
+                            <a class="dropdown-item py-2 border-bottom" href="{% if notification.link %}{% url 'notification-redirect' notification.pk %}{% else %}#{% endif %}">
+                                <div class="d-flex align-items-start gap-2">
+                                    <i class="bi 
+                                        {% if notification.notification_type == 'RECURRING' %}bi-arrow-repeat text-info
+                                        {% elif notification.notification_type == 'ANALYTICS' %}bi-lightning-charge text-warning
+                                        {% elif notification.notification_type == 'MILESTONE' %}bi-trophy text-success
+                                        {% else %}bi-info-circle-fill text-primary{% endif %} mt-1">
+                                    </i>
+                                    <div>
+                                        <p class="mb-0 small fw-bold text-wrap {% if not notification.is_read %}text-primary{% endif %}" style="line-height: 1.2;">{{ notification.title }}</p>
+                                        <small class="text-muted d-block text-wrap" style="font-size: 0.7rem;">{{ notification.message|truncatechars:60 }}</small>
+                                        <small class="text-body-tertiary" style="font-size: 0.65rem;">{{ notification.created_at|timesince }} ago</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li><a class="dropdown-item py-3 text-center text-muted small" href="#">{% trans "No new notifications" %}</a></li>
+                    {% endif %}
+                </div>
+                <li><hr class="dropdown-divider my-0"></li>
+                <li><a class="dropdown-item py-2 text-center small text-primary fw-bold" href="{% url 'notification-list' %}">{% trans "View All" %}</a></li>
+            </ul>
+        </div>
 
-        <button class="navbar-toggler border-0 shadow-none {% if user.is_authenticated or not is_landing %}d-none{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler border-0 shadow-none d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarContent">
-            {% if user.is_authenticated %}
-                <!-- Desktop Greeting -->
-                <div class="d-none d-lg-flex align-items-center gap-2 py-2 px-3 rounded-pill me-auto">
-                    <span class="text-body-secondary small">{{ personalized_greeting }},</span>
-                    <span class="fw-bold text-body" style="font-size: 0.95rem;">{{ greeting_user_name }}</span>
-                    <!-- {% if month_progress_encouragement %}
-                        <span class="mx-2 text-body-tertiary">|</span>
-                        <span class="text-success small fw-medium">{{ month_progress_encouragement }}</span>
-                    {% endif %} -->
-                </div>
-            {% endif %}
+            <!-- Desktop Greeting -->
+            <div class="d-none d-lg-flex align-items-center gap-2 py-2 px-3 rounded-pill me-auto">
+                <span class="text-body-secondary small">{{ personalized_greeting }},</span>
+                <span class="fw-bold text-body" style="font-size: 0.95rem;">{{ greeting_user_name }}</span>
+            </div>
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-                
-                <!-- Authenticated User Links (Hidden on desktop because moved to sidebar) -->
-                {% if user.is_authenticated %}
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">{% trans "Dashboard" %}</a>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'expense-list' %}" class="nav-link {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
-                            {% trans "Expenses" %}
-                        </a>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'recurring-list' %}" class="nav-link {% if 'recurring' in request.resolver_match.url_name %}active{% endif %}">
-                            {% trans "Subscriptions" %}
-                        </a>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'budget' %}" class="nav-link {% if request.resolver_match.url_name == 'budget' %}active{% endif %}">
-                            {% trans "Budgets" %}
-                        </a>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'goal-list' %}" class="nav-link {% if 'goal' in request.resolver_match.url_name %}active{% endif %}">
-                            {% trans "Goals" %}
-                        </a>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'holding-list' %}" class="nav-link {% if 'holding' in request.resolver_match.url_name %}active{% endif %}">
-                            {% trans "Holdings Portfolio" %}
-                        </a>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'calendar' %}" class="nav-link {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
-                            {% trans "Calendar" %}
-                        </a>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'analytics' %}" class="nav-link {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}">
-                            {% trans "Analytics" %}
-                        </a>
-                    </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">{% trans "Dashboard" %}</a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'expense-list' %}" class="nav-link {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
+                        {% trans "Expenses" %}
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'recurring-list' %}" class="nav-link {% if 'recurring' in request.resolver_match.url_name %}active{% endif %}">
+                        {% trans "Subscriptions" %}
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'budget' %}" class="nav-link {% if request.resolver_match.url_name == 'budget' %}active{% endif %}">
+                        {% trans "Budgets" %}
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'goal-list' %}" class="nav-link {% if 'goal' in request.resolver_match.url_name %}active{% endif %}">
+                        {% trans "Goals" %}
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'holding-list' %}" class="nav-link {% if 'holding' in request.resolver_match.url_name %}active{% endif %}">
+                        {% trans "Holdings Portfolio" %}
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'calendar' %}" class="nav-link {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
+                        {% trans "Calendar" %}
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'analytics' %}" class="nav-link {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}">
+                        {% trans "Analytics" %}
+                    </a>
+                </li>
 
+                <!-- Action Dropdown -->
+                <li class="nav-item dropdown d-none d-lg-block ms-2">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-plus-circle-fill me-2 fs-5 text-primary"></i>
+                        <span class="fw-bold">{% trans "Add" %}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><a class="dropdown-item py-2" href="{% url 'expense-create' %}?next={{ request.path }}"><i class="bi bi-dash-circle text-danger me-2"></i> {% trans "Add Expense" %}</a></li>
+                        <li><a class="dropdown-item py-2" href="{% url 'recurring-create' %}?next={{ request.path }}"><i class="bi bi-arrow-repeat text-primary me-2"></i> {% trans "Add Subscription" %}</a></li>
+                        {% if user.username != 'demo' %}
+                        <li><a class="dropdown-item py-2" href="{% url 'transfer-create' %}?next={{ request.path }}"><i class="bi bi-arrow-left-right text-info me-2"></i> {% trans "Internal Transfer" %}</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item py-2" href="{% url 'income-create' %}?next={{ request.path }}"><i class="bi bi-plus-circle text-success me-2"></i> {% trans "Add Income" %}</a></li>
+                    </ul>
+                </li>
 
-
-
-                    <!-- Action Dropdown -->
-                    <li class="nav-item dropdown d-none d-lg-block ms-2">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-plus-circle-fill me-2 fs-5 text-primary"></i>
-                            <span class="fw-bold">{% trans "Add" %}</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><a class="dropdown-item py-2" href="{% url 'expense-create' %}?next={{ request.path }}"><i class="bi bi-dash-circle text-danger me-2"></i> {% trans "Add Expense" %}</a></li>
-                            <li><a class="dropdown-item py-2" href="{% url 'recurring-create' %}?next={{ request.path }}"><i class="bi bi-arrow-repeat text-primary me-2"></i> {% trans "Add Subscription" %}</a></li>
-                            {% if user.username != 'demo' %}
-                            <li><a class="dropdown-item py-2" href="{% url 'transfer-create' %}?next={{ request.path }}"><i class="bi bi-arrow-left-right text-info me-2"></i> {% trans "Internal Transfer" %}</a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item py-2" href="{% url 'income-create' %}?next={{ request.path }}"><i class="bi bi-plus-circle text-success me-2"></i> {% trans "Add Income" %}</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- Notification Bell -->
-                    <li class="nav-item dropdown d-none d-lg-block ms-2">
-                        <a class="nav-link dropdown-toggle no-arrow p-0 d-flex align-items-center justify-content-center position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 38px; height: 38px;">
-                            <i class="bi bi-bell fs-6"></i>
-                            <span class="position-absolute translate-middle badge rounded-pill bg-danger border border-light {% if not has_unread_notifications %}visually-hidden{% endif %}" 
-                                  id="notification-badge"
-                                  style="top: 5px; right: -5px; font-size: 0.65rem; padding: 0.25em 0.4em;">
-                                {{ unread_notifications_count }}
-                                <span class="visually-hidden">New alerts</span>
-                            </span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0" style="width: 320px; max-height: 480px; overflow-y: auto;">
-                            <li>
-                                <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-bold">{% trans "Notifications" %}</h6>
-                                    <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">
-                                        <i class="bi bi-bell-fill me-1"></i> {% trans "Enable Push" %}
-                                    </button>
-                                </div>
-                            </li>
-                            <div id="notification-list">
-                                {% if notifications %}
-                                    {% for notification in notifications %}
-                                    <li>
-                                        <a class="dropdown-item py-2 border-bottom" href="{% if notification.link %}{% url 'notification-redirect' notification.pk %}{% else %}#{% endif %}">
-                                            <div class="d-flex align-items-start gap-2">
-                                                <i class="bi 
-                                                    {% if notification.notification_type == 'RECURRING' %}bi-arrow-repeat text-info
-                                                    {% elif notification.notification_type == 'ANALYTICS' %}bi-lightning-charge text-warning
-                                                    {% elif notification.notification_type == 'MILESTONE' %}bi-trophy text-success
-                                                    {% else %}bi-info-circle-fill text-primary{% endif %} mt-1">
-                                                </i>
-                                                <div>
-                                                    <p class="mb-0 small fw-bold text-wrap {% if not notification.is_read %}text-primary{% endif %}" style="line-height: 1.2;">{{ notification.title }}</p>
-                                                    <small class="text-muted d-block text-wrap" style="font-size: 0.7rem;">{{ notification.message|truncatechars:60 }}</small>
-                                                    <small class="text-body-tertiary" style="font-size: 0.65rem;">{{ notification.created_at|timesince }} ago</small>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </li>
-                                    {% endfor %}
-                                {% else %}
-                                    <li><a class="dropdown-item py-3 text-center text-muted small" href="#">{% trans "No new notifications" %}</a></li>
-                                {% endif %}
+                <!-- Notification Bell -->
+                <li class="nav-item dropdown d-none d-lg-block ms-2">
+                    <a class="nav-link dropdown-toggle no-arrow p-0 d-flex align-items-center justify-content-center position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 38px; height: 38px;">
+                        <i class="bi bi-bell fs-6"></i>
+                        <span class="position-absolute translate-middle badge rounded-pill bg-danger border border-light {% if not has_unread_notifications %}visually-hidden{% endif %}" 
+                              id="notification-badge"
+                              style="top: 5px; right: -5px; font-size: 0.65rem; padding: 0.25em 0.4em;">
+                            {{ unread_notifications_count }}
+                            <span class="visually-hidden">New alerts</span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0" style="width: 320px; max-height: 480px; overflow-y: auto;">
+                        <li>
+                            <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">{% trans "Notifications" %}</h6>
+                                <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">
+                                    <i class="bi bi-bell-fill me-1"></i> {% trans "Enable Push" %}
+                                </button>
                             </div>
-                            <li><hr class="dropdown-divider my-0"></li>
-                            <li><a class="dropdown-item py-2 text-center small text-primary fw-bold" href="{% url 'notification-list' %}">{% trans "View All" %}</a></li>
-                        </ul>
-                    </li>
+                        </li>
+                        <div id="notification-list">
+                            {% if notifications %}
+                                {% for notification in notifications %}
+                                <li>
+                                    <a class="dropdown-item py-2 border-bottom" href="{% if notification.link %}{% url 'notification-redirect' notification.pk %}{% else %}#{% endif %}">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="bi 
+                                                {% if notification.notification_type == 'RECURRING' %}bi-arrow-repeat text-info
+                                                {% elif notification.notification_type == 'ANALYTICS' %}bi-lightning-charge text-warning
+                                                {% elif notification.notification_type == 'MILESTONE' %}bi-trophy text-success
+                                                {% else %}bi-info-circle-fill text-primary{% endif %} mt-1">
+                                            </i>
+                                            <div>
+                                                <p class="mb-0 small fw-bold text-wrap {% if not notification.is_read %}text-primary{% endif %}" style="line-height: 1.2;">{{ notification.title }}</p>
+                                                <small class="text-muted d-block text-wrap" style="font-size: 0.7rem;">{{ notification.message|truncatechars:60 }}</small>
+                                                <small class="text-body-tertiary" style="font-size: 0.65rem;">{{ notification.created_at|timesince }} ago</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li><a class="dropdown-item py-3 text-center text-muted small" href="#">{% trans "No new notifications" %}</a></li>
+                            {% endif %}
+                        </div>
+                        <li><hr class="dropdown-divider my-0"></li>
+                        <li><a class="dropdown-item py-2 text-center small text-primary fw-bold" href="{% url 'notification-list' %}">{% trans "View All" %}</a></li>
+                    </ul>
+                </li>
 
-                    <!-- Mobile User Options (Visible only on mobile) -->
-                    <li class="nav-item d-lg-none mt-3 border-top pt-3">
-                        <div class="mb-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <div>
-                                    <h6 class="mb-0 fw-bold small text-truncate">{{ user.get_full_name|default:user.username }}</h6>
-                                    <small class="text-muted small text-truncate d-block">{{ user.email }}</small>
-                                </div>
+                <!-- Mobile User Options -->
+                <li class="nav-item d-lg-none mt-3 border-top pt-3">
+                    <div class="mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div>
+                                <h6 class="mb-0 fw-bold small text-truncate">{{ user.get_full_name|default:user.username }}</h6>
+                                <small class="text-muted small text-truncate d-block">{{ user.email }}</small>
                             </div>
                         </div>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a href="{% url 'settings-home' %}" class="nav-link">
-                           <i class="bi bi-gear me-2"></i> {% trans "Settings" %}
-                        </a>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <button class="nav-link btn btn-link text-decoration-none ps-0 ms-0 theme-toggle-btn w-100 text-start" type="button">
-                            <i class="bi bi-moon-stars-fill theme-icon-active me-2"></i> {% trans "Theme" %}
+                    </div>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a href="{% url 'settings-home' %}" class="nav-link">
+                       <i class="bi bi-gear me-2"></i> {% trans "Settings" %}
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <button class="nav-link btn btn-link text-decoration-none ps-0 ms-0 theme-toggle-btn w-100 text-start" type="button">
+                        <i class="bi bi-moon-stars-fill theme-icon-active me-2"></i> {% trans "Theme" %}
+                    </button>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <form action="{% url 'account_logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link btn btn-link text-decoration-none text-danger ps-0 ms-0">
+                            <i class="bi bi-box-arrow-right me-2"></i> {% trans "Logout" %}
                         </button>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <form action="{% url 'account_logout' %}" method="post" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-link btn btn-link text-decoration-none text-danger ps-0 ms-0">
-                                <i class="bi bi-box-arrow-right me-2"></i> {% trans "Logout" %}
-                            </button>
-                        </form>
-                    </li>
-
-                {% else %}
-                    <!-- Guest / Landing Page Links -->
-                    {% if is_landing %}
-                        <li class="nav-item"><a href="#features" class="nav-link fw-bold text-muted px-2">{% trans "Features" %}</a></li>
-                        <li class="nav-item"><a href="#pricing" class="nav-link fw-bold text-muted px-2">{% trans "Pricing" %}</a></li>
-                    {% endif %}
-                    
-                    <li class="nav-item">
-                        <a href="{% url 'demo_login' %}" class="nav-link px-2 {% if is_landing %}fw-bold text-muted{% endif %}">{% trans "Live Demo" %}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'blog_list' %}" class="nav-link px-2 {% if is_landing %}fw-bold text-muted{% endif %}">{% trans "Blog" %}</a>
-                    </li>
-                    
-                    <div class="vr d-none d-lg-block text-body opacity-25 mx-2"></div>
-
-                    <li class="nav-item d-none d-lg-block">
-                        <a href="{% url 'account_login' %}" class="nav-link">{% trans "Login" %}</a>
-                    </li>
-                    <li class="nav-item mt-3 mt-lg-0">
-                        {% if is_landing %}
-                            <a href="{% url 'account_signup' %}" class="cta-button btn-sm py-2 px-4 shadow-sm text-decoration-none d-block w-100 d-lg-inline-block w-lg-auto text-center" style="font-size: 0.9rem;">{% trans "Join Now" %}</a>
-                        {% else %}
-                            <a href="{% url 'account_signup' %}" class="btn btn-primary d-block w-100 d-lg-inline-block w-lg-auto"><i class="bi bi-person-plus me-1"></i> Sign Up</a>
-                        {% endif %}
-                    </li>
-                    <!-- Theme Toggle for Guests -->
-                    <li class="nav-item ms-lg-2 d-none d-lg-block">
-                         <button class="nav-link btn btn-link text-decoration-none theme-toggle-btn d-flex align-items-center justify-content-center" type="button" title="Toggle Theme" style="height: 40px; width: 40px;">
-                            <i class="bi bi-moon-stars-fill theme-icon-active fs-5"></i>
-                        </button>
-                    </li>
-                    <li class="nav-item d-lg-none mt-2 border-top pt-2">
-                         <button class="nav-link btn btn-link text-decoration-none ps-0 ms-0 theme-toggle-btn w-100 text-start" type="button">
-                            <i class="bi bi-moon-stars-fill theme-icon-active me-2"></i> {% trans "Theme" %}
-                        </button>
-                    </li>
-                {% endif %}
-
-                <!-- Theme Toggle & Install App -->
-                <!-- Theme Toggle & Install App (Removed, moved to dropdown) -->
+                    </form>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
 
-{% if user.is_authenticated %}
 <style>
     /* Prevent mobile bottom nav from overlapping page content */
     @media (max-width: 991.98px) {
@@ -603,4 +543,7 @@
         </div>
     </div>
 </div>
+{% else %}
+    {% include "components/public_navbar.html" with is_landing=is_landing|default:False %}
 {% endif %}
+
