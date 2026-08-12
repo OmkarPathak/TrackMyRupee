@@ -26,24 +26,31 @@ TrackMyRupee आपकी वास्तविक समय की निवे
 
 ### सूत्र
 
-- **होल्डिंग मूल्यांकन**:
+- **होल्डिंग मूल्यांकन**
+
   $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$
 
-- **खाता कुल शेष राशि**:
+- **खाता कुल शेष राशि**
+
   $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
+
   $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
+
   $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$
 
 !!! note "सुधार लागू"
     अगस्त 2026 से पहले, लॉग की गई होल्डिंग्स के बाद ट्रांसफर किया गया कैश दो बार गिना जा सकता था। अब यह गणना सही कर दी गई है।
 
-- **कुल लागत आधार**:
+- **कुल लागत आधार**
+
   $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
 
-- **अप्रत्यक्ष लाभ / हानि**:
+- **अप्रत्यक्ष लाभ / हानि**
+
   $$\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}$$
 
-- **वृद्धि रिटर्न प्रतिशत**:
+- **वृद्धि रिटर्न प्रतिशत**
+
   $$\text{Gain \%} = \left( \frac{\text{Unrealized Gain}}{\text{Total Invested Cost}} \right) \times 100$$
 
 ---

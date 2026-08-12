@@ -30,24 +30,31 @@ For any active holding, the current unit value is resolved using the following o
 
 ### Formulas
 
-- **Holding Valuation**:
+- **Holding Valuation**
+
   $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$
 
-- **Account Total Balance**:
+- **Account Total Balance**
+
   $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
+
   $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
+
   $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$
 
 !!! note "Correction applied"
     Before this fix (August 2026), transferred cash could be double-counted after the related holding was logged. This has been corrected by netting uninvested cash against active holdings cost basis.
 
-- **Total Cost Basis**:
+- **Total Cost Basis**
+
   $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
 
-- **Unrealized Gain / Loss**:
+- **Unrealized Gain / Loss**
+
   $$\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}$$
 
-- **Growth Return Percentage**:
+- **Growth Return Percentage**
+
   $$\text{Gain \%} = \left( \frac{\text{Unrealized Gain}}{\text{Total Invested Cost}} \right) \times 100$$
 
 ---

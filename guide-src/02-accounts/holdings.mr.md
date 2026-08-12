@@ -18,21 +18,27 @@ TrackMyRupee तुमच्या गुंतवणुकीचे चाल�
 
 ### सूत्रे
 
-- **होल्डिंग मूल्य**:
+- **होल्डिंग मूल्य**
+
   $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$
 
-- **खात्याची एकूण शिल्लक**:
+- **खात्याची एकूण शिल्लक**
+
   $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
+
   $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
+
   $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$
 
 !!! note "दुरुस्ती लागू"
     ऑगस्ट 2026 पूर्वी, ट्रान्सफर केलेली रक्कम होल्डिंग लॉग केल्यानंतर दुप्पट मोजली जाण्याची शक्यता होती. आता ही गणना दुरुस्त केली आहे.
 
-- **एकूण गुंतवणूक किंमत**:
+- **एकूण गुंतवणूक किंमत**
+
   $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
 
-- **नफा / तोटा**:
+- **नफा / तोटा**
+
   $$\text{Unrealized Gain} = \text{Total Portfolio Valuation} - \text{Total Invested Cost}$$
 
 ---
