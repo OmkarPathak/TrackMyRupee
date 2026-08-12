@@ -119,12 +119,30 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
             for l in all_loans if l.is_active
         )
 
+        # Portfolio Chart Data
+        tot_principal_paid = sum(s['principal_paid'] + s['capital_prepaid'] for s in loan_summaries)
+        tot_interest_paid = sum(s['interest_paid'] for s in loan_summaries)
+        tot_remaining_debt = sum(s['remaining_principal'] for s in loan_summaries)
+
+        portfolio_breakdown_chart = {
+            'labels': [_('Principal Paid'), _('Interest Paid'), _('Remaining Debt')],
+            'values': [round(tot_principal_paid, 2), round(tot_interest_paid, 2), round(tot_remaining_debt, 2)],
+        }
+
+        loan_comparison_chart = {
+            'labels': [s['loan'].name for s in loan_summaries],
+            'principal_paid': [round(s['principal_paid'] + s['capital_prepaid'], 2) for s in loan_summaries],
+            'remaining_principal': [round(s['remaining_principal'], 2) for s in loan_summaries],
+        }
+
         context['loan_summaries'] = loan_summaries
         context['total_debt'] = total_debt
         context['status_filter'] = status_filter
         context['active_count'] = active_count
         context['inactive_count'] = inactive_count
         context['all_count'] = all_count
+        context['portfolio_breakdown_chart'] = portfolio_breakdown_chart
+        context['loan_comparison_chart'] = loan_comparison_chart
         return context
 
 class LoanCreateView(LoginRequiredMixin, LoanFeatureGateMixin, CreateView):
@@ -216,6 +234,127 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         ).select_related('account').order_by('date')
         linked_capital_total = sum(float(e.base_amount) for e in linked_capital_events)
 
+        principal_paid_total = round(summary['principal_paid'] + summary['capital_prepaid'], 2)
+        interest_paid_total = round(summary['interest_paid'], 2)
+        remaining_principal_total = round(summary['remaining_principal'], 2)
+
+        breakdown_chart_data = {
+            'labels': [_('Principal Paid'), _('Interest Paid'), _('Remaining Principal')],
+            'values': [principal_paid_total, interest_paid_total, remaining_principal_total],
+        }
+
+        # Build amortization chart data:
+        # For active loans: prepend historical repayments/capital events, then append future schedule
+        # For paid-off loans: show full historical trajectory only
+        from collections import defaultdict
+
+        def _build_historical_months(loan_repayments, capital_events, initial_principal):
+            """Aggregate past repayments and capital events by month, return sorted monthly data."""
+            all_events = []
+            for r in loan_repayments.order_by('date'):
+                all_events.append({
+                    'date': r.date,
+                    'principal': float(r.principal_portion or 0),
+                    'interest': float(r.interest_portion or 0),
+                    'type': 'emi',
+                })
+            for c in capital_events:
+                all_events.append({
+                    'date': c.date,
+                    'principal': float(c.base_amount or 0),
+                    'interest': 0.0,
+                    'type': 'capital',
+                })
+            all_events.sort(key=lambda x: x['date'])
+
+            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0})
+            for ev in all_events:
+                m_key = ev['date'].strftime('%b %Y')
+                monthly_map[m_key]['principal'] += ev['principal']
+                monthly_map[m_key]['interest'] += ev['interest']
+
+            h_labels, h_principals, h_interests, h_balances = [], [], [], []
+            curr_balance = float(initial_principal)
+            for m_key, vals in monthly_map.items():
+                h_labels.append(m_key)
+                h_principals.append(round(vals['principal'], 2))
+                h_interests.append(round(vals['interest'], 2))
+                curr_balance = max(0.0, curr_balance - vals['principal'])
+                h_balances.append(round(curr_balance, 2))
+            return h_labels, h_principals, h_interests, h_balances
+
+        # Check if there's any prior payment history (EMIs or capital events)
+        has_prior_history = repayments.exists() or linked_capital_events.exists()
+
+        if schedule:
+            hist_labels, hist_principals, hist_interests, hist_balances = [], [], [], []
+            if has_prior_history:
+                hist_labels, hist_principals, hist_interests, hist_balances = _build_historical_months(
+                    loan.repayments.order_by('date'),
+                    linked_capital_events,
+                    loan.initial_principal,
+                )
+            amortization_chart_data = {
+                'labels': hist_labels + [item['month'] for item in schedule],
+                'principal': hist_principals + [item['principal'] for item in schedule],
+                'interest': hist_interests + [item['interest'] for item in schedule],
+                'balance': hist_balances + [item['balance'] for item in schedule],
+                'history_count': len(hist_labels),   # how many data points are historical
+                'is_historical': False,
+            }
+        elif has_prior_history:
+            # Generate historical trajectory for paid-off or past loans
+            all_events = []
+            for r in loan.repayments.order_by('date'):
+                all_events.append({
+                    'date': r.date,
+                    'principal': float(r.principal_portion or 0),
+                    'interest': float(r.interest_portion or 0),
+                })
+            for c in linked_capital_events:
+                all_events.append({
+                    'date': c.date,
+                    'principal': float(c.base_amount or 0),
+                    'interest': 0.0,
+                })
+            all_events.sort(key=lambda x: x['date'])
+
+            from collections import defaultdict
+            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0})
+            for ev in all_events:
+                m_key = ev['date'].strftime('%b %Y')
+                monthly_map[m_key]['principal'] += ev['principal']
+                monthly_map[m_key]['interest'] += ev['interest']
+
+            labels = []
+            principals = []
+            interests = []
+            balances = []
+            curr_balance = float(loan.initial_principal)
+
+            for m_key, vals in monthly_map.items():
+                labels.append(m_key)
+                principals.append(round(vals['principal'], 2))
+                interests.append(round(vals['interest'], 2))
+                curr_balance = max(0.0, curr_balance - vals['principal'])
+                balances.append(round(curr_balance, 2))
+
+            amortization_chart_data = {
+                'labels': labels,
+                'principal': principals,
+                'interest': interests,
+                'balance': balances,
+                'is_historical': True,
+            }
+        else:
+            amortization_chart_data = {
+                'labels': [],
+                'principal': [],
+                'interest': [],
+                'balance': [],
+                'is_historical': False,
+            }
+
         context = {
             'loan': loan,
             'summary': summary,
@@ -226,6 +365,8 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             'extra_emi_savings': extra_emi_savings,
             'linked_capital_events': linked_capital_events,
             'linked_capital_total': linked_capital_total,
+            'breakdown_chart_data': breakdown_chart_data,
+            'amortization_chart_data': amortization_chart_data,
         }
         return render(request, self.template_name, context)
 

@@ -152,3 +152,23 @@ class LoanServiceTest(TestCase):
 
         response = self.client.get(reverse('loan-list'))
         self.assertRedirects(response, reverse('pricing'))
+
+    def test_loan_views_include_chart_data(self):
+        self.client.force_login(self.user)
+
+        # Test LoanListView context contains portfolio & loan comparison chart data
+        list_response = self.client.get(reverse('loan-list'))
+        self.assertEqual(list_response.status_code, 200)
+        self.assertIn('portfolio_breakdown_chart', list_response.context)
+        self.assertIn('loan_comparison_chart', list_response.context)
+        self.assertContains(list_response, 'id="portfolioBreakdownChart"')
+        self.assertContains(list_response, 'id="loanComparisonChart"')
+
+        # Test LoanDetailView context contains breakdown & amortization chart data
+        detail_response = self.client.get(reverse('loan-detail', kwargs={'pk': self.loan.pk}))
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertIn('breakdown_chart_data', detail_response.context)
+        self.assertIn('amortization_chart_data', detail_response.context)
+        self.assertContains(detail_response, 'id="loanBreakdownChart"')
+        self.assertContains(detail_response, 'id="loanAmortizationChart"')
+

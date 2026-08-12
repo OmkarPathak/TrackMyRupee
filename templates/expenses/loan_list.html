@@ -4,3 +4,152 @@
 {% block content %}
 {% include 'expenses/partials/_loan_list_partial.html' %}
 {% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function renderLoanListCharts() {
+    if (typeof Chart === 'undefined') return;
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const textColor = isDark ? '#e2e8f0' : '#475569';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+
+    // 1. Doughnut Chart: Portfolio Debt Breakdown
+    const portfolioCtx = document.getElementById('portfolioBreakdownChart');
+    const portfolioDataEl = document.getElementById('portfolio-breakdown-data');
+    if (portfolioCtx && portfolioDataEl) {
+        const existingPortfolio = Chart.getChart(portfolioCtx);
+        if (existingPortfolio) {
+            existingPortfolio.destroy();
+        }
+        try {
+            const data = JSON.parse(portfolioDataEl.textContent);
+            const hasData = data.values && data.values.some(v => v > 0);
+            if (hasData) {
+                new Chart(portfolioCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.values,
+                            backgroundColor: ['#1D9E75', '#F59E0B', '#EF4444'],
+                            borderWidth: 2,
+                            borderColor: isDark ? '#1e293b' : '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: textColor,
+                                    font: { size: 11, weight: '500' },
+                                    padding: 10,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const val = ctx.parsed || 0;
+                                        return ` ${ctx.label}: {{ user.profile.currency }}${val.toLocaleString()}`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '68%'
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Error rendering portfolio breakdown chart:', err);
+        }
+    }
+
+    // 2. Bar Chart: Loan Principal Progress Comparison
+    const compCtx = document.getElementById('loanComparisonChart');
+    const compDataEl = document.getElementById('loan-comparison-data');
+    if (compCtx && compDataEl) {
+        const existingComp = Chart.getChart(compCtx);
+        if (existingComp) {
+            existingComp.destroy();
+        }
+        try {
+            const data = JSON.parse(compDataEl.textContent);
+            if (data.labels && data.labels.length > 0) {
+                new Chart(compCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            {
+                                label: '{% trans "Principal Paid" %}',
+                                data: data.principal_paid,
+                                backgroundColor: 'rgba(29, 158, 117, 0.85)',
+                                borderRadius: 4
+                            },
+                            {
+                                label: '{% trans "Remaining Principal" %}',
+                                data: data.remaining_principal,
+                                backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: textColor,
+                                    font: { size: 11, weight: '500' },
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const val = ctx.parsed.y || 0;
+                                        return ` ${ctx.dataset.label}: {{ user.profile.currency }}${val.toLocaleString()}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: textColor, font: { size: 10 } }
+                            },
+                            y: {
+                                grid: { color: gridColor },
+                                ticks: { color: textColor, font: { size: 10 } }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Error rendering loan comparison chart:', err);
+        }
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderLoanListCharts);
+} else {
+    renderLoanListCharts();
+}
+
+document.body.addEventListener('htmx:afterSettle', function(e) {
+    if (e.detail.target && e.detail.target.id === 'loans-shell') {
+        requestAnimationFrame(renderLoanListCharts);
+    }
+});
+</script>
+{% endblock %}
