@@ -30,7 +30,12 @@ TrackMyRupee आपकी वास्तविक समय की निवे
   $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$
 
 - **खाता कुल शेष राशि**:
-  $$\text{Total Account Balance} = \text{Uninvested Ledger Cash} + \sum \left( \text{Units}_i \times \text{Unit NAV}_i \right)$$
+  $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
+  $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
+  $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$
+
+!!! note "सुधार लागू"
+    अगस्त 2026 से पहले, लॉग की गई होल्डिंग्स के बाद ट्रांसफर किया गया कैश दो बार गिना जा सकता था। अब यह गणना सही कर दी गई है।
 
 - **कुल लागत आधार**:
   $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
@@ -59,7 +64,7 @@ TrackMyRupee आपकी वास्तविक समय की निवे
 8. **Save Subscription** पर क्लिक करें।
 
 !!! info "SIP हस्तांतरण आपकी शेष राशि को कैसे प्रभावित करता है"
-    प्रत्येक अनुसूचित तिथि पर, TrackMyRupee स्वचालित रूप से एक आंतरिक हस्तांतरण लॉग करता है। पैसा आपके बैंक खाते से निकलता है और आपके म्यूचुअल फंड खाते में गैर-निवेशित नकद के रूप में प्रवेश करता है। आपकी कुल निवल संपत्ति अपरिवर्तित रहती है क्योंकि पैसा आपके अपने खातों में ही रहता है।
+  प्रत्येक अनुसूचित तिथि पर, TrackMyRupee स्वचालित रूप से एक आंतरिक हस्तांतरण लॉग करता है। पैसा आपके बैंक खाते से निकलकर म्यूचुअल फंड खाते में लेजर कैश के रूप में आता है। आपकी कुल निवल संपत्ति तुरंत नहीं बदलती क्योंकि पैसा आपके अपने खातों में ही रहता है। जब आप संबंधित होल्डिंग लॉग करते हैं, तो वह हिस्सा अलग कैश की तरह नहीं, बल्कि होल्डिंग वैल्यू में गिना जाता है। जो राशि अभी होल्डिंग में आवंटित नहीं हुई है, वही uninvested cash के रूप में दिखती रहती है।
 
 ---
 

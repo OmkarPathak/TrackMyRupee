@@ -2,7 +2,7 @@ site_name: TrackMyRupee Docs
 site_url: https://docs.trackmyrupee.com
 site_description: User guide and tutorials for TrackMyRupee — personal finance tracking made simple.
 site_author: TrackMyRupee
-repo_url: https://github.com/OmkarPathak/django-finance-tracker
+repo_url: https://github.com/omkarpathak/trackmyrupee
 repo_name: TrackMyRupee
 edit_uri: ""          # hide "edit this page" links — content is curated, not wiki-style
 
@@ -64,6 +64,7 @@ extra_css:
   - stylesheets/extra.css
 
 markdown_extensions:
+  - meta
   # Callout boxes (!!! note / tip / warning / example / danger)
   - admonition
   - pymdownx.details             # collapsible admonitions
@@ -96,6 +97,7 @@ nav:
   - Accounts & Net Worth:
       - Managing Accounts: 02-accounts/index.md
       - Holdings & Mutual Funds: 02-accounts/holdings.md
+      - Accrued vs Invested View: 02-accounts/accrued-vs-invested.md
   - Transactions:
       - Adding Expenses: 03-transactions-expenses/index.md
       - Adding Income: 04-transactions-income/index.md
@@ -119,6 +121,7 @@ extra:
 
 plugins:
   - search
+  - social
   - i18n:
       docs_structure: suffix
       fallback_to_default: true

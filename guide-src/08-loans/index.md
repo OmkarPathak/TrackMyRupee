@@ -1,3 +1,7 @@
+title: Loans
+description: Track loan repayments, outstanding principal, and differences between EMI and bullet-style loan behavior in TrackMyRupee.
+keywords: TrackMyRupee loans, EMI, gold loan, bullet repayment, outstanding principal
+
 # Loans
 
 Track your active loans, watch repayment progress, and let the app calculate your remaining principal automatically.
@@ -30,6 +34,9 @@ Complete the following required fields:
 As you fill in the numbers, the form shows a live **Estimated Monthly EMI** preview at the bottom.
 
 Click **Create Loan** to save.
+
+!!! info "Gold Loan and bullet-style repayment"
+    Gold Loans (and other interest-only or bullet-style loans) behave differently from EMI amortization. During interest-only periods, principal can stay flat while only interest is paid. The full principal is then settled at maturity or final payoff.
 
 ---
 

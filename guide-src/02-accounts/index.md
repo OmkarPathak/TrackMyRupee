@@ -1,3 +1,7 @@
+title: Accounts and Net Worth
+description: Understand account types, net worth calculation, and how recurring deposits and valuations are handled in TrackMyRupee.
+keywords: TrackMyRupee accounts, net worth calculation, recurring deposit, account types, holdings
+
 # Accounts and Net Worth
 
 Manage all your assets and liabilities in one place and track your overall net worth accurately.
@@ -44,6 +48,9 @@ Click **Save** when done.
 | Physical Asset | Real estate, vehicle, or other asset |
 | Insurance | Life or endowment policy |
 
+!!! info "Note on Recurring Deposits (RD)"
+    RD valuation is not treated like a single lump-sum FD from day one. Each installment accrues from its own deposit date, and only installments that were actually posted are counted. If a month is skipped, that installment is not assumed automatically.
+
 ---
 
 ## 4. Editing Account Details and Balance
@@ -83,6 +90,7 @@ The **Net Worth** tile on the Dashboard sums all your active account valuations 
 
 ## Related Links
 - [Holdings and Mutual Funds Portfolio](holdings.md)
+- [Accrued vs Invested Balance View](accrued-vs-invested.md)
 - [Getting Started](../01-getting-started/index.md)
 - [Transfers](../06-transfers/index.md)
 - [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)

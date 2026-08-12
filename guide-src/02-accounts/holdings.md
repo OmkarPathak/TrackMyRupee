@@ -1,3 +1,7 @@
+title: Investment Holdings and Mutual Fund Portfolio
+description: Learn how TrackMyRupee calculates holdings value, cost basis, and uninvested cash without double-counting transferred SIP funds.
+keywords: TrackMyRupee holdings, mutual fund valuation, SIP transfer, uninvested cash, cost basis, net worth
+
 # Investment Holdings and Mutual Fund Portfolio
 
 Track your mutual funds, stocks, and asset valuations in real time with automated NAV synchronization, SIP transfer tracking, and precise portfolio calculations.
@@ -30,7 +34,12 @@ For any active holding, the current unit value is resolved using the following o
   $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$
 
 - **Account Total Balance**:
-  $$\text{Total Account Balance} = \text{Uninvested Ledger Cash} + \sum \left( \text{Units}_i \times \text{Unit NAV}_i \right)$$
+  $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
+  $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
+  $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$
+
+!!! note "Correction applied"
+    Before this fix (August 2026), transferred cash could be double-counted after the related holding was logged. This has been corrected by netting uninvested cash against active holdings cost basis.
 
 - **Total Cost Basis**:
   $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
@@ -59,7 +68,7 @@ A **Systematic Investment Plan (SIP)** involves transferring a fixed amount regu
 8. Click **Save Subscription**.
 
 !!! info "How SIP transfers affect your balance"
-    On each scheduled date, TrackMyRupee automatically logs an Internal Transfer. Money leaves your bank account and enters your Mutual Fund account as uninvested ledger cash. Your total net worth remains unchanged because the money stays within your own accounts. The cash is now ready to be allocated to holdings.
+  On each scheduled date, TrackMyRupee automatically logs an Internal Transfer. Money leaves your bank account and enters your Mutual Fund account as ledger cash. Net worth does not change because the money is still in your own accounts. Once you log the resulting holding, that invested portion is counted through the holding value instead of separate cash. Any amount not yet allocated to a logged holding continues to appear as pending uninvested cash.
 
 ---
 
@@ -94,6 +103,7 @@ When new units are allocated by the AMC:
 
 ## Related Links
 - [Accounts and Net Worth](index.md)
+- [Accrued vs Invested Balance View](accrued-vs-invested.md)
 - [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md)
 - [Transfers and Internal Movements](../06-transfers/index.md)
 - [Analytics and Financial Health](../11-analytics-and-health/index.md)

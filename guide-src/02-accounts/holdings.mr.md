@@ -22,7 +22,12 @@ TrackMyRupee तुमच्या गुंतवणुकीचे चाल�
   $$\text{Current Valuation} = \text{Units} \times \text{Latest Unit NAV}$$
 
 - **खात्याची एकूण शिल्लक**:
-  $$\text{Total Account Balance} = \text{Uninvested Ledger Cash} + \sum \left( \text{Units}_i \times \text{Unit NAV}_i \right)$$
+  $$\text{Cost Basis Total} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
+  $$\text{Uninvested Cash} = \max\left(0, \text{Ledger Balance} - \text{Cost Basis Total}\right)$$
+  $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$
+
+!!! note "दुरुस्ती लागू"
+    ऑगस्ट 2026 पूर्वी, ट्रान्सफर केलेली रक्कम होल्डिंग लॉग केल्यानंतर दुप्पट मोजली जाण्याची शक्यता होती. आता ही गणना दुरुस्त केली आहे.
 
 - **एकूण गुंतवणूक किंमत**:
   $$\text{Total Invested} = \sum \left( \text{Units}_i \times \text{Average Cost}_i \right)$$
@@ -48,7 +53,7 @@ TrackMyRupee तुमच्या गुंतवणुकीचे चाल�
 8. **Save Subscription** वर क्लिक करा.
 
 !!! info "SIP मुळे शिल्लक रकमेवर काय परिणाम होतो?"
-    दरमहा ठराविक तारखेला TrackMyRupee आपोआप अंतर्गत हस्तांतरण (Internal Transfer) नोंदवते. पैसे तुमच्या बँकेतून निघून म्युच्युअल फंड खात्यात जमा होतात. तुमची एकूण संपत्ती तीच राहते, कारण पैसे तुमच्याच दुसऱ्या खात्यात गेले आहेत.
+  दरमहा ठराविक तारखेला TrackMyRupee आपोआप अंतर्गत हस्तांतरण (Internal Transfer) नोंदवते. पैसे बँकेतून निघून म्युच्युअल फंड खात्यात लेजर कॅश म्हणून जमा होतात. त्या क्षणी एकूण संपत्ती बदलत नाही, कारण पैसे तुमच्याच खात्यांमध्ये असतात. जेव्हा संबंधित होल्डिंग नोंदवता, तेवढा भाग वेगळ्या कॅशऐवजी होल्डिंगच्या मूल्यात मोजला जातो. जे अजून होल्डिंगला allocate झालेले नाही, तेवढेच uninvested cash म्हणून दिसते.
 
 ---
 
