@@ -405,16 +405,24 @@ LEDGER_READ_COHORT_USER_IDS = _env_int_set('LEDGER_READ_COHORT_USER_IDS')
 LEDGER_READ_EXCLUDE_USER_IDS = _env_int_set('LEDGER_READ_EXCLUDE_USER_IDS')
 NET_WORTH_EXTENDED_MODELS_ENABLED = _env_bool('NET_WORTH_EXTENDED_MODELS_ENABLED', True)
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/tmp/django_cache',
-        'TIMEOUT': 600,
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
+if 'test' in sys.argv:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'test-cache',
         }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': '/tmp/django_cache',
+            'TIMEOUT': 600,
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000
+            }
+        }
+    }
 
 # Logging
 # Routes the 'expenses' logger (used by ledger read compare) to the console.

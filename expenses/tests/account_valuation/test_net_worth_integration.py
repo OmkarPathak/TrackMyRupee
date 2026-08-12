@@ -222,12 +222,13 @@ class FullPortfolioNetWorthIntegrationTestCase(TestCase):
         net_worth_on, base_balances_on = LedgerReadService.get_net_worth(self.user)
         expected_fd_current = get_current(self.acct_fd)
         expected_rd_current = get_current(self.acct_rd)
+        expected_demat_current = get_current(self.acct_demat)
 
         expected_on = (
             Decimal("85000.00")              # Salary
             + expected_fd_current            # FD current accrued
             + expected_rd_current            # RD current accrued
-            + Decimal("12750.00")            # Demat (6150 + 5400 + 1200 cash)
+            + expected_demat_current         # Demat (6150 + 5400 + 0 uninvested cash)
             + Decimal("9200000.00")          # Flat valuation
             + Decimal("95000.00")            # Policy surrender valuation
             - Decimal("4150.00")             # Credit card owed

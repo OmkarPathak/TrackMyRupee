@@ -1169,6 +1169,7 @@ class RecurringTransaction(models.Model):
     category = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Category'))
     category_fk = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transactions', verbose_name=_('Category FK'))
     source = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Source'))
+    source_fk = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transactions_as_source', verbose_name=_('Source FK'))
     
     payment_method = models.CharField(max_length=50, choices=Expense.PAYMENT_OPTIONS, default='Cash', verbose_name=_('Payment Method'))
     
@@ -1327,6 +1328,11 @@ class RecurringTransaction(models.Model):
             self.category = self.category_fk.name
         elif self.category:
             self.category = self.category.strip()
+            
+        if getattr(self, 'source_fk', None):
+            self.source = self.source_fk.name
+        elif self.source:
+            self.source = self.source.strip()
             
         super().save(*args, **kwargs)
 

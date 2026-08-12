@@ -54,6 +54,7 @@ from .models import (
     Valuation,
 )
 from .utils import get_exchange_rate
+from .account_valuation import get_current_holdings
 
 logger = logging.getLogger(__name__)
 
@@ -270,21 +271,24 @@ class LedgerReadService:
             seen_holdings.add(hid)
 
             acc_id = r['account_id']
+            units = r['units'] or Decimal('0.00')
+            avg_cost = r['avg_cost'] or Decimal('0.00')
+            cost_basis = (units * avg_cost).quantize(Decimal('0.01'))
+
             val = r['valuations__value']
             if val is None:
-                units = r['units'] or Decimal('0.00')
                 scheme_code = r['scheme_code']
                 cache_nav = nav_caches.get(scheme_code) if scheme_code else None
                 if cache_nav is not None:
                     val = (units * cache_nav).quantize(Decimal('0.01'))
                 else:
-                    avg_cost = r['avg_cost'] or Decimal('0.00')
-                    val = (units * avg_cost).quantize(Decimal('0.01'))
+                    val = cost_basis
 
             if acc_id not in account_holding_vals:
                 account_holding_vals[acc_id] = []
             account_holding_vals[acc_id].append({
                 'value': val,
+                'cost_basis': cost_basis,
                 'currency': r['currency'],
             })
 
@@ -568,21 +572,31 @@ class LedgerReadService:
             is_accrued = getattr(account, 'show_accrued_balance', True)
 
             if strategy == STRATEGY.HOLDINGS:
+                h_list = holding_vals_by_account.get(account.id, [])
                 if is_accrued:
-                    vals_list = holding_vals_by_account.get(account.id)
-                    holdings_val = Decimal("0.00")
-                    if vals_list:
-                        for v in vals_list:
-                            holdings_val += FXService.convert_using_map(
-                                v['value'], v['currency'], fx_map
-                            )
-                    # Additive cash fix: holdings_val + uninvested ledger balance
-                    cash_val = FXService.convert_using_map(ledger_bal, account.currency, fx_map)
-                    account_value = holdings_val + cash_val
+                    holdings_total = Decimal("0.00")
+                    cost_basis_total = Decimal("0.00")
+                    for hv in h_list:
+                        val = hv['value']
+                        c_val = hv['cost_basis']
+                        if hv['currency'] != account.currency:
+                            val = FXService.convert_using_map(val, hv['currency'], fx_map)
+                            c_val = FXService.convert_using_map(c_val, hv['currency'], fx_map)
+                        holdings_total += val
+                        cost_basis_total += c_val
+                    uninvested_cash = max(Decimal("0.00"), ledger_bal - cost_basis_total)
+                    native_val = holdings_total + uninvested_cash
                 else:
-                    from .account_valuation import get_baseline_holdings
-                    native_val = get_baseline_holdings(account, ledger_balance=ledger_bal) or Decimal("0.00")
-                    account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
+                    cost_basis_total = Decimal("0.00")
+                    for hv in h_list:
+                        c_val = hv['cost_basis']
+                        if hv['currency'] != account.currency:
+                            c_val = FXService.convert_using_map(c_val, hv['currency'], fx_map)
+                        cost_basis_total += c_val
+                    native_val = cost_basis_total
+                account_value = FXService.convert_using_map(
+                    native_val, account.currency, fx_map
+                )
 
             elif strategy == STRATEGY.DEPOSIT:
                 # Accrual if deposit fields set and show_accrued_balance is True, else baseline deposit

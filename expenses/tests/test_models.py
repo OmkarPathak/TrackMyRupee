@@ -1,10 +1,11 @@
 from datetime import date, timedelta
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
-from expenses.models import Expense, Income, RecurringTransaction, UserProfile
+from expenses.models import Category, Expense, Income, RecurringTransaction, UserProfile
 
 
 class ExpenseModelTest(TestCase):
@@ -79,6 +80,60 @@ class RecurringTransactionTest(TestCase):
     def test_get_next_date_weekly(self):
         next_date = RecurringTransaction.get_next_date(date(2023, 1, 1), 'WEEKLY')
         self.assertEqual(next_date, date(2023, 1, 8))
+
+    def test_duplicate_source_fk_validation_raises_error(self):
+        cat = Category.objects.create(user=self.user, name='Dividend Income')
+        rt1 = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='INCOME',
+            amount=500,
+            description='Monthly Dividend 1',
+            frequency='MONTHLY',
+            start_date=date(2026, 1, 1),
+            source_fk=cat,
+        )
+        rt2 = RecurringTransaction(
+            user=self.user,
+            transaction_type='INCOME',
+            amount=700,
+            description='Monthly Dividend 2',
+            frequency='MONTHLY',
+            start_date=date(2026, 1, 1),
+            source_fk=cat,
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            rt2.full_clean()
+        self.assertIn('source_fk', ctx.exception.message_dict)
+
+    def test_legacy_source_backward_compatibility(self):
+        rt_legacy = RecurringTransaction(
+            user=self.user,
+            transaction_type='INCOME',
+            amount=1000,
+            description='Legacy Income',
+            frequency='MONTHLY',
+            start_date=date(2026, 1, 1),
+            source='Legacy String Source',
+            source_fk=None,
+        )
+        rt_legacy.full_clean()
+        rt_legacy.save()
+        self.assertEqual(rt_legacy.source, 'Legacy String Source')
+        self.assertIsNone(rt_legacy.source_fk)
+
+    def test_save_syncs_source_from_source_fk(self):
+        cat = Category.objects.create(user=self.user, name='Interest Source')
+        rt = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='INCOME',
+            amount=250,
+            description='Interest Payment',
+            frequency='MONTHLY',
+            start_date=date(2026, 1, 1),
+            source_fk=cat,
+        )
+        self.assertEqual(rt.source, 'Interest Source')
+
 
 class UserProfileTest(TestCase):
     def setUp(self):

@@ -74,9 +74,10 @@ class UploadViewTest(TestCase):
         # Category prioritization check (none in file, should use AI)
         self.assertEqual(Expense.objects.first().category, 'Food')
 
+    @patch('expenses.fx.get_exchange_rate', return_value=Decimal('84.0'))
     @patch('expenses.models.get_exchange_rate', return_value=Decimal('84.0'))
     @patch('expenses.views.predict_category_ai')
-    def test_csv_upload_robust_headers_and_auto_categorize(self, mock_ai, mock_rate):
+    def test_csv_upload_robust_headers_and_auto_categorize(self, mock_ai, mock_rate_models, mock_rate_fx):
         mock_ai.return_value = 'Transport'
         # Headers: 'Dated', 'Narration', 'Value' (No category column)
         data = [

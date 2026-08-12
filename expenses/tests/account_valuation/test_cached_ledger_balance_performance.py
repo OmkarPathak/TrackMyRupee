@@ -15,12 +15,19 @@ from expenses.ledger_read_service import LedgerReadService
 from expenses.ledger_service import LedgerPostingService
 from expenses.models import (
     Account,
+    CapitalEvent,
     Category,
     Expense,
+    GoalContribution,
     Income,
     JournalEntry,
     JournalLine,
     LedgerAccount,
+    Loan,
+    LoanRepayment,
+    PhysicalAsset,
+    SavingsGoal,
+    Transfer,
     UserProfile,
 )
 
@@ -269,3 +276,131 @@ class CachedLedgerBalancePerformanceTestCase(TestCase):
         summary = get_interest_summary(self.user, start_date="2026-08-01", end_date="2026-08-05")
         self.assertEqual(summary["interest_earned"], Decimal("340.00"))
         self.assertEqual(summary["interest_charged"], Decimal("150.00"))
+
+    def test_cached_balance_reversal_correctness_all_models(self):
+        """
+        Verify that cached_balance stays strictly equal to LedgerReadService full-sum delta
+        across create, edit, and delete (reversal) operations for all 6 mutating models:
+        Expense, Income, Transfer, GoalContribution, LoanRepayment, CapitalEvent.
+        """
+        LedgerPostingService.post_opening_balance(account=self.account)
+        call_command("backfill_ledger_cached_balances", force=True)
+
+        target_acc = Account.objects.create(
+            user=self.user,
+            name="Secondary Account",
+            account_type="SAVINGS_ACCOUNT",
+            balance=Decimal("0.00"),
+            currency="₹",
+        )
+        LedgerPostingService.post_opening_balance(account=target_acc)
+        call_command("backfill_ledger_cached_balances", force=True)
+
+        target_la = LedgerPostingService._get_or_create_account_ledger(self.user, target_acc)
+
+        def assert_balance_synced(acc, la):
+            la.refresh_from_db()
+            delta = LedgerReadService.get_account_ledger_delta(acc)
+            self.assertEqual(la.cached_balance, delta)
+
+        # 1. Expense
+        pre = LedgerReadService.get_account_ledger_delta(self.account)
+        exp = Expense.objects.create(
+            user=self.user, date="2026-08-01", amount=Decimal("100.00"),
+            description="Lunch", category="Food", account=self.account, currency="₹",
+        )
+        assert_balance_synced(self.account, self.ledger_account)
+
+        exp.amount = Decimal("150.00")
+        exp.save()
+        assert_balance_synced(self.account, self.ledger_account)
+
+        exp.delete()
+        assert_balance_synced(self.account, self.ledger_account)
+        self.ledger_account.refresh_from_db()
+        self.assertEqual(self.ledger_account.cached_balance, pre)
+
+        # 2. Income
+        inc = Income.objects.create(
+            user=self.user, date="2026-08-01", amount=Decimal("500.00"),
+            source="Freelance", account=self.account, currency="₹",
+        )
+        assert_balance_synced(self.account, self.ledger_account)
+
+        inc.amount = Decimal("600.00")
+        inc.save()
+        assert_balance_synced(self.account, self.ledger_account)
+
+        inc.delete()
+        assert_balance_synced(self.account, self.ledger_account)
+
+        # 3. Transfer
+        tr = Transfer.objects.create(
+            user=self.user, date="2026-08-01", amount=Decimal("200.00"),
+            from_account=self.account, to_account=target_acc, description="Transfer out",
+        )
+        assert_balance_synced(self.account, self.ledger_account)
+        assert_balance_synced(target_acc, target_la)
+
+        tr.amount = Decimal("250.00")
+        tr.save()
+        assert_balance_synced(self.account, self.ledger_account)
+        assert_balance_synced(target_acc, target_la)
+
+        tr.delete()
+        assert_balance_synced(self.account, self.ledger_account)
+        assert_balance_synced(target_acc, target_la)
+
+        # 4. GoalContribution
+        goal = SavingsGoal.objects.create(
+            user=self.user, name="Emergency Fund", target_amount=Decimal("10000.00"),
+            currency="₹",
+        )
+        gc = GoalContribution.objects.create(
+            goal=goal, date="2026-08-01", amount=Decimal("300.00"),
+            account=self.account,
+        )
+        assert_balance_synced(self.account, self.ledger_account)
+
+        gc.amount = Decimal("400.00")
+        gc.save()
+        assert_balance_synced(self.account, self.ledger_account)
+
+        gc.delete()
+        assert_balance_synced(self.account, self.ledger_account)
+
+        # 5. LoanRepayment
+        loan = Loan.objects.create(
+            user=self.user, name="Car Loan", initial_principal=Decimal("50000.00"),
+            loan_type="PERSONAL", currency="₹", duration_months=60,
+            start_date="2026-01-01",
+        )
+        lr = LoanRepayment.objects.create(
+            loan=loan, date="2026-08-01", amount=Decimal("1000.00"),
+            from_account=self.account, principal_portion=Decimal("800.00"),
+            interest_portion=Decimal("200.00"),
+        )
+        assert_balance_synced(self.account, self.ledger_account)
+
+        lr.amount = Decimal("1200.00")
+        lr.principal_portion = Decimal("1000.00")
+        lr.save()
+        assert_balance_synced(self.account, self.ledger_account)
+
+        lr.delete()
+        assert_balance_synced(self.account, self.ledger_account)
+
+        # 6. CapitalEvent
+        ce = CapitalEvent.objects.create(
+            user=self.user, date="2026-08-01", amount=Decimal("700.00"),
+            subtype="loan_down_payment", account=self.account,
+            currency="₹",
+        )
+        assert_balance_synced(self.account, self.ledger_account)
+
+        ce.amount = Decimal("800.00")
+        ce.save()
+        assert_balance_synced(self.account, self.ledger_account)
+
+        ce.delete()
+        assert_balance_synced(self.account, self.ledger_account)

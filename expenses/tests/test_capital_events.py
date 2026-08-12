@@ -198,9 +198,11 @@ class CapitalEventModelTest(TestCase):
 
     # --- multi-currency ---
 
+    @patch('expenses.fx.get_exchange_rate')
     @patch('expenses.models.get_exchange_rate')
-    def test_multi_currency_normalization_on_create(self, mock_rate):
+    def test_multi_currency_normalization_on_create(self, mock_rate, mock_fx_rate):
         mock_rate.return_value = Decimal('80.00')
+        mock_fx_rate.return_value = Decimal('80.00')
         event = CapitalEvent.objects.create(
             user=self.user, amount=Decimal('100.00'), date=date.today(),
             subtype='large_purchase', account=self.account, currency='$',
@@ -209,9 +211,11 @@ class CapitalEventModelTest(TestCase):
         self.assertEqual(event.base_amount, Decimal('8000.00'))
         mock_rate.assert_called_with('$', '₹')
 
+    @patch('expenses.fx.get_exchange_rate')
     @patch('expenses.models.get_exchange_rate')
-    def test_multi_currency_account_balance_converted_correctly(self, mock_rate):
+    def test_multi_currency_account_balance_converted_correctly(self, mock_rate, mock_fx_rate):
         mock_rate.return_value = Decimal('80.00')
+        mock_fx_rate.return_value = Decimal('80.00')
         usd_account = _make_account(self.user, name='USD Account', balance=Decimal('1000.00'), currency='$')
         CapitalEvent.objects.create(
             user=self.user, amount=Decimal('100.00'), date=date.today(),

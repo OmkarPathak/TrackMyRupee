@@ -291,9 +291,11 @@ def get_current_holdings(account: Account, ledger_balance: Decimal | None = None
     active_holdings = Holding.objects.filter(account=account, is_active=True).prefetch_related('valuations')
 
     holdings_total = Decimal('0.00')
+    cost_basis_total = Decimal('0.00')
     for holding in active_holdings:
         units = holding.units or Decimal('0.00')
         avg_cost = holding.avg_cost or Decimal('0.00')
+        cost_val = (units * avg_cost).quantize(Decimal('0.01'))
 
         latest_val = holding.valuations.order_by('-as_of_date', '-created_at').first()
         if latest_val:
@@ -311,15 +313,22 @@ def get_current_holdings(account: Account, ledger_balance: Decimal | None = None
                 val = (units * cache_nav).quantize(Decimal('0.01'))
             else:
                 # Fallback to cost basis if no valuation posted yet
-                val = (units * avg_cost).quantize(Decimal('0.01'))
+                val = cost_val
 
         if holding.currency and holding.currency != account.currency:
             rate = get_exchange_rate(holding.currency, account.currency)
             val = (val * rate).quantize(Decimal('0.01'))
-        holdings_total += val
+            cost_val = (cost_val * rate).quantize(Decimal('0.01'))
 
-    # Additive cash fix: holdings_val + uninvested ledger cash
-    return (holdings_total + ledger_bal).quantize(Decimal('0.01'))
+        holdings_total += val
+        cost_basis_total += cost_val
+
+    # Net uninvested cash: max(0, ledger_balance - cost_basis_total)
+    # Known limitation: redemptions aren't modeled as ledger-posting events,
+    # so fully redeemed holdings return cost basis to uninvested cash approximation.
+    uninvested_cash = max(Decimal('0.00'), ledger_bal - cost_basis_total)
+    return (holdings_total + uninvested_cash).quantize(Decimal('0.01'))
+
 
 
 def get_baseline_revolving_credit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> None:
