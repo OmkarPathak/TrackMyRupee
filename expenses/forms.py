@@ -856,8 +856,17 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             if cleaned_data.get('deposit_rate') is None:
                 self.add_error('deposit_rate', _('Interest rate is required for deposit accounts.'))
 
-            if not cleaned_data.get('deposit_start_date'):
+            start_date = cleaned_data.get('deposit_start_date')
+            if not start_date:
                 self.add_error('deposit_start_date', _('Start date is required for deposit accounts.'))
+
+            maturity_date = cleaned_data.get('deposit_maturity_date')
+            if start_date and maturity_date and maturity_date <= start_date:
+                self.add_error('deposit_maturity_date', _('Maturity date must be after the start date.'))
+
+            closed_date = cleaned_data.get('deposit_closed_date')
+            if start_date and closed_date and closed_date < start_date:
+                self.add_error('deposit_closed_date', _('Closed date cannot be before the start date.'))
 
             if account_type == 'RD':
                 if not cleaned_data.get('rd_installment_amount'):
