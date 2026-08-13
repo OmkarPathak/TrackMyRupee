@@ -269,7 +269,7 @@
                                                             <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn"
                                                                     data-bs-toggle="modal" data-bs-target="#deleteModal"
                                                                     data-url="{% url 'recurring-delete' sub.uuid %}"
-                                                                    data-message="{% trans 'Are you sure?' %}">
+                                                                    data-message="{% blocktrans with name=sub.description %}Are you sure you want to delete subscription '{{ name }}'?{% endblocktrans %}">
                                                                 <i class="bi bi-trash"></i>
                                                                 <span>{% trans "Delete" %}</span>
                                                             </button>
@@ -339,7 +339,7 @@
                                                     <button type="button" class="dropdown-item py-2 text-danger delete-btn"
                                                             data-bs-toggle="modal" data-bs-target="#deleteModal"
                                                             data-url="{% url 'recurring-delete' sub.uuid %}"
-                                                            data-message="{% trans 'Are you sure?' %}">
+                                                            data-message="{% blocktrans with name=sub.description %}Are you sure you want to delete subscription '{{ name }}'?{% endblocktrans %}">
                                                         <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
                                                     </button>
                                                 </li>

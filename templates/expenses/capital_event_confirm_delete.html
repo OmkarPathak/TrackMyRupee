@@ -20,11 +20,9 @@
                 </p>
                 <form method="post">
                     {% csrf_token %}
-                    <div class="d-flex gap-2 justify-content-center">
-                        <a href="{% url 'capital-event-list' %}" class="btn btn-outline-secondary rounded-3">{% trans "Cancel" %}</a>
-                        <button type="submit" class="btn btn-danger rounded-3 fw-semibold">
-                            <i class="bi bi-trash me-1"></i>{% trans "Yes, Delete" %}
-                        </button>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% url 'capital-event-list' %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-action-danger">{% trans "Delete" %}</button>
                     </div>
                 </form>
             </div>

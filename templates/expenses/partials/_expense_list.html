@@ -1,5 +1,11 @@
 {% load i18n digit_filters expense_extras humanize %}
 
+<style>
+    #tableView table tbody tr:last-child > * {
+        border-bottom: 0 !important;
+    }
+</style>
+
 <div id="expense-list-shell">
     <div class="bg-transparent d-none d-md-block pt-1 pb-3">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">

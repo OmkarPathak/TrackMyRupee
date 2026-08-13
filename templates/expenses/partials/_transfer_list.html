@@ -63,9 +63,12 @@
                                     <a href="{% url 'transfer-edit' transfer.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Edit' %}">
                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
                                     </a>
-                                    <a href="{% url 'transfer-delete' transfer.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Delete' %}">
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Delete' %}"
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                            data-url="{% url 'transfer-delete' transfer.uuid %}"
+                                            data-message="{% blocktrans with from=transfer.from_account.name to=transfer.to_account.name %}Are you sure you want to delete the transfer from {{ from }} to {{ to }}?{% endblocktrans %}">
                                         <i class="bi bi-trash text-danger fs-6"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -140,10 +143,12 @@
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
                                         <li><a class="dropdown-item py-2 px-3" href="{% url 'transfer-edit' transfer.uuid %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
                                         <li>
-                                            <a class="dropdown-item py-2 px-3 text-danger cursor-pointer" 
-                                               href="{% url 'transfer-delete' transfer.uuid %}">
+                                            <button type="button" class="dropdown-item py-2 px-3 text-danger cursor-pointer"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                    data-url="{% url 'transfer-delete' transfer.uuid %}"
+                                                    data-message="{% blocktrans with from=transfer.from_account.name to=transfer.to_account.name %}Are you sure you want to delete the transfer from {{ from }} to {{ to }}?{% endblocktrans %}">
                                                 <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
-                                            </a>
+                                            </button>
                                         </li>
                                     </ul>
                                 </div>

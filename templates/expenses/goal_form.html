@@ -3,20 +3,21 @@
 
 {% block content %}
 <div class="container fade-in py-4 max-w-md mx-auto" style="max-width: 600px;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h3 fw-bold mb-0">
-            {% if object %}
-                {% trans "Edit Goal" %}
-            {% else %}
-                {% trans "New Savings Goal" %}
-            {% endif %}
-        </h2>
-        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm" onclick="window.showLoader()">
-            <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
-        </a>
-    </div>
-
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-lg">
+        <div class="card-header bg-transparent py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0 fw-bold">
+                    {% if object %}
+                        {% trans "Edit Goal" %}
+                    {% else %}
+                        {% trans "New Savings Goal" %}
+                    {% endif %}
+                </h2>
+                <a href="javascript:history.back()" class="btn btn-action-cancel" onclick="window.showLoader()">
+                    <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
+                </a>
+            </div>
+        </div>
         <div class="card-body p-4 p-md-5">
             <form method="post" novalidate id="goalForm">
                 {% csrf_token %}
@@ -64,13 +65,10 @@
                     </div>
                 </div>
 
-                <div class="d-grid mt-5">
-                    <button type="submit" class="btn btn-primary btn-lg shadow-sm">
-                        {% if object %}
-                            <i class="bi bi-check2-circle me-1"></i> {% trans "Update Goal" %}
-                        {% else %}
-                            <i class="bi bi-plus-circle me-1"></i> {% trans "Create Goal" %}
-                        {% endif %}
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'goal-list' %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-action-primary">
+                        {% if object %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}
                     </button>
                 </div>
             </form>

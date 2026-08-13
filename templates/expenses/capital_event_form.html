@@ -46,7 +46,12 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-transparent py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h2 class="h4 mb-0 fw-bold">{% if event %}{% trans "Edit Capital Event" %}{% else %}{% trans "Add Capital Event" %}{% endif %}</h2>
+                    </div>
+                </div>
                 <div class="card-body p-4">
                     <form method="post" novalidate>
                         {% csrf_token %}
@@ -142,9 +147,9 @@
                         {% endif %}
 
                         <div class="d-flex gap-2 justify-content-end">
-                            <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'capital-event-list' %}{% endif %}" class="btn btn-outline-secondary rounded-3">{% trans "Cancel" %}</a>
-                            <button type="submit" class="btn btn-primary rounded-3 fw-semibold px-4">
-                                {% if event %}<i class="bi bi-check-lg me-1"></i>{% trans "Update" %}{% else %}<i class="bi bi-plus-lg me-1"></i>{% trans "Save Capital Event" %}{% endif %}
+                            <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'capital-event-list' %}{% endif %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-action-primary">
+                                {% if event %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}
                             </button>
                         </div>
                     </form>

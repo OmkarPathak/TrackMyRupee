@@ -308,7 +308,7 @@
                                         {% else %}
                                             <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 small" href="{% url 'account-edit' account.uuid %}"><i class="bi bi-pencil-square text-primary"></i><span>{% trans "Edit" %}</span></a></li>
                                             <li><hr class="dropdown-divider my-1"></li>
-                                            <li><a class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small" href="{% url 'account-delete' account.uuid %}"><i class="bi bi-trash"></i><span>{% trans "Delete" %}</span></a></li>
+                                            <li><button type="button" class="dropdown-item py-1.5 d-flex align-items-center gap-2 text-danger small border-0 bg-transparent w-100 text-start" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'account-delete' account.uuid %}" data-message="{% blocktrans with name=account.name %}Are you sure you want to delete account '{{ name }}'?{% endblocktrans %}"><i class="bi bi-trash"></i><span>{% trans "Delete" %}</span></button></li>
                                         {% endif %}
                                     </ul>
                                 </div>

@@ -382,19 +382,19 @@
 
                     <!-- WIZARD NAVIGATION FOOTER -->
                     <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center gap-2">
-                        <button type="button" id="prevBtn" class="btn btn-outline-secondary px-3 text-nowrap d-none" onclick="changeStep(-1)">
+                        <button type="button" id="prevBtn" class="btn btn-action-cancel d-none" onclick="changeStep(-1)">
                             <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
                         </button>
                         <div class="ms-auto d-flex align-items-center gap-2">
                             <input type="hidden" name="next" value="{{ next_url }}">
-                            <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'recurring-list' %}{% endif %}" class="btn btn-link text-muted text-decoration-none px-2 text-nowrap">{% trans "Cancel" %}</a>
+                            <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'recurring-list' %}{% endif %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
                             
-                            <button type="button" id="nextBtn" class="btn btn-primary px-3 text-nowrap" onclick="changeStep(1)">
+                            <button type="button" id="nextBtn" class="btn btn-action-primary" onclick="changeStep(1)">
                                 {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
                             </button>
 
-                            <button type="submit" id="submitBtn" class="btn btn-success px-3 text-nowrap d-none">
-                                <i class="bi bi-check-lg me-1"></i> {% trans "Save" %}<span class="d-none d-sm-inline"> {% trans "Subscription" %}</span>
+                            <button type="submit" id="submitBtn" class="btn btn-action-primary d-none">
+                                {% if form.instance.pk %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}
                             </button>
                         </div>
                     </div>

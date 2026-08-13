@@ -202,12 +202,15 @@
                                                 </button>
                                             </form>
                                         </li>
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}">
-                                                <i class="bi bi-trash"></i>
-                                                <span>{% trans "Delete" %}</span>
-                                            </a>
-                                        </li>
+                                         <li>
+                                             <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button"
+                                                     data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                     data-url="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                                     data-message="{% blocktrans with name=event.get_subtype_display %}Are you sure you want to delete this capital event ('{{ name }}')?{% endblocktrans %}">
+                                                 <i class="bi bi-trash"></i>
+                                                 <span>{% trans "Delete" %}</span>
+                                             </button>
+                                         </li>
                                     </ul>
                                 </div>
                             </td>
@@ -296,12 +299,15 @@
                                                     </button>
                                                 </form>
                                             </li>
-                                            <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}">
-                                                    <i class="bi bi-trash"></i>
-                                                    <span>{% trans "Delete" %}</span>
-                                                </a>
-                                            </li>
+                                             <li>
+                                                 <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn" type="button"
+                                                         data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                         data-url="{% url 'capital-event-delete' event.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                                         data-message="{% blocktrans with name=event.get_subtype_display %}Are you sure you want to delete this capital event ('{{ name }}')?{% endblocktrans %}">
+                                                     <i class="bi bi-trash"></i>
+                                                     <span>{% trans "Delete" %}</span>
+                                                 </button>
+                                             </li>
                                         </ul>
                                     </div>
                                 </div>

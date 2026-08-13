@@ -3,6 +3,10 @@
 
 {% block content %}
 <style>
+    #tableView table tbody tr:last-child > * {
+        border-bottom: 0 !important;
+    }
+
     #filter-form .row,
     #filter-form .row > [class*="col"] {
         overflow: visible !important;
@@ -265,17 +269,20 @@
 {% block modals %}
     <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{% trans "Confirm Bulk Delete" %}</h5>
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-danger d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>{% trans "Confirm Bulk Delete" %}</span>
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body py-3">
                     {% trans "Are you sure you want to delete the selected expenses? This action cannot be undone." %}
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="button" class="btn btn-danger" data-loading-text="{% trans 'Deleting...' %}" onclick="setButtonLoading(this, this.dataset.loadingText); document.getElementById('bulkDeleteForm').submit()">{% trans "Delete Selected" %}</button>
+                <div class="modal-footer border-top-0 pt-2 pb-3">
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="button" class="btn btn-action-danger" data-loading-text="{% trans 'Deleting...' %}" onclick="setButtonLoading(this, this.dataset.loadingText); document.getElementById('bulkDeleteForm').submit()">{% trans "Delete" %}</button>
                 </div>
             </div>
         </div>
@@ -283,16 +290,16 @@
 
     <div class="modal fade" id="bulkEditModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content border-0 shadow rounded-4">
                 <form id="bulkEditForm" method="post" action="{% url 'expense-bulk-edit' %}">
                     {% csrf_token %}
                     <div id="bulkEditIds"></div>
 
-                    <div class="modal-header">
-                        <h5 class="modal-title">{% trans "Bulk Edit Expenses" %}</h5>
+                    <div class="modal-header border-bottom-0 pb-0">
+                        <h5 class="modal-title fw-bold">{% trans "Bulk Edit Expenses" %}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body text-start">
+                    <div class="modal-body text-start py-3">
                         <p class="small text-muted mb-3">{% trans "Select the fields you want to update for all selected records. Leave blank to keep existing values." %}</p>
 
                         <div class="mb-3">
@@ -341,12 +348,63 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                        <button type="submit" class="btn btn-primary" data-loading-text="{% trans 'Updating...' %}" onclick="setButtonLoading(this, this.dataset.loadingText)">{% trans "Save Changes" %}</button>
+                    <div class="modal-footer border-top-0 pt-2 pb-3">
+                        <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                        <button type="submit" class="btn btn-action-primary" data-loading-text="{% trans 'Updating...' %}">{% trans "Edit" %}</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bulkDeleteBtn = document.querySelector('#bulkDeleteModal .btn-action-danger');
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+                    const shell = document.getElementById('expense-list-shell');
+                    if (typeof htmx !== 'undefined' && shell && bulkDeleteForm) {
+                        setButtonLoading(this, this.dataset.loadingText || "{% trans 'Deleting...' %}");
+                        htmx.ajax('POST', bulkDeleteForm.action, {
+                            values: new FormData(bulkDeleteForm),
+                            target: '#expense-list-shell',
+                            swap: 'outerHTML show:none',
+                            indicator: '#global-progress-bar'
+                        }).then(() => {
+                            const modalEl = document.getElementById('bulkDeleteModal');
+                            const bsModal = bootstrap.Modal.getInstance(modalEl);
+                            if (bsModal) bsModal.hide();
+                        });
+                    } else if (bulkDeleteForm) {
+                        setButtonLoading(this, this.dataset.loadingText || "{% trans 'Deleting...' %}");
+                        bulkDeleteForm.submit();
+                    }
+                });
+            }
+
+            const bulkEditForm = document.getElementById('bulkEditForm');
+            if (bulkEditForm) {
+                bulkEditForm.addEventListener('submit', function(e) {
+                    const shell = document.getElementById('expense-list-shell');
+                    if (typeof htmx !== 'undefined' && shell) {
+                        e.preventDefault();
+                        const submitBtn = this.querySelector('button[type="submit"]');
+                        if (submitBtn) setButtonLoading(submitBtn, submitBtn.dataset.loadingText || "{% trans 'Updating...' %}");
+                        htmx.ajax('POST', this.action, {
+                            values: new FormData(this),
+                            target: '#expense-list-shell',
+                            swap: 'outerHTML show:none',
+                            indicator: '#global-progress-bar'
+                        }).then(() => {
+                            const modalEl = document.getElementById('bulkEditModal');
+                            const bsModal = bootstrap.Modal.getInstance(modalEl);
+                            if (bsModal) bsModal.hide();
+                        });
+                    }
+                });
+            }
+        });
+    </script>
 {% endblock %}

@@ -135,6 +135,103 @@
         .is-mobile-app .toast-container {
             padding-top: calc(1rem + env(safe-area-inset-top, 0px)) !important;
         }
+
+        /* Global Standardized Action Button Styling (Cancel, Add, Edit, Delete) */
+        .btn-action-cancel {
+            border-radius: 50rem !important;
+            padding: 0.5rem 1.4rem !important;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+            background-color: rgba(0, 0, 0, 0.06) !important;
+            color: #1e293b !important;
+            border: none !important;
+            transition: all 0.2s ease-in-out !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .btn-action-cancel:hover, .btn-action-cancel:focus {
+            background-color: rgba(0, 0, 0, 0.12) !important;
+            color: #0f172a !important;
+        }
+        [data-bs-theme="dark"] .btn-action-cancel {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: #f8f9fa !important;
+        }
+        [data-bs-theme="dark"] .btn-action-cancel:hover, [data-bs-theme="dark"] .btn-action-cancel:focus {
+            background-color: rgba(255, 255, 255, 0.18) !important;
+            color: #ffffff !important;
+        }
+
+        .btn-action-primary {
+            border-radius: 50rem !important;
+            padding: 0.5rem 1.4rem !important;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+            background-color: #1D9E75 !important;
+            color: #ffffff !important;
+            border: none !important;
+            transition: all 0.2s ease-in-out !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 2px 6px rgba(29, 158, 117, 0.25) !important;
+        }
+        .btn-action-primary:hover, .btn-action-primary:focus {
+            background-color: #168a65 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(29, 158, 117, 0.35) !important;
+        }
+
+        .btn-action-danger {
+            border-radius: 50rem !important;
+            padding: 0.5rem 1.4rem !important;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+            background-color: #dc3545 !important;
+            color: #ffffff !important;
+            border: none !important;
+            transition: all 0.2s ease-in-out !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.25) !important;
+        }
+        .btn-action-danger:hover, .btn-action-danger:focus {
+            background-color: #bb2d3b !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.35) !important;
+        }
+
+        .btn-action-outline {
+            border-radius: 50rem !important;
+            padding: 0.35rem 1.1rem !important;
+            font-weight: 600 !important;
+            font-size: 0.85rem !important;
+            background-color: transparent !important;
+            color: #1D9E75 !important;
+            border: 1px solid #1D9E75 !important;
+            transition: all 0.2s ease-in-out !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+        }
+        .btn-action-outline:hover, .btn-action-outline:focus {
+            background-color: rgba(29, 158, 117, 0.1) !important;
+            color: #168a65 !important;
+            border-color: #168a65 !important;
+        }
+        [data-bs-theme="dark"] .btn-action-outline {
+            color: #34d399 !important;
+            border-color: #34d399 !important;
+        }
+        [data-bs-theme="dark"] .btn-action-outline:hover, [data-bs-theme="dark"] .btn-action-outline:focus {
+            background-color: rgba(52, 211, 153, 0.15) !important;
+            color: #6ee7b7 !important;
+            border-color: #6ee7b7 !important;
+        }
     </style>
     <title>{% block title %}TrackMyRupee | Personal Finance System for India. No SMS. No Bank Login.{% endblock %}</title>
     <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
@@ -665,15 +762,6 @@
             /* If it wraps, maybe 60px */
         }
         
-        /* If navbar is fixed but body doesn't have has-sidebar (e.g. landing) */
-        body.demo-mode:not(.has-sidebar) .navbar.sticky-top {
-            top: 40px !important;
-        }
-        @media (max-width: 575.98px) {
-            body.demo-mode:not(.has-sidebar) .navbar.sticky-top {
-                top: 60px !important;
-            }
-        }
     </style>
     {% endif %}
     {% include "components/navbar.html" with is_landing=False %}
@@ -812,19 +900,22 @@
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-danger d-flex align-items-center gap-2" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>{% trans "Confirm Delete" %}</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                 </div>
-                <div class="modal-body">
-                    <p id="deleteModalBody">Are you sure you want to delete this item?</p>
+                <div class="modal-body py-3">
+                    <p id="deleteModalBody" class="mb-0 text-secondary">{% trans "Are you sure you want to delete this item? This action cannot be undone." %}</p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form id="deleteForm" method="post" action="">
+                <div class="modal-footer border-top-0 pt-2 pb-3">
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <form id="deleteForm" method="post" action="" class="m-0">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="submit" class="btn btn-action-danger" id="deleteModalConfirmBtn">{% trans "Delete" %}</button>
                     </form>
                 </div>
             </div>
@@ -835,24 +926,61 @@
         document.addEventListener('DOMContentLoaded', function () {
             var deleteModal = document.getElementById('deleteModal');
             if (deleteModal) {
+                var form = deleteModal.querySelector('#deleteForm');
+
                 deleteModal.addEventListener('show.bs.modal', function (event) {
-                    // Button that triggered the modal
                     var button = event.relatedTarget;
-                    // Extract info from data-attributes
+                    if (!button) return;
+                    
                     var url = button.getAttribute('data-url');
                     var message = button.getAttribute('data-message');
+                    var title = button.getAttribute('data-title');
+                    var targetOverride = button.getAttribute('data-target') || button.getAttribute('data-hx-target');
+                    var reloadPage = button.getAttribute('data-reload-page') === 'true';
 
-                    // Update the modal's content.
-                    var form = deleteModal.querySelector('#deleteForm');
-                    form.action = url;
+                    var modalTitle = deleteModal.querySelector('#deleteModalLabel span');
+                    if (modalTitle) {
+                        modalTitle.textContent = title || "{% trans 'Confirm Delete' %}";
+                    }
 
                     var modalBody = deleteModal.querySelector('#deleteModalBody');
-                    if (message) {
-                        modalBody.textContent = message;
-                    } else {
-                        modalBody.textContent = "Are you sure you want to delete this item?";
+                    if (modalBody) {
+                        modalBody.textContent = message || "{% trans 'Are you sure you want to delete this item? This action cannot be undone.' %}";
+                    }
+
+                    if (url && form) {
+                        form.action = url;
+
+                        var shell = targetOverride 
+                            ? document.querySelector(targetOverride)
+                            : document.querySelector('#expense-list-shell, #income-list-shell, #category-list-shell, #transfer-list-shell, #account-list-shell, #recurring-list-shell, #capital-event-list-shell, #transaction-list-shell, #goal-list-shell, #loan-list-shell, [id$="-list-shell"]');
+
+                        if (typeof htmx !== 'undefined' && shell && !reloadPage) {
+                            form.setAttribute('hx-post', url);
+                            form.setAttribute('hx-target', '#' + shell.id);
+                            form.setAttribute('hx-swap', 'outerHTML show:none');
+                            form.setAttribute('hx-indicator', '#global-progress-bar');
+                            form.setAttribute('hx-push-url', 'false');
+                            htmx.process(form);
+                        } else {
+                            form.removeAttribute('hx-post');
+                            form.removeAttribute('hx-target');
+                            form.removeAttribute('hx-swap');
+                            form.removeAttribute('hx-indicator');
+                        }
                     }
                 });
+
+                if (form) {
+                    form.addEventListener('htmx:afterRequest', function (evt) {
+                        if (evt.detail.successful) {
+                            var bsModal = bootstrap.Modal.getInstance(deleteModal);
+                            if (bsModal) {
+                                bsModal.hide();
+                            }
+                        }
+                    });
+                }
             }
         });
     </script>

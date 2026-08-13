@@ -14,9 +14,9 @@
                 
                 <form method="post">
                     {% csrf_token %}
-                    <div class="d-flex justify-content-start gap-3">
-                        <button type="submit" class="btn btn-danger px-4">Delete</button>
-                        <a href="{% url 'expense-list' %}?{{ request.GET.urlencode }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'expense-list' %}?{{ request.GET.urlencode }}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-action-danger">{% trans "Delete" %}</button>
                     </div>
                 </form>
             </div>

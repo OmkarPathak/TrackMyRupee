@@ -141,9 +141,12 @@
                                             </li>
                                         {% endif %}
                                         <li>
-                                            <a class="dropdown-item py-2 px-3 small text-danger" href="{% url 'holding-delete' h.pk %}" onclick="return confirm('{% trans "Are you sure you want to remove this holding?" %}');">
+                                            <button type="button" class="dropdown-item py-2 px-3 small text-danger border-0 bg-transparent w-100 text-start"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                    data-url="{% url 'holding-delete' h.pk %}"
+                                                    data-message="{% blocktrans with name=h.instrument_name %}Are you sure you want to remove holding '{{ name }}'?{% endblocktrans %}">
                                                 <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
-                                            </a>
+                                            </button>
                                         </li>
                                     </ul>
                                 </div>
@@ -242,9 +245,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">{% trans "Save Holding" %}</button>
+                <div class="modal-footer border-top-0 pt-2 pb-3">
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-action-primary">{% trans "Add" %}</button>
                 </div>
             </form>
         </div>

@@ -5,12 +5,10 @@
 <div class="row justify-content-center fade-in">
     <div class="col-md-6 col-lg-6">
         <div class="card shadow-lg border-0">
-            <div class="card-header fw-bold py-3">
+            <div class="card-header bg-transparent py-3">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h4 class="card-title mb-0 h5">
-                        <i class="bi bi-arrow-left-right me-2"></i>{% if form.instance.pk %}{% trans "Edit Transfer" %}{% else %}{% trans "Internal Transfer" %}{% endif %}
-                    </h4>
-                    <button type="button" class="btn btn-sm btn-outline-primary px-3" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal">
+                    <h2 class="h4 mb-0 fw-bold">{% if form.instance.pk %}{% trans "Edit Transfer" %}{% else %}{% trans "Internal Transfer" %}{% endif %}</h2>
+                    <button type="button" class="btn btn-action-outline" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal">
                         <i class="bi bi-plus-lg me-1"></i>{% trans "Add Account" %}
                     </button>
                 </div>
@@ -72,80 +70,85 @@
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 mt-4">
-                        <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'transfer-list' %}{% endif %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-arrow-left-right me-1"></i> {% trans "Execute Transfer" %}
+                        <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'transfer-list' %}{% endif %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-action-primary">
+                            {% if form.instance.pk %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-</div>
+{% endblock %}
 
-<!-- Quick Add Account Modal -->
-<div class="modal fade" id="quickAddAccountModal" tabindex="-1" aria-labelledby="quickAddAccountModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="quickAddAccountModalLabel">
-                    <i class="bi bi-bank me-2 text-primary"></i>{% trans "Quick Add Account" %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pt-2">
-                <div id="quickAddAlert" class="d-none"></div>
-                <form id="quickAddAccountForm">
-                    <div class="mb-3">
-                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Name" %}</label>
-                        <input type="text" name="name" class="form-control" placeholder="{% trans 'e.g. HDFC Bank' %}" required>
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Type" %}</label>
-                            <select name="account_type" class="form-select">
-                                <option value="BANK">{% trans "Bank Account" %}</option>
-                                <option value="CASH">{% trans "Cash" %}</option>
-                                <option value="CREDIT_CARD">{% trans "Credit Card" %}</option>
-                                <option value="INVESTMENT">{% trans "Investment Account" %}</option>
-                                <option value="OTHER">{% trans "Other" %}</option>
-                            </select>
+{% block modals %}
+    {{ block.super }}
+    <!-- Quick Add Account Modal -->
+    <div class="modal fade" id="quickAddAccountModal" tabindex="-1" aria-labelledby="quickAddAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="quickAddAccountModalLabel">
+                        {% trans "Quick Add Account" %}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <div id="quickAddAlert" class="d-none"></div>
+                    <form id="quickAddAccountForm">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Name" %}</label>
+                            <input type="text" name="name" class="form-control" placeholder="{% trans 'e.g. HDFC Bank' %}" required>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Currency" %}</label>
-                            <select name="currency" class="form-select">
-                                <option value="₹">₹ INR</option>
-                                <option value="$">$ USD</option>
-                                <option value="€">€ EUR</option>
-                                <option value="£">£ GBP</option>
-                                <option value="¥">¥ JPY</option>
-                                <option value="A$">A$ AUD</option>
-                                <option value="C$">C$ CAD</option>
-                                <option value="CHF">CHF</option>
-                                <option value="元">元 CNY</option>
-                                <option value="₩">₩ KRW</option>
-                            </select>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Type" %}</label>
+                                <select name="account_type" class="form-select">
+                                    <option value="BANK">{% trans "Bank Account" %}</option>
+                                    <option value="CASH">{% trans "Cash" %}</option>
+                                    <option value="CREDIT_CARD">{% trans "Credit Card" %}</option>
+                                    <option value="INVESTMENT">{% trans "Investment Account" %}</option>
+                                    <option value="OTHER">{% trans "Other" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Currency" %}</label>
+                                <select name="currency" class="form-select">
+                                    <option value="₹">₹ INR</option>
+                                    <option value="$">$ USD</option>
+                                    <option value="€">€ EUR</option>
+                                    <option value="£">£ GBP</option>
+                                    <option value="¥">¥ JPY</option>
+                                    <option value="A$">A$ AUD</option>
+                                    <option value="C$">C$ CAD</option>
+                                    <option value="CHF">CHF</option>
+                                    <option value="元">元 CNY</option>
+                                    <option value="₩">₩ KRW</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Initial Balance" %}</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent"><i class="bi bi-wallet2"></i></span>
-                            <input type="number" name="balance" class="form-control" step="0.01" value="0.00">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Initial Balance" %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent"><i class="bi bi-wallet2"></i></span>
+                                <input type="number" name="balance" class="form-control" step="0.01" value="0.00">
+                            </div>
                         </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                <button type="button" class="btn btn-primary fw-bold" id="quickAddAccountSubmit">
-                    <i class="bi bi-plus-lg me-1"></i>{% trans "Create Account" %}
-                </button>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="button" class="btn btn-action-primary" id="quickAddAccountSubmit">
+                        {% trans "Add" %}
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+{% endblock %}
 
+{% block scripts %}
+    {{ block.super }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('quickAddAccountForm');

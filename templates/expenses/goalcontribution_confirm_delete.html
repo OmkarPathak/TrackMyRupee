@@ -35,13 +35,9 @@
 
             <form method="post">
                 {% csrf_token %}
-                <div class="d-grid gap-3">
-                    <button type="submit" class="btn btn-danger btn-lg fw-bold py-3 shadow-sm">
-                        {% trans "Yes, Delete Forever" %}
-                    </button>
-                    <a href="javascript:history.back()" class="btn btn-link text-muted text-decoration-none py-2">
-                        {% trans "No, Keep It" %}
-                    </a>
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <a href="javascript:history.back()" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-action-danger">{% trans "Delete" %}</button>
                 </div>
             </form>
         </div>

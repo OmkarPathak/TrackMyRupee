@@ -35,13 +35,9 @@
 
                     <form method="post">
                         {% csrf_token %}
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-danger btn-lg fw-bold py-3">
-                                {% trans "Confirm Delete" %}
-                            </button>
-                            <a href="{% url 'transfer-list' %}" class="btn btn-outline-secondary py-2">
-                                {% trans "Cancel" %}
-                            </a>
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <a href="{% url 'transfer-list' %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-action-danger">{% trans "Delete" %}</button>
                         </div>
                     </form>
                 </div>
