@@ -8,6 +8,7 @@ from .views.mom_view import mom_analysis_view
 register_converter(UUIDOrIntConverter, 'uuid_or_int')
 
 urlpatterns = [
+    path('health/', views.HealthCheckView.as_view(), name='health_check'),
     path('signup/', RedirectView.as_view(pattern_name='account_signup', permanent=True), name='signup'),
     path('', views.LandingPageView.as_view(), name='landing'),
     path('features/', views.FeaturesPageView.as_view(), name='features'),

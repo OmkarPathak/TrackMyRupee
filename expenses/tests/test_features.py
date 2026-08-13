@@ -27,6 +27,14 @@ class BaseFeatureTest(TestCase):
         profile.tier = 'PLUS'
         profile.save()
 
+class HealthCheckTest(TestCase):
+    def test_health_check_endpoint(self):
+        url = reverse('health_check')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get('status'), 'healthy')
+
 class SettingsViewTest(BaseFeatureTest):
     def test_currency_update(self):
         url = reverse('currency-settings')
