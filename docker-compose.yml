@@ -7,7 +7,7 @@ services:
     command: gunicorn --workers 2 --threads 2 --timeout 60 --keep-alive 5 --max-requests 1000 --max-requests-jitter 50 --bind 0.0.0.0:8000 finance_tracker.wsgi:application
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "/opt/venv/bin/python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/')\" || exit 1"]
+      test: ["CMD-SHELL", "/opt/venv/bin/python -c \"import urllib.request; req = urllib.request.Request('http://127.0.0.1:8000/health/', headers={'X-Forwarded-Proto': 'https'}); urllib.request.urlopen(req)\" || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

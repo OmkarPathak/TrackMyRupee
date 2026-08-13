@@ -5,10 +5,20 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from django.db.backends.signals import connection_created
+
 from .ledger_service import LedgerPostingService
 from .models import Account, Category, UserProfile
 
 logger = logging.getLogger(__name__)
+
+@receiver(connection_created)
+def configure_sqlite_pragmas(sender, connection, **kwargs):
+    if connection.vendor == 'sqlite':
+        with connection.cursor() as cursor:
+            cursor.execute('PRAGMA journal_mode=WAL;')
+            cursor.execute('PRAGMA synchronous=NORMAL;')
+            cursor.execute('PRAGMA busy_timeout=30000;')
 
 @receiver(post_save, sender=User)
 def handle_user_post_save(sender, instance, created, **kwargs):
