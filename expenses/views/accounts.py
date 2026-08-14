@@ -78,6 +78,11 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 queryset = [acc for acc in queryset if acc.account_type in group_codes]
             else:
                 queryset = [acc for acc in queryset if acc.account_type == account_type]
+
+        # Search by account name
+        search_query = self.request.GET.get('search', '').strip()
+        if search_query:
+            queryset = [acc for acc in queryset if search_query.lower() in acc.name.lower()]
             
         # Annotate locked status
         if self.request.user.is_authenticated:
@@ -227,6 +232,18 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             group['icon'] = p['icon']
             group['icon_bg'] = p['icon_bg']
 
+        # Apply sort to grouped accounts
+        sort_by = self.request.GET.get('sort', 'balance_desc')
+        for group in grouped_accounts:
+            if sort_by == 'balance_asc':
+                group['accounts'] = sorted(group['accounts'], key=lambda a: float(a.accrued_value if getattr(a, 'has_accrued_value', False) else a.display_balance))
+            elif sort_by == 'balance_desc':
+                group['accounts'] = sorted(group['accounts'], key=lambda a: float(a.accrued_value if getattr(a, 'has_accrued_value', False) else a.display_balance), reverse=True)
+            elif sort_by == 'name_asc':
+                group['accounts'] = sorted(group['accounts'], key=lambda a: a.name.lower())
+            elif sort_by == 'name_desc':
+                group['accounts'] = sorted(group['accounts'], key=lambda a: a.name.lower(), reverse=True)
+
         context['grouped_accounts'] = grouped_accounts
         context['account_types'] = Account.ACCOUNT_TYPES
         context['account_count'] = len(accounts)
@@ -244,6 +261,20 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         context['current_status'] = current_status
         context['total_balance'] = total_balance.quantize(Decimal('0.01'))
         context['total_balance_currency'] = user_currency
+        search_query = self.request.GET.get('search', '').strip()
+        context['search_query'] = search_query
+        context['sort_by'] = sort_by
+
+        active_filters_count = 0
+        if search_query:
+            active_filters_count += 1
+        if selected_type:
+            active_filters_count += 1
+        if current_status != 'active':
+            active_filters_count += 1
+        if sort_by != 'balance_desc':
+            active_filters_count += 1
+        context['active_filters_count'] = active_filters_count
 
         context['interest_summary'] = get_interest_summary(self.request.user)
         return context

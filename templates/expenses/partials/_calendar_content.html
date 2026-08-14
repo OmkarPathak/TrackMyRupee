@@ -50,9 +50,11 @@
                     <input class="form-control border-start-0 border-end-0" 
                            type="search" 
                            name="search" 
+                           id="calendar-search-input"
                            placeholder="{% trans 'Search by description, category or amount…' %}" 
                            value="{{ search_query }}" 
                            aria-label="{% trans 'Search' %}"
+                           autocomplete="off"
                            hx-trigger="keyup changed delay:400ms, search, input">
                     {% if search_query %}
                     <button type="button" 
@@ -280,4 +282,18 @@
         }
     })();
     </script>
+<script>
+(function() {
+    function blurCalendarSearch() {
+        var el = document.getElementById('calendar-search-input');
+        if (el && document.activeElement === el) el.blur();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', blurCalendarSearch);
+    } else {
+        blurCalendarSearch();
+    }
+    document.body.addEventListener('htmx:afterSettle', blurCalendarSearch);
+})();
+</script>
 </div>
