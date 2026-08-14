@@ -38,7 +38,7 @@ def sum_net_unified_amounts(transactions):
 
         if tx_type == 'INCOME':
             total += amount
-        elif tx_type in ('EXPENSE', 'LOAN'):
+        elif tx_type in ('EXPENSE', 'LOAN', 'CAPITAL_EVENT'):
             total -= amount
 
     return total
