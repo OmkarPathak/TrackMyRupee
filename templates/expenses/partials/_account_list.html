@@ -238,23 +238,23 @@
 
 
 <!-- TYPE CHIP PILLS -->
-{% if grouped_accounts %}
+{% if type_chips or grouped_accounts %}
 <div class="d-flex align-items-center gap-2 overflow-x-auto pb-1 mb-3" style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
     <a href="#"
        hx-get="{% url 'account-list' %}?status={{ current_status }}{% if sort_by != 'balance_desc' %}&sort={{ sort_by }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
        hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true"
        hx-indicator="#global-progress-bar"
        class="type-chip {% if not selected_type %}active{% endif %} flex-shrink-0">
-        {% trans "All" %} <span class="chip-count">{{ account_count|translate_digits }}</span>
+        {% trans "All" %} <span class="chip-count">{{ total_account_count|default:account_count|translate_digits }}</span>
     </a>
-    {% for group in grouped_accounts %}
-        {% if group.count > 0 %}
+    {% for chip in type_chips %}
+        {% if chip.count > 0 %}
         <a href="#"
-           hx-get="{% url 'account-list' %}?type={{ group.type }}&status={{ current_status }}{% if sort_by != 'balance_desc' %}&sort={{ sort_by }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+           hx-get="{% url 'account-list' %}?type={{ chip.type }}&status={{ current_status }}{% if sort_by != 'balance_desc' %}&sort={{ sort_by }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
            hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true"
            hx-indicator="#global-progress-bar"
-           class="type-chip {% if selected_type == group.type %}active{% endif %} flex-shrink-0">
-            {{ group.label }} <span class="chip-count">{{ group.count|translate_digits }}</span>
+           class="type-chip {% if selected_type == chip.type %}active{% endif %} flex-shrink-0">
+            {{ chip.label }} <span class="chip-count">{{ chip.count|translate_digits }}</span>
         </a>
         {% endif %}
     {% endfor %}

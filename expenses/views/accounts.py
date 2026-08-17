@@ -261,7 +261,33 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         context['current_status'] = current_status
         context['total_balance'] = total_balance.quantize(Decimal('0.01'))
         context['total_balance_currency'] = user_currency
+
+        # Build type_chips for all account categories so filter pills remain visible even when a type filter is active
+        all_status_accounts = list(
+            Account.objects.filter(user=self.request.user, is_active=(current_status == 'active'))
+        )
         search_query = self.request.GET.get('search', '').strip()
+        if search_query:
+            all_status_accounts = [a for a in all_status_accounts if search_query.lower() in a.name.lower()]
+
+        type_chips = []
+        seen_chip_ids = set()
+        import re
+        for group_name, choices in Account.ACCOUNT_TYPES:
+            group_codes = [val for val, _ in choices]
+            g_accs = [a for a in all_status_accounts if a.account_type in group_codes and a.id not in seen_chip_ids]
+            for a in g_accs:
+                seen_chip_ids.add(a.id)
+            group_type_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
+            if len(g_accs) > 0:
+                type_chips.append({
+                    'type': group_type_id,
+                    'label': group_name,
+                    'count': len(g_accs),
+                })
+
+        context['type_chips'] = type_chips
+        context['total_account_count'] = len(all_status_accounts)
         context['search_query'] = search_query
         context['sort_by'] = sort_by
 
