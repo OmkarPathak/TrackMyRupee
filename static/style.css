@@ -2115,28 +2115,47 @@ a:hover {
 /* --- Mobile Bottom Navigation --- */
 .mobile-bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: calc(70px + env(safe-area-inset-bottom, 0px));
-  background: rgba(var(--bs-body-bg-rgb), 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--bs-border-color-translucent);
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 420px;
+  height: 60px;
   display: flex;
-  justify-content: space-around;
   align-items: center;
-  z-index: 1090 !important; /* Higher than offcanvas (1080) to stay visible */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-shadow: 0 -8px 25px rgba(0,0,0,0.1);
+  gap: 12px;
+  z-index: 1090 !important;
+  pointer-events: none;
+}
+
+.mobile-nav-capsule {
+  pointer-events: auto;
+  flex: 1;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+[data-bs-theme="dark"] .mobile-nav-capsule {
+  background: #1e2328;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .mobile-nav-item {
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--bs-secondary);
+  color: #718096;
   text-decoration: none;
   flex: 1;
   height: 100%;
@@ -2147,97 +2166,184 @@ a:hover {
   padding: 0;
   margin: 0;
   outline: none;
-  box-sizing: border-box;
+  border-radius: 20px;
+}
+
+[data-bs-theme="dark"] .mobile-nav-item {
+  color: #a0aec0;
 }
 
 .mobile-nav-item > i:not(.position-absolute) {
-  font-size: 1.55rem;
-  height: 24px; /* Fixed height for consistent alignment */
+  font-size: 1.45rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0;
-  transition: transform 0.2s ease;
-}
-
-.mobile-nav-item span {
-  font-size: 0.635rem;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  margin-top: 4px;
-  line-height: 1;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .mobile-nav-item.active {
-  color: var(--color-success); /* Forest Green to match desktop */
+  color: #1D9E75;
+}
+
+[data-bs-theme="dark"] .mobile-nav-item.active {
+  color: #34D399;
 }
 
 .mobile-nav-item.active > i:not(.position-absolute) {
-  transform: translateY(-2px);
-  color: inherit;
+  transform: scale(1.15);
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.92);
 }
 
 /* --- Floating Action Button (FAB) --- */
-.mobile-fab {
-  position: relative;
-  top: -20px;
-  width: 65px;
-  height: 65px;
-  z-index: 1060;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fab-icon {
-  width: 58px;
-  height: 58px;
+.mobile-fab-btn {
+  pointer-events: auto;
+  width: 60px;
+  min-width: 60px;
+  height: 60px;
   background-color: #1D9E75;
-  border-radius: 50%;
+  border-radius: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid var(--bs-body-bg);
-  color: white;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  animation: fab-pulse 2.5s infinite;
+  color: #ffffff !important;
+  text-decoration: none;
+  box-shadow: 0 10px 25px rgba(29, 158, 117, 0.35);
+  border: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.fab-icon i {
-  font-size: 1.8rem;
+.mobile-fab-btn i {
+  font-size: 1.65rem;
+  transition: transform 0.25s ease;
 }
 
-.mobile-fab:active .fab-icon {
-  transform: scale(0.9) translateY(4px);
-  box-shadow: 0 4px 8px rgba(29, 158, 117, 0.2);
+.mobile-fab-btn:hover {
+  background-color: #157F5D;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(29, 158, 117, 0.45);
 }
 
-[data-bs-theme="dark"] .mobile-bottom-nav {
-  background: rgba(33, 37, 41, 0.9);
-  border-top-color: rgba(255, 255, 255, 0.08);
+.mobile-fab-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 6px 16px rgba(29, 158, 117, 0.3);
 }
 
-[data-bs-theme="dark"] .fab-icon {
-  border-color: #212529;
+[data-bs-theme="dark"] .mobile-fab-btn {
+  background-color: #1D9E75;
+  box-shadow: 0 10px 25px rgba(29, 158, 117, 0.45);
 }
 
-/* --- Mobile Bottom Sheet (Offcanvas) --- */
+/* --- Mobile Bottom Sheet (Offcanvas Drawer) --- */
 .mobile-bottom-sheet {
+  position: fixed !important;
+  left: 12px !important;
+  right: 12px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: auto !important;
+  max-width: 440px !important;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
   height: auto !important;
-  max-height: calc(85vh - (70px + env(safe-area-inset-bottom, 0px)));
-  margin-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important; /* Sit exactly above bottom nav */
-  padding-bottom: 1rem !important;
-  padding-left: env(safe-area-inset-left, 0px) !important;
-  padding-right: env(safe-area-inset-right, 0px) !important;
-  border-top-left-radius: 32px !important;
-  border-top-right-radius: 32px !important;
+  max-height: calc(82vh - (76px + env(safe-area-inset-bottom, 0px)));
+  margin-bottom: 0 !important;
+  padding: 0 0 0.5rem 0 !important;
+  border-radius: 28px !important;
   background: rgba(var(--bs-body-bg-rgb), 0.98) !important;
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border-top: 1px solid rgba(var(--bs-border-color-rgb), 0.1) !important;
-  box-shadow: 0 -20px 50px rgba(0,0,0,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--bs-border-color-translucent) !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.18), 0 4px 15px rgba(0, 0, 0, 0.08) !important;
   z-index: 1080 !important;
+  overflow: hidden !important;
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1) !important;
+  will-change: transform;
+}
+
+[data-bs-theme="dark"] .mobile-bottom-sheet {
+  background: rgba(30, 35, 40, 0.96) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5), 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+.offcanvas-bottom.mobile-bottom-sheet:not(.show),
+.offcanvas-bottom.mobile-bottom-sheet.hiding {
+  transform: translateY(calc(100% + 150px)) !important;
+}
+
+.offcanvas-bottom.mobile-bottom-sheet.show:not(.hiding),
+.offcanvas-bottom.mobile-bottom-sheet.showing {
+  transform: translateY(0) !important;
+}
+
+.offcanvas-backdrop {
+  transition: opacity 0.25s linear !important;
+}
+
+/* Drag Handle Pill */
+.drawer-handle-pill {
+  width: 38px;
+  height: 4px;
+  background: rgba(128, 128, 128, 0.25);
+  border-radius: 4px;
+  margin: 10px auto 2px auto;
+}
+
+/* Circular Close Button */
+.btn-close-drawer {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bs-tertiary-bg);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bs-secondary);
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.btn-close-drawer:hover, .btn-close-drawer:active {
+  background: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+}
+
+/* Drawer Rich Action Items */
+.drawer-action-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--bs-body-color);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+}
+
+.drawer-action-item:hover, .drawer-action-item:active {
+  background-color: var(--bs-tertiary-bg);
+  color: var(--bs-body-color);
+  transform: scale(0.99);
+}
+
+.drawer-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.drawer-action-item:hover .drawer-icon-badge {
+  transform: scale(1.06);
 }
 
 .profile-avatar {

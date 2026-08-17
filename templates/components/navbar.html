@@ -212,13 +212,13 @@
     /* Prevent mobile bottom nav from overlapping page content */
     @media (max-width: 991.98px) {
         body {
-            padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+            padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important;
         }
     }
     
     /* Extra padding for mobile app / PWA mode */
     .is-mobile-app body {
-        padding-bottom: calc(130px + env-safe-area-inset-bottom) !important;
+        padding-bottom: calc(100px + env-safe-area-inset-bottom) !important;
     }
 
     /* Navbar Greeting Pill */
@@ -234,75 +234,109 @@
 </style>
 <!-- Mobile Bottom Navigation -->
 <div class="mobile-bottom-nav d-lg-none">
-    {% if request.resolver_match.url_name == 'home' %}
-    <button class="mobile-nav-item active" type="button" data-bs-toggle="offcanvas" data-bs-target="#dashboardModeSheet" aria-controls="dashboardModeSheet">
-        <i class="bi bi-speedometer2"></i>
-        <span>{% trans "Dashboard" %}</span>
-    </button>
-    {% else %}
-    <a href="{% url 'home' %}" class="mobile-nav-item">
-        <i class="bi bi-speedometer2"></i>
-        <span>{% trans "Dashboard" %}</span>
-    </a>
-    {% endif %}
-    <a href="{% url 'all-transactions' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'all-transactions' %}active{% endif %}">
-        <i class="bi bi-receipt"></i>
-        <span>{% trans "Transactions" %}</span>
-    </a>
-    
-    <!-- Floating Action Button -->
-    <a id="global-fab" href="#" class="mobile-fab" data-bs-toggle="offcanvas" data-bs-target="#addActionsSheet" aria-controls="addActionsSheet">
-        <div class="fab-icon">
-            <i class="bi bi-plus-lg"></i>
-        </div>
-    </a>
-
-    <a href="{% url 'account-list' %}" class="mobile-nav-item {% if 'account' in request.resolver_match.url_name or 'transfer' in request.resolver_match.url_name %}active{% endif %}">
-        <i class="bi bi-bank"></i>
-        <span>{% trans "Accounts" %}</span>
-    </a>
-    <button class="mobile-nav-item mobile-nav-item-more position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet" aria-controls="moreMenuSheet">
-        <i class="bi bi-grid"></i>
-        <span>{% trans "More" %}</span>
-        {% if has_unread_notifications %}
-            <span class="position-absolute badge rounded-circle bg-danger border border-white" 
-                  id="notification-badge-more"
-                  style="top: 6px; right: 20%; width: 18px; height: 18px; font-size: 0.65rem; line-height: 18px; padding: 0; text-align: center;">
-                {{ unread_notifications_count }}
-            </span>
+    <div class="mobile-nav-capsule">
+        {% if request.resolver_match.url_name == 'home' %}
+        <button class="mobile-nav-item active" type="button" data-bs-toggle="offcanvas" data-bs-target="#dashboardModeSheet" aria-controls="dashboardModeSheet" title="{% trans 'Dashboard' %}" aria-label="{% trans 'Dashboard' %}">
+            <i class="bi bi-house-door-fill"></i>
+        </button>
+        {% else %}
+        <a href="{% url 'home' %}" class="mobile-nav-item" title="{% trans 'Dashboard' %}" aria-label="{% trans 'Dashboard' %}">
+            <i class="bi bi-house-door"></i>
+        </a>
         {% endif %}
-    </button>
+
+        <a href="{% url 'all-transactions' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'all-transactions' %}active{% endif %}" title="{% trans 'Transactions' %}" aria-label="{% trans 'Transactions' %}">
+            {% if request.resolver_match.url_name == 'all-transactions' %}
+            <i class="bi bi-file-text-fill"></i>
+            {% else %}
+            <i class="bi bi-file-text"></i>
+            {% endif %}
+        </a>
+
+        <a href="{% url 'account-list' %}" class="mobile-nav-item {% if 'account' in request.resolver_match.url_name or 'transfer' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Accounts' %}" aria-label="{% trans 'Accounts' %}">
+            {% if 'account' in request.resolver_match.url_name or 'transfer' in request.resolver_match.url_name %}
+            <i class="bi bi-bank2"></i>
+            {% else %}
+            <i class="bi bi-bank"></i>
+            {% endif %}
+        </a>
+
+        <button class="mobile-nav-item mobile-nav-item-more position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet" aria-controls="moreMenuSheet" title="{% trans 'More' %}" aria-label="{% trans 'More' %}">
+            <i class="bi bi-grid"></i>
+            {% if has_unread_notifications %}
+                <span class="position-absolute badge rounded-circle bg-danger border border-white" 
+                      id="notification-badge-more"
+                      style="top: 8px; right: 14px; width: 8px; height: 8px; padding: 0;">
+                </span>
+            {% endif %}
+        </button>
+    </div>
+
+    <!-- Floating Action Button -->
+    <a id="global-fab" href="#" class="mobile-fab-btn" data-bs-toggle="offcanvas" data-bs-target="#addActionsSheet" aria-controls="addActionsSheet" title="{% trans 'Add' %}" aria-label="{% trans 'Add' %}">
+        <i class="bi bi-plus-lg"></i>
+    </a>
 </div>
 
 
 <!-- Mobile Add Actions Bottom Sheet -->
 <div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-lg-none" tabindex="-1" id="addActionsSheet" aria-labelledby="addActionsSheetLabel">
-    <div class="offcanvas-header border-bottom py-3">
+    <div class="drawer-handle-pill"></div>
+    <div class="offcanvas-header border-bottom-0 pt-2 pb-3 px-3 w-100 d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
             <i class="bi bi-plus-circle-fill fs-4 text-primary"></i>
             <h5 class="offcanvas-title fw-bold mb-0" id="addActionsSheetLabel">{% trans "Add New" %}</h5>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
     </div>
-    <div class="offcanvas-body p-0">
-        <div class="list-group list-group-flush pb-1 mt-2">
-            <a href="{% url 'expense-create' %}?next={{ request.path }}" class="list-group-item list-group-item-action">
-                <i class="bi bi-dash-circle text-danger"></i>
-                <span>{% trans "Add Expense" %}</span>
+    <div class="offcanvas-body p-3 pt-0">
+        <div class="d-flex flex-column gap-1">
+            <a href="{% url 'expense-create' %}?next={{ request.path }}" class="drawer-action-item">
+                <div class="drawer-icon-badge bg-danger bg-opacity-10 text-danger">
+                    <i class="bi bi-dash-circle-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{% trans "Add Expense" %}</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">{% trans "Record a daily spend or payment" %}</small>
+                </div>
+                <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
             </a>
-            <a href="{% url 'recurring-create' %}?next={{ request.path }}" class="list-group-item list-group-item-action">
-                <i class="bi bi-arrow-repeat text-primary"></i>
-                <span>{% trans "Add Subscription" %}</span>
+
+            <a href="{% url 'recurring-create' %}?next={{ request.path }}" class="drawer-action-item">
+                <div class="drawer-icon-badge bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{% trans "Add Subscription" %}</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">{% trans "Track recurring bills & subscriptions" %}</small>
+                </div>
+                <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
             </a>
+
             {% if user.username != 'demo' %}
-            <a href="{% url 'transfer-create' %}?next={{ request.path }}" class="list-group-item list-group-item-action">
-                <i class="bi bi-arrow-left-right text-info"></i>
-                <span>{% trans "Internal Transfer" %}</span>
+            <a href="{% url 'transfer-create' %}?next={{ request.path }}" class="drawer-action-item">
+                <div class="drawer-icon-badge bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{% trans "Internal Transfer" %}</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">{% trans "Move money between your accounts" %}</small>
+                </div>
+                <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
             </a>
             {% endif %}
-            <a href="{% url 'income-create' %}?next={{ request.path }}" class="list-group-item list-group-item-action">
-                <i class="bi bi-plus-circle text-success"></i>
-                <span>{% trans "Add Income" %}</span>
+
+            <a href="{% url 'income-create' %}?next={{ request.path }}" class="drawer-action-item">
+                <div class="drawer-icon-badge bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-plus-circle-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{% trans "Add Income" %}</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">{% trans "Log earnings, salary, or incoming funds" %}</small>
+                </div>
+                <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
             </a>
         </div>
     </div>
@@ -310,12 +344,15 @@
 
 <!-- Mobile More Bottom Sheet -->
 <div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-lg-none" tabindex="-1" id="moreMenuSheet" aria-labelledby="moreMenuSheetLabel" style="height: 75vh !important;">
-    <div class="offcanvas-header border-bottom py-3">
+    <div class="drawer-handle-pill"></div>
+    <div class="offcanvas-header border-bottom-0 pt-2 pb-3 px-3 w-100 d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
             <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" width="28" height="28" class="rounded-2">
             <h5 class="offcanvas-title fw-bold mb-0" id="moreMenuSheetLabel">TrackMyRupee</h5>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
     </div>
     <div class="offcanvas-body p-0" style="overflow-y: auto; overflow-x: hidden;">
         <!-- User Profile Header -->
@@ -501,14 +538,17 @@
 
 <!-- Mobile Support & Legal Bottom Sheet -->
 <div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-lg-none" tabindex="-1" id="supportLegalSheet" aria-labelledby="supportLegalSheetLabel" style="height: 75vh !important;">
-    <div class="offcanvas-header border-bottom py-3">
+    <div class="drawer-handle-pill"></div>
+    <div class="offcanvas-header border-bottom-0 pt-2 pb-3 px-3 w-100 d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
             <button type="button" class="btn btn-link p-0 text-decoration-none me-2" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet">
                 <i class="bi bi-arrow-left fs-4"></i>
             </button>
             <h5 class="offcanvas-title fw-bold mb-0" id="supportLegalSheetLabel">{% trans "Support & Legal" %}</h5>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
     </div>
     <div class="offcanvas-body p-0" style="overflow-y: auto;">
         <div class="list-group list-group-flush pb-4 mt-2">
