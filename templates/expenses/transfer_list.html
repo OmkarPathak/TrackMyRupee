@@ -7,6 +7,29 @@
 </div>
 
 <style>
+.header-action-btn {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+    border: 1px solid var(--bs-border-color);
+    background: transparent;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    text-decoration: none;
+    color: var(--bs-body-color);
+}
+.header-action-btn.btn-primary {
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+    border: none !important;
+}
+.header-action-btn:hover {
+    opacity: 0.9;
+}
+
 @media (max-width: 767.98px) {
     .transfer-list-card {
         background-color: transparent !important;
