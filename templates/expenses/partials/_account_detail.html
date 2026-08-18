@@ -17,23 +17,39 @@
         }
     </style>
     <script>
-        // Prevent keyboard auto-opening on mobile when this partial loads/swaps
+        // Prevent keyboard auto-opening on mobile when this partial loads/swaps.
+        // The search inputs are rendered with readonly; we remove it only on explicit user interaction.
         (function() {
-            function blurActiveInput() {
-                if (window.innerWidth < 992 && document.activeElement && document.activeElement.tagName === 'INPUT') {
-                    document.activeElement.blur();
-                }
+            function unlockAccountSearch(el) {
+                if (!el) return;
+                el.removeAttribute('readonly');
             }
+
+            function bindUnlock(el) {
+                if (!el) return;
+                el.addEventListener('touchstart', function() { unlockAccountSearch(el); }, { once: true, passive: true });
+                el.addEventListener('pointerdown', function() { unlockAccountSearch(el); }, { once: true });
+                el.addEventListener('focus', function() { unlockAccountSearch(el); }, { once: true });
+            }
+
+            function lockAndBindSearchInputs() {
+                document.querySelectorAll('#account-detail-shell input[name="q"]').forEach(function(el) {
+                    el.setAttribute('readonly', '');
+                    el.blur();
+                    bindUnlock(el);
+                });
+            }
+
             // On initial load
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', blurActiveInput);
+                document.addEventListener('DOMContentLoaded', lockAndBindSearchInputs);
             } else {
-                blurActiveInput();
+                lockAndBindSearchInputs();
             }
             // On every HTMX swap into this shell
             document.body.addEventListener('htmx:afterSwap', function(e) {
                 if (e.detail && e.detail.target && e.detail.target.id === 'account-detail-shell') {
-                    setTimeout(blurActiveInput, 0);
+                    lockAndBindSearchInputs();
                 }
             });
         })();
@@ -223,7 +239,7 @@
                     <input type="hidden" name="tx_type" value="{{ selected_tx_type }}">
                     <div class="input-group input-group-sm rounded-3 overflow-hidden shadow-none border">
                         <span class="input-group-text bg-body-tertiary border-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="q" class="form-control border-0 bg-body-tertiary ps-0" placeholder="{% trans 'Search...' %}" value="{{ search_query }}">
+                        <input type="text" name="q" class="form-control border-0 bg-body-tertiary ps-0" placeholder="{% trans 'Search...' %}" value="{{ search_query }}" readonly>
                         {% if search_query %}
                             <button type="button" class="btn btn-link text-muted border-0 d-flex align-items-center px-2" hx-get="{% url 'account-detail' account.uuid %}?tx_type={{ selected_tx_type }}" hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" data-bs-toggle="tooltip" title="{% trans 'Clear search' %}">
                                 <i class="bi bi-x-lg small"></i>
@@ -243,7 +259,7 @@
                     <input type="hidden" name="tx_type" value="{{ selected_tx_type }}">
                     <div class="input-group input-group-sm rounded-3 overflow-hidden shadow-none border">
                         <span class="input-group-text bg-body-tertiary border-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="q" class="form-control border-0 bg-body-tertiary ps-0" placeholder="{% trans 'Search transactions...' %}" value="{{ search_query }}">
+                        <input type="text" name="q" class="form-control border-0 bg-body-tertiary ps-0" placeholder="{% trans 'Search transactions...' %}" value="{{ search_query }}" readonly>
                         {% if search_query %}
                             <button type="button" class="btn btn-link text-muted border-0 d-flex align-items-center px-2" hx-get="{% url 'account-detail' account.uuid %}?tx_type={{ selected_tx_type }}" hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" data-bs-toggle="tooltip" title="{% trans 'Clear search' %}">
                                 <i class="bi bi-x-lg small"></i>

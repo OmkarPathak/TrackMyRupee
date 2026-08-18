@@ -55,6 +55,7 @@
                            value="{{ search_query }}" 
                            aria-label="{% trans 'Search' %}"
                            autocomplete="off"
+                           readonly
                            hx-trigger="keyup changed delay:400ms, search, input">
                     {% if search_query %}
                     <button type="button" 
@@ -244,12 +245,36 @@
 
     <script>
     (function() {
+        // Unlock search input for keyboard on first explicit user interaction.
+        // The input is rendered with readonly to prevent mobile keyboard auto-open.
+        function unlockCalendarSearch(el) {
+            if (!el) return;
+            el.removeAttribute('readonly');
+            el.removeEventListener('touchstart', el.__calendarUnlock);
+            el.removeEventListener('pointerdown', el.__calendarUnlock);
+        }
+
+        function bindCalendarSearchUnlock(root) {
+            var el = (root || document).querySelector('#calendar-search-input');
+            if (!el) return;
+            el.__calendarUnlock = function() { unlockCalendarSearch(el); };
+            el.addEventListener('touchstart', el.__calendarUnlock, { once: true, passive: true });
+            el.addEventListener('pointerdown', el.__calendarUnlock, { once: true });
+            // Also unlock on focus (e.g. desktop tab navigation)
+            el.addEventListener('focus', function() { unlockCalendarSearch(el); }, { once: true });
+        }
+
         function initCalendarPlugins(scope) {
             var root = scope || document;
-            var searchInput = root.querySelector('input[name="search"]');
+
+            // Re-apply readonly on every swap so the keyboard never auto-opens,
+            // then immediately set up the unlock listeners.
+            var searchInput = root.querySelector('#calendar-search-input');
             if (searchInput) {
+                searchInput.setAttribute('readonly', '');
                 searchInput.blur();
             }
+            bindCalendarSearchUnlock(root);
 
             var popoverTriggerList = [].slice.call(root.querySelectorAll('[data-bs-toggle="popover"]'));
             popoverTriggerList.forEach(function (popoverTriggerEl) {
@@ -282,18 +307,4 @@
         }
     })();
     </script>
-<script>
-(function() {
-    function blurCalendarSearch() {
-        var el = document.getElementById('calendar-search-input');
-        if (el && document.activeElement === el) el.blur();
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', blurCalendarSearch);
-    } else {
-        blurCalendarSearch();
-    }
-    document.body.addEventListener('htmx:afterSettle', blurCalendarSearch);
-})();
-</script>
 </div>
