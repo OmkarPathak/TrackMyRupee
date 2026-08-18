@@ -131,6 +131,12 @@
                             {% endblocktrans %}
                             <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">Google Analytics Opt-out Browser Add-on</a>.
                         </p>
+                        <h5 class="h6 fw-bold mt-4">{% trans "PostHog Analytics" %}</h5>
+                        <p class="text-muted">
+                            {% blocktrans %}
+                            We use PostHog for product analytics and user event tracking. PostHog helps us understand how features (such as budgets, goals, and exports) are used so we can improve product quality and user experience. Captured data may include anonymous session identifiers, feature interaction events, page views, and user account metadata (such as subscription tier).
+                            {% endblocktrans %}
+                        </p>
                     </div>
 
                     <div id="section-4" class="mb-5">
@@ -145,9 +151,10 @@
                             <li class="mb-2">
                                 <strong>{% trans "Service Providers" %}:</strong>
                                 {% blocktrans %}
-                                With trusted third-party vendors (e.g., hosting providers, email services, analytics) who assist our operations.
+                                With trusted third-party vendors (e.g., hosting providers, email services, payment gateways like Razorpay, and product analytics platforms like PostHog and Google Analytics) who assist our operations.
                                 {% endblocktrans %}
                             </li>
+
                             <li class="mb-2">
                                 <strong>{% trans "Legal Compliance" %}:</strong>
                                 {% blocktrans %}
