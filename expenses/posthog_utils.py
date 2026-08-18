@@ -17,6 +17,8 @@ import logging
 
 from django.conf import settings
 
+from typing import Any, Dict, Optional
+
 logger = logging.getLogger(__name__)
 
 _client = None
@@ -47,7 +49,7 @@ def _get_client():
     return _client
 
 
-def ph_capture(user, event: str, properties: dict | None = None):
+def ph_capture(user, event: str, properties: Optional[Dict[str, Any]] = None):
     """
     Fire a PostHog event for an authenticated Django user.
 
@@ -68,7 +70,8 @@ def ph_capture(user, event: str, properties: dict | None = None):
         logger.debug('PostHog capture failed for event %s', event, exc_info=True)
 
 
-def ph_identify(user, extra_properties: dict | None = None):
+def ph_identify(user, extra_properties: Optional[Dict[str, Any]] = None):
+
     """
     Identify/update a user's Person profile in PostHog.
     Called on login and signup.
