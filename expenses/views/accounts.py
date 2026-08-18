@@ -19,6 +19,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
+from ..posthog_utils import ph_capture
 
 from ..account_types import deposit_codes
 from ..account_valuation import get_baseline, get_current, get_interest_summary
@@ -323,6 +324,7 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
             return redirect('pricing')
         form.instance.user = self.request.user
         messages.success(self.request, _("Account created successfully!"))
+        ph_capture(self.request.user, 'account_created', {'account_type': self.object.account_type, 'currency': self.object.currency, 'has_credit_limit': bool(getattr(self.object, 'credit_limit', None))})
         return super().form_valid(form)
 
 class AccountUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
@@ -354,6 +356,7 @@ class AccountUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
         old_balance = old_state.balance
         messages.success(self.request, _("Account updated successfully!"))
         response = super().form_valid(form)
+        ph_capture(self.request.user, 'account_updated', {'account_type': self.object.account_type})
 
         # Manual balance edits should treat the entered balance as source of truth.
         # Offset any existing drift by targeting the current ledger-derived balance.
@@ -432,6 +435,7 @@ class AccountDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
         self.object.is_active = False
         self.object.save()
         messages.success(self.request, _("Account deleted successfully."))
+        ph_capture(self.request.user, 'account_deleted', {})
         return redirect(success_url)
 
 
@@ -449,6 +453,7 @@ class AccountRestoreView(LoginRequiredMixin, View):
         account.is_active = True
         account.save()
         messages.success(request, _("Account restored successfully!"))
+        ph_capture(request.user, 'account_restored', {})
         return redirect('account-list')
 
 
@@ -467,6 +472,7 @@ class AccountQuickCreateView(LoginRequiredMixin, View):
             account = form.save(commit=False)
             account.user = request.user
             account.save()
+            ph_capture(request.user, 'account_quick_created', {'account_type': account.account_type})
             return JsonResponse({
                 'success': True,
                 'id': account.pk,
@@ -523,6 +529,7 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
         try:
             response = super().form_valid(form)
             messages.success(self.request, _("Transfer completed successfully!"))
+            ph_capture(self.request.user, 'transfer_created', {'amount': str(self.object.amount), 'currency': getattr(self.object, 'currency', ''), 'is_cross_currency': bool(getattr(self.object, 'exchange_rate', None) and self.object.exchange_rate != 1)})
             return response
         except IntegrityError:
             messages.error(self.request, _("Duplicate transfer found! This transfer has already been completed."))
@@ -565,6 +572,7 @@ class TransferUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
         try:
             response = super().form_valid(form)
             messages.success(self.request, _("Transfer updated successfully!"))
+            ph_capture(self.request.user, 'transfer_updated', {})
             return response
         except (RuntimeError, ValidationError):
             messages.error(self.request, _("Unable to update transfer because currency conversion failed or transfer data is invalid."))
@@ -580,7 +588,9 @@ class TransferDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
 
     def form_valid(self, form):
         messages.success(self.request, _("Transfer deleted successfully!"))
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        ph_capture(self.request.user, 'transfer_deleted', {})
+        return response
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
@@ -1032,6 +1042,7 @@ class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
                     'name': account.name,
                 }
             )
+            ph_capture(request.user, 'maturity_income_recorded', {})
 
         redirect_url = request.META.get('HTTP_REFERER') or reverse_lazy('account-list')
         return redirect(redirect_url)
@@ -1111,6 +1122,7 @@ def refresh_holding_nav(request, pk):
                     'nav': cache.latest_nav if cache else '',
                 }
             )
+            ph_capture(request.user, 'holding_nav_refreshed', {})
         else:
             messages.warning(
                 request,
@@ -1201,6 +1213,7 @@ def holding_create_view(request, pk=None):
             service.fetch_scheme(scheme_code, force=True)
             
         messages.success(request, _("Holding '%(name)s' added successfully.") % {'name': name})
+        ph_capture(request.user, 'holding_created', {'has_scheme_code': bool(holding.scheme_code if hasattr(holding, 'scheme_code') else False)})
     return redirect(next_url)
 
 
@@ -1219,6 +1232,7 @@ def holding_delete_view(request, pk):
     holding.is_active = False
     holding.save()
     messages.success(request, _("Holding '%(name)s' removed.") % {'name': holding.instrument_name})
+    ph_capture(request.user, 'holding_deleted', {})
     
     next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or reverse_lazy('holding-list')
     return redirect(next_url)

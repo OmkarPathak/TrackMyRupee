@@ -17,6 +17,7 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import IncomeForm
 from ..models import Income, RecurringTransaction
+from ..posthog_utils import ph_capture
 from .mixins import (
     HtmxPartialTemplateMixin,
     RecurringTransactionMixin,
@@ -213,6 +214,12 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
             messages.error(self.request, _("Unable to save income because currency conversion failed or data is invalid."))
             return self.form_invalid(form)
 
+        ph_capture(self.request.user, 'income_created', {
+            'amount': str(self.object.amount),
+            'currency': self.object.currency,
+            'source_type': self.object.source_type or '',
+            'has_account': bool(self.object.account_id),
+        })
         messages.success(self.request, _("Income record added successfully!"))
         
         if form.cleaned_data.get('add_to_recurring'):
@@ -276,6 +283,10 @@ class IncomeUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
         from django.db import IntegrityError
         try:
             response = super().form_valid(form)
+            ph_capture(self.request.user, 'income_updated', {
+                'amount': str(self.object.amount),
+                'currency': self.object.currency,
+            })
             messages.success(self.request, _("Income record updated successfully!"))
             if form.cleaned_data.get('add_to_recurring'):
                 existing_rt = RecurringTransaction.objects.filter(
@@ -321,6 +332,7 @@ class IncomeDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
 
     def form_valid(self, form):
         messages.success(self.request, _("Income record deleted successfully."))
+        ph_capture(self.request.user, 'income_deleted', {})
         return super().form_valid(form)
 
     def get_success_url(self):

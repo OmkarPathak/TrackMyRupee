@@ -12,6 +12,16 @@ def google_analytics(request):
     }
 
 
+def posthog(request):
+    """
+    Exposes PostHog configuration to all templates for the JS snippet.
+    """
+    return {
+        'POSTHOG_API_KEY': getattr(settings, 'POSTHOG_API_KEY', None),
+        'POSTHOG_HOST': getattr(settings, 'POSTHOG_HOST', 'https://us.i.posthog.com'),
+    }
+
+
 def plan_details(request):
     """
     Exposes PLAN_DETAILS from plans.py to all templates.

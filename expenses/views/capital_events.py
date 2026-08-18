@@ -16,6 +16,7 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import CapitalEventForm
 from ..models import CapitalEvent, Expense, Loan
+from ..posthog_utils import ph_capture
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import (
     apply_date_filters,
@@ -146,6 +147,7 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
                         pass
 
             messages.success(request, _("Capital event recorded successfully."))
+            ph_capture(request.user, 'capital_event_created', {'subtype': getattr(event, 'subtype', ''), 'amount': str(event.amount)})
             return redirect('capital-event-list')
 
         return render(request, self.template_name, {
@@ -182,6 +184,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
             with transaction.atomic():
                 form.save()
             messages.success(request, _("Capital event updated."))
+            ph_capture(request.user, 'capital_event_updated', {})
             next_url = request.POST.get('next') or request.GET.get('next')
             if next_url:
                 return redirect(next_url)
@@ -206,6 +209,7 @@ class CapitalEventDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteVie
 
     def delete(self, request, *args, **kwargs):
         messages.success(request, _("Capital event deleted."))
+        ph_capture(self.request.user, 'capital_event_deleted', {})
         return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
@@ -233,6 +237,7 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
             expense.save()
             event.delete()
         messages.success(request, _("Capital event converted to a regular expense."))
+        ph_capture(request.user, 'capital_event_converted_to_expense', {})
         return redirect('expense-list')
 
 

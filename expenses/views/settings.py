@@ -21,6 +21,7 @@ from ..models import (
     RecurringTransaction,
     UserProfile,
 )
+from ..posthog_utils import ph_capture
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,7 @@ class UserDeleteView(LoginRequiredMixin, DeleteView):
     def form_valid(self, form):
         user = self.get_object()
         log_and_notify_deletion(user)
+        ph_capture(user, 'account_deleted', {})
         logout(self.request)
         user.delete()
         messages.success(self.request, _("Your account has been deleted successfully."))
@@ -124,6 +126,7 @@ class CurrencyUpdateView(LoginRequiredMixin, UpdateView):
         new_currency = form.cleaned_data.get('currency')
         
         response = super().form_valid(form)
+        ph_capture(self.request.user, 'currency_changed', {'old_currency': old_currency, 'new_currency': form.cleaned_data.get('currency', '')})
         
         if old_currency != new_currency:
             user = self.request.user
@@ -162,6 +165,7 @@ class LanguageUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, _('Language preference updated successfully.'))
         
         response = super().form_valid(form)
+        ph_capture(self.request.user, 'language_changed', {'new_language': form.cleaned_data.get('language', '')})
         response.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang)
         return response
 
@@ -203,4 +207,6 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, _("Profile updated successfully."))
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        ph_capture(self.request.user, 'profile_updated', {})
+        return response

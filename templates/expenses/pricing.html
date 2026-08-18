@@ -470,6 +470,15 @@ async function startPayment(planType) {
             return;
         }
 
+        // PostHog: payment initiated (checkout opened)
+        if (typeof posthog !== 'undefined') {
+            posthog.capture('payment_initiated', {
+                plan_type: planType,
+                duration: currentDuration,
+                is_recurring: autoRenewToggle.checked,
+            });
+        }
+
         const durationLabel = currentDuration === 'MONTHLY' ? 'Monthly' : 'Yearly';
 
         var options = {
@@ -500,6 +509,13 @@ async function startPayment(planType) {
                 
                 const verifyData = await verifyRes.json();
                 if (verifyData.success) {
+                    // PostHog: payment completed
+                    if (typeof posthog !== 'undefined') {
+                        posthog.capture('payment_completed', {
+                            plan_type: planType,
+                            duration: currentDuration,
+                        });
+                    }
                     window.location.href = "{% url 'settings-home' %}?upgraded=true";
                 } else {
                     alert("Payment Verification Failed: " + verifyData.error);

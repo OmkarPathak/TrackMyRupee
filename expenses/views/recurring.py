@@ -11,6 +11,7 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import RecurringTransactionForm
 from ..models import RecurringTransaction
+from ..posthog_utils import ph_capture
 from .mixins import (
     HtmxPartialTemplateMixin,
     RecurringTransactionMixin,
@@ -218,6 +219,7 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, _("Recurring transaction created successfully!"))
         response = super().form_valid(form)
         process_user_recurring_transactions(self.request.user, force=True)
+        ph_capture(self.request.user, 'recurring_created', {'transaction_type': self.object.transaction_type, 'frequency': self.object.frequency, 'amount': str(self.object.amount)})
         return response
     
     def get_form_kwargs(self):
@@ -254,6 +256,7 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, U
         messages.success(self.request, _("Recurring transaction updated successfully!"))
         response = super().form_valid(form)
         process_user_recurring_transactions(self.request.user, force=True)
+        ph_capture(self.request.user, 'recurring_updated', {'frequency': self.object.frequency})
         return response
 
     def get_form_kwargs(self):
@@ -312,4 +315,5 @@ class RecurringTransactionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, D
             currency = self.request.user.profile.currency
             
         messages.success(self.request, _("You just saved %(currency)s%(amount)s/year 🎉") % {'currency': currency, 'amount': f"{yearly_saving:,.0f}"})
+        ph_capture(self.request.user, 'recurring_deleted', {})
         return super().form_valid(form)

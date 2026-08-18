@@ -32,3 +32,4 @@ django-webpush==0.3.6
 python-dateutil==2.9.0.post0
 beautifulsoup4==4.15.0
 dnspython==2.7.0
+posthog>=3.5.0

@@ -22,6 +22,7 @@ from expenses.views.utils import get_safe_redirect_url
 from ..forms import ExpenseForm
 from ..models import Account, CapitalEvent, Category, Expense
 from ..parser import parse_expense_nl
+from ..posthog_utils import ph_capture
 from ..utils import get_exchange_rate
 from .mixins import (
     HtmxPartialTemplateMixin,
@@ -228,6 +229,13 @@ class ExpenseCreateView(LoginRequiredMixin, View):
                 for instance in instances:
                     instance.user = request.user
                     instance.save()
+                    ph_capture(request.user, 'expense_created', {
+                        'amount': str(instance.amount),
+                        'currency': instance.currency,
+                        'category': instance.category or '',
+                        'payment_method': instance.payment_method or '',
+                        'has_account': bool(instance.account_id),
+                    })
                 
                 # Handle deletions from formset
                 for obj in formset.deleted_objects:
@@ -262,6 +270,11 @@ class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     def form_valid(self, form):
         try:
             response = super().form_valid(form)
+            ph_capture(self.request.user, 'expense_updated', {
+                'amount': str(self.object.amount),
+                'currency': self.object.currency,
+                'category': self.object.category or '',
+            })
             messages.success(self.request, _("Expense updated successfully!"))
             return response
         except (RuntimeError, ValidationError):
@@ -297,6 +310,7 @@ class ExpenseDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
 
     def form_valid(self, form):
         messages.success(self.request, _("Expense deleted successfully."))
+        ph_capture(self.request.user, 'expense_deleted', {})
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -325,6 +339,7 @@ class ExpenseBulkDeleteView(LoginRequiredMixin, View):
                 for expense in expenses_to_delete.select_related('account'):
                     # Call model delete to ensure account balances are restored.
                     expense.delete()
+            ph_capture(request.user, 'expense_bulk_deleted', {'count': deleted_count})
             messages.success(request, _('%(count)d expenses deleted successfully.') % {'count': deleted_count})
         else:
             messages.warning(request, _('No valid expenses found to delete.'))
@@ -364,6 +379,7 @@ class ExpenseBulkUpdateView(LoginRequiredMixin, View):
         
         if updated_count > 0:
             expenses_to_update.update(**update_data)
+            ph_capture(request.user, 'expense_bulk_updated', {'count': updated_count})
             messages.success(request, _('%(count)d expenses updated successfully.') % {'count': updated_count})
         else:
             messages.warning(request, _('No valid expenses found to update.'))
@@ -395,6 +411,7 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
             )
             event.save()
             expense.delete()
+        ph_capture(request.user, 'expense_converted_to_capital_event', {})
         messages.success(request, _("Expense converted to a capital event."))
         
         next_url = request.GET.get('next') or request.POST.get('next')

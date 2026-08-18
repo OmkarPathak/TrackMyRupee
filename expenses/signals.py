@@ -1,5 +1,6 @@
 import logging
 
+from allauth.account.signals import user_logged_in, user_signed_up
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -9,8 +10,29 @@ from django.db.backends.signals import connection_created
 
 from .ledger_service import LedgerPostingService
 from .models import Account, Category, UserProfile
+from .posthog_utils import ph_capture, ph_identify
 
 logger = logging.getLogger(__name__)
+
+
+@receiver(user_signed_up)
+def on_user_signed_up(sender, request, user, **kwargs):
+    """Identify the new user in PostHog and capture a signup event."""
+    sociallogin = kwargs.get('sociallogin')
+    method = 'google' if sociallogin else 'email'
+    ph_identify(user, {'signup_method': method})
+    ph_capture(user, 'user_signed_up', {'method': method})
+
+
+@receiver(user_logged_in)
+def on_user_logged_in(sender, request, user, **kwargs):
+    """Capture a login event and refresh PostHog person properties."""
+    sociallogin = kwargs.get('sociallogin')
+    method = 'google' if sociallogin else 'email'
+    ph_identify(user)  # refreshes tier / email in case they changed
+    ph_capture(user, 'user_logged_in', {'method': method})
+
+
 
 @receiver(connection_created)
 def configure_sqlite_pragmas(sender, connection, **kwargs):

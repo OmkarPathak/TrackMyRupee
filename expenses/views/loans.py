@@ -9,6 +9,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
+from ..posthog_utils import ph_capture
 
 from ..forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
 from ..models import (
@@ -167,6 +168,7 @@ class LoanCreateView(LoginRequiredMixin, LoanFeatureGateMixin, CreateView):
                 effective_date=self.object.start_date
             )
         messages.success(self.request, _("Loan created successfully!"))
+        ph_capture(self.request.user, 'loan_created', {'loan_type': getattr(self.object, 'loan_type', ''), 'currency': self.object.currency, 'tenure_months': getattr(self.object, 'tenure_months', None)})
         return redirect(self.success_url)
 
     def get_form_kwargs(self):
@@ -193,6 +195,7 @@ class LoanUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMi
                 rate.interest_rate = form.cleaned_data['interest_rate']
                 rate.save()
         messages.success(self.request, _("Loan updated successfully!"))
+        ph_capture(self.request.user, 'loan_updated', {})
         return redirect(self.success_url)
 
     def get_form_kwargs(self):
@@ -209,7 +212,9 @@ class LoanDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMi
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _("Loan deleted successfully."))
-        return super().delete(request, *args, **kwargs)
+        response = super().delete(request, *args, **kwargs)
+        ph_capture(self.request.user, 'loan_deleted', {})
+        return response
 
 class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     template_name = 'expenses/loan_detail.html'
@@ -410,6 +415,7 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                         messages.info(request, _("Recurring loan repayment created."))
 
                 messages.success(request, _("Repayment recorded successfully!"))
+                ph_capture(request.user, 'loan_repayment_added', {'amount': str(repayment.amount)})
             except (RuntimeError, ValidationError):
                 messages.error(request, _("Unable to record repayment because currency conversion failed or repayment data is invalid."))
         else:
@@ -425,6 +431,7 @@ class LoanInterestRateCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View)
             rate.loan = loan
             rate.save()
             messages.success(request, _("Interest rate updated successfully!"))
+            ph_capture(request.user, 'loan_interest_rate_updated', {'interest_rate': str(rate.interest_rate)})
         else:
             messages.error(request, _("Error updating interest rate."))
         return redirect('loan-detail', pk=loan.uuid)
@@ -436,7 +443,9 @@ class LoanRepaymentDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIn
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _("Repayment deleted successfully."))
-        return super().delete(request, *args, **kwargs)
+        response = super().delete(request, *args, **kwargs)
+        ph_capture(self.request.user, 'loan_repayment_deleted', {})
+        return response
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')

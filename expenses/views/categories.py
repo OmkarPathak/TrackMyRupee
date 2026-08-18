@@ -13,6 +13,7 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import CategoryForm
 from ..models import Category
+from ..posthog_utils import ph_capture
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 
 
@@ -120,7 +121,9 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
             return redirect('pricing')
         form.instance.user = self.request.user
         messages.success(self.request, _("Category created successfully!"))
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        ph_capture(self.request.user, 'category_created', {'has_budget_limit': bool(form.instance.limit)})
+        return response
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -191,6 +194,7 @@ class CategoryUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
                 from ..models import Expense
                 Expense.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
                 
+            ph_capture(self.request.user, 'category_updated', {})
             return response
         except IntegrityError:
             messages.error(self.request, "This category already exists.")
@@ -203,6 +207,7 @@ class CategoryDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
 
     def form_valid(self, form):
         messages.success(self.request, _("Category deleted successfully."))
+        ph_capture(self.request.user, 'category_deleted', {})
         return super().form_valid(form)
 
 
@@ -219,6 +224,7 @@ class CategoryBulkDeleteView(LoginRequiredMixin, View):
         if deleted_count > 0:
             categories_to_delete.delete()
             messages.success(request, _('%(count)d categories deleted successfully.') % {'count': deleted_count})
+            ph_capture(request.user, 'category_bulk_deleted', {'count': deleted_count})
         else:
             messages.warning(request, _('No valid categories found to delete.'))
 

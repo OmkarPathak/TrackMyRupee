@@ -38,6 +38,7 @@ from ..models import (
     Transfer,
 )
 from .mixins import HtmxPartialTemplateMixin
+from ..posthog_utils import ph_capture
 
 
 class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
@@ -580,8 +581,15 @@ def upload_view(request):
                 results = summary
                 if summary['created_count'] > 0:
                     messages.success(request, _("Processing complete! See summary below."))
+                    ph_capture(request.user, 'expenses_imported', {
+                        'created_count': summary['created_count'],
+                        'duplicate_count': summary['duplicate_count'],
+                        'error_count': summary['error_count'],
+                        'total_rows': summary['total_rows'],
+                    })
                 else:
                     messages.info(request, _("Processing complete. No new expenses were added."))
+
 
         except Exception as e:
             traceback.print_exc()

@@ -20,7 +20,7 @@ from ..models import (
     SavingsGoal,
     Transfer,
 )
-
+from ..posthog_utils import ph_capture
 
 class DataExportView(LoginRequiredMixin, TemplateView):
     template_name = 'expenses/export_data.html'
@@ -183,6 +183,7 @@ class DataExportView(LoginRequiredMixin, TemplateView):
             files_to_zip['savings_goals.csv'] = output.getvalue()
 
         # Handle output
+        ph_capture(request.user, 'data_exported', {'entities': selected_entities, 'format': 'zip' if len(files_to_zip) > 1 else 'csv'})
         if len(files_to_zip) == 1:
             filename, content = list(files_to_zip.items())[0]
             response = HttpResponse(content, content_type='text/csv')
@@ -268,4 +269,5 @@ def export_expenses(request):
             e.account.currency if e.account else '',
         ])
     
+    ph_capture(request.user, 'expense_list_exported', {'has_filters': bool(search_query or start_date or end_date or categories)})
     return response

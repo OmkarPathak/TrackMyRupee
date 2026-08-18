@@ -16,6 +16,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
+from ..posthog_utils import ph_capture
 
 from ..forms import GoalContributionForm, SavingsGoalForm
 from ..models import GoalContribution, SavingsGoal
@@ -65,7 +66,9 @@ class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         messages.success(self.request, _("Savings goal created successfully!"))
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        ph_capture(self.request.user, 'goal_created', {'target_amount': str(self.object.target_amount), 'has_target_date': bool(self.object.target_date)})
+        return response
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
@@ -102,7 +105,9 @@ class SavingsGoalUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView
         from django.contrib import messages
         from django.utils.translation import gettext as _
         messages.success(self.request, _("Savings goal updated successfully!"))
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        ph_capture(self.request.user, 'goal_updated', {})
+        return response
 
 class SavingsGoalDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = SavingsGoal
@@ -113,7 +118,9 @@ class SavingsGoalDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView
         from django.contrib import messages
         from django.utils.translation import gettext as _
         messages.success(self.request, _("Savings goal deleted successfully."))
-        return super().delete(request, *args, **kwargs)
+        response = super().delete(request, *args, **kwargs)
+        ph_capture(self.request.user, 'goal_deleted', {})
+        return response
 
 class SavingsGoalDetailView(LoginRequiredMixin, View):
     template_name = 'expenses/goal_detail.html'
@@ -438,6 +445,7 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             c = form.save(commit=False); c.goal = goal; c.save()
             messages.success(request, _("Contribution added successfully!"))
             request.session['trigger_confetti'] = True
+            ph_capture(request.user, 'goal_contribution_added', {'amount': str(c.amount)})
             return redirect('goal-detail', pk=get_redirect_pk_or_uuid(goal))
 
         return render(request, self.template_name, self._get_context_data(request, goal, form=form))
@@ -460,7 +468,9 @@ class GoalContributionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, Updat
 
     def form_valid(self, form):
         messages.success(self.request, _("Contribution updated successfully!"))
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        ph_capture(self.request.user, 'goal_contribution_updated', {'amount': str(self.object.amount)})
+        return response
 
 class GoalContributionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = GoalContribution
@@ -477,4 +487,6 @@ class GoalContributionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, Delet
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _("Contribution deleted successfully!"))
-        return super().delete(request, *args, **kwargs)
+        response = super().delete(request, *args, **kwargs)
+        ph_capture(self.request.user, 'goal_contribution_deleted', {})
+        return response

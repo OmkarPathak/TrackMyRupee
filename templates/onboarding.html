@@ -915,6 +915,11 @@
         };
         sendOnboardingPost(payload).then(data => {
             if (data.success) {
+                // PostHog: final expense step + onboarding completed
+                if (typeof posthog !== 'undefined') {
+                    posthog.capture('onboarding_step_completed', { step: 'expense' });
+                    posthog.capture('onboarding_completed', { skipped: false });
+                }
                 // Show celebration overlay
                 document.getElementById('celebration-overlay').classList.add('active');
             }
@@ -951,6 +956,10 @@
         if (step === 'expense') {
             // Skiping expense means ending onboarding wizard
             sendOnboardingPost({ step: 'skip' }).then(() => {
+                // PostHog: onboarding skipped
+                if (typeof posthog !== 'undefined') {
+                    posthog.capture('onboarding_completed', { skipped: true, skipped_at: step });
+                }
                 finishOnboarding();
             });
         } else {
@@ -999,6 +1008,10 @@
 
         sendOnboardingPost(payload).then(data => {
             if (data.success) {
+                // PostHog: onboarding step completed
+                if (typeof posthog !== 'undefined') {
+                    posthog.capture('onboarding_step_completed', { step: step });
+                }
                 if (step === 'accounts') {
                     userAccounts = data.accounts || [];
                     populateAccountSelects();
