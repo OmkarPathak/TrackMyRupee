@@ -43,6 +43,10 @@
             capture_pageleave: true,
         });
 
+        // Fire initial pageview explicitly to register with PostHog's setup check
+        posthog.capture('$pageview');
+
+
         {% if request.user.is_authenticated %}
         posthog.identify('{{ request.user.id }}', {
             email: '{{ request.user.email|escapejs }}',
