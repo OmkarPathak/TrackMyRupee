@@ -2731,3 +2731,186 @@ a:hover {
   max-width: 240px;
 }
 
+
+/* =============================================
+   Mobile Filter Bottom-Sheet Drawer
+   Only active on screens ≤ 768px
+   ============================================= */
+
+/* Backdrop overlay */
+.mobile-filter-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.mobile-filter-backdrop.is-visible {
+  display: block;
+  opacity: 1;
+}
+
+/* The bottom-sheet drawer */
+.mobile-filter-drawer {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: var(--bs-body-bg);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  min-height: 50vh;
+  min-height: 50dvh;
+  max-height: 90dvh;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.mobile-filter-drawer.is-open {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-filter-drawer.is-animating-in {
+  transform: translateY(0);
+}
+
+/* Drag handle */
+.mobile-filter-drawer__handle {
+  width: 40px;
+  height: 4px;
+  background: var(--bs-border-color);
+  border-radius: 2px;
+  margin: 12px auto 0;
+  flex-shrink: 0;
+}
+
+/* Drawer header */
+.mobile-filter-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.mobile-filter-drawer__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bs-body-color);
+  margin: 0;
+}
+
+.mobile-filter-drawer__close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--bs-tertiary-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bs-secondary-color);
+  cursor: pointer;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mobile-filter-drawer__close:hover {
+  background: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+}
+
+/* Drawer body — scrollable */
+.mobile-filter-drawer__body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 20px;
+  flex: 1 1 auto;
+}
+
+/* Footer with action buttons */
+.mobile-filter-drawer__footer {
+  padding: 12px 20px 20px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--bs-border-color-translucent);
+  display: flex;
+  gap: 10px;
+}
+
+.mobile-filter-drawer__footer .btn {
+  flex: 1;
+  border-radius: 12px !important;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+}
+
+/* Ensure the drawer's form inputs look great on mobile */
+@media (max-width: 768px) {
+  /* Remove container cards/borders inside mobile filter drawer for clean look */
+  .mobile-filter-drawer__body form,
+  .mobile-filter-drawer__body .card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .mobile-filter-drawer__body .form-control,
+  .mobile-filter-drawer__body .form-select {
+    font-size: 1rem; /* Prevents iOS zoom on focus */
+    min-height: 44px;
+  }
+
+  .mobile-filter-drawer__body .input-group-text {
+    min-height: 44px;
+  }
+
+  /* Enhanced Dropdown & Multiselect UX inside mobile filter drawer */
+  .mobile-filter-drawer__body .dropdown-menu,
+  .mobile-filter-drawer__body .multiselect-container {
+    max-height: 220px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    z-index: 10050 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--bs-border-color) !important;
+    background-color: var(--bs-body-bg) !important;
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  .mobile-filter-drawer__body .multiselect-container .multiselect-option,
+  .mobile-filter-drawer__body .dropdown-item {
+    padding: 0.65rem 0.85rem !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Spacer for safe-area on notch devices */
+  .mobile-filter-drawer {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Active filter pill color matching Apply button (#1D9E75) */
+.time-period-pill.active,
+.time-period-pill.btn-primary,
+label.time-period-pill.active {
+  background-color: #1D9E75 !important;
+  border-color: #1D9E75 !important;
+  color: #ffffff !important;
+}

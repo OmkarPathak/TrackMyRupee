@@ -1893,10 +1893,270 @@
                 }
                 
                 window.location.href = url.toString();
-            }
         });
     </script>
+
+    <!-- Handle Time Period Pill Changes (Client-side custom date toggle) -->
+    <script>
+    window.handleTimePeriodChange = function(input) {
+        if (!input) return;
+        var val = input.value;
+        var form = input.closest('form');
+        if (!form) return;
+
+        var pills = form.querySelectorAll('input[name="time_period"]');
+        pills.forEach(function(radio) {
+            var label = radio.closest('label');
+            if (!label) return;
+            if (radio.value === val) {
+                label.className = 'btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill btn-primary text-white border-primary shadow-sm active';
+                label.style.backgroundColor = '#1D9E75';
+                label.style.borderColor = '#1D9E75';
+                label.style.color = '#ffffff';
+            } else {
+                label.className = 'btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill btn-light text-secondary border-0';
+                label.style.backgroundColor = 'var(--bs-tertiary-bg)';
+                label.style.borderColor = '';
+                label.style.color = '';
+            }
+        });
+
+        var customDateWrap = form.querySelector('.custom-date-container');
+        if (val === 'custom') {
+            if (customDateWrap) {
+                customDateWrap.classList.remove('d-none');
+            }
+        } else {
+            if (customDateWrap) {
+                customDateWrap.classList.add('d-none');
+            }
+            var f = document.createElement('input');
+            f.type = 'hidden';
+            f.name = 'pill_clicked';
+            f.value = 'true';
+            form.appendChild(f);
+            form.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+    };
+    </script>
+
+    <!-- Mobile Filter Drawer -->
+    <script>
+    (function () {
+        'use strict';
+
+        var MOBILE_BP = 768;
+
+        /* ---- Singleton drawer elements ---- */
+        var backdrop = null;
+        var drawer = null;
+        var drawerBody = null;
+        var drawerTitle = null;
+        var currentCollapseId = null;   // ID of the collapse panel we borrowed content from
+        var currentCollapseEl = null;   // the actual collapse DOM element
+        var originalParent = null;      // where to put the form back
+        var originalNextSibling = null; // sibling to restore insertion order
+        var borrowedForm = null;        // the actual form element we moved
+
+        function isMobile() {
+            return window.innerWidth <= MOBILE_BP;
+        }
+
+        function buildDrawer() {
+            if (drawer) return; // already built
+
+            /* Backdrop */
+            backdrop = document.createElement('div');
+            backdrop.className = 'mobile-filter-backdrop';
+            backdrop.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(backdrop);
+
+            /* Drawer shell */
+            drawer = document.createElement('div');
+            drawer.className = 'mobile-filter-drawer';
+            drawer.setAttribute('role', 'dialog');
+            drawer.setAttribute('aria-modal', 'true');
+            drawer.setAttribute('aria-label', 'Filters');
+            drawer.innerHTML =
+                '<div class="mobile-filter-drawer__handle"></div>' +
+                '<div class="mobile-filter-drawer__header">' +
+                    '<h2 class="mobile-filter-drawer__title">Filters</h2>' +
+                    '<button type="button" class="mobile-filter-drawer__close" aria-label="Close filters">' +
+                        '<i class="bi bi-x-lg"></i>' +
+                    '</button>' +
+                '</div>' +
+                '<div class="mobile-filter-drawer__body"></div>';
+            document.body.appendChild(drawer);
+
+            drawerBody = drawer.querySelector('.mobile-filter-drawer__body');
+            drawerTitle = drawer.querySelector('.mobile-filter-drawer__title');
+
+            /* Close button */
+            drawer.querySelector('.mobile-filter-drawer__close').addEventListener('click', closeDrawer);
+
+            /* Backdrop tap */
+            backdrop.addEventListener('click', closeDrawer);
+
+            /* Swipe-down to close: only trigger when dragging down from the drag handle or header,
+               or when dragging down at the top of drawerBody (scrollTop <= 0) outside dropdown menus & inputs */
+            var touchStartY = 0;
+            var touchStartScrollTop = 0;
+            var isHandleOrHeaderTouch = false;
+            var isDropdownOrInputTouch = false;
+
+            drawer.addEventListener('touchstart', function (e) {
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = drawerBody ? drawerBody.scrollTop : 0;
+                isHandleOrHeaderTouch = !!e.target.closest('.mobile-filter-drawer__handle, .mobile-filter-drawer__header');
+                isDropdownOrInputTouch = !!e.target.closest('.dropdown-menu, .multiselect-container, select, input, option, label');
+            }, { passive: true });
+
+            drawer.addEventListener('touchend', function (e) {
+                var dy = e.changedTouches[0].clientY - touchStartY;
+                if (isHandleOrHeaderTouch && dy > 50) {
+                    closeDrawer();
+                } else if (touchStartScrollTop <= 0 && !isDropdownOrInputTouch && dy > 90) {
+                    closeDrawer();
+                }
+            }, { passive: true });
+        }
+
+        function openDrawer(toggleBtn) {
+            if (!isMobile()) return;
+
+            buildDrawer();
+
+            /* Find the linked collapse */
+            var collapseTarget = toggleBtn.getAttribute('data-bs-target');
+            if (!collapseTarget) return;
+            var collapseEl = document.querySelector(collapseTarget);
+            if (!collapseEl) return;
+
+            /* Prevent Bootstrap from toggling collapse on mobile */
+            /* (we handle show/hide ourselves) */
+            currentCollapseId = collapseTarget;
+            currentCollapseEl = collapseEl;
+
+            /* Get the filter form inside the collapse */
+            var form = collapseEl.querySelector('form');
+            if (!form) return;
+
+            /* Immediately kill any Bootstrap-toggled show/collapsing state
+               so the inline collapse never becomes visible */
+            collapseEl.classList.remove('show', 'collapsing');
+            collapseEl.style.height = '';
+            /* Also kill it after the next frame in case Bootstrap adds it async */
+            requestAnimationFrame(function () {
+                collapseEl.classList.remove('show', 'collapsing');
+                collapseEl.style.height = '';
+            });
+
+            /* Move the form into the drawer body */
+            originalParent = form.parentElement;
+            originalNextSibling = form.nextSibling;
+            borrowedForm = form;
+            drawerBody.appendChild(form);
+
+            /* Update drawer title based on page context */
+            var pageTitle = 'Filters';
+            var shell = collapseEl.closest('[id$="-shell"]');
+            if (shell) {
+                var h2 = shell.querySelector('h2, h3');
+                if (h2) {
+                    pageTitle = h2.textContent.trim().split('\n')[0].trim();
+                    if (pageTitle.length > 20) pageTitle = 'Filters';
+                }
+            }
+            drawerTitle.textContent = 'Filters';
+
+            /* Show drawer */
+            drawer.classList.add('is-open');
+            backdrop.style.display = 'block';
+
+            /* Force reflow then animate in */
+            drawer.getBoundingClientRect();
+            backdrop.getBoundingClientRect();
+
+            backdrop.classList.add('is-visible');
+            drawer.classList.add('is-animating-in');
+
+            /* Lock body scroll */
+            document.body.style.overflow = 'hidden';
+
+            /* Focus the drawer for accessibility */
+            drawer.setAttribute('tabindex', '-1');
+            drawer.focus();
+        }
+
+        function closeDrawer() {
+            if (!drawer || !drawer.classList.contains('is-open')) return;
+
+            /* Slide out */
+            drawer.classList.remove('is-animating-in');
+            backdrop.classList.remove('is-visible');
+
+            /* Wait for transition to finish, then clean up */
+            var onTransEnd = function () {
+                drawer.removeEventListener('transitionend', onTransEnd);
+                drawer.classList.remove('is-open');
+                backdrop.style.display = 'none';
+
+                /* Return the form to its original location */
+                if (borrowedForm && originalParent) {
+                    if (originalNextSibling) {
+                        originalParent.insertBefore(borrowedForm, originalNextSibling);
+                    } else {
+                        originalParent.appendChild(borrowedForm);
+                    }
+                }
+
+                /* Ensure the collapse stays hidden — Bootstrap may have added
+                   'show' or 'collapsing' while we were intercepting the click */
+                if (currentCollapseEl) {
+                    currentCollapseEl.classList.remove('show', 'collapsing');
+                    currentCollapseEl.style.height = '';
+                }
+
+                borrowedForm = null;
+                originalParent = null;
+                originalNextSibling = null;
+                currentCollapseId = null;
+                currentCollapseEl = null;
+
+                /* Restore body scroll */
+                document.body.style.overflow = '';
+            };
+            drawer.addEventListener('transitionend', onTransEnd);
+        }
+
+        /* ---- Intercept filter-toggle-btn clicks ---- */
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.filter-toggle-btn');
+            if (!btn) return;
+
+            if (!isMobile()) return; // desktop: let Bootstrap collapse handle it
+
+            /* Prevent Bootstrap collapse from running on mobile */
+            e.preventDefault();
+            e.stopPropagation();
+
+            openDrawer(btn);
+        }, true /* capture phase so we intercept before Bootstrap */);
+
+        /* ---- Re-init on HTMX swaps (content reloads) ---- */
+        document.addEventListener('htmx:afterSwap', function () {
+            /* If drawer is open and content was swapped, close it */
+            if (drawer && drawer.classList.contains('is-open')) {
+                closeDrawer();
+            }
+        });
+
+        /* ---- Close on ESC ---- */
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeDrawer();
+        });
+
+    })();
+    </script>
 </body>
-
-
 </html>
