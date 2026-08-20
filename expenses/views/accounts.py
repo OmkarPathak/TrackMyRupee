@@ -324,8 +324,10 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
             return redirect('pricing')
         form.instance.user = self.request.user
         messages.success(self.request, _("Account created successfully!"))
-        ph_capture(self.request.user, 'account_created', {'account_type': self.object.account_type, 'currency': self.object.currency, 'has_credit_limit': bool(getattr(self.object, 'credit_limit', None))})
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        if self.object:
+            ph_capture(self.request.user, 'account_created', {'account_type': self.object.account_type, 'currency': self.object.currency, 'has_credit_limit': bool(getattr(self.object, 'credit_limit', None))})
+        return response
 
 class AccountUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Account
