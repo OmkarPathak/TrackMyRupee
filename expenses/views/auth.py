@@ -265,6 +265,7 @@ class LandingPageView(TemplateView):
         context['plans_monthly'] = {p.tier: p for p in plans.filter(duration='MONTHLY')}
         context['plans_yearly'] = {p.tier: p for p in plans.filter(duration='YEARLY')}
         context['plans'] = context['plans_yearly']
+        context['total_users_count'] = User.objects.count()
         return context
 
 class FeaturesPageView(TemplateView):

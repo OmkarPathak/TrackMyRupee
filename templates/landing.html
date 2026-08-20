@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n digit_filters %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -958,7 +958,7 @@
                         <i class="bi bi-check"></i>
                         {% trans "It's free, takes 2 minutes" %}
                         <i class="bi bi-check"></i>
-                        <span>{% trans "Used by 172 professionals" %}</span>
+                        <span>{% blocktrans count count=total_users_count|default:172 %}Used by {{ count }} professional{% plural %}Used by {{ count }} professionals{% endblocktrans %}</span>
                     </div>
                     <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
                         <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Bangalore</span>
