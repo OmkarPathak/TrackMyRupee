@@ -1127,6 +1127,7 @@ class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
         if loan:
             self.instance.loan = loan
         self.fields['date'].initial = date.today
+        self.fields['date'].input_formats = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%y', '%d-%m-%y']
         
         if user:
             # Enforce Tier Limits for Accounts
@@ -1202,22 +1203,37 @@ class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
         if loan and amount is not None:
             user_principal = cleaned_data.get('principal_portion')
             user_interest = cleaned_data.get('interest_portion')
+            rem_principal = Decimal(str(loan.remaining_principal)).quantize(Decimal('0.01'))
+
+            # Validate non-negative portions if explicitly supplied
+            if user_principal is not None and user_principal < 0:
+                self.add_error('principal_portion', _("Principal portion cannot be negative."))
+            if user_interest is not None and user_interest < 0:
+                self.add_error('interest_portion', _("Interest portion cannot be negative."))
 
             if user_principal is not None and user_interest is not None:
-                cleaned_data['principal_portion'] = user_principal
-                cleaned_data['interest_portion'] = user_interest
+                # Ensure sum of principal + interest matches total amount
+                if (user_principal + user_interest).quantize(Decimal('0.01')) != amount.quantize(Decimal('0.01')):
+                    self.add_error('amount', _("Total amount must equal principal portion plus interest portion."))
             elif user_principal is not None:
-                cleaned_data['principal_portion'] = user_principal
-                cleaned_data['interest_portion'] = max(Decimal('0.00'), amount - user_principal)
+                user_interest = max(Decimal('0.00'), amount - user_principal).quantize(Decimal('0.01'))
             elif user_interest is not None:
-                cleaned_data['interest_portion'] = user_interest
-                cleaned_data['principal_portion'] = max(Decimal('0.00'), amount - user_interest)
+                user_principal = max(Decimal('0.00'), amount - user_interest).quantize(Decimal('0.01'))
             else:
                 breakdown = self._calculate_repayment_breakdown(amount, loan)
                 if breakdown:
-                    cleaned_data['amount'] = breakdown['amount']
-                    cleaned_data['principal_portion'] = breakdown['principal_portion']
-                    cleaned_data['interest_portion'] = breakdown['interest_portion']
+                    amount = breakdown['amount']
+                    user_principal = breakdown['principal_portion']
+                    user_interest = breakdown['interest_portion']
+
+            # Auto-cap principal portion if repayment exceeds remaining principal (e.g. paying off loan in full)
+            if user_principal is not None and rem_principal > 0 and user_principal > rem_principal:
+                user_principal = rem_principal
+                amount = (user_principal + (user_interest or Decimal('0.00'))).quantize(Decimal('0.01'))
+
+            cleaned_data['amount'] = amount.quantize(Decimal('0.01')) if amount is not None else amount
+            cleaned_data['principal_portion'] = user_principal.quantize(Decimal('0.01')) if user_principal is not None else user_principal
+            cleaned_data['interest_portion'] = user_interest.quantize(Decimal('0.01')) if user_interest is not None else user_interest
 
         if add_to_recurring and not recurring_frequency:
             self.add_error('recurring_frequency', _("Please select a recurring frequency."))

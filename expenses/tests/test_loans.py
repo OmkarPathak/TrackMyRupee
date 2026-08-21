@@ -172,3 +172,55 @@ class LoanServiceTest(TestCase):
         self.assertContains(detail_response, 'id="loanBreakdownChart"')
         self.assertContains(detail_response, 'id="loanAmortizationChart"')
 
+    def test_loan_repayment_date_format_dd_mm_yyyy(self):
+        """Test that date in DD/MM/YYYY format (e.g., 21/08/2026) is accepted cleanly by LoanRepaymentForm."""
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse('loan-repayment-create', kwargs={'pk': self.loan.uuid}),
+            {
+                'from_account': self.account.id,
+                'amount': '1000.00',
+                'principal_portion': '900.00',
+                'interest_portion': '100.00',
+                'date': '21/08/2026',
+            }
+        )
+        self.assertRedirects(response, reverse('loan-detail', kwargs={'pk': self.loan.uuid}))
+
+        repayment = self.loan.repayments.latest('created_at')
+        self.assertEqual(repayment.date, datetime.date(2026, 8, 21))
+        self.assertEqual(repayment.amount, Decimal('1000.00'))
+
+    def test_loan_repayment_auto_cap_principal_on_final_payoff(self):
+        """Test that submitting an amount higher than remaining principal auto-caps principal portion to exact remaining principal without errors."""
+        self.client.force_login(self.user)
+        # Reduce remaining principal down to 3.95
+        LoanRepayment.objects.create(
+            loan=self.loan,
+            from_account=self.account,
+            amount=Decimal('49996.05'),
+            principal_portion=Decimal('49996.05'),
+            interest_portion=Decimal('0.00'),
+            date=datetime.date(2026, 8, 1)
+        )
+        self.assertEqual(self.loan.remaining_principal, Decimal('3.95'))
+
+        # Submit higher amount (4.50 with 4.47 principal)
+        response = self.client.post(
+            reverse('loan-repayment-create', kwargs={'pk': self.loan.uuid}),
+            {
+                'from_account': self.account.id,
+                'amount': '4.50',
+                'principal_portion': '4.47',
+                'interest_portion': '0.03',
+                'date': '21/08/2026',
+            }
+        )
+        self.assertRedirects(response, reverse('loan-detail', kwargs={'pk': self.loan.uuid}))
+
+        repayment = self.loan.repayments.latest('created_at')
+        self.assertEqual(repayment.principal_portion, Decimal('3.95'))
+        self.assertEqual(repayment.interest_portion, Decimal('0.03'))
+        self.assertEqual(repayment.amount, Decimal('3.98'))
+        self.assertEqual(self.loan.remaining_principal, Decimal('0.00'))
+

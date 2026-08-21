@@ -419,7 +419,9 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             except (RuntimeError, ValidationError):
                 messages.error(request, _("Unable to record repayment because currency conversion failed or repayment data is invalid."))
         else:
-            messages.error(request, _("Error recording repayment. Please check the form."))
+            errors_list = [f"{err}" for field, errs in form.errors.items() for err in errs]
+            err_msg = " ".join(errors_list) if errors_list else _("Please check the form.")
+            messages.error(request, _("Error recording repayment: %(err)s") % {'err': err_msg})
         return redirect('loan-detail', pk=loan.uuid)
 
 class LoanInterestRateCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
