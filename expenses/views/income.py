@@ -34,7 +34,7 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Income.objects.filter(user=self.request.user).select_related('account').order_by('-date')
+        queryset = Income.objects.filter(user=self.request.user).select_related('account')
         
         # Date Filter
         queryset = apply_date_filters(queryset, self.request)
@@ -62,6 +62,17 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
             
             if group_source_types:
                 queryset = queryset.filter(source_type__in=group_source_types)
+
+        # Sorting
+        sort_by = self.request.GET.get('sort', 'date_desc')
+        if sort_by == 'date_asc':
+            queryset = queryset.order_by('date', 'created_at', 'id')
+        elif sort_by == 'amount_desc':
+            queryset = queryset.order_by('-base_amount', '-id')
+        elif sort_by == 'amount_asc':
+            queryset = queryset.order_by('base_amount', 'id')
+        else:
+            queryset = queryset.order_by('-date', '-created_at', '-id')
             
         return queryset
 
@@ -170,6 +181,10 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         context['end_date'] = self.request.GET.get('end_date', '')
         context['search_query'] = self.request.GET.get('search', '')
         
+        sort_by = self.request.GET.get('sort', 'date_desc')
+        context['sort_by'] = sort_by
+        context['current_sort'] = sort_by
+        
         # Calculate active filters count
         active_filters = 0
         if context['search_query']:
@@ -179,6 +194,8 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         if context['source_types']:
             active_filters += 1
         if context['income_groups']:
+            active_filters += 1
+        if sort_by and sort_by != 'date_desc':
             active_filters += 1
         context['active_filters_count'] = active_filters
             

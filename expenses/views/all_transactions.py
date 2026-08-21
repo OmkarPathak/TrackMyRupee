@@ -154,11 +154,13 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         queryset = normalized_qs[0].union(*normalized_qs[1:])
 
         # Apply sorting
-        sort_by = self.request.GET.get('sort', '')
-        if sort_by == 'amount_asc':
-            queryset = queryset.order_by('unified_amount')
+        sort_by = self.request.GET.get('sort', 'date_desc')
+        if sort_by == 'date_asc':
+            queryset = queryset.order_by('date', 'created_at')
         elif sort_by == 'amount_desc':
             queryset = queryset.order_by('-unified_amount')
+        elif sort_by == 'amount_asc':
+            queryset = queryset.order_by('unified_amount')
         else:
             queryset = queryset.order_by('-date', '-created_at')
 
@@ -448,13 +450,19 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         context['time_period'] = time_period
         context['start_date'] = start_date or ''
         context['end_date'] = end_date or ''
-        context['current_sort'] = self.request.GET.get('sort', '')
+        sort_by = self.request.GET.get('sort', 'date_desc')
+        context['sort_by'] = sort_by
+        context['current_sort'] = sort_by
         
         # Calculate active filters count
         active_filters = 0
         if search_query:
             active_filters += 1
         if time_period != 'this_month':
+            active_filters += 1
+        if selected_types:
+            active_filters += 1
+        if sort_by and sort_by != 'date_desc':
             active_filters += 1
         context['active_filters_count'] = active_filters
 

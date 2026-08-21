@@ -96,14 +96,11 @@
 
         <div class="collapse {% if time_period == 'custom' and request.GET.pill_clicked %}show{% endif %}" id="transactionFilters">
             <form method="get" class="mb-4 mt-4 bg-body p-4 rounded-4 border" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'all-transactions' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                {% if request.GET.sort %}
-                <input type="hidden" name="sort" value="{{ request.GET.sort }}">
-                {% endif %}
                 {% for t in selected_types %}
                 <input type="hidden" name="type" value="{{ t }}">
                 {% endfor %}
                 <div class="row g-4">
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
                         <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search" %}</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
@@ -111,7 +108,17 @@
                         </div>
                     </div>
                     
-                    <div class="col-12 col-md-8">
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small text-muted fw-semibold mb-2">{% trans "Sort By" %}</label>
+                        <select name="sort" class="form-select">
+                            <option value="date_desc" {% if sort_by == 'date_desc' or not sort_by %}selected{% endif %}>{% trans "Date, newest first" %}</option>
+                            <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>{% trans "Date, oldest first" %}</option>
+                            <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>{% trans "Amount, high to low" %}</option>
+                            <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>{% trans "Amount, low to high" %}</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6">
                         <label class="form-label small text-muted fw-semibold mb-2">{% trans "Time Period" %}</label>
                         <div class="d-flex flex-wrap gap-2">
                             {% with periods="this_month:This month,last_month:Last month,last_3_months:Last 3 months,this_year:This year,all:All time,custom:Custom" %}
@@ -240,8 +247,9 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 hide-scrollbar" style="scrollbar-width: none;">
+            <div class="d-flex align-items-center gap-2 overflow-x-auto my-3 hide-scrollbar" style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
                 <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap" style="font-size: 0.8rem; {% if not selected_types %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}" hx-get="{% url 'all-transactions' %}?{% url_replace type='' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "All" %}</button>
                 <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap" style="font-size: 0.8rem; {% if 'INCOME' in selected_types %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}" hx-get="{% url 'all-transactions' %}?{% url_replace type='INCOME' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Income" %}</button>
                 <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap" style="font-size: 0.8rem; {% if 'EXPENSE' in selected_types %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}" hx-get="{% url 'all-transactions' %}?{% url_replace type='EXPENSE' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Expenses" %}</button>
@@ -249,7 +257,6 @@
                 <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap" style="font-size: 0.8rem; {% if 'CAPITAL_EVENT' in selected_types %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}" hx-get="{% url 'all-transactions' %}?{% url_replace type='CAPITAL_EVENT' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Capital Event" %}</button>
                 <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap" style="font-size: 0.8rem; {% if 'LOAN' in selected_types %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}" hx-get="{% url 'all-transactions' %}?{% url_replace type='LOAN' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Loans" %}</button>
             </div>
-        </div>
     </div>
 
     <div class="card-body p-0">
@@ -266,18 +273,18 @@
                                     <th>{% trans "Category/Source" %}</th>
                                     <th>{% trans "Account" %}</th>
                                     <th class="text-end pe-4">
-                                        {% if request.GET.sort == 'amount_asc' %}
-                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" style="cursor: pointer;" hx-get="{% url 'all-transactions' %}" hx-vals='{"sort": "amount_desc"}' hx-include="#filter-form" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                                        {% if sort_by == 'amount_asc' %}
+                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" style="cursor: pointer;" hx-get="{% url 'all-transactions' %}?{% url_replace sort='amount_desc' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
                                                 <span>{% trans "Amount" %}</span>
                                                 <i class="bi bi-arrow-up-short"></i>
                                             </a>
-                                        {% elif request.GET.sort == 'amount_desc' %}
-                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" style="cursor: pointer;" hx-get="{% url 'all-transactions' %}" hx-vals='{"sort": "amount_asc"}' hx-include="#filter-form" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                                        {% elif sort_by == 'amount_desc' %}
+                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" style="cursor: pointer;" hx-get="{% url 'all-transactions' %}?{% url_replace sort='amount_asc' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
                                                 <span>{% trans "Amount" %}</span>
                                                 <i class="bi bi-arrow-down-short"></i>
                                             </a>
                                         {% else %}
-                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" style="cursor: pointer;" hx-get="{% url 'all-transactions' %}" hx-vals='{"sort": "amount_desc"}' hx-include="#filter-form" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                                            <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" style="cursor: pointer;" hx-get="{% url 'all-transactions' %}?{% url_replace sort='amount_desc' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
                                                 <span>{% trans "Amount" %}</span>
                                                 <i class="bi bi-arrow-down-up text-muted opacity-50"></i>
                                             </a>

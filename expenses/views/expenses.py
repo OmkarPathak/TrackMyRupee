@@ -75,12 +75,15 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
             queryset = queryset.filter(description__icontains=search_query)
             
         # Sorting
-        sort_by = self.request.GET.get('sort')
-        if sort_by == 'amount_asc':
-            queryset = queryset.order_by('amount')
+        sort_by = self.request.GET.get('sort', 'date_desc')
+        if sort_by == 'date_asc':
+            queryset = queryset.order_by('date', 'created_at', 'id')
         elif sort_by == 'amount_desc':
-            queryset = queryset.order_by('-amount')
-        # Default is already '-date' from line 961, so valid fallback.
+            queryset = queryset.order_by('-base_amount', '-id')
+        elif sort_by == 'amount_asc':
+            queryset = queryset.order_by('base_amount', 'id')
+        else:
+            queryset = queryset.order_by('-date', '-created_at', '-id')
             
         return queryset
 
@@ -125,6 +128,9 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         selected_payment_methods = [pm for pm in selected_payment_methods if pm]
         selected_accounts = [acc for acc in selected_accounts if acc]
         
+        sort_by = self.request.GET.get('sort', 'date_desc')
+        context['sort_by'] = sort_by
+        context['current_sort'] = sort_by
         context['selected_categories'] = selected_categories
         context['selected_payment_methods'] = selected_payment_methods
         context['selected_accounts'] = selected_accounts
@@ -142,6 +148,8 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         if selected_payment_methods:
             active_filters += 1
         if selected_accounts:
+            active_filters += 1
+        if sort_by and sort_by != 'date_desc':
             active_filters += 1
         context['active_filters_count'] = active_filters
 

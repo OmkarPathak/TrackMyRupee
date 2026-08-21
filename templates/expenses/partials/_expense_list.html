@@ -124,11 +124,8 @@
     <!-- Collapsible Filter Form -->
     <div class="collapse {% if time_period == 'custom' and request.GET.pill_clicked %}show{% endif %}" id="expenseFilters">
         <form method="get" class="mb-4 bg-body p-4 rounded-4 border" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-            {% if request.GET.sort %}
-            <input type="hidden" name="sort" value="{{ request.GET.sort }}">
-            {% endif %}
             <div class="row g-4">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
                     <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search" %}</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
@@ -136,7 +133,17 @@
                     </div>
                 </div>
                 
-                <div class="col-12 col-md-8">
+                <div class="col-12 col-md-3">
+                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Sort By" %}</label>
+                    <select name="sort" class="form-select">
+                        <option value="date_desc" {% if sort_by == 'date_desc' or not sort_by %}selected{% endif %}>{% trans "Date, newest first" %}</option>
+                        <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>{% trans "Date, oldest first" %}</option>
+                        <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>{% trans "Amount, high to low" %}</option>
+                        <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>{% trans "Amount, low to high" %}</option>
+                    </select>
+                </div>
+                
+                <div class="col-12 col-md-6">
                     <label class="form-label small text-muted fw-semibold mb-2">{% trans "Time Period" %}</label>
                     <div class="d-flex flex-wrap gap-2">
                         {% with periods="this_month:This month,last_month:Last month,last_3_months:Last 3 months,this_year:This year,all:All time,custom:Custom" %}
@@ -430,12 +437,12 @@
                                     <th>{% trans "Payment Method" %}</th>
                                     <th>{% trans "Account" %}</th>
                                     <th>
-                                        {% if request.GET.sort == 'amount_asc' %}
-                                            <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'expense-list' %}" hx-vals='{"sort": "amount_desc"}' hx-include="#filter-form" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-up-short"></i></a>
-                                        {% elif request.GET.sort == 'amount_desc' %}
-                                            <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'expense-list' %}" hx-vals='{"sort": "amount_asc"}' hx-include="#filter-form" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-down-short"></i></a>
+                                        {% if sort_by == 'amount_asc' %}
+                                            <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'expense-list' %}?{% url_replace sort='amount_desc' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-up-short"></i></a>
+                                        {% elif sort_by == 'amount_desc' %}
+                                            <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'expense-list' %}?{% url_replace sort='amount_asc' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-down-short"></i></a>
                                         {% else %}
-                                            <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'expense-list' %}" hx-vals='{"sort": "amount_desc"}' hx-include="#filter-form" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-down-up text-muted opacity-25" style="font-size: 0.8em;"></i></a>
+                                            <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'expense-list' %}?{% url_replace sort='amount_desc' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-down-up text-muted opacity-25" style="font-size: 0.8em;"></i></a>
                                         {% endif %}
                                     </th>
                                     <th class="text-end pe-4">{% trans "Actions" %}</th>
