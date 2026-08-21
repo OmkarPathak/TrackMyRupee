@@ -64,9 +64,9 @@
                     <!-- Top Section: Title & Actions -->
                     <div class="d-flex flex-column mb-4 gap-1">
                         <!-- Title & Actions Row -->
-                        <div class="d-flex align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-start justify-content-between gap-3">
                             <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
-                                <h2 class="fw-bold text-body mb-0 account-title-text text-truncate">{{ account.name }}</h2>
+                                <h2 class="fw-bold text-body mb-0 account-title-text text-break">{{ account.name }}</h2>
                                 {% if not account.is_active %}
                                     <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill border">{% trans "Inactive" %}</span>
                                 {% endif %}
