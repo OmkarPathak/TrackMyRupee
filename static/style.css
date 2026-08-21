@@ -2773,6 +2773,16 @@ a:hover {
   max-height: 90dvh;
   overflow: hidden;
   will-change: transform;
+  outline: none !important;
+  border: none !important;
+}
+
+.mobile-filter-drawer:focus,
+.mobile-filter-drawer:focus-visible,
+.mobile-filter-drawer:focus-within {
+  outline: none !important;
+  border: none !important;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18) !important;
 }
 
 .mobile-filter-drawer.is-open {
