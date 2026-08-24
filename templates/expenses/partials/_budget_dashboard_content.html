@@ -2,11 +2,12 @@
 
 <div id="budget-shell" class="fade-in pb-4">
     <!-- Header Controls -->
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
+    <!-- Header Controls -->
+    <div class="d-flex flex-row justify-content-between align-items-center mb-3 gap-2">
         <div class="d-flex align-items-center gap-2">
             <h2 class="h3 mb-0 fw-bold text-body">{% trans "Budget" %}</h2>
-            <button class="btn btn-sm btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                    style="width: 30px; height: 30px; min-width: 26px;" 
+            <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" 
+                    style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" 
                     data-bs-toggle="collapse" 
                     data-bs-target="#guideBudgets" 
                     aria-expanded="false" 
@@ -15,59 +16,108 @@
             </button>
         </div>
         
-        <form method="get" id="budgetFilterForm" class="d-flex align-items-center gap-2 flex-nowrap w-100 w-sm-auto mt-1 mt-sm-0">
-            <div class="budget-select-wrapper flex-fill flex-sm-grow-0" style="min-width: 0;">
-                <select name="sort" 
-                        class="form-select form-select-sm rounded-3 shadow-none fw-medium px-2 py-1.5"
-                        style="font-size: 0.8rem; height: 34px;"
-                        hx-get="{% url 'budget' %}" 
-                        hx-target="#budget-shell" 
-                        hx-swap="outerHTML show:none" 
-                        hx-push-url="true" 
-                        hx-indicator="#global-progress-bar"
-                        hx-trigger="change"
-                        hx-include="#budgetFilterForm select">
-                    <option value="urgent" {% if current_sort == 'urgent' %}selected{% endif %}>{% trans "Sort: urgent" %}</option>
-                    <option value="spent" {% if current_sort == 'spent' %}selected{% endif %}>{% trans "Sort: spent" %}</option>
-                    <option value="limit" {% if current_sort == 'limit' %}selected{% endif %}>{% trans "Sort: limit" %}</option>
-                    <option value="name" {% if current_sort == 'name' %}selected{% endif %}>{% trans "Sort: name" %}</option>
-                </select>
-            </div>
-            <div class="budget-select-wrapper flex-fill flex-sm-grow-0" style="min-width: 0;">
-                <select name="month" 
-                        class="form-select form-select-sm rounded-3 shadow-none fw-medium px-2 py-1.5"
-                        style="font-size: 0.8rem; height: 34px;"
-                        hx-get="{% url 'budget' %}" 
-                        hx-target="#budget-shell" 
-                        hx-swap="outerHTML show:none" 
-                        hx-push-url="true" 
-                        hx-indicator="#global-progress-bar"
-                        hx-trigger="change"
-                        hx-include="#budgetFilterForm select">
-                    {% for m_num, m_name in months %}
-                        <option value="{{ m_num }}" {% if m_num == current_month %}selected{% endif %}>
-                            {{ m_name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="budget-select-wrapper flex-fill flex-sm-grow-0" style="min-width: 0;">
-                <select name="year" 
-                        class="form-select form-select-sm rounded-3 shadow-none fw-medium px-2 py-1.5"
-                        style="font-size: 0.8rem; height: 34px;"
-                        hx-get="{% url 'budget' %}" 
-                        hx-target="#budget-shell" 
-                        hx-swap="outerHTML show:none" 
-                        hx-push-url="true" 
-                        hx-indicator="#global-progress-bar"
-                        hx-trigger="change"
-                        hx-include="#budgetFilterForm select">
-                    {% for y in years %}
-                        <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>
-                            {{ y|translate_digits }}
-                        </option>
-                    {% endfor %}
-                </select>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Mobile Filter Toggle Button (opens Mobile Filter Drawer on < 768px) -->
+            <button class="filter-toggle-btn position-relative d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#budgetFilters" aria-expanded="false" aria-controls="budgetFilters" title="{% trans 'Toggle Filters' %}">
+                <i class="bi bi-funnel"></i>
+            </button>
+
+            <!-- Desktop Header Filter Form (Visible on desktop >= 768px) -->
+            <form method="get" id="desktopBudgetFilterForm" class="d-none d-md-flex align-items-center gap-2 flex-nowrap">
+                <div class="budget-select-wrapper">
+                    <select name="sort" 
+                            class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
+                            style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
+                            hx-get="{% url 'budget' %}" 
+                            hx-target="#budget-shell" 
+                            hx-swap="outerHTML show:none" 
+                            hx-push-url="true" 
+                            hx-indicator="#global-progress-bar"
+                            hx-trigger="change"
+                            hx-include="#desktopBudgetFilterForm select">
+                        <option value="urgent" {% if current_sort == 'urgent' %}selected{% endif %}>{% trans "Sort: urgent" %}</option>
+                        <option value="spent" {% if current_sort == 'spent' %}selected{% endif %}>{% trans "Sort: spent" %}</option>
+                        <option value="limit" {% if current_sort == 'limit' %}selected{% endif %}>{% trans "Sort: limit" %}</option>
+                        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>{% trans "Sort: name" %}</option>
+                    </select>
+                </div>
+                <div class="budget-select-wrapper">
+                    <select name="month" 
+                            class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
+                            style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
+                            hx-get="{% url 'budget' %}" 
+                            hx-target="#budget-shell" 
+                            hx-swap="outerHTML show:none" 
+                            hx-push-url="true" 
+                            hx-indicator="#global-progress-bar"
+                            hx-trigger="change"
+                            hx-include="#desktopBudgetFilterForm select">
+                        {% for m_num, m_name in months %}
+                            <option value="{{ m_num }}" {% if m_num == current_month %}selected{% endif %}>
+                                {{ m_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="budget-select-wrapper">
+                    <select name="year" 
+                            class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
+                            style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
+                            hx-get="{% url 'budget' %}" 
+                            hx-target="#budget-shell" 
+                            hx-swap="outerHTML show:none" 
+                            hx-push-url="true" 
+                            hx-indicator="#global-progress-bar"
+                            hx-trigger="change"
+                            hx-include="#desktopBudgetFilterForm select">
+                        {% for y in years %}
+                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>
+                                {{ y|translate_digits }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile Filter Form Collapse Target (Borrowed by Mobile Filter Drawer on mobile) -->
+    <div class="collapse d-md-none" id="budgetFilters">
+        <form method="get" id="budgetFilterForm" class="mb-4 bg-body p-4 rounded-4 border" style="border-color: rgba(0,0,0,0.08) !important;" hx-get="{% url 'budget' %}" hx-target="#budget-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+            <div class="row g-4">
+                <div class="col-12">
+                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Sort By" %}</label>
+                    <select name="sort" class="form-select">
+                        <option value="urgent" {% if current_sort == 'urgent' %}selected{% endif %}>{% trans "Sort: urgent" %}</option>
+                        <option value="spent" {% if current_sort == 'spent' %}selected{% endif %}>{% trans "Sort: spent" %}</option>
+                        <option value="limit" {% if current_sort == 'limit' %}selected{% endif %}>{% trans "Sort: limit" %}</option>
+                        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>{% trans "Sort: name" %}</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Month" %}</label>
+                    <select name="month" class="form-select">
+                        {% for m_num, m_name in months %}
+                            <option value="{{ m_num }}" {% if m_num == current_month %}selected{% endif %}>
+                                {{ m_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Year" %}</label>
+                    <select name="year" class="form-select">
+                        {% for y in years %}
+                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>
+                                {{ y|translate_digits }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
+                    <button type="button" class="btn btn-outline-secondary fw-medium btn-sm px-4" hx-get="{% url 'budget' %}" hx-params="none" hx-target="#budget-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
+                </div>
             </div>
         </form>
     </div>
