@@ -70,34 +70,34 @@
     <!-- Filter Pills Bar (Matching Subscriptions Page Layout) -->
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
         <div class="d-flex align-items-center gap-2 overflow-x-auto pb-1 hide-scrollbar" style="scrollbar-width: none;">
-            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1.5 transition-all text-nowrap"
-                    style="font-size: 0.825rem; {% if status_filter == 'active' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.08);{% endif %}"
+            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
+                    style="font-size: 0.8rem; {% if status_filter == 'active' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=active"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
                     hx-push-url="true"
                     hx-indicator="#global-progress-bar">
-                {% trans "Active" %} <span class="badge rounded-pill {% if status_filter == 'active' %}bg-white text-dark{% else %}bg-secondary-subtle text-secondary{% endif %} ms-1">{{ active_count|translate_digits }}</span>
+                {% trans "Active" %}<span class="ms-2 opacity-75">{{ active_count|translate_digits }}</span>
             </button>
 
-            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1.5 transition-all text-nowrap"
-                    style="font-size: 0.825rem; {% if status_filter == 'inactive' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.08);{% endif %}"
+            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
+                    style="font-size: 0.8rem; {% if status_filter == 'inactive' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=inactive"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
                     hx-push-url="true"
                     hx-indicator="#global-progress-bar">
-                {% trans "Paid Off" %} <span class="badge rounded-pill {% if status_filter == 'inactive' %}bg-white text-dark{% else %}bg-secondary-subtle text-secondary{% endif %} ms-1">{{ inactive_count|translate_digits }}</span>
+                {% trans "Paid Off" %}{% if inactive_count > 0 %}<span class="ms-2 opacity-75">{{ inactive_count|translate_digits }}</span>{% endif %}
             </button>
 
-            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1.5 transition-all text-nowrap"
-                    style="font-size: 0.825rem; {% if status_filter == 'all' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.08);{% endif %}"
+            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
+                    style="font-size: 0.8rem; {% if status_filter == 'all' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=all"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
                     hx-push-url="true"
                     hx-indicator="#global-progress-bar">
-                {% trans "All Loans" %} <span class="badge rounded-pill {% if status_filter == 'all' %}bg-white text-dark{% else %}bg-secondary-subtle text-secondary{% endif %} ms-1">{{ all_count|translate_digits }}</span>
+                {% trans "All Loans" %}<span class="ms-2 opacity-75">{{ all_count|translate_digits }}</span>
             </button>
         </div>
 
@@ -111,7 +111,7 @@
     <div class="row g-4 mb-4">
         <div class="col-12 {% if loan_summaries|length >= 2 %}col-lg-5{% endif %}">
             <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                <div class="card-header bg-transparent border-bottom p-4">
                     <h5 class="fw-bold mb-0">{% trans "Portfolio Debt Breakdown" %}</h5>
                     <p class="text-muted small mb-0">{% trans "Distribution of Principal Paid vs. Interest Paid vs. Debt Remaining" %}</p>
                 </div>
@@ -125,7 +125,7 @@
         {% if loan_summaries|length >= 2 %}
         <div class="col-12 col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                <div class="card-header bg-transparent border-bottom p-4">
                     <h5 class="fw-bold mb-0">{% trans "Loan Principal Progress Comparison" %}</h5>
                     <p class="text-muted small mb-0">{% trans "Principal paid off vs. remaining principal per loan" %}</p>
                 </div>

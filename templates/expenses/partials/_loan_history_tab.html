@@ -1,7 +1,7 @@
 {% load i18n digit_filters humanize %}
 
 <div class="card border-0 shadow-sm rounded-4 mb-4">
-    <div class="card-header bg-transparent border-0 p-4 pb-0">
+    <div class="card-header bg-transparent border-bottom p-4">
         <h5 class="fw-bold mb-0">{% trans "Repayment History" %}</h5>
         <p class="text-muted small mb-0">{% trans "A record of all repayments made towards this loan." %}</p>
     </div>
@@ -46,21 +46,21 @@
             </table>
         </div>
 
-        <!-- Mobile Card-per-Row Layout (< md breakpoint) -->
-        <div class="d-md-none p-3">
+        <!-- Mobile List View (< md breakpoint) - Border-bottom divided items, no nested card-in-card -->
+        <div class="d-md-none">
             {% for r in repayments %}
-            <div class="card border-0 bg-body-tertiary shadow-sm rounded-3 p-3 mb-2 repayment-card{% if forloop.counter > 10 %} repayment-extra d-none{% endif %}">
+            <div class="p-3 {% if not forloop.last %}border-bottom{% endif %} repayment-card{% if forloop.counter > 10 %} repayment-extra d-none{% endif %}">
                 <!-- Line 1: Date + Account badge -->
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-semibold text-body small text-nowrap">{{ r.date|date:"M d, Y" }}</span>
+                    <span class="fw-semibold text-body text-nowrap" style="font-size: 0.9rem;">{{ r.date|date:"M d, Y" }}</span>
                     {% if r.from_account %}
-                    <span class="badge bg-body-secondary text-body border shadow-sm text-truncate" style="max-width: 160px;">
+                    <span class="badge bg-body-tertiary text-body border shadow-sm text-truncate" style="max-width: 170px;">
                         <i class="bi bi-wallet2 me-1"></i> {{ r.from_account.name }}
                     </span>
                     {% endif %}
                 </div>
                 <!-- Line 2: Amount + Delete action button -->
-                <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary-subtle">
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <span class="text-muted small me-1">{% trans "Amount" %}:</span>
                         <span class="fw-bold text-success fs-6">{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}</span>

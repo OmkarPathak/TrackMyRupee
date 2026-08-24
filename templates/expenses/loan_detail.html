@@ -93,7 +93,7 @@
                 
                 <!-- 1. Simplified Balance Trend Visualization -->
                 <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                    <div class="card-header bg-transparent border-bottom p-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
                         <div>
                             <h5 class="fw-bold mb-0">{% trans "Balance Trend" %}</h5>
                             {% if trend_summary_text %}
@@ -129,7 +129,7 @@
                 <div class="row g-4">
                     <div class="col-12 col-md-6">
                         <div class="card border-0 shadow-sm rounded-4 h-100">
-                            <div class="card-header bg-transparent border-0 p-4 pb-0">
+                            <div class="card-header bg-transparent border-bottom p-4">
                                 <h5 class="fw-bold mb-0">{% trans "Loan Structure Breakdown" %}</h5>
                                 <p class="text-muted small mb-0">{% trans "Principal vs. Interest distribution." %}</p>
                             </div>
@@ -252,7 +252,7 @@
 
                 <!-- 5. Interest Rate History Card -->
                 <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <div class="card-header bg-transparent border-bottom p-4">
                         <h6 class="fw-bold mb-0">{% trans "Interest Rate History" %}</h6>
                     </div>
                     <div class="card-body p-4">
@@ -344,13 +344,11 @@
                             {% trans "You can enter any repayment amount here. We will automatically estimate the interest portion from the current loan balance and interest rate, then use the rest as principal. If you enable recurring mode, the same amount will be reused for each occurrence." %}
                         </p>
 
-                        <div class="mt-3 mb-2">
-                            <div class="form-check form-switch">
-                                {{ repayment_form.add_to_recurring }}
-                                <label class="form-check-label fw-bold small text-muted text-uppercase" for="{{ repayment_form.add_to_recurring.id_for_label }}">
-                                    {% trans "Make this a recurring loan repayment" %}
-                                </label>
-                            </div>
+                        <div class="form-check form-switch mt-3 mb-3">
+                            {{ repayment_form.add_to_recurring }}
+                            <label class="form-check-label fw-bold small text-uppercase text-muted" for="{{ repayment_form.add_to_recurring.id_for_label }}" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                {% trans "Make this a recurring loan repayment" %}
+                            </label>
                         </div>
                         <div id="repayment-frequency-container" class="mb-0" style="display: none;">
                             <label class="form-label fw-bold small text-uppercase text-muted" for="{{ repayment_form.recurring_frequency.id_for_label }}">{% trans "Frequency" %}</label>
@@ -509,6 +507,75 @@
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
         const textColor = isDark ? '#e2e8f0' : '#475569';
         const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+        const currency = '{{ loan.currency }}';
+
+        // 1. Doughnut Values Plugin (matching analytics.html)
+        const drawDonutValuesPlugin = {
+            id: 'drawDonutValuesDetail',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (meta.hidden) return;
+                    const total = dataset.data.reduce((acc, curr) => acc + (curr || 0), 0);
+
+                    meta.data.forEach((element, index) => {
+                        const value = dataset.data[index];
+                        if (!value || total === 0) return;
+                        const percentage = value / total;
+                        if (percentage < 0.05) return;
+
+                        const text = typeof window.compactAmount === 'function'
+                            ? currency + window.compactAmount(value, currency)
+                            : currency + value.toLocaleString();
+
+                        const { x, y } = element.tooltipPosition();
+                        ctx.font = 'bold 11px "DM Sans", sans-serif';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                        ctx.shadowBlur = 3;
+                        ctx.fillText(text, x, y);
+                        ctx.shadowColor = 'transparent';
+                    });
+                });
+                ctx.restore();
+            }
+        };
+
+        // 2. Line Chart Values Plugin (matching analytics.html)
+        const drawLineValuesPlugin = {
+            id: 'drawLineValuesDetail',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (meta.hidden) return;
+
+                    meta.data.forEach((element, index) => {
+                        const value = dataset.data[index];
+                        if (value === 0 || value === null || value === undefined) return;
+
+                        const text = typeof window.compactAmount === 'function'
+                            ? currency + window.compactAmount(value, currency)
+                            : currency + value.toLocaleString();
+
+                        ctx.font = 'bold 10px "DM Sans", sans-serif';
+                        ctx.fillStyle = textColor;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+
+                        const x = element.x;
+                        const y = element.y - 6;
+                        ctx.fillText(text, x, y);
+                    });
+                });
+                ctx.restore();
+            }
+        };
 
         // 1. Doughnut Chart: Structure Breakdown
         const breakdownCtx = document.getElementById('loanBreakdownChart');
@@ -530,6 +597,7 @@
                             borderColor: isDark ? '#1e293b' : '#ffffff'
                         }]
                     },
+                    plugins: [drawDonutValuesPlugin],
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
@@ -540,14 +608,33 @@
                                     color: textColor,
                                     font: { size: 11, weight: '500' },
                                     padding: 12,
-                                    usePointStyle: true
+                                    usePointStyle: true,
+                                    generateLabels: function(chart) {
+                                        const chartData = chart.data;
+                                        if (chartData.labels.length && chartData.datasets.length) {
+                                            const ds = chartData.datasets[0];
+                                            return chartData.labels.map((label, i) => {
+                                                const val = ds.data[i] || 0;
+                                                const formattedVal = currency + val.toLocaleString();
+                                                return {
+                                                    text: `${label}: ${formattedVal}`,
+                                                    fillStyle: ds.backgroundColor[i],
+                                                    strokeStyle: ds.borderColor ? ds.borderColor : 'transparent',
+                                                    lineWidth: 0,
+                                                    hidden: isNaN(ds.data[i]) || chart.getDatasetMeta(0).data[i].hidden,
+                                                    index: i
+                                                };
+                                            });
+                                        }
+                                        return [];
+                                    }
                                 }
                             },
                             tooltip: {
                                 callbacks: {
                                     label: function(ctx) {
                                         const val = ctx.parsed || 0;
-                                        return ` ${ctx.label}: {{ loan.currency }}${val.toLocaleString()}`;
+                                        return ` ${ctx.label}: ${currency}${val.toLocaleString()}`;
                                     }
                                 }
                             }
@@ -586,6 +673,7 @@
                                 tension: 0.35
                             }]
                         },
+                        plugins: [drawLineValuesPlugin],
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
@@ -595,7 +683,7 @@
                                     callbacks: {
                                         label: function(ctx) {
                                             const val = ctx.parsed.y || 0;
-                                            return ` {% trans "Balance" %}: {{ loan.currency }}${val.toLocaleString('en-IN')}`;
+                                            return ` {% trans "Balance" %}: ${currency}${val.toLocaleString('en-IN')}`;
                                         }
                                     }
                                 }
@@ -612,7 +700,7 @@
                                         color: textColor,
                                         font: { size: 10 },
                                         callback: function(val) {
-                                            return '{{ loan.currency }}' + (val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val);
+                                            return currency + (val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val);
                                         }
                                     }
                                 }

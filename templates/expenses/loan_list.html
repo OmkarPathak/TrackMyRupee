@@ -13,6 +13,75 @@ function renderLoanListCharts() {
     const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
     const textColor = isDark ? '#e2e8f0' : '#475569';
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+    const currency = '{{ user.profile.currency }}';
+
+    // Donut Values Plugin for portfolio breakdown
+    const drawDonutValuesPlugin = {
+        id: 'drawDonutValuesPortfolio',
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            ctx.save();
+            chart.data.datasets.forEach((dataset, i) => {
+                const meta = chart.getDatasetMeta(i);
+                if (meta.hidden) return;
+                const total = dataset.data.reduce((acc, curr) => acc + (curr || 0), 0);
+
+                meta.data.forEach((element, index) => {
+                    const value = dataset.data[index];
+                    if (!value || total === 0) return;
+                    const percentage = value / total;
+                    if (percentage < 0.05) return;
+
+                    const text = typeof window.compactAmount === 'function'
+                        ? currency + window.compactAmount(value, currency)
+                        : currency + value.toLocaleString();
+
+                    const { x, y } = element.tooltipPosition();
+                    ctx.font = 'bold 11px "DM Sans", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 3;
+                    ctx.fillText(text, x, y);
+                    ctx.shadowColor = 'transparent';
+                });
+            });
+            ctx.restore();
+        }
+    };
+
+    // Bar Chart Values Plugin for loan comparison chart
+    const drawBarValuesPlugin = {
+        id: 'drawBarValuesComp',
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            ctx.save();
+            chart.data.datasets.forEach((dataset, i) => {
+                const meta = chart.getDatasetMeta(i);
+                if (meta.hidden) return;
+
+                meta.data.forEach((element, index) => {
+                    const value = dataset.data[index];
+                    if (value === 0 || value === null || value === undefined) return;
+
+                    const text = typeof window.compactAmount === 'function'
+                        ? currency + window.compactAmount(value, currency)
+                        : currency + value.toLocaleString();
+
+                    ctx.font = 'bold 10px "DM Sans", sans-serif';
+                    ctx.fillStyle = textColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+
+                    const x = element.x;
+                    const y = element.y - 4;
+                    ctx.fillText(text, x, y);
+                });
+            });
+            ctx.restore();
+        }
+    };
 
     // 1. Doughnut Chart: Portfolio Debt Breakdown
     const portfolioCtx = document.getElementById('portfolioBreakdownChart');
@@ -37,6 +106,7 @@ function renderLoanListCharts() {
                             borderColor: isDark ? '#1e293b' : '#ffffff'
                         }]
                     },
+                    plugins: [drawDonutValuesPlugin],
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
@@ -48,14 +118,33 @@ function renderLoanListCharts() {
                                     color: textColor,
                                     font: { size: 11, weight: '500' },
                                     padding: 10,
-                                    usePointStyle: true
+                                    usePointStyle: true,
+                                    generateLabels: function(chart) {
+                                        const chartData = chart.data;
+                                        if (chartData.labels.length && chartData.datasets.length) {
+                                            const ds = chartData.datasets[0];
+                                            return chartData.labels.map((label, i) => {
+                                                const val = ds.data[i] || 0;
+                                                const formattedVal = currency + val.toLocaleString();
+                                                return {
+                                                    text: `${label}: ${formattedVal}`,
+                                                    fillStyle: ds.backgroundColor[i],
+                                                    strokeStyle: ds.borderColor ? ds.borderColor : 'transparent',
+                                                    lineWidth: 0,
+                                                    hidden: isNaN(ds.data[i]) || chart.getDatasetMeta(0).data[i].hidden,
+                                                    index: i
+                                                };
+                                            });
+                                        }
+                                        return [];
+                                    }
                                 }
                             },
                             tooltip: {
                                 callbacks: {
                                     label: function(ctx) {
                                         const val = ctx.parsed || 0;
-                                        return ` ${ctx.label}: {{ user.profile.currency }}${val.toLocaleString()}`;
+                                        return ` ${ctx.label}: ${currency}${val.toLocaleString()}`;
                                     }
                                 }
                             }
@@ -99,6 +188,7 @@ function renderLoanListCharts() {
                             }
                         ]
                     },
+                    plugins: [drawBarValuesPlugin],
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
@@ -116,7 +206,7 @@ function renderLoanListCharts() {
                                 callbacks: {
                                     label: function(ctx) {
                                         const val = ctx.parsed.y || 0;
-                                        return ` ${ctx.dataset.label}: {{ user.profile.currency }}${val.toLocaleString()}`;
+                                        return ` ${ctx.dataset.label}: ${currency}${val.toLocaleString()}`;
                                     }
                                 }
                             }

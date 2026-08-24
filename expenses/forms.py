@@ -1099,7 +1099,11 @@ class LoanInterestRateForm(SearchableSelectFormMixin, forms.ModelForm):
         self.fields['effective_date'].initial = date.today
 
 class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
-    add_to_recurring = forms.BooleanField(required=False, label=_("Make this a recurring loan repayment"))
+    add_to_recurring = forms.BooleanField(
+        required=False,
+        label=_("Make this a recurring loan repayment"),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'})
+    )
     recurring_frequency = forms.ChoiceField(
         choices=RecurringTransaction.FREQUENCY_CHOICES,
         required=False,

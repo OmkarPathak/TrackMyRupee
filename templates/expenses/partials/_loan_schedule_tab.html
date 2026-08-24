@@ -1,7 +1,7 @@
 {% load i18n digit_filters humanize %}
 
 <div class="card border-0 shadow-sm rounded-4 mb-4">
-    <div class="card-header bg-transparent border-0 p-4 pb-0">
+    <div class="card-header bg-transparent border-bottom p-4">
         <h5 class="fw-bold mb-0">{% trans "Amortization Schedule" %}</h5>
         <p class="text-muted small mb-0">{% trans "Planned payments for the remaining term." %}</p>
     </div>
@@ -33,27 +33,27 @@
             </table>
         </div>
 
-        <!-- Mobile Card-per-Row Layout (< md breakpoint) -->
-        <div class="d-md-none p-3">
+        <!-- Mobile List View (< md breakpoint) - Border-bottom divided items, no nested card-in-card -->
+        <div class="d-md-none">
             {% for item in schedule %}
-            <div class="card border-0 bg-body-tertiary shadow-sm rounded-3 p-3 mb-2 schedule-card{% if forloop.counter > 24 %} schedule-extra d-none{% endif %}">
-                <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="p-3 {% if not forloop.last %}border-bottom{% endif %} schedule-card{% if forloop.counter > 24 %} schedule-extra d-none{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="fw-bold text-body fs-6">{{ item.month }}</span>
                     <span class="fw-bold text-primary fs-6">{{ loan.currency }}{{ item.emi|ind_comma:loan.currency|translate_digits }}</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center small mb-1">
+                <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
                     <div>
-                        <span class="text-muted">{% trans "Principal" %}:</span>
+                        <span>{% trans "Principal" %}:</span>
                         <span class="fw-semibold text-success ms-1">{{ loan.currency }}{{ item.principal|ind_comma:loan.currency|translate_digits }}</span>
                     </div>
                     <div>
-                        <span class="text-muted">{% trans "Interest" %}:</span>
+                        <span>{% trans "Interest" %}:</span>
                         <span class="fw-semibold text-warning ms-1">{{ loan.currency }}{{ item.interest|ind_comma:loan.currency|translate_digits }}</span>
                     </div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center small pt-1 border-top border-secondary-subtle">
-                    <span class="text-muted">{% trans "Remaining Balance" %}</span>
-                    <span class="fw-bold text-secondary">{{ loan.currency }}{{ item.balance|ind_comma:loan.currency|translate_digits }}</span>
+                <div class="d-flex justify-content-between align-items-center small text-muted">
+                    <span>{% trans "Remaining Balance" %}:</span>
+                    <span class="fw-semibold text-body-secondary">{{ loan.currency }}{{ item.balance|ind_comma:loan.currency|translate_digits }}</span>
                 </div>
             </div>
             {% endfor %}
