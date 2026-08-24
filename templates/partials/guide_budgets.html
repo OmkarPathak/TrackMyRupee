@@ -75,8 +75,17 @@
                             <span class="small"><strong>{% trans "Get Warnings" %}</strong> — {% trans "Visual indicators show green (on track), yellow (nearing limit), red (over budget)." %}</span>
                         </div>
                     </div>
-                    <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 mt-3 small mb-0 py-2" role="alert">
+                    <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 mt-3 small mb-3 py-2" role="alert">
                         <i class="bi bi-lightbulb-fill me-1"></i> <strong>{% trans "Tip:" %}</strong> {% trans "Start with 2-3 categories you overspend on. You can always add more later." %}
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 pt-3 border-top">
+                        <div class="small text-muted">
+                            <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+                            {% trans "Need help planning category budgets?" %}
+                        </div>
+                        <a href="https://docs.trackmyrupee.com/07-budgets/" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1 text-nowrap">
+                            <i class="bi bi-book me-1"></i> {% trans "View Budgets Tutorial" %} &rarr;
+                        </a>
                     </div>
                 </div>
             </div>

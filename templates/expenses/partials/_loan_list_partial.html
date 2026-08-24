@@ -20,26 +20,18 @@
             <span class="fw-bold text-primary">{{ active_count|translate_digits }}</span> {% trans "active loans" %} &middot; 
             <span class="fw-bold text-danger">{{ user.profile.currency }}{{ total_debt|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "remaining debt" %}
         </p>
-
-        <!-- Collapsible Philosophy Callout on Mobile -->
-        <div class="collapse mb-3" id="guideLoans">
-            <div class="alert alert-warning border-0 shadow-sm rounded-4 mb-0 d-flex align-items-center" role="alert">
-                <i class="bi bi-shield-lock-fill fs-4 me-3 text-warning"></i>
-                <div>
-                    <h6 class="alert-heading fw-bold mb-1">{% trans "Debt Management" %}</h6>
-                    <p class="mb-0 small">
-                        {% trans "Tracking loans helps you understand your true net worth. Repayments are deducted from your selected accounts to keep your balances accurate." %}
-                    </p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Desktop Header -->
     <div class="d-none d-md-block">
         <div class="row align-items-center mb-3">
             <div class="col-md-6 mb-3 mb-md-0">
-                <h1 class="h3 fw-bold mb-1">{% trans "Loans & Liabilities" %}</h1>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h1 class="h3 mb-0 fw-bold">{% trans "Loans & Liabilities" %}</h1>
+                    <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideLoans" aria-expanded="false" title="{% trans 'How it works' %}">
+                        <i class="bi bi-info-lg" style="font-size: 0.75rem;"></i>
+                    </button>
+                </div>
                 <p class="text-muted mb-0">{% trans "Track your borrowings and repayment progress." %}</p>
             </div>
             <div class="col-md-6 text-md-end">
@@ -54,18 +46,9 @@
                 </div>
             </div>
         </div>
-
-        <!-- Desktop Philosophy Callout -->
-        <div class="alert alert-warning border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center" role="alert">
-            <i class="bi bi-shield-lock-fill fs-4 me-3 text-warning"></i>
-            <div>
-                <h6 class="alert-heading fw-bold mb-1">{% trans "Debt Management" %}</h6>
-                <p class="mb-0 small">
-                    {% trans "Tracking loans helps you understand your true net worth. Repayments are deducted from your selected accounts to keep your balances accurate." %}
-                </p>
-            </div>
-        </div>
     </div>
+
+    {% include 'partials/guide_loans.html' %}
 
     <!-- Filter Pills Bar (Matching Subscriptions Page Layout) -->
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">

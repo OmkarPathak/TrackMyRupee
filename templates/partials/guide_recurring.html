@@ -76,8 +76,17 @@
                             <span class="small"><strong>{% trans "Pause or Cancel" %}</strong> — {% trans "Deactivate anytime — past entries stay, future ones stop." %}</span>
                         </div>
                     </div>
-                    <div class="alert alert-primary bg-primary bg-opacity-10 border-primary border-opacity-25 mt-3 small mb-0 py-2" role="alert">
-                        <i class="bi bi-lightbulb-fill me-1"></i> <strong>{% trans "Tip:" %}</strong> {% trans "Track all your subscriptions here to see how much you spend on auto-payments each month." %}
+                    <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 mt-3 small mb-3 py-2" role="alert">
+                        <i class="bi bi-lightbulb-fill me-1"></i> <strong>{% trans "Pro Tip:" %}</strong> {% trans "Link recurring items to specific accounts so your balance projections stay accurate." %}
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 pt-3 border-top">
+                        <div class="small text-muted">
+                            <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+                            {% trans "Need help managing recurring subscriptions?" %}
+                        </div>
+                        <a href="https://docs.trackmyrupee.com/05-transactions-recurring/" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1 text-nowrap">
+                            <i class="bi bi-book me-1"></i> {% trans "View Subscriptions Tutorial" %} &rarr;
+                        </a>
                     </div>
                 </div>
             </div>

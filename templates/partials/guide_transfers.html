@@ -75,8 +75,17 @@
                             <span class="small"><strong>{% trans "Not an Expense" %}</strong> — {% trans "Transfers are NOT recorded as expenses or income." %}</span>
                         </div>
                     </div>
-                    <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 mt-3 small mb-0 py-2" role="alert">
-                        <i class="bi bi-lightbulb-fill me-1"></i> <strong>{% trans "Use case:" %}</strong> {% trans "Moving salary to savings, paying credit card bill, or funding an investment account." %}
+                    <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 mt-3 small mb-3 py-2" role="alert">
+                        <i class="bi bi-lightbulb-fill me-1"></i> <strong>{% trans "Tip:" %}</strong> {% trans "Use transfers for moving money to investments or paying off credit card bills." %}
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 pt-3 border-top">
+                        <div class="small text-muted">
+                            <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+                            {% trans "Need help logging inter-account transfers?" %}
+                        </div>
+                        <a href="https://docs.trackmyrupee.com/06-transfers/" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1 text-nowrap">
+                            <i class="bi bi-book me-1"></i> {% trans "View Transfers Tutorial" %} &rarr;
+                        </a>
                     </div>
                 </div>
             </div>

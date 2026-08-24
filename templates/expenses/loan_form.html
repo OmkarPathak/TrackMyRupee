@@ -20,6 +20,15 @@
                 </div>
             </div>
             <div class="card-body p-4">
+                <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 rounded-3 mb-4 p-3 d-flex align-items-center justify-content-between gap-2">
+                    <div class="small">
+                        <i class="bi bi-info-circle-fill text-info me-1"></i>
+                        {% trans "Need guidance on setting up loan principal, EMI, or interest rates?" %}
+                    </div>
+                    <a href="https://docs.trackmyrupee.com/08-loans/" target="_blank" class="btn btn-sm btn-outline-info rounded-pill text-nowrap fw-semibold">
+                        {% trans "Tutorial" %} &rarr;
+                    </a>
+                </div>
 
                 <form method="post" onsubmit="window.showLoader()">
                     {% csrf_token %}
