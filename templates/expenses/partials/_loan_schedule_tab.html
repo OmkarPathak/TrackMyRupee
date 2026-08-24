@@ -1,0 +1,96 @@
+{% load i18n digit_filters humanize %}
+
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-transparent border-0 p-4 pb-0">
+        <h5 class="fw-bold mb-0">{% trans "Amortization Schedule" %}</h5>
+        <p class="text-muted small mb-0">{% trans "Planned payments for the remaining term." %}</p>
+    </div>
+    <div class="card-body p-0">
+        {% if schedule %}
+        <!-- Desktop Table View (>= md breakpoint) -->
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 border-0">{% trans "Month" %}</th>
+                        <th class="border-0 text-end">{% trans "EMI" %}</th>
+                        <th class="border-0 text-end text-success">{% trans "Principal" %}</th>
+                        <th class="border-0 text-end text-warning">{% trans "Interest" %}</th>
+                        <th class="pe-4 border-0 text-end">{% trans "Balance" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in schedule %}
+                    <tr{% if forloop.counter > 24 %} class="schedule-extra d-none"{% endif %}>
+                        <td class="ps-4 fw-medium">{{ item.month }}</td>
+                        <td class="text-end fw-bold">{{ loan.currency }}{{ item.emi|ind_comma:loan.currency|translate_digits }}</td>
+                        <td class="text-end text-success">{{ loan.currency }}{{ item.principal|ind_comma:loan.currency|translate_digits }}</td>
+                        <td class="text-end text-warning">{{ loan.currency }}{{ item.interest|ind_comma:loan.currency|translate_digits }}</td>
+                        <td class="pe-4 text-end text-muted">{{ loan.currency }}{{ item.balance|ind_comma:loan.currency|translate_digits }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card-per-Row Layout (< md breakpoint) -->
+        <div class="d-md-none p-3">
+            {% for item in schedule %}
+            <div class="card border-0 bg-body-tertiary shadow-sm rounded-3 p-3 mb-2 schedule-card{% if forloop.counter > 24 %} schedule-extra d-none{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-body fs-6">{{ item.month }}</span>
+                    <span class="fw-bold text-primary fs-6">{{ loan.currency }}{{ item.emi|ind_comma:loan.currency|translate_digits }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                    <div>
+                        <span class="text-muted">{% trans "Principal" %}:</span>
+                        <span class="fw-semibold text-success ms-1">{{ loan.currency }}{{ item.principal|ind_comma:loan.currency|translate_digits }}</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">{% trans "Interest" %}:</span>
+                        <span class="fw-semibold text-warning ms-1">{{ loan.currency }}{{ item.interest|ind_comma:loan.currency|translate_digits }}</span>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center small pt-1 border-top border-secondary-subtle">
+                    <span class="text-muted">{% trans "Remaining Balance" %}</span>
+                    <span class="fw-bold text-secondary">{{ loan.currency }}{{ item.balance|ind_comma:loan.currency|translate_digits }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if schedule|length > 24 %}
+        <div class="p-3 text-center border-top">
+            <button type="button" id="toggleScheduleRows" class="btn btn-outline-primary btn-sm rounded-pill px-3" aria-expanded="false">
+                {% trans "Show remaining schedule" %} ({{ schedule|length|add:-24 }} {% trans "months" %})
+            </button>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5 p-3 text-muted">
+            <i class="bi bi-check-circle-fill text-success d-block fs-2 mb-2"></i>
+            <h6 class="fw-bold mb-1">{% trans "This loan is fully paid off!" %}</h6>
+            <p class="small mb-0 text-muted">{% trans "No remaining schedule items." %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    const toggleScheduleBtn = document.getElementById('toggleScheduleRows');
+    if (toggleScheduleBtn) {
+        const hiddenRows = Array.from(document.querySelectorAll('.schedule-extra'));
+        const showLabel = "{% trans 'Show remaining schedule' %}";
+        const hideLabel = "{% trans 'Show less' %}";
+
+        toggleScheduleBtn.addEventListener('click', function() {
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            hiddenRows.forEach(row => row.classList.toggle('d-none', expanded));
+            this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            this.textContent = expanded ? `${showLabel} (${hiddenRows.length} {% trans 'months' %})` : hideLabel;
+        });
+    }
+})();
+</script>

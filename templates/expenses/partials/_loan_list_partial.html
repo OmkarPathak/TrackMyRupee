@@ -109,7 +109,7 @@
     {% if loan_summaries %}
     <!-- Loan Portfolio Visual Analytics Row -->
     <div class="row g-4 mb-4">
-        <div class="col-12 col-lg-5">
+        <div class="col-12 {% if loan_summaries|length >= 2 %}col-lg-5{% endif %}">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-transparent border-0 p-4 pb-0">
                     <h5 class="fw-bold mb-0">{% trans "Portfolio Debt Breakdown" %}</h5>
@@ -122,6 +122,7 @@
                 </div>
             </div>
         </div>
+        {% if loan_summaries|length >= 2 %}
         <div class="col-12 col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-transparent border-0 p-4 pb-0">
@@ -135,6 +136,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
     {% endif %}
 

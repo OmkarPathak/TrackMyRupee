@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <!-- Stats Row -->
+    <!-- Top Stats Row (Always visible across all tabs) -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -66,295 +66,242 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-4">
-        <!-- Main Content: Amortization Trend & Schedule & History -->
-        <div class="col-lg-8 order-2 order-lg-1">
-            <!-- Amortization Trend Chart Card -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="fw-bold mb-0">
-                            {% if amortization_chart_data.is_historical %}
-                                {% trans "Historical Repayment Trajectory" %}
-                            {% else %}
-                                {% trans "Amortization Trajectory" %}
-                            {% endif %}
-                        </h5>
-                        <p class="text-muted small mb-0">
-                            {% if amortization_chart_data.is_historical %}
-                                {% trans "Historical principal vs. interest breakdown and balance reduction over time." %}
-                            {% else %}
-                                {% trans "Monthly principal vs interest breakdown and balance trajectory." %}
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-                <div class="card-body p-4">
-                    {% if amortization_chart_data.labels %}
-                    <div style="position: relative; min-height: 260px; max-height: 320px;">
-                        <canvas id="loanAmortizationChart"></canvas>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-bar-chart-line fs-2 text-secondary d-block mb-2"></i>
-                        <h6 class="fw-bold mb-1">{% trans "No Amortization Trajectory Yet" %}</h6>
-                        <p class="small mb-0 text-muted">{% trans "Record your first repayment to start tracking your repayment trajectory." %}</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+    <!-- Bootstrap 5 Accessible Tabs Navigation -->
+    <ul class="nav nav-tabs border-bottom mb-4" id="loanDetailTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold px-4 py-2.5" id="tab-overview-btn" data-bs-toggle="tab" data-bs-target="#tab-overview-pane" type="button" role="tab" aria-controls="tab-overview-pane" aria-selected="true">
+                {% trans "Overview" %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 py-2.5" id="tab-schedule-btn" data-bs-toggle="tab" data-bs-target="#tab-schedule-pane" type="button" role="tab" aria-controls="tab-schedule-pane" aria-selected="false">
+                {% trans "Schedule" %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 py-2.5" id="tab-history-btn" data-bs-toggle="tab" data-bs-target="#tab-history-pane" type="button" role="tab" aria-controls="tab-history-pane" aria-selected="false">
+                {% trans "History" %}
+            </button>
+        </li>
+    </ul>
 
-            <!-- Repayment History -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-transparent border-0 p-4 pb-0">
-                    <h5 class="fw-bold mb-0">{% trans "Repayment History" %}</h5>
-                    <p class="text-muted small">{% trans "A record of all repayments made towards this loan." %}</p>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-4 border-0">{% trans "Date" %}</th>
-                                    <th class="border-0">{% trans "Account" %}</th>
-                                    <th class="border-0 text-end">{% trans "Amount" %}</th>
-                                    <th class="pe-4 border-0 text-end">{% trans "Actions" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for r in repayments %}
-                                <tr{% if forloop.counter > 10 %} class="repayment-extra d-none"{% endif %}>
-                                    <td class="ps-4">{{ r.date|date:"M d, Y" }}</td>
-                                    <td>
-                                        <span class="badge bg-body-tertiary text-body border shadow-sm">
-                                            <i class="bi bi-wallet2 me-1"></i> {{ r.from_account.name }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end fw-bold">{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}</td>
-                                    <td class="pe-4 text-end">
-                                        <!-- No edit for now to keep it simple, just delete and re-log if error -->
-                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle icon-btn" 
-                                                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                data-url="{% url 'loan-repayment-delete' r.uuid %}?next={{ request.get_full_path|urlencode }}"
-                                                data-message="{% trans 'Delete this repayment record? The account balance will be restored.' %}">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">{% trans "No repayments recorded yet." %}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+    <!-- Tab Content Container -->
+    <div class="tab-content" id="loanDetailTabsContent">
+        <!-- 1. OVERVIEW TAB (Default, Initial Render) -->
+        <div class="tab-pane fade show active" id="tab-overview-pane" role="tabpanel" aria-labelledby="tab-overview-btn">
+            <div class="d-flex flex-column gap-4">
+                
+                <!-- 1. Simplified Balance Trend Visualization -->
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-0">{% trans "Balance Trend" %}</h5>
+                            {% if trend_summary_text %}
+                            <p class="text-primary fw-semibold small mb-0 mt-1">
+                                <i class="bi bi-graph-down me-1"></i>{{ trend_summary_text }}
+                            </p>
+                            {% else %}
+                            <p class="text-muted small mb-0">{% trans "Recent balance trajectory over time." %}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 text-nowrap" onclick="switchToScheduleTab()">
+                                <i class="bi bi-calendar-check me-1"></i>{% trans "View full schedule" %}
+                            </button>
+                        </div>
                     </div>
-                    {% if repayments|length > 10 %}
-                    <div class="p-3 text-center border-top">
-                        <button type="button" id="toggleRepaymentRows" class="btn btn-outline-primary btn-sm rounded-pill px-3" aria-expanded="false">
-                            {% trans "Show more repayments" %} ({{ repayments|length|add:-10 }})
-                        </button>
+                    <div class="card-body p-4">
+                        {% if trend_chart_data.labels %}
+                        <div style="position: relative; min-height: 220px; max-height: 260px;">
+                            <canvas id="loanTrendChart"></canvas>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-bar-chart-line fs-2 text-secondary d-block mb-2"></i>
+                            <h6 class="fw-bold mb-1">{% trans "No Balance Trend Yet" %}</h6>
+                            <p class="small mb-0 text-muted">{% trans "Record your first repayment to start tracking your balance trend." %}</p>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
-            </div>
 
-            <!-- Amortization Schedule -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-transparent border-0 p-4 pb-0">
-                    <h5 class="fw-bold mb-0">{% trans "Amortization Schedule" %}</h5>
-                    <p class="text-muted small">{% trans "Planned payments for the remaining term." %}</p>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-4 border-0">{% trans "Month" %}</th>
-                                    <th class="border-0 text-end">{% trans "EMI" %}</th>
-                                    <th class="border-0 text-end d-none d-md-table-cell">{% trans "Principal" %}</th>
-                                    <th class="border-0 text-end d-none d-md-table-cell">{% trans "Interest" %}</th>
-                                    <th class="pe-4 border-0 text-end">{% trans "Balance" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in schedule %}
-                                <tr{% if forloop.counter > 24 %} class="schedule-extra d-none"{% endif %}>
-                                    <td class="ps-4 fw-medium">{{ item.month }}</td>
-                                    <td class="text-end fw-bold">{{ loan.currency }}{{ item.emi|ind_comma:loan.currency|translate_digits }}</td>
-                                    <td class="text-end d-none d-md-table-cell text-success">{{ loan.currency }}{{ item.principal|ind_comma:loan.currency|translate_digits }}</td>
-                                    <td class="text-end d-none d-md-table-cell text-warning">{{ loan.currency }}{{ item.interest|ind_comma:loan.currency|translate_digits }}</td>
-                                    <td class="pe-4 text-end text-muted">{{ loan.currency }}{{ item.balance|ind_comma:loan.currency|translate_digits }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">
-                                        <i class="bi bi-check-circle-fill text-success d-block fs-2 mb-2"></i>
-                                        {% trans "This loan is fully paid off!" %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <!-- 2. Loan Structure Breakdown & Loan Summary (Side-by-side on wide screens, stacked in exact order on mobile) -->
+                <div class="row g-4">
+                    <div class="col-12 col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <div class="card-header bg-transparent border-0 p-4 pb-0">
+                                <h5 class="fw-bold mb-0">{% trans "Loan Structure Breakdown" %}</h5>
+                                <p class="text-muted small mb-0">{% trans "Principal vs. Interest distribution." %}</p>
+                            </div>
+                            <div class="card-body p-4">
+                                <div style="position: relative; height: 220px;">
+                                    <canvas id="loanBreakdownChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% if schedule|length > 24 %}
-                    <div class="p-3 text-center border-top">
-                        <button type="button" id="toggleScheduleRows" class="btn btn-outline-primary btn-sm rounded-pill px-3" aria-expanded="false">
-                            {% trans "Show remaining schedule" %} ({{ schedule|length|add:-24 }} {% trans "months" %})
-                        </button>
+                    <div class="col-12 col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 loan-summary h-100">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3">{% trans "Loan Summary" %}</h5>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="opacity-75 small">{% trans "Initial Principal" %}</span>
+                                    <span class="fw-bold">{{ loan.currency }}{{ loan.initial_principal|ind_comma:loan.currency|translate_digits }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="opacity-75 small">{% trans "Duration" %}</span>
+                                    <span class="fw-bold">{{ loan.duration_months }} {% trans "Months" %}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="opacity-75 small">{% trans "Interest Rate" %}</span>
+                                    <span class="fw-bold">{{ loan.interest_rates.first.interest_rate|translate_digits }}%</span>
+                                </div>
+                                <div class="d-flex justify-content-between pt-2 border-top border-secondary-subtle">
+                                    <span class="opacity-75 small">{% trans "Monthly EMI (Approx)" %}</span>
+                                    <span class="fw-bold fs-5">
+                                        {% if schedule %}
+                                            {{ loan.currency }}{{ schedule.0.emi|ind_comma:loan.currency|translate_digits }}
+                                        {% else %}
+                                            {{ loan.currency }}0
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
                 </div>
+
+                <!-- 3. Linked Capital Events Card (if present) -->
+                {% if linked_capital_events %}
+                <div class="card border-0 shadow-sm rounded-4 border-start border-3 border-primary">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-flag-fill text-primary"></i>
+                            <h6 class="fw-bold mb-0">{% trans "Capital Events" %}</h6>
+                        </div>
+                        <p class="text-muted small mb-3">{% trans "Down payments, prepayments, and other lump-sum contributions linked to this loan." %}</p>
+                        {% for ev in linked_capital_events %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
+                            <div>
+                                <span class="small fw-semibold">{{ ev.get_subtype_display }}</span>
+                                <span class="d-block text-muted" style="font-size:0.75rem">{{ ev.date }}</span>
+                            </div>
+                            <span class="fw-bold text-primary-emphasis">{{ loan.currency }}{{ ev.amount|ind_comma:loan.currency|translate_digits }}</span>
+                        </div>
+                        {% endfor %}
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border border-primary border-opacity-25 bg-primary bg-opacity-10 mt-2">
+                            <span class="small fw-semibold">{% trans "Total Capital Committed" %}</span>
+                            <span class="fw-bold">{{ loan.currency }}{{ linked_capital_total|ind_comma:loan.currency|translate_digits }}</span>
+                        </div>
+                        <div class="mt-2 d-flex justify-content-between text-muted" style="font-size:0.78rem">
+                            <span>{% trans "EMIs Paid" %}</span>
+                            <span>{{ loan.currency }}{{ summary.total_paid|ind_comma:loan.currency|translate_digits }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-semibold small mt-1">
+                            <span>{% trans "Grand Total Paid to Bank" %}</span>
+                            <span>{{ loan.currency }}{% widthratio linked_capital_total|add:summary.total_paid 1 1 %}</span>
+                        </div>
+                        <a href="{% url 'capital-event-create' %}?subtype=loan_down_payment" class="btn btn-sm btn-primary text-white rounded-3 mt-3 w-100 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-plus-lg me-1"></i>{% trans "Add Capital Event for this Loan" %}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 4. Pay-1-Extra-EMI Insight Card (if present) -->
+                {% if extra_emi_savings and extra_emi_savings.months_saved > 0 %}
+                <div class="card border-0 shadow-sm rounded-4" style="background: linear-gradient(135deg, rgba(13,110,253,0.06), rgba(111,66,193,0.10));">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="fs-4 me-2">💡</span>
+                            <h6 class="fw-bold mb-0">{% trans "Pay 1 Extra EMI/Year" %}</h6>
+                        </div>
+                        <p class="text-muted small mb-3">{% trans "If you pay one additional EMI every year (applied to principal), here's what you save:" %}</p>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
+                            <span class="small text-muted">{% trans "Interest Saved" %}</span>
+                            <span class="fw-bold text-success fs-6">{{ loan.currency }}{{ extra_emi_savings.interest_saved|ind_comma:loan.currency|translate_digits }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
+                            <span class="small text-muted">{% trans "Time Saved" %}</span>
+                            <span class="fw-bold text-primary">{{ extra_emi_savings.months_saved }} {% trans "months" %}
+                                {% if extra_emi_savings.years_saved >= 1 %}
+                                <span class="text-muted small">(~{{ extra_emi_savings.years_saved }} {% trans "yrs" %})</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-body-tertiary">
+                            <span class="small text-muted">{% trans "Extra amount/year" %}</span>
+                            <span class="fw-bold">{{ loan.currency }}{{ extra_emi_savings.emi|ind_comma:loan.currency|translate_digits }}</span>
+                        </div>
+
+                        <div class="mt-3 p-2 rounded-3 border border-success border-opacity-25 bg-success bg-opacity-10">
+                            <p class="mb-0 small text-success fw-medium">
+                                <i class="bi bi-graph-down-arrow me-1"></i>
+                                {% blocktrans with interest=extra_emi_savings.interest_saved|ind_comma:loan.currency|translate_digits months=extra_emi_savings.months_saved currency=loan.currency %}
+                                    You'd save {{ currency }}{{ interest }} in interest and close the loan {{ months }} months earlier!
+                                {% endblocktrans %}
+                            </p>
+                            <p class="mb-0 small text-muted mt-2">
+                                {% trans "This is an estimate based on the current remaining balance and latest interest rate. Actual savings can change if the rate, balance, or repayment timing changes." %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 5. Interest Rate History Card -->
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-transparent border-0 p-4 pb-0">
+                        <h6 class="fw-bold mb-0">{% trans "Interest Rate History" %}</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="list-group list-group-flush">
+                            {% for rate in loan.interest_rates.all %}
+                            <div class="list-group-item bg-transparent px-0 border-0 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="mb-0 fw-bold">{{ rate.interest_rate|translate_digits }}%</p>
+                                    <p class="mb-0 text-muted small">{% trans "from" %} {{ rate.effective_date|date:"M Y" }}</p>
+                                </div>
+                                {% if forloop.first %}
+                                <span class="badge bg-success rounded-pill small">{% trans "Current" %}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- Sidebar Info & Breakdown Chart -->
-        <div class="col-lg-4 order-1 order-lg-2">
-            <!-- Doughnut Chart Card -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-transparent border-0 p-4 pb-0">
-                    <h5 class="fw-bold mb-0">{% trans "Loan Structure Breakdown" %}</h5>
-                    <p class="text-muted small">{% trans "Principal vs. Interest distribution." %}</p>
+        <!-- 2. SCHEDULE TAB (Lazy Loaded on first activation) -->
+        <div class="tab-pane fade" id="tab-schedule-pane" role="tabpanel" aria-labelledby="tab-schedule-btn"
+             hx-get="{% url 'loan-tab-schedule' loan.uuid %}"
+             hx-trigger="shown.bs.tab once from:#tab-schedule-btn"
+             hx-swap="innerHTML">
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border text-primary mb-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-                <div class="card-body p-4">
-                    <div style="position: relative; height: 220px;">
-                        <canvas id="loanBreakdownChart"></canvas>
-                    </div>
-                </div>
+                <p class="small mb-0">{% trans "Loading Amortization Schedule..." %}</p>
             </div>
+        </div>
 
-            <div class="card border-0 shadow-sm rounded-4 loan-summary mb-4">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3">{% trans "Loan Summary" %}</h5>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="opacity-75 small">{% trans "Initial Principal" %}</span>
-                        <span class="fw-bold">{{ loan.currency }}{{ loan.initial_principal|ind_comma:loan.currency|translate_digits }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="opacity-75 small">{% trans "Duration" %}</span>
-                        <span class="fw-bold">{{ loan.duration_months }} {% trans "Months" %}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="opacity-75 small">{% trans "Interest Rate" %}</span>
-                        <span class="fw-bold">{{ loan.interest_rates.first.interest_rate|translate_digits }}%</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span class="opacity-75 small">{% trans "Monthly EMI (Approx)" %}</span>
-                        <span class="fw-bold fs-5">
-                            {% if schedule %}
-                                {{ loan.currency }}{{ schedule.0.emi|ind_comma:loan.currency|translate_digits }}
-                            {% else %}
-                                {{ loan.currency }}0
-                            {% endif %}
-                        </span>
-                    </div>
+        <!-- 3. HISTORY TAB (Lazy Loaded on first activation) -->
+        <div class="tab-pane fade" id="tab-history-pane" role="tabpanel" aria-labelledby="tab-history-btn"
+             hx-get="{% url 'loan-tab-history' loan.uuid %}"
+             hx-trigger="shown.bs.tab once from:#tab-history-btn"
+             hx-swap="innerHTML">
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border text-primary mb-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-            </div>
-
-            <!-- Extra EMI Savings Insight -->
-            {% if linked_capital_events %}
-            <!-- Linked Capital Events Card -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-3 border-primary">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <i class="bi bi-flag-fill text-primary"></i>
-                        <h6 class="fw-bold mb-0">{% trans "Capital Events" %}</h6>
-                    </div>
-                    <p class="text-muted small mb-3">{% trans "Down payments, prepayments, and other lump-sum contributions linked to this loan." %}</p>
-                    {% for ev in linked_capital_events %}
-                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
-                        <div>
-                            <span class="small fw-semibold">{{ ev.get_subtype_display }}</span>
-                            <span class="d-block text-muted" style="font-size:0.75rem">{{ ev.date }}</span>
-                        </div>
-                        <span class="fw-bold text-primary-emphasis">{{ loan.currency }}{{ ev.amount|ind_comma:loan.currency|translate_digits }}</span>
-                    </div>
-                    {% endfor %}
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border border-primary border-opacity-25 bg-primary bg-opacity-10 mt-2">
-                        <span class="small fw-semibold">{% trans "Total Capital Committed" %}</span>
-                        <span class="fw-bold">{{ loan.currency }}{{ linked_capital_total|ind_comma:loan.currency|translate_digits }}</span>
-                    </div>
-                    <div class="mt-2 d-flex justify-content-between text-muted" style="font-size:0.78rem">
-                        <span>{% trans "EMIs Paid" %}</span>
-                        <span>{{ loan.currency }}{{ summary.total_paid|ind_comma:loan.currency|translate_digits }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between fw-semibold small mt-1">
-                        <span>{% trans "Grand Total Paid to Bank" %}</span>
-                        <span>{{ loan.currency }}{% widthratio linked_capital_total|add:summary.total_paid 1 1 %}</span>
-                    </div>
-                    <a href="{% url 'capital-event-create' %}?subtype=loan_down_payment" class="btn btn-sm btn-primary text-white rounded-3 mt-3 w-100 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Capital Event for this Loan" %}
-                    </a>
-                </div>
-            </div>
-            {% endif %}
-
-            {% if extra_emi_savings and extra_emi_savings.months_saved > 0 %}
-            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, rgba(13,110,253,0.06), rgba(111,66,193,0.10));">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="fs-4 me-2">💡</span>
-                        <h6 class="fw-bold mb-0">{% trans "Pay 1 Extra EMI/Year" %}</h6>
-                    </div>
-                    <p class="text-muted small mb-3">{% trans "If you pay one additional EMI every year (applied to principal), here's what you save:" %}</p>
-
-                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
-                        <span class="small text-muted">{% trans "Interest Saved" %}</span>
-                        <span class="fw-bold text-success fs-6">{{ loan.currency }}{{ extra_emi_savings.interest_saved|ind_comma:loan.currency|translate_digits }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary">
-                        <span class="small text-muted">{% trans "Time Saved" %}</span>
-                        <span class="fw-bold text-primary">{{ extra_emi_savings.months_saved }} {% trans "months" %}
-                            {% if extra_emi_savings.years_saved >= 1 %}
-                            <span class="text-muted small">(~{{ extra_emi_savings.years_saved }} {% trans "yrs" %})</span>
-                            {% endif %}
-                        </span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-body-tertiary">
-                        <span class="small text-muted">{% trans "Extra amount/year" %}</span>
-                        <span class="fw-bold">{{ loan.currency }}{{ extra_emi_savings.emi|ind_comma:loan.currency|translate_digits }}</span>
-                    </div>
-
-                    <div class="mt-3 p-2 rounded-3 border border-success border-opacity-25 bg-success bg-opacity-10">
-                        <p class="mb-0 small text-success fw-medium">
-                            <i class="bi bi-graph-down-arrow me-1"></i>
-                            {% blocktrans with interest=extra_emi_savings.interest_saved|ind_comma:loan.currency|translate_digits months=extra_emi_savings.months_saved currency=loan.currency %}
-                                You'd save {{ currency }}{{ interest }} in interest and close the loan {{ months }} months earlier!
-                            {% endblocktrans %}
-                        </p>
-                        <p class="mb-0 small text-muted mt-2">
-                            {% trans "This is an estimate based on the current remaining balance and latest interest rate. Actual savings can change if the rate, balance, or repayment timing changes." %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Floating Rate Info -->
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-transparent border-0 p-4 pb-0">
-                    <h6 class="fw-bold mb-0">{% trans "Interest Rate History" %}</h6>
-                </div>
-                <div class="card-body p-4">
-                    <div class="list-group list-group-flush">
-                        {% for rate in loan.interest_rates.all %}
-                        <div class="list-group-item bg-transparent px-0 border-0 d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="mb-0 fw-bold">{{ rate.interest_rate|translate_digits }}%</p>
-                                <p class="mb-0 text-muted small">{% trans "from" %} {{ rate.effective_date|date:"M Y" }}</p>
-                            </div>
-                            {% if forloop.first %}
-                            <span class="badge bg-success rounded-pill small">{% trans "Current" %}</span>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
+                <p class="small mb-0">{% trans "Loading Repayment History..." %}</p>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block modals %}
@@ -453,8 +400,42 @@
 {% block scripts %}
     {{ block.super }}
     <script>
+        function switchToScheduleTab() {
+            const scheduleTabBtn = document.getElementById('tab-schedule-btn');
+            if (scheduleTabBtn && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                const tab = bootstrap.Tab.getOrCreateInstance(scheduleTabBtn);
+                tab.show();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Recalculate portions (stub for future logic)
+            // Tab Deep Linking handling via URL parameter (?tab=schedule|history) or Hash (#schedule|#history)
+            const urlParams = new URLSearchParams(window.location.search);
+            let activeTabParam = urlParams.get('tab');
+            if (!activeTabParam && window.location.hash) {
+                activeTabParam = window.location.hash.replace('#', '');
+            }
+
+            if (activeTabParam) {
+                const targetBtn = document.getElementById(`tab-${activeTabParam.toLowerCase()}-btn`);
+                if (targetBtn && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                    const tab = bootstrap.Tab.getOrCreateInstance(targetBtn);
+                    tab.show();
+                }
+            }
+
+            // Sync tab switching with URL parameter without reloading
+            const tabButtons = document.querySelectorAll('#loanDetailTabs button[data-bs-toggle="tab"]');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('shown.bs.tab', function(e) {
+                    const tabId = e.target.id.replace('tab-', '').replace('-btn', '');
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('tab', tabId);
+                    window.history.replaceState({}, '', currentUrl);
+                });
+            });
+
+            // Recalculate portions for repayment modal
             function recalculatePortions() {
                 const amountInput = document.getElementById('id_amount');
                 const principalInput = document.getElementById('id_principal_portion');
@@ -480,27 +461,22 @@
                 interestInput.value = interest.toFixed(2);
             }
 
-            // Centralized focus logic following base.html pattern
             const loanModals = ['repaymentModal', 'rateModal'];
             loanModals.forEach(modalId => {
                 const modalEl = document.getElementById(modalId);
                 if (modalEl) {
                     modalEl.addEventListener('show.bs.modal', function() {
-                        // Small delay to allow modal initialization and searchable-select to be ready
                         setTimeout(() => {
-                            // 1. Try to find the custom searchable-select button
                             const searchableBtn = modalEl.querySelector('.searchable-select-btn');
                             if (searchableBtn) {
                                 searchableBtn.focus();
                                 return;
                             }
-
-                            // 2. Fallback: First visible input/select/textarea
                             const firstInput = modalEl.querySelector('input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled])');
                             if (firstInput) {
                                 firstInput.focus();
                             }
-                        }, 500); // Consistent with base.html deleteModal pattern
+                        }, 500);
                     });
                 }
             });
@@ -509,35 +485,6 @@
             if (amountInput) {
                 amountInput.addEventListener('input', recalculatePortions);
                 recalculatePortions();
-            }
-
-            // Collapse long amortization schedules and allow expansion on demand.
-            const toggleScheduleBtn = document.getElementById('toggleScheduleRows');
-            if (toggleScheduleBtn) {
-                const hiddenRows = Array.from(document.querySelectorAll('.schedule-extra'));
-                const showLabel = "{% trans 'Show remaining schedule' %}";
-                const hideLabel = "{% trans 'Show less' %}";
-
-                toggleScheduleBtn.addEventListener('click', function() {
-                    const expanded = this.getAttribute('aria-expanded') === 'true';
-                    hiddenRows.forEach(row => row.classList.toggle('d-none', expanded));
-                    this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-                    this.textContent = expanded ? `${showLabel} (${hiddenRows.length} {% trans 'months' %})` : hideLabel;
-                });
-            }
-
-            const toggleRepaymentBtn = document.getElementById('toggleRepaymentRows');
-            if (toggleRepaymentBtn) {
-                const hiddenRows = Array.from(document.querySelectorAll('.repayment-extra'));
-                const showLabel = "{% trans 'Show more repayments' %}";
-                const hideLabel = "{% trans 'Show less' %}";
-
-                toggleRepaymentBtn.addEventListener('click', function() {
-                    const expanded = this.getAttribute('aria-expanded') === 'true';
-                    hiddenRows.forEach(row => row.classList.toggle('d-none', expanded));
-                    this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-                    this.textContent = expanded ? `${showLabel} (${hiddenRows.length})` : hideLabel;
-                });
             }
 
             const recurringToggle = document.getElementById('{{ repayment_form.add_to_recurring.id_for_label }}');
@@ -554,10 +501,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {{ breakdown_chart_data|json_script:"breakdown-chart-data" }}
-    {{ amortization_chart_data|json_script:"amortization-chart-data" }}
+    {{ trend_chart_data|json_script:"trend-chart-data" }}
 
     <script>
-    function renderLoanDetailCharts() {
+    function renderLoanDetailOverviewCharts() {
         if (typeof Chart === 'undefined') return;
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
         const textColor = isDark ? '#e2e8f0' : '#475569';
@@ -570,206 +517,120 @@
             if (Chart.getChart(breakdownCtx)) {
                 Chart.getChart(breakdownCtx).destroy();
             }
-            const data = JSON.parse(breakdownDataEl.textContent);
-            new Chart(breakdownCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        data: data.values,
-                        backgroundColor: ['#1D9E75', '#F59E0B', '#EF4444'],
-                        borderWidth: 2,
-                        borderColor: isDark ? '#1e293b' : '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: textColor,
-                                font: { size: 11, weight: '500' },
-                                padding: 12,
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    const val = ctx.parsed || 0;
-                                    return ` ${ctx.label}: {{ loan.currency }}${val.toLocaleString()}`;
+            try {
+                const data = JSON.parse(breakdownDataEl.textContent);
+                new Chart(breakdownCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.values,
+                            backgroundColor: ['#1D9E75', '#F59E0B', '#EF4444'],
+                            borderWidth: 2,
+                            borderColor: isDark ? '#1e293b' : '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: textColor,
+                                    font: { size: 11, weight: '500' },
+                                    padding: 12,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const val = ctx.parsed || 0;
+                                        return ` ${ctx.label}: {{ loan.currency }}${val.toLocaleString()}`;
+                                    }
                                 }
                             }
-                        }
-                    },
-                    cutout: '70%'
-                }
-            });
+                        },
+                        cutout: '70%'
+                    }
+                });
+            } catch(e) {
+                console.error("Error rendering breakdown chart:", e);
+            }
         }
 
-        // 2. Amortization Trajectory (Stacked Bar + Line Chart)
-        const amortCtx = document.getElementById('loanAmortizationChart');
-        const amortDataEl = document.getElementById('amortization-chart-data');
-        if (amortCtx && amortDataEl) {
-            if (Chart.getChart(amortCtx)) {
-                Chart.getChart(amortCtx).destroy();
+        // 2. Simplified Balance Trend Line Chart for Overview Tab
+        const trendCtx = document.getElementById('loanTrendChart');
+        const trendDataEl = document.getElementById('trend-chart-data');
+        if (trendCtx && trendDataEl) {
+            if (Chart.getChart(trendCtx)) {
+                Chart.getChart(trendCtx).destroy();
             }
-            const data = JSON.parse(amortDataEl.textContent);
-            const histCount = data.history_count || 0;
-            const totalPoints = data.labels.length;
-
-            // Color arrays: solid for historical (paid), faded for projected
-            const principalColors = data.labels.map((_, i) =>
-                i < histCount ? 'rgba(29, 158, 117, 0.95)' : 'rgba(29, 158, 117, 0.35)'
-            );
-            const interestColors = data.labels.map((_, i) =>
-                i < histCount ? 'rgba(245, 158, 11, 0.95)' : 'rgba(245, 158, 11, 0.35)'
-            );
-            const balanceColors = data.labels.map((_, i) =>
-                i < histCount ? '#EF4444' : 'rgba(239, 68, 68, 0.4)'
-            );
-
-            // Vertical divider plugin: draw a line between history and projection
-            const dividerPlugin = {
-                id: 'historyDivider',
-                afterDraw(chart) {
-                    if (histCount <= 0 || histCount >= totalPoints) return;
-                    const ctx2 = chart.ctx;
-                    const xAxis = chart.scales.x;
-                    const yAxis = chart.scales.y;
-                    // Position between the last historical bar and first projected bar
-                    const x = (xAxis.getPixelForValue(histCount - 1) + xAxis.getPixelForValue(histCount)) / 2;
-                    ctx2.save();
-                    ctx2.setLineDash([5, 4]);
-                    ctx2.strokeStyle = 'rgba(99, 102, 241, 0.6)';
-                    ctx2.lineWidth = 2;
-                    ctx2.beginPath();
-                    ctx2.moveTo(x, yAxis.top);
-                    ctx2.lineTo(x, yAxis.bottom);
-                    ctx2.stroke();
-                    // "Now" label
-                    ctx2.setLineDash([]);
-                    ctx2.fillStyle = 'rgba(99, 102, 241, 0.9)';
-                    ctx2.font = 'bold 10px Inter, sans-serif';
-                    ctx2.textAlign = 'center';
-                    ctx2.fillText('NOW', x, yAxis.top - 4);
-                    ctx2.restore();
-                }
-            };
-
-            new Chart(amortCtx, {
-                type: 'bar',
-                plugins: [dividerPlugin],
-                data: {
-                    labels: data.labels,
-                    datasets: [
-                        {
-                            label: '{% trans "Principal" %}',
-                            data: data.principal,
-                            backgroundColor: principalColors,
-                            stack: 'Stack 0',
-                            order: 2
+            try {
+                const data = JSON.parse(trendDataEl.textContent);
+                if (data.labels && data.labels.length > 0) {
+                    new Chart(trendCtx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: '{% trans "Remaining Balance" %}',
+                                data: data.balance,
+                                borderColor: '#1D9E75',
+                                backgroundColor: 'rgba(29, 158, 117, 0.1)',
+                                borderWidth: 2.5,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#1D9E75',
+                                fill: true,
+                                tension: 0.35
+                            }]
                         },
-                        {
-                            label: '{% trans "Interest" %}',
-                            data: data.interest,
-                            backgroundColor: interestColors,
-                            stack: 'Stack 0',
-                            order: 2
-                        },
-                        {
-                            label: '{% trans "Remaining Balance" %}',
-                            data: data.balance,
-                            type: 'line',
-                            borderColor: '#EF4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                            borderWidth: 2,
-                            pointRadius: data.labels.map((_, i) => i < histCount ? 3 : 2),
-                            pointBackgroundColor: balanceColors,
-                            fill: false,
-                            tension: 0.3,
-                            segment: {
-                                borderDash: ctx => ctx.p0DataIndex >= histCount - 1 ? [5, 4] : [],
-                                borderColor: ctx => ctx.p0DataIndex < histCount ? '#EF4444' : 'rgba(239,68,68,0.5)',
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            const val = ctx.parsed.y || 0;
+                                            return ` {% trans "Balance" %}: {{ loan.currency }}${val.toLocaleString('en-IN')}`;
+                                        }
+                                    }
+                                }
                             },
-                            yAxisID: 'y1',
-                            order: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                color: textColor,
-                                font: { size: 11, weight: '500' },
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                title: function(items) {
-                                    const idx = items[0].dataIndex;
-                                    const suffix = idx < histCount ? ' ✓ Paid' : ' ⟶ Projected';
-                                    return items[0].label + suffix;
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: textColor, font: { size: 10 } }
                                 },
-                                label: function(ctx) {
-                                    const val = ctx.parsed.y || 0;
-                                    return ` ${ctx.dataset.label}: {{ loan.currency }}${val.toLocaleString('en-IN')}`;
+                                y: {
+                                    beginAtZero: false,
+                                    grid: { color: gridColor },
+                                    ticks: {
+                                        color: textColor,
+                                        font: { size: 10 },
+                                        callback: function(val) {
+                                            return '{{ loan.currency }}' + (val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val);
+                                        }
+                                    }
                                 }
                             }
                         }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: textColor, font: { size: 10 }, maxRotation: 45, autoSkip: true }
-                        },
-                        y: {
-                            stacked: true,
-                            beginAtZero: true,
-                            grid: { color: gridColor },
-                            ticks: {
-                                color: textColor,
-                                font: { size: 10 },
-                                callback: function(val) {
-                                    return '{{ loan.currency }}' + (val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val);
-                                }
-                            }
-                        },
-                        y1: {
-                            position: 'right',
-                            beginAtZero: true,
-                            grid: { display: false },
-                            ticks: {
-                                color: textColor,
-                                font: { size: 10 },
-                                callback: function(val) {
-                                    return '{{ loan.currency }}' + (val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val);
-                                }
-                            }
-                        }
-                    }
+                    });
                 }
-            });
+            } catch(e) {
+                console.error("Error rendering trend chart:", e);
+            }
         }
     }
 
-    document.addEventListener('DOMContentLoaded', renderLoanDetailCharts);
+    document.addEventListener('DOMContentLoaded', renderLoanDetailOverviewCharts);
     document.body.addEventListener('htmx:afterSwap', function(e) {
-        renderLoanDetailCharts();
+        renderLoanDetailOverviewCharts();
     });
     </script>
-
 
 <style>
 .icon-btn {
@@ -783,30 +644,20 @@
 .loan-summary {
     background: linear-gradient(135deg, rgba(15, 112, 87, 0.08), rgba(25, 135, 84, 0.14));
 }
-
-/* Remove all borders from cards and tables */
-.table {
-    border-bottom: none !important;
+.nav-tabs .nav-link {
+    color: var(--bs-secondary-color);
+    border: none;
+    border-bottom: 2.5px solid transparent;
+    transition: all 0.15s ease-in-out;
 }
-.table th,
-.table td {
-    border-bottom: none !important;
+.nav-tabs .nav-link:hover {
+    color: var(--bs-primary);
+    border-color: transparent;
 }
-.table tbody tr {
-    border-bottom: none !important;
-}
-.table tbody tr:last-child td {
-    border-bottom: none !important;
-}
-.table thead th {
-    border-bottom: none !important;
-}
-.list-group-item {
-    border-bottom: none !important;
-}
-table {
-    border-bottom: none !important;
+.nav-tabs .nav-link.active {
+    color: var(--bs-primary);
+    background-color: transparent;
+    border-bottom: 2.5px solid var(--bs-primary);
 }
 </style>
 {% endblock %}
-

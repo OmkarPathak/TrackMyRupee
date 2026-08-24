@@ -1,0 +1,113 @@
+{% load i18n digit_filters humanize %}
+
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-transparent border-0 p-4 pb-0">
+        <h5 class="fw-bold mb-0">{% trans "Repayment History" %}</h5>
+        <p class="text-muted small mb-0">{% trans "A record of all repayments made towards this loan." %}</p>
+    </div>
+    <div class="card-body p-0">
+        {% if repayments %}
+        <!-- Desktop Table View (>= md breakpoint) -->
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 border-0">{% trans "Date" %}</th>
+                        <th class="border-0">{% trans "Account" %}</th>
+                        <th class="border-0 text-end">{% trans "Amount" %}</th>
+                        <th class="pe-4 border-0 text-end">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in repayments %}
+                    <tr{% if forloop.counter > 10 %} class="repayment-extra d-none"{% endif %}>
+                        <td class="ps-4 text-nowrap">{{ r.date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if r.from_account %}
+                            <span class="badge bg-body-tertiary text-body border shadow-sm">
+                                <i class="bi bi-wallet2 me-1"></i> {{ r.from_account.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end fw-bold text-success">{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}</td>
+                        <td class="pe-4 text-end">
+                            <button type="button" class="btn btn-outline-danger btn-sm rounded-circle icon-btn" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                    data-url="{% url 'loan-repayment-delete' r.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                    data-message="{% trans 'Delete this repayment record? The account balance will be restored.' %}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card-per-Row Layout (< md breakpoint) -->
+        <div class="d-md-none p-3">
+            {% for r in repayments %}
+            <div class="card border-0 bg-body-tertiary shadow-sm rounded-3 p-3 mb-2 repayment-card{% if forloop.counter > 10 %} repayment-extra d-none{% endif %}">
+                <!-- Line 1: Date + Account badge -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold text-body small text-nowrap">{{ r.date|date:"M d, Y" }}</span>
+                    {% if r.from_account %}
+                    <span class="badge bg-body-secondary text-body border shadow-sm text-truncate" style="max-width: 160px;">
+                        <i class="bi bi-wallet2 me-1"></i> {{ r.from_account.name }}
+                    </span>
+                    {% endif %}
+                </div>
+                <!-- Line 2: Amount + Delete action button -->
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary-subtle">
+                    <div>
+                        <span class="text-muted small me-1">{% trans "Amount" %}:</span>
+                        <span class="fw-bold text-success fs-6">{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}</span>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-circle icon-btn" 
+                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                            data-url="{% url 'loan-repayment-delete' r.uuid %}?next={{ request.get_full_path|urlencode }}"
+                            data-message="{% trans 'Delete this repayment record? The account balance will be restored.' %}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if repayments|length > 10 %}
+        <div class="p-3 text-center border-top">
+            <button type="button" id="toggleRepaymentRows" class="btn btn-outline-primary btn-sm rounded-pill px-3" aria-expanded="false">
+                {% trans "Show more repayments" %} ({{ repayments|length|add:-10 }})
+            </button>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5 p-3 text-muted">
+            <i class="bi bi-clock-history fs-2 text-secondary d-block mb-2"></i>
+            <h6 class="fw-bold mb-1">{% trans "No Repayments Recorded Yet" %}</h6>
+            <p class="small mb-0 text-muted">{% trans "Record a repayment using the button above to track your history." %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    const toggleRepaymentBtn = document.getElementById('toggleRepaymentRows');
+    if (toggleRepaymentBtn) {
+        const hiddenRows = Array.from(document.querySelectorAll('.repayment-extra'));
+        const showLabel = "{% trans 'Show more repayments' %}";
+        const hideLabel = "{% trans 'Show less' %}";
+
+        toggleRepaymentBtn.addEventListener('click', function() {
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            hiddenRows.forEach(row => row.classList.toggle('d-none', expanded));
+            this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            this.textContent = expanded ? `${showLabel} (${hiddenRows.length})` : hideLabel;
+        });
+    }
+})();
+</script>

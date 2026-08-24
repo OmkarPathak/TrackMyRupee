@@ -351,14 +351,44 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 'balance': balances,
                 'is_historical': True,
             }
-        else:
-            amortization_chart_data = {
-                'labels': [],
-                'principal': [],
-                'interest': [],
-                'balance': [],
-                'is_historical': False,
+        # Build simplified trend chart data for Overview tab (last ~6 months balance trajectory)
+        trend_labels = []
+        trend_balances = []
+        trend_summary_text = ""
+
+        all_chart_labels = amortization_chart_data.get('labels', [])
+        all_chart_balances = amortization_chart_data.get('balance', [])
+        hist_count = amortization_chart_data.get('history_count', 0)
+
+        if all_chart_labels:
+            if hist_count > 0:
+                start_idx = max(0, hist_count - 6)
+                trend_labels = all_chart_labels[start_idx:hist_count]
+                trend_balances = all_chart_balances[start_idx:hist_count]
+            else:
+                trend_labels = all_chart_labels[:min(6, len(all_chart_labels))]
+                trend_balances = all_chart_balances[:min(6, len(all_chart_balances))]
+
+        if len(trend_balances) >= 2:
+            start_val = trend_balances[0]
+            end_val = trend_balances[-1]
+            months_count = len(trend_balances)
+            trend_summary_text = _("%(currency)s%(start)s → %(currency)s%(end)s over the last %(count)s months") % {
+                'currency': loan.currency,
+                'start': f"{start_val:,.0f}",
+                'end': f"{end_val:,.0f}",
+                'count': months_count,
             }
+        elif len(trend_balances) == 1:
+            trend_summary_text = _("Current balance: %(currency)s%(val)s") % {
+                'currency': loan.currency,
+                'val': f"{trend_balances[0]:,.0f}",
+            }
+
+        trend_chart_data = {
+            'labels': trend_labels,
+            'balance': trend_balances,
+        }
 
         context = {
             'loan': loan,
@@ -372,8 +402,28 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             'linked_capital_total': linked_capital_total,
             'breakdown_chart_data': breakdown_chart_data,
             'amortization_chart_data': amortization_chart_data,
+            'trend_chart_data': trend_chart_data,
+            'trend_summary_text': trend_summary_text,
         }
         return render(request, self.template_name, context)
+
+
+class LoanScheduleTabView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    template_name = 'expenses/partials/_loan_schedule_tab.html'
+
+    def get(self, request, pk):
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        schedule = LoanService.generate_amortization_schedule(loan)
+        return render(request, self.template_name, {'loan': loan, 'schedule': schedule})
+
+
+class LoanHistoryTabView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    template_name = 'expenses/partials/_loan_history_tab.html'
+
+    def get(self, request, pk):
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        repayments = loan.repayments.select_related('from_account').order_by('-date')
+        return render(request, self.template_name, {'loan': loan, 'repayments': repayments})
 
 class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     def post(self, request, pk):

@@ -156,21 +156,80 @@ class LoanServiceTest(TestCase):
     def test_loan_views_include_chart_data(self):
         self.client.force_login(self.user)
 
-        # Test LoanListView context contains portfolio & loan comparison chart data
+        # Test LoanListView with 1 loan: portfolio breakdown chart rendered, comparison chart omitted
         list_response = self.client.get(reverse('loan-list'))
         self.assertEqual(list_response.status_code, 200)
         self.assertIn('portfolio_breakdown_chart', list_response.context)
         self.assertIn('loan_comparison_chart', list_response.context)
         self.assertContains(list_response, 'id="portfolioBreakdownChart"')
-        self.assertContains(list_response, 'id="loanComparisonChart"')
+        self.assertNotContains(list_response, 'id="loanComparisonChart"')
 
-        # Test LoanDetailView context contains breakdown & amortization chart data
+        # Add 2nd loan: comparison chart container now rendered
+        Loan.objects.create(
+            user=self.user,
+            name='Car Loan',
+            loan_type='CAR',
+            initial_principal=Decimal('20000.00'),
+            duration_months=24,
+            start_date=datetime.date.today(),
+            currency='₹'
+        )
+        list_response_2 = self.client.get(reverse('loan-list'))
+        self.assertEqual(list_response_2.status_code, 200)
+        self.assertContains(list_response_2, 'id="loanComparisonChart"')
+
+        # Test LoanDetailView context contains breakdown & trend chart data
         detail_response = self.client.get(reverse('loan-detail', kwargs={'pk': self.loan.pk}))
         self.assertEqual(detail_response.status_code, 200)
         self.assertIn('breakdown_chart_data', detail_response.context)
-        self.assertIn('amortization_chart_data', detail_response.context)
+        self.assertIn('trend_chart_data', detail_response.context)
         self.assertContains(detail_response, 'id="loanBreakdownChart"')
-        self.assertContains(detail_response, 'id="loanAmortizationChart"')
+        self.assertContains(detail_response, 'id="loanTrendChart"')
+        self.assertContains(detail_response, 'id="loanDetailTabs"')
+
+    def test_loan_schedule_tab_lazy_load_endpoint(self):
+        """Test lazy loading amortization schedule partial endpoint and responsive cards."""
+        self.client.force_login(self.user)
+        self.loan.start_date = datetime.date.today()
+        self.loan.save()
+
+        response = self.client.get(reverse('loan-tab-schedule', kwargs={'pk': self.loan.uuid}))
+        self.assertEqual(response.status_code, 200)
+
+        # Desktop table header assertions
+        self.assertContains(response, 'Month')
+        self.assertContains(response, 'EMI')
+        self.assertContains(response, 'Principal')
+        self.assertContains(response, 'Interest')
+        self.assertContains(response, 'Balance')
+
+        # Mobile card-per-row view assertions
+        self.assertContains(response, 'schedule-card')
+        self.assertContains(response, 'Remaining Balance')
+
+    def test_loan_history_tab_lazy_load_endpoint(self):
+        """Test lazy loading repayment history partial endpoint and responsive cards."""
+        self.client.force_login(self.user)
+        repayment = LoanRepayment.objects.create(
+            loan=self.loan,
+            from_account=self.account,
+            amount=Decimal('4442.44'),
+            principal_portion=Decimal('3942.44'),
+            interest_portion=Decimal('500.00'),
+            date=datetime.date.today()
+        )
+
+        response = self.client.get(reverse('loan-tab-history', kwargs={'pk': self.loan.uuid}))
+        self.assertEqual(response.status_code, 200)
+
+        # Desktop table & mobile card assertions
+        self.assertContains(response, 'Date')
+        self.assertContains(response, 'Account')
+        self.assertContains(response, 'Amount')
+        self.assertContains(response, 'Actions')
+        self.assertContains(response, 'repayment-card')
+        self.assertContains(response, 'Test Bank')
+
 
     def test_loan_repayment_date_format_dd_mm_yyyy(self):
         """Test that date in DD/MM/YYYY format (e.g., 21/08/2026) is accepted cleanly by LoanRepaymentForm."""
