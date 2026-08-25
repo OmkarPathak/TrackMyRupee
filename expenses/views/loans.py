@@ -39,18 +39,14 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
     context_object_name = 'loans'
 
     def get_queryset(self):
-        # Auto-sync active status for all loans belonging to this user
-        all_user_loans = list(Loan.objects.filter(user=self.request.user).prefetch_related('repayments'))
-        for loan in all_user_loans:
-            LoanService.sync_loan_active_status(loan)
-
         status_filter = self.request.GET.get('status', 'active').lower()
+        queryset = Loan.objects.filter(user=self.request.user).prefetch_related('repayments', 'interest_rates')
         if status_filter == 'inactive':
-            return Loan.objects.filter(user=self.request.user, is_active=False).prefetch_related('repayments').order_by('-start_date')
+            return queryset.filter(is_active=False).order_by('-start_date')
         elif status_filter == 'all':
-            return Loan.objects.filter(user=self.request.user).prefetch_related('repayments').order_by('-start_date')
+            return queryset.order_by('-start_date')
         else:
-            return Loan.objects.filter(user=self.request.user, is_active=True).prefetch_related('repayments').order_by('-start_date')
+            return queryset.filter(is_active=True).order_by('-start_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -58,8 +54,11 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
         if status_filter not in ('active', 'inactive', 'all'):
             status_filter = 'active'
 
-        # Compute pill counts across ALL user loans
-        all_loans = list(Loan.objects.filter(user=self.request.user))
+        # Compute pill counts and sync active status across ALL user loans
+        all_loans = list(Loan.objects.filter(user=self.request.user).prefetch_related('repayments'))
+        for loan in all_loans:
+            LoanService.sync_loan_active_status(loan)
+
         active_count = sum(1 for l in all_loans if l.is_active)
         inactive_count = sum(1 for l in all_loans if not l.is_active)
         all_count = len(all_loans)

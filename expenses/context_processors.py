@@ -16,8 +16,12 @@ def webpush_vapid_key(request):
     is_subscribed = False
     
     if request.user.is_authenticated:
-        from webpush.models import PushInformation
-        is_subscribed = PushInformation.objects.filter(user=request.user).exists()
+        cache_key = f'webpush_sub_{request.user.id}'
+        is_subscribed = cache.get(cache_key)
+        if is_subscribed is None:
+            from webpush.models import PushInformation
+            is_subscribed = PushInformation.objects.filter(user=request.user).exists()
+            cache.set(cache_key, is_subscribed, 3600)
         
     return {
         'vapid_public_key': webpush_settings.get('VAPID_PUBLIC_KEY', ''),
@@ -51,11 +55,14 @@ def currency_symbol(request):
 def user_accounts(request):
     """Provides user accounts to all templates for the sidebar."""
     if request.user.is_authenticated:
-        try:
-            from .account_valuation import process_matured_deposit_incomes
-            process_matured_deposit_incomes(request.user)
-        except Exception:
-            pass
+        cooldown_key = f'deposit_matured_processed_{request.user.id}'
+        if not cache.get(cooldown_key):
+            try:
+                from .account_valuation import process_matured_deposit_incomes
+                process_matured_deposit_incomes(request.user)
+                cache.set(cooldown_key, True, 3600)
+            except Exception:
+                pass
         cache_key = f'sidebar_accounts_{request.user.id}'
         result = cache.get(cache_key)
         if result is None:

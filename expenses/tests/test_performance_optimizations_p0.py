@@ -162,3 +162,48 @@ class TestViewPrefetching(TestCase):
         url = reverse('account-detail', kwargs={'pk': self.account.uuid})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+
+class TestRemainingOptimizations(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='rem_user', password='password')
+        self.user.profile.tier = 'PRO'
+        self.user.profile.save()
+        self.client = Client()
+        self.client.login(username='rem_user', password='password')
+
+    def test_is_recurring_locked_db_count(self):
+        self.user.profile.tier = 'FREE'
+        self.user.profile.save()
+        # Create 3 recurring transactions
+        r1 = RecurringTransaction.objects.create(
+            user=self.user, transaction_type='EXPENSE', amount=Decimal('10.00'),
+            description='R1', frequency='MONTHLY', start_date=date.today(), currency='₹'
+        )
+        r2 = RecurringTransaction.objects.create(
+            user=self.user, transaction_type='EXPENSE', amount=Decimal('20.00'),
+            description='R2', frequency='MONTHLY', start_date=date.today(), currency='₹'
+        )
+        # First recurring transaction is not locked
+        self.assertFalse(self.user.profile.is_recurring_locked(r1))
+
+    def test_fx_rate_db_fallback(self):
+        from expenses.models import FXRate
+        from expenses.utils import get_exchange_rate
+
+        cache.clear()
+        FXRate.objects.create(
+            from_currency='USD', to_currency='INR', rate=Decimal('83.50'),
+            as_of_date=date.today(), source='TestDB'
+        )
+        rate = get_exchange_rate('USD', 'INR')
+        self.assertEqual(rate, Decimal('83.50'))
+
+    def test_account_list_view_orm_filtering(self):
+        Account.objects.create(user=self.user, name='HDFC Bank', account_type='SAVINGS_ACCOUNT', balance=Decimal('100.00'))
+        Account.objects.create(user=self.user, name='ICICI Bank', account_type='SAVINGS_ACCOUNT', balance=Decimal('200.00'))
+
+        response = self.client.get(reverse('account-list'), {'search': 'HDFC'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('HDFC Bank', response.content.decode('utf-8'))
+        self.assertNotIn('ICICI Bank', response.content.decode('utf-8'))

@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.db.models import (
     BigIntegerField,
     Case,
@@ -435,13 +436,18 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         )
 
         # Filter options
-        expense_years = {d.year for d in Expense.objects.filter(user=user).dates('date', 'year', order='DESC')}
-        income_years = {d.year for d in Income.objects.filter(user=user).dates('date', 'year', order='DESC')}
-        transfer_years = {d.year for d in Transfer.objects.filter(user=user).dates('date', 'year', order='DESC')}
-        loan_years = {d.year for d in LoanRepayment.objects.filter(loan__user=user).dates('date', 'year', order='DESC')}
-        capital_event_years = {d.year for d in CapitalEvent.objects.filter(user=user).dates('date', 'year', order='DESC')}
-        all_years = expense_years.union(income_years).union(transfer_years).union(loan_years).union(capital_event_years)
-        context['years'] = sorted(list(all_years.union({datetime.now().year})), reverse=True)
+        cache_key = f'all_tx_years_{user.id}'
+        cached_years = cache.get(cache_key)
+        if cached_years is None:
+            expense_years = {d.year for d in Expense.objects.filter(user=user).dates('date', 'year', order='DESC')}
+            income_years = {d.year for d in Income.objects.filter(user=user).dates('date', 'year', order='DESC')}
+            transfer_years = {d.year for d in Transfer.objects.filter(user=user).dates('date', 'year', order='DESC')}
+            loan_years = {d.year for d in LoanRepayment.objects.filter(loan__user=user).dates('date', 'year', order='DESC')}
+            capital_event_years = {d.year for d in CapitalEvent.objects.filter(user=user).dates('date', 'year', order='DESC')}
+            all_years = expense_years.union(income_years).union(transfer_years).union(loan_years).union(capital_event_years)
+            cached_years = sorted(list(all_years.union({datetime.now().year})), reverse=True)
+            cache.set(cache_key, cached_years, 600)
+        context['years'] = cached_years
         context['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
         
         # Selected values

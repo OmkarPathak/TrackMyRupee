@@ -339,12 +339,14 @@ class ExpenseBulkDeleteView(LoginRequiredMixin, View):
             return redirect('expense-list')
             
         # Filter by IDs and ensuring they belong to the current user for security
-        expenses_to_delete = Expense.objects.filter(id__in=expense_ids, user=request.user)
-        deleted_count = expenses_to_delete.count()
+        expenses_list = list(
+            Expense.objects.filter(id__in=expense_ids, user=request.user).select_related('account')
+        )
+        deleted_count = len(expenses_list)
         
         if deleted_count > 0:
             with transaction.atomic():
-                for expense in expenses_to_delete.select_related('account'):
+                for expense in expenses_list:
                     # Call model delete to ensure account balances are restored.
                     expense.delete()
             ph_capture(request.user, 'expense_bulk_deleted', {'count': deleted_count})

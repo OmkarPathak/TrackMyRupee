@@ -6,6 +6,7 @@ from allauth.socialaccount.models import SocialAccount
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -439,7 +440,13 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
         self.fields['auth_email'].widget.attrs.update({'class': 'form-control'})
 
         # Check if user has social account
-        if SocialAccount.objects.filter(user=self.instance).exists():
+        cache_key = f'social_acc_exists_{self.instance.id}'
+        has_social = cache.get(cache_key)
+        if has_social is None:
+            has_social = SocialAccount.objects.filter(user=self.instance).exists()
+            cache.set(cache_key, has_social, 3600)
+
+        if has_social:
             for field in ['first_name', 'last_name', 'auth_email']:
                 self.fields[field].disabled = True
                 self.fields[field].widget.attrs['disabled'] = 'disabled'

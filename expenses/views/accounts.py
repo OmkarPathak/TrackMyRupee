@@ -58,7 +58,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         is_active = status == 'active'
         
         # Order by created_at to ensure consistent locking of 'newer' accounts
-        queryset = list(
+        queryset = (
             Account.objects.select_related('user')
             .filter(user=self.request.user, is_active=is_active)
             .order_by('created_at', 'id')
@@ -67,34 +67,36 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         account_type = self.request.GET.get('type')
         if account_type:
             # Check if account_type is a group name or normalized group ID
+            import re
             group_codes = []
             for g_name, choices in Account.ACCOUNT_TYPES:
-                import re
                 g_id = re.sub(r'[^A-Z0-9_]', '_', g_name.upper())
                 if account_type == g_name or account_type == g_id:
                     group_codes = [c for c, _ in choices]
                     break
             
             if group_codes:
-                queryset = [acc for acc in queryset if acc.account_type in group_codes]
+                queryset = queryset.filter(account_type__in=group_codes)
             else:
-                queryset = [acc for acc in queryset if acc.account_type == account_type]
+                queryset = queryset.filter(account_type=account_type)
 
         # Search by account name
         search_query = self.request.GET.get('search', '').strip()
         if search_query:
-            queryset = [acc for acc in queryset if search_query.lower() in acc.name.lower()]
+            queryset = queryset.filter(name__icontains=search_query)
+
+        account_list = list(queryset)
             
         # Annotate locked status
         if self.request.user.is_authenticated:
             limit = get_limit(self.request.user.profile.active_tier, 'accounts')
-            for i, acc in enumerate(queryset):
+            for i, acc in enumerate(account_list):
                 acc.is_locked = (limit != -1 and i >= limit)
         else:
-            for acc in queryset:
+            for acc in account_list:
                 acc.is_locked = False
 
-        return queryset
+        return account_list
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -111,6 +113,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 display_balances = {}
 
         now = timezone.now()
+        _deposit_codes = deposit_codes()
 
         for account in accounts:
             if current_status == 'active':
@@ -119,7 +122,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 account.display_balance = account.balance
 
             # Compute accrued value for fixed-income / deposit accounts
-            if account.account_type in deposit_codes():
+            if account.account_type in _deposit_codes:
                 accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
                 deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
                 if getattr(account, 'show_accrued_balance', True) and (accrued != deposit_principal or account.deposit_rate is not None):
@@ -717,52 +720,68 @@ class AccountDetailView(LoginRequiredMixin, View):
         base_currency = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
         
         # Calculate Net Total for Filtered Items (In Account's Currency)
-        # Handle expenses
-        exp_total = Decimal('0.00')
-        for e in expenses:
-            if e.currency != account.currency:
-                rate = get_exchange_rate(e.currency, account.currency)
-                exp_total += (e.amount * rate).quantize(Decimal('0.01'))
-            else:
-                exp_total += e.amount
+        from django.db.models import Sum
 
-        # Handle incomes
-        inc_total = Decimal('0.00')
-        for i in incomes:
-            if i.currency != account.currency:
-                rate = get_exchange_rate(i.currency, account.currency)
-                inc_total += (i.amount * rate).quantize(Decimal('0.01'))
-            else:
-                inc_total += i.amount
+        def _get_total(qs, field='amount'):
+            res = qs.aggregate(total=Sum(field))['total']
+            return res if res is not None else Decimal('0.00')
+
+        if expenses.filter(~Q(currency=account.currency)).exists():
+            exp_total = Decimal('0.00')
+            for e in expenses.only('currency', 'amount'):
+                if e.currency != account.currency:
+                    rate = get_exchange_rate(e.currency, account.currency)
+                    exp_total += (e.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    exp_total += e.amount
+        else:
+            exp_total = _get_total(expenses)
+
+        if incomes.filter(~Q(currency=account.currency)).exists():
+            inc_total = Decimal('0.00')
+            for i in incomes.only('currency', 'amount'):
+                if i.currency != account.currency:
+                    rate = get_exchange_rate(i.currency, account.currency)
+                    inc_total += (i.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    inc_total += i.amount
+        else:
+            inc_total = _get_total(incomes)
         
-        # Transfers are in the currency of the from_account
-        out_total = sum(t.amount for t in transfers_from) # transfers_from were from THIS account
+        out_total = _get_total(transfers_from)
                 
-        in_total = Decimal('0.00')
-        for t in transfers_to:
-            if t.from_account.currency != account.currency:
-                rate = get_exchange_rate(t.from_account.currency, account.currency)
-                in_total += (t.amount * rate).quantize(Decimal('0.01'))
-            else:
-                in_total += t.amount
+        if transfers_to.filter(~Q(from_account__currency=account.currency)).exists():
+            in_total = Decimal('0.00')
+            for t in transfers_to.select_related('from_account'):
+                if t.from_account.currency != account.currency:
+                    rate = get_exchange_rate(t.from_account.currency, account.currency)
+                    in_total += (t.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    in_total += t.amount
+        else:
+            in_total = _get_total(transfers_to)
         
-        # Goal contributions are in the goal's currency
-        sav_total = Decimal('0.00')
-        for c in contributions:
-            if c.goal.currency != account.currency:
-                rate = get_exchange_rate(c.goal.currency, account.currency)
-                sav_total += (c.amount * rate).quantize(Decimal('0.01'))
-            else:
-                sav_total += c.amount
+        if contributions.filter(~Q(goal__currency=account.currency)).exists():
+            sav_total = Decimal('0.00')
+            for c in contributions.select_related('goal'):
+                if c.goal.currency != account.currency:
+                    rate = get_exchange_rate(c.goal.currency, account.currency)
+                    sav_total += (c.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    sav_total += c.amount
+        else:
+            sav_total = _get_total(contributions)
         
-        # Loan repayments are in the loan's currency
-        loan_total = Decimal('0.00')
-        for lr in loan_repayments:
-            if lr.loan.currency != account.currency:
-                rate = get_exchange_rate(lr.loan.currency, account.currency)
-                loan_total += (lr.amount * rate).quantize(Decimal('0.01'))
-            else:
-                loan_total += lr.amount
+        if loan_repayments.filter(~Q(loan__currency=account.currency)).exists():
+            loan_total = Decimal('0.00')
+            for lr in loan_repayments.select_related('loan'):
+                if lr.loan.currency != account.currency:
+                    rate = get_exchange_rate(lr.loan.currency, account.currency)
+                    loan_total += (lr.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    loan_total += lr.amount
+        else:
+            loan_total = _get_total(loan_repayments)
 
         # Capital events are in the event's currency
         cap_total = Decimal('0.00')

@@ -1725,13 +1725,13 @@ def home_view(request):
             
     # 3. Category MoM Spikes & Drops (Mixed)
     if prev_month_data and len(selected_years) == 1 and len(selected_months) == 1 and not salary_cycle_active:
-        prev_cat_data = Expense.objects.filter(
-            user=request.user, 
-            date__year=prev_year, 
-            date__month=prev_month
-        ).values('category').annotate(total=Sum('base_amount'))
-        
-        prev_cat_map = {item['category'].strip(): float(item['total']) for item in prev_cat_data}
+        if 'prev_cat_map' not in locals():
+            prev_cat_qs = Expense.objects.filter(
+                user=request.user, 
+                date__year=prev_year, 
+                date__month=prev_month
+            ).values('category').annotate(total=Sum('base_amount'))
+            prev_cat_map = {item['category'].strip(): float(item['total']) for item in prev_cat_qs}
         
         spikes = []
         drops = []

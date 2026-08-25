@@ -46,6 +46,17 @@ def get_exchange_rate(from_curr, to_curr):
     if cached_rate:
         return Decimal(str(cached_rate))
 
+    # DB Fallback before network HTTP call
+    try:
+        db_rate_obj = FXRate.objects.filter(
+            from_currency=from_code, to_currency=to_code
+        ).order_by('-as_of_date').first()
+        if db_rate_obj and db_rate_obj.rate:
+            cache.set(cache_key, float(db_rate_obj.rate), 60 * 60 * 12)
+            return Decimal(str(db_rate_obj.rate))
+    except Exception as db_exc:
+        logger.warning("FXRate DB lookup failed: %s", db_exc)
+
     try:
         # Primary: Frankfurter API
         url = f"https://api.frankfurter.app/latest?from={from_code}&to={to_code}"

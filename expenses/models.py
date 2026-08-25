@@ -1497,10 +1497,14 @@ class UserProfile(models.Model):
         limit = get_limit(self.active_tier, 'recurring_transactions')
         if limit == -1: return False
         
-        subs = list(self.user.recurringtransaction_set.all().order_by('created_at', 'id'))
-        if obj in subs and subs.index(obj) >= limit:
-            return True
-        return False
+        if not obj or not obj.pk:
+            return False
+
+        from django.db.models import Q
+        earlier_count = self.user.recurringtransaction_set.filter(
+            Q(created_at__lt=obj.created_at) | Q(created_at=obj.created_at, id__lt=obj.id)
+        ).count()
+        return earlier_count >= limit
 
     def is_account_locked(self, account):
         """Check if a specific account is locked based on tier limits."""

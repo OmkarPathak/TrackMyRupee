@@ -38,7 +38,7 @@ class SavingsGoalListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        all_goals = list(self.get_queryset())
+        all_goals = list(context.get('object_list') or self.get_queryset())
         profile = self.request.user.profile
         from finance_tracker.plans import get_limit
         limit = get_limit(profile.active_tier, 'savings_goals')
@@ -143,18 +143,19 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
                 'avg_daily_contribution': Decimal('0.00'),
             }
 
-        if not contributions_qs.exists() or goal.target_amount <= goal.current_amount:
+        contributions_list = list(contributions_qs)
+        if not contributions_list or goal.target_amount <= goal.current_amount:
             return {
                 'estimated_completion_date': None,
                 'estimated_days_left': None,
                 'avg_daily_contribution': Decimal('0.00'),
             }
 
-        first_contribution = contributions_qs.order_by('date', 'id').first()
+        first_contribution = min(contributions_list, key=lambda c: (c.date, c.id))
         today = timezone.localdate()
         days_elapsed = max((today - first_contribution.date).days, 1)
 
-        total_contributed = contributions_qs.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        total_contributed = sum(c.amount for c in contributions_list)
         avg_daily = total_contributed / Decimal(days_elapsed)
 
         remaining_amount = goal.target_amount - goal.current_amount
@@ -177,7 +178,8 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         labels = []
         values = []
 
-        if not contributions_qs.exists():
+        contributions_list = list(contributions_qs)
+        if not contributions_list:
             return {
                 'type': 'daily',
                 'labels': labels,
@@ -185,7 +187,7 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
                 'projection_values': [],
             }
 
-        first_contribution = contributions_qs.order_by('date', 'id').first()
+        first_contribution = min(contributions_list, key=lambda c: (c.date, c.id))
         span_days = (today - first_contribution.date).days
         is_monthly = span_days > 45
 
@@ -195,11 +197,11 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
                 month_start = (month_start - timedelta(days=1)).replace(day=1)
 
             monthly_totals = {}
-            for contribution in contributions_qs:
+            for contribution in contributions_list:
                 month_key = contribution.date.strftime('%Y-%m')
                 monthly_totals[month_key] = monthly_totals.get(month_key, Decimal('0.00')) + contribution.amount
 
-            initial_total = contributions_qs.filter(date__lt=month_start).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            initial_total = sum(c.amount for c in contributions_list if c.date < month_start)
             running_total = initial_total
 
             current_month = month_start
@@ -222,10 +224,10 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
 
         start_date = today - timedelta(days=29)
         daily_totals = {}
-        for contribution in contributions_qs:
+        for contribution in contributions_list:
             daily_totals[contribution.date] = daily_totals.get(contribution.date, Decimal('0.00')) + contribution.amount
 
-        initial_total = contributions_qs.filter(date__lt=start_date).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        initial_total = sum(c.amount for c in contributions_list if c.date < start_date)
         running_total = initial_total
         current_day = start_date
 
@@ -299,6 +301,7 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         }
 
     def _get_context_data(self, request, goal, form=None):
+        all_contributions = list(goal.contributions.select_related('account').all())
         contributions_qs = goal.contributions.select_related('account').all().order_by('-date', '-id')
         is_locked = self._is_locked(request.user, goal)
 
@@ -317,7 +320,6 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         if remaining_amount < Decimal('0.00'):
             remaining_amount = Decimal('0.00')
 
-        all_contributions = goal.contributions.select_related('account').all()
         estimate_data = self._get_estimated_completion(goal, all_contributions)
         trend_data = self._build_trend_data(
             goal,
