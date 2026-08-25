@@ -54,7 +54,7 @@
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
         <div class="d-flex align-items-center gap-2 overflow-x-auto pb-1 hide-scrollbar" style="scrollbar-width: none;">
             <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
-                    style="font-size: 0.8rem; {% if status_filter == 'active' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}"
+                    style="font-size: 0.8rem; {% if status_filter == 'active' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=active"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
@@ -64,7 +64,7 @@
             </button>
 
             <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
-                    style="font-size: 0.8rem; {% if status_filter == 'inactive' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}"
+                    style="font-size: 0.8rem; {% if status_filter == 'inactive' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=inactive"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
@@ -74,7 +74,7 @@
             </button>
 
             <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
-                    style="font-size: 0.8rem; {% if status_filter == 'all' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}"
+                    style="font-size: 0.8rem; {% if status_filter == 'all' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=all"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
@@ -92,15 +92,70 @@
     {% if loan_summaries %}
     <!-- Loan Portfolio Visual Analytics Row -->
     <div class="row g-4 mb-4">
-        <div class="col-12 {% if loan_summaries|length >= 2 %}col-lg-5{% endif %}">
+        <div class="col-12 {% if loan_summaries|length >= 2 %}col-lg-6{% else %}col-lg-12{% endif %}">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-transparent border-bottom p-4">
                     <h5 class="fw-bold mb-0">{% trans "Portfolio Debt Breakdown" %}</h5>
                     <p class="text-muted small mb-0">{% trans "Distribution of Principal Paid vs. Interest Paid vs. Debt Remaining" %}</p>
                 </div>
-                <div class="card-body p-4">
-                    <div style="position: relative; height: 210px;">
-                        <canvas id="portfolioBreakdownChart"></canvas>
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="row align-items-center g-4 w-100 m-0">
+                        <!-- Donut Chart with Center KPI Overlay -->
+                        <div class="col-12 col-sm-5 text-center p-0">
+                            <div style="position: relative; height: 185px; width: 185px; margin: 0 auto;">
+                                <canvas id="portfolioBreakdownChart"></canvas>
+                                <div class="position-absolute top-50 start-50 translate-middle text-center pointer-events-none" style="margin-top: -2px;">
+                                    <div class="fw-bold h4 mb-0 text-body">{{ portfolio_totals.paid_pct|translate_digits }}%</div>
+                                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;">{% trans "Paid Off" %}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Breakdown Table Cards -->
+                        <div class="col-12 col-sm-7 p-0 ps-sm-3">
+                            <div class="d-flex flex-column gap-2">
+                                <!-- Principal Paid -->
+                                <div class="p-2 px-3 rounded-3 border bg-body-tertiary breakdown-item transition-all" data-index="0" style="cursor: pointer;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="d-flex align-items-center gap-2 small fw-semibold">
+                                            <span class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: #1D9E75;"></span>
+                                            {% trans "Principal Paid" %}
+                                        </span>
+                                        <span class="fw-bold text-success small">{{ user.profile.currency }}{{ portfolio_totals.tot_principal_paid|ind_comma:user.profile.currency|translate_digits }}</span>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar bg-success rounded-pill" style="width: {{ portfolio_totals.paid_pct }}%;"></div>
+                                    </div>
+                                    <div class="text-muted small text-end mt-1" style="font-size: 0.7rem;">{{ portfolio_totals.paid_pct|translate_digits }}% {% trans "of principal" %}</div>
+                                </div>
+
+                                <!-- Interest Paid -->
+                                <div class="p-2 px-3 rounded-3 border bg-body-tertiary breakdown-item transition-all" data-index="1" style="cursor: pointer;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="d-flex align-items-center gap-2 small fw-semibold">
+                                            <span class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: #F59E0B;"></span>
+                                            {% trans "Interest Paid" %}
+                                        </span>
+                                        <span class="fw-bold text-warning small">{{ user.profile.currency }}{{ portfolio_totals.tot_interest_paid|ind_comma:user.profile.currency|translate_digits }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Remaining Debt -->
+                                <div class="p-2 px-3 rounded-3 border bg-body-tertiary breakdown-item transition-all" data-index="2" style="cursor: pointer;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="d-flex align-items-center gap-2 small fw-semibold">
+                                            <span class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: #EF4444;"></span>
+                                            {% trans "Remaining Debt" %}
+                                        </span>
+                                        <span class="fw-bold text-danger small">{{ user.profile.currency }}{{ portfolio_totals.tot_remaining_debt|ind_comma:user.profile.currency|translate_digits }}</span>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar bg-danger rounded-pill" style="width: {{ portfolio_totals.remaining_pct }}%;"></div>
+                                    </div>
+                                    <div class="text-muted small text-end mt-1" style="font-size: 0.7rem;">{{ portfolio_totals.remaining_pct|translate_digits }}% {% trans "remaining" %}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

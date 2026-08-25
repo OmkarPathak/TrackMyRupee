@@ -123,6 +123,18 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
         tot_principal_paid = sum(s['principal_paid'] + s['capital_prepaid'] for s in loan_summaries)
         tot_interest_paid = sum(s['interest_paid'] for s in loan_summaries)
         tot_remaining_debt = sum(s['remaining_principal'] for s in loan_summaries)
+        tot_total_portfolio = tot_principal_paid + tot_remaining_debt
+
+        paid_pct = round((tot_principal_paid / tot_total_portfolio) * 100, 1) if tot_total_portfolio > 0 else 0.0
+        remaining_pct = round((tot_remaining_debt / tot_total_portfolio) * 100, 1) if tot_total_portfolio > 0 else 0.0
+
+        portfolio_totals = {
+            'tot_principal_paid': round(tot_principal_paid, 2),
+            'tot_interest_paid': round(tot_interest_paid, 2),
+            'tot_remaining_debt': round(tot_remaining_debt, 2),
+            'paid_pct': paid_pct,
+            'remaining_pct': remaining_pct,
+        }
 
         portfolio_breakdown_chart = {
             'labels': [_('Principal Paid'), _('Interest Paid'), _('Remaining Debt')],
@@ -141,6 +153,7 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
         context['active_count'] = active_count
         context['inactive_count'] = inactive_count
         context['all_count'] = all_count
+        context['portfolio_totals'] = portfolio_totals
         context['portfolio_breakdown_chart'] = portfolio_breakdown_chart
         context['loan_comparison_chart'] = loan_comparison_chart
         return context

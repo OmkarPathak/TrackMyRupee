@@ -95,7 +95,7 @@ function renderLoanListCharts() {
             const data = JSON.parse(portfolioDataEl.textContent);
             const hasData = data.values && data.values.some(v => v > 0);
             if (hasData) {
-                new Chart(portfolioCtx, {
+                const portfolioChart = new Chart(portfolioCtx, {
                     type: 'doughnut',
                     data: {
                         labels: data.labels,
@@ -103,43 +103,16 @@ function renderLoanListCharts() {
                             data: data.values,
                             backgroundColor: ['#1D9E75', '#F59E0B', '#EF4444'],
                             borderWidth: 2,
-                            borderColor: isDark ? '#1e293b' : '#ffffff'
+                            borderColor: isDark ? '#1e293b' : '#ffffff',
+                            hoverOffset: 6
                         }]
                     },
-                    plugins: [drawDonutValuesPlugin],
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         animation: false,
                         plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    color: textColor,
-                                    font: { size: 11, weight: '500' },
-                                    padding: 10,
-                                    usePointStyle: true,
-                                    generateLabels: function(chart) {
-                                        const chartData = chart.data;
-                                        if (chartData.labels.length && chartData.datasets.length) {
-                                            const ds = chartData.datasets[0];
-                                            return chartData.labels.map((label, i) => {
-                                                const val = ds.data[i] || 0;
-                                                const formattedVal = currency + val.toLocaleString();
-                                                return {
-                                                    text: `${label}: ${formattedVal}`,
-                                                    fillStyle: ds.backgroundColor[i],
-                                                    strokeStyle: ds.borderColor ? ds.borderColor : 'transparent',
-                                                    lineWidth: 0,
-                                                    hidden: isNaN(ds.data[i]) || chart.getDatasetMeta(0).data[i].hidden,
-                                                    index: i
-                                                };
-                                            });
-                                        }
-                                        return [];
-                                    }
-                                }
-                            },
+                            legend: { display: false },
                             tooltip: {
                                 callbacks: {
                                     label: function(ctx) {
@@ -149,8 +122,35 @@ function renderLoanListCharts() {
                                 }
                             }
                         },
-                        cutout: '68%'
+                        cutout: '74%',
+                        onHover: function(event, activeElements) {
+                            const items = document.querySelectorAll('.breakdown-item');
+                            items.forEach(el => el.classList.remove('border-primary', 'shadow-sm'));
+                            if (activeElements && activeElements.length > 0) {
+                                const idx = activeElements[0].index;
+                                const target = document.querySelector(`.breakdown-item[data-index="${idx}"]`);
+                                if (target) {
+                                    target.classList.add('border-primary', 'shadow-sm');
+                                }
+                            }
+                        }
                     }
+                });
+
+                document.querySelectorAll('.breakdown-item').forEach(item => {
+                    item.addEventListener('mouseenter', function() {
+                        const idx = parseInt(this.getAttribute('data-index'), 10);
+                        if (portfolioChart && !isNaN(idx)) {
+                            portfolioChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
+                            portfolioChart.update();
+                        }
+                    });
+                    item.addEventListener('mouseleave', function() {
+                        if (portfolioChart) {
+                            portfolioChart.setActiveElements([]);
+                            portfolioChart.update();
+                        }
+                    });
                 });
             }
         } catch (err) {
