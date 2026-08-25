@@ -607,7 +607,11 @@ class AccountDetailView(LoginRequiredMixin, View):
         if request.user.is_authenticated:
             process_user_recurring_transactions(request.user)
             
-        account = get_object_by_uuid_or_pk(Account, pk, user=request.user)
+        account = get_object_by_uuid_or_pk(
+            Account.objects.prefetch_related('holdings'),
+            pk,
+            user=request.user
+        )
         redirect_response = redirect_to_uuid_url_if_needed(request, account)
         if redirect_response:
             return redirect_response

@@ -1202,6 +1202,7 @@ class RecurringTransaction(models.Model):
     is_last_day_of_month = models.BooleanField(default=False, verbose_name=_('Repeat on last day of month'))
     is_last_working_day = models.BooleanField(default=False, verbose_name=_('Repeat on last working day of month'))
     last_processed_date = models.DateField(null=True, blank=True)
+    next_due_date = models.DateField(null=True, blank=True, db_index=True, verbose_name=_('Next Due Date'))
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1296,25 +1297,25 @@ class RecurringTransaction(models.Model):
             return next_dt.date()
         return current_date + timedelta(days=30)
 
-    @property
-    def next_due_date(self):
-        due = self._calculate_next_due_date()
+    def _calculate_next_due_date(self):
+        if not self.last_processed_date or self.last_processed_date < self.start_date:
+            due = self.start_date
+        else:
+            due = self.get_next_date(
+                self.last_processed_date,
+                self.frequency,
+                self.start_date,
+                self.is_last_day_of_month,
+                self.is_last_working_day,
+            )
         if self.end_date and due and due > self.end_date:
             return None
         return due
 
-    def _calculate_next_due_date(self):
-        if not self.last_processed_date or self.last_processed_date < self.start_date:
-            return self.start_date
-        return self.get_next_date(
-            self.last_processed_date,
-            self.frequency,
-            self.start_date,
-            self.is_last_day_of_month,
-            self.is_last_working_day,
-        )
-
     def save(self, *args, **kwargs):
+        # Calculate next_due_date
+        self.next_due_date = self._calculate_next_due_date()
+
         # Multi-currency normalization
         base_currency = self.user.profile.currency
         if self.currency == base_currency:
@@ -1333,6 +1334,12 @@ class RecurringTransaction(models.Model):
             self.source = self.source_fk.name
         elif self.source:
             self.source = self.source.strip()
+
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            update_fields_set = set(update_fields)
+            update_fields_set.add('next_due_date')
+            kwargs['update_fields'] = list(update_fields_set)
             
         super().save(*args, **kwargs)
 
@@ -1346,6 +1353,9 @@ class RecurringTransaction(models.Model):
         ]
         indexes = [
             models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['user', 'is_active', 'transaction_type'], name='rt_user_active_type_idx'),
+            models.Index(fields=['next_due_date'], name='rt_next_due_date_idx'),
+            models.Index(fields=['user', 'is_active', 'next_due_date'], name='rt_user_active_due_idx'),
         ]
 
     def __str__(self):
@@ -1622,6 +1632,11 @@ class Notification(models.Model):
     # Optional link to the transaction that triggered it
     related_transaction = models.ForeignKey('RecurringTransaction', on_delete=models.SET_NULL, null=True, blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'is_read', 'created_at'], name='notif_user_read_at_idx'),
+        ]
+
     def __str__(self):
         return f"Notification for {self.user.username}: {self.title} ({self.notification_type})"
 
@@ -1691,6 +1706,11 @@ class SavingsGoal(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'is_completed'], name='savingsgoal_user_comp_idx'),
+        ]
+
 class GoalContribution(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     goal = models.ForeignKey(SavingsGoal, on_delete=models.CASCADE, related_name='contributions')
@@ -1705,6 +1725,11 @@ class GoalContribution(models.Model):
 
     objects = GoalContributionManager()
     active = SoftDeleteManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['goal', 'date'], name='goalcontrib_goal_date_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -1969,6 +1994,9 @@ class LoanRepayment(models.Model):
 
     class Meta:
         ordering = ['date']
+        indexes = [
+            models.Index(fields=['loan', 'date'], name='loanrepayment_loan_date_idx'),
+        ]
 
     def __str__(self):
         loan_name = getattr(self, 'loan_id', None) and getattr(self.loan, 'name', _('Loan')) or _('Loan')
@@ -2627,6 +2655,9 @@ class FinancialAuditLog(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'model_name', 'timestamp'], name='auditlog_user_model_idx'),
+        ]
 
     def __str__(self):
         return f"{self.user.username} - {self.action} on {self.model_name} {self.object_id}"

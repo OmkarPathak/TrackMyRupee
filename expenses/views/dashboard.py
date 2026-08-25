@@ -1440,21 +1440,17 @@ def home_view(request):
             smart_insights.append(insight)
             
     # Add Upcoming Subscriptions to Alerts
-    active_recurring = RecurringTransaction.objects.filter(
-        user=request.user, 
-        is_active=True
-    )
-    
-    upcoming_payments = []
     today_date = date.today()
     seven_days_later = today_date + timedelta(days=7)
-    
-    for payment in active_recurring:
-        if payment.next_due_date and today_date <= payment.next_due_date <= seven_days_later:
-            upcoming_payments.append(payment)
-            
-    upcoming_payments.sort(key=lambda x: x.next_due_date)
-    upcoming_payments = upcoming_payments[:3]
+
+    upcoming_payments = list(
+        RecurringTransaction.objects.filter(
+            user=request.user,
+            is_active=True,
+            next_due_date__gte=today_date,
+            next_due_date__lte=seven_days_later
+        ).order_by('next_due_date')[:3]
+    )
     
     for payment in upcoming_payments:
         days_left = (payment.next_due_date - date.today()).days

@@ -220,7 +220,11 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     template_name = 'expenses/loan_detail.html'
 
     def get(self, request, pk):
-        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        loan = get_object_by_uuid_or_pk(
+            Loan.objects.prefetch_related('interest_rates', 'repayments'),
+            pk,
+            user=request.user
+        )
         redirect_response = redirect_to_uuid_url_if_needed(request, loan)
         if redirect_response:
             return redirect_response
