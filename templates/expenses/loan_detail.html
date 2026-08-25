@@ -69,24 +69,18 @@
         </div>
     </div>
 
-    <!-- Bootstrap 5 Accessible Tabs Navigation -->
-    <ul class="nav nav-tabs border-bottom mb-4" id="loanDetailTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold px-4 py-2.5" id="tab-overview-btn" data-bs-toggle="tab" data-bs-target="#tab-overview-pane" type="button" role="tab" aria-controls="tab-overview-pane" aria-selected="true">
-                {% trans "Overview" %}
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold px-4 py-2.5" id="tab-schedule-btn" data-bs-toggle="tab" data-bs-target="#tab-schedule-pane" type="button" role="tab" aria-controls="tab-schedule-pane" aria-selected="false">
-                {% trans "Schedule" %}
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold px-4 py-2.5" id="tab-history-btn" data-bs-toggle="tab" data-bs-target="#tab-history-pane" type="button" role="tab" aria-controls="tab-history-pane" aria-selected="false">
-                {% trans "History" %}
-            </button>
-        </li>
-    </ul>
+    <!-- Settings-Style Horizontal Tab Navigation -->
+    <div class="d-flex align-items-center mb-4 pb-2 border-bottom overflow-x-auto no-scrollbar settings-horizontal-nav" id="loanDetailTabs" role="tablist">
+        <button class="nav-link px-3 py-2 me-2 rounded-3 active fw-bold" id="tab-overview-btn" data-bs-toggle="tab" data-bs-target="#tab-overview-pane" type="button" role="tab" aria-controls="tab-overview-pane" aria-selected="true">
+            {% trans "Overview" %}
+        </button>
+        <button class="nav-link px-3 py-2 me-2 rounded-3 fw-bold" id="tab-schedule-btn" data-bs-toggle="tab" data-bs-target="#tab-schedule-pane" type="button" role="tab" aria-controls="tab-schedule-pane" aria-selected="false">
+            {% trans "Schedule" %}
+        </button>
+        <button class="nav-link px-3 py-2 me-2 rounded-3 fw-bold" id="tab-history-btn" data-bs-toggle="tab" data-bs-target="#tab-history-pane" type="button" role="tab" aria-controls="tab-history-pane" aria-selected="false">
+            {% trans "History" %}
+        </button>
+    </div>
 
     <!-- Tab Content Container -->
     <div class="tab-content" id="loanDetailTabsContent">
@@ -100,8 +94,9 @@
                         <i class="bi bi-book-fill text-info fs-5"></i>
                         <span class="small text-body">{% trans "Want to learn more about how loan amortization, prepayments, and interest savings work?" %}</span>
                     </div>
-                    <a href="https://docs.trackmyrupee.com/08-loans/" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold text-nowrap">
-                        {% trans "View Loans Tutorial" %} &rarr;
+                    <a href="https://docs.trackmyrupee.com/08-loans/" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1.5 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1" style="line-height: 1.2;">
+                        <span>{% trans "View Loans Tutorial" %}</span>
+                        <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
                 

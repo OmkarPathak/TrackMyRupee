@@ -762,14 +762,18 @@ body.demo-mode .sidebar {
   .settings-horizontal-nav .nav-link {
     transition: all 0.2s ease;
     white-space: nowrap;
+    border: none !important;
+    color: var(--bs-secondary-color, #6c757d);
   }
 
-  .settings-horizontal-nav .nav-link:hover {
+  .settings-horizontal-nav .nav-link:hover:not(.active) {
     background: rgba(var(--bs-primary-rgb), 0.05);
+    color: var(--bs-body-color);
   }
 
   .settings-horizontal-nav .nav-link.active {
     background: rgba(var(--bs-primary-rgb), 0.1) !important;
+    color: var(--bs-primary) !important;
   }
 
   .settings-card-hover {
