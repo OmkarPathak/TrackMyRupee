@@ -796,71 +796,79 @@ class AccountDetailView(LoginRequiredMixin, View):
         filtered_net_total = inc_total + in_total - exp_total - out_total - sav_total - loan_total - cap_total
 
         # Combine everything and sort by date descending
-        # We'll add 'transaction_type', 'display_currency', and 'base_amount_display' to each for the template
-        for e in expenses:
-            e.transaction_type = 'EXPENSE'
-            e.display_currency = e.currency
-            # If the expense is in a different currency than the account, show the base currency equivalent (e.g. ₹ equivalent if looking at a USD account)
-            e.base_amount_display = e.base_amount if e.currency != account.currency else None
-            
-        for i in incomes:
-            i.transaction_type = 'INCOME'
-            i.display_currency = i.currency
-            i.base_amount_display = i.base_amount if i.currency != account.currency else None
-
-        for t in transfers_from:
-            t.transaction_type = 'TRANSFER_OUT'
-            t.display_amount = -t.amount
-            t.display_currency = account.currency # Always the current account's currency for simplicity
-            t.base_amount_display = None # Transfers from account are always in account's currency
-            
-        for t in transfers_to:
-            t.transaction_type = 'TRANSFER_IN'
-            t.display_amount = t.amount
-            t.display_currency = t.from_account.currency
-            if t.from_account.currency != account.currency:
-                rate = get_exchange_rate(t.from_account.currency, account.currency)
-                t.base_amount_display = (t.amount * rate).quantize(Decimal('0.01'))
-            else:
-                t.base_amount_display = None
-
-        for c in contributions:
-            c.transaction_type = 'SAVINGS'
-            c.display_currency = c.goal.currency
-            if c.goal.currency != account.currency:
-                rate = get_exchange_rate(c.goal.currency, account.currency)
-                c.base_amount_display = (c.amount * rate).quantize(Decimal('0.01'))
-            else:
-                c.base_amount_display = None
-            c.description = _("Savings: %(goal)s") % {'goal': c.goal.name}
-
-        for lr in loan_repayments:
-            lr.transaction_type = 'LOAN_REPAYMENT'
-            lr.display_currency = lr.loan.currency
-            if lr.loan.currency != account.currency:
-                rate = get_exchange_rate(lr.loan.currency, account.currency)
-                lr.base_amount_display = (lr.amount * rate).quantize(Decimal('0.01'))
-            else:
-                lr.base_amount_display = None
-            lr.description = _("Loan Repayment: %(loan)s") % {'loan': lr.loan.name}
-
-        for ce in capital_events:
-            ce.transaction_type = 'CAPITAL_EVENT'
-            ce.display_currency = ce.currency
-            ce.base_amount_display = ce.base_amount if ce.currency != account.currency else None
-            ce.description = ce.note if ce.note else ce.get_subtype_display()
+        # Tag each item with a __ledger_type so we can inject display properties
+        # AFTER pagination (run only on the ~20 page items, not the full history)
+        def _tag(obj, tag):
+            obj.__ledger_type = tag
+            return obj
 
         ledger = sorted(
-            chain(expenses, incomes, transfers_from, transfers_to, contributions, loan_repayments, capital_events),
+            (
+                [_tag(e, 'EXPENSE')         for e in expenses]
+                + [_tag(i, 'INCOME')        for i in incomes]
+                + [_tag(t, 'TRANSFER_OUT')  for t in transfers_from]
+                + [_tag(t, 'TRANSFER_IN')   for t in transfers_to]
+                + [_tag(c, 'SAVINGS')       for c in contributions]
+                + [_tag(lr, 'LOAN_REPAYMENT') for lr in loan_repayments]
+                + [_tag(ce, 'CAPITAL_EVENT') for ce in capital_events]
+            ),
             key=lambda x: x.date,
-            reverse=True
+            reverse=True,
         )
 
         # Pagination
-        
         paginator = Paginator(ledger, 20)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
+
+        # Inject display properties ONLY on the current page slice (~20 items)
+        for item in page_obj:
+            tag = item.__ledger_type
+            if tag == 'EXPENSE':
+                item.transaction_type = 'EXPENSE'
+                item.display_currency = item.currency
+                item.base_amount_display = item.base_amount if item.currency != account.currency else None
+            elif tag == 'INCOME':
+                item.transaction_type = 'INCOME'
+                item.display_currency = item.currency
+                item.base_amount_display = item.base_amount if item.currency != account.currency else None
+            elif tag == 'TRANSFER_OUT':
+                item.transaction_type = 'TRANSFER_OUT'
+                item.display_amount = -item.amount
+                item.display_currency = account.currency
+                item.base_amount_display = None
+            elif tag == 'TRANSFER_IN':
+                item.transaction_type = 'TRANSFER_IN'
+                item.display_amount = item.amount
+                item.display_currency = item.from_account.currency
+                if item.from_account.currency != account.currency:
+                    rate = get_exchange_rate(item.from_account.currency, account.currency)
+                    item.base_amount_display = (item.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    item.base_amount_display = None
+            elif tag == 'SAVINGS':
+                item.transaction_type = 'SAVINGS'
+                item.display_currency = item.goal.currency
+                if item.goal.currency != account.currency:
+                    rate = get_exchange_rate(item.goal.currency, account.currency)
+                    item.base_amount_display = (item.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    item.base_amount_display = None
+                item.description = _("Savings: %(goal)s") % {'goal': item.goal.name}
+            elif tag == 'LOAN_REPAYMENT':
+                item.transaction_type = 'LOAN_REPAYMENT'
+                item.display_currency = item.loan.currency
+                if item.loan.currency != account.currency:
+                    rate = get_exchange_rate(item.loan.currency, account.currency)
+                    item.base_amount_display = (item.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    item.base_amount_display = None
+                item.description = _("Loan Repayment: %(loan)s") % {'loan': item.loan.name}
+            elif tag == 'CAPITAL_EVENT':
+                item.transaction_type = 'CAPITAL_EVENT'
+                item.display_currency = item.currency
+                item.base_amount_display = item.base_amount if item.currency != account.currency else None
+                item.description = item.note if item.note else item.get_subtype_display()
 
         context = {
             'account': account,

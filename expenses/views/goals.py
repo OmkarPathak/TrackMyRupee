@@ -6,7 +6,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.db.models import Sum
+from django.db.models import Min, Sum
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -143,19 +143,24 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
                 'avg_daily_contribution': Decimal('0.00'),
             }
 
-        contributions_list = list(contributions_qs)
-        if not contributions_list or goal.target_amount <= goal.current_amount:
+        # Use DB aggregation — avoids loading full contribution list into Python
+        stats = contributions_qs.aggregate(
+            total=Sum('amount'),
+            first_date=Min('date'),
+        )
+        total_contributed = stats['total'] or Decimal('0.00')
+        first_date = stats['first_date']
+
+        if not first_date or goal.target_amount <= goal.current_amount:
             return {
                 'estimated_completion_date': None,
                 'estimated_days_left': None,
                 'avg_daily_contribution': Decimal('0.00'),
             }
 
-        first_contribution = min(contributions_list, key=lambda c: (c.date, c.id))
         today = timezone.localdate()
-        days_elapsed = max((today - first_contribution.date).days, 1)
+        days_elapsed = max((today - first_date).days, 1)
 
-        total_contributed = sum(c.amount for c in contributions_list)
         avg_daily = total_contributed / Decimal(days_elapsed)
 
         remaining_amount = goal.target_amount - goal.current_amount
@@ -174,12 +179,14 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         }
 
     def _build_trend_data(self, goal, contributions_qs, estimated_days_left=None):
+        from django.db.models.functions import TruncDay, TruncMonth as TruncMonthFn
         today = timezone.localdate()
         labels = []
         values = []
 
-        contributions_list = list(contributions_qs)
-        if not contributions_list:
+        # Use DB aggregation to get first contribution date without loading full list
+        first_date = contributions_qs.aggregate(first=Min('date'))['first']
+        if not first_date:
             return {
                 'type': 'daily',
                 'labels': labels,
@@ -187,8 +194,7 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
                 'projection_values': [],
             }
 
-        first_contribution = min(contributions_list, key=lambda c: (c.date, c.id))
-        span_days = (today - first_contribution.date).days
+        span_days = (today - first_date).days
         is_monthly = span_days > 45
 
         if is_monthly:
@@ -196,12 +202,21 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             for _ in range(11):
                 month_start = (month_start - timedelta(days=1)).replace(day=1)
 
-            monthly_totals = {}
-            for contribution in contributions_list:
-                month_key = contribution.date.strftime('%Y-%m')
-                monthly_totals[month_key] = monthly_totals.get(month_key, Decimal('0.00')) + contribution.amount
+            # DB-side monthly aggregation — no Python loop over all contributions
+            monthly_rows = (
+                contributions_qs
+                .annotate(month=TruncMonthFn('date'))
+                .values('month')
+                .annotate(total=Sum('amount'))
+                .order_by('month')
+            )
+            monthly_totals = {row['month'].strftime('%Y-%m'): row['total'] for row in monthly_rows}
 
-            initial_total = sum(c.amount for c in contributions_list if c.date < month_start)
+            # Contributions before the 12-month window — sum in DB
+            initial_total = (
+                contributions_qs.filter(date__lt=month_start).aggregate(total=Sum('amount'))['total']
+                or Decimal('0.00')
+            )
             running_total = initial_total
 
             current_month = month_start
@@ -223,11 +238,23 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             )
 
         start_date = today - timedelta(days=29)
-        daily_totals = {}
-        for contribution in contributions_list:
-            daily_totals[contribution.date] = daily_totals.get(contribution.date, Decimal('0.00')) + contribution.amount
 
-        initial_total = sum(c.amount for c in contributions_list if c.date < start_date)
+        # DB-side daily aggregation for the 30-day window
+        daily_rows = (
+            contributions_qs
+            .annotate(day=TruncDay('date'))
+            .values('day')
+            .annotate(total=Sum('amount'))
+            .order_by('day')
+        )
+        daily_totals = {row['day']: row['total'] for row in daily_rows}
+
+
+        # Initial running total from contributions before the 30-day window — DB aggregate
+        initial_total = (
+            contributions_qs.filter(date__lt=start_date).aggregate(total=Sum('amount'))['total']
+            or Decimal('0.00')
+        )
         running_total = initial_total
         current_day = start_date
 
@@ -301,8 +328,9 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         }
 
     def _get_context_data(self, request, goal, form=None):
-        all_contributions = list(goal.contributions.select_related('account').all())
-        contributions_qs = goal.contributions.select_related('account').all().order_by('-date', '-id')
+        # Use DB queryset directly (no list()) — _get_estimated_completion & _build_trend_data now use DB aggregation
+        all_contributions_qs = goal.contributions.select_related('account')
+        contributions_qs = all_contributions_qs.order_by('-date', '-id')
         is_locked = self._is_locked(request.user, goal)
 
         search_query = (request.GET.get('q') or '').strip()
@@ -320,10 +348,10 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         if remaining_amount < Decimal('0.00'):
             remaining_amount = Decimal('0.00')
 
-        estimate_data = self._get_estimated_completion(goal, all_contributions)
+        estimate_data = self._get_estimated_completion(goal, all_contributions_qs)
         trend_data = self._build_trend_data(
             goal,
-            all_contributions,
+            all_contributions_qs,
             estimated_days_left=estimate_data.get('estimated_days_left'),
         )
 

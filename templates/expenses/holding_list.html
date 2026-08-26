@@ -82,7 +82,7 @@
                                     <td>{{ h.units|ind_comma|translate_digits }}</td>
                                     <td>{{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</td>
                                     <td>
-                                        {% with val=h.valuations.first %}
+                                        {% with val=h.valuations.all.0 %}
                                             {% if val %}
                                                 <span class="fw-bold text-success">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</span>
                                                 {% if val.unit_nav %}
@@ -158,7 +158,7 @@
                                     <div class="small opacity-75">Avg: {{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</div>
                                 </div>
                                 <div class="text-end">
-                                    {% with val=h.valuations.first %}
+                                    {% with val=h.valuations.all.0 %}
                                         {% if val %}
                                             <div class="fw-bold text-success fs-6">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</div>
                                             {% if val.unit_nav %}

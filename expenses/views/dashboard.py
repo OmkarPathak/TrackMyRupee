@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
-from django.db.models import Count, F, Sum
+from django.db.models import Count, F, Q, Sum
 from django.db.models.functions import ExtractWeekDay, TruncDay, TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -1124,13 +1124,13 @@ def home_view(request):
         impulse_ratio = None
         try:
             # Fetch active recurring expense descriptions once (normalized to lowercase strip)
-            recurring_desc_set = {
-                d.strip().lower()
-                for d in RecurringTransaction.objects.filter(
+            recurring_desc_set = list(
+                RecurringTransaction.objects.filter(
                     user=request.user, is_active=True, transaction_type='EXPENSE'
                 ).values_list('description', flat=True)
-                if d
-            }
+            )
+            # Strip and lower for comparison
+            recurring_desc_lower = [d.strip().lower() for d in recurring_desc_set if d]
 
             # Build period queryset (same filters as the main expense queryset)
             period_expenses_qs = Expense.objects.filter(user=request.user).select_related('account', 'category_fk')
@@ -1144,15 +1144,19 @@ def home_view(request):
                 if selected_months:
                     period_expenses_qs = period_expenses_qs.filter(date__month__in=selected_months)
 
-            impulse_total = Decimal('0.00')
-            planned_total = Decimal('0.00')
-            for exp in period_expenses_qs.values('description', 'base_amount'):
-                desc = (exp['description'] or '').strip().lower()
-                clean_desc = desc.replace(' (recurring)', '').strip()
-                if '(recurring)' in desc or clean_desc in recurring_desc_set:
-                    planned_total += exp['base_amount']
-                else:
-                    impulse_total += exp['base_amount']
+            # Build SQL Q for "planned" expenses:
+            # planned = contains '(recurring)' OR description (lowercased) is in recurring_desc_lower
+            planned_q = Q(description__icontains='(recurring)')
+            for desc in recurring_desc_lower:
+                planned_q |= Q(description__iexact=desc)
+
+            # DB-side aggregation — no Python iteration over expense rows
+            agg = period_expenses_qs.aggregate(
+                planned_total=Sum('base_amount', filter=planned_q),
+                impulse_total=Sum('base_amount', filter=~planned_q),
+            )
+            planned_total = agg['planned_total'] or Decimal('0.00')
+            impulse_total = agg['impulse_total'] or Decimal('0.00')
 
             period_total = impulse_total + planned_total
             if period_total > 0:
@@ -1172,25 +1176,25 @@ def home_view(request):
                             user=request.user,
                             date__gte=prev_cycle_start_date,
                             date__lte=prev_cycle_end_date,
-                        ).values('description', 'base_amount')
+                        )
                     elif prev_year and prev_month:
                         prev_exp_qs = Expense.objects.filter(
                             user=request.user,
                             date__year=prev_year,
                             date__month=prev_month,
-                        ).values('description', 'base_amount')
+                        )
                     else:
                         prev_exp_qs = None
 
                     if prev_exp_qs is not None:
-                        prev_impulse_total = Decimal('0.00')
-                        prev_period_total = Decimal('0.00')
-                        for exp in prev_exp_qs:
-                            prev_period_total += exp['base_amount']
-                            prev_desc = (exp['description'] or '').strip().lower()
-                            prev_clean = prev_desc.replace(' (recurring)', '').strip()
-                            if '(recurring)' not in prev_desc and prev_clean not in recurring_desc_set:
-                                prev_impulse_total += exp['base_amount']
+                        # DB-side aggregation for previous period impulse too
+                        prev_agg = prev_exp_qs.aggregate(
+                            prev_total=Sum('base_amount'),
+                            prev_planned=Sum('base_amount', filter=planned_q),
+                        )
+                        prev_period_total = prev_agg['prev_total'] or Decimal('0.00')
+                        prev_planned_total = prev_agg['prev_planned'] or Decimal('0.00')
+                        prev_impulse_total = prev_period_total - prev_planned_total
                         if prev_period_total > 0:
                             prev_impulse_pct = round(float(prev_impulse_total) / float(prev_period_total) * 100)
 

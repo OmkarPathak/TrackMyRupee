@@ -10,6 +10,8 @@ from django.db.models import (
     CharField,
     DecimalField,
     F,
+    Max,
+    Min,
     Q,
     Sum,
     Value,
@@ -221,10 +223,16 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
 
         # Daily sparkline trend calculation
         from datetime import timedelta
-        all_dates = list(expenses.values_list('date', flat=True)) + list(incomes.values_list('date', flat=True))
-        if all_dates:
-            min_date = min(all_dates)
-            max_date = max(all_dates)
+        # Use DB aggregation instead of loading all dates into Python memory
+        expense_range = expenses.aggregate(min=Min('date'), max=Max('date'))
+        income_range  = incomes.aggregate(min=Min('date'),  max=Max('date'))
+        candidate_dates = [d for d in [
+            expense_range['min'], expense_range['max'],
+            income_range['min'],  income_range['max'],
+        ] if d]
+        if candidate_dates:
+            min_date = min(candidate_dates)
+            max_date = max(candidate_dates)
         else:
             today = datetime.now()
             min_date = today.replace(day=1).date()
