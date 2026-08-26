@@ -7,38 +7,52 @@
     </div>
     <div class="card-body p-0">
         {% if repayments %}
-        <!-- Desktop Table View (>= md breakpoint) -->
+
+        {# ── Desktop table (≥ md) ───────────────────────────────────────────── #}
         <div class="table-responsive d-none d-md-block">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table table-hover table-striped align-middle mb-0">
+                <thead>
                     <tr>
-                        <th class="ps-4 border-0">{% trans "Date" %}</th>
-                        <th class="border-0">{% trans "Account" %}</th>
-                        <th class="border-0 text-end">{% trans "Amount" %}</th>
-                        <th class="pe-4 border-0 text-end">{% trans "Actions" %}</th>
+                        <th class="ps-4">{% trans "Date" %}</th>
+                        <th>{% trans "Account" %}</th>
+                        <th class="text-end">{% trans "Amount" %}</th>
+                        <th class="text-end pe-4">{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for r in repayments %}
                     <tr{% if forloop.counter > 10 %} class="repayment-extra d-none"{% endif %}>
-                        <td class="ps-4 text-nowrap">{{ r.date|date:"M d, Y" }}</td>
+                        <td class="ps-4 text-nowrap">{{ r.date|date:"d M Y" }}</td>
                         <td>
                             {% if r.from_account %}
-                            <span class="badge bg-body-tertiary text-body border shadow-sm">
-                                <i class="bi bi-wallet2 me-1"></i> {{ r.from_account.name }}
-                            </span>
+                            <span class="small text-muted">{{ r.from_account.name }}</span>
                             {% else %}
                             <span class="text-muted small">—</span>
                             {% endif %}
                         </td>
-                        <td class="text-end fw-bold text-success">{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}</td>
-                        <td class="pe-4 text-end">
-                            <button type="button" class="btn btn-outline-danger btn-sm rounded-circle icon-btn" 
-                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                    data-url="{% url 'loan-repayment-delete' r.uuid %}?next={{ request.get_full_path|urlencode }}"
-                                    data-message="{% trans 'Delete this repayment record? The account balance will be restored.' %}">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                        <td class="text-end fw-bold text-success">
+                            -{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="dropdown">
+                                <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        data-bs-popper-config='{"strategy":"fixed"}'>
+                                    <i class="bi bi-three-dots-vertical text-muted"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <li>
+                                        <button class="dropdown-item py-2 text-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal"
+                                                data-url="{% url 'loan-repayment-delete' r.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                                data-message="{% trans 'Delete this repayment record? The account balance will be restored.' %}">
+                                            <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -46,31 +60,37 @@
             </table>
         </div>
 
-        <!-- Mobile List View (< md breakpoint) - Border-bottom divided items, no nested card-in-card -->
+        {# ── Mobile list (< md) — flat border-bottom rows, no nested cards ── #}
         <div class="d-md-none">
             {% for r in repayments %}
-            <div class="p-3 {% if not forloop.last %}border-bottom{% endif %} repayment-card{% if forloop.counter > 10 %} repayment-extra d-none{% endif %}">
-                <!-- Line 1: Date + Account badge -->
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-semibold text-body text-nowrap" style="font-size: 0.9rem;">{{ r.date|date:"M d, Y" }}</span>
-                    {% if r.from_account %}
-                    <span class="badge bg-body-tertiary text-body border shadow-sm text-truncate" style="max-width: 170px;">
-                        <i class="bi bi-wallet2 me-1"></i> {{ r.from_account.name }}
-                    </span>
-                    {% endif %}
-                </div>
-                <!-- Line 2: Amount + Delete action button -->
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="text-muted small me-1">{% trans "Amount" %}:</span>
-                        <span class="fw-bold text-success fs-6">{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}</span>
+            <div class="d-flex align-items-center gap-3 px-3 py-3{% if not forloop.last %} border-bottom{% endif %}{% if forloop.counter > 10 %} repayment-extra d-none{% endif %}">
+                <div class="flex-grow-1 min-width-0">
+                    <div class="fw-semibold" style="font-size: 0.93rem;">{{ r.date|date:"d M Y" }}</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">
+                        {% if r.from_account %}{{ r.from_account.name }}{% else %}—{% endif %}
                     </div>
-                    <button type="button" class="btn btn-outline-danger btn-sm rounded-circle icon-btn" 
-                            data-bs-toggle="modal" data-bs-target="#deleteModal"
-                            data-url="{% url 'loan-repayment-delete' r.uuid %}?next={{ request.get_full_path|urlencode }}"
-                            data-message="{% trans 'Delete this repayment record? The account balance will be restored.' %}">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <span class="fw-bold text-success">-{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}</span>
+                    <div class="dropdown">
+                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                data-bs-popper-config='{"strategy":"fixed"}'>
+                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li>
+                                <button class="dropdown-item py-2 text-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-url="{% url 'loan-repayment-delete' r.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                        data-message="{% trans 'Delete this repayment record? The account balance will be restored.' %}">
+                                    <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             {% endfor %}
@@ -78,19 +98,23 @@
 
         {% if repayments|length > 10 %}
         <div class="p-3 text-center border-top">
-            <button type="button" id="toggleRepaymentRows" class="btn btn-outline-primary btn-sm rounded-pill px-3" aria-expanded="false">
+            <button type="button" id="toggleRepaymentRows"
+                    class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-medium"
+                    aria-expanded="false">
                 {% trans "Show more repayments" %} ({{ repayments|length|add:-10 }})
             </button>
         </div>
         {% endif %}
 
         {% else %}
+        {# ── Empty state ────────────────────────────────────────────────────── #}
         <div class="text-center py-5 p-3 text-muted">
             <i class="bi bi-clock-history fs-2 text-secondary d-block mb-2"></i>
             <h6 class="fw-bold mb-1">{% trans "No Repayments Recorded Yet" %}</h6>
             <p class="small mb-0 text-muted">{% trans "Record a repayment using the button above to track your history." %}</p>
         </div>
         {% endif %}
+
     </div>
 </div>
 
