@@ -1031,38 +1031,38 @@
 <h2 id="2-create-your-environment-file">2. Create Your Environment File<a class="headerlink" href="#2-create-your-environment-file" title="Permanent link">&para;</a></h2>
 <p>Create a file named <code>.env</code> in the repository root. At minimum you need the following settings:</p>
 <div class="highlight"><pre><span></span><code># Required
-SECRET_KEY=&#39;replace-with-a-long-random-string&#39;
+SECRET_KEY='replace-with-a-long-random-string'
 DEBUG=False
 
 # Database (leave blank to use SQLite)
-# DATABASE_URL=&#39;postgres://user:password@localhost:5432/dbname&#39;
+# DATABASE_URL='postgres://user:password@localhost:5432/dbname'
 
 # Email: choose one option below
 
 # Option A: Brevo API (recommended for self-hosting)
-# BREVO_API_KEY=&#39;&#39;
+# BREVO_API_KEY=''
 
 # Option B: SMTP
-# EMAIL_HOST=&#39;smtp.gmail.com&#39;
+# EMAIL_HOST='smtp.gmail.com'
 # EMAIL_PORT=587
 # EMAIL_USE_TLS=True
-# EMAIL_HOST_USER=&#39;&#39;
-# EMAIL_HOST_PASSWORD=&#39;&#39;
+# EMAIL_HOST_USER=''
+# EMAIL_HOST_PASSWORD=''
 
 # Optional features
-# GOOGLE_CLIENT_ID=&#39;&#39;          # Google OAuth login
-# GOOGLE_CLIENT_SECRET=&#39;&#39;
-# RAZORPAY_KEY_ID=&#39;&#39;           # Payments
-# RAZORPAY_KEY_SECRET=&#39;&#39;
-# RAZORPAY_WEBHOOK_SECRET=&#39;&#39;
-# VAPID_PUBLIC_KEY=&#39;&#39;          # Web Push notifications
-# VAPID_PRIVATE_KEY=&#39;&#39;
-# VAPID_ADMIN_EMAIL=&#39;you@example.com&#39;
-# GEMINI_API_KEY=&#39;&#39;            # AI category insights
-# GOOGLE_ANALYTICS_ID=&#39;&#39;
-# SENTRY_DSN=&#39;&#39;
-# RECAPTCHA_PUBLIC_KEY=&#39;&#39;
-# RECAPTCHA_SECRET_KEY=&#39;&#39;
+# GOOGLE_CLIENT_ID=''          # Google OAuth login
+# GOOGLE_CLIENT_SECRET=''
+# RAZORPAY_KEY_ID=''           # Payments
+# RAZORPAY_KEY_SECRET=''
+# RAZORPAY_WEBHOOK_SECRET=''
+# VAPID_PUBLIC_KEY=''          # Web Push notifications
+# VAPID_PRIVATE_KEY=''
+# VAPID_ADMIN_EMAIL='you@example.com'
+# GEMINI_API_KEY=''            # AI category insights
+# GOOGLE_ANALYTICS_ID=''
+# SENTRY_DSN=''
+# RECAPTCHA_PUBLIC_KEY=''
+# RECAPTCHA_SECRET_KEY=''
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Never commit .env to git</p>
