@@ -719,9 +719,9 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     credit_card_billing_day = forms.IntegerField(
         required=False,
         min_value=1,
-        max_value=28,
-        label=_('Credit Card Billing Day of Month (1-28)'),
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '28'}),
+        max_value=31,
+        label=_('Credit Card Billing Day of Month (1-31)'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '31'}),
     )
 
     # Inline PhysicalAsset creation fields (used for PHYSICAL_VALUATION & INSURANCE_SURRENDER strategies)
@@ -807,7 +807,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'credit_limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'credit_card_billing_day': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '28'}),
+            'credit_card_billing_day': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '31'}),
         }
 
     @property

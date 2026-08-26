@@ -240,7 +240,7 @@ class Account(models.Model):
     )
     credit_card_billing_day = models.PositiveIntegerField(
         null=True, blank=True,
-        validators=[MinValueValidator(1), MaxValueValidator(28)],
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
         verbose_name=_('Credit Card Billing Day'),
     )
 
