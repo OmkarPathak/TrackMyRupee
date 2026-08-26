@@ -201,12 +201,39 @@
         }
         /* Quick Add Preview */
         .quick-add-preview {
-            background-color: var(--paper, rgba(29, 158, 117, 0.02));
+            background-color: rgba(29, 158, 117, 0.06);
             border: 1px dashed var(--color-primary, #1D9E75);
             border-radius: 12px;
             padding: 15px;
             margin-top: 15px;
             animation: fadeIn 0.3s ease-out;
+        }
+        [data-bs-theme="dark"] .quick-add-preview {
+            background-color: rgba(29, 158, 117, 0.12);
+            border-color: rgba(29, 158, 117, 0.5);
+        }
+        /* Onboarding inputs: boost border visibility in dark mode so fields
+           don't look like static text. Bootstrap dark default is ~15% white
+           opacity which is nearly invisible on the card surface. */
+        [data-bs-theme="dark"] .onboarding-card .form-control,
+        [data-bs-theme="dark"] .onboarding-card .form-select,
+        [data-bs-theme="dark"] .onboarding-card .input-group-text {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        [data-bs-theme="dark"] .onboarding-card .form-control:focus,
+        [data-bs-theme="dark"] .onboarding-card .form-select:focus {
+            border-color: var(--color-primary, #1D9E75);
+            box-shadow: 0 0 0 0.2rem rgba(29, 158, 117, 0.25);
+        }
+        /* Skip consequence warning card — same green card style as quick-add-preview */
+        .skip-consequence-card {
+            background-color: rgba(29, 158, 117, 0.06);
+            border: 1px dashed var(--color-primary, #1D9E75);
+            border-radius: 12px;
+        }
+        [data-bs-theme="dark"] .skip-consequence-card {
+            background-color: rgba(29, 158, 117, 0.12);
+            border-color: rgba(29, 158, 117, 0.5);
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
@@ -575,11 +602,11 @@
                 </div>
 
                 <!-- Custom Skip Consequence Overlay -->
-                <div id="skip-warning-overlay" class="skip-consequence-card d-none p-4 rounded-4 mt-3 border border-warning" style="background-color: rgba(var(--bs-warning-rgb), 0.05);">
-                    <p class="text-warning-emphasis mb-3 fw-medium" id="skip-consequence-text"></p>
+                <div id="skip-warning-overlay" class="skip-consequence-card d-none p-4 mt-3">
+                    <p class="mb-3 fw-medium" id="skip-consequence-text"></p>
                     <div class="d-flex gap-2 justify-content-end">
                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="cancelSkip()">{% trans "Cancel" %}</button>
-                        <button type="button" class="btn btn-sm btn-warning rounded-pill px-3 text-white fw-bold" id="btn-confirm-skip">{% trans "Skip anyway" %}</button>
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btn-confirm-skip">{% trans "Skip anyway" %}</button>
                     </div>
                 </div>
             </div>
@@ -634,7 +661,16 @@
 
         // Update controls visibility
         document.getElementById('btn-prev-slide').style.visibility = slideNum > 1 ? 'visible' : 'hidden';
-        document.getElementById('btn-next-slide').style.display = slideNum === 3 ? 'none' : 'inline-block';
+
+        // On the last slide, keep "Next" visible but wire it to nextScreen()
+        // so it behaves identically to the "Get Started" button inside slide 3.
+        const nextBtn = document.getElementById('btn-next-slide');
+        nextBtn.style.display = 'inline-block';
+        if (slideNum === 3) {
+            nextBtn.onclick = nextScreen;
+        } else {
+            nextBtn.onclick = nextSlide;
+        }
     }
 
     function nextSlide() {
