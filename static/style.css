@@ -2928,3 +2928,15 @@ label.time-period-pill.active {
   border-color: #1D9E75 !important;
   color: #ffffff !important;
 }
+
+/* Inactive filter pill & chip text brightness */
+.time-period-pill:not(.active),
+.type-chip:not(.active) {
+  color: var(--bs-body-color) !important;
+}
+
+[data-bs-theme="dark"] .time-period-pill:not(.active),
+[data-bs-theme="dark"] .type-chip:not(.active),
+[data-bs-theme="dark"] label.time-period-pill:not(.active) {
+  color: rgba(255, 255, 255, 0.88) !important;
+}

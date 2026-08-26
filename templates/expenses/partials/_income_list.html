@@ -88,7 +88,7 @@
                         {% with periods="this_month:This month,last_month:Last month,last_3_months:Last 3 months,this_year:This year,all:All time,custom:Custom" %}
                         {% for period in periods|split_string:"," %}
                             {% with p_val=period|split_string:":"|first p_label=period|split_string:":"|last %}
-                            <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm active{% else %}btn-light text-secondary border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period == p_val %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg);{% endif %}">
+                            <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm active{% else %}btn-light text-body border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period == p_val %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg);{% endif %}">
                                 <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="handleTimePeriodChange(this)" {% if time_period == p_val %}checked{% endif %}>
                                 {{ p_label }}
                             </label>
