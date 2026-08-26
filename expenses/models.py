@@ -244,6 +244,11 @@ class Account(models.Model):
         verbose_name=_('Credit Card Billing Day'),
     )
 
+    def get_account_type_display(self) -> str:
+        if self.account_type == 'CREDIT_CARD':
+            return 'Credit Card'
+        return super().get_account_type_display()
+
     @property
     def account_type_display(self) -> str:
         return self.get_account_type_display()

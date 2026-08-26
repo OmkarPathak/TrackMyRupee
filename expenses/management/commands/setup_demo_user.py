@@ -15,6 +15,7 @@ from expenses.models import (
     Category,
     Expense,
     GoalContribution,
+    Holding,
     Income,
     Loan,
     LoanInterestRate,
@@ -23,6 +24,7 @@ from expenses.models import (
     SavingsGoal,
     Transfer,
     UserProfile,
+    Valuation,
 )
 
 
@@ -80,6 +82,8 @@ class Command(BaseCommand):
                 exp_models.JournalEntry.objects.filter(user=user).delete()
                 exp_models.LedgerAccount.objects.filter(user=user).delete()
 
+                exp_models.Valuation.objects.filter(holding__account__user=user).delete()
+                exp_models.Holding.objects.filter(account__user=user).delete()
                 exp_models.Account.objects.filter(user=user).delete()
                 exp_models.Category.objects.filter(user=user).delete()
 
@@ -98,6 +102,7 @@ class Command(BaseCommand):
         profile.currency = '₹'
         profile.save()
 
+        today = date.today()
         self.stdout.write(self.style.SUCCESS(f'Created user: {username} (PRO Tier)'))
         
         # 1.1 Setup Accounts
@@ -132,21 +137,47 @@ class Command(BaseCommand):
             currency='₹'
         )
         acc_cc_regalia = Account.objects.create(
-            user=user, 
-            name="HDFC Regalia Credit Card", 
-            account_type='CREDIT_CARD', 
-            balance=Decimal('0.00'), 
-            currency='₹'
+            user=user,
+            name="HDFC Regalia Credit Card",
+            account_type='CREDIT_CARD',
+            balance=Decimal('0.00'),
+            currency='₹',
+            credit_limit=Decimal('300000.00'),
+            credit_card_billing_day=15,
         )
         acc_cc_amazon = Account.objects.create(
-            user=user, 
-            name="ICICI Amazon Pay Credit Card", 
-            account_type='CREDIT_CARD', 
-            balance=Decimal('0.00'), 
-            currency='₹'
+            user=user,
+            name="ICICI Amazon Pay Credit Card",
+            account_type='CREDIT_CARD',
+            balance=Decimal('0.00'),
+            currency='₹',
+            credit_limit=Decimal('150000.00'),
+            credit_card_billing_day=20,
         )
 
-        self.stdout.write(self.style.SUCCESS('Created Bank, Cash, and Credit Card Accounts'))
+        # Fixed Deposits
+        acc_fd_sbi = Account.objects.create(
+            user=user,
+            name="SBI Fixed Deposit (5Y)",
+            account_type='FD',
+            balance=Decimal('200000.00'),
+            currency='₹',
+            deposit_maturity_date=today + timedelta(days=365 * 3),
+            show_accrued_balance=True,
+            record_maturity_income=True,
+        )
+        acc_fd_hdfc = Account.objects.create(
+            user=user,
+            name="HDFC FD (15 Months)",
+            account_type='FD',
+            balance=Decimal('100000.00'),
+            currency='₹',
+            deposit_maturity_date=today + timedelta(days=450),
+            show_accrued_balance=True,
+            record_maturity_income=False,
+        )
+
+        self.stdout.write(self.style.SUCCESS('Created Bank, Cash, Credit Card, and Fixed Deposit Accounts'))
         
         # 2. Categories & Budgets
         categories_data = [
@@ -600,20 +631,179 @@ class Command(BaseCommand):
             exclude_from_budget=True,
             include_in_net_worth=False
         )
-
         CapitalEvent.objects.create(
             user=user,
             amount=Decimal('85000.00'),
             date=today - timedelta(days=60),
             subtype='medical_lump_sum',
-            note='Dad\'s Surgery Out-of-pocket',
+            note="Dad's Surgery Out-of-pocket",
             account=acc_main,
             exclude_from_averages=True,
             exclude_from_budget=True,
             include_in_net_worth=False
         )
-        
-        self.stdout.write(self.style.SUCCESS('Created Capital Events and Lump Sum Investments'))
+        CapitalEvent.objects.create(
+            user=user,
+            amount=Decimal('50000.00'),
+            date=today - timedelta(days=120),
+            subtype='loan_prepayment',
+            note='Part-prepayment on Home Renovation Loan',
+            account=acc_main,
+            linked_loan=home_loan,
+            exclude_from_averages=True,
+            exclude_from_budget=True,
+            include_in_net_worth=False
+        )
+        CapitalEvent.objects.create(
+            user=user,
+            amount=Decimal('75000.00'),
+            date=today - timedelta(days=90),
+            subtype='gift_received',
+            note='Wedding anniversary gift from parents',
+            account=acc_savings,
+            exclude_from_averages=False,
+            exclude_from_budget=True,
+            include_in_net_worth=True
+        )
+        CapitalEvent.objects.create(
+            user=user,
+            amount=Decimal('200000.00'),
+            date=today - timedelta(days=30),
+            subtype='investment_lump_sum',
+            note='Lump sum into Parag Parikh Flexi Cap Fund',
+            account=acc_invest,
+            exclude_from_averages=True,
+            exclude_from_budget=True,
+            include_in_net_worth=True
+        )
+        CapitalEvent.objects.create(
+            user=user,
+            amount=Decimal('35000.00'),
+            date=today - timedelta(days=15),
+            subtype='large_purchase',
+            note='Sony WH-1000XM5 + MacBook accessories',
+            account=acc_cc_regalia,
+            exclude_from_averages=True,
+            exclude_from_budget=True,
+            include_in_net_worth=False
+        )
+
+        # ── Holdings & Valuations ──────────────────────────────────────────────
+        holdings_data = [
+            {
+                'instrument_name': 'Nifty 50 Index Fund - Direct Growth',
+                'instrument_type': 'MF',
+                'units': Decimal('1250.456'),
+                'avg_cost': Decimal('145.20'),
+                'current_nav': Decimal('178.65'),
+                'scheme_code': '120503',
+            },
+            {
+                'instrument_name': 'Parag Parikh Flexi Cap - Direct Growth',
+                'instrument_type': 'MF',
+                'units': Decimal('820.312'),
+                'avg_cost': Decimal('62.50'),
+                'current_nav': Decimal('79.80'),
+                'scheme_code': '122639',
+            },
+            {
+                'instrument_name': 'HDFC Mid-Cap Opportunities - Direct Growth',
+                'instrument_type': 'MF',
+                'units': Decimal('540.000'),
+                'avg_cost': Decimal('118.00'),
+                'current_nav': Decimal('142.30'),
+                'scheme_code': '119077',
+            },
+            {
+                'instrument_name': 'Reliance Industries Ltd',
+                'instrument_type': 'STOCK',
+                'units': Decimal('25.000000'),
+                'avg_cost': Decimal('2450.00'),
+                'current_nav': Decimal('2890.50'),
+                'isin': 'INE002A01018',
+            },
+            {
+                'instrument_name': 'Infosys Ltd',
+                'instrument_type': 'STOCK',
+                'units': Decimal('40.000000'),
+                'avg_cost': Decimal('1380.00'),
+                'current_nav': Decimal('1625.75'),
+                'isin': 'INE009A01021',
+            },
+            {
+                'instrument_name': 'Tata Consultancy Services',
+                'instrument_type': 'STOCK',
+                'units': Decimal('15.000000'),
+                'avg_cost': Decimal('3800.00'),
+                'current_nav': Decimal('4120.00'),
+                'isin': 'INE467B01029',
+            },
+            {
+                'instrument_name': 'NPS Tier-I (Equity)',
+                'instrument_type': 'NPS',
+                'units': Decimal('3200.000000'),
+                'avg_cost': Decimal('28.50'),
+                'current_nav': Decimal('34.20'),
+            },
+            {
+                'instrument_name': 'EPF (Employee Provident Fund)',
+                'instrument_type': 'EPF',
+                'units': None,
+                'avg_cost': None,
+                'current_nav': Decimal('185000.00'),  # total corpus — no unit tracking
+            },
+            {
+                'instrument_name': 'PPF (Public Provident Fund)',
+                'instrument_type': 'PPF',
+                'units': None,
+                'avg_cost': None,
+                'current_nav': Decimal('92000.00'),
+            },
+        ]
+
+        for hd in holdings_data:
+            holding = Holding.objects.create(
+                account=acc_invest,
+                instrument_name=hd['instrument_name'],
+                instrument_type=hd['instrument_type'],
+                units=hd.get('units'),
+                avg_cost=hd.get('avg_cost'),
+                currency='₹',
+                scheme_code=hd.get('scheme_code'),
+                isin=hd.get('isin'),
+                is_active=True,
+            )
+            # Current valuation
+            nav = hd['current_nav']
+            if hd.get('units'):
+                current_value = (hd['units'] * nav).quantize(Decimal('0.01'))
+            else:
+                current_value = nav  # corpus-based (EPF/PPF)
+
+            Valuation.objects.create(
+                holding=holding,
+                value=current_value,
+                as_of_date=today,
+                unit_nav=nav if hd.get('units') else None,
+                source='demo_seed',
+            )
+            # One historical valuation (1 month ago) for sparkline/chart
+            if hd.get('units'):
+                hist_nav = (nav * Decimal('0.94')).quantize(Decimal('0.000001'))
+                hist_value = (hd['units'] * hist_nav).quantize(Decimal('0.01'))
+            else:
+                hist_value = (current_value * Decimal('0.96')).quantize(Decimal('0.01'))
+                hist_nav = None
+            Valuation.objects.create(
+                holding=holding,
+                value=hist_value,
+                as_of_date=today - timedelta(days=30),
+                unit_nav=hist_nav,
+                source='demo_seed',
+            )
+
+        self.stdout.write(self.style.SUCCESS('Created Holdings and Valuations on Demat account'))
+        self.stdout.write(self.style.SUCCESS('Created Capital Events (6 types)'))
 
         # 10. Net worth floor: guarantee strictly positive demo net worth.
         # This protects the live demo from rendering negative net worth due to liabilities.
