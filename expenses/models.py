@@ -2,6 +2,7 @@ import logging
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
+from typing import Optional
 
 import sentry_sdk
 from django.conf import settings
@@ -237,10 +238,34 @@ class Account(models.Model):
         null=True, blank=True,
         verbose_name=_('Credit Limit'),
     )
+    credit_card_billing_day = models.PositiveIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(28)],
+        verbose_name=_('Credit Card Billing Day'),
+    )
 
     @property
     def account_type_display(self) -> str:
         return self.get_account_type_display()
+
+    @property
+    def next_billing_date(self) -> Optional[date]:
+        from .account_types import STRATEGY, strategy_for
+        from .utils import get_safe_date
+
+        if self.credit_card_billing_day is None:
+            return None
+        if strategy_for(self.account_type) != STRATEGY.REVOLVING_CREDIT:
+            return None
+
+        today = timezone.now().date()
+        target_date = get_safe_date(today.year, today.month, self.credit_card_billing_day)
+        if target_date < today:
+            if today.month == 12:
+                target_date = get_safe_date(today.year + 1, 1, self.credit_card_billing_day)
+            else:
+                target_date = get_safe_date(today.year, today.month + 1, self.credit_card_billing_day)
+        return target_date
 
     @property
     def has_credit_limit(self) -> bool:

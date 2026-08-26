@@ -716,6 +716,13 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         label=_('Credit Limit'),
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
+    credit_card_billing_day = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=28,
+        label=_('Credit Card Billing Day of Month (1-28)'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '28'}),
+    )
 
     # Inline PhysicalAsset creation fields (used for PHYSICAL_VALUATION & INSURANCE_SURRENDER strategies)
     create_new_asset = forms.ChoiceField(
@@ -787,7 +794,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'name', 'account_type', 'balance', 'currency',
             'linked_loan', 'linked_physical_asset',
             'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'show_accrued_balance', 'record_maturity_income',
-            'rd_installment_amount', 'rd_installment_day', 'credit_limit',
+            'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
             'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
             'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
         ]
@@ -800,6 +807,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'credit_limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'credit_card_billing_day': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '28'}),
         }
 
     @property
@@ -911,7 +919,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         strategy_fields = {
             'deposit_principal', 'deposit_rate', 'deposit_start_date',
             'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding',
-            'rd_installment_amount', 'rd_installment_day', 'credit_limit',
+            'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
             'linked_loan', 'linked_physical_asset',
             'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
             'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',

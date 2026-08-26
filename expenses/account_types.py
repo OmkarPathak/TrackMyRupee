@@ -265,7 +265,7 @@ FIELD_GROUPS_BY_STRATEGY: dict[STRATEGY, list[str]] = {
         'show_accrued_balance',
     ],
     STRATEGY.HOLDINGS: [],
-    STRATEGY.REVOLVING_CREDIT: ['credit_limit'],
+    STRATEGY.REVOLVING_CREDIT: ['credit_limit', 'credit_card_billing_day'],
     STRATEGY.LOAN_OUTSTANDING: ['linked_loan'],
     STRATEGY.PHYSICAL_VALUATION: [
         'linked_physical_asset',

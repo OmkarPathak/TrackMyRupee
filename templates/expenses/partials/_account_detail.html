@@ -120,6 +120,10 @@
                                     <span class="opacity-50">•</span>
                                     <span class="fw-medium">{% trans "Matures on:" %} {{ account.deposit_maturity_date|date:"d M Y" }}</span>
                                 {% endif %}
+                                {% if account.next_billing_date %}
+                                    <span class="opacity-50">•</span>
+                                    <span class="fw-medium">{% trans "Next Bill:" %} {{ account.next_billing_date|date:"d M Y" }}</span>
+                                {% endif %}
                                 {% if account.has_credit_limit %}
                                     <span class="opacity-50">•</span>
                                     <span class="fw-medium">{% trans "Limit:" %} {{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>

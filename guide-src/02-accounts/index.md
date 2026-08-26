@@ -51,6 +51,12 @@ Click **Save** when done.
 !!! info "Note on Recurring Deposits (RD)"
     RD valuation is not treated like a single lump-sum FD from day one. Each installment accrues from its own deposit date, and only installments that were actually posted are counted. If a month is skipped, that installment is not assumed automatically.
 
+!!! info "Note on Credit Card, BNPL, and Overdraft Billing Dates"
+    For revolving credit accounts (Credit Card, BNPL, Overdraft), you can set an optional **Billing Day of Month** (1–28). TrackMyRupee computes the next upcoming billing date, displays a badge on your account list, and sends a **3-day advance reminder**.
+    - **In-App Notification Panel**: Delivered to all active users.
+    - **WebPush Notifications**: Delivered to all active users who have enabled browser push notifications.
+    - **Email Digest**: Included in daily financial digest emails for Plus and Pro tier subscribers.
+
 ---
 
 ## 4. Editing Account Details and Balance

@@ -1,4 +1,6 @@
+import calendar
 import logging
+from datetime import date
 from decimal import Decimal
 
 import requests
@@ -8,6 +10,13 @@ from django.db.models.functions import ExtractMonth
 from django.utils.translation import get_language
 
 logger = logging.getLogger(__name__)
+
+
+def get_safe_date(year: int, month: int, day: int) -> date:
+    """Get the last day of month if day exceeds month length."""
+    last_day = calendar.monthrange(year, month)[1]
+    return date(year, month, min(day, last_day))
+
 
 
 def get_exchange_rate(from_curr, to_curr):

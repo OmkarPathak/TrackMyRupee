@@ -36,6 +36,8 @@
     @media (max-width: 767.98px) { .accounts-filter-row { flex-wrap: wrap; } .accounts-search-wrap { flex: 1 1 100%; order: -1; } .accounts-filter-select { flex: 1 1 auto; } }
     .rate-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(29,158,117,0.1); color: #1D9E75; }
     .maturity-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(29,158,117,0.08); color: #1D9E75; }
+    .billing-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(212,131,26,0.1); color: var(--color-warning); }
+    [data-bs-theme="dark"] .billing-badge { background-color: rgba(244,180,78,0.15); color: var(--color-warning); }
     .header-action-btn { height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px !important; transition: all 0.2s ease; border: 1px solid var(--bs-border-color); background: transparent; padding: 0 0.75rem; font-size: 0.875rem; text-decoration: none; color: var(--bs-body-color); font-weight: 500; }
     .header-action-btn.btn-primary { background-color: #1D9E75 !important; color: white !important; border-color: #1D9E75 !important; }
     .header-action-btn:hover { opacity: 0.9; }
@@ -321,6 +323,13 @@
                             <span class="maturity-badge">
                                 <i class="bi bi-calendar3" style="font-size: 0.6rem;"></i>
                                 {% trans "Matures" %} {{ account.deposit_maturity_date|date:"M Y" }}
+                            </span>
+                        {% endif %}
+
+                        {% if account.next_billing_date %}
+                            <span class="billing-badge">
+                                <i class="bi bi-credit-card-2-front" style="font-size: 0.6rem;"></i>
+                                {% trans "Bills" %} {{ account.next_billing_date|date:"d M" }}
                             </span>
                         {% endif %}
 

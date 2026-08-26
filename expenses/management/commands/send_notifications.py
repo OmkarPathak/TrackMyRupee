@@ -13,6 +13,7 @@ from webpush import send_user_notification
 from webpush.models import PushInformation
 
 from expenses.models import (
+    Account,
     Category,
     Expense,
     Notification,
@@ -67,6 +68,11 @@ class Command(BaseCommand):
         # 6. Pre-fetch Push Information presence
         self.users_with_push = set(PushInformation.objects.values_list('user_id', flat=True))
 
+        # 7. Pre-fetch Active Revolving Credit Accounts with Billing Day
+        self.active_cc_accounts_by_user = {}
+        for acc in Account.objects.filter(is_active=True, credit_card_billing_day__isnull=False).select_related('user'):
+            self.active_cc_accounts_by_user.setdefault(acc.user_id, []).append(acc)
+
         users = UserProfile.objects.exclude(user__username='demo').select_related('user')
 
         
@@ -78,6 +84,9 @@ class Command(BaseCommand):
             
             # 1. Check for Upcoming Recurring Transactions (Income, Expense, Transfer)
             self._process_recurring_reminders(user)
+
+            # 1b. Check for Credit Card Billing Date Reminders
+            self._process_credit_card_reminders(user)
             
             # 2. Check for AI Insights: High Spending
             self._process_budget_alerts(user)
@@ -213,6 +222,24 @@ class Command(BaseCommand):
                 self._create_notification(
                     user, title, message, 'RECURRING', 
                     slug=slug, link=link, related_transaction=rt
+                )
+
+    def _process_credit_card_reminders(self, user):
+        """Notifies about upcoming credit card / revolving credit billing dates in 3 days."""
+        reminder_days = 3
+        due_date = self.today + timedelta(days=reminder_days)
+
+        cc_accounts = self.active_cc_accounts_by_user.get(user.id, [])
+        for account in cc_accounts:
+            next_billing = account.next_billing_date
+            if next_billing == due_date:
+                slug = f"billing-{account.id}-{next_billing.year}-{next_billing.month}"
+                title = f"Upcoming Credit Card Bill: {account.name}"
+                message = f"The billing date for {account.name} is in 3 days ({next_billing.strftime('%b %d')})."
+                link = f"/accounts/{account.uuid}/"
+                self._create_notification(
+                    user, title, message, 'RECURRING',
+                    slug=slug, link=link
                 )
 
     def _process_budget_alerts(self, user):

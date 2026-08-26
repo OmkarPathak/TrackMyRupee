@@ -8,6 +8,7 @@ from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 
 from .models import CapitalEvent, Expense, Income, Loan, LoanRepayment
+from .utils import get_safe_date
 
 logger = logging.getLogger(__name__)
 
@@ -442,13 +443,7 @@ class SalaryAnalysisService:
         """
         user_profile = user.profile
         salary_date = user_profile.salary_date
-        
-        # Handle day 31 in months with fewer days
-        def get_safe_date(year, month, day):
-            """Get the last day of month if day exceeds month length."""
-            last_day = calendar.monthrange(year, month)[1]
-            return date(year, month, min(day, last_day))
-        
+
         # Determine which month's salary cycle contains target_date
         if target_date.day >= salary_date:
             # Salary cycle starts in current month

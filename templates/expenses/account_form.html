@@ -437,20 +437,30 @@
 
                         <!-- Revolving Credit Details (REVOLVING_CREDIT Strategy) -->
                         <div class="mb-3"
-                             x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('credit_limit')"
+                             x-show="fieldsMap[accountType] && (fieldsMap[accountType].includes('credit_limit') || fieldsMap[accountType].includes('credit_card_billing_day'))"
                              x-cloak
-                             :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('credit_limit'))">
+                             :aria-hidden="!(fieldsMap[accountType] && (fieldsMap[accountType].includes('credit_limit') || fieldsMap[accountType].includes('credit_card_billing_day')))">
                             <div class="d-flex align-items-center gap-2 mb-3 text-muted small">
                                 <i class="bi bi-credit-card text-primary fs-6"></i>
-                                <span>{% trans "Configure credit limit granted for this account." %}</span>
+                                <span>{% trans "Configure credit limit and billing cycle details." %}</span>
                             </div>
-                            <div>
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Credit Limit" %}</label>
-                                {{ form.credit_limit }}
-                                <div class="form-text">{% trans "Total credit line limit granted for this account (optional)." %}</div>
-                                {% if form.credit_limit.errors %}
-                                    <div class="text-danger small mt-1">{{ form.credit_limit.errors|first }}</div>
-                                {% endif %}
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Credit Limit" %}</label>
+                                    {{ form.credit_limit }}
+                                    <div class="form-text">{% trans "Total credit line limit (optional)." %}</div>
+                                    {% if form.credit_limit.errors %}
+                                        <div class="text-danger small mt-1">{{ form.credit_limit.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Billing Day of Month (1-28)" %}</label>
+                                    {{ form.credit_card_billing_day }}
+                                    <div class="form-text">{% trans "Day of month bill is generated (optional)." %}</div>
+                                    {% if form.credit_card_billing_day.errors %}
+                                        <div class="text-danger small mt-1">{{ form.credit_card_billing_day.errors|first }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
 
