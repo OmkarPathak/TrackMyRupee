@@ -247,7 +247,7 @@ class Account(models.Model):
     def get_account_type_display(self) -> str:
         if self.account_type == 'CREDIT_CARD':
             return 'Credit Card'
-        return super().get_account_type_display()
+        return self._get_FIELD_display(self._meta.get_field('account_type'))
 
     @property
     def account_type_display(self) -> str:
