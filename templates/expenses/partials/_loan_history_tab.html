@@ -63,7 +63,7 @@
         {# ── Mobile list (< md) — flat border-bottom rows, no nested cards ── #}
         <div class="d-md-none">
             {% for r in repayments %}
-            <div class="d-flex align-items-center gap-3 px-3 py-3{% if not forloop.last %} border-bottom{% endif %}{% if forloop.counter > 10 %} repayment-extra d-none{% endif %}">
+            <div class="d-flex align-items-center gap-3 px-3 py-3{% if not forloop.last %} border-bottom{% endif %} repayment-card{% if forloop.counter > 10 %} repayment-extra d-none{% endif %}">
                 <div class="flex-grow-1 min-width-0">
                     <div class="fw-semibold" style="font-size: 0.93rem;">{{ r.date|date:"d M Y" }}</div>
                     <div class="text-muted" style="font-size: 0.72rem;">
