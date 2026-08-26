@@ -471,7 +471,7 @@ async function startPayment(planType) {
         }
 
         // PostHog: payment initiated (checkout opened)
-        if (typeof posthog !== 'undefined') {
+        if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
             posthog.capture('payment_initiated', {
                 plan_type: planType,
                 duration: currentDuration,
@@ -510,7 +510,7 @@ async function startPayment(planType) {
                 const verifyData = await verifyRes.json();
                 if (verifyData.success) {
                     // PostHog: payment completed
-                    if (typeof posthog !== 'undefined') {
+                    if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
                         posthog.capture('payment_completed', {
                             plan_type: planType,
                             duration: currentDuration,

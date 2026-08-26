@@ -32,39 +32,52 @@
     {% endif %}
 
     {% if POSTHOG_API_KEY %}
-    <!-- PostHog Analytics -->
+    <!-- PostHog Analytics --
+         Loaded unconditionally so `posthog` is always defined (other scripts reference it),
+         but started in opt-out mode. Capture and identify only activate when the visitor
+         has explicitly accepted the cookie banner (cookieConsent === 'accepted'), mirroring
+         the Google Consent Mode v2 gate applied to Google Analytics above.
+    -->
     <script>
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
 
+        // Initialise in opt-out-by-default mode. No events are sent until the
+        // visitor accepts the cookie banner (consent check runs below).
         posthog.init('{{ POSTHOG_API_KEY }}', {
             api_host: '{{ POSTHOG_HOST }}',
             person_profiles: 'identified_only',
-            capture_pageview: true,
-            capture_pageleave: true,
+            capture_pageview: false,  // we fire $pageview manually after consent check
+            capture_pageleave: false, // likewise — avoid any automatic capture before opt-in
+            opt_out_capturing_by_default: true,
         });
 
-        // Fire initial pageview explicitly to register with PostHog's setup check
-        posthog.capture('$pageview');
+        // --- Consent gate (mirrors Google Consent Mode v2 logic above) ---
+        const _phConsent = localStorage.getItem('cookieConsent') === 'accepted';
+        if (_phConsent) {
+            // Visitor accepted cookies — enable capturing and fire initial pageview.
+            posthog.opt_in_capturing();
+            posthog.capture('$pageview');
 
-
-        {% if request.user.is_authenticated %}
-        posthog.identify('{{ request.user.id }}', {
-            email: '{{ request.user.email|escapejs }}',
-            username: '{{ request.user.username|escapejs }}',
-            date_joined: '{{ request.user.date_joined|date:"c" }}',
-            {% if request.user.profile %}
-            tier: '{{ request.user.profile.active_tier }}',
+            {% if request.user.is_authenticated %}
+            // Identify the authenticated user only when consent is present.
+            // Without consent, PostHog receives no PII whatsoever.
+            posthog.identify('{{ request.user.id }}', {
+                email: '{{ request.user.email|escapejs }}',
+                username: '{{ request.user.username|escapejs }}',
+                date_joined: '{{ request.user.date_joined|date:"c" }}',
+                {% if request.user.profile %}
+                tier: '{{ request.user.profile.active_tier }}',
+                {% endif %}
+            });
             {% endif %}
-        });
-        {% endif %}
 
-        // Track HTMX-driven navigations as proper pageviews.
-        // PostHog's default capture_pageview only fires on hard loads;
-        // this listener fires on every htmx:afterSettle so HTMX swaps
-        // are also recorded as $pageview events.
-        document.addEventListener('htmx:afterSettle', function() {
-            posthog.capture('$pageview', { '$current_url': window.location.href });
-        });
+            // Track HTMX-driven navigations as pageviews.
+            // PostHog's built-in capture_pageview only fires on hard loads;
+            // this fires on every htmx:afterSettle so partial-page swaps are recorded too.
+            document.addEventListener('htmx:afterSettle', function() {
+                posthog.capture('$pageview', { '$current_url': window.location.href });
+            });
+        }
     </script>
     {% endif %}
 
@@ -1139,7 +1152,8 @@
             .then(data => {
                 hideLoader();
                 if (data.success) {
-                    if (typeof posthog !== 'undefined') {
+                    // Only capture analytics events when the visitor has given cookie consent.
+                    if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
                         posthog.capture('trial_started', {});
                     }
                     alert(data.message);

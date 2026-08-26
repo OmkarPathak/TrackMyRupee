@@ -916,7 +916,7 @@
         sendOnboardingPost(payload).then(data => {
             if (data.success) {
                 // PostHog: final expense step + onboarding completed
-                if (typeof posthog !== 'undefined') {
+                if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
                     posthog.capture('onboarding_step_completed', { step: 'expense' });
                     posthog.capture('onboarding_completed', { skipped: false });
                 }
@@ -957,7 +957,7 @@
             // Skiping expense means ending onboarding wizard
             sendOnboardingPost({ step: 'skip' }).then(() => {
                 // PostHog: onboarding skipped
-                if (typeof posthog !== 'undefined') {
+                if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
                     posthog.capture('onboarding_completed', { skipped: true, skipped_at: step });
                 }
                 finishOnboarding();
@@ -1009,7 +1009,7 @@
         sendOnboardingPost(payload).then(data => {
             if (data.success) {
                 // PostHog: onboarding step completed
-                if (typeof posthog !== 'undefined') {
+                if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
                     posthog.capture('onboarding_step_completed', { step: step });
                 }
                 if (step === 'accounts') {

@@ -1182,7 +1182,7 @@
                 }
             }
             // PostHog: track NL parser usage on success
-            if (typeof posthog !== 'undefined' && data.success && data.data) {
+            if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted' && data.success && data.data) {
                 const result = data.data;
                 const fieldsFilled = ['amount', 'description', 'category', 'date', 'account', 'payment_method']
                     .filter(k => result[k]).length;
