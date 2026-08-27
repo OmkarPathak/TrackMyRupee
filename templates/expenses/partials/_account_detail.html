@@ -2,10 +2,74 @@
 
 <div id="account-detail-shell">
     <style>
+        .hero-action-btn {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border-radius: 50rem;
+            background-color: rgba(0, 0, 0, 0.04);
+            color: var(--bs-body-color);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.88rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         .hero-action-btn:hover:not(:disabled) {
-            background-color: var(--bs-primary) !important;
-            color: #fff !important;
-            border-color: var(--bs-primary) !important;
+            background-color: var(--color-success, #1D9E75) !important;
+            color: #ffffff !important;
+            border-color: var(--color-success, #1D9E75) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(29, 158, 117, 0.25);
+        }
+        .hero-action-btn:disabled, .hero-action-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+        [data-bs-theme="dark"] .hero-action-btn {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #f8fafc;
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        [data-bs-theme="dark"] .hero-action-btn:disabled, [data-bs-theme="dark"] .hero-action-btn.disabled {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .cc-utilization-progress {
+            height: 6px;
+            border-radius: 50rem;
+            background-color: rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        [data-bs-theme="dark"] .cc-utilization-progress {
+            background-color: rgba(255, 255, 255, 0.14);
+        }
+        .cc-utilization-bar {
+            border-radius: 50rem;
+            transition: width 0.4s ease;
+        }
+        .scrollable-tabs {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            min-height: 48px;
+            align-items: center !important;
+        }
+        .scrollable-tabs::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        .scrollable-tabs .btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1.2 !important;
+            padding-top: 0.4rem !important;
+            padding-bottom: 0.4rem !important;
         }
         .account-title-text {
             font-size: 1.25rem;
@@ -49,26 +113,44 @@
             // On every HTMX swap into this shell
             document.body.addEventListener('htmx:afterSwap', function(e) {
                 if (e.detail && e.detail.target && e.detail.target.id === 'account-detail-shell') {
-                    lockAndBindSearchInputs();
-                }
+                el.addEventListener('touchstart', function() { unlockAccountSearch(el); }, { once: true });
+                el.addEventListener('mousedown', function() { unlockAccountSearch(el); }, { once: true });
             });
         })();
-    </script>
 
-    <!-- Desktop Side-by-Side Header: Metrics (Left) & Trendline (Right) -->
+        // Auto-reinitialize tooltips inside swapped partial
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            document.querySelectorAll('#account-detail-shell [data-bs-toggle="tooltip"]').forEach(function(el) {
+                new bootstrap.Tooltip(el);
+            });
+        }
+    </script>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Top Summary Banner -->
     <div class="row g-3 mb-2 mb-md-4 align-items-stretch">
         <!-- Hero Metrics Header -->
         <div class="col-12 {% if trend_data %}col-lg-7{% endif %}">
-        <div class="card border-0 full-width-hero-card h-100 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
-                <div class="card-body p-4 d-flex flex-column justify-content-between h-100">
-                    <!-- Top Section: Title & Actions -->
-                    <div class="d-flex flex-column mb-4 gap-1">
-                        <!-- Title & Actions Row -->
-                        <div class="d-flex align-items-start justify-content-between gap-3">
+            <div class="card border-0 full-width-hero-card h-100 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+                <div class="card-body p-4 d-flex flex-column justify-content-between h-100 gap-3">
+                    <!-- Top Row: Account Title, Type Badge & Actions -->
+                    <div>
+                        <div class="d-flex align-items-start justify-content-between gap-3 mb-1">
                             <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
                                 <h2 class="fw-bold text-body mb-0 account-title-text text-break">{{ account.name }}</h2>
+                                <span class="badge badge-soft-primary rounded-pill px-2.5 py-1 small fw-medium">{{ account.get_account_type_display }}</span>
                                 {% if not account.is_active %}
                                     <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill border">{% trans "Inactive" %}</span>
+                                {% endif %}
+                                {% if account.currency != user.profile.currency %}
+                                    <span class="badge bg-body-tertiary text-body-secondary rounded-pill border px-2 py-1 small fw-normal">{{ account.currency }}</span>
                                 {% endif %}
                             </div>
                             
@@ -76,28 +158,28 @@
                             <div class="d-flex gap-2 flex-shrink-0">
                                 {% if user.username != 'demo' %}
                                     {% if account.is_active %}
-                                    <a href="{% url 'transfer-create' %}?from_account={{ account.uuid }}" class="btn btn-sm hero-action-btn rounded-circle fw-semibold transition-all d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0; background-color: transparent; color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);" data-bs-toggle="tooltip" title="{% trans 'Transfer' %}">
+                                    <a href="{% url 'transfer-create' %}?from_account={{ account.uuid }}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Transfer' %}">
                                         <i class="bi bi-arrow-left-right"></i>
                                     </a>
                                     {% else %}
-                                    <button class="btn btn-sm hero-action-btn rounded-circle fw-semibold transition-all d-flex align-items-center justify-content-center disabled" disabled style="width: 32px; height: 32px; padding: 0; background-color: transparent; color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);" data-bs-toggle="tooltip" title="{% trans 'Restore account to transfer' %}">
+                                    <button class="btn btn-sm hero-action-btn disabled" disabled data-bs-toggle="tooltip" title="{% trans 'Restore account to transfer' %}">
                                         <i class="bi bi-arrow-left-right"></i>
                                     </button>
                                     {% endif %}
                                 {% endif %}
                                 {% if account.is_active %}
-                                    <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm hero-action-btn rounded-circle fw-semibold transition-all d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0; background-color: transparent; color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);" data-bs-toggle="tooltip" title="{% trans 'Edit' %}">
+                                    <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Edit' %}">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                 {% else %}
-                                    <button class="btn btn-sm hero-action-btn rounded-circle fw-semibold transition-all d-flex align-items-center justify-content-center disabled" disabled style="width: 32px; height: 32px; padding: 0; background-color: transparent; color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);" data-bs-toggle="tooltip" title="{% trans 'Restore account to edit' %}">
+                                    <button class="btn btn-sm hero-action-btn disabled" disabled data-bs-toggle="tooltip" title="{% trans 'Restore account to edit' %}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                 {% endif %}
                                 {% if account.holdings.exists %}
                                     {% for h in account.holdings.all %}
                                         {% if h.scheme_code and h.is_active %}
-                                            <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm hero-action-btn rounded-circle fw-semibold transition-all d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0; background-color: transparent; color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}">
+                                            <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}">
                                                 <i class="bi bi-arrow-repeat"></i>
                                             </a>
                                         {% endif %}
@@ -105,63 +187,81 @@
                                 {% endif %}
                             </div>
                         </div>
-
-                        <!-- Subtitle Row -->
-                        <div class="min-w-0">
-                            <div class="d-flex flex-wrap align-items-center gap-1 gap-sm-2 text-body-secondary" style="font-size: 0.82rem;">
-                                <span>{{ account.get_account_type_display }}</span>
-                                <span class="opacity-50">•</span>
-                                <span>{{ account.currency }}</span>
-                                {% if account.deposit_rate %}
-                                    <span class="opacity-50">•</span>
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25 fw-normal">{{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.</span>
-                                {% endif %}
-                                {% if account.deposit_maturity_date %}
-                                    <span class="opacity-50">•</span>
-                                    <span class="fw-medium">{% trans "Matures on:" %} {{ account.deposit_maturity_date|date:"d M Y" }}</span>
-                                {% endif %}
-                                {% if account.next_billing_date %}
-                                    <span class="opacity-50">•</span>
-                                    <span class="fw-medium">{% trans "Next Bill:" %} {{ account.next_billing_date|date:"d M Y" }}</span>
-                                {% endif %}
-                                {% if account.has_credit_limit %}
-                                    <span class="opacity-50">•</span>
-                                    <span class="fw-medium">{% trans "Limit:" %} {{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Bottom Section: Balance Hero Figure -->
-                    <div class="mt-auto pt-3 border-top">
-                        <div class="d-flex align-items-center justify-content-between mb-2 mt-1">
-                            <div class="fw-semibold text-uppercase text-body-secondary" style="font-size: 0.62rem; letter-spacing: 0.10em;">{% trans "Current Balance" %}</div>
-                            <div class="text-body-secondary" style="font-size: 0.78rem;">
-                                <span class="fw-bold fs-6 text-body-emphasis">{{ page_obj.paginator.count|translate_digits }}</span> <span class="opacity-75">{% trans "transactions" %}</span>
-                            </div>
+                    <!-- Middle Row: Current Balance & Transaction Count -->
+                    <div class="my-auto">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <div class="fw-semibold text-uppercase text-body-secondary" style="font-size: 0.65rem; letter-spacing: 0.10em;">{% trans "Current Balance" %}</div>
+                            <span class="badge bg-body-tertiary text-body-secondary border rounded-pill px-2.5 py-1 small fw-normal">
+                                <i class="bi bi-receipt me-1"></i><span class="fw-semibold text-body-emphasis">{{ page_obj.paginator.count|translate_digits }}</span> {% trans "transactions" %}
+                            </span>
                         </div>
-                        <div class="text-body-emphasis" style="font-size: clamp(2rem, 7vw, 3rem); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 800;">
+                        <div class="text-body-emphasis" style="font-size: clamp(2rem, 6vw, 2.75rem); letter-spacing: -0.03em; line-height: 1.1; font-variant-numeric: tabular-nums; font-weight: 800;">
                             {% if account.has_accrued_value %}
                                 {{ currency_symbol }}{{ account.accrued_value|ind_comma:currency_symbol|translate_digits }}
                             {% else %}
                                 {{ currency_symbol }}{{ account.display_balance|ind_comma:currency_symbol|translate_digits }}
                             {% endif %}
                         </div>
-                        {% if account.has_accrued_value %}
-                            <div class="mt-2 pt-1 text-body-secondary d-flex flex-wrap align-items-center row-gap-1 column-gap-3" style="font-size: 0.8rem;">
-                                <div>{% trans "Original Deposit:" %} <span class="fw-medium text-body-emphasis">{{ currency_symbol }}{{ account.effective_principal|ind_comma:currency_symbol|translate_digits }}</span></div>
-                                {% if account.has_maturity_value %}
-                                    <div>{% trans "Expected at Maturity:" %} <strong class="text-success">{{ currency_symbol }}{{ account.maturity_value|ind_comma:currency_symbol|translate_digits }}</strong></div>
+                    </div>
+
+                    <!-- Bottom Specs Bar: Context-Specific Info -->
+                    {% if account.has_credit_limit %}
+                        <div class="pt-2 border-top border-opacity-10">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 text-body-secondary" style="font-size: 0.82rem;">
+                                <div>
+                                    <span>{% trans "Available:" %}</span>
+                                    <span class="fw-semibold text-body-emphasis ms-1">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</span>
+                                </div>
+                                <div>
+                                    <span>{% trans "Limit:" %}</span>
+                                    <span class="fw-semibold text-body-emphasis ms-1">{{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>
+                                </div>
+                                {% if account.next_billing_date %}
+                                    <div>
+                                        <span>{% trans "Next Bill:" %}</span>
+                                        <span class="fw-semibold text-body-emphasis ms-1">{{ account.next_billing_date|date:"d M Y" }}</span>
+                                    </div>
                                 {% endif %}
                             </div>
-                        {% endif %}
-                        {% if account.has_credit_limit %}
-                            <div class="mt-2 text-body-secondary" style="font-size: 0.82rem;">
-                                {% trans "Available:" %} <span class="fw-semibold text-body-emphasis">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</span>
-                                <span class="ms-1 opacity-75">({{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %})</span>
+                            <div class="mt-2 d-flex align-items-center gap-2">
+                                <div class="progress cc-utilization-progress flex-grow-1">
+                                    <div class="progress-bar cc-utilization-bar {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ account.credit_utilization_pct }}%;" aria-valuenow="{{ account.credit_utilization_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <span class="text-body-secondary small" style="font-size: 0.72rem;">{{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %}</span>
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% elif account.has_accrued_value or account.deposit_rate or account.deposit_maturity_date %}
+                        <div class="pt-2 border-top border-opacity-10">
+                            <div class="d-flex flex-wrap align-items-center gap-3 text-body-secondary" style="font-size: 0.82rem;">
+                                {% if account.deposit_rate %}
+                                    <div>
+                                        <span>{% trans "Interest Rate:" %}</span>
+                                        <strong class="text-success ms-1">{{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.</strong>
+                                    </div>
+                                {% endif %}
+                                {% if account.effective_principal %}
+                                    <div>
+                                        <span>{% trans "Principal:" %}</span>
+                                        <span class="fw-semibold text-body-emphasis ms-1">{{ currency_symbol }}{{ account.effective_principal|ind_comma:currency_symbol|translate_digits }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if account.deposit_maturity_date %}
+                                    <div>
+                                        <span>{% trans "Matures:" %}</span>
+                                        <span class="fw-semibold text-body-emphasis ms-1">{{ account.deposit_maturity_date|date:"d M Y" }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if account.has_maturity_value %}
+                                    <div>
+                                        <span>{% trans "Expected:" %}</span>
+                                        <strong class="text-success ms-1">{{ currency_symbol }}{{ account.maturity_value|ind_comma:currency_symbol|translate_digits }}</strong>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -193,7 +293,7 @@
                 </div>
 
                 <!-- Filter Pills (Desktop Inline) -->
-                <div class="d-flex align-items-center gap-2 overflow-auto scrollable-tabs px-1" style="scrollbar-width: none;">
+                <div class="d-flex align-items-center gap-2 overflow-auto scrollable-tabs px-1 py-1.5" style="scrollbar-width: none;">
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
@@ -273,7 +373,7 @@
                 </form>
 
                 <!-- Filter Pills (Mobile Below Search) -->
-                <div class="d-flex align-items-center gap-2 overflow-auto text-nowrap pt-2" style="scrollbar-width: none;">
+                <div class="d-flex align-items-center gap-2 overflow-auto scrollable-tabs text-nowrap px-1 py-2" style="scrollbar-width: none; -webkit-overflow-scrolling: touch; min-height: 48px;">
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"

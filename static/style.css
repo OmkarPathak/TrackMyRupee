@@ -786,12 +786,32 @@ body.demo-mode .sidebar {
     background: rgba(var(--bs-primary-rgb), 0.02);
   }
 
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  .no-scrollbar::-webkit-scrollbar,
+  .scrollable-tabs::-webkit-scrollbar,
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
-  .no-scrollbar {
+  .no-scrollbar,
+  .scrollable-tabs,
+  .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  .scrollable-tabs,
+  .hide-scrollbar {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    min-height: 48px;
+    align-items: center !important;
+  }
+  .scrollable-tabs .btn,
+  .hide-scrollbar .btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
   }
 
   /* When demo banner is present */
