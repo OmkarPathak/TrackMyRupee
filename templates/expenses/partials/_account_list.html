@@ -41,8 +41,29 @@
     .header-action-btn { height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px !important; transition: all 0.2s ease; border: 1px solid var(--bs-border-color); background: transparent; padding: 0 0.75rem; font-size: 0.875rem; text-decoration: none; color: var(--bs-body-color); font-weight: 500; }
     .header-action-btn.btn-primary { background-color: #1D9E75 !important; color: white !important; border-color: #1D9E75 !important; }
     .header-action-btn:hover { opacity: 0.9; }
-    .credit-exclusion-row { border-top: 1px dashed rgba(0,0,0,0.1); font-size: 0.82rem; color: var(--bs-secondary-color); }
-    [data-bs-theme="dark"] .credit-exclusion-row { border-top-color: rgba(255,255,255,0.08); }
+    .account-grid-card {
+        border-radius: 1rem !important;
+        box-shadow: none !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        background-color: var(--bs-card-bg);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    [data-bs-theme="dark"] .account-grid-card {
+        box-shadow: none !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    .account-grid-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+    }
+    [data-bs-theme="dark"] .account-grid-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    }
+    .account-grid-card-col { position: relative; }
+    .account-grid-card-col:has(.dropdown-menu.show),
+    .account-grid-card:has(.dropdown-menu.show) {
+        z-index: 1050 !important;
+    }
 </style>
 
 
@@ -265,13 +286,13 @@
 
 <!-- ACCOUNT GROUPS -->
 {% if grouped_accounts %}
-    <div class="d-flex flex-column gap-3">
+    <div class="d-flex flex-column gap-4">
     {% for group in grouped_accounts %}
 
-    <div class="card rounded-4 border-0 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.08) !important;">
+    <div class="account-group-section">
 
-        <!-- Group header -->
-        <div class="account-group-header d-flex align-items-center justify-content-between px-3 py-3"
+        <!-- Group header section divider -->
+        <div class="account-group-header d-flex align-items-center justify-content-between py-2 px-1 mb-2"
              data-bs-toggle="collapse"
              data-bs-target="#group-{{ group.type }}"
              aria-expanded="true">
@@ -280,9 +301,9 @@
                      style="width: 32px; height: 32px; font-size: 0.9rem;">
                     <i class="{{ group.icon }}"></i>
                 </div>
-                <span class="fw-bold text-body" style="font-size: 1rem;">{{ group.label }}</span>
-                <span class="fw-semibold text-muted rounded-pill px-2"
-                      style="font-size: 0.72rem; background-color: rgba(0,0,0,0.06);">
+                <h5 class="fw-bold text-body mb-0" style="font-size: 1.05rem;">{{ group.label }}</h5>
+                <span class="badge rounded-pill bg-body-tertiary text-body-secondary border px-2 py-0.5"
+                      style="font-size: 0.72rem;">
                     {{ group.count|translate_digits }}
                 </span>
             </div>
@@ -290,127 +311,180 @@
                 <span class="fw-bold text-body" style="font-size: 0.97rem; letter-spacing: -0.3px; white-space: nowrap;">
                     {{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}
                 </span>
-                <i class="bi bi-chevron-down accordion-chevron text-muted" style="font-size: 0.72rem;"></i>
+                <i class="bi bi-chevron-down accordion-chevron text-muted" style="font-size: 0.75rem;"></i>
             </div>
         </div>
 
-        <!-- Account rows -->
+        <!-- Account Cards Grid -->
         <div id="group-{{ group.type }}" class="collapse show">
-            {% for account in group.accounts %}
-            <div class="acct-row d-flex align-items-center gap-3 px-3 py-3">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
+                {% for account in group.accounts %}
+                <div class="col account-grid-card-col">
+                    <div class="card rounded-4 border-0 h-100 account-grid-card transition-all" style="border: 1px solid rgba(0,0,0,0.08) !important;">
+                        <div class="card-body p-3.5 pb-3 d-flex flex-column justify-content-between">
+                            <!-- Header: Title & Dropdown -->
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                    <div class="min-w-0 flex-grow-1">
+                                        {% if account.is_locked %}
+                                            <span class="fw-bold text-muted d-block text-break" style="font-size: 0.95rem; line-height: 1.25;" title="{{ account.name }}">
+                                                <i class="bi bi-lock-fill me-1" style="font-size: 0.7rem;"></i>{{ account.name }}
+                                            </span>
+                                        {% else %}
+                                            <a href="{% url 'account-detail' account.uuid %}"
+                                               class="fw-bold text-decoration-none text-body d-block text-break hover-primary"
+                                               style="font-size: 0.95rem; line-height: 1.25;" title="{{ account.name }}">{{ account.name }}</a>
+                                        {% endif %}
+                                    </div>
+                                    <div class="dropdown flex-shrink-0 ms-1 d-inline-flex align-items-center">
+                                        <button class="btn btn-sm btn-link p-0 text-decoration-none no-caret d-inline-flex align-items-center justify-content-center"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                data-bs-popper-config='{"strategy":"fixed"}'
+                                                aria-expanded="false"
+                                                style="width: 24px; height: 24px; line-height: 1;">
+                                            <i class="bi bi-three-dots-vertical text-muted" style="font-size: 0.9rem;"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1 py-1">
+                                            {% if current_status == 'inactive' %}
+                                                <li>
+                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-success fw-semibold"
+                                                       href="{% url 'account-restore' account.uuid %}">
+                                                        <i class="bi bi-arrow-counterclockwise"></i><span>{% trans "Restore" %}</span>
+                                                    </a>
+                                                </li>
+                                            {% elif account.is_locked %}
+                                                <li>
+                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-primary fw-semibold"
+                                                       href="{% url 'pricing' %}">
+                                                        <i class="bi bi-rocket-takeoff"></i><span>{% trans "Unlock" %}</span>
+                                                    </a>
+                                                </li>
+                                            {% else %}
+                                                <li>
+                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
+                                                       href="{% url 'account-detail' account.uuid %}">
+                                                        <i class="bi bi-eye text-primary"></i><span>{% trans "View Details" %}</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
+                                                       href="{% url 'account-edit' account.uuid %}">
+                                                        <i class="bi bi-pencil-square text-primary"></i><span>{% trans "Edit" %}</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <button type="button"
+                                                            class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-danger border-0 bg-transparent w-100 text-start"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal"
+                                                            data-url="{% url 'account-delete' account.uuid %}"
+                                                            data-message="{% blocktrans with name=account.name %}Are you sure you want to delete account '{{ name }}'?{% endblocktrans %}">
+                                                        <i class="bi bi-trash"></i><span>{% trans "Delete" %}</span>
+                                                    </button>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
 
-                <!-- Left: name + meta -->
-                <div style="min-width: 0; flex: 1;">
-                    {% if account.is_locked %}
-                        <span class="fw-semibold text-muted d-block text-truncate" style="font-size: 0.9rem;">
-                            <i class="bi bi-lock-fill me-1" style="font-size: 0.7rem;"></i>{{ account.name }}
-                        </span>
-                    {% else %}
-                        <a href="{% url 'account-detail' account.uuid %}"
-                           class="fw-semibold text-decoration-none text-body d-block text-truncate"
-                           style="font-size: 0.9rem;">{{ account.name }}</a>
-                    {% endif %}
+                                <!-- Account Subtitle / Type -->
+                                <div class="text-muted mt-0.5" style="font-size: 0.78rem;">
+                                    {{ account.get_account_type_display }}
+                                    {% if not account.is_active %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill border ms-1" style="font-size: 0.68rem;">{% trans "Inactive" %}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
 
-                    <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
-                        <span class="text-muted" style="font-size: 0.75rem;">{{ account.get_account_type_display }}</span>
+                            <!-- Middle Section: Balance & Interest Rate -->
+                            <div class="my-3">
+                                <div class="d-flex align-items-baseline justify-content-between gap-2">
+                                    <div class="fw-bold {% if account.display_balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}"
+                                         style="font-size: 1.35rem; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.1;">
+                                        {% if account.has_accrued_value %}
+                                            {{ account.currency }}{{ account.accrued_value|ind_comma:account.currency|translate_digits }}
+                                        {% else %}
+                                            {{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}
+                                        {% endif %}
+                                    </div>
+                                    {% if account.deposit_rate %}
+                                        <div class="fw-bold text-success" style="font-size: 0.85rem;">
+                                            {{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-muted mt-1" style="font-size: 0.72rem;">
+                                    {% if account.days_since_update == 0 %}{% trans "Updated today" %}
+                                    {% elif account.days_since_update == 1 %}{% trans "Updated 1d ago" %}
+                                    {% else %}{% blocktrans with days=account.days_since_update|translate_digits %}Updated {{ days }}d ago{% endblocktrans %}{% endif %}
+                                </div>
+                            </div>
 
-                        {% if account.deposit_rate %}
-                            <span class="rate-badge">{{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.</span>
-                        {% endif %}
+                            <!-- Bottom Divider & Details -->
+                            {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit or account.next_billing_date or account.deposit_maturity_date or account.is_deposit_type %}
+                            <div class="pt-3 d-flex align-items-center justify-content-between gap-1 mt-auto" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
+                                {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit or account.next_billing_date %}
+                                    <div class="w-100">
+                                        <div class="d-flex align-items-center justify-content-between gap-1 text-muted {% if account.has_credit_limit %}mb-1.5{% else %}mb-0{% endif %}" style="font-size: 0.75rem; min-height: 24px;">
+                                            {% if account.next_billing_date %}
+                                                <span class="px-2.5 py-1.5 d-inline-flex align-items-center" style="font-size: 0.82rem; font-weight: 600; line-height: 1.2;">
+                                                    {% trans "Next Bill on: " %} {{ account.next_billing_date|date:"d M" }}
+                                                </span>
+                                            {% elif account.has_credit_limit %}
+                                                <span class="fw-medium text-muted d-inline-flex align-items-center" style="line-height: 1.2;">{% trans "Limit:" %} {{ account.currency }}{{ account.credit_limit|compact_amount:account.currency|translate_digits }}</span>
+                                            {% else %}
+                                                <span class="text-muted opacity-75 d-inline-flex align-items-center gap-1" style="line-height: 1.2;">
+                                                    <span>{% trans "Limit:" %}</span>
+                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-1.5 py-0.5 fw-medium d-inline-flex align-items-center" style="font-size: 0.68rem; line-height: 1.2;">{% trans "Not Set" %}</span>
+                                                </span>
+                                            {% endif %}
 
-                        {% if account.deposit_maturity_date %}
-                            <span class="maturity-badge">
-                                <i class="bi bi-calendar3" style="font-size: 0.6rem;"></i>
-                                {% trans "Matures" %} {{ account.deposit_maturity_date|date:"M Y" }}
-                            </span>
-                        {% endif %}
-
-                        {% if account.next_billing_date %}
-                            <span class="billing-badge">
-                                <i class="bi bi-credit-card-2-front" style="font-size: 0.6rem;"></i>
-                                {% trans "Bills" %} {{ account.next_billing_date|date:"d M" }}
-                            </span>
-                        {% endif %}
-
-                        {% if account.has_credit_limit %}
-                            <span class="text-muted" style="font-size: 0.72rem;">
-                                {{ account.currency }}{{ account.available_credit|ind_comma:account.currency|translate_digits }} {% trans "avail" %}
-                                <span class="{% if account.credit_utilization_pct > 75 %}text-danger fw-semibold{% elif account.credit_utilization_pct > 50 %}text-warning fw-semibold{% endif %}">
-                                    ({{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %})
-                                </span>
-                            </span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Right: balance + last-updated + 3-dot -->
-                <div class="flex-shrink-0 text-end d-flex align-items-center gap-2">
-                    <div>
-                        <div class="fw-bold {% if account.display_balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}"
-                             style="font-size: 0.93rem; letter-spacing: -0.3px; white-space: nowrap;">
-                            {% if account.has_accrued_value %}
-                                {{ account.currency }}{{ account.accrued_value|ind_comma:account.currency|translate_digits }}
-                            {% else %}
-                                {{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}
+                                            {% if account.has_credit_limit %}
+                                                <span class="fw-bold text-body-emphasis ms-auto d-inline-flex align-items-center" style="font-size: 0.78rem; line-height: 1.2;">
+                                                    {{ account.currency }}{{ account.available_credit|compact_amount:account.currency|translate_digits }} {% trans "avail" %}
+                                                </span>
+                                            {% else %}
+                                                <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold text-primary ms-auto d-inline-flex align-items-center gap-1" style="font-size: 0.75rem; line-height: 1.2;">
+                                                    <i class="bi bi-plus-circle d-inline-flex align-items-center" style="font-size: 0.82rem; line-height: 1;"></i><span class="d-inline-flex align-items-center">{% trans "Set Limit" %}</span>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                        {% if account.has_credit_limit %}
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="progress flex-grow-1 bg-body-tertiary border" style="height: 5px; border-radius: 10px; border-color: rgba(0,0,0,0.06) !important;">
+                                                    <div class="progress-bar rounded-pill {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ account.credit_utilization_pct|stringformat:'f' }}%;" aria-valuenow="{{ account.credit_utilization_pct|stringformat:'f' }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <span class="text-muted fw-semibold flex-shrink-0" style="font-size: 0.68rem; white-space: nowrap;">
+                                                    {{ account.credit_utilization_pct|floatformat:1|translate_digits }}% used
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% elif account.is_deposit_type %}
+                                    <div class="d-flex align-items-center justify-content-between gap-1 w-100" style="min-height: 24px;">
+                                        {% if account.deposit_maturity_date %}
+                                            <span class="text-success px-2.5 py-1.5 d-inline-flex align-items-center" style="font-size: 0.82rem; font-weight: 600; line-height: 1.2;">
+                                                {% trans "Matures" %} {{ account.deposit_maturity_date|date:"M Y" }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted opacity-75 d-inline-flex align-items-center gap-1" style="line-height: 1.2;">
+                                                <span>{% trans "Maturity:" %}</span>
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-1.5 py-0.5 fw-medium d-inline-flex align-items-center" style="font-size: 0.68rem; line-height: 1.2;">{% trans "Not Set" %}</span>
+                                            </span>
+                                            <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold text-primary ms-auto d-inline-flex align-items-center gap-1" style="font-size: 0.75rem; line-height: 1.2;">
+                                                <i class="bi bi-pencil d-inline-flex align-items-center" style="font-size: 0.8rem; line-height: 1;"></i><span class="d-inline-flex align-items-center">{% trans "Set Date" %}</span>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
                             {% endif %}
                         </div>
-                        <div class="text-muted mt-1" style="font-size: 0.7rem; white-space: nowrap;">
-                            {% if account.days_since_update == 0 %}{% trans "today" %}
-                            {% elif account.days_since_update == 1 %}{% trans "1 day ago" %}
-                            {% else %}{% blocktrans with days=account.days_since_update|translate_digits %}{{ days }}d ago{% endblocktrans %}{% endif %}
-                        </div>
-                    </div>
-
-                    <!-- 3-dot dropdown -->
-                    <div class="dropdown">
-                        <button class="acct-menu-btn btn btn-sm btn-link p-1 border-0 rounded-2"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                data-bs-popper-config='{"strategy":"fixed"}'
-                                aria-expanded="false"
-                                style="line-height: 1;">
-                            <i class="bi bi-three-dots-vertical text-muted" style="font-size: 0.9rem;"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1 py-1">
-                            {% if current_status == 'inactive' %}
-                                <li>
-                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 small text-success fw-semibold"
-                                       href="{% url 'account-restore' account.uuid %}">
-                                        <i class="bi bi-arrow-counterclockwise"></i>{% trans "Restore" %}
-                                    </a>
-                                </li>
-                            {% elif account.is_locked %}
-                                <li>
-                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 small text-primary fw-semibold"
-                                       href="{% url 'pricing' %}">
-                                        <i class="bi bi-rocket-takeoff"></i>{% trans "Unlock" %}
-                                    </a>
-                                </li>
-                            {% else %}
-                                <li>
-                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 small"
-                                       href="{% url 'account-edit' account.uuid %}">
-                                        <i class="bi bi-pencil-square text-primary"></i>{% trans "Edit" %}
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider my-1"></li>
-                                <li>
-                                    <button type="button"
-                                            class="dropdown-item py-2 d-flex align-items-center gap-2 text-danger small border-0 bg-transparent w-100 text-start"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteModal"
-                                            data-url="{% url 'account-delete' account.uuid %}"
-                                            data-message="{% blocktrans with name=account.name %}Are you sure you want to delete account '{{ name }}'?{% endblocktrans %}">
-                                        <i class="bi bi-trash"></i>{% trans "Delete" %}
-                                    </button>
-                                </li>
-                            {% endif %}
-                        </ul>
                     </div>
                 </div>
-
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
 
     </div>

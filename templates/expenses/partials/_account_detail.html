@@ -207,17 +207,29 @@
                     </div>
 
                     <!-- Bottom Specs Bar: Context-Specific Info -->
-                    {% if account.has_credit_limit %}
-                        <div class="pt-2 border-top border-opacity-10">
+                    {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit or account.next_billing_date %}
+                        <div class="pt-2" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 text-body-secondary" style="font-size: 0.82rem;">
-                                <div>
-                                    <span>{% trans "Available:" %}</span>
-                                    <span class="fw-semibold text-body-emphasis ms-1">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</span>
-                                </div>
-                                <div>
-                                    <span>{% trans "Limit:" %}</span>
-                                    <span class="fw-semibold text-body-emphasis ms-1">{{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>
-                                </div>
+                                {% if account.has_credit_limit %}
+                                    <div>
+                                        <span>{% trans "Available:" %}</span>
+                                        <span class="fw-semibold text-body-emphasis ms-1">{{ currency_symbol }}{{ account.available_credit|ind_comma:currency_symbol|translate_digits }}</span>
+                                    </div>
+                                    <div>
+                                        <span>{% trans "Limit:" %}</span>
+                                        <span class="fw-semibold text-body-emphasis ms-1">{{ currency_symbol }}{{ account.credit_limit|ind_comma:currency_symbol|translate_digits }}</span>
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex align-items-center justify-content-between gap-1 w-100">
+                                        <span class="text-body-secondary d-inline-flex align-items-center gap-1" style="line-height: 1.2;">
+                                            <span>{% trans "Limit:" %}</span>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-1.5 py-0.5 fw-normal d-inline-flex align-items-center" style="font-size: 0.75rem; line-height: 1.2;">{% trans "Not Set" %}</span>
+                                        </span>
+                                        <a href="{% url 'account-edit' account.uuid %}" class="text-primary text-decoration-none ms-auto fw-semibold small d-inline-flex align-items-center gap-1" style="line-height: 1.2;">
+                                            <i class="bi bi-pencil-square d-inline-flex align-items-center" style="font-size: 0.85rem; line-height: 1;"></i><span class="d-inline-flex align-items-center">{% trans "Set Limit" %}</span>
+                                        </a>
+                                    </div>
+                                {% endif %}
                                 {% if account.next_billing_date %}
                                     <div>
                                         <span>{% trans "Next Bill:" %}</span>
@@ -225,16 +237,18 @@
                                     </div>
                                 {% endif %}
                             </div>
-                            <div class="mt-2 d-flex align-items-center gap-2">
-                                <div class="progress cc-utilization-progress flex-grow-1">
-                                    <div class="progress-bar cc-utilization-bar {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ account.credit_utilization_pct }}%;" aria-valuenow="{{ account.credit_utilization_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% if account.has_credit_limit %}
+                                <div class="mt-2 d-flex align-items-center gap-2">
+                                    <div class="progress cc-utilization-progress flex-grow-1" style="height: 6px; border-radius: 10px;">
+                                        <div class="progress-bar cc-utilization-bar rounded-pill {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ account.credit_utilization_pct|stringformat:'f' }}%;" aria-valuenow="{{ account.credit_utilization_pct|stringformat:'f' }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="text-body-secondary fw-semibold flex-shrink-0" style="font-size: 0.72rem; white-space: nowrap;">{{ account.credit_utilization_pct|floatformat:1|translate_digits }}% {% trans "used" %}</span>
                                 </div>
-                                <span class="text-body-secondary small" style="font-size: 0.72rem;">{{ account.credit_utilization_pct|translate_digits }}% {% trans "used" %}</span>
-                            </div>
+                            {% endif %}
                         </div>
-                    {% elif account.has_accrued_value or account.deposit_rate or account.deposit_maturity_date %}
-                        <div class="pt-2 border-top border-opacity-10">
-                            <div class="d-flex flex-wrap align-items-center gap-3 text-body-secondary" style="font-size: 0.82rem;">
+                    {% elif account.is_deposit_type or account.has_accrued_value or account.deposit_rate or account.deposit_maturity_date %}
+                        <div class="pt-2" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 text-body-secondary" style="font-size: 0.82rem;">
                                 {% if account.deposit_rate %}
                                     <div>
                                         <span>{% trans "Interest Rate:" %}</span>
@@ -251,6 +265,16 @@
                                     <div>
                                         <span>{% trans "Matures:" %}</span>
                                         <span class="fw-semibold text-body-emphasis ms-1">{{ account.deposit_maturity_date|date:"d M Y" }}</span>
+                                    </div>
+                                {% elif account.is_deposit_type %}
+                                    <div class="d-flex align-items-center justify-content-between gap-1 w-100">
+                                        <span class="text-body-secondary d-inline-flex align-items-center gap-1" style="line-height: 1.2;">
+                                            <span>{% trans "Maturity:" %}</span>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-1.5 py-0.5 fw-normal d-inline-flex align-items-center" style="font-size: 0.75rem; line-height: 1.2;">{% trans "Not Set" %}</span>
+                                        </span>
+                                        <a href="{% url 'account-edit' account.uuid %}" class="text-primary text-decoration-none ms-auto fw-semibold small d-inline-flex align-items-center gap-1" style="line-height: 1.2;">
+                                            <i class="bi bi-pencil-square d-inline-flex align-items-center" style="font-size: 0.85rem; line-height: 1;"></i><span class="d-inline-flex align-items-center">{% trans "Set Date" %}</span>
+                                        </a>
                                     </div>
                                 {% endif %}
                                 {% if account.has_maturity_value %}

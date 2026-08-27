@@ -728,7 +728,7 @@ class AccountDetailView(LoginRequiredMixin, View):
 
         if expenses.filter(~Q(currency=account.currency)).exists():
             exp_total = Decimal('0.00')
-            for e in expenses.only('currency', 'amount'):
+            for e in expenses:
                 if e.currency != account.currency:
                     rate = get_exchange_rate(e.currency, account.currency)
                     exp_total += (e.amount * rate).quantize(Decimal('0.01'))
@@ -739,7 +739,7 @@ class AccountDetailView(LoginRequiredMixin, View):
 
         if incomes.filter(~Q(currency=account.currency)).exists():
             inc_total = Decimal('0.00')
-            for i in incomes.only('currency', 'amount'):
+            for i in incomes:
                 if i.currency != account.currency:
                     rate = get_exchange_rate(i.currency, account.currency)
                     inc_total += (i.amount * rate).quantize(Decimal('0.01'))

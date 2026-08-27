@@ -280,23 +280,36 @@ class Account(models.Model):
     def used_credit(self) -> Decimal:
         """Amount of credit used (positive decimal balance)."""
         bal = getattr(self, 'display_balance', self.balance)
-        if bal and bal < Decimal('0.00'):
-            return abs(bal)
-        return Decimal('0.00')
+        if bal is None:
+            return Decimal('0.00')
+        try:
+            d_bal = Decimal(str(bal))
+            return abs(d_bal)
+        except Exception:
+            return Decimal('0.00')
 
     @property
     def available_credit(self) -> Decimal:
         """Remaining available credit limit."""
         if not self.has_credit_limit:
             return Decimal('0.00')
-        return max(Decimal('0.00'), self.credit_limit - self.used_credit)
+        return max(Decimal('0.00'), Decimal(str(self.credit_limit)) - self.used_credit)
 
     @property
     def credit_utilization_pct(self) -> Decimal:
         """Credit limit utilization percentage (0-100+)."""
-        if not self.has_credit_limit:
-            return Decimal('0.00')
-        return ((self.used_credit / self.credit_limit) * Decimal('100')).quantize(Decimal('0.1'))
+        if not self.has_credit_limit or not self.credit_limit:
+            return Decimal('0.0')
+        try:
+            used = self.used_credit
+            pct = (used / Decimal(str(self.credit_limit))) * Decimal('100')
+            return pct.quantize(Decimal('0.1'))
+        except Exception:
+            return Decimal('0.0')
+
+    @property
+    def is_deposit_type(self) -> bool:
+        return self.account_type in {'FD', 'RD', 'FIXED_DEPOSIT', 'SCSS', 'NSC', 'KVP'}
 
     class Meta:
         constraints = [
