@@ -228,8 +228,7 @@ class CreditCardFormAndTemplateTestCase(TestCase):
 
             response = self.client.get(reverse('account-list'), HTTP_HX_REQUEST='true')
             self.assertEqual(response.status_code, 200)
-            self.assertContains(response, 'billing-badge')
-            self.assertContains(response, 'Bills')
+            self.assertContains(response, 'Next Bill')
             self.assertContains(response, '18 Aug')
 
     def test_account_detail_rendering(self):
