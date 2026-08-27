@@ -288,14 +288,13 @@
 {% if grouped_accounts %}
     <div class="d-flex flex-column gap-4">
     {% for group in grouped_accounts %}
-
     <div class="account-group-section">
 
         <!-- Group header section divider -->
-        <div class="account-group-header d-flex align-items-center justify-content-between py-2 px-1 mb-2"
+        <div class="account-group-header d-flex align-items-center justify-content-between py-2 px-1 mb-2 {% if not group.is_open %}collapsed{% endif %}"
              data-bs-toggle="collapse"
              data-bs-target="#group-{{ group.type }}"
-             aria-expanded="true">
+             aria-expanded="{% if group.is_open %}true{% else %}false{% endif %}">
             <div class="d-flex align-items-center gap-2">
                 <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 {{ group.icon_bg }}"
                      style="width: 32px; height: 32px; font-size: 0.9rem;">
@@ -316,7 +315,7 @@
         </div>
 
         <!-- Account Cards Grid -->
-        <div id="group-{{ group.type }}" class="collapse show">
+        <div id="group-{{ group.type }}" class="collapse {% if group.is_open %}show{% endif %}">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
                 {% for account in group.accounts %}
                 <div class="col account-grid-card-col">
@@ -465,10 +464,10 @@
                                     <div class="d-flex align-items-center justify-content-between gap-1 w-100" style="min-height: 24px;">
                                         {% if account.deposit_maturity_date %}
                                             <span class="text-success px-2.5 py-1.5 d-inline-flex align-items-center" style="font-size: 0.82rem; font-weight: 600; line-height: 1.2;">
-                                                {% trans "Matures" %} {{ account.deposit_maturity_date|date:"M Y" }}
+                                                {% trans "Matures:" %} {{ account.deposit_maturity_date|date:"d M Y" }}
                                             </span>
                                         {% else %}
-                                            <span class="text-muted opacity-75 d-inline-flex align-items-center gap-1" style="line-height: 1.2;">
+                                            <span class="text-muted opacity-75 d-inline-flex align-items-center gap-1" style="font-size: 0.82rem; line-height: 1.2;">
                                                 <span>{% trans "Maturity:" %}</span>
                                                 <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-1.5 py-0.5 fw-medium d-inline-flex align-items-center" style="font-size: 0.68rem; line-height: 1.2;">{% trans "Not Set" %}</span>
                                             </span>

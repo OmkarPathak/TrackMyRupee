@@ -181,6 +181,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 group_total += Decimal(str(bal_val)) * Decimal(str(rate))
 
             group_type_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
+            is_cash_or_bank = 'CASH' in group_type_id or 'BANK' in group_type_id
 
             grouped_accounts.append({
                 'type': group_type_id,
@@ -188,6 +189,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 'accounts': group_accs,
                 'count': len(group_accs),
                 'total': group_total.quantize(Decimal('0.01')),
+                'is_open': is_cash_or_bank,
             })
 
         # Calculate category percentages, colors, icons, and short formatted totals for breakdown banner
@@ -211,6 +213,11 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 return f"{user_currency}{val:.0f}"
 
         tb_float = float(total_balance)
+        selected_type = self.request.GET.get('type')
+        if len(grouped_accounts) == 1 or selected_type:
+            for g in grouped_accounts:
+                g['is_open'] = True
+
         for idx, group in enumerate(grouped_accounts):
             gt_float = float(group['total'])
             group['pct'] = round((gt_float / tb_float * 100), 1) if tb_float > 0 else 0
