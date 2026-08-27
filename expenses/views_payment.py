@@ -274,9 +274,22 @@ def razorpay_webhook(request):
                         history = PaymentHistory.objects.filter(order_id=sub_id).order_by('-created_at').first()
                         if history:
                             activated_tier = history.tier
-                            history.payment_id = payment_id
-                            history.status = 'SUCCESS'
-                            history.save()
+                            if history.status == 'PENDING':
+                                history.payment_id = payment_id
+                                history.status = 'SUCCESS'
+                                history.save()
+                            else:
+                                # Renewal charge on an already active subscription:
+                                # create a new PaymentHistory row instead of mutating the initial row.
+                                PaymentHistory.objects.create(
+                                    user=history.user,
+                                    order_id=sub_id,
+                                    payment_id=payment_id,
+                                    amount=event_data['payload']['payment']['entity']['amount'] / 100,
+                                    tier=activated_tier,
+                                    duration='RECURRING',
+                                    status='SUCCESS',
+                                )
                         else:
                             # Fall back to subscription notes if no PaymentHistory exists
                             notes = event_data['payload']['subscription']['entity'].get('notes', {})

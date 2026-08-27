@@ -307,10 +307,10 @@
                                     <div class="fw-semibold mb-1 text-truncate {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 0.93rem;">{{ sub.description }}</div>
                                     <div class="text-muted text-truncate" style="font-size: 0.65rem;">
                                         {{ sub.get_frequency_display }}
-                                        {% if not sub.is_locked %}
-                                            &nbsp;·&nbsp;<span class="{% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger fw-bold{% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning fw-semibold{% endif %}">{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
-                                        {% else %}
+                                        {% if sub.is_locked %}
                                             &nbsp;·&nbsp;{% trans "Locked" %}
+                                        {% elif sub.annotated_next_date %}
+                                            &nbsp;·&nbsp;<span class="{% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger fw-bold{% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning fw-semibold{% endif %}">{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
                                         {% endif %}
                                     </div>
                                 </div>

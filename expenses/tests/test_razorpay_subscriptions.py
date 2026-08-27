@@ -150,6 +150,74 @@ class RazorpaySubscriptionTest(TestCase):
             self.assertTrue(PaymentHistory.objects.filter(payment_id='pay_charged_123').exists())
 
     @patch('expenses.views_payment.razorpay.Client')
+    def test_webhook_subscription_charged_initial_and_renewal_flow(self, MockRazorpayClient):
+        """
+        Test initial subscription setup updates PENDING row in place,
+        and subsequent renewal webhook creates a new distinct PaymentHistory row.
+        """
+        self.profile.razorpay_subscription_id = 'sub_flow_123'
+        self.profile.tier = 'PRO'
+        self.profile.save()
+
+        # Initial PENDING payment history created by create_order
+        initial_history = PaymentHistory.objects.create(
+            user=self.user,
+            order_id='sub_flow_123',
+            amount=99.00,
+            tier='PRO',
+            duration='MONTHLY',
+            status='PENDING'
+        )
+
+        mock_client_instance = MockRazorpayClient.return_value
+        mock_client_instance.utility.verify_webhook_signature.return_value = True
+
+        with self.settings(RAZORPAY_WEBHOOK_SECRET='test_secret'):
+            # 1. First subscription.charged webhook (initial payment)
+            first_end_timestamp = int((timezone.now() + timedelta(days=30)).timestamp())
+            payload1 = {
+                'event': 'subscription.charged',
+                'payload': {
+                    'subscription': {'entity': {'id': 'sub_flow_123', 'current_end': first_end_timestamp}},
+                    'payment': {'entity': {'id': 'pay_initial_001', 'amount': 9900}}
+                }
+            }
+            url = reverse('razorpay-webhook')
+            res1 = self.client.post(url, json.dumps(payload1), content_type='application/json', HTTP_X_RAZORPAY_SIGNATURE='sig')
+            self.assertEqual(res1.status_code, 200)
+
+            # Assert PENDING row was updated in place
+            initial_history.refresh_from_db()
+            self.assertEqual(initial_history.status, 'SUCCESS')
+            self.assertEqual(initial_history.payment_id, 'pay_initial_001')
+            self.assertEqual(PaymentHistory.objects.filter(order_id='sub_flow_123').count(), 1)
+
+            # 2. Second subscription.charged webhook (renewal next month)
+            second_end_timestamp = int((timezone.now() + timedelta(days=60)).timestamp())
+            payload2 = {
+                'event': 'subscription.charged',
+                'payload': {
+                    'subscription': {'entity': {'id': 'sub_flow_123', 'current_end': second_end_timestamp}},
+                    'payment': {'entity': {'id': 'pay_renewal_002', 'amount': 9900}}
+                }
+            }
+            res2 = self.client.post(url, json.dumps(payload2), content_type='application/json', HTTP_X_RAZORPAY_SIGNATURE='sig')
+            self.assertEqual(res2.status_code, 200)
+
+            # Assert a NEW row was created and initial row was NOT overwritten
+            all_history = list(PaymentHistory.objects.filter(order_id='sub_flow_123').order_by('created_at'))
+            self.assertEqual(len(all_history), 2)
+            self.assertEqual(all_history[0].payment_id, 'pay_initial_001')
+            self.assertEqual(all_history[1].payment_id, 'pay_renewal_002')
+            self.assertEqual(all_history[1].duration, 'RECURRING')
+            self.assertEqual(float(all_history[1].amount), 99.00)
+
+            # 3. Idempotency test: Re-deliver payment 'pay_renewal_002'
+            res3 = self.client.post(url, json.dumps(payload2), content_type='application/json', HTTP_X_RAZORPAY_SIGNATURE='sig')
+            self.assertEqual(res3.status_code, 200)
+            self.assertEqual(PaymentHistory.objects.filter(order_id='sub_flow_123').count(), 2)
+
+    @patch('expenses.views_payment.razorpay.Client')
     def test_cancel_subscription(self, MockRazorpayClient):
         """Test cancelling a subscription via the API."""
         self.profile.razorpay_subscription_id = 'sub_cancel_123'
