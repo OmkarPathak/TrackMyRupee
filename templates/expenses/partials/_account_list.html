@@ -220,9 +220,8 @@
             {% if 'CREDIT' in group.type and group.total != 0 %}
             <div class="mt-3 pt-2 px-3 py-2 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background-color: var(--bs-tertiary-bg); border: 1px solid rgba(0,0,0,0.05);">
                 <div class="d-flex align-items-center gap-1.5 text-muted" style="font-size: 0.78rem;">
-                    <i class="bi bi-credit-card me-1"></i>
-                    <span class="fw-semibold text-body">{% trans "Short-term credit" %}</span>
-                    <span class="opacity-60 d-none d-sm-inline">({% trans "excluded from allocation" %})</span>
+                    <span class="fw-semibold text-body me-1">{% trans "Short-term credit" %}</span>
+                    <span class="opacity-60 d-none d-sm-inline"> ({% trans "excluded from allocation" %})</span>
                 </div>
                 <div class="fw-bold" style="color: #E05C45; font-size: 0.85rem; font-variant-numeric: tabular-nums;">
                     &minus;{{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}

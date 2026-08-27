@@ -864,43 +864,63 @@ body.demo-mode .sidebar {
 }
 
 .badge-soft-secondary {
-  background-color: rgba(158, 157, 154, 0.1);
-  color: #9E9D9A;
+  background-color: rgba(100, 116, 139, 0.1);
+  color: #334155;
+  border: 1px solid rgba(100, 116, 139, 0.18);
 }
 
 .badge-soft-success {
-  background-color: rgba(29, 158, 117, 0.1);
-  color: #1D9E75;
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.18);
 }
 
 .badge-soft-danger {
-  background-color: rgba(224, 92, 69, 0.1);
-  color: #E05C45;
+  background-color: rgba(225, 29, 72, 0.1);
+  color: #BE123C;
+  border: 1px solid rgba(225, 29, 72, 0.18);
 }
 
 .badge-soft-info {
-  background-color: rgba(61, 122, 138, 0.1);
-  color: #3d7a8a;
+  background-color: rgba(14, 165, 233, 0.1);
+  color: #0369A1;
+  border: 1px solid rgba(14, 165, 233, 0.18);
+}
+
+.badge-soft-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #B45309;
+  border: 1px solid rgba(245, 158, 11, 0.18);
 }
 
 [data-bs-theme="dark"] .badge-soft-secondary {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #adb5bd;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 [data-bs-theme="dark"] .badge-soft-success {
-  background-color: rgba(29, 158, 117, 0.2);
-  color: #9FE1CB;
+  background-color: rgba(52, 211, 153, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.25);
 }
 
 [data-bs-theme="dark"] .badge-soft-danger {
-  background-color: rgba(224, 92, 69, 0.2);
-  color: #F49C8C;
+  background-color: rgba(248, 113, 113, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.25);
 }
 
 [data-bs-theme="dark"] .badge-soft-info {
-  background-color: rgba(61, 122, 138, 0.2);
-  color: #8db5c0;
+  background-color: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+[data-bs-theme="dark"] .badge-soft-warning {
+  background-color: rgba(251, 191, 36, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.25);
 }
 
 /* Amount sign/color utilities — used consistently across all list views.

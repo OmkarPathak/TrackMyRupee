@@ -174,11 +174,11 @@
                             <table class="table table-hover table-striped mb-0 text-start align-middle">
                                 <thead>
                                     <tr>
-                                        <th class="ps-4">{% trans "Subscription" %}</th>
+                                        <th class="ps-4">{% trans "Next Renewal" %}</th>
+                                        <th>{% trans "Subscription" %}</th>
                                         <th>{% trans "Category" %}</th>
                                         <th>{% trans "Frequency" %}</th>
                                         <th>{% trans "Account" %}</th>
-                                        <th>{% trans "Next Renewal" %}</th>
                                         <th class="text-end">{% trans "Amount" %}</th>
                                         <th class="text-end pe-4">{% trans "Actions" %}</th>
                                     </tr>
@@ -187,55 +187,44 @@
                                     {% for sub in active_subs %}
                                     <tr>
                                         <td class="ps-4">
-                                            <div class="d-flex align-items-center gap-2">
-                                                {% if sub.is_locked %}
-                                                    <i class="bi bi-lock-fill text-muted fs-5"></i>
-                                                {% elif sub.transaction_type == 'TRANSFER' %}
-                                                    <i class="bi bi-arrow-left-right text-info fs-5"></i>
-                                                {% elif sub.transaction_type == 'INCOME' %}
-                                                    <i class="bi bi-arrow-repeat text-success fs-5"></i>
-                                                {% else %}
-                                                    <i class="bi bi-arrow-repeat text-secondary fs-5"></i>
-                                                {% endif %}
-                                                <div>
-                                                    <span class="fw-bold {% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
-                                                    {% if sub.end_date %}
-                                                        <div class="text-danger small" style="font-size: 0.72rem;">
-                                                            <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
-                                                        </div>
-                                                    {% endif %}
+                                            {% if sub.is_locked %}
+                                                <span class="text-muted small">{% trans "Locked" %}</span>
+                                            {% elif sub.annotated_next_date %}
+                                                <span class="fw-semibold text-body">
+                                                    {{ sub.annotated_next_date|date:"d M Y"|translate_digits }}
+                                                </span>
+                                                <div class="text-muted" style="font-size: 0.72rem;">
+                                                    <span>{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {% if sub.transaction_type == 'INCOME' %}
-                                                <span class="badge bg-success-subtle text-success">{% trans "Income" %}</span>
-                                            {% elif sub.transaction_type == 'TRANSFER' %}
-                                                <span class="badge bg-info-subtle text-info">{% trans "Transfer" %}</span>
-                                            {% elif sub.transaction_type == 'CAPITAL' %}
-                                                <span class="badge bg-warning-subtle text-warning">{% trans "Capital Event" %}</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary-subtle text-secondary">{{ sub.category }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="text-capitalize">{{ sub.get_frequency_display }}</td>
-                                        <td>
-                                            {% if sub.account %}
-                                                <span class="text-secondary small">{{ sub.account.name }}</span>
                                             {% else %}
                                                 <span class="text-muted">—</span>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% if sub.is_locked %}
-                                                <span class="text-muted small">{% trans "Locked" %}</span>
-                                            {% elif sub.annotated_next_date %}
-                                                <span class="{% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger fw-bold{% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning fw-semibold{% else %}text-secondary{% endif %}">
-                                                    {{ sub.annotated_next_date|date:"d M Y"|translate_digits }}
-                                                </span>
-                                                <div class="text-muted" style="font-size: 0.72rem;">
-                                                    <span class="{% if sub.annotated_days_until <= 3 and sub.transaction_type != 'INCOME' %}text-danger fw-bold{% elif sub.annotated_days_until <= 7 and sub.transaction_type != 'INCOME' %}text-warning fw-semibold{% endif %}">{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
-                                                </div>
+                                            <div>
+                                                <span class="fw-bold {% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
+                                                {% if sub.end_date %}
+                                                    <div class="text-danger small" style="font-size: 0.72rem;">
+                                                        {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if sub.transaction_type == 'INCOME' %}
+                                                <span class="badge-soft badge-soft-success fw-semibold">{% trans "Income" %}</span>
+                                            {% elif sub.transaction_type == 'TRANSFER' %}
+                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>
+                                            {% elif sub.transaction_type == 'CAPITAL' %}
+                                                <span class="badge-soft badge-soft-warning fw-semibold">{% trans "Capital Event" %}</span>
+                                            {% else %}
+                                                <span class="badge-soft badge-soft-secondary fw-semibold">{{ sub.category }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-capitalize">{{ sub.get_frequency_display }}</td>
+                                        <td>
+                                            {% if sub.account %}
+                                                <span class="text-body small fw-medium">{{ sub.account.name }}</span>
                                             {% else %}
                                                 <span class="text-muted">—</span>
                                             {% endif %}
@@ -382,10 +371,11 @@
                             <table class="table table-hover table-striped mb-0 text-start align-middle">
                                 <thead>
                                     <tr>
-                                        <th class="ps-4">{% trans "Description" %}</th>
-                                        <th>{% trans "Type" %}</th>
+                                        <th class="ps-4">{% trans "Next Renewal" %}</th>
+                                        <th>{% trans "Subscription" %}</th>
+                                        <th>{% trans "Category" %}</th>
                                         <th>{% trans "Frequency" %}</th>
-                                        <th>{% trans "Next Due" %}</th>
+                                        <th>{% trans "Account" %}</th>
                                         <th class="text-end">{% trans "Amount" %}</th>
                                         <th class="text-end pe-4">{% trans "Actions" %}</th>
                                     </tr>
@@ -394,54 +384,84 @@
                                     {% for sub in renewing_soon %}
                                     <tr>
                                         <td class="ps-4">
-                                            <div class="d-flex align-items-center gap-2">
-                                                {% if sub.is_locked %}
-                                                    <i class="bi bi-lock-fill text-muted fs-5"></i>
-                                                {% else %}
-                                                    <i class="bi bi-exclamation-circle-fill text-danger fs-5"></i>
-                                                {% endif %}
-                                                <div>
-                                                    <span class="fw-bold {% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
-                                                    {% if sub.end_date %}
-                                                        <div class="text-danger small" style="font-size: 0.72rem;">
-                                                            <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
-                                                        </div>
-                                                    {% endif %}
+                                            {% if sub.is_locked %}
+                                                <span class="text-muted small">{% trans "Locked" %}</span>
+                                            {% elif sub.annotated_next_date %}
+                                                <span class="fw-semibold text-body">
+                                                    {{ sub.annotated_next_date|date:"d M Y"|translate_digits }}
+                                                </span>
+                                                <div class="text-muted" style="font-size: 0.72rem;">
+                                                    <span>{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
                                                 </div>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <span class="fw-bold {% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
+                                                {% if sub.end_date %}
+                                                    <div class="text-danger small" style="font-size: 0.72rem;">
+                                                        {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </td>
                                         <td>
                                             {% if sub.transaction_type == 'INCOME' %}
-                                                <span class="badge bg-success-subtle text-success">{% trans "Income" %}</span>
+                                                <span class="badge-soft badge-soft-success fw-semibold">{% trans "Income" %}</span>
                                             {% elif sub.transaction_type == 'TRANSFER' %}
-                                                <span class="badge bg-info-subtle text-info">{% trans "Transfer" %}</span>
+                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>
                                             {% elif sub.transaction_type == 'CAPITAL' %}
-                                                <span class="badge bg-warning-subtle text-warning">{% trans "Capital Event" %}</span>
+                                                <span class="badge-soft badge-soft-warning fw-semibold">{% trans "Capital Event" %}</span>
                                             {% else %}
-                                                <span class="badge bg-secondary-subtle text-secondary">{% trans "Expense" %}</span>
+                                                <span class="badge-soft badge-soft-secondary fw-semibold">{{ sub.category }}</span>
                                             {% endif %}
                                         </td>
-                                        <td>{{ sub.get_frequency_display }}</td>
+                                        <td class="text-capitalize">{{ sub.get_frequency_display }}</td>
                                         <td>
-                                            {% if sub.is_locked %}
-                                                <span class="text-muted small">{% trans "Locked" %}</span>
+                                            {% if sub.account %}
+                                                <span class="text-body small fw-medium">{{ sub.account.name }}</span>
                                             {% else %}
-                                                <span class="badge bg-danger text-white">{% trans "Renewing This Month" %}</span>
+                                                <span class="text-muted">—</span>
                                             {% endif %}
                                         </td>
                                         <td class="text-end fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
-                                            {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
+                                            {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                             {% if sub.currency != user.profile.currency %}
                                                 <div class="text-muted small fw-normal" style="font-size: 0.72rem;">
-                                                    ({{ sub.currency }}{{ sub.amount|floatformat:0|translate_digits }})
+                                                    ({{ sub.currency }}{{ sub.amount|compact_amount:sub.currency|translate_digits }})
                                                 </div>
                                             {% endif %}
                                         </td>
-                                        <td class="text-end pe-4">
+                                        <td class="text-end pe-4 text-nowrap">
                                             {% if sub.is_locked %}
-                                                <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary mt-2 rounded-pill fw-bold" style="font-size: 0.8rem;">{% trans "Unlock" %}</a>
+                                                <a href="{% url 'pricing' %}" class="btn btn-sm btn-link text-decoration-none p-0 fw-bold text-primary">
+                                                    <i class="bi bi-rocket-takeoff fs-6"></i>
+                                                </a>
                                             {% else %}
-                                                 <a href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary mt-2 rounded-pill" style="font-size: 0.8rem;">{% trans "Manage" %}</a>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
+                                                                <i class="bi bi-pencil-square text-primary"></i>
+                                                                <span>{% trans "Edit" %}</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger delete-btn"
+                                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                                    data-url="{% url 'recurring-delete' sub.uuid %}"
+                                                                    data-message="{% blocktrans with name=sub.description %}Are you sure you want to delete subscription '{{ name }}'?{% endblocktrans %}">
+                                                                <i class="bi bi-trash"></i>
+                                                                <span>{% trans "Delete" %}</span>
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -461,23 +481,28 @@
                                 <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;" title="{{ sub.description }}">
                                     {% if sub.is_locked %}
                                         <i class="bi bi-lock-fill"></i>
+                                    {% elif sub.transaction_type == 'TRANSFER' %}
+                                        <i class="bi bi-arrow-left-right"></i>
+                                    {% elif sub.transaction_type == 'INCOME' %}
+                                        <i class="bi bi-arrow-repeat"></i>
                                     {% else %}
-                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                        <i class="bi bi-arrow-repeat"></i>
                                     {% endif %}
                                 </div>
                                 <div class="flex-grow-1 min-width-0">
                                     <div class="fw-semibold mb-1 text-truncate {% if sub.is_locked %}text-muted{% endif %}" style="font-size: 0.93rem;">{{ sub.description }}</div>
                                     <div class="text-muted text-truncate" style="font-size: 0.65rem;">
+                                        {{ sub.get_frequency_display }}
                                         {% if sub.is_locked %}
-                                            {% trans "Locked" %}
-                                        {% else %}
-                                            <span class="text-danger fw-semibold">{% trans "Renewing This Month" %}</span>
+                                            &nbsp;·&nbsp;{% trans "Locked" %}
+                                        {% elif sub.annotated_next_date %}
+                                            &nbsp;·&nbsp;<span>{% blocktrans with days=sub.annotated_days_until|translate_digits %}In {{ days }}d{% endblocktrans %}</span>
                                         {% endif %}
                                     </div>
                                 </div>
                                 <div class="text-end d-flex align-items-center gap-2">
                                     <div class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
-                                        {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
+                                        {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                     </div>
                                     <div class="dropdown">
                                         <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
@@ -493,8 +518,16 @@
                                             {% else %}
                                                 <li>
                                                     <a class="dropdown-item py-2" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">
-                                                        <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Manage" %}
+                                                        <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}
                                                     </a>
+                                                </li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item py-2 text-danger delete-btn"
+                                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                            data-url="{% url 'recurring-delete' sub.uuid %}"
+                                                            data-message="{% blocktrans with name=sub.description %}Are you sure you want to delete subscription '{{ name }}'?{% endblocktrans %}">
+                                                        <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                                    </button>
                                                 </li>
                                             {% endif %}
                                         </ul>
@@ -535,31 +568,24 @@
                                     {% for sub in cancelled_subs %}
                                     <tr>
                                         <td class="ps-4">
-                                            <div class="d-flex align-items-center gap-2">
-                                                {% if sub.is_locked %}
-                                                    <i class="bi bi-lock-fill text-muted fs-5"></i>
-                                                {% else %}
-                                                    <i class="bi bi-x-circle text-muted fs-5"></i>
+                                            <div>
+                                                <span class="fw-bold text-decoration-line-through text-muted">{{ sub.description }}</span>
+                                                {% if sub.end_date %}
+                                                    <div class="text-danger small" style="font-size: 0.72rem;">
+                                                        {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
+                                                    </div>
                                                 {% endif %}
-                                                <div>
-                                                    <span class="fw-bold text-decoration-line-through text-muted">{{ sub.description }}</span>
-                                                    {% if sub.end_date %}
-                                                        <div class="text-danger small" style="font-size: 0.72rem;">
-                                                            <i class="bi bi-calendar-event me-1"></i>{% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
                                             </div>
                                         </td>
                                         <td>
                                             {% if sub.transaction_type == 'INCOME' %}
-                                                <span class="badge bg-success-subtle text-success">{% trans "Income" %}</span>
+                                                <span class="badge-soft badge-soft-success fw-semibold">{% trans "Income" %}</span>
                                             {% elif sub.transaction_type == 'TRANSFER' %}
-                                                <span class="badge bg-info-subtle text-info">{% trans "Transfer" %}</span>
+                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>
                                             {% elif sub.transaction_type == 'CAPITAL' %}
-                                                <span class="badge bg-warning-subtle text-warning">{% trans "Capital Event" %}</span>
+                                                <span class="badge-soft badge-soft-warning fw-semibold">{% trans "Capital Event" %}</span>
                                             {% else %}
-                                                <span class="badge bg-secondary-subtle text-secondary">{% trans "Expense" %}</span>
+                                                <span class="badge-soft badge-soft-secondary fw-semibold">{% trans "Expense" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>{{ sub.get_frequency_display }}</td>
