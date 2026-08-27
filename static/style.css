@@ -946,11 +946,13 @@ body.demo-mode .sidebar {
 /* Amount sign/color utilities — used consistently across all list views.
    Outflow = expenses, loan repayments, capital events, transfer-out.
    Inflow  = income, transfer-in. */
-.amount-outflow { color: #E05C45 !important; }
-.amount-inflow  { color: #1D9E75 !important; }
+.amount-outflow { color: var(--color-danger) !important; }
+.amount-inflow,
+.amount-income  { color: var(--color-success) !important; }
 
-[data-bs-theme="dark"] .amount-outflow { color: #F49C8C !important; }
-[data-bs-theme="dark"] .amount-inflow  { color: #9FE1CB !important; }
+[data-bs-theme="dark"] .amount-outflow { color: var(--color-danger) !important; }
+[data-bs-theme="dark"] .amount-inflow,
+[data-bs-theme="dark"] .amount-income  { color: var(--color-success) !important; }
 
 .form-check-input:focus {
   border-color: #1D9E75;
@@ -2254,7 +2256,7 @@ a:hover {
   justify-content: center;
   color: #ffffff !important;
   text-decoration: none;
-  box-shadow: 0 10px 25px rgba(29, 158, 117, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(29, 158, 117, 0.12);
   border: none;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -2267,17 +2269,17 @@ a:hover {
 .mobile-fab-btn:hover {
   background-color: #157F5D;
   transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(29, 158, 117, 0.45);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22), 0 3px 8px rgba(29, 158, 117, 0.18);
 }
 
 .mobile-fab-btn:active {
-  transform: scale(0.92);
-  box-shadow: 0 6px 16px rgba(29, 158, 117, 0.3);
+  transform: scale(0.94);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 [data-bs-theme="dark"] .mobile-fab-btn {
   background-color: #1D9E75;
-  box-shadow: 0 10px 25px rgba(29, 158, 117, 0.45);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(29, 158, 117, 0.15);
 }
 
 /* --- Mobile Bottom Sheet (Offcanvas Drawer) --- */
