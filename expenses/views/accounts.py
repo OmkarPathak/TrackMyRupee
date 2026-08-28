@@ -57,28 +57,31 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         status = self.request.GET.get('status', 'active')
         is_active = status == 'active'
         
-        # Order by created_at to ensure consistent locking of 'newer' accounts
+        # Order by -is_pinned, created_at to ensure pinned accounts stay at top
         queryset = (
             Account.objects.select_related('user')
             .filter(user=self.request.user, is_active=is_active)
-            .order_by('created_at', 'id')
+            .order_by('-is_pinned', 'created_at', 'id')
         )
         
         account_type = self.request.GET.get('type')
         if account_type:
-            # Check if account_type is a group name or normalized group ID
-            import re
-            group_codes = []
-            for g_name, choices in Account.ACCOUNT_TYPES:
-                g_id = re.sub(r'[^A-Z0-9_]', '_', g_name.upper())
-                if account_type == g_name or account_type == g_id:
-                    group_codes = [c for c, _ in choices]
-                    break
-            
-            if group_codes:
-                queryset = queryset.filter(account_type__in=group_codes)
+            if account_type == 'PINNED':
+                queryset = queryset.filter(is_pinned=True)
             else:
-                queryset = queryset.filter(account_type=account_type)
+                # Check if account_type is a group name or normalized group ID
+                import re
+                group_codes = []
+                for g_name, choices in Account.ACCOUNT_TYPES:
+                    g_id = re.sub(r'[^A-Z0-9_]', '_', g_name.upper())
+                    if account_type == g_name or account_type == g_id:
+                        group_codes = [c for c, _ in choices]
+                        break
+                
+                if group_codes:
+                    queryset = queryset.filter(account_type__in=group_codes)
+                else:
+                    queryset = queryset.filter(account_type=account_type)
 
         # Search by account name
         search_query = self.request.GET.get('search', '').strip()
@@ -159,16 +162,41 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             for val, label in choices:
                 flat_labels[val] = label
 
-        seen_account_ids = set()
+        seen_category_account_ids = set()
         import re
+
+        # Surface Pinned Accounts section at top if any accounts are pinned
+        pinned_accs = [a for a in accounts if getattr(a, 'is_pinned', False)]
+        selected_type = self.request.GET.get('type', '')
+        if pinned_accs and selected_type != 'PINNED':
+            pinned_total = Decimal('0.00')
+            for acc in pinned_accs:
+                try:
+                    rate = get_exchange_rate(acc.currency, user_currency)
+                except Exception:
+                    rate = Decimal('1.0')
+                bal_val = acc.accrued_value if getattr(acc, 'has_accrued_value', False) else acc.display_balance
+                pinned_total += Decimal(str(bal_val)) * Decimal(str(rate))
+
+            grouped_accounts.append({
+                'type': 'PINNED',
+                'label': _('Pinned Accounts'),
+                'accounts': pinned_accs,
+                'count': len(pinned_accs),
+                'total': pinned_total.quantize(Decimal('0.01')),
+                'is_open': True,
+            })
+
+        has_pinned = bool(pinned_accs) and selected_type != 'PINNED'
+
         for group_name, choices in Account.ACCOUNT_TYPES:
             group_codes = [val for val, _ in choices]
-            group_accs = [a for a in accounts if a.account_type in group_codes and a.id not in seen_account_ids]
+            group_accs = [a for a in accounts if a.account_type in group_codes and a.id not in seen_category_account_ids]
             if not group_accs:
                 continue
 
             for a in group_accs:
-                seen_account_ids.add(a.id)
+                seen_category_account_ids.add(a.id)
 
             # Calculate group total balance in user currency
             group_total = Decimal('0.00')
@@ -181,7 +209,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 group_total += Decimal(str(bal_val)) * Decimal(str(rate))
 
             group_type_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
-            is_cash_or_bank = 'CASH' in group_type_id or 'BANK' in group_type_id
+            is_cash_or_bank = ('CASH' in group_type_id or 'BANK' in group_type_id)
+            section_is_open = False if has_pinned else is_cash_or_bank
 
             grouped_accounts.append({
                 'type': group_type_id,
@@ -189,7 +218,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 'accounts': group_accs,
                 'count': len(group_accs),
                 'total': group_total.quantize(Decimal('0.01')),
-                'is_open': is_cash_or_bank,
+                'is_open': section_is_open,
             })
 
         # Calculate category percentages, colors, icons, and short formatted totals for breakdown banner
@@ -213,7 +242,6 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 return f"{user_currency}{val:.0f}"
 
         tb_float = float(total_balance)
-        selected_type = self.request.GET.get('type')
         if len(grouped_accounts) == 1 or selected_type:
             for g in grouped_accounts:
                 g['is_open'] = True
@@ -225,7 +253,9 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             group['short_total'] = _get_short_amount(group['total'])
 
             gtype = group['type']
-            if 'CASH' in gtype or 'BANK' in gtype:
+            if gtype == 'PINNED':
+                p = {'color': '#f59e0b', 'dot_class': 'bg-warning', 'icon': 'bi-pin-angle-fill', 'icon_bg': 'bg-warning-subtle text-warning-emphasis'}
+            elif 'CASH' in gtype or 'BANK' in gtype:
                 p = category_palette[0]
             elif 'DEPOSIT' in gtype or 'FIXED' in gtype:
                 p = category_palette[1]
@@ -282,6 +312,14 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             all_status_accounts = [a for a in all_status_accounts if search_query.lower() in a.name.lower()]
 
         type_chips = []
+        pinned_chip_count = len([a for a in all_status_accounts if getattr(a, 'is_pinned', False)])
+        if pinned_chip_count > 0:
+            type_chips.append({
+                'type': 'PINNED',
+                'label': _('Pinned'),
+                'count': pinned_chip_count,
+            })
+
         seen_chip_ids = set()
         import re
         for group_name, choices in Account.ACCOUNT_TYPES:
@@ -467,6 +505,45 @@ class AccountRestoreView(LoginRequiredMixin, View):
         messages.success(request, _("Account restored successfully!"))
         ph_capture(request.user, 'account_restored', {})
         return redirect('account-list')
+
+
+class AccountPinToggleView(LoginRequiredMixin, View):
+    """Toggle the pinned status of an account."""
+
+    def post(self, request, pk):
+        return self._toggle_pin(request, pk)
+
+    def get(self, request, pk):
+        return self._toggle_pin(request, pk)
+
+    def _toggle_pin(self, request, pk):
+        account = get_object_by_uuid_or_pk(Account, pk, user=request.user)
+        redirect_response = redirect_to_uuid_url_if_needed(request, account)
+        if redirect_response:
+            return redirect_response
+
+        account.is_pinned = not account.is_pinned
+        account.save(update_fields=['is_pinned'])
+
+        if account.is_pinned:
+            messages.success(request, _("Account '%(name)s' pinned to top.") % {'name': account.name})
+            ph_capture(request.user, 'account_pinned', {'account_id': str(account.uuid)})
+        else:
+            messages.success(request, _("Account '%(name)s' unpinned.") % {'name': account.name})
+            ph_capture(request.user, 'account_unpinned', {'account_id': str(account.uuid)})
+
+        is_htmx = (
+            str(request.headers.get('HX-Request', '')).lower() == 'true' or
+            str(request.META.get('HTTP_HX_REQUEST', '')).lower() == 'true'
+        )
+        if is_htmx:
+            if not request.GET and request.POST:
+                request.GET = request.POST
+            request.method = 'GET'
+            view = AccountListView.as_view()
+            return view(request)
+
+        return redirect(request.META.get('HTTP_REFERER') or 'account-list')
 
 
 class AccountQuickCreateView(LoginRequiredMixin, View):

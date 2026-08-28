@@ -1373,36 +1373,50 @@
     </script>
 
     <!-- Django Messages Toast Container -->
-    {% if messages %}
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11000;">
-        {% for message in messages %}
-        <div class="toast align-items-center text-bg-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} border-0 shadow-lg mb-2"
-            role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    {% if message.tags == 'error' %}
-                    <i class="bi bi-exclamation-circle-fill me-2"></i>
-                    {% elif message.tags == 'success' %}
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                    {% endif %}
-                    {{ message }}
+    <div id="django-messages-toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11000;">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="toast align-items-center text-bg-{% if message.tags == 'error' %}danger{% elif message.tags == 'info' %}info{% else %}{{ message.tags }}{% endif %} border-0 shadow-lg mb-2"
+                role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        {% if message.tags == 'error' %}
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        {% elif message.tags == 'success' %}
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        {% else %}
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                    aria-label="Close"></button>
             </div>
-        </div>
-        {% endfor %}
+            {% endfor %}
+        {% endif %}
     </div>
     <script>
         (function() {
-            var toasts = document.querySelectorAll('.toast:not(#donationToast)');
-            toasts.forEach(function (toastEl) {
-                var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-                toast.show();
-            });
+            function initAndShowToasts() {
+                var toasts = document.querySelectorAll('#django-messages-toast-container .toast:not(#donationToast)');
+                toasts.forEach(function (toastEl) {
+                    if (toastEl.dataset.toastInited) return;
+                    toastEl.dataset.toastInited = 'true';
+                    toastEl.addEventListener('hidden.bs.toast', function () {
+                        toastEl.remove();
+                    });
+                    var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+                    toast.show();
+                });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAndShowToasts);
+            } else {
+                initAndShowToasts();
+            }
+            document.body.addEventListener('htmx:afterSettle', initAndShowToasts);
         })();
     </script>
-    {% endif %}
 
     <!-- Globel CSS Fixes for Multiselect -->
     <style>

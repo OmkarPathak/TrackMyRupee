@@ -327,6 +327,45 @@ class AccountListViewTest(BaseViewTest):
         self.assertTemplateNotUsed(response, 'base.html')
         self.assertIn('HX-Request', response['Vary'])
 
+    def test_account_pin_toggle_and_grouping(self):
+        acc = Account.objects.create(user=self.user, name='SBI Savings', account_type='SAVINGS_ACCOUNT', balance=10000, currency='₹')
+        self.assertFalse(acc.is_pinned)
+
+        # Pin account via POST
+        pin_url = reverse('account-toggle-pin', kwargs={'pk': acc.uuid})
+        response = self.client.post(pin_url)
+        self.assertEqual(response.status_code, 302)
+        acc.refresh_from_db()
+        self.assertTrue(acc.is_pinned)
+
+        # Check account list grouping has Pinned Accounts section AND retains account in category group
+        res_list = self.client.get(reverse('account-list'))
+        self.assertEqual(res_list.status_code, 200)
+        grouped = res_list.context['grouped_accounts']
+        self.assertTrue(len(grouped) >= 2)
+        self.assertEqual(grouped[0]['type'], 'PINNED')
+        self.assertEqual(grouped[0]['accounts'][0], acc)
+        # Verify account also remains in Cash & Bank section to preserve aggregations
+        cash_bank_group = next(g for g in grouped if 'CASH' in g['type'] or 'BANK' in g['type'])
+        self.assertIn(acc, cash_bank_group['accounts'])
+
+        # Toggle pin via HTMX
+        htmx_res = self.client.post(pin_url, HTTP_HX_REQUEST='true')
+        self.assertEqual(htmx_res.status_code, 200)
+        self.assertTemplateUsed(htmx_res, 'expenses/partials/_account_list.html')
+        acc.refresh_from_db()
+        self.assertFalse(acc.is_pinned)
+
+    def test_account_pinned_type_filter(self):
+        acc1 = Account.objects.create(user=self.user, name='SBI Savings', account_type='SAVINGS_ACCOUNT', balance=10000, currency='₹', is_pinned=True)
+        acc2 = Account.objects.create(user=self.user, name='HDFC Card', account_type='CREDIT_CARD', balance=5000, currency='₹', is_pinned=False)
+
+        res = self.client.get(reverse('account-list') + '?type=PINNED')
+        self.assertEqual(res.status_code, 200)
+        accounts_in_ctx = res.context['accounts']
+        self.assertIn(acc1, accounts_in_ctx)
+        self.assertNotIn(acc2, accounts_in_ctx)
+
 class BulkActionTest(BaseViewTest):
     def test_bulk_delete_expenses(self):
         # Create multiple expenses associated with user

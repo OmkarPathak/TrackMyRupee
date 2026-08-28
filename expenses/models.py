@@ -151,6 +151,7 @@ class Account(models.Model):
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
 
     is_active = models.BooleanField(default=True)
+    is_pinned = models.BooleanField(default=False, verbose_name=_('Is Pinned'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

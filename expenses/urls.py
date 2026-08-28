@@ -51,6 +51,7 @@ urlpatterns = [
     path('accounts/<uuid_or_int:pk>/edit/', views.AccountUpdateView.as_view(), name='account-edit'),
     path('accounts/<uuid_or_int:pk>/delete/', views.AccountDeleteView.as_view(), name='account-delete'),
     path('accounts/<uuid_or_int:pk>/restore/', views.AccountRestoreView.as_view(), name='account-restore'),
+    path('accounts/<uuid_or_int:pk>/pin/', views.AccountPinToggleView.as_view(), name='account-toggle-pin'),
     path('accounts/<uuid_or_int:pk>/', views.AccountDetailView.as_view(), name='account-detail'),
     path('accounts/<uuid_or_int:pk>/record-maturity-income/', views.RecordMaturityIncomeView.as_view(), name='account-record-maturity-income'),
     path('accounts/quick-add/', views.AccountQuickCreateView.as_view(), name='account-quick-create'),
