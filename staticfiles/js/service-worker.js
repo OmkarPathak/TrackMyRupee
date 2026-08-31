@@ -1,4 +1,5 @@
-const CACHE_NAME = 'finance-tracker-v21';
+// Updated: 2026-08-17 19:12 (Force Refresh)
+const CACHE_NAME = 'finance-tracker-v22';
 const OFFLINE_URL = '/offline/';
 
 const ASSETS_TO_CACHE = [
@@ -70,7 +71,10 @@ self.addEventListener('fetch', (event) => {
   // Static assets (Cache first, network fallback)
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+      return response || fetch(event.request).catch(() => {
+        // If both cache and network fail, just return a null response or offline fallback for images if desired
+        return null;
+      });
     })
   );
 });

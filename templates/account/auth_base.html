@@ -131,54 +131,189 @@
             max-width: 450px;
         }
 
-        .social-btn {
-            border: 1px solid var(--bs-border-color);
-            background: var(--bs-body-bg);
-            color: var(--bs-body-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            text-decoration: none;
+        /* BRAND MATCHED BUTTON & TYPOGRAPHY STYLES */
+        body {
+            font-family: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
         }
 
-        .social-btn:hover {
-            background: var(--bs-tertiary-bg);
-            border-color: var(--bs-primary);
+        .auth-card h2 {
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--tmr-ink-900, #1a1a18);
+        }
+
+        .form-label {
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--tmr-ink-400, #8A8880);
         }
 
         .form-control-xl {
-            padding: 1rem 1.25rem;
-            font-size: 1.1rem;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            padding: 0.85rem 1rem 0.85rem 2.5rem;
+            font-size: 0.95rem;
             border-radius: 12px;
+            border: 1px solid var(--tmr-surface-3, #EBEBEA);
+            background-color: var(--bs-body-bg);
+            color: var(--tmr-ink-900, #1a1a18);
+            transition: all 0.2s ease;
+        }
+        .form-control-xl:focus {
+            border-color: var(--tmr-teal-400, #1D9E75);
+            box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.12);
+            outline: none;
         }
 
-        .btn-xl {
-            padding: 1rem;
-            font-size: 1.1rem;
+        .btn-auth-primary {
+            background-color: #1D9E75;
+            color: #ffffff;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-weight: 700;
+            border: none;
             border-radius: 12px;
+            padding: 0.85rem 1.25rem;
+            font-size: 1rem;
+            letter-spacing: -0.01em;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        .btn-auth-primary:hover,
+        .btn-auth-primary:focus,
+        .btn-auth-primary:active {
+            background-color: #0F6E56;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(29, 158, 117, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-auth-demo {
+            background-color: var(--tmr-teal-50, #E1F5EE);
+            color: var(--tmr-teal-600, #0F6E56);
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-weight: 700;
+            border: 1px solid rgba(29, 158, 117, 0.25);
+            border-radius: 12px;
+            padding: 0.85rem 1.25rem;
+            font-size: 0.95rem;
+            letter-spacing: -0.01em;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            text-decoration: none;
+        }
+        .btn-auth-demo:hover,
+        .btn-auth-demo:focus,
+        .btn-auth-demo:active {
+            background-color: rgba(29, 158, 117, 0.18);
+            color: var(--tmr-teal-600, #0F6E56);
+            border-color: var(--tmr-teal-400, #1D9E75);
+            transform: translateY(-1px);
+        }
+
+        .social-btn {
+            border: 1px solid var(--tmr-surface-3, #EBEBEA);
+            background: var(--bs-body-bg);
+            color: var(--tmr-ink-900, #1a1a18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            font-family: 'DM Sans', 'Inter', sans-serif;
             font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .social-btn:hover {
+            background: var(--tmr-surface-1, #F4F3EF);
+            border-color: var(--tmr-teal-400, #1D9E75);
+            color: var(--tmr-ink-900, #1a1a18);
+            transform: translateY(-1px);
+        }
+
+        .auth-illustration-wrapper {
+            max-width: 420px;
+            width: 100%;
+            margin: 1.5rem 0 1rem 0;
+            mix-blend-mode: lighten;
+            transition: transform 0.3s ease;
+        }
+        .auth-illustration-wrapper:hover {
+            transform: translateY(-4px);
+        }
+        .auth-illustration-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            mix-blend-mode: lighten;
+        }
+
+        .auth-inline-illustration {
+            width: 100px;
+            height: 68px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #1A1A18;
+            padding: 2px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            display: block;
+        }
+        .auth-inline-illustration img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            display: block;
         }
 
         @media (max-width: 991.98px) {
-            .auth-marketing-side {
-                padding: 3rem 1.5rem;
-                text-align: center;
-                align-items: center;
-                height: auto;
-                min-height: auto;
-                position: relative;
+            html, body {
+                background-color: var(--bs-body-bg) !important;
             }
-            .marketing-headline {
-                font-size: 2.5rem;
-            }
+            .auth-container,
             .auth-form-side {
-                padding: 3rem 1.5rem;
-                height: auto;
-                min-height: auto;
+                background-color: var(--bs-body-bg) !important;
+                padding: 1.5rem 1.25rem 2rem 1.25rem;
+                min-height: 100vh;
+                justify-content: center;
+            }
+            .auth-card {
+                max-width: 100%;
+                width: 100%;
+            }
+            .auth-inline-illustration {
+                width: 90px;
+                height: 62px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .auth-form-side {
+                padding: 1rem 0.85rem 1.5rem 0.85rem;
+            }
+            .form-control-xl {
+                padding: 0.6rem 0.65rem 0.6rem 2.1rem !important;
+                font-size: 0.86rem !important;
+            }
+            .auth-inline-illustration {
+                width: 82px;
+                height: 56px;
+                border-radius: 10px;
+            }
+            .auth-card h2 {
+                font-size: 1.35rem !important;
             }
         }
     </style>
@@ -186,8 +321,8 @@
 <body>
     <div class="container-fluid p-0 auth-container">
         <div class="row g-0">
-            <!-- Left Side: Marketing (Order 2 on mobile, 1 on desktop) -->
-            <div class="col-lg-6 auth-marketing-side order-2 order-lg-1">
+            <!-- Left Side: Marketing (Desktop Only: d-none d-lg-flex) -->
+            <div class="col-lg-6 auth-marketing-side d-none d-lg-flex">
                 <a href="/" class="text-decoration-none">
                     <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" class="auth-logo shadow-lg">
                 </a>
@@ -200,25 +335,25 @@
                     {% endblock %}
                 </p>
                 
+                <div class="auth-illustration-wrapper">
+                    {% block marketing_illustration %}{% endblock %}
+                </div>
+
                 <!-- Social Proof Sparkle -->
-                <div class="mt-5 d-flex align-items-center gap-3 opacity-75">
-                    <span class="small fw-medium">{% trans "Trusted by 500+ professionals" %}</span>
+                <div class="mt-3 d-flex align-items-center gap-3 opacity-75">
+                    <span class="small fw-medium">{% trans "Trusted by 500+ professionals across India" %}</span>
                 </div>
             </div>
 
-            <!-- Right Side: Form (Order 1 on mobile, 2 on desktop) -->
-            <div class="col-lg-6 auth-form-side order-1 order-lg-2 position-relative">
+            <!-- Right Side: Form (Full width on Mobile, 50% on Desktop) -->
+            <div class="col-lg-6 auth-form-side position-relative">
+                <!-- Desktop Back Button -->
                 <div class="position-absolute top-0 start-0 p-4 d-none d-lg-block">
                     <a href="/" class="text-decoration-none text-muted small fw-medium d-flex align-items-center gap-2 back-link">
                         <i class="bi bi-arrow-left"></i> {% trans "Back to Site" %}
                     </a>
                 </div>
-                <!-- Mobile Back Button -->
-                <div class="w-100 d-lg-none mb-4">
-                    <a href="/" class="text-decoration-none text-muted small fw-medium d-flex align-items-center gap-2">
-                        <i class="bi bi-arrow-left"></i> {% trans "Back to Site" %}
-                    </a>
-                </div>
+
                 <div class="auth-card">
                     {% block auth_content %}{% endblock %}
                 </div>

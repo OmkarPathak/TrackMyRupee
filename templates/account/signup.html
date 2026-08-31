@@ -3,14 +3,22 @@
 
 {% block title %}{% trans "Create Account" %} - TrackMyRupee{% endblock %}
 
-{% block marketing_headline %}{% trans "Join 500+ people mastering their money." %}{% endblock %}
+{% block marketing_headline %}{% trans "Build a serene, disciplined financial future." %}{% endblock %}
+
+{% block marketing_subheadline %}{% trans "Join hundreds of Indian professionals taking back control of their net worth without bank logins or SMS reading." %}{% endblock %}
+
+{% block marketing_illustration %}
+<img src="{% static 'img/signup_illustration.png' %}" alt="Disciplined financial growth illustration" class="img-fluid">
+{% endblock %}
 
 {% block auth_content %}
-<div class="mb-4">
-    <h2 class="fw-bold mb-1">{% trans "Create Account" %}</h2>
-    <p class="text-muted small">
-        {% trans "Already have an account?" %} <a href="{{ login_url }}" class="text-decoration-none fw-medium">{% trans "Log In." %}</a>
-    </p>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold mb-1" style="letter-spacing: -0.02em;">{% trans "Create Account" %}</h2>
+        <p class="text-muted small mb-0">
+            {% trans "Already have an account?" %} <a href="{{ login_url }}" class="text-decoration-none fw-medium">{% trans "Log In." %}</a>
+        </p>
+    </div>
 </div>
 
 <form class="signup needs-validation" id="signup_form" method="post" action="{% url 'account_signup' %}" novalidate>
@@ -29,51 +37,53 @@
 
     <!-- Step 1: Credentials Section -->
     <div id="credentials_section">
-        {% for field in form %}
-            {% if field.name != 'consent_email' and field.name != 'consent_transactions' and field.name != 'consent_device' %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label small fw-bold text-muted text-uppercase tracking-wider">
-                    {{ field.label }}
-                </label>
-                <div class="position-relative">
-                    <span class="position-absolute grow-0 top-50 start-0 translate-middle-y ps-3 text-muted opacity-50">
-                        {% if field.name == 'username' or field.name == 'login' or field.name == 'email' %}
-                        <i class="bi bi-person"></i>
-                        {% elif 'password' in field.name %}
-                        <i class="bi bi-lock"></i>
-                        {% else %}
-                        <i class="bi bi-input-cursor"></i>
+        <div class="row g-2.5">
+            {% for field in form %}
+                {% if field.name != 'consent_email' and field.name != 'consent_transactions' and field.name != 'consent_device' %}
+                <div class="mb-2.5">
+                    <label for="{{ field.id_for_label }}" class="form-label small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.68rem;">
+                        {{ field.label }}
+                    </label>
+                    <div class="position-relative">
+                        <span class="position-absolute grow-0 top-50 start-0 translate-middle-y ps-3 text-muted opacity-50">
+                            {% if field.name == 'username' or field.name == 'login' or field.name == 'email' %}
+                            <i class="bi bi-person"></i>
+                            {% elif 'password' in field.name %}
+                            <i class="bi bi-lock"></i>
+                            {% else %}
+                            <i class="bi bi-input-cursor"></i>
+                            {% endif %}
+                        </span>
+                        <input type="{{ field.field.widget.input_type }}" 
+                               name="{{ field.name }}"
+                               id="{{ field.id_for_label }}"
+                               placeholder="{{ field.label }}"
+                               class="form-control form-control-xl ps-5 {% if field.errors %}is-invalid{% endif %}"
+                               {% if field.value %}value="{{ field.value }}"{% endif %}
+                               {% if field.field.required %}required{% endif %}>
+                        
+                        {% if 'password' in field.name %}
+                        <button type="button" class="btn position-absolute top-50 end-0 translate-middle-y pe-3 text-muted small border-0" onclick="togglePassword(this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
                         {% endif %}
-                    </span>
-                    <input type="{{ field.field.widget.input_type }}" 
-                           name="{{ field.name }}"
-                           id="{{ field.id_for_label }}"
-                           placeholder="{{ field.label }}"
-                           class="form-control form-control-xl ps-5 {% if field.errors %}is-invalid{% endif %}"
-                           {% if field.value %}value="{{ field.value }}"{% endif %}
-                           {% if field.field.required %}required{% endif %}>
-                    
-                    {% if 'password' in field.name %}
-                    <button type="button" class="btn position-absolute top-50 end-0 translate-middle-y pe-3 text-muted small border-0" onclick="togglePassword(this)">
-                        <i class="bi bi-eye"></i> {% trans "Show" %}
-                    </button>
+                    </div>
+                    {% if field.help_text %}
+                    <div class="form-text mt-1 small opacity-75" style="font-size: 0.72rem;">
+                        {{ field.help_text|safe }}
+                    </div>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="invalid-feedback d-block mt-1">
+                        {{ field.errors.0 }}
+                    </div>
                     {% endif %}
                 </div>
-                {% if field.help_text %}
-                <div class="form-text mt-1 small opacity-75">
-                    {{ field.help_text|safe }}
-                </div>
                 {% endif %}
-                {% if field.errors %}
-                <div class="invalid-feedback d-block mt-1">
-                    {{ field.errors.0 }}
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-        {% endfor %}
+            {% endfor %}
+        </div>
 
-        <button class="btn btn-primary btn-xl w-100 mb-3 shadow-sm" type="button" id="btn_continue">
+        <button class="btn-auth-primary mb-3 mt-3" type="button" id="btn_continue">
             {% trans "Continue" %} <i class="bi bi-arrow-right ms-1"></i>
         </button>
 
@@ -148,7 +158,7 @@
             </div>
         </div>
 
-        <button class="btn btn-primary btn-xl w-100 mb-3 shadow-sm" type="submit" id="btn_submit_consent">
+        <button class="btn-auth-primary mb-3" type="submit" id="btn_submit_consent">
             {% trans "I understand and consent" %}
         </button>
 

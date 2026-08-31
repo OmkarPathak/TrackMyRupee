@@ -73,6 +73,48 @@
                     } 
                 }
                 [aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+                .chart-toggle-pill {
+                    background-color: #e9ecef;
+                    border-radius: 50px;
+                    padding: 3px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 2px;
+                }
+                [data-bs-theme="dark"] .chart-toggle-pill {
+                    background-color: #2b3035;
+                }
+                .chart-toggle-pill .btn-toggle {
+                    border-radius: 50px;
+                    padding: 4px 14px;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                    color: #6c757d;
+                    background: transparent;
+                    border: none;
+                    transition: all 0.2s ease-in-out;
+                    cursor: pointer;
+                    box-shadow: none;
+                    line-height: 1.2;
+                    text-transform: uppercase;
+                }
+                .chart-toggle-pill .btn-toggle:hover:not(.active) {
+                    color: #343a40;
+                }
+                [data-bs-theme="dark"] .chart-toggle-pill .btn-toggle:hover:not(.active) {
+                    color: #dee2e6;
+                }
+                .chart-toggle-pill .btn-toggle.active {
+                    background-color: #ffffff;
+                    color: #1a1a1a;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+                }
+                [data-bs-theme="dark"] .chart-toggle-pill .btn-toggle.active {
+                    background-color: #343a40;
+                    color: #f8f9fa;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+                }
             </style>
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center">
@@ -279,15 +321,41 @@
     <p class="text-muted small mb-4">{% trans "Analyze where your money goes by category and identify patterns in your daily spending habits." %}</p>
 
     <div class="row g-4 mb-4">
-        <!-- Donut Chart -->
+        <!-- Category Distribution Chart (Donut / Bar) -->
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom py-3">
+                <div class="card-header bg-transparent border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <h5 class="fw-bold mb-0">{% trans "Category Distribution" %} ({{ selected_year }})</h5>
+                    <div class="chart-toggle-pill">
+                        <button type="button" class="btn-toggle active" id="btnDonutView" onclick="switchCategoryView('donut')">
+                            {% trans "Donut" %}
+                        </button>
+                        <button type="button" class="btn-toggle" id="btnBarView" onclick="switchCategoryView('bar')">
+                            {% trans "Bar" %}
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                    <div style="height: 350px; width: 100%;">
+                    <div id="categoryDonutWrapper" style="height: 350px; width: 100%;">
                         <canvas id="categoryDonutChart"></canvas>
+                    </div>
+                    <div id="categoryBarWrapper" style="display: none; flex-direction: column; width: 100%;">
+                        <!-- Navigation row -->
+                        <div class="d-flex align-items-center justify-content-between mb-1 px-1" id="catBarNavRow" style="min-height:32px;">
+                            <span id="catBarPageLabel" class="text-muted small"></span>
+                            <div class="d-flex gap-1">
+                                <button id="catBarPrev" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center text-muted" style="width:28px;height:28px;padding:0;border:none;background:transparent;display:none;" onclick="catBarScroll(-1)" title="{% trans 'Show previous' %}">
+                                    <i class="bi bi-chevron-left" style="font-size:0.75rem;"></i>
+                                </button>
+                                <button id="catBarNext" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center text-muted" style="width:28px;height:28px;padding:0;border:none;background:transparent;display:none;" onclick="catBarScroll(1)" title="{% trans 'Show more categories' %}">
+                                    <i class="bi bi-chevron-right" style="font-size:0.75rem;"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Chart canvas -->
+                        <div style="height: 320px; width: 100%;">
+                            <canvas id="categoryBarChart"></canvas>
+                        </div>
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 pt-0 pb-3">
@@ -524,10 +592,12 @@
         const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
 
         // Premium Animation Defaults
-        Chart.defaults.animation = {
-            duration: 1500,
-            easing: 'easeOutQuart'
-        };        const CHART_COLORS = {
+        if (Chart.defaults.animation) {
+            Chart.defaults.animation.duration = 1500;
+            Chart.defaults.animation.easing = 'easeOutQuart';
+        }
+
+        const CHART_COLORS = {
             teal: '#1D9E75',
             coral: '#E05C45',
             amber: '#D4831A',
@@ -567,11 +637,11 @@
 
                         let text = value.toString();
                         // Formatting
-                        if (chart.config.type === 'line' || dataset.label.includes('Rate')) {
+                        if (chart.config.type === 'line' || (dataset.label && dataset.label.includes('Rate'))) {
                              text += '%';
                         } else {
                              // Currency for others
-                             text = window.compactAmount(value, '{{ user.profile.currency }}'); 
+                             text = '{{ user.profile.currency }}' + window.compactAmount(value, '{{ user.profile.currency }}'); 
                         }
 
                         ctx.font = 'bold 10px "DM Sans", sans-serif';
@@ -721,7 +791,6 @@
                 }
             }
         });
-;
 
         // 2. Spending Donut Cleanup (Top 5 + Other)
         const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
@@ -782,7 +851,9 @@
                          const text = translateDigits((percentage * 100).toFixed(0)) + '%';
                          
                          // Calculate position (centroid of arc)
-                         const { x, y } = element.tooltipPosition();
+                         const center = element.getCenterPoint();
+                         const x = center.x;
+                         const y = center.y;
 
                          ctx.font = 'bold 11px "DM Sans", sans-serif';
                          ctx.fillStyle = '#fff'; 
@@ -802,7 +873,163 @@
             }
         };
         
-        new Chart(ctxDonut, {
+        // Category Bar Chart — page state
+        var catBarAllItems = [];
+        var catBarPage = 0;
+        var CAT_BAR_PAGE_SIZE = 10;
+
+        function initCategoryBarChart() {
+            const ctxBar = document.getElementById('categoryBarChart');
+            if (!ctxBar) return;
+
+            // Destroy any stale Chart.js instance still attached to this canvas
+            const existing = Chart.getChart(ctxBar);
+            if (existing) { existing.destroy(); }
+            window.categoryBarChartInstance = null;
+
+            catBarAllItems = combinedData.filter(item => item.value > 0);
+            catBarPage = 0;
+
+            const slice = catBarAllItems.slice(0, CAT_BAR_PAGE_SIZE);
+            const barLabels = slice.map(item => item.label);
+            const barData   = slice.map(item => item.value);
+            const barColors = catBarAllItems.map((_, i) => CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]);
+            const sliceColors = barColors.slice(0, slice.length);
+
+            window.categoryBarChartInstance = new Chart(ctxBar.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: '{% trans "Category Spending" %}',
+                        data: barData,
+                        backgroundColor: sliceColors.map(c => c + 'D9'),
+                        borderColor: sliceColors,
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 350, easing: 'easeOutQuart' },
+                    layout: { padding: { top: 22 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    return label + '{{ user.profile.currency }}' + window.compactAmount(context.parsed.y, '{{ user.profile.currency }}');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor },
+                            ticks: {
+                                callback: function(value) {
+                                    return '{{ user.profile.currency }}' + window.compactAmount(value, '{{ user.profile.currency }}');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 11, weight: '500' },
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        }
+                    }
+                },
+                plugins: [drawValuesPlugin]
+            });
+
+            catBarUpdateNav();
+        }
+
+        function catBarUpdateNav() {
+            var total = catBarAllItems.length;
+            var totalPages = Math.ceil(total / CAT_BAR_PAGE_SIZE);
+            var prevBtn = document.getElementById('catBarPrev');
+            var nextBtn = document.getElementById('catBarNext');
+            var label   = document.getElementById('catBarPageLabel');
+
+            if (!prevBtn || !nextBtn || !label) return;
+
+            var start = catBarPage * CAT_BAR_PAGE_SIZE + 1;
+            var end   = Math.min((catBarPage + 1) * CAT_BAR_PAGE_SIZE, total);
+
+            if (total > CAT_BAR_PAGE_SIZE) {
+                label.textContent = start + '–' + end + ' of ' + total + ' categories';
+                prevBtn.style.display = catBarPage > 0 ? 'flex' : 'none';
+                nextBtn.style.display = catBarPage < totalPages - 1 ? 'flex' : 'none';
+            } else {
+                label.textContent = total + ' categories';
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            }
+        }
+
+        window.catBarScroll = function(direction) {
+            var total = catBarAllItems.length;
+            var totalPages = Math.ceil(total / CAT_BAR_PAGE_SIZE);
+            catBarPage = Math.max(0, Math.min(totalPages - 1, catBarPage + direction));
+
+            var slice = catBarAllItems.slice(catBarPage * CAT_BAR_PAGE_SIZE, (catBarPage + 1) * CAT_BAR_PAGE_SIZE);
+            var globalOffset = catBarPage * CAT_BAR_PAGE_SIZE;
+            var allColors = catBarAllItems.map((_, i) => CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]);
+            var sliceColors = allColors.slice(globalOffset, globalOffset + slice.length);
+
+            var chart = window.categoryBarChartInstance;
+            if (!chart) return;
+
+            chart.data.labels = slice.map(item => item.label);
+            chart.data.datasets[0].data = slice.map(item => item.value);
+            chart.data.datasets[0].backgroundColor = sliceColors.map(c => c + 'D9');
+            chart.data.datasets[0].borderColor = sliceColors;
+            chart.update();
+
+            catBarUpdateNav();
+        };
+
+        window.switchCategoryView = function(view) {
+            const donutWrapper = document.getElementById('categoryDonutWrapper');
+            const barWrapper = document.getElementById('categoryBarWrapper');
+            const btnDonut = document.getElementById('btnDonutView');
+            const btnBar = document.getElementById('btnBarView');
+
+            if (!donutWrapper || !barWrapper || !btnDonut || !btnBar) return;
+
+            if (view === 'donut') {
+                // Destroy bar chart so it doesn't re-render on a hidden zero-dimension canvas
+                if (window.categoryBarChartInstance) {
+                    window.categoryBarChartInstance.destroy();
+                    window.categoryBarChartInstance = null;
+                }
+                barWrapper.style.display = 'none';
+                donutWrapper.style.display = 'block';
+                btnDonut.classList.add('active');
+                btnBar.classList.remove('active');
+                if (window.categoryDonutChartInstance) {
+                    window.categoryDonutChartInstance.resize();
+                    window.categoryDonutChartInstance.update();
+                }
+            } else if (view === 'bar') {
+                donutWrapper.style.display = 'none';
+                barWrapper.style.display = 'flex';
+                btnBar.classList.add('active');
+                btnDonut.classList.remove('active');
+                // Always (re)create — instance was destroyed on donut switch
+                initCategoryBarChart();
+            }
+        };
+
+        window.categoryDonutChartInstance = new Chart(ctxDonut, {
             type: 'doughnut',
             data: {
                 labels: donutLabelsRefined,
@@ -865,7 +1092,12 @@
                         beginAtZero: true,
                         max: 100, // Usually percentage doesn't go above 100 unless weird
                         grid: { color: gridColor },
-                        ticks: { display: false } // Hide Y axis labels
+                        ticks: {
+                            display: false,
+                            callback: function(value) {
+                                return value;
+                            }
+                        }
                     },
                     x: {
                          grid: { display: false }
@@ -900,7 +1132,15 @@
                     legend: { display: false }
                 },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: gridColor } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        ticks: {
+                            callback: function(value) {
+                                return '{{ user.profile.currency }}' + window.compactAmount(value, '{{ user.profile.currency }}');
+                            }
+                        }
+                    },
                     x: { grid: { display: false } }
                 }
             },
@@ -1035,15 +1275,14 @@
         }
 
         // Init Tooltips (Added for Contextual Help)
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
 
     });
 </script>
 
-</style>
 {% else %}
     <!-- Locked Content State -->
     <div class="row align-items-center justify-content-center animate__animated animate__fadeIn" style="min-height: 60vh;">
@@ -1074,10 +1313,10 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Init Tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-              return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
 
             var myModal = new bootstrap.Modal(document.getElementById('comparePlansModal'), {
                 backdrop: 'static',

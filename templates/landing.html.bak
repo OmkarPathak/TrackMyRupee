@@ -1199,16 +1199,16 @@
         <div class="row justify-content-center">
             <div class="col-lg-10 text-center">
                 <h1 class="mb-4">
-                    {% trans "The Financial Operating System for India." %}<br class="d-none d-md-block">
-                    {% trans "TrackMyRupee unifies your entire wealth." %}
+                    {% trans "Your salary has a story." %}<br class="d-none d-md-block">
+                    {% trans "TrackMyRupee tells you the whole thing." %}
                 </h1>
-                <p class="mx-auto mb-5" style="font-size: 19px; line-height: 1.6; color: var(--tmr-ink-600); max-width: 680px;">
-                    {% trans "Track your net worth, double-entry ledger, investments, loans, and monthly cashflow in one privacy-first powerhouse. No bank passwords required. No SMS reading." %}
+                <p class="mx-auto mb-5" style="font-size: 19px; line-height: 1.6; color: var(--tmr-ink-600); max-width: 640px;">
+                    {% trans "See your net worth grow. Know when you'll hit your goals. Spot spending leaks before they drain your month. All without giving any app access to your bank or messages." %}
                 </p>
                 <div class="d-flex flex-column align-items-center">
                     <div class="d-flex justify-content-center flex-wrap gap-3 mb-3">
-                        <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Launch Your Financial System" %}</a>
-                        <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Explore Live Demo" %} &rarr;</a>
+                        <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start Free" %}</a>
+                        <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "See live demo" %} &rarr;</a>
                     </div>
                     <div style="font-size: 13px; color: var(--tmr-ink-400); font-weight: 500;">
                         <i class="bi bi-check"></i>
@@ -1419,9 +1419,9 @@
     <div class="container py-4 mt-5">
         <div class="row align-items-center g-5">
             <div class="col-lg-5">
-                <div class="section-tag">{% trans "ZERO-FRICTION INPUT" %}</div>
+                <div class="section-tag">{% trans "Experience the Magic" %}</div>
                 <h2 class="section-title">{% trans "Just type. We'll handle the rest." %}</h2>
-                <p class="section-sub">{% blocktrans %}Forget navigating through complex menus. Spend <strong>less than 3 seconds</strong> typing naturally, and TrackMyRupee automatically extracts the amount, routes it to your double-entry ledger, and updates your net worth.{% endblocktrans %}</p>
+                <p class="section-sub">{% blocktrans %}Forget navigating through complex menus. Spend <strong>less than 3 seconds</strong> typing what you bought, and TrackMyRupee automatically extracts the amount, categorizes it, and saves it. Try it right here.{% endblocktrans %}</p>
                 
                 <div class="d-flex flex-wrap gap-2 mt-4">
                     <span class="badge border suggestion-chip bg-light text-dark py-2 px-3" onclick="runDemo('tea at tapri 20')">tea at tapri 20</span>
@@ -1513,8 +1513,8 @@
 <section class="landing-section" style="background: var(--tmr-surface-0);">
     <div class="container py-5">
         <div class="text-center mb-5">
-            <div class="section-tag mx-auto">{% trans "THE POWERHOUSE SYSTEM" %}</div>
-            <h2 class="section-title mx-auto" style="max-width: 800px;">{% trans "One platform. Everything your personal finance operating system needs." %}</h2>
+            <div class="section-tag mx-auto">{% trans "Complete financial system" %}</div>
+            <h2 class="section-title mx-auto" style="max-width: 800px;">{% trans "Most people use TrackMyRupee for expenses. Power users use it for everything." %}</h2>
         </div>
         
         <div class="row g-4 mx-auto" style="max-width: 900px;">
@@ -1522,7 +1522,7 @@
                 <div class="d-flex align-items-start gap-3">
                     <div style="font-size: 24px; line-height: 1;">🏦</div>
                     <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Loan & EMI Amortization" %}</span> — {% trans "floating rates + early payoff planner" %}
+                        <span class="fw-bold text-dark">{% trans "Loan Manager" %}</span> {% trans "with EMI + amortization schedule" %}
                     </div>
                 </div>
             </div>
@@ -1530,7 +1530,7 @@
                 <div class="d-flex align-items-start gap-3">
                     <div style="font-size: 24px; line-height: 1;">📊</div>
                     <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Double-Entry Accounting Engine" %}</span> — {% trans "zero-leakage precision" %}
+                        <span class="fw-bold text-dark">{% trans "Double-entry ledger" %}</span> {% trans "with auto-reconciliation" %}
                     </div>
                 </div>
             </div>
@@ -1538,7 +1538,7 @@
                 <div class="d-flex align-items-start gap-3">
                     <div style="font-size: 24px; line-height: 1;">🎯</div>
                     <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Capital Events & Milestones" %}</span> <span style="color: var(--tmr-ink-600);">{% trans "(isolate large purchases without skewing monthly budgets)" %}</span>
+                        <span class="fw-bold text-dark">{% trans "Capital events" %}</span> <span style="color: var(--tmr-ink-600);">{% trans "(large purchases that shouldn't skew your month)" %}</span>
                     </div>
                 </div>
             </div>
@@ -1546,7 +1546,7 @@
                 <div class="d-flex align-items-start gap-3">
                     <div style="font-size: 24px; line-height: 1;">🏠</div>
                     <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Multi-Asset Portfolio Tracker" %}</span> <span style="color: var(--tmr-ink-600);">{% trans "(track EPF, PPF, NPS, mutual funds, FDs, gold & real estate)" %}</span>
+                        <span class="fw-bold text-dark">{% trans "Physical assets" %}</span> <span style="color: var(--tmr-ink-600);">{% trans "(track your home, car, gold in net worth)" %}</span>
                     </div>
                 </div>
             </div>
@@ -1554,7 +1554,7 @@
                 <div class="d-flex align-items-start gap-3">
                     <div style="font-size: 24px; line-height: 1;">📈</div>
                     <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "12-Month Net Worth Analytics" %}</span> — {% trans "real-time trajectory and savings targets" %}
+                        <span class="fw-bold text-dark">{% trans "12-month savings rate" %}</span> {% trans "and net worth trend analytics" %}
                     </div>
                 </div>
             </div>
@@ -1562,7 +1562,7 @@
                 <div class="d-flex align-items-start gap-3">
                     <div style="font-size: 24px; line-height: 1;">🔒</div>
                     <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Sovereign Data & DPDPA Compliant" %}</span> — {% trans "100% private, self-hostable option, instant CSV export" %}
+                        <span class="fw-bold text-dark">{% trans "Full DPDPA compliance" %}</span> — {% trans "your data rights enforced" %}
                     </div>
                 </div>
             </div>
@@ -1911,7 +1911,7 @@
     <div class="container py-5 text-center">
         <div class="section-tag mx-auto">{% trans "Simple pricing" %}</div>
         <h2 class="section-title">{% trans "Less than a chai a day. More clarity than any spreadsheet." %}</h2>
-        <p class="section-sub mx-auto mb-2">{% trans "Replaces your expense logger, loan calculator, net worth tracker, and spreadsheets for less than ₹1.3/day. Start free, upgrade when you're ready." %}</p>
+        <p class="section-sub mx-auto mb-2">{% trans "Start free, upgrade when you're ready. No credit card required. No hidden fees." %}</p>
         <p class="section-sub mx-auto mt-0" style="font-size: 14px; font-weight: 500; color: var(--tmr-teal-600);">{% trans "Trusted by paying subscribers across India — no investors, no pressure, just a product people choose to pay for." %}</p>
         <!-- Billing Toggle -->
         <div class="billing-toggle mb-5">

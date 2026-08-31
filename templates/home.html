@@ -2866,10 +2866,10 @@ document.addEventListener('DOMContentLoaded', function() {
         Chart.defaults.color = currentColors.text;
         
         // Premium Animation Defaults
-        Chart.defaults.animation = {
-            duration: 1500,
-            easing: 'easeOutQuart'
-        };
+        if (Chart.defaults.animation) {
+            Chart.defaults.animation.duration = 1500;
+            Chart.defaults.animation.easing = 'easeOutQuart';
+        }
         
         // Initialize in window scope if not already done, though it's done at L1981
         if (!window.charts) window.charts = {};

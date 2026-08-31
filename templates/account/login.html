@@ -3,14 +3,22 @@
 
 {% block title %}{% trans "Login" %} - TrackMyRupee{% endblock %}
 
-{% block marketing_headline %}{% trans "Stop wondering where your salary disappeared." %}{% endblock %}
+{% block marketing_headline %}{% trans "Calm, effortless control over your money." %}{% endblock %}
+
+{% block marketing_subheadline %}{% trans "Log in to track your net worth, automated subscriptions, and zero-leakage cashflow with total peace of mind." %}{% endblock %}
+
+{% block marketing_illustration %}
+<img src="{% static 'img/login_illustration.png' %}" alt="Calm financial control illustration" class="img-fluid">
+{% endblock %}
 
 {% block auth_content %}
-<div class="mb-4">
-    <h2 class="fw-bold mb-1">{% trans "Welcome Back" %}</h2>
-    <p class="text-muted small">
-        {% trans "New to TrackMyRupee?" %} <a href="{{ signup_url }}" class="text-decoration-none fw-medium">{% trans "Sign up today." %}</a>
-    </p>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold mb-1" style="letter-spacing: -0.02em;">{% trans "Welcome Back" %}</h2>
+        <p class="text-muted small mb-0">
+            {% trans "New to TrackMyRupee?" %} <a href="{{ signup_url }}" class="text-decoration-none fw-medium">{% trans "Sign up today." %}</a>
+        </p>
+    </div>
 </div>
 
 <form class="login needs-validation" method="POST" action="{% url 'account_login' %}" novalidate>
@@ -78,11 +86,11 @@
     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
     {% endif %}
 
-    <button class="primaryAction btn btn-primary btn-xl w-100 mb-3 shadow-sm" type="submit">
+    <button class="primaryAction btn-auth-primary mb-3" type="submit">
         {% trans "Sign In" %}
     </button>
 
-    <a href="{% url 'demo_login' %}" class="btn btn-info text-white btn-xl w-100 mb-4 d-flex align-items-center justify-content-center shadow-sm">
+    <a href="{% url 'demo_login' %}" class="btn-auth-demo mb-4">
         <i class="bi bi-rocket-takeoff-fill me-2"></i> {% trans "Try Demo Mode" %}
     </a>
 
