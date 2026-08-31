@@ -1,6 +1,28 @@
 {% extends 'base.html' %}
 {% load static currency_filters i18n digit_filters expense_extras humanize %}
 
+{% block extra_head %}
+    {% include 'components/multiselect_assets.html' %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <script defer src="{% static 'js/tutorial.js' %}"></script>
+    <script>
+        window.tutorialCompleteUrl = "{% url 'complete-tutorial' %}";
+        window.homeUrl = "{% url 'home' %}";
+        {% if show_tutorial %}
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(() => {
+                const mode = window.isOnboarding ? 'onboarding' : 'standard';
+                startTour(mode);
+            }, 1000);
+        });
+        {% endif %}
+    </script>
+{% endblock %}
+
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>

@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load i18n digit_filters humanize %}
 
+{% block extra_head %}
+    {% include 'components/multiselect_assets.html' %}
+{% endblock %}
+
 {% block content %}
 <style>
     /* Summary Card Dark Mode Adaptation */

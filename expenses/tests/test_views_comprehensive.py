@@ -14,6 +14,8 @@ from django.urls import reverse
 from expenses.models import (
     Account,
     Category,
+    CapitalEvent,
+    GoalContribution,
     Expense,
     Income,
     Loan,
@@ -376,6 +378,129 @@ class AccountDeleteViewTest(BaseComprehensiveTest):
 
 class AccountDetailViewTest(BaseComprehensiveTest):
     """Test account detail view with transactions."""
+
+    def _create_ledger_history(
+        self,
+        account,
+        *,
+        expense_count=0,
+        income_count=0,
+        transfer_out_count=0,
+        transfer_in_count=0,
+        savings_count=0,
+        loan_count=0,
+        capital_count=0,
+        prefix='history',
+        start_offset=0,
+    ):
+        today = date.today()
+        date_offset = start_offset
+        history = []
+
+        goal = SavingsGoal.objects.create(
+            user=self.user,
+            name=f'{prefix.title()} Goal',
+            target_amount=Decimal('10000.00'),
+            currency='₹',
+        )
+        loan = Loan.objects.create(
+            user=self.user,
+            name=f'{prefix.title()} Loan',
+            loan_type='PERSONAL',
+            initial_principal=Decimal('50000.00'),
+            duration_months=36,
+            start_date=today,
+            currency='₹',
+        )
+
+        def next_date():
+            nonlocal date_offset
+            current_date = today - timedelta(days=date_offset)
+            date_offset += 1
+            return current_date
+
+        for index in range(expense_count):
+            obj = Expense.objects.create(
+                user=self.user,
+                account=account,
+                amount=Decimal('100.00') + Decimal(index),
+                category='Food',
+                description=f'{prefix} expense {index}',
+                date=next_date(),
+                currency='₹',
+            )
+            history.append(('EXPENSE', obj))
+
+        for index in range(income_count):
+            obj = Income.objects.create(
+                user=self.user,
+                account=account,
+                amount=Decimal('500.00') + Decimal(index),
+                source='Salary',
+                description=f'{prefix} income {index}',
+                date=next_date(),
+                currency='₹',
+            )
+            history.append(('INCOME', obj))
+
+        for index in range(transfer_out_count):
+            obj = Transfer.objects.create(
+                user=self.user,
+                from_account=account,
+                to_account=self.other_account,
+                amount=Decimal('75.00') + Decimal(index),
+                description=f'{prefix} transfer out {index}',
+                date=next_date(),
+            )
+            history.append(('TRANSFER_OUT', obj))
+
+        for index in range(transfer_in_count):
+            obj = Transfer.objects.create(
+                user=self.user,
+                from_account=self.other_account,
+                to_account=account,
+                amount=Decimal('80.00') + Decimal(index),
+                description=f'{prefix} transfer in {index}',
+                date=next_date(),
+            )
+            history.append(('TRANSFER_IN', obj))
+
+        for index in range(savings_count):
+            obj = GoalContribution.objects.create(
+                goal=goal,
+                account=account,
+                amount=Decimal('60.00') + Decimal(index),
+                date=next_date(),
+            )
+            history.append(('SAVINGS', obj))
+
+        for index in range(loan_count):
+            amount = Decimal('120.00') + Decimal(index)
+            principal = (amount * Decimal('0.70')).quantize(Decimal('0.01'))
+            interest = amount - principal
+            obj = LoanRepayment.objects.create(
+                loan=loan,
+                from_account=account,
+                amount=amount,
+                principal_portion=principal,
+                interest_portion=interest,
+                date=next_date(),
+            )
+            history.append(('LOAN_REPAYMENT', obj))
+
+        for index in range(capital_count):
+            obj = CapitalEvent.objects.create(
+                user=self.user,
+                account=account,
+                amount=Decimal('250.00') + Decimal(index),
+                date=next_date(),
+                subtype='other',
+                note=f'{prefix} capital event {index}',
+                currency='₹',
+            )
+            history.append(('CAPITAL_EVENT', obj))
+
+        return history
     
     def test_account_detail_requires_login(self):
         """Test that anonymous users are redirected."""
@@ -436,6 +561,145 @@ class AccountDetailViewTest(BaseComprehensiveTest):
         self.assertIn('ledger', response.context)
         ledger = response.context['ledger']
         self.assertEqual(len(ledger.object_list), 2)
+
+    def test_account_detail_deep_pagination_is_correct(self):
+        """Test that deep pages return the right slice in the right order."""
+        history = self._create_ledger_history(
+            self.account,
+            expense_count=250,
+            income_count=40,
+            transfer_out_count=8,
+            transfer_in_count=7,
+            savings_count=10,
+            loan_count=10,
+            capital_count=10,
+            prefix='deep',
+        )
+
+        response = self.client.get(reverse('account-detail', kwargs={'pk': self.account.pk}))
+        ledger = list(response.context['ledger'].object_list)
+
+        self.assertEqual(response.context['page_obj'].paginator.count, len(history))
+        self.assertEqual(response.context['page_obj'].paginator.num_pages, (len(history) + 19) // 20)
+        self.assertEqual([item.id for item in ledger], [item.id for _, item in history[:20]])
+        self.assertEqual([item.transaction_type for item in ledger], [ledger_type for ledger_type, _ in history[:20]])
+
+        deep_response = self.client.get(reverse('account-detail', kwargs={'pk': self.account.pk}) + '?page=10')
+        deep_ledger = list(deep_response.context['ledger'].object_list)
+        expected_page = history[180:200]
+
+        self.assertEqual(deep_response.context['page_obj'].number, 10)
+        self.assertEqual([item.id for item in deep_ledger], [item.id for _, item in expected_page])
+        self.assertEqual([item.transaction_type for item in deep_ledger], [ledger_type for ledger_type, _ in expected_page])
+
+    def test_account_detail_filters_type_and_query(self):
+        """Test type filtering and search filtering against the combined ledger."""
+        Expense.objects.create(
+            user=self.user,
+            account=self.account,
+            amount=Decimal('123.00'),
+            category='Food',
+            description='alpha target expense',
+            date=date.today(),
+            currency='₹',
+        )
+        Income.objects.create(
+            user=self.user,
+            account=self.account,
+            amount=Decimal('456.00'),
+            source='Salary',
+            description='alpha target income',
+            date=date.today() - timedelta(days=1),
+            currency='₹',
+        )
+        Transfer.objects.create(
+            user=self.user,
+            from_account=self.account,
+            to_account=self.other_account,
+            amount=Decimal('50.00'),
+            description='alpha target transfer',
+            date=date.today() - timedelta(days=2),
+        )
+
+        response = self.client.get(
+            reverse('account-detail', kwargs={'pk': self.account.pk}) + '?tx_type=EXPENSE&q=alpha target'
+        )
+
+        ledger = list(response.context['ledger'].object_list)
+        self.assertEqual(response.context['selected_tx_type'], 'EXPENSE')
+        self.assertEqual(response.context['search_query'], 'alpha target')
+        self.assertEqual(len(ledger), 1)
+        self.assertEqual(ledger[0].transaction_type, 'EXPENSE')
+        self.assertEqual(ledger[0].description, 'alpha target expense')
+
+    def test_account_detail_query_count_stays_constant_with_history(self):
+        """Test that the account-detail ledger helpers stay bounded regardless of history size."""
+        baseline_account = Account.objects.create(
+            user=self.user,
+            name='Baseline History Account',
+            account_type='BANK',
+            is_active=True,
+        )
+        self._create_ledger_history(
+            baseline_account,
+            expense_count=6,
+            income_count=5,
+            transfer_out_count=3,
+            transfer_in_count=3,
+            savings_count=2,
+            loan_count=1,
+            capital_count=0,
+            prefix='baseline',
+        )
+
+        from expenses.views.accounts import AccountDetailView
+        view = AccountDetailView()
+
+        def fetch_page(account):
+            expenses_qs = Expense.objects.filter(user=self.user, account=account).select_related('category_fk').order_by('-date')
+            incomes_qs = Income.objects.filter(user=self.user, account=account).select_related('source_fk').order_by('-date')
+            transfers_from_qs = Transfer.objects.filter(user=self.user, from_account=account).select_related('to_account').order_by('-date')
+            transfers_to_qs = Transfer.objects.filter(user=self.user, to_account=account).select_related('from_account').order_by('-date')
+            contributions_qs = GoalContribution.objects.filter(goal__user=self.user, account=account).select_related('goal').order_by('-date')
+            loan_repayments_qs = LoanRepayment.objects.filter(loan__user=self.user, from_account=account).select_related('loan').order_by('-date')
+            capital_events_qs = CapitalEvent.objects.filter(user=self.user, account=account).select_related('linked_loan').order_by('-date')
+
+            ledger = (
+                view._build_ledger_source(expenses_qs, 'EXPENSE', 0)
+                .union(
+                    view._build_ledger_source(incomes_qs, 'INCOME', 1),
+                    view._build_ledger_source(transfers_from_qs, 'TRANSFER_OUT', 2),
+                    view._build_ledger_source(transfers_to_qs, 'TRANSFER_IN', 3),
+                    view._build_ledger_source(contributions_qs, 'SAVINGS', 4),
+                    view._build_ledger_source(loan_repayments_qs, 'LOAN_REPAYMENT', 5),
+                    view._build_ledger_source(capital_events_qs, 'CAPITAL_EVENT', 6),
+                    all=True,
+                )
+                .order_by('-date', 'ledger_rank', '-id')
+            )
+            page_rows = list(ledger[:20])
+            return view._hydrate_ledger_page(page_rows, account, self.user)
+
+        with CaptureQueriesContext(connection) as small_queries:
+            fetch_page(baseline_account)
+
+        self._create_ledger_history(
+            baseline_account,
+            expense_count=250,
+            income_count=40,
+            transfer_out_count=8,
+            transfer_in_count=7,
+            savings_count=10,
+            loan_count=10,
+            capital_count=10,
+            prefix='extra',
+            start_offset=200,
+        )
+
+        with CaptureQueriesContext(connection) as large_queries:
+            fetch_page(baseline_account)
+
+        self.assertLessEqual(abs(len(large_queries) - len(small_queries)), 1)
 
 
 # ============================================================================

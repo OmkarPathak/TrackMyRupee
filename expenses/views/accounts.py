@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import CharField, IntegerField, Q, Value
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -689,6 +689,108 @@ class TransferDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
 
 class AccountDetailView(LoginRequiredMixin, View):
     template_name = 'expenses/account_detail.html'
+
+    def _build_ledger_source(self, queryset, ledger_type, ledger_rank):
+        return (
+            queryset.annotate(
+                ledger_type=Value(ledger_type, output_field=CharField()),
+                ledger_rank=Value(ledger_rank, output_field=IntegerField()),
+            )
+            .values('date', 'ledger_type', 'ledger_rank', 'id')
+            .order_by()
+        )
+
+    def _hydrate_ledger_page(self, ledger_rows, account, user):
+        rows_by_type = defaultdict(list)
+        for row in ledger_rows:
+            rows_by_type[row['ledger_type']].append(row)
+
+        hydrated_by_type = {}
+
+        expense_rows = rows_by_type.get('EXPENSE', [])
+        if expense_rows:
+            hydrated_by_type['EXPENSE'] = {
+                item.id: item
+                for item in Expense.objects.filter(
+                    user=user,
+                    account=account,
+                    pk__in=[row['id'] for row in expense_rows],
+                ).select_related('category_fk')
+            }
+
+        income_rows = rows_by_type.get('INCOME', [])
+        if income_rows:
+            hydrated_by_type['INCOME'] = {
+                item.id: item
+                for item in Income.objects.filter(
+                    user=user,
+                    account=account,
+                    pk__in=[row['id'] for row in income_rows],
+                ).select_related('source_fk')
+            }
+
+        transfer_out_rows = rows_by_type.get('TRANSFER_OUT', [])
+        if transfer_out_rows:
+            hydrated_by_type['TRANSFER_OUT'] = {
+                item.id: item
+                for item in Transfer.objects.filter(
+                    user=user,
+                    from_account=account,
+                    pk__in=[row['id'] for row in transfer_out_rows],
+                ).select_related('to_account')
+            }
+
+        transfer_in_rows = rows_by_type.get('TRANSFER_IN', [])
+        if transfer_in_rows:
+            hydrated_by_type['TRANSFER_IN'] = {
+                item.id: item
+                for item in Transfer.objects.filter(
+                    user=user,
+                    to_account=account,
+                    pk__in=[row['id'] for row in transfer_in_rows],
+                ).select_related('from_account')
+            }
+
+        savings_rows = rows_by_type.get('SAVINGS', [])
+        if savings_rows:
+            hydrated_by_type['SAVINGS'] = {
+                item.id: item
+                for item in GoalContribution.objects.filter(
+                    goal__user=user,
+                    account=account,
+                    pk__in=[row['id'] for row in savings_rows],
+                ).select_related('goal')
+            }
+
+        loan_rows = rows_by_type.get('LOAN_REPAYMENT', [])
+        if loan_rows:
+            hydrated_by_type['LOAN_REPAYMENT'] = {
+                item.id: item
+                for item in LoanRepayment.objects.filter(
+                    loan__user=user,
+                    from_account=account,
+                    pk__in=[row['id'] for row in loan_rows],
+                ).select_related('loan')
+            }
+
+        capital_rows = rows_by_type.get('CAPITAL_EVENT', [])
+        if capital_rows:
+            hydrated_by_type['CAPITAL_EVENT'] = {
+                item.id: item
+                for item in CapitalEvent.objects.filter(
+                    user=user,
+                    account=account,
+                    pk__in=[row['id'] for row in capital_rows],
+                ).select_related('linked_loan')
+            }
+
+        hydrated = []
+        for row in ledger_rows:
+            item = hydrated_by_type[row['ledger_type']][row['id']]
+            item.__ledger_type = row['ledger_type']
+            hydrated.append(item)
+        return hydrated
+        
     def get(self, request, pk):
         from .mixins import process_user_recurring_transactions
         if request.user.is_authenticated:
@@ -738,13 +840,13 @@ class AccountDetailView(LoginRequiredMixin, View):
         selected_tx_type = request.GET.get('tx_type', '')
         
         # Get all expenses, incomes, and transfers for this account
-        expenses = Expense.objects.filter(user=request.user, account=account).select_related('category_fk')
-        incomes = Income.objects.filter(user=request.user, account=account).select_related('source_fk')
-        transfers_from = Transfer.objects.filter(user=request.user, from_account=account).select_related('to_account')
-        transfers_to = Transfer.objects.filter(user=request.user, to_account=account).select_related('from_account')
-        contributions = GoalContribution.objects.filter(goal__user=request.user, account=account).select_related('goal')
-        loan_repayments = LoanRepayment.objects.filter(loan__user=request.user, from_account=account).select_related('loan')
-        capital_events = CapitalEvent.objects.filter(user=request.user, account=account).select_related('linked_loan')
+        expenses = Expense.objects.filter(user=request.user, account=account).select_related('category_fk').order_by('-date')
+        incomes = Income.objects.filter(user=request.user, account=account).select_related('source_fk').order_by('-date')
+        transfers_from = Transfer.objects.filter(user=request.user, from_account=account).select_related('to_account').order_by('-date')
+        transfers_to = Transfer.objects.filter(user=request.user, to_account=account).select_related('from_account').order_by('-date')
+        contributions = GoalContribution.objects.filter(goal__user=request.user, account=account).select_related('goal').order_by('-date')
+        loan_repayments = LoanRepayment.objects.filter(loan__user=request.user, from_account=account).select_related('loan').order_by('-date')
+        capital_events = CapitalEvent.objects.filter(user=request.user, account=account).select_related('linked_loan').order_by('-date')
 
         if selected_tx_type == 'EXPENSE':
             incomes = Income.objects.none()
@@ -797,10 +899,6 @@ class AccountDetailView(LoginRequiredMixin, View):
             loan_repayments = loan_repayments.filter(Q(loan__name__icontains=query))
             capital_events = capital_events.filter(Q(note__icontains=query) | Q(subtype__icontains=query))
 
-        expenses = expenses.order_by('-date')
-        incomes = incomes.order_by('-date')
-        capital_events = capital_events.order_by('-date')
-        
         base_currency = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
         
         # Calculate Net Total for Filtered Items (In Account's Currency)
@@ -879,31 +977,29 @@ class AccountDetailView(LoginRequiredMixin, View):
 
         filtered_net_total = inc_total + in_total - exp_total - out_total - sav_total - loan_total - cap_total
 
-        # Combine everything and sort by date descending
-        # Tag each item with a __ledger_type so we can inject display properties
-        # AFTER pagination (run only on the ~20 page items, not the full history)
-        def _tag(obj, tag):
-            obj.__ledger_type = tag
-            return obj
-
-        ledger = sorted(
-            (
-                [_tag(e, 'EXPENSE')         for e in expenses]
-                + [_tag(i, 'INCOME')        for i in incomes]
-                + [_tag(t, 'TRANSFER_OUT')  for t in transfers_from]
-                + [_tag(t, 'TRANSFER_IN')   for t in transfers_to]
-                + [_tag(c, 'SAVINGS')       for c in contributions]
-                + [_tag(lr, 'LOAN_REPAYMENT') for lr in loan_repayments]
-                + [_tag(ce, 'CAPITAL_EVENT') for ce in capital_events]
-            ),
-            key=lambda x: x.date,
-            reverse=True,
+        # Build a lightweight combined ledger first so the database handles
+        # the global ordering/counting, then hydrate only the rows on the
+        # current page slice.
+        ledger = (
+            self._build_ledger_source(expenses, 'EXPENSE', 0)
+            .union(
+                self._build_ledger_source(incomes, 'INCOME', 1),
+                self._build_ledger_source(transfers_from, 'TRANSFER_OUT', 2),
+                self._build_ledger_source(transfers_to, 'TRANSFER_IN', 3),
+                self._build_ledger_source(contributions, 'SAVINGS', 4),
+                self._build_ledger_source(loan_repayments, 'LOAN_REPAYMENT', 5),
+                self._build_ledger_source(capital_events, 'CAPITAL_EVENT', 6),
+                all=True,
+            )
+            .order_by('-date', 'ledger_rank', '-id')
         )
 
         # Pagination
         paginator = Paginator(ledger, 20)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
+        page_rows = list(page_obj.object_list)
+        page_obj.object_list = self._hydrate_ledger_page(page_rows, account, request.user)
 
         # Inject display properties ONLY on the current page slice (~20 items)
         for item in page_obj:

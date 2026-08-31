@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load i18n expense_extras static %}
 
+{% block extra_head %}
+    {% include 'components/multiselect_assets.html' %}
+{% endblock %}
+
 {% block content %}
 <style>
     .border-teal { border-color: #1D9E75 !important; }

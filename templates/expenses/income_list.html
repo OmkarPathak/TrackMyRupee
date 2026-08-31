@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load i18n digit_filters humanize expense_extras %}
 
+{% block extra_head %}
+    {% include 'components/multiselect_assets.html' %}
+{% endblock %}
+
 {% block content %}
 <style>
     /* Responsive Filter Widths */

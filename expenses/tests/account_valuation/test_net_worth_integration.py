@@ -243,7 +243,7 @@ class FullPortfolioNetWorthIntegrationTestCase(TestCase):
         expected_off = (
             Decimal("85000.00")              # Salary (no baseline, uses current)
             + Decimal("500000.00")           # FD baseline principal
-            + Decimal("90000.00")            # RD baseline installments
+            + get_baseline(self.acct_rd)      # RD baseline installments
             + Decimal("10473.05")            # Demat baseline cost basis (without uninvested cash)
             + Decimal("6500000.00")          # Flat acquisition cost
             + Decimal("150000.00")           # Policy cumulative premiums paid

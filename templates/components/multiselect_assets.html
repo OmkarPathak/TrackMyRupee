@@ -1,0 +1,76 @@
+{% load static i18n %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/css/bootstrap-multiselect.min.css">
+<script defer src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script defer src="{% static 'js/bootstrap-multiselect.js' %}"></script>
+<script>
+(function() {
+    const initGlobalMultiselects = (root) => {
+        if (typeof window.$ === 'undefined') return;
+        const $root = root ? $(root) : $(document);
+        $root.find('.django-multi-select').each(function () {
+            if ($(this).data('multiselect')) {
+                return;
+            }
+
+            const isSmall = $(this).hasClass('form-select-sm') || $(this).hasClass('form-control-sm');
+            const sizeClass = isSmall ? 'form-select-sm' : '';
+
+            $(this).multiselect({
+                buttonWidth: '100%',
+                nonSelectedText: "{% trans 'Select...' %}",
+                nSelectedText: " {% trans '- Selected' %}",
+                allSelectedText: "{% trans 'All Selected' %}",
+                numberDisplayed: 1,
+                includeSelectAllOption: true,
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true,
+                filterPlaceholder: "{% trans 'Search...' %}",
+                buttonClass: `form-select multiselect-btn ${sizeClass} text-start`,
+                inheritClass: false,
+                templates: {
+                    button: '<button type="button" class="multiselect dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport"><span class="multiselect-selected-text"></span></button>',
+                    option: '<div class="multiselect-option" style="padding: 0.25rem 0.25rem 0.25rem 0.75rem; cursor: pointer;"></div>'
+                },
+                onInitialized: function(select, container) {
+                    const button = container.find('button');
+                    button.removeClass('btn btn-default btn-outline-secondary');
+                    button.addClass('form-select multiselect-btn');
+                    if (isSmall) button.addClass('form-select-sm');
+                    container.find('input').removeClass('form-select');
+                }
+            });
+        });
+    };
+
+    const bootMultiselects = () => {
+        if (typeof window.$ === 'undefined') return;
+        initGlobalMultiselects();
+        if (typeof window.initSearchableSelects === 'function') {
+            window.initSearchableSelects();
+        }
+        document.body.addEventListener('htmx:afterSwap', function (event) {
+            initGlobalMultiselects(event.target);
+            if (window.initSearchableSelects) {
+                window.initSearchableSelects();
+            }
+            const swappedRoot = event.target || document;
+            swappedRoot.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                var existing = bootstrap.Tooltip.getInstance(el);
+                if (existing) existing.dispose();
+                new bootstrap.Tooltip(el);
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                new bootstrap.Tooltip(el);
+            });
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootMultiselects);
+    } else {
+        bootMultiselects();
+    }
+})();
+</script>
