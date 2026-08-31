@@ -1,23 +1,21 @@
 from django.test import Client, TestCase
 from django.contrib.auth.models import User
-from expenses.models import Account, Category, Expense
+from django.urls import reverse
+from expenses.models import Account, Category, Expense, UserProfile
 
 class BaseHtmlRenderTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='render_test_user', email='render@example.com', password='password123')
-        profile = self.user.profile
-        profile.consent_granted = True
-        profile.has_seen_tutorial = True
-        profile.save()
+        UserProfile.objects.filter(user=self.user).update(has_seen_tutorial=True, consent_granted=True)
 
         self.account = Account.objects.create(user=self.user, name='Main Account', balance=5000)
-        self.category = Category.objects.create(user=self.user, name='Food', category_type='expense')
-        Expense.objects.create(user=self.user, amount=150, account=self.account, category=self.category, description='Groceries', date='2026-08-01')
+        self.category, _ = Category.objects.get_or_create(user=self.user, name='Food')
+        Expense.objects.create(user=self.user, amount=150, account=self.account, category='Food', description='Groceries', date='2026-08-01')
         self.client.login(username='render_test_user', password='password123')
 
     def test_base_html_render_attributes(self):
         # 1. Test Dashboard Page
-        response = self.client.get('/')
+        response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
 
@@ -36,10 +34,10 @@ class BaseHtmlRenderTest(TestCase):
 
     def test_account_detail_render(self):
         # 2. Test Account Detail Page
-        response = self.client.get(f'/account/{self.account.id}/')
+        response = self.client.get(reverse('account-detail', kwargs={'pk': self.account.pk}))
         self.assertEqual(response.status_code, 200)
 
     def test_htmx_partial_swap_render(self):
         # 3. Test HTMX partial swap request
-        response = self.client.get('/expenses/', HTTP_HX_REQUEST='true', HTTP_HX_TARGET='expense-list-shell')
+        response = self.client.get(reverse('expense-list'), HTTP_HX_REQUEST='true', HTTP_HX_TARGET='expense-list-shell')
         self.assertEqual(response.status_code, 200)
