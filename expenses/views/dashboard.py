@@ -100,6 +100,19 @@ def home_view(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
+    start_date_obj = None
+    end_date_obj = None
+    if start_date:
+        try:
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    if end_date:
+        try:
+            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
     # Remove empty strings from lists
     selected_years = [y for y in selected_years if y]
     selected_months = [m for m in selected_months if m]
@@ -2209,11 +2222,11 @@ def home_view(request):
 
     # Optimization: Calculate bento invested data in a single query instead of N+1
     if net_worth_history:
-        start_date = net_worth_history[0]['month'].replace(day=1)
+        bento_start_date = net_worth_history[0]['month'].replace(day=1)
         investments_grouped = Transfer.objects.filter(
             user=request.user,
             to_account__account_type__in=list(investment_codes()),
-            date__gte=start_date
+            date__gte=bento_start_date
         ).annotate(
             month_group=TruncMonth('date')
         ).values('month_group').annotate(
@@ -2312,6 +2325,8 @@ def home_view(request):
         'avg_monthly_savings': avg_monthly_savings,
         'start_date': start_date,
         'end_date': end_date,
+        'start_date_obj': start_date_obj,
+        'end_date_obj': end_date_obj,
         'prev_month_data': prev_month_data,
         'prev_month_url': prev_month_url,
         'next_month_url': next_month_url,
@@ -2526,29 +2541,29 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         balance_rate_data = []
         
         # Determine the start and end date for the selected year
-        start_date = date(selected_year, 1, 1)
-        end_date = date(selected_year, 12, 31)
+        trend_year_start = date(selected_year, 1, 1)
+        trend_year_end = date(selected_year, 12, 31)
         
         # Fetch data grouped by Month for the selected year
         monthly_income = Income.objects.filter(
-            user=user, date__gte=start_date, date__lte=end_date
+            user=user, date__gte=trend_year_start, date__lte=trend_year_end
         ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount')).order_by('month')
         
         monthly_cb_rf = Income.objects.filter(
-            user=user, date__gte=start_date, date__lte=end_date,
+            user=user, date__gte=trend_year_start, date__lte=trend_year_end,
             source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']
         ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount')).order_by('month')
         
         monthly_expenses = Expense.objects.filter(
-            user=user, date__gte=start_date, date__lte=end_date
+            user=user, date__gte=trend_year_start, date__lte=trend_year_end
         ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount')).order_by('month')
         
         # Merge data into a map {date: {income: 0, expense: 0, cb_rf: 0}}
         data_map = {}
         
         # Initialize map with all 12 months to ensure 0s for missing months
-        # Iterate from start_date to today month by month
-        curr = start_date
+        # Iterate from trend_year_start to today month by month
+        curr = trend_year_start
         while curr <= today:
             d = curr.replace(day=1)
             data_map[d] = {'income': 0, 'expense': 0, 'cb_rf': 0}

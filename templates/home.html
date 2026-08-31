@@ -799,8 +799,10 @@
                 <button type="button" class="date-range-trigger" id="date-range-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                     <i class="bi bi-calendar3"></i>
                     <span id="active-range-text" class="fw-medium">
-                        {% if start_date and end_date %}
-                            {{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}
+                        {% if start_date_obj and end_date_obj %}
+                            {{ start_date_obj|date:"d M Y" }} - {{ end_date_obj|date:"d M Y" }}
+                        {% elif start_date and end_date %}
+                            {{ start_date }} - {{ end_date }}
                         {% else %}
                             {% trans "Select Date Range" %}
                         {% endif %}
@@ -814,7 +816,7 @@
                             <div class="preset-item" data-preset="today">{% trans "Today" %}</div>
                             <div class="preset-item" data-preset="yesterday">{% trans "Yesterday" %}</div>
                             <div class="preset-item" data-preset="last-7-days">{% trans "Last 7 days" %}</div>
-                            <div class="preset-item active" data-preset="last-30-days">{% trans "Last 30 days" %}</div>
+                            <div class="preset-item" data-preset="last-30-days">{% trans "Last 30 days" %}</div>
                             <div class="preset-item" data-preset="this-month">{% trans "This month" %}</div>
                             <div class="preset-item" data-preset="last-month">{% trans "Last month" %}</div>
                             <div class="preset-item" data-preset="last-90-days">{% trans "Last 90 days" %}</div>

@@ -1,0 +1,38 @@
+from datetime import date
+from django.test import Client, TestCase
+from django.contrib.auth.models import User
+
+class DashboardDatePickerTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='picker_user', email='picker@example.com', password='password123')
+        profile = self.user.profile
+        profile.consent_granted = True
+        profile.has_seen_tutorial = True
+        profile.save()
+        self.client.login(username='picker_user', password='password123')
+
+    def test_dashboard_last_month_date_range_render(self):
+        # Request dashboard with Last Month date range: start_date=2026-07-01 and end_date=2026-07-31
+        response = self.client.get('/?start_date=2026-07-01&end_date=2026-07-31')
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        
+        # Verify context receives the exact requested start_date string
+        self.assertEqual(response.context['start_date'], '2026-07-01')
+        self.assertEqual(response.context['end_date'], '2026-07-31')
+        
+        # Verify hidden inputs have exact requested dates and not March 1, 2026
+        self.assertIn('value="2026-07-01"', content)
+        self.assertIn('value="2026-07-31"', content)
+        self.assertNotIn('value="March 1, 2026"', content)
+        
+        # Verify formatted trigger button label in HTML
+        self.assertIn('01 Jul 2026 - 31 Jul 2026', content)
+
+    def test_dashboard_default_date_range_render(self):
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        
+        # Verify default trigger text when no range query params are set
+        self.assertIn('Select Date Range', content)

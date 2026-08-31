@@ -38,7 +38,7 @@ class DashboardDatePicker {
 
         // Set initial values from hidden inputs
         if (this.startInput.value && this.endInput.value) {
-            this.fp.setDate([this.startInput.value, this.endInput.value]);
+            this.fp.setDate([this.startInput.value, this.endInput.value], false);
             this.updateVisualInputs(this.startInput.value, this.endInput.value);
             this.updateTriggerLabel(this.startInput.value, this.endInput.value);
         }
@@ -65,18 +65,26 @@ class DashboardDatePicker {
         e.currentTarget.classList.add('active');
 
         if (range) {
-            this.fp.setDate([range.start, range.end]);
+            this.fp.setDate([range.start, range.end], false);
             this.updateVisualInputs(range.start, range.end);
+            this.updateTriggerLabel(range.start, range.end);
+            this.updateHiddenInputs(range.start, range.end);
         }
     }
 
     handleCalendarChange(selectedDates) {
-        // Clear active preset when manual selection happens
         if (selectedDates.length === 2) {
             const start = this.formatDate(selectedDates[0]);
             const end = this.formatDate(selectedDates[1]);
             this.updateVisualInputs(start, end);
             this.updateTriggerLabel(start, end);
+            this.updateHiddenInputs(start, end);
+            // Clear active preset when manual selection happens
+            this.presets.forEach(p => p.classList.remove('active'));
+        } else if (selectedDates.length === 1) {
+            const start = this.formatDate(selectedDates[0]);
+            if (this.visualStart) this.visualStart.value = start;
+            if (this.visualEnd) this.visualEnd.value = '';
         }
     }
 
@@ -84,11 +92,13 @@ class DashboardDatePicker {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        let start, end = new Date(today);
+        let start = new Date(today);
+        let end = new Date(today);
 
         switch (preset) {
             case 'today':
                 start = new Date(today);
+                end = new Date(today);
                 break;
             case 'yesterday':
                 start = new Date(today);
@@ -98,13 +108,16 @@ class DashboardDatePicker {
             case 'last-7-days':
                 start = new Date(today);
                 start.setDate(today.getDate() - 6);
+                end = new Date(today);
                 break;
             case 'last-30-days':
                 start = new Date(today);
                 start.setDate(today.getDate() - 29);
+                end = new Date(today);
                 break;
             case 'this-month':
                 start = new Date(today.getFullYear(), today.getMonth(), 1);
+                end = new Date(today);
                 break;
             case 'last-month':
                 start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -113,13 +126,16 @@ class DashboardDatePicker {
             case 'last-90-days':
                 start = new Date(today);
                 start.setDate(today.getDate() - 89);
+                end = new Date(today);
                 break;
             case 'this-year':
                 start = new Date(today.getFullYear(), 0, 1);
+                end = new Date(today);
                 break;
             case 'quarter-to-date':
                 const quarter = Math.floor(today.getMonth() / 3);
                 start = new Date(today.getFullYear(), quarter * 3, 1);
+                end = new Date(today);
                 break;
             default:
                 return null;
@@ -138,17 +154,35 @@ class DashboardDatePicker {
         return `${year}-${month}-${day}`;
     }
 
+    formatDisplayDate(dateStr) {
+        if (!dateStr) return '';
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        // Construct local date without UTC offset shift
+        const d = new Date(year, month, day);
+        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
     updateVisualInputs(start, end) {
         if (this.visualStart) this.visualStart.value = start;
         if (this.visualEnd) this.visualEnd.value = end;
     }
 
+    updateHiddenInputs(start, end) {
+        if (this.startInput) this.startInput.value = start;
+        if (this.endInput) this.endInput.value = end;
+        document.querySelectorAll('input[name="start_date"]').forEach(inp => inp.value = start);
+        document.querySelectorAll('input[name="end_date"]').forEach(inp => inp.value = end);
+    }
+
     updateTriggerLabel(start, end) {
         if (!this.trigger) return;
         
-        const opt = { month: 'short', day: 'numeric', year: 'numeric' };
-        const d1 = new Date(start).toLocaleDateString(undefined, opt);
-        const d2 = new Date(end).toLocaleDateString(undefined, opt);
+        const d1 = this.formatDisplayDate(start);
+        const d2 = this.formatDisplayDate(end);
         
         const labelText = document.getElementById('active-range-text');
         if (labelText) {
@@ -160,8 +194,9 @@ class DashboardDatePicker {
         if (!this.fp || !this.form) return;
         const range = this.fp.selectedDates;
         if (range.length === 2) {
-            if (this.startInput) this.startInput.value = this.formatDate(range[0]);
-            if (this.endInput) this.endInput.value = this.formatDate(range[1]);
+            const start = this.formatDate(range[0]);
+            const end = this.formatDate(range[1]);
+            this.updateHiddenInputs(start, end);
             
             if (window.showLoader) window.showLoader();
             
