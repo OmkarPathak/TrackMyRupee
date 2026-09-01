@@ -2117,26 +2117,181 @@
     </script>
 
 {% if active_announcement %}
+<style>
+/* Feature Announcement Modal Styles */
+.announcement-modal-card {
+    background-color: var(--bs-body-bg, #ffffff);
+    color: var(--bs-body-color, #212529);
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.announcement-modal-header {
+    position: relative;
+    background-color: rgba(248, 249, 250, 0.95);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.announcement-modal-header .btn-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    margin: 0;
+    z-index: 10;
+}
+
+.announcement-modal-footer {
+    background-color: rgba(248, 249, 250, 0.95);
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.announcement-badge {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    font-size: 0.72rem;
+    font-weight: 650;
+    padding: 0.3rem 0.65rem;
+    border-radius: 50rem;
+    border: 1px solid rgba(25, 135, 84, 0.2);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* Dark Theme Adjustments (Matching TrackMyRupee native dark palette) */
+[data-bs-theme="dark"] .announcement-modal-card {
+    background-color: var(--color-surface, #1a1d21) !important;
+    color: var(--color-text, #faf9f6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-bs-theme="dark"] .announcement-modal-header {
+    background-color: var(--color-background, #111315) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-bs-theme="dark"] .announcement-modal-footer {
+    background-color: var(--color-background, #111315) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-bs-theme="dark"] .announcement-modal-header .modal-title {
+    color: var(--color-text, #faf9f6) !important;
+}
+
+[data-bs-theme="dark"] .announcement-badge {
+    background-color: rgba(93, 202, 165, 0.15);
+    color: var(--color-success, #5DCAA5);
+    border: 1px solid rgba(93, 202, 165, 0.3);
+}
+
+[data-bs-theme="dark"] .announcement-modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Markdown typography inside modal body */
+.announcement-markdown-content {
+    font-size: 0.95rem;
+    line-height: 1.65;
+}
+
+.announcement-markdown-content h1,
+.announcement-markdown-content h2,
+.announcement-markdown-content h3,
+.announcement-markdown-content h4 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.announcement-markdown-content h1:first-child,
+.announcement-markdown-content h2:first-child,
+.announcement-markdown-content h3:first-child,
+.announcement-markdown-content p:first-child {
+    margin-top: 0;
+}
+
+.announcement-markdown-content ul,
+.announcement-markdown-content ol {
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.announcement-markdown-content li {
+    margin-bottom: 0.35rem;
+}
+
+.announcement-markdown-content p {
+    margin-bottom: 0.85rem;
+}
+
+.announcement-markdown-content a {
+    color: #198754;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+[data-bs-theme="dark"] .announcement-markdown-content {
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .announcement-markdown-content h1,
+[data-bs-theme="dark"] .announcement-markdown-content h2,
+[data-bs-theme="dark"] .announcement-markdown-content h3,
+[data-bs-theme="dark"] .announcement-markdown-content h4 {
+    color: var(--color-text, #faf9f6);
+}
+
+[data-bs-theme="dark"] .announcement-markdown-content a {
+    color: var(--color-success, #5DCAA5);
+}
+
+[data-bs-theme="dark"] .announcement-markdown-content strong {
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .announcement-modal-footer .btn-outline-secondary {
+    color: #cbd5e1;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-bs-theme="dark"] .announcement-modal-footer .btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+</style>
+
 <!-- Feature Announcement Modal -->
 <div class="modal fade" id="announcementModal" tabindex="-1" aria-labelledby="announcementModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title font-monospace fw-bold" id="announcementModalLabel">{{ active_announcement.title }}</h5>
+        <div class="modal-content announcement-modal-card border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Distinct Header -->
+            <div class="modal-header announcement-modal-header p-4 border-0">
+                <div class="pe-4">
+                    <h4 class="modal-title fw-bold m-0" id="announcementModalLabel">{{ active_announcement.title }}</h4>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="dismissAnnouncement('{{ active_announcement.id }}')"></button>
             </div>
-            <div class="modal-body p-4">
+
+            <!-- Modal Body -->
+            <div class="modal-body announcement-modal-body p-4">
                 {% if active_announcement.image %}
-                    <img src="{{ active_announcement.image.url }}" alt="{{ active_announcement.title }}" class="img-fluid rounded-3 mb-3 w-100 object-fit-cover" style="max-height: 350px;">
+                    <div class="announcement-image-wrapper mb-4 rounded-3 overflow-hidden border">
+                        <img src="{{ active_announcement.image.url }}" alt="{{ active_announcement.title }}" class="img-fluid w-100 object-fit-cover d-block" style="max-height: 350px;">
+                    </div>
                 {% endif %}
-                <div class="announcement-content">
+                <div class="announcement-markdown-content">
                     {{ active_announcement.body|markdown }}
                 </div>
             </div>
-            <div class="modal-footer border-0 pt-0 justify-content-between">
-                <button type="button" class="btn btn-outline-secondary btn-sm rounded-3" data-bs-dismiss="modal" onclick="dismissAnnouncement('{{ active_announcement.id }}')">Dismiss</button>
+
+            <!-- Distinct Footer with Right-Aligned Dismiss & Action Buttons -->
+            <div class="modal-footer announcement-modal-footer p-3 px-4 justify-content-end gap-2 border-0">
+                <button type="button" class="btn btn-outline-secondary rounded-3 px-4 fw-medium" data-bs-dismiss="modal" onclick="dismissAnnouncement('{{ active_announcement.id }}')">Dismiss</button>
                 {% if active_announcement.cta_link %}
-                    <a href="{{ active_announcement.cta_link }}" class="btn btn-success rounded-3 px-4 fw-semibold">{{ active_announcement.cta_text|default:"Try it now" }}</a>
+                    <a href="{{ active_announcement.cta_link }}" class="btn btn-success rounded-3 px-4 fw-semibold d-inline-flex align-items-center gap-1">
+                        <span>{{ active_announcement.cta_text|default:"Try it now" }}</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
                 {% endif %}
             </div>
         </div>

@@ -322,11 +322,17 @@ class GoalContributionAdmin(admin.ModelAdmin):
 
 @admin.register(Announcement)
 class AnnouncementAdmin(DemoExcludeMixin, admin.ModelAdmin):
-    list_display = ('title', 'audience', 'status', 'send_push', 'send_email', 'show_modal', 'created_at', 'sent_at')
+    list_display = ('title', 'audience', 'status', 'send_push', 'send_email', 'show_modal', 'is_active_display', 'created_at', 'sent_at')
     list_filter = ('status', 'audience', 'send_push', 'send_email', 'show_modal')
     search_fields = ('title', 'body')
     readonly_fields = ('created_at', 'sent_at', 'image_preview')
     actions = ['send_test_to_self', 'queue_for_sending']
+
+    def is_active_display(self, obj):
+        if obj.expires_at and obj.expires_at <= timezone.now():
+            return format_html('<span style="color: #dc3545; font-weight: bold;">Expired</span>')
+        return format_html('<span style="color: #198754; font-weight: bold;">Active</span>')
+    is_active_display.short_description = "Modal Status"
 
     def image_preview(self, obj):
         if obj and obj.image:
