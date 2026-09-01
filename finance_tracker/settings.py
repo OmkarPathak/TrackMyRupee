@@ -142,6 +142,7 @@ TEMPLATES = [
                 'expenses.context_processors.notifications',
                 'expenses.context_processors.user_accounts',
                 'expenses.context_processors.webpush_vapid_key',
+                'expenses.context_processors.active_announcement',
                 'expenses.context_processors.sidebar_badges',
                 'expenses.context_processors.personalization',
                 'finance_tracker.context_processors.google_analytics',
@@ -249,6 +250,9 @@ DATE_INPUT_FORMATS = [
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Whitenoise optimization settings
 WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds

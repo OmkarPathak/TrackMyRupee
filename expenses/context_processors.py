@@ -3,10 +3,11 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from .models import Loan, Notification, RecurringTransaction, SavingsGoal, UserProfile
+from .models import Announcement, Loan, Notification, RecurringTransaction, SavingsGoal, UserProfile
 from .utils import translate_digits as ud
 
 
@@ -176,3 +177,37 @@ def personalization(request):
         'greeting_user_name': user_name,
         'month_progress_encouragement': f"{week_str} - {encouragement}"
     }
+
+
+def active_announcement(request):
+    """Provides the active modal feature announcement to all templates."""
+    try:
+        now = timezone.now()
+        announcements = Announcement.objects.filter(
+            show_modal=True,
+            status__in=['QUEUED', 'SENT']
+        ).filter(
+            models.Q(expires_at__isnull=True) | models.Q(expires_at__gt=now)
+        ).order_by('-created_at')
+
+        active = None
+        for ann in announcements:
+            if ann.audience == 'ALL':
+                active = ann
+                break
+            elif request.user.is_authenticated and hasattr(request.user, 'profile'):
+                tier = request.user.profile.active_tier
+                if ann.audience == 'PAID' and tier in ['PLUS', 'PRO']:
+                    active = ann
+                    break
+                elif ann.audience == 'FREE' and tier == 'FREE':
+                    active = ann
+                    break
+
+        return {
+            'active_announcement': active
+        }
+    except Exception:
+        return {
+            'active_announcement': None
+        }

@@ -1,10 +1,19 @@
+import os
+from email.mime.image import MIMEImage
+
 from allauth.account.models import EmailAddress
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.templatetags.static import static
+from django.utils.html import format_html
 
 from .models import (
     Account,
+    Announcement,
     AssetValuation,
     CapitalEvent,
     Category,
@@ -42,7 +51,10 @@ class DemoExcludeMixin:
     Excludes all records belonging to the demo account from the admin list.
     """
     def get_queryset(self, request):
-        return super().get_queryset(request).exclude(user__username='demo')
+        qs = super().get_queryset(request)
+        if any(f.name == 'user' for f in self.model._meta.get_fields()):
+            return qs.exclude(user__username='demo')
+        return qs
 
 
 @admin.register(Notification)
@@ -306,3 +318,103 @@ class SavingsGoalAdmin(DemoExcludeMixin, admin.ModelAdmin):
 class GoalContributionAdmin(admin.ModelAdmin):
     list_display = ('goal', 'amount', 'date')
     list_filter = ('date',)
+
+
+@admin.register(Announcement)
+class AnnouncementAdmin(DemoExcludeMixin, admin.ModelAdmin):
+    list_display = ('title', 'audience', 'status', 'send_push', 'send_email', 'show_modal', 'created_at', 'sent_at')
+    list_filter = ('status', 'audience', 'send_push', 'send_email', 'show_modal')
+    search_fields = ('title', 'body')
+    readonly_fields = ('created_at', 'sent_at', 'image_preview')
+    actions = ['send_test_to_self', 'queue_for_sending']
+
+    def image_preview(self, obj):
+        if obj and obj.image:
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 100%; border-radius: 8px; border: 1px solid #dee2e6;" />', obj.image.url)
+        return "No image uploaded"
+    image_preview.short_description = "Image Preview"
+
+    @admin.action(description="Send test to myself")
+    def send_test_to_self(self, request, queryset):
+        sent_count = 0
+        site_url = getattr(settings, 'SITE_URL', 'https://trackmyrupee.com').rstrip('/')
+        
+        for announcement in queryset:
+            user = request.user
+            from blog.templatetags.blog_extras import markdown as render_markdown
+            body_html = render_markdown(announcement.body)
+
+            # WebPush Test
+            if announcement.send_push:
+                from webpush import send_user_notification
+                from webpush.models import PushInformation
+                if PushInformation.objects.filter(user=user).exists():
+                    icon_path = static('img/pwa-icon-512.png')
+                    absolute_icon_url = f"{site_url}{icon_path}"
+                    push_payload = {
+                        "head": announcement.title,
+                        "body": announcement.body,
+                        "icon": absolute_icon_url,
+                        "url": announcement.cta_link or f"{site_url}/",
+                    }
+                    if announcement.image:
+                        push_payload["image"] = f"{site_url}{announcement.image.url}"
+                    try:
+                        send_user_notification(user=user, payload=push_payload, ttl=3600)
+                    except Exception as e:
+                        self.message_user(request, f"Push test failed: {e}", level='warning')
+
+            # Email Test (CID-embedded inline image for single admin recipient)
+            if announcement.send_email and user.email:
+                image_cid = None
+                img_data = None
+                img_filename = None
+                
+                if announcement.image:
+                    image_cid = "announcement_test_img"
+                    img_filename = os.path.basename(announcement.image.name)
+                    try:
+                        with announcement.image.open('rb') as f:
+                            img_data = f.read()
+                    except Exception as e:
+                        self.message_user(request, f"Could not read image file for email CID embedding: {e}", level='warning')
+
+                context = {
+                    'user': user,
+                    'announcement': announcement,
+                    'subject': announcement.title,
+                    'body_html': body_html,
+                    'image_cid': image_cid,
+                    'image_url': f"{site_url}{announcement.image.url}" if announcement.image else None,
+                }
+                
+                html_message = render_to_string('email/announcement.html', context)
+                plain_text = f"{announcement.title}\n\nHi {user.username},\n\n{announcement.body}\n\nVisit: {announcement.cta_link or site_url}"
+
+                try:
+                    msg = EmailMultiAlternatives(
+                        subject=f"[TEST] {announcement.title}",
+                        body=plain_text,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[user.email]
+                    )
+                    msg.attach_alternative(html_message, "text/html")
+                    
+                    if image_cid and img_data:
+                        msg_img = MIMEImage(img_data)
+                        msg_img.add_header('Content-ID', f'<{image_cid}>')
+                        msg_img.add_header('Content-Disposition', 'inline', filename=img_filename)
+                        msg.attach(msg_img)
+                        
+                    msg.send()
+                except Exception as e:
+                    self.message_user(request, f"Email test failed: {e}", level='error')
+
+            sent_count += 1
+
+        self.message_user(request, f"Sent test announcement to {request.user.email} for {sent_count} item(s).")
+
+    @admin.action(description="Queue for sending")
+    def queue_for_sending(self, request, queryset):
+        updated = queryset.update(status='QUEUED')
+        self.message_user(request, f"Queued {updated} announcement(s) for background sending.")

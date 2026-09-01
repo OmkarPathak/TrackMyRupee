@@ -1,4 +1,5 @@
 import logging
+import os
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
@@ -2709,3 +2710,33 @@ class FinancialAuditLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.action} on {self.model_name} {self.object_id}"
+
+
+class Announcement(models.Model):
+    AUDIENCE_CHOICES = [('ALL', 'All users'), ('PAID', 'Paid tiers'), ('FREE', 'Free tier')]
+    STATUS_CHOICES = [('DRAFT', 'Draft'), ('QUEUED', 'Queued'), ('SENT', 'Sent')]
+
+    title = models.CharField(max_length=255)
+    body = models.TextField(help_text="Markdown")
+    image = models.FileField(upload_to='announcements/%Y/%m/', blank=True, null=True)
+    audience = models.CharField(max_length=10, choices=AUDIENCE_CHOICES, default='ALL')
+    send_push = models.BooleanField(default=False)
+    send_email = models.BooleanField(default=False)
+    show_modal = models.BooleanField(default=False)
+    cta_link = models.CharField(max_length=500, blank=True)
+    cta_text = models.CharField(max_length=100, blank=True, default='Try it now')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='DRAFT')
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    def clean(self):
+        super().clean()
+        if self.image:
+            ext = os.path.splitext(self.image.name)[1].lower()
+            allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+            if ext not in allowed:
+                raise ValidationError({'image': f"Unsupported image extension '{ext}'. Allowed extensions are: {', '.join(allowed)}"})
+
+    def __str__(self):
+        return self.title

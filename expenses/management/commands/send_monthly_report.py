@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext as _
 
-from expenses.models import Account, Expense, Income
+from expenses.models import Account, EmailLog, Expense, Income
 from expenses.templatetags.digit_filters import compact_amount
 from expenses.utils import get_exchange_rate
 
@@ -57,11 +57,16 @@ class Command(BaseCommand):
         sent_count = 0
         for user in users:
             try:
+                subject = f"Your Financial Summary for {month_name} 📊"
+                if EmailLog.objects.filter(user=user, subject=subject, status='SENT').exists():
+                    self.stdout.write(f"Report for {month_name} already sent to {user.email}, skipping.")
+                    continue
+
                 data = self.get_report_data(user, start_date, end_date)
                 if not data['has_data']:
                     continue
 
-                if options['test']:
+                if options.get('test'):
                     self.stdout.write(f"User: {user.email} - NW: {data['nw_at_end']}, Savings: {data['savings']}")
                     continue
 
@@ -76,13 +81,22 @@ class Command(BaseCommand):
                 html_message = render_to_string('emails/monthly_report.html', context)
                 
                 send_mail(
-                    subject=f"Your Financial Summary for {month_name} 📊",
+                    subject=subject,
                     message=f"Greetings {user.username}, Your monthly financial summary for {month_name} is ready. Check it out on TrackMyRupee!",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
                     html_message=html_message,
                 )
                 
+                EmailLog.objects.create(
+                    user=user,
+                    to_email=user.email,
+                    subject=subject,
+                    body=f"Greetings {user.username}, Your monthly financial summary for {month_name} is ready.",
+                    html_body=html_message,
+                    status='SENT',
+                )
+
                 sent_count += 1
                 if sent_count % 10 == 0:
                     self.stdout.write(f"Sent {sent_count} reports...")

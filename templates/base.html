@@ -1,4 +1,4 @@
-{% load static i18n digit_filters %}
+{% load static i18n digit_filters blog_extras %}
 <!DOCTYPE html>
 <html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
 
@@ -2115,5 +2115,49 @@
 
     })();
     </script>
+
+{% if active_announcement %}
+<!-- Feature Announcement Modal -->
+<div class="modal fade" id="announcementModal" tabindex="-1" aria-labelledby="announcementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title font-monospace fw-bold" id="announcementModalLabel">{{ active_announcement.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="dismissAnnouncement('{{ active_announcement.id }}')"></button>
+            </div>
+            <div class="modal-body p-4">
+                {% if active_announcement.image %}
+                    <img src="{{ active_announcement.image.url }}" alt="{{ active_announcement.title }}" class="img-fluid rounded-3 mb-3 w-100 object-fit-cover" style="max-height: 350px;">
+                {% endif %}
+                <div class="announcement-content">
+                    {{ active_announcement.body|markdown }}
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-between">
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-3" data-bs-dismiss="modal" onclick="dismissAnnouncement('{{ active_announcement.id }}')">Dismiss</button>
+                {% if active_announcement.cta_link %}
+                    <a href="{{ active_announcement.cta_link }}" class="btn btn-success rounded-3 px-4 fw-semibold">{{ active_announcement.cta_text|default:"Try it now" }}</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function dismissAnnouncement(id) {
+        localStorage.setItem('dismissed_announcement_' + id, '1');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const announcementId = '{{ active_announcement.id }}';
+        if (!localStorage.getItem('dismissed_announcement_' + announcementId)) {
+            const modalEl = document.getElementById('announcementModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+    });
+</script>
+{% endif %}
 </body>
 </html>

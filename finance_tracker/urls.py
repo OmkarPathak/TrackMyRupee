@@ -72,6 +72,8 @@ def llms_txt(request):
             pass
     return HttpResponse("llms.txt not found", status=404)
 
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('auth/login/', RedirectView.as_view(pattern_name='account_login', permanent=True)), # Redirect legacy login
     path('accounts/', include('allauth.urls')),
@@ -92,3 +94,6 @@ urlpatterns = [
 
 if settings.ENABLE_ADMIN_URL:
     urlpatterns.append(path('tmr_admin/', admin.site.urls))
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

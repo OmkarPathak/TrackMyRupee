@@ -22,6 +22,9 @@ class Command(BaseCommand):
         # Get all profiles with daily_reminder enabled
         profiles = UserProfile.objects.filter(daily_reminder=True).select_related('user')
         
+        # Pre-fetch push notification subscriptions once to avoid N+1 queries
+        subscribed_user_ids = set(PushInformation.objects.values_list('user_id', flat=True))
+
         sent_count = 0
         no_subscription_count = 0
         
@@ -49,7 +52,7 @@ class Command(BaseCommand):
             #     )
             
             # 2. External Push Notification
-            if PushInformation.objects.filter(user=user).exists():
+            if user.id in subscribed_user_ids:
                 payload = {
                     "head": title,
                     "body": message,

@@ -1,9 +1,12 @@
 import hmac
+import logging
+import threading
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.core.management import call_command
 from django.http import JsonResponse
 from django.shortcuts import redirect, resolve_url
@@ -15,6 +18,30 @@ from expenses.views.utils import get_safe_redirect_url
 
 from ..models import Notification
 from .mixins import HtmxPartialTemplateMixin
+
+logger = logging.getLogger(__name__)
+
+
+def _dispatch_cron_command(command_name, lock_timeout=600):
+    """
+    Runs a management command in a background thread, guarded by a cache lock so
+    overlapping triggers (e.g. a retried external cron call) skip instead of running concurrently.
+    Returns a JsonResponse.
+    """
+    lock_key = f'cron_lock_{command_name}'
+    if not cache.add(lock_key, 1, timeout=lock_timeout):
+        return JsonResponse({'success': False, 'message': 'Already running'}, status=409)
+
+    def _run():
+        try:
+            call_command(command_name)
+        except Exception:
+            logger.exception(f"Background run of {command_name} failed")
+        finally:
+            cache.delete(lock_key)
+
+    threading.Thread(target=_run, daemon=True).start()
+    return JsonResponse({'success': True, 'message': f'{command_name} started'})
 
 
 def _cron_authorized(request):
@@ -139,12 +166,8 @@ def trigger_notifications(request):
     """
     if not _cron_authorized(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
-        
-    try:
-        call_command('send_notifications')
-        return JsonResponse({'success': True, 'message': 'Notifications triggered successfully'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return _dispatch_cron_command('send_notifications', lock_timeout=600)
+
 
 @csrf_exempt
 @require_POST
@@ -154,12 +177,8 @@ def trigger_lifecycle_emails(request):
     """
     if not _cron_authorized(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
+    return _dispatch_cron_command('send_lifecycle_emails', lock_timeout=600)
 
-    try:
-        call_command('send_lifecycle_emails')
-        return JsonResponse({'success': True, 'message': 'Lifecycle emails triggered successfully'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @csrf_exempt
 @require_POST
@@ -169,12 +188,8 @@ def trigger_monthly_reports_view(request):
     """
     if not _cron_authorized(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
+    return _dispatch_cron_command('send_monthly_report', lock_timeout=900)
 
-    try:
-        call_command('send_monthly_report')
-        return JsonResponse({'success': True, 'message': 'Monthly reports triggered successfully'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @csrf_exempt
 @require_POST
@@ -184,12 +199,18 @@ def trigger_daily_reminders_view(request):
     """
     if not _cron_authorized(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
+    return _dispatch_cron_command('send_daily_reminders', lock_timeout=300)
 
-    try:
-        call_command('send_daily_reminders')
-        return JsonResponse({'success': True, 'message': 'Daily reminders triggered successfully'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@csrf_exempt
+@require_POST
+def trigger_announcements(request):
+    """
+    HTTP endpoint to trigger broadcast announcement sending via external cron service.
+    """
+    if not _cron_authorized(request):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    return _dispatch_cron_command('send_announcements', lock_timeout=600)
 
 
 @csrf_exempt

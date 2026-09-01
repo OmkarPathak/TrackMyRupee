@@ -137,6 +137,7 @@ urlpatterns = [
     path('api/cron/send-lifecycle-emails/', views.trigger_lifecycle_emails, name='cron-send-lifecycle-emails'),
     path('api/cron/send-monthly-reports/', views.trigger_monthly_reports_view, name='cron-send-monthly-reports'),
     path('api/cron/send-daily-reminders/', views.trigger_daily_reminders_view, name='cron-send-daily-reminders'),
+    path('api/cron/send-announcements/', views.trigger_announcements, name='cron-send-announcements'),
     path('api/cron/ledger/retry-failures/', views.trigger_ledger_retry_view, name='cron-ledger-retry-failures'),
     path('api/cron/ledger/reconcile/', views.trigger_ledger_reconcile_view, name='cron-ledger-reconcile'),
     path('api/cron/ledger/maintenance/', views.trigger_ledger_maintenance_view, name='cron-ledger-maintenance'),

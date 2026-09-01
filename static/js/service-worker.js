@@ -94,6 +94,7 @@ self.addEventListener('push', function (event) {
             body: payload.body,
             icon: payload.icon || '/static/img/pwa-icon-512.png',
             badge: '/static/img/pwa-icon-512.png',
+            image: payload.image || undefined,
             vibrate: [100, 50, 100],
             data: { 
                 url: payload.url || '/',
