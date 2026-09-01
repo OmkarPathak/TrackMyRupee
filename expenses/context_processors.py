@@ -185,7 +185,7 @@ def active_announcement(request):
         now = timezone.now()
         announcements = Announcement.objects.filter(
             show_modal=True,
-            status__in=['QUEUED', 'SENT']
+            status__in=['DRAFT', 'QUEUED', 'SENT']
         ).filter(
             models.Q(expires_at__isnull=True) | models.Q(expires_at__gt=now)
         ).order_by('-created_at')

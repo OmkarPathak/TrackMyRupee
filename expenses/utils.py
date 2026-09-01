@@ -311,3 +311,35 @@ def translate_digits(value):
     }
     
     return ''.join(arabic_to_devanagari.get(char, char) for char in value_str)
+
+
+def markdown_to_plain_text(md_text: str) -> str:
+    """
+    Converts Markdown text to clean plain text (e.g. for PWA Push Notifications & Plain Text Emails)
+    by rendering HTML and stripping markup elements, leaving no raw Markdown syntax symbols (**bold**, *italic*, etc.).
+    """
+    if not md_text:
+        return ""
+
+    import html
+    import re
+    from blog.templatetags.blog_extras import markdown as render_markdown
+
+    # Render Markdown to HTML first
+    html_text = render_markdown(md_text)
+
+    # Replace block HTML elements and line break tags with newlines
+    html_text = re.sub(r'</p\s*>', '\n\n', html_text, flags=re.IGNORECASE)
+    html_text = re.sub(r'<br\s*/?>', '\n', html_text, flags=re.IGNORECASE)
+    html_text = re.sub(r'</(h[1-6]|li|div|tr)\s*>', '\n', html_text, flags=re.IGNORECASE)
+
+    # Strip all remaining HTML tags
+    clean_text = re.sub(r'<[^>]+>', '', html_text)
+
+    # Unescape HTML entities (e.g. &amp; -> &, &#39; -> ')
+    clean_text = html.unescape(clean_text)
+
+    # Normalize excessive newlines and leading/trailing whitespace
+    clean_text = re.sub(r'\n{3,}', '\n\n', clean_text).strip()
+    return clean_text
+

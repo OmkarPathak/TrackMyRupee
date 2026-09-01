@@ -12,6 +12,7 @@ from webpush.models import PushInformation
 
 from blog.templatetags.blog_extras import markdown as render_markdown
 from expenses.models import Announcement
+from expenses.utils import markdown_to_plain_text
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ class Command(BaseCommand):
                 target_users = list(users_qs)
 
             body_html = render_markdown(announcement.body)
+            body_plain = markdown_to_plain_text(announcement.body)
             hosted_image_url = f"{site_url}{announcement.image.url}" if announcement.image else None
 
             push_count = 0
@@ -56,7 +58,7 @@ class Command(BaseCommand):
                 if announcement.send_push and user.id in subscribed_user_ids:
                     push_payload = {
                         "head": announcement.title,
-                        "body": announcement.body,
+                        "body": body_plain,
                         "icon": absolute_icon_url,
                         "url": announcement.cta_link or f"{site_url}/",
                     }
@@ -81,7 +83,7 @@ class Command(BaseCommand):
                     }
 
                     html_message = render_to_string('email/announcement.html', context)
-                    plain_text = f"{announcement.title}\n\nHi {user.username},\n\n{announcement.body}\n\nVisit: {announcement.cta_link or site_url}"
+                    plain_text = f"{announcement.title}\n\nHi {user.username},\n\n{body_plain}\n\nVisit: {announcement.cta_link or site_url}"
 
                     try:
                         msg = EmailMultiAlternatives(

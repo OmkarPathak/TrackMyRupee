@@ -2144,17 +2144,43 @@
 </div>
 <script>
     function dismissAnnouncement(id) {
-        localStorage.setItem('dismissed_announcement_' + id, '1');
+        try {
+            localStorage.setItem('dismissed_announcement_' + id, '1');
+        } catch (e) {}
     }
 
     document.addEventListener('DOMContentLoaded', function () {
         const announcementId = '{{ active_announcement.id }}';
-        if (!localStorage.getItem('dismissed_announcement_' + announcementId)) {
-            const modalEl = document.getElementById('announcementModal');
-            if (modalEl && typeof bootstrap !== 'undefined') {
-                const modal = new bootstrap.Modal(modalEl);
-                modal.show();
+        if (!announcementId) return;
+
+        if (localStorage.getItem('dismissed_announcement_' + announcementId)) {
+            console.log('[TrackMyRupee Announcement] Modal skipped because announcement ID ' + announcementId + ' was previously dismissed in local storage.');
+            return;
+        }
+
+        const modalEl = document.getElementById('announcementModal');
+        if (!modalEl) return;
+
+        function tryShowModal() {
+            try {
+                const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+                if (bs && bs.Modal) {
+                    const modal = bs.Modal.getInstance(modalEl) || new bs.Modal(modalEl);
+                    modal.show();
+                    return true;
+                } else if (typeof $ !== 'undefined' && $.fn && $.fn.modal) {
+                    $(modalEl).modal('show');
+                    return true;
+                }
+            } catch (err) {
+                console.warn('[TrackMyRupee Announcement] Modal show error:', err);
             }
+            return false;
+        }
+
+        if (!tryShowModal()) {
+            setTimeout(tryShowModal, 200);
+            setTimeout(tryShowModal, 800);
         }
     });
 </script>

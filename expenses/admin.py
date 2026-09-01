@@ -342,9 +342,11 @@ class AnnouncementAdmin(DemoExcludeMixin, admin.ModelAdmin):
         for announcement in queryset:
             user = request.user
             from blog.templatetags.blog_extras import markdown as render_markdown
+            from expenses.utils import markdown_to_plain_text
             body_html = render_markdown(announcement.body)
+            body_plain = markdown_to_plain_text(announcement.body)
 
-            # WebPush Test
+            # WebPush Test (attempts send if send_push is checked and user has WebPush subscription)
             if announcement.send_push:
                 from webpush import send_user_notification
                 from webpush.models import PushInformation
@@ -353,7 +355,7 @@ class AnnouncementAdmin(DemoExcludeMixin, admin.ModelAdmin):
                     absolute_icon_url = f"{site_url}{icon_path}"
                     push_payload = {
                         "head": announcement.title,
-                        "body": announcement.body,
+                        "body": body_plain,
                         "icon": absolute_icon_url,
                         "url": announcement.cta_link or f"{site_url}/",
                     }
@@ -364,51 +366,54 @@ class AnnouncementAdmin(DemoExcludeMixin, admin.ModelAdmin):
                     except Exception as e:
                         self.message_user(request, f"Push test failed: {e}", level='warning')
 
-            # Email Test (CID-embedded inline image for single admin recipient)
-            if announcement.send_email and user.email:
-                image_cid = None
-                img_data = None
-                img_filename = None
-                
-                if announcement.image:
-                    image_cid = "announcement_test_img"
-                    img_filename = os.path.basename(announcement.image.name)
-                    try:
-                        with announcement.image.open('rb') as f:
-                            img_data = f.read()
-                    except Exception as e:
-                        self.message_user(request, f"Could not read image file for email CID embedding: {e}", level='warning')
-
-                context = {
-                    'user': user,
-                    'announcement': announcement,
-                    'subject': announcement.title,
-                    'body_html': body_html,
-                    'image_cid': image_cid,
-                    'image_url': f"{site_url}{announcement.image.url}" if announcement.image else None,
-                }
-                
-                html_message = render_to_string('email/announcement.html', context)
-                plain_text = f"{announcement.title}\n\nHi {user.username},\n\n{announcement.body}\n\nVisit: {announcement.cta_link or site_url}"
-
-                try:
-                    msg = EmailMultiAlternatives(
-                        subject=f"[TEST] {announcement.title}",
-                        body=plain_text,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        to=[user.email]
-                    )
-                    msg.attach_alternative(html_message, "text/html")
+            # Email Test (CID-embedded inline image for single admin recipient if send_email is checked)
+            if announcement.send_email:
+                if user.email:
+                    image_cid = None
+                    img_data = None
+                    img_filename = None
                     
-                    if image_cid and img_data:
-                        msg_img = MIMEImage(img_data)
-                        msg_img.add_header('Content-ID', f'<{image_cid}>')
-                        msg_img.add_header('Content-Disposition', 'inline', filename=img_filename)
-                        msg.attach(msg_img)
+                    if announcement.image:
+                        image_cid = "announcement_test_img"
+                        img_filename = os.path.basename(announcement.image.name)
+                        try:
+                            with announcement.image.open('rb') as f:
+                                img_data = f.read()
+                        except Exception as e:
+                            self.message_user(request, f"Could not read image file for email CID embedding: {e}", level='warning')
+
+                    context = {
+                        'user': user,
+                        'announcement': announcement,
+                        'subject': announcement.title,
+                        'body_html': body_html,
+                        'image_cid': image_cid,
+                        'image_url': f"{site_url}{announcement.image.url}" if announcement.image else None,
+                    }
+                    
+                    html_message = render_to_string('email/announcement.html', context)
+                    plain_text = f"{announcement.title}\n\nHi {user.username},\n\n{body_plain}\n\nVisit: {announcement.cta_link or site_url}"
+
+                    try:
+                        msg = EmailMultiAlternatives(
+                            subject=f"[TEST] {announcement.title}",
+                            body=plain_text,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            to=[user.email]
+                        )
+                        msg.attach_alternative(html_message, "text/html")
                         
-                    msg.send()
-                except Exception as e:
-                    self.message_user(request, f"Email test failed: {e}", level='error')
+                        if image_cid and img_data:
+                            msg_img = MIMEImage(img_data)
+                            msg_img.add_header('Content-ID', f'<{image_cid}>')
+                            msg_img.add_header('Content-Disposition', 'inline', filename=img_filename)
+                            msg.attach(msg_img)
+                            
+                        msg.send()
+                    except Exception as e:
+                        self.message_user(request, f"Email test failed: {e}", level='error')
+                else:
+                    self.message_user(request, f"Email test skipped: Admin user '{user.username}' does not have an email address set.", level='warning')
 
             sent_count += 1
 

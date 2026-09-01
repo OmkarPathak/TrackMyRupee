@@ -216,3 +216,15 @@ class FeatureAnnouncementTests(TestCase):
 
         ctx_expired = active_announcement(req)
         self.assertIsNone(ctx_expired['active_announcement'])
+
+    def test_markdown_to_plain_text_stripping(self):
+        from expenses.utils import markdown_to_plain_text
+        md_content = "**Big Announcement!** Check out our *new features* at [TrackMyRupee](https://trackmyrupee.com).\n\n- Feature 1\n- Feature 2"
+        plain = markdown_to_plain_text(md_content)
+        
+        self.assertNotIn("**", plain)
+        self.assertNotIn("*", plain)
+        self.assertNotIn("[TrackMyRupee]", plain)
+        self.assertIn("Big Announcement!", plain)
+        self.assertIn("Check out our new features at TrackMyRupee.", plain)
+
