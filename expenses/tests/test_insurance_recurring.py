@@ -240,11 +240,12 @@ class InsuranceRecurringTransactionTests(TestCase):
         cmd.active_recurring_by_user = {self.user.id: [rt]}
         cmd.sent_notifications_by_user = {}
         cmd.users_with_push = set()
+        cmd.current_user_notifications = []
         cmd.stdout = open('/dev/null', 'w')
 
         cmd._process_recurring_reminders(self.user)
 
-        notifications = Notification.objects.filter(user=self.user, n_type='RECURRING')
+        notifications = Notification.objects.filter(user=self.user, notification_type='RECURRING')
         self.assertEqual(notifications.count(), 1)
         notif = notifications.first()
         self.assertIn("Tata AIA Shield", notif.title)
@@ -279,11 +280,12 @@ class InsuranceRecurringTransactionTests(TestCase):
         cmd.active_recurring_by_user = {self.user.id: [rt]}
         cmd.sent_notifications_by_user = {}
         cmd.users_with_push = set()
+        cmd.current_user_notifications = []
         cmd.stdout = open('/dev/null', 'w')
 
         cmd._process_recurring_reminders(self.user)
 
-        notif = Notification.objects.get(user=self.user, n_type='RECURRING')
+        notif = Notification.objects.get(user=self.user, notification_type='RECURRING')
         self.assertEqual(notif.link, "/accounts/")
 
     def test_delete_physical_asset_cascades_to_recurring_transaction(self):
@@ -361,10 +363,10 @@ class InsuranceRecurringTransactionTests(TestCase):
         past_start = today - timedelta(days=1)
 
         form_data = {
-            'account_name': 'HDFC Ergo Term Insurance',
+            'name': 'HDFC Ergo Term Insurance',
             'account_type': 'LIFE_INSURANCE',
-            'currency': 'INR',
-            'opening_balance': '0',
+            'currency': '₹',
+            'balance': '0.00',
             'create_new_asset': 'CREATE_NEW',
             'asset_name': 'HDFC Term Policy',
             'policy_number': 'POL-999',

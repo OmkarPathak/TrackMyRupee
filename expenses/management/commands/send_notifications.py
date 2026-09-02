@@ -27,6 +27,17 @@ from finance_tracker.plans import PLAN_DETAILS, get_limit
 class Command(BaseCommand):
     help = 'Sends optimized notifications (Recurring, Milestones, High Spending) with deduplication'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.current_user_notifications = []
+        self.sent_notifications_by_user = {}
+        self.users_with_push = set()
+        self.active_recurring_by_user = {}
+        self.active_cc_accounts_by_user = {}
+        self.active_goals_by_user = {}
+        self.expense_sums = {}
+        self.today = timezone.now().date()
+
     def handle(self, *args, **kwargs):
         self.today = timezone.now().date()
         self.stdout.write(f"Starting notification run for {self.today}...")
