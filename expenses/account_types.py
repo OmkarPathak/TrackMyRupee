@@ -96,6 +96,7 @@ ACCOUNT_TYPE_META: dict[str, tuple[KIND, STRATEGY]] = {
     "REAL_ESTATE":    (KIND.ASSET, STRATEGY.PHYSICAL_VALUATION),
     "VEHICLE":        (KIND.ASSET, STRATEGY.PHYSICAL_VALUATION),
     "LIFE_INSURANCE": (KIND.ASSET, STRATEGY.INSURANCE_SURRENDER),
+    "HEALTH_INSURANCE": (KIND.ASSET, STRATEGY.INSURANCE_SURRENDER),
 
     # ── Legacy codes — retained for backward compatibility ───────────────────
     # CREDIT_CARD is unchanged (same code in old and new list above)
@@ -235,7 +236,10 @@ ACCOUNT_TYPES = [
     ('Physical Assets', (
         ('REAL_ESTATE', 'Real Estate'),
         ('VEHICLE', 'Vehicle'),
-        ('LIFE_INSURANCE', 'Traditional Life Insurance (Surrender Value)'),
+    )),
+    ('Insurance', (
+        ('LIFE_INSURANCE', 'Life Insurance'),
+        ('HEALTH_INSURANCE', 'Health / Medical Insurance'),
     )),
     # Legacy codes retained for backward compatibility — keep VALID, do not delete.
     ('Legacy', (

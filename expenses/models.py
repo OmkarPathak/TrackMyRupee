@@ -326,6 +326,13 @@ class Account(models.Model):
             models.Index(fields=['user', 'account_type', 'is_active'], name='acc_user_type_active_idx'),
         ]
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.is_active and self.linked_physical_asset_id:
+            if self.linked_physical_asset.is_active:
+                self.linked_physical_asset.is_active = False
+                self.linked_physical_asset.save(update_fields=['is_active'])
+
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             for expense in self.expenses.all():
@@ -2601,7 +2608,15 @@ class PhysicalAsset(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.asset_class})"
+        linked_acc = (
+            self.linked_accounts.all()[0]
+            if hasattr(self, '_prefetched_objects_cache') and 'linked_accounts' in self._prefetched_objects_cache and self.linked_accounts.all()
+            else self.linked_accounts.filter(is_active=True).first()
+        )
+        display_name = linked_acc.name if linked_acc else self.name
+        if self.policy_number:
+            return f"{display_name} ({self.policy_number})"
+        return display_name
 
 
 class AssetValuation(models.Model):

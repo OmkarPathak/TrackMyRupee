@@ -109,3 +109,57 @@ class InsuranceSurrenderTestCase(TestCase):
         latest_val = policy.valuations.first()
         self.assertIsNotNone(latest_val)
         self.assertEqual(latest_val.value, Decimal('0.00'))
+
+    def test_edit_insurance_account_form_prefills_and_updates_in_place(self):
+        """Editing an existing insurance account pre-fills form fields and updates the asset in-place without creating duplicates."""
+        initial_data = {
+            'name': 'Axis Term Insurance',
+            'account_type': 'LIFE_INSURANCE',
+            'currency': '₹',
+            'balance': '0.00',
+            'create_new_asset': 'CREATE_NEW',
+            'asset_name': 'Axis Term Policy',
+            'policy_number': 'AXIS-1234',
+            'premium_amount': '35000.00',
+            'premium_frequency': 'ANNUAL',
+            'policy_start_date': '2026-09-01',
+            'sum_assured': '10000000.00',
+        }
+        form = AccountForm(data=initial_data, user=self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+        account = form.save()
+        asset_id = account.linked_physical_asset_id
+
+        # Initialize form for editing
+        edit_form = AccountForm(instance=account, user=self.user)
+        self.assertEqual(edit_form.initial['policy_number'], 'AXIS-1234')
+        self.assertEqual(edit_form.initial['premium_amount'], Decimal('35000.00'))
+        self.assertEqual(edit_form.initial['sum_assured'], Decimal('10000000.00'))
+        self.assertEqual(edit_form.initial['policy_start_date'], date(2026, 9, 1))
+
+        # Submit edits
+        update_data = {
+            'name': 'Axis Term Insurance Updated',
+            'account_type': 'LIFE_INSURANCE',
+            'currency': '₹',
+            'balance': '0.00',
+            'create_new_asset': 'CREATE_NEW',
+            'asset_name': 'Axis Term Policy Updated',
+            'policy_number': 'AXIS-9999',
+            'premium_amount': '36000.00',
+            'premium_frequency': 'ANNUAL',
+            'policy_start_date': '2026-09-01',
+            'sum_assured': '10000000.00',
+        }
+        initial_asset_count = PhysicalAsset.objects.filter(user=self.user, asset_class='INSURANCE').count()
+        submit_form = AccountForm(data=update_data, instance=account, user=self.user)
+        self.assertTrue(submit_form.is_valid(), submit_form.errors)
+        updated_account = submit_form.save()
+
+        # Assert asset was updated in-place without creating a duplicate PhysicalAsset
+        self.assertEqual(updated_account.linked_physical_asset_id, asset_id)
+        asset = updated_account.linked_physical_asset
+        asset.refresh_from_db()
+        self.assertEqual(asset.policy_number, 'AXIS-9999')
+        self.assertEqual(asset.premium_amount, Decimal('36000.00'))
+        self.assertEqual(PhysicalAsset.objects.filter(user=self.user, asset_class='INSURANCE').count(), initial_asset_count)

@@ -295,7 +295,12 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             self.fields['from_account'].queryset = accounts_qs
             self.fields['to_account'].queryset = accounts_qs
             self.fields['loan'].queryset = Loan.objects.filter(user=user, is_active=True).order_by('-created_at')
-            self.fields['physical_asset'].queryset = PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='INSURANCE').order_by('name')
+            self.fields['physical_asset'].queryset = (
+                PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='INSURANCE')
+                .exclude(linked_accounts__is_active=False)
+                .prefetch_related('linked_accounts')
+                .order_by('name')
+            )
         else:
             self.fields['account'].queryset = Account.objects.none()
             self.fields['from_account'].queryset = Account.objects.none()
@@ -366,8 +371,6 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
 
         if transaction_type == 'INSURANCE_PREMIUM':
             account = cleaned_data.get('account')
-            if not physical_asset:
-                self.add_error('physical_asset', _('Insurance policy is required.'))
             if not account:
                 self.add_error('account', _('Payment account is required.'))
 
@@ -853,7 +856,10 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 user=self.user, is_active=True
             ).order_by('name')
             self.fields['linked_physical_asset'].queryset = (
-                PhysicalAsset.objects.filter(user=self.user, is_active=True).order_by('name')
+                PhysicalAsset.objects.filter(user=self.user, is_active=True)
+                .exclude(linked_accounts__is_active=False)
+                .prefetch_related('linked_accounts')
+                .order_by('name')
             )
             self.fields['premium_payment_account'].queryset = (
                 Account.objects.filter(user=self.user, is_active=True).order_by('name')
@@ -868,8 +874,20 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             if getattr(self.instance, 'record_maturity_income', False) or has_income:
                 self.initial['record_maturity_income'] = True
             if self.instance.linked_physical_asset:
+                asset = self.instance.linked_physical_asset
+                self.initial['create_new_asset'] = 'CREATE_NEW'
+                self.initial['linked_physical_asset'] = asset
+                self.initial['asset_name'] = asset.name
+                self.initial['policy_number'] = asset.policy_number
+                self.initial['policy_start_date'] = asset.policy_start_date
+                self.initial['sum_assured'] = asset.sum_assured
+                self.initial['premium_amount'] = asset.premium_amount
+                self.initial['premium_frequency'] = asset.premium_frequency
+                self.initial['acquisition_cost'] = asset.acquisition_cost
+                self.initial['acquisition_date'] = asset.acquisition_date
+
                 rt = RecurringTransaction.objects.filter(
-                    physical_asset=self.instance.linked_physical_asset,
+                    physical_asset=asset,
                     transaction_type='INSURANCE_PREMIUM'
                 ).first()
                 if rt and rt.account:
@@ -940,6 +958,14 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         # Required: physical valuation / insurance strategy accounts must link or create a Physical Asset
         if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER):
             create_new = cleaned_data.get('create_new_asset') != 'SELECT'
+            if self.instance and self.instance.pk and getattr(self.instance, 'linked_physical_asset_id', None) and create_new:
+                existing_asset = getattr(self.instance, 'linked_physical_asset', None)
+                if not existing_asset and self.instance.linked_physical_asset_id:
+                    existing_asset = PhysicalAsset.objects.filter(id=self.instance.linked_physical_asset_id).first()
+                if existing_asset:
+                    cleaned_data['linked_physical_asset'] = existing_asset
+                    linked_physical_asset = existing_asset
+
             if not linked_physical_asset and not create_new:
                 self.add_error(
                     'linked_physical_asset',
@@ -972,6 +998,15 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         from .account_types import STRATEGY, strategy_for
         from .models import AssetValuation, PhysicalAsset
 
+        existing_asset = None
+        if self.instance and self.instance.pk and getattr(self.instance, 'linked_physical_asset_id', None):
+            try:
+                existing_asset = self.instance.linked_physical_asset
+            except Exception:
+                existing_asset = None
+            if not existing_asset and self.instance.linked_physical_asset_id:
+                existing_asset = PhysicalAsset.objects.filter(id=self.instance.linked_physical_asset_id).first()
+
         account = super().save(commit=False)
         if self.user and not getattr(account, 'user_id', None):
             account.user = self.user
@@ -985,64 +1020,94 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
 
                 if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) and self.user:
                     create_new = self.cleaned_data.get('create_new_asset') != 'SELECT'
+                    if existing_asset and create_new:
+                        account.linked_physical_asset = existing_asset
+                    elif self.cleaned_data.get('create_new_asset') == 'SELECT' and self.cleaned_data.get('linked_physical_asset'):
+                        account.linked_physical_asset = self.cleaned_data.get('linked_physical_asset')
+
                     asset = account.linked_physical_asset
-                    if (create_new or not account.linked_physical_asset_id):
-                        asset_class = 'REAL_ESTATE' if account.account_type == 'REAL_ESTATE' else (
-                            'VEHICLE' if account.account_type == 'VEHICLE' else 'INSURANCE'
-                        )
-                        acq_cost = self.cleaned_data.get('acquisition_cost')
-                        acq_date = self.cleaned_data.get('acquisition_date') or date.today()
 
-                        asset = PhysicalAsset.objects.create(
-                            user=self.user,
-                            name=self.cleaned_data.get('asset_name') or account.name,
-                            asset_class=asset_class,
-                            acquisition_cost=acq_cost,
-                            acquisition_date=acq_date,
-                            currency=account.currency,
-                            policy_number=self.cleaned_data.get('policy_number') or '',
-                            premium_amount=self.cleaned_data.get('premium_amount'),
-                            premium_frequency=self.cleaned_data.get('premium_frequency') or 'ANNUAL',
-                            policy_start_date=self.cleaned_data.get('policy_start_date'),
-                            sum_assured=self.cleaned_data.get('sum_assured'),
-                        )
-                        account.linked_physical_asset = asset
+                    if not asset:
+                        if create_new:
+                            asset_class = 'REAL_ESTATE' if account.account_type == 'REAL_ESTATE' else (
+                                'VEHICLE' if account.account_type == 'VEHICLE' else 'INSURANCE'
+                            )
+                            acq_cost = self.cleaned_data.get('acquisition_cost')
+                            acq_date = self.cleaned_data.get('acquisition_date') or date.today()
 
-                        # Seed initial AssetValuation
-                        if strategy == STRATEGY.PHYSICAL_VALUATION:
-                            initial_val = acq_cost or Decimal('0.00')
-                            AssetValuation.objects.create(
-                                asset=asset,
-                                value=initial_val,
-                                as_of_date=acq_date,
+                            asset = PhysicalAsset.objects.create(
+                                user=self.user,
+                                name=self.cleaned_data.get('asset_name') or account.name,
+                                asset_class=asset_class,
+                                acquisition_cost=acq_cost,
+                                acquisition_date=acq_date,
+                                currency=account.currency,
+                                policy_number=self.cleaned_data.get('policy_number') or '',
+                                premium_amount=self.cleaned_data.get('premium_amount'),
+                                premium_frequency=self.cleaned_data.get('premium_frequency') or 'ANNUAL',
+                                policy_start_date=self.cleaned_data.get('policy_start_date'),
+                                sum_assured=self.cleaned_data.get('sum_assured'),
                             )
-                        elif strategy == STRATEGY.INSURANCE_SURRENDER:
-                            # SPEC §2.6: Initial AssetValuation for insurance defaults to 0.00 (NOT premium_amount)
-                            policy_start = self.cleaned_data.get('policy_start_date') or date.today()
-                            AssetValuation.objects.create(
-                                asset=asset,
-                                value=Decimal('0.00'),
-                                as_of_date=policy_start,
-                            )
-                    elif asset and strategy == STRATEGY.INSURANCE_SURRENDER:
-                        update_fields = []
-                        if 'policy_number' in self.cleaned_data and self.cleaned_data.get('policy_number') is not None:
-                            asset.policy_number = self.cleaned_data.get('policy_number')
-                            update_fields.append('policy_number')
-                        if 'premium_amount' in self.cleaned_data and self.cleaned_data.get('premium_amount') is not None:
-                            asset.premium_amount = self.cleaned_data.get('premium_amount')
-                            update_fields.append('premium_amount')
-                        if 'premium_frequency' in self.cleaned_data and self.cleaned_data.get('premium_frequency'):
-                            asset.premium_frequency = self.cleaned_data.get('premium_frequency')
-                            update_fields.append('premium_frequency')
-                        if 'policy_start_date' in self.cleaned_data and self.cleaned_data.get('policy_start_date'):
-                            asset.policy_start_date = self.cleaned_data.get('policy_start_date')
-                            update_fields.append('policy_start_date')
-                        if 'sum_assured' in self.cleaned_data and self.cleaned_data.get('sum_assured') is not None:
-                            asset.sum_assured = self.cleaned_data.get('sum_assured')
-                            update_fields.append('sum_assured')
-                        if update_fields:
-                            asset.save(update_fields=update_fields)
+                            account.linked_physical_asset = asset
+
+                            # Seed initial AssetValuation
+                            if strategy == STRATEGY.PHYSICAL_VALUATION:
+                                initial_val = acq_cost or Decimal('0.00')
+                                AssetValuation.objects.create(
+                                    asset=asset,
+                                    value=initial_val,
+                                    as_of_date=acq_date,
+                                )
+                            elif strategy == STRATEGY.INSURANCE_SURRENDER:
+                                # SPEC §2.6: Initial AssetValuation for insurance defaults to 0.00 (NOT premium_amount)
+                                policy_start = self.cleaned_data.get('policy_start_date') or date.today()
+                                AssetValuation.objects.create(
+                                    asset=asset,
+                                    value=Decimal('0.00'),
+                                    as_of_date=policy_start,
+                                )
+                        else:
+                            selected_asset = self.cleaned_data.get('linked_physical_asset')
+                            if selected_asset:
+                                account.linked_physical_asset = selected_asset
+                                asset = selected_asset
+                    else:
+                        if self.cleaned_data.get('create_new_asset') == 'SELECT' and self.cleaned_data.get('linked_physical_asset'):
+                            account.linked_physical_asset = self.cleaned_data.get('linked_physical_asset')
+                            asset = account.linked_physical_asset
+                        else:
+                            update_fields = []
+                            if 'asset_name' in self.cleaned_data and self.cleaned_data.get('asset_name'):
+                                asset.name = self.cleaned_data.get('asset_name')
+                                update_fields.append('name')
+                            elif account.name and asset.name != account.name:
+                                asset.name = account.name
+                                update_fields.append('name')
+
+                            if 'policy_number' in self.cleaned_data and self.cleaned_data.get('policy_number') is not None:
+                                asset.policy_number = self.cleaned_data.get('policy_number')
+                                update_fields.append('policy_number')
+                            if 'premium_amount' in self.cleaned_data and self.cleaned_data.get('premium_amount') is not None:
+                                asset.premium_amount = self.cleaned_data.get('premium_amount')
+                                update_fields.append('premium_amount')
+                            if 'premium_frequency' in self.cleaned_data and self.cleaned_data.get('premium_frequency'):
+                                asset.premium_frequency = self.cleaned_data.get('premium_frequency')
+                                update_fields.append('premium_frequency')
+                            if 'policy_start_date' in self.cleaned_data and self.cleaned_data.get('policy_start_date'):
+                                asset.policy_start_date = self.cleaned_data.get('policy_start_date')
+                                update_fields.append('policy_start_date')
+                            if 'sum_assured' in self.cleaned_data and self.cleaned_data.get('sum_assured') is not None:
+                                asset.sum_assured = self.cleaned_data.get('sum_assured')
+                                update_fields.append('sum_assured')
+                            if 'acquisition_cost' in self.cleaned_data and self.cleaned_data.get('acquisition_cost') is not None:
+                                asset.acquisition_cost = self.cleaned_data.get('acquisition_cost')
+                                update_fields.append('acquisition_cost')
+                            if 'acquisition_date' in self.cleaned_data and self.cleaned_data.get('acquisition_date'):
+                                asset.acquisition_date = self.cleaned_data.get('acquisition_date')
+                                update_fields.append('acquisition_date')
+
+                            if update_fields:
+                                asset.save(update_fields=update_fields)
 
                     if strategy == STRATEGY.INSURANCE_SURRENDER and asset:
                         prem_amt = self.cleaned_data.get('premium_amount') if self.cleaned_data.get('premium_amount') is not None else asset.premium_amount

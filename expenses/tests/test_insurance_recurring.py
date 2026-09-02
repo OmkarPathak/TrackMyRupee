@@ -5,6 +5,12 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase
 
+from expenses.account_types import (
+    ACCOUNT_TYPE_META,
+    ACCOUNT_TYPES,
+    KIND,
+    STRATEGY,
+)
 from expenses.account_valuation import PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY
 from expenses.forms import AccountForm, RecurringTransactionForm
 from expenses.management.commands.send_notifications import (
@@ -460,4 +466,150 @@ class InsuranceRecurringTransactionTests(TestCase):
         # Confirm no expense posted
         expense_exists = Expense.objects.filter(user=self.user, account=self.payment_account).exists()
         self.assertFalse(expense_exists)
+
+    def test_account_types_insurance_grouping(self):
+        """ACCOUNT_TYPES puts LIFE_INSURANCE in an Insurance group, not in Physical Assets."""
+        groups = dict(ACCOUNT_TYPES)
+        self.assertIn('Insurance', groups)
+        insurance_choices = dict(groups['Insurance'])
+        self.assertIn('LIFE_INSURANCE', insurance_choices)
+
+        physical_assets_choices = dict(groups['Physical Assets'])
+        self.assertNotIn('LIFE_INSURANCE', physical_assets_choices)
+
+    def test_account_type_meta_valuation_regression_guard(self):
+        """ACCOUNT_TYPE_META for LIFE_INSURANCE remains unchanged (KIND.ASSET, STRATEGY.INSURANCE_SURRENDER)."""
+        kind, strategy = ACCOUNT_TYPE_META['LIFE_INSURANCE']
+        self.assertEqual(kind, KIND.ASSET)
+        self.assertEqual(strategy, STRATEGY.INSURANCE_SURRENDER)
+
+    def test_recurring_transaction_form_insurance_premium_without_physical_asset_is_valid(self):
+        """INSURANCE_PREMIUM recurring transaction form is valid without physical_asset."""
+        form_data = {
+            'transaction_type': 'INSURANCE_PREMIUM',
+            'description': 'Term Life Insurance Premium',
+            'amount': '1500.00',
+            'currency': '₹',
+            'payment_method': 'Cash',
+            'account': self.payment_account.id,
+            'frequency': 'YEARLY',
+            'start_date': date.today().strftime('%Y-%m-%d'),
+            'is_active': True,
+        }
+        form = RecurringTransactionForm(data=form_data, user=self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+        instance = form.save(commit=False)
+        instance.user = self.user
+        instance.save()
+        self.assertIsNone(instance.physical_asset)
+        self.assertEqual(instance.description, 'Term Life Insurance Premium')
+
+    def test_recurring_transaction_form_insurance_premium_without_account_is_invalid(self):
+        """INSURANCE_PREMIUM recurring transaction form without account is invalid on account, not physical_asset."""
+        form_data = {
+            'transaction_type': 'INSURANCE_PREMIUM',
+            'description': 'Health Insurance Premium',
+            'amount': '2500.00',
+            'currency': '₹',
+            'payment_method': 'Cash',
+            'frequency': 'MONTHLY',
+            'start_date': date.today().strftime('%Y-%m-%d'),
+            'is_active': True,
+        }
+        form = RecurringTransactionForm(data=form_data, user=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn('account', form.errors)
+        self.assertNotIn('physical_asset', form.errors)
+
+    def test_process_recurring_reminders_without_physical_asset(self):
+        """_process_recurring_reminders handles INSURANCE_PREMIUM with physical_asset=None using description and /accounts/ link."""
+        today = date.today()
+        due_date = today + timedelta(days=3)
+
+        rt = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='INSURANCE_PREMIUM',
+            account=self.payment_account,
+            physical_asset=None,
+            amount=Decimal('8000.00'),
+            currency='₹',
+            frequency='YEARLY',
+            start_date=due_date,
+            next_due_date=due_date,
+            description="Pure Term Life Protection",
+            is_active=True,
+        )
+
+        cmd = SendNotificationsCommand()
+        cmd.today = today
+        cmd.active_recurring_by_user = {self.user.id: [rt]}
+        cmd.sent_notifications_by_user = {}
+        cmd.users_with_push = set()
+        cmd.current_user_notifications = []
+        cmd.stdout = open('/dev/null', 'w')
+
+        cmd._process_recurring_reminders(self.user)
+
+        notif = Notification.objects.get(user=self.user, notification_type='RECURRING')
+        self.assertIn("Pure Term Life Protection", notif.title)
+        self.assertIn("Pure Term Life Protection", notif.message)
+        self.assertEqual(notif.link, "/accounts/")
+
+    def test_physical_asset_str_display(self):
+        """PhysicalAsset string representation shows linked account name and optional policy number."""
+        asset_without_policy = PhysicalAsset.objects.create(
+            user=self.user,
+            name="HDFC Ergo Optima",
+            asset_class="INSURANCE",
+        )
+        self.assertEqual(str(asset_without_policy), "HDFC Ergo Optima")
+
+        asset_with_policy = PhysicalAsset.objects.create(
+            user=self.user,
+            name="Term Insurance",
+            asset_class="INSURANCE",
+            policy_number="1234",
+        )
+        Account.objects.create(
+            user=self.user,
+            name="Max Life Insurance Account",
+            account_type="LIFE_INSURANCE",
+            linked_physical_asset=asset_with_policy,
+        )
+        self.assertEqual(str(asset_with_policy), "Max Life Insurance Account (1234)")
+
+    def test_form_only_shows_active_physical_assets(self):
+        """RecurringTransactionForm only shows active physical assets and excludes assets of inactive accounts."""
+        active_asset = PhysicalAsset.objects.create(
+            user=self.user,
+            name="Active Policy",
+            asset_class="INSURANCE",
+            is_active=True,
+        )
+        inactive_asset = PhysicalAsset.objects.create(
+            user=self.user,
+            name="Inactive Policy",
+            asset_class="INSURANCE",
+            is_active=False,
+        )
+        inactive_account = Account.objects.create(
+            user=self.user,
+            name="Inactive Life Account",
+            account_type="LIFE_INSURANCE",
+            is_active=False,
+        )
+        asset_of_inactive_account = PhysicalAsset.objects.create(
+            user=self.user,
+            name="Policy of Inactive Account",
+            asset_class="INSURANCE",
+            is_active=True,
+        )
+        inactive_account.linked_physical_asset = asset_of_inactive_account
+        inactive_account.save()
+
+        form = RecurringTransactionForm(user=self.user)
+        queryset = form.fields['physical_asset'].queryset
+        self.assertIn(active_asset, queryset)
+        self.assertNotIn(inactive_asset, queryset)
+        self.assertNotIn(asset_of_inactive_account, queryset)
 

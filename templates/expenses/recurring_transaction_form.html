@@ -295,9 +295,9 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-md-6" id="physicalAssetGroup" style="display: none;">
-                                <label class="form-label fw-bold">{% trans "Insurance Policy" %}</label>
+                                <label class="form-label fw-bold">{% trans "Insurance Policy (Optional)" %}</label>
                                 {{ form.physical_asset }}
-                                <div class="form-text">{% trans "Select the linked insurance policy." %}</div>
+                                <div class="form-text">{% trans "Only needed for policies with a cash/surrender value (whole life, endowment, ULIP). Leave blank for term life or health insurance." %}</div>
                                 {% if form.physical_asset.errors %}
                                     <div class="text-danger small">{{ form.physical_asset.errors|first }}</div>
                                 {% endif %}
