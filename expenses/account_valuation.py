@@ -14,6 +14,14 @@ if TYPE_CHECKING:
     from .models import Account
 
 
+PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY = {
+    'ANNUAL': 'YEARLY',
+    'SEMI_ANNUAL': 'SEMIANNUALLY',
+    'QUARTERLY': 'QUARTERLY',
+    'MONTHLY': 'MONTHLY',
+}
+
+
 def _get_account_ledger_balance(account: Account) -> Decimal:
     """Helper to fetch the current ledger balance for an account."""
     from .ledger_read_service import LedgerReadService

@@ -40,7 +40,7 @@ class Command(BaseCommand):
             
         # 2. Pre-fetch Active Recurring Transactions
         self.active_recurring_by_user = {}
-        for rt in RecurringTransaction.objects.filter(is_active=True):
+        for rt in RecurringTransaction.objects.filter(is_active=True).select_related('physical_asset'):
             self.active_recurring_by_user.setdefault(rt.user_id, []).append(rt)
             
         # 3. Pre-fetch Categories with Limits
@@ -212,12 +212,19 @@ class Command(BaseCommand):
             next_due = rt.next_due_date
             if next_due == due_date:
                 slug = f"recurring-{rt.id}-{next_due.year}-{next_due.month}"
-                title = f"Upcoming {rt.get_transaction_type_display()}: {rt.description}"
-                message = f"Your {rt.get_frequency_display().lower()} {rt.get_transaction_type_display().lower()} of {rt.currency}{rt.amount} is due on {next_due.strftime('%b %d')}."
-                
-                # Dynamic Link based on type
-                link = "/expenses/" if rt.transaction_type == 'EXPENSE' else "/income/list/"
-                if rt.transaction_type == 'TRANSFER': link = "/transfers/"
+                if rt.transaction_type == 'INSURANCE_PREMIUM':
+                    policy_name = rt.physical_asset.name if rt.physical_asset else rt.description
+                    title = f"Upcoming Insurance Premium: {policy_name}"
+                    message = f"Your {rt.get_frequency_display().lower()} insurance premium of {rt.currency}{rt.amount} for {policy_name} is due on {next_due.strftime('%b %d')}."
+                    linked_acc = rt.physical_asset.linked_accounts.first() if rt.physical_asset else None
+                    link = f"/accounts/{linked_acc.uuid}/" if linked_acc else "/accounts/"
+                else:
+                    title = f"Upcoming {rt.get_transaction_type_display()}: {rt.description}"
+                    message = f"Your {rt.get_frequency_display().lower()} {rt.get_transaction_type_display().lower()} of {rt.currency}{rt.amount} is due on {next_due.strftime('%b %d')}."
+                    
+                    # Dynamic Link based on type
+                    link = "/expenses/" if rt.transaction_type == 'EXPENSE' else "/income/list/"
+                    if rt.transaction_type == 'TRANSFER': link = "/transfers/"
                 
                 self._create_notification(
                     user, title, message, 'RECURRING', 

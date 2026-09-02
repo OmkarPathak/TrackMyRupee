@@ -1205,10 +1205,11 @@ class RecurringTransaction(models.Model):
         ('TRANSFER', _('Transfer')),
         ('LOAN', _('Loan Repayment')),
         ('CAPITAL', _('Capital Event')),
+        ('INSURANCE_PREMIUM', _('Insurance Premium')),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES, verbose_name=_('Transaction Type'))
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES, verbose_name=_('Transaction Type'))
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))
     description = models.TextField(verbose_name=_('Description'))
     category = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Category'))
@@ -1224,6 +1225,7 @@ class RecurringTransaction(models.Model):
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('Account'))
     loan = models.ForeignKey('Loan', on_delete=models.CASCADE, null=True, blank=True, related_name='recurring_schedules', verbose_name=_('Loan'))
+    physical_asset = models.ForeignKey('PhysicalAsset', on_delete=models.CASCADE, null=True, blank=True, related_name='recurring_schedules', verbose_name=_('Insurance Policy'))
 
     # Capital event-specific fields
     capital_subtype = models.CharField(

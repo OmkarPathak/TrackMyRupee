@@ -229,7 +229,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = RecurringTransaction
         fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
-                  'loan',
+                  'loan', 'physical_asset',
                   'from_account', 'to_account',
                   'frequency', 'start_date', 'end_date', 'is_last_day_of_month', 'is_last_working_day',
                   'description', 'is_active', 'payment_method',
@@ -240,6 +240,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'loan': forms.Select(attrs={'class': 'form-select'}),
+            'physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Salary, Rent')}),
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
@@ -269,9 +270,10 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             ('TRANSFER', _('Transfer')),
             ('LOAN', _('Loan Repayment')),
             ('CAPITAL', _('Capital Event')),
+            ('INSURANCE_PREMIUM', _('Insurance Premium')),
         ]
         self.fields['transaction_type'].choices = allowed_types
-        if self.instance and self.instance.pk and self.instance.transaction_type == 'LOAN':
+        if self.instance and self.instance.pk and self.instance.transaction_type in ('LOAN', 'INSURANCE_PREMIUM'):
             self.fields['transaction_type'].disabled = True
 
         self.fields['capital_subtype'].choices = [('', '---------')] + CapitalEvent.SUBTYPE_CHOICES
@@ -293,11 +295,13 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             self.fields['from_account'].queryset = accounts_qs
             self.fields['to_account'].queryset = accounts_qs
             self.fields['loan'].queryset = Loan.objects.filter(user=user, is_active=True).order_by('-created_at')
+            self.fields['physical_asset'].queryset = PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='INSURANCE').order_by('name')
         else:
             self.fields['account'].queryset = Account.objects.none()
             self.fields['from_account'].queryset = Account.objects.none()
             self.fields['to_account'].queryset = Account.objects.none()
             self.fields['loan'].queryset = Loan.objects.none()
+            self.fields['physical_asset'].queryset = PhysicalAsset.objects.none()
         
         # Category field as Select for Expenses
         if user:
@@ -322,15 +326,17 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         self.fields['from_account'].required = False
         self.fields['to_account'].required = False
         self.fields['loan'].required = False
+        self.fields['physical_asset'].required = False
 
     def clean(self):
         cleaned_data = super().clean()
-        if self.instance and self.instance.pk and self.instance.transaction_type == 'LOAN':
-            cleaned_data['transaction_type'] = 'LOAN'
+        if self.instance and self.instance.pk and self.instance.transaction_type in ('LOAN', 'INSURANCE_PREMIUM'):
+            cleaned_data['transaction_type'] = self.instance.transaction_type
         transaction_type = cleaned_data.get('transaction_type')
         category = cleaned_data.get('category')
         source = cleaned_data.get('source')
         loan = cleaned_data.get('loan')
+        physical_asset = cleaned_data.get('physical_asset')
 
         if transaction_type == 'EXPENSE' and not category:
             self.add_error('category', _('Category is required for expenses.'))
@@ -354,6 +360,13 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                 self.add_error('loan', _('Loan is required for recurring loan repayments.'))
             if not account:
                 self.add_error('account', _('Account is required for recurring loan repayments.'))
+
+        if transaction_type == 'INSURANCE_PREMIUM':
+            account = cleaned_data.get('account')
+            if not physical_asset:
+                self.add_error('physical_asset', _('Insurance policy is required.'))
+            if not account:
+                self.add_error('account', _('Payment account is required.'))
 
         if transaction_type == 'CAPITAL':
             capital_subtype = cleaned_data.get('capital_subtype')
@@ -391,6 +404,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                 category=cleaned_data.get('category'),
                 source=cleaned_data.get('source'),
                 loan=cleaned_data.get('loan'),
+                physical_asset=cleaned_data.get('physical_asset'),
                 is_active=True
             )
             if self.instance and self.instance.pk:
@@ -788,6 +802,13 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
 
+    premium_payment_account = forms.ModelChoiceField(
+        queryset=Account.objects.none(),
+        required=False,
+        label=_('Premium Payment Account'),
+        widget=forms.Select(attrs={'class': 'form-select searchable-select'}),
+    )
+
     class Meta:
         model = Account
         fields = [
@@ -797,6 +818,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
             'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
             'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
+            'premium_payment_account',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
@@ -830,14 +852,25 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             self.fields['linked_physical_asset'].queryset = (
                 PhysicalAsset.objects.filter(user=self.user, is_active=True).order_by('name')
             )
+            self.fields['premium_payment_account'].queryset = (
+                Account.objects.filter(user=self.user, is_active=True).order_by('name')
+            )
         else:
             self.fields['linked_loan'].queryset = Loan.objects.none()
             self.fields['linked_physical_asset'].queryset = PhysicalAsset.objects.none()
+            self.fields['premium_payment_account'].queryset = Account.objects.none()
 
         if self.instance and self.instance.pk:
             has_income = Income.objects.filter(account=self.instance, source_type='Investment Returns').exists()
             if getattr(self.instance, 'record_maturity_income', False) or has_income:
                 self.initial['record_maturity_income'] = True
+            if self.instance.linked_physical_asset:
+                rt = RecurringTransaction.objects.filter(
+                    physical_asset=self.instance.linked_physical_asset,
+                    transaction_type='INSURANCE_PREMIUM'
+                ).first()
+                if rt and rt.account:
+                    self.initial['premium_payment_account'] = rt.account
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
@@ -924,6 +957,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'linked_loan', 'linked_physical_asset',
             'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
             'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
+            'premium_payment_account',
         }
         for field in strategy_fields:
             if field not in allowed_fields:
@@ -948,6 +982,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
 
                 if strategy in (STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER) and self.user:
                     create_new = self.cleaned_data.get('create_new_asset') != 'SELECT'
+                    asset = account.linked_physical_asset
                     if (create_new or not account.linked_physical_asset_id):
                         asset_class = 'REAL_ESTATE' if account.account_type == 'REAL_ESTATE' else (
                             'VEHICLE' if account.account_type == 'VEHICLE' else 'INSURANCE'
@@ -986,6 +1021,64 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                 value=Decimal('0.00'),
                                 as_of_date=policy_start,
                             )
+                    elif asset and strategy == STRATEGY.INSURANCE_SURRENDER:
+                        update_fields = []
+                        if 'policy_number' in self.cleaned_data and self.cleaned_data.get('policy_number') is not None:
+                            asset.policy_number = self.cleaned_data.get('policy_number')
+                            update_fields.append('policy_number')
+                        if 'premium_amount' in self.cleaned_data and self.cleaned_data.get('premium_amount') is not None:
+                            asset.premium_amount = self.cleaned_data.get('premium_amount')
+                            update_fields.append('premium_amount')
+                        if 'premium_frequency' in self.cleaned_data and self.cleaned_data.get('premium_frequency'):
+                            asset.premium_frequency = self.cleaned_data.get('premium_frequency')
+                            update_fields.append('premium_frequency')
+                        if 'policy_start_date' in self.cleaned_data and self.cleaned_data.get('policy_start_date'):
+                            asset.policy_start_date = self.cleaned_data.get('policy_start_date')
+                            update_fields.append('policy_start_date')
+                        if 'sum_assured' in self.cleaned_data and self.cleaned_data.get('sum_assured') is not None:
+                            asset.sum_assured = self.cleaned_data.get('sum_assured')
+                            update_fields.append('sum_assured')
+                        if update_fields:
+                            asset.save(update_fields=update_fields)
+
+                    if strategy == STRATEGY.INSURANCE_SURRENDER and asset:
+                        prem_amt = self.cleaned_data.get('premium_amount') if self.cleaned_data.get('premium_amount') is not None else asset.premium_amount
+                        prem_freq = self.cleaned_data.get('premium_frequency') or asset.premium_frequency
+                        policy_start = self.cleaned_data.get('policy_start_date') or asset.policy_start_date
+                        payment_acc = self.cleaned_data.get('premium_payment_account')
+
+                        rt = RecurringTransaction.objects.filter(
+                            physical_asset=asset,
+                            transaction_type='INSURANCE_PREMIUM'
+                        ).first()
+
+                        if prem_amt and prem_freq and policy_start and payment_acc:
+                            from .account_valuation import PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY
+                            rec_freq = PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY.get(prem_freq, 'YEARLY')
+                            description = f"{asset.name} premium"
+                            if rt:
+                                rt.account = payment_acc
+                                rt.amount = prem_amt
+                                rt.frequency = rec_freq
+                                rt.start_date = policy_start
+                                rt.description = description
+                                rt.is_active = True
+                                rt.save()
+                            else:
+                                RecurringTransaction.objects.create(
+                                    user=self.user,
+                                    transaction_type='INSURANCE_PREMIUM',
+                                    physical_asset=asset,
+                                    account=payment_acc,
+                                    amount=prem_amt,
+                                    frequency=rec_freq,
+                                    start_date=policy_start,
+                                    description=description,
+                                    is_active=True,
+                                )
+                        elif rt:
+                            rt.is_active = False
+                            rt.save(update_fields=['is_active'])
 
                 account.save()
                 if self.cleaned_data.get('record_maturity_income'):

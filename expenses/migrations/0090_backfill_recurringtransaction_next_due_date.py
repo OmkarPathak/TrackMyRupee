@@ -2,10 +2,17 @@ from django.db import migrations
 
 
 def backfill_next_due_date(apps, schema_editor):
-    # Import the real model so its custom .save() method runs _calculate_next_due_date()
-    from expenses.models import RecurringTransaction
-    for rt in RecurringTransaction.objects.filter(next_due_date__isnull=True):
-        rt.save()
+    try:
+        from expenses.models import RecurringTransaction
+        for rt in RecurringTransaction.objects.filter(next_due_date__isnull=True):
+            rt.save()
+    except Exception:
+        # Fallback for fresh test DB migration runs before future schema columns exist
+        HistoricalRecurring = apps.get_model('expenses', 'RecurringTransaction')
+        for rt in HistoricalRecurring.objects.filter(next_due_date__isnull=True):
+            if hasattr(rt, 'start_date'):
+                rt.next_due_date = rt.start_date
+                rt.save()
 
 
 class Migration(migrations.Migration):

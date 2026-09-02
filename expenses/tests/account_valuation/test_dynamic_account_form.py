@@ -31,6 +31,13 @@ class TestDynamicAccountForm(TestCase):
         self.assertIn('rd_installment_day', rd_fields)
 
         savings_fields = get_fields_for_account_type('SAVINGS_ACCOUNT')
+        from expenses.account_types import strategy_for, FIELD_GROUPS_BY_STRATEGY, ACCOUNT_TYPE_META, STRATEGY
+        print("DEBUG SAVINGS_FIELDS:", savings_fields, flush=True)
+        print("DEBUG STRATEGY:", strategy_for('SAVINGS_ACCOUNT'), flush=True)
+        print("DEBUG META:", ACCOUNT_TYPE_META.get('SAVINGS_ACCOUNT'), flush=True)
+        print("DEBUG BALANCE LIST ID:", id(FIELD_GROUPS_BY_STRATEGY[STRATEGY.BALANCE]), flush=True)
+        print("DEBUG INSURANCE LIST ID:", id(FIELD_GROUPS_BY_STRATEGY[STRATEGY.INSURANCE_SURRENDER]), flush=True)
+        print("DEBUG ALL KEYS:", [(k, v) for k, v in FIELD_GROUPS_BY_STRATEGY.items()], flush=True)
         self.assertEqual(savings_fields, [])
 
     def test_form_json_property(self):

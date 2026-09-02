@@ -2258,11 +2258,34 @@
     background-color: rgba(255, 255, 255, 0.1);
     color: #ffffff;
 }
+
+/* Modal Body Max Height & Vertical Scrollbar */
+.announcement-modal-body {
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.announcement-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.announcement-modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.announcement-modal-body::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+[data-bs-theme="dark"] .announcement-modal-body::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+}
 </style>
 
 <!-- Feature Announcement Modal -->
 <div class="modal fade" id="announcementModal" tabindex="-1" aria-labelledby="announcementModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content announcement-modal-card border-0 shadow-lg rounded-4 overflow-hidden">
             <!-- Distinct Header -->
             <div class="modal-header announcement-modal-header p-4 border-0">

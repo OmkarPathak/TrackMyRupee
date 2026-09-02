@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.db.backends.signals import connection_created
 
 from .ledger_service import LedgerPostingService
-from .models import Account, Category, UserProfile
+from .models import Account, Category, PhysicalAsset, RecurringTransaction, UserProfile
 from .posthog_utils import ph_capture, ph_identify
 
 logger = logging.getLogger(__name__)
@@ -126,3 +126,23 @@ def handle_account_post_save(sender, instance, created, **kwargs):
             "Failed to post opening balance for account %s (%s): %s",
             instance.id, instance.name, exc,
         )
+
+
+@receiver(post_save, sender=Account)
+def handle_account_deactivation(sender, instance, **kwargs):
+    """Deactivate linked RecurringTransaction schedules when an Account is deactivated."""
+    if kwargs.get('raw', False):
+        return
+    if not instance.is_active:
+        RecurringTransaction.objects.filter(account=instance, is_active=True).update(is_active=False)
+        if instance.linked_physical_asset:
+            RecurringTransaction.objects.filter(physical_asset=instance.linked_physical_asset, is_active=True).update(is_active=False)
+
+
+@receiver(post_save, sender=PhysicalAsset)
+def handle_physical_asset_deactivation(sender, instance, **kwargs):
+    """Deactivate linked RecurringTransaction schedules when a PhysicalAsset policy is deactivated."""
+    if kwargs.get('raw', False):
+        return
+    if not instance.is_active:
+        RecurringTransaction.objects.filter(physical_asset=instance, is_active=True).update(is_active=False)

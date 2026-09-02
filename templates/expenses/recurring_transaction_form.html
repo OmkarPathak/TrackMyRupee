@@ -294,6 +294,14 @@
                                     <div class="text-danger small">{{ form.loan.errors|first }}</div>
                                 {% endif %}
                             </div>
+                            <div class="col-12 col-md-6" id="physicalAssetGroup" style="display: none;">
+                                <label class="form-label fw-bold">{% trans "Insurance Policy" %}</label>
+                                {{ form.physical_asset }}
+                                <div class="form-text">{% trans "Select the linked insurance policy." %}</div>
+                                {% if form.physical_asset.errors %}
+                                    <div class="text-danger small">{{ form.physical_asset.errors|first }}</div>
+                                {% endif %}
+                            </div>
                             <div class="col-12" id="loanHelpGroup" style="display: none;">
                                 <p class="small text-muted mb-0">
                                     {% trans "For loan repayments, the amount entered is used for every occurrence. Principal/interest split is calculated automatically." %}
@@ -503,6 +511,7 @@
         const accountGroup = document.getElementById('accountGroup');
         const loanGroup = document.getElementById('loanGroup');
         const loanHelpGroup = document.getElementById('loanHelpGroup');
+        const physicalAssetGroup = document.getElementById('physicalAssetGroup');
         const fromAccountGroup = document.getElementById('fromAccountGroup');
         const toAccountGroup = document.getElementById('toAccountGroup');
         const capitalEventGroup = document.getElementById('capitalEventGroup');
@@ -514,6 +523,7 @@
             if (accountGroup) accountGroup.style.display = 'block';
             if (loanGroup) loanGroup.style.display = 'none';
             if (loanHelpGroup) loanHelpGroup.style.display = 'none';
+            if (physicalAssetGroup) physicalAssetGroup.style.display = 'none';
             if (fromAccountGroup) fromAccountGroup.style.display = 'none';
             if (toAccountGroup) toAccountGroup.style.display = 'none';
             if (capitalEventGroup) capitalEventGroup.style.display = 'none';
@@ -524,6 +534,18 @@
             if (accountGroup) accountGroup.style.display = 'block';
             if (loanGroup) loanGroup.style.display = 'block';
             if (loanHelpGroup) loanHelpGroup.style.display = 'block';
+            if (physicalAssetGroup) physicalAssetGroup.style.display = 'none';
+            if (fromAccountGroup) fromAccountGroup.style.display = 'none';
+            if (toAccountGroup) toAccountGroup.style.display = 'none';
+            if (capitalEventGroup) capitalEventGroup.style.display = 'none';
+        } else if (typeSelect.value === 'INSURANCE_PREMIUM') {
+            if (categoryGroup) categoryGroup.style.display = 'none';
+            if (paymentMethodGroup) paymentMethodGroup.style.display = 'none';
+            if (sourceGroup) sourceGroup.style.display = 'none';
+            if (accountGroup) accountGroup.style.display = 'block';
+            if (loanGroup) loanGroup.style.display = 'none';
+            if (loanHelpGroup) loanHelpGroup.style.display = 'none';
+            if (physicalAssetGroup) physicalAssetGroup.style.display = 'block';
             if (fromAccountGroup) fromAccountGroup.style.display = 'none';
             if (toAccountGroup) toAccountGroup.style.display = 'none';
             if (capitalEventGroup) capitalEventGroup.style.display = 'none';
@@ -534,6 +556,7 @@
             if (accountGroup) accountGroup.style.display = 'none';
             if (loanGroup) loanGroup.style.display = 'none';
             if (loanHelpGroup) loanHelpGroup.style.display = 'none';
+            if (physicalAssetGroup) physicalAssetGroup.style.display = 'none';
             if (fromAccountGroup) fromAccountGroup.style.display = 'block';
             if (toAccountGroup) toAccountGroup.style.display = 'block';
             if (capitalEventGroup) capitalEventGroup.style.display = 'none';
@@ -544,6 +567,7 @@
             if (accountGroup) accountGroup.style.display = 'block';
             if (loanGroup) loanGroup.style.display = 'block';
             if (loanHelpGroup) loanHelpGroup.style.display = 'block';
+            if (physicalAssetGroup) physicalAssetGroup.style.display = 'none';
             if (fromAccountGroup) fromAccountGroup.style.display = 'none';
             if (toAccountGroup) toAccountGroup.style.display = 'none';
             if (capitalEventGroup) capitalEventGroup.style.display = 'block';
@@ -554,6 +578,7 @@
             if (accountGroup) accountGroup.style.display = 'block';
             if (loanGroup) loanGroup.style.display = 'none';
             if (loanHelpGroup) loanHelpGroup.style.display = 'none';
+            if (physicalAssetGroup) physicalAssetGroup.style.display = 'none';
             if (fromAccountGroup) fromAccountGroup.style.display = 'none';
             if (toAccountGroup) toAccountGroup.style.display = 'none';
             if (capitalEventGroup) capitalEventGroup.style.display = 'none';
