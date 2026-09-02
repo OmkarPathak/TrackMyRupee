@@ -134,7 +134,11 @@ def handle_account_deactivation(sender, instance, **kwargs):
     if kwargs.get('raw', False):
         return
     if not instance.is_active:
-        RecurringTransaction.objects.filter(account=instance, is_active=True).update(is_active=False)
+        from django.db.models import Q
+        RecurringTransaction.objects.filter(
+            Q(account=instance) | Q(from_account=instance) | Q(to_account=instance),
+            is_active=True
+        ).update(is_active=False)
         if instance.linked_physical_asset:
             RecurringTransaction.objects.filter(physical_asset=instance.linked_physical_asset, is_active=True).update(is_active=False)
 

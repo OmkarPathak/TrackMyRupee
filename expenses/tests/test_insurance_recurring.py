@@ -418,3 +418,34 @@ class InsuranceRecurringTransactionTests(TestCase):
         expense = Expense.objects.filter(user=self.user, date=past_start, amount=Decimal('5000.00')).first()
         self.assertIsNotNone(expense)
 
+    def test_inactive_account_never_triggers_recurring_transactions(self):
+        """Inactive accounts and physical assets never trigger recurring transactions."""
+        today = date.today()
+        past_start = today - timedelta(days=5)
+
+        # Deactivate payment account
+        self.payment_account.is_active = False
+        self.payment_account.save()
+
+        rt = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='EXPENSE',
+            account=self.payment_account,
+            amount=Decimal('1200.00'),
+            frequency='MONTHLY',
+            start_date=past_start,
+            description="Inactive Account Expense",
+            is_active=True,
+        )
+
+        from expenses.views.mixins import process_user_recurring_transactions
+        process_user_recurring_transactions(self.user, force=True)
+
+        rt.refresh_from_db()
+        self.assertFalse(rt.is_active)
+        self.assertIsNone(rt.last_processed_date)
+
+        # Confirm no expense posted
+        expense_exists = Expense.objects.filter(user=self.user, account=self.payment_account).exists()
+        self.assertFalse(expense_exists)
+

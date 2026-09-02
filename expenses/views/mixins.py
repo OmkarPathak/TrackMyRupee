@@ -115,6 +115,17 @@ def process_user_recurring_transactions(user, force=False):
 
     for rt in recurring_txs:
         with transaction.atomic():
+            # Failsafe: If any linked account or physical asset is inactive, auto-deactivate schedule and skip
+            if (
+                (rt.account and not rt.account.is_active) or
+                (rt.from_account and not rt.from_account.is_active) or
+                (rt.to_account and not rt.to_account.is_active) or
+                (rt.physical_asset and not rt.physical_asset.is_active)
+            ):
+                rt.is_active = False
+                rt.save(update_fields=['is_active'])
+                continue
+
             if not rt.last_processed_date:
                 current_date = rt.start_date
             else:
