@@ -52,7 +52,7 @@ class Command(BaseCommand):
         custom_context = {}
         if context_arg:
             if os.path.exists(context_arg):
-                with open(context_arg, 'r', encoding='utf-8') as f:
+                with open(context_arg, encoding='utf-8') as f:
                     try:
                         custom_context = json.load(f)
                     except json.JSONDecodeError as e:
@@ -71,7 +71,7 @@ class Command(BaseCommand):
             if not os.path.exists(html_file):
                 self.stdout.write(self.style.ERROR(f"HTML file not found at: {html_file}"))
                 return
-            with open(html_file, 'r', encoding='utf-8') as f:
+            with open(html_file, encoding='utf-8') as f:
                 raw_html_template = f.read()
 
         # Determine target users

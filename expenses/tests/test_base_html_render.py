@@ -1,7 +1,9 @@
-from django.test import Client, TestCase
 from django.contrib.auth.models import User
+from django.test import TestCase
 from django.urls import reverse
+
 from expenses.models import Account, Category, Expense, UserProfile
+
 
 class BaseHtmlRenderTest(TestCase):
     def setUp(self):

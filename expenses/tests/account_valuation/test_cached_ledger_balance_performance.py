@@ -1,4 +1,3 @@
-import time
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -25,7 +24,6 @@ from expenses.models import (
     LedgerAccount,
     Loan,
     LoanRepayment,
-    PhysicalAsset,
     SavingsGoal,
     Transfer,
     UserProfile,

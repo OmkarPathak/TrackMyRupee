@@ -557,7 +557,6 @@ class DashboardAggregationTest(BaseViewTest):
 
     def test_dashboard_extreme_percentage_capped_at_10x(self):
         """Test that percentage changes exceeding 999% display as 10x+ on the dashboard."""
-        from datetime import timedelta
         # Setup previous month small investment transfer and current month large investment transfer (> 10x increase, e.g. 100 to 1600000)
         today = date.today()
         # Use previous month date

@@ -9,7 +9,6 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
-from ..posthog_utils import ph_capture
 
 from ..forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
 from ..models import (
@@ -19,6 +18,7 @@ from ..models import (
     LoanRepayment,
     RecurringTransaction,
 )
+from ..posthog_utils import ph_capture
 from ..services import LoanService
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed

@@ -13,10 +13,10 @@ from django.urls import reverse
 
 from expenses.models import (
     Account,
-    Category,
     CapitalEvent,
-    GoalContribution,
+    Category,
     Expense,
+    GoalContribution,
     Income,
     Loan,
     LoanRepayment,

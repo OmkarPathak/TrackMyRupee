@@ -2,11 +2,12 @@
 line-length = 88
 target-version = "py311"
 exclude = [
-    "migrations",
+    "**/migrations/*",
     "static",
     "media",
     "node_modules",
     ".venv",
+    "venv",
 ]
 
 [tool.ruff.lint]

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 posthog_utils.py — thin server-side PostHog capture helper.
 
@@ -14,10 +16,9 @@ in development and CI environments without any configuration.
 """
 
 import logging
+from typing import Any
 
 from django.conf import settings
-
-from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ def _get_client():
     return _client
 
 
-def ph_capture(user, event: str, properties: Optional[Dict[str, Any]] = None):
+def ph_capture(user, event: str, properties: dict[str, Any] | None = None):
     """
     Fire a PostHog event for an authenticated Django user.
 
@@ -70,7 +71,7 @@ def ph_capture(user, event: str, properties: Optional[Dict[str, Any]] = None):
         logger.debug('PostHog capture failed for event %s', event, exc_info=True)
 
 
-def ph_identify(user, extra_properties: Optional[Dict[str, Any]] = None):
+def ph_identify(user, extra_properties: dict[str, Any] | None = None):
 
     """
     Identify/update a user's Person profile in PostHog.

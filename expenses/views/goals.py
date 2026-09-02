@@ -16,10 +16,10 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
-from ..posthog_utils import ph_capture
 
 from ..forms import GoalContributionForm, SavingsGoalForm
 from ..models import GoalContribution, SavingsGoal
+from ..posthog_utils import ph_capture
 from .mixins import UUIDOrIntLookupMixin
 from .utils import (
     get_object_by_uuid_or_pk,
@@ -179,7 +179,8 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         }
 
     def _build_trend_data(self, goal, contributions_qs, estimated_days_left=None):
-        from django.db.models.functions import TruncDay, TruncMonth as TruncMonthFn
+        from django.db.models.functions import TruncDay
+        from django.db.models.functions import TruncMonth as TruncMonthFn
         today = timezone.localdate()
         labels = []
         values = []

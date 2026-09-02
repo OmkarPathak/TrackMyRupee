@@ -22,7 +22,6 @@ from .models import (
     SavingsGoal,
     Transfer,
 )
-from .utils import get_exchange_rate
 
 
 class LedgerPostingService:

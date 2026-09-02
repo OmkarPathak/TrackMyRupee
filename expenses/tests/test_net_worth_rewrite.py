@@ -17,7 +17,6 @@ Tests cover:
 
 import datetime
 from decimal import Decimal
-from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -27,7 +26,6 @@ from expenses.models import (
     Account,
     AssetValuation,
     Holding,
-    JournalEntry,
     Loan,
     LoanScheduleInstallment,
     PhysicalAsset,
@@ -66,7 +64,6 @@ def _post_transaction(user, account, amount, direction='DEBIT', description='Tes
     # Instead, use the adjustment helper that creates a balanced entry.
     # Post income to credit the account (increase balance)
     from expenses.ledger_service import LedgerPostingService as LPS
-    from expenses.models import Income
     version = 'TST-001'
     if direction == 'DEBIT':
         LPS.post_account_balance_adjustment(

@@ -37,8 +37,8 @@ from ..models import (
     RecurringTransaction,
     Transfer,
 )
-from .mixins import HtmxPartialTemplateMixin
 from ..posthog_utils import ph_capture
+from .mixins import HtmxPartialTemplateMixin
 
 
 class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):

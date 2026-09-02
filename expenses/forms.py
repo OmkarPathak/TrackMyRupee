@@ -327,9 +327,12 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         self.fields['to_account'].required = False
         self.fields['loan'].required = False
         self.fields['physical_asset'].required = False
+        self.fields['payment_method'].required = False
 
     def clean(self):
         cleaned_data = super().clean()
+        if not cleaned_data.get('payment_method'):
+            cleaned_data['payment_method'] = 'Cash'
         if self.instance and self.instance.pk and self.instance.transaction_type in ('LOAN', 'INSURANCE_PREMIUM'):
             cleaned_data['transaction_type'] = self.instance.transaction_type
         transaction_type = cleaned_data.get('transaction_type')
@@ -1053,7 +1056,9 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                         ).first()
 
                         if prem_amt and prem_freq and policy_start and payment_acc:
-                            from .account_valuation import PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY
+                            from .account_valuation import (
+                                PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY,
+                            )
                             rec_freq = PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY.get(prem_freq, 'YEARLY')
                             description = f"{asset.name} premium"
                             if rt:
@@ -1076,7 +1081,9 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                     description=description,
                                     is_active=True,
                                 )
-                            from .views.mixins import process_user_recurring_transactions
+                            from .views.mixins import (
+                                process_user_recurring_transactions,
+                            )
                             process_user_recurring_transactions(self.user, force=True)
                         elif rt:
                             rt.is_active = False

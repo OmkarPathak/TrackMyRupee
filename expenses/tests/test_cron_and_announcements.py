@@ -1,19 +1,18 @@
-import io
 import time
 from datetime import timedelta
 from unittest.mock import patch
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.messages.storage.cookie import CookieStorage
 from django.core import mail
 from django.core.cache import cache
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 
-from expenses.models import Announcement, EmailLog, UserProfile
+from expenses.context_processors import active_announcement
+from expenses.models import Announcement
 from expenses.views.notifications import (
     _dispatch_cron_command,
     trigger_announcements,
@@ -22,7 +21,6 @@ from expenses.views.notifications import (
     trigger_monthly_reports_view,
     trigger_notifications,
 )
-from expenses.context_processors import active_announcement
 
 
 class CronConcurrencyTests(TestCase):
@@ -186,7 +184,7 @@ class FeatureAnnouncementTests(TestCase):
         rf = RequestFactory()
         request = rf.post('/admin/expenses/announcement/')
         request.user = self.admin  # Admin running the action
-        setattr(request, '_messages', CookieStorage(request))
+        request._messages = CookieStorage(request)
 
         mail.outbox.clear()
         admin_obj.send_test_to_self(request, Announcement.objects.filter(id=ann.id))

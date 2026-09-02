@@ -35,8 +35,7 @@ from datetime import date as date_type
 from decimal import Decimal
 
 from django.conf import settings
-from django.db.models import Q, Sum
-from django.db.models.functions import Coalesce
+from django.db.models import Sum
 
 from .account_types import KIND, STRATEGY, classify, strategy_for
 from .fx import FXService
@@ -51,10 +50,8 @@ from .models import (
     LoanScheduleInstallment,
     PhysicalAsset,
     SavingsGoal,
-    Valuation,
 )
 from .utils import get_exchange_rate
-from .account_valuation import get_current_holdings
 
 logger = logging.getLogger(__name__)
 

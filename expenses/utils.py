@@ -323,6 +323,7 @@ def markdown_to_plain_text(md_text: str) -> str:
 
     import html
     import re
+
     from blog.templatetags.blog_extras import markdown as render_markdown
 
     # Render Markdown to HTML first

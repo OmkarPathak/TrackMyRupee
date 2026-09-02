@@ -294,13 +294,11 @@ class LedgerReadServiceTest(TestCase):
         # Mock exchange rate first returns 80.00 on creation, then 85.00 on deletion.
         with patch('expenses.models.get_exchange_rate') as mock_model_rate, \
              patch('expenses.fx.get_exchange_rate') as mock_fx_rate, \
-             patch('expenses.ledger_service.get_exchange_rate') as mock_service_rate, \
              patch('expenses.ledger_read_service.get_exchange_rate') as mock_read_rate_outer:
             
             # Setup mock returns:
             mock_model_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("85.00")]
             mock_fx_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("80.00"), Decimal("85.00"), Decimal("85.00"), Decimal("85.00")]
-            mock_service_rate.side_effect = [Decimal("80.00"), Decimal("80.00"), Decimal("80.00"), Decimal("85.00"), Decimal("85.00"), Decimal("85.00")]
             mock_read_rate_outer.return_value = Decimal("80.00")
             
             LedgerPostingService.post_opening_balance(account=self.cash)

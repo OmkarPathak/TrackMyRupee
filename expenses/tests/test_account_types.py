@@ -6,7 +6,6 @@ Unit tests for the expenses.account_types classification module.
 All tests are pure (no DB access). The module has no Django ORM dependencies.
 """
 
-from decimal import Decimal
 
 from django.test import TestCase
 

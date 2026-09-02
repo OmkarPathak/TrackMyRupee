@@ -7,7 +7,14 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from .models import Announcement, Loan, Notification, RecurringTransaction, SavingsGoal, UserProfile
+from .models import (
+    Announcement,
+    Loan,
+    Notification,
+    RecurringTransaction,
+    SavingsGoal,
+    UserProfile,
+)
 from .utils import translate_digits as ud
 
 

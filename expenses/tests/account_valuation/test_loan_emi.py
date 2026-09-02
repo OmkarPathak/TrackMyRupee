@@ -13,7 +13,6 @@ from expenses.models import (
     LoanInterestRate,
     LoanRepayment,
     LoanScheduleInstallment,
-    UserProfile,
 )
 
 

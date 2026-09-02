@@ -3,10 +3,9 @@ import logging
 from allauth.account.signals import user_logged_in, user_signed_up
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db.backends.signals import connection_created
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-from django.db.backends.signals import connection_created
 
 from .ledger_service import LedgerPostingService
 from .models import Account, Category, PhysicalAsset, RecurringTransaction, UserProfile

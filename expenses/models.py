@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import logging
 import os
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Optional
 
 import sentry_sdk
 from django.conf import settings
@@ -256,7 +257,7 @@ class Account(models.Model):
         return self.get_account_type_display()
 
     @property
-    def next_billing_date(self) -> Optional[date]:
+    def next_billing_date(self) -> date | None:
         from .account_types import STRATEGY, strategy_for
         from .utils import get_safe_date
 
@@ -1280,7 +1281,6 @@ class RecurringTransaction(models.Model):
             TU,
             WE,
             WEEKLY,
-            YEARLY,
             rrule,
         )
 

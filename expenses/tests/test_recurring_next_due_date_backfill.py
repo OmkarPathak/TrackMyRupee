@@ -1,8 +1,10 @@
 import importlib
 from datetime import date
+
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
+
 from expenses.models import RecurringTransaction
 
 migration_module = importlib.import_module('expenses.migrations.0090_backfill_recurringtransaction_next_due_date')

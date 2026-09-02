@@ -22,6 +22,7 @@ from ..models import (
 )
 from ..posthog_utils import ph_capture
 
+
 class DataExportView(LoginRequiredMixin, TemplateView):
     template_name = 'expenses/export_data.html'
 

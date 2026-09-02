@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
 from expenses.ledger_read_service import LedgerReadService
-from expenses.models import Account, UserProfile
+from expenses.models import Account
 
 
 class BackwardCompatibilityRegressionTestCase(TestCase):

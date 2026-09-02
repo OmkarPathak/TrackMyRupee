@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
+
 class AuthThemeTest(TestCase):
     def test_login_page_theme(self):
         response = self.client.get(reverse('account_login'))

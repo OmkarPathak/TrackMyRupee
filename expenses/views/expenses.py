@@ -1,7 +1,6 @@
 import calendar
 import json
 from datetime import datetime
-from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -23,7 +22,6 @@ from ..forms import ExpenseForm
 from ..models import Account, CapitalEvent, Category, Expense
 from ..parser import parse_expense_nl
 from ..posthog_utils import ph_capture
-from ..utils import get_exchange_rate
 from .mixins import (
     HtmxPartialTemplateMixin,
     RecurringTransactionMixin,

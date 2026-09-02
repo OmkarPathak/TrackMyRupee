@@ -1,12 +1,12 @@
+from __future__ import annotations
+
 import json
 import logging
 import time
 import urllib.request
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Optional, Tuple
 
-from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
@@ -19,7 +19,7 @@ class BaseNAVProvider:
     """Abstract base class for NAV providers (SPEC §3a)."""
     name = 'BASE'
 
-    def fetch_latest(self, scheme_code: str) -> Optional[Tuple[Decimal, date, Optional[str], Optional[str]]]:
+    def fetch_latest(self, scheme_code: str) -> tuple[Decimal, date, str | None, str | None] | None:
         """
         Fetches latest NAV for scheme_code.
         Returns tuple (latest_nav, nav_as_of_date, scheme_name, isin) or None if failed.
@@ -31,7 +31,7 @@ class MFAPIProvider(BaseNAVProvider):
     """Primary provider: MFapi.in (SPEC §3a)."""
     name = 'MFAPI'
 
-    def fetch_latest(self, scheme_code: str) -> Optional[Tuple[Decimal, date, Optional[str], Optional[str]]]:
+    def fetch_latest(self, scheme_code: str) -> tuple[Decimal, date, str | None, str | None] | None:
         scheme_code = str(scheme_code).strip()
         url = f"https://api.mfapi.in/mf/{scheme_code}/latest"
         
@@ -85,7 +85,7 @@ class AMFIProvider(BaseNAVProvider):
     name = 'AMFI'
     AMFI_URL = "https://www.amfiindia.com/spages/NAVAll.txt"
 
-    def fetch_latest(self, scheme_code: str) -> Optional[Tuple[Decimal, date, Optional[str], Optional[str]]]:
+    def fetch_latest(self, scheme_code: str) -> tuple[Decimal, date, str | None, str | None] | None:
         scheme_code = str(scheme_code).strip()
         lines = []
         try:
@@ -140,7 +140,7 @@ class NAVFetchService:
         self.primary = primary_provider or MFAPIProvider()
         self.fallback = fallback_provider or AMFIProvider()
 
-    def fetch_scheme(self, scheme_code: str, force: bool = False) -> Tuple[Optional[FundNAVCache], bool]:
+    def fetch_scheme(self, scheme_code: str, force: bool = False) -> tuple[FundNAVCache | None, bool]:
         """
         Fetches NAV for scheme_code and updates FundNAVCache + Valuation entries for active holdings.
         Returns (FundNAVCache, success_bool).

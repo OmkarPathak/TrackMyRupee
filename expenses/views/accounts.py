@@ -1,7 +1,6 @@
 from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
-from itertools import chain
 
 from django.conf import settings
 from django.contrib import messages
@@ -19,7 +18,6 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
-from ..posthog_utils import ph_capture
 
 from ..account_types import deposit_codes
 from ..account_valuation import get_baseline, get_current, get_interest_summary
@@ -36,6 +34,7 @@ from ..models import (
     Transfer,
     _run_ledger_shadow,
 )
+from ..posthog_utils import ph_capture
 from ..utils import get_exchange_rate
 from .mixins import (
     HtmxPartialTemplateMixin,

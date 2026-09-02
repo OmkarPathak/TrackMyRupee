@@ -10,7 +10,6 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
-from expenses.fx import FXService
 from expenses.ledger_service import LedgerPostingService
 from expenses.models import Account, Expense, FXRate, JournalEntry
 
@@ -58,7 +57,6 @@ class TestMultiCurrencyValuation(TestCase):
         self.patches = [
             patch('expenses.models.get_exchange_rate', side_effect=mock_get_rate),
             patch('expenses.fx.get_exchange_rate', side_effect=mock_get_rate),
-            patch('expenses.ledger_service.get_exchange_rate', side_effect=mock_get_rate),
             patch('expenses.ledger_read_service.get_exchange_rate', side_effect=mock_get_rate),
         ]
         for p in self.patches:
@@ -97,7 +95,6 @@ class TestMultiCurrencyValuation(TestCase):
     def test_create_reverse_cross_currency_nets_zero(self):
         """Posting an expense in a currency other than base, and then deleting it, nets exactly to zero in both currencies."""
         from expenses.ledger_read_service import LedgerReadService
-        from expenses.models import JournalEntry, JournalLine
 
         # Store FX rate USD -> INR (base currency is ₹/INR)
         FXRate.objects.create(from_currency='USD', to_currency='INR', rate=Decimal('80.00'), as_of_date=datetime.date.today())

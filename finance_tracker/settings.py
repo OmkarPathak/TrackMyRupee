@@ -506,3 +506,6 @@ LOGGING = {
         },
     },
 }
+
+# Custom Test Runner with parallel test traceback pickling support
+TEST_RUNNER = 'finance_tracker.test_runner.ParallelTestRunner'

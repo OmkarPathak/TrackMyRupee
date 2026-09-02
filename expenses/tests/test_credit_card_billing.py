@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 from unittest.mock import patch
 
 from django.contrib.auth.models import User

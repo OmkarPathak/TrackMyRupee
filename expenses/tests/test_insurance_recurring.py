@@ -7,8 +7,17 @@ from django.test import TestCase
 
 from expenses.account_valuation import PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY
 from expenses.forms import AccountForm, RecurringTransactionForm
-from expenses.management.commands.send_notifications import Command as SendNotificationsCommand
-from expenses.models import Account, Expense, Notification, PhysicalAsset, RecurringTransaction, UserProfile
+from expenses.management.commands.send_notifications import (
+    Command as SendNotificationsCommand,
+)
+from expenses.models import (
+    Account,
+    Expense,
+    Notification,
+    PhysicalAsset,
+    RecurringTransaction,
+    UserProfile,
+)
 
 
 class InsuranceRecurringTransactionTests(TestCase):
@@ -174,6 +183,7 @@ class InsuranceRecurringTransactionTests(TestCase):
             'transaction_type': 'INSURANCE_PREMIUM',
             'amount': '15000.00',
             'currency': '₹',
+            'payment_method': 'Cash',
             'account': self.payment_account.id,
             'physical_asset': policy.id,
             'frequency': 'YEARLY',

@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from expenses.account_valuation import get_baseline, get_current
+from expenses.account_valuation import get_current
 from expenses.models import Account, Loan, LoanInterestRate, LoanRepayment, UserProfile
 
 

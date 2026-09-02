@@ -4,7 +4,6 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
-from expenses.account_types import STRATEGY
 from expenses.account_valuation import get_baseline, get_current, get_display_value
 from expenses.ledger_read_service import LedgerReadService
 from expenses.models import (
@@ -15,10 +14,8 @@ from expenses.models import (
     Holding,
     Loan,
     LoanInterestRate,
-    LoanRepayment,
     LoanScheduleInstallment,
     PhysicalAsset,
-    UserProfile,
     Valuation,
 )
 
