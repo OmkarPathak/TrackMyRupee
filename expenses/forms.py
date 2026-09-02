@@ -1076,6 +1076,8 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                     description=description,
                                     is_active=True,
                                 )
+                            from .views.mixins import process_user_recurring_transactions
+                            process_user_recurring_transactions(self.user, force=True)
                         elif rt:
                             rt.is_active = False
                             rt.save(update_fields=['is_active'])

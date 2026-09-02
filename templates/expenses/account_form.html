@@ -78,12 +78,60 @@
     [data-bs-theme="dark"] .maturity-estimate-card .sub-info {
         color: #e5e7eb !important;
     }
+
+    /* Toggle Pill Styling (Matching Analytics Donut/Bar toggle) */
+    .chart-toggle-pill {
+        background-color: #e9ecef;
+        border-radius: 50px;
+        padding: 3px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        width: 100%;
+    }
+    [data-bs-theme="dark"] .chart-toggle-pill {
+        background-color: #2b3035;
+    }
+    .chart-toggle-pill .btn-toggle {
+        border-radius: 50px;
+        padding: 7px 14px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        color: #6c757d;
+        background: transparent;
+        border: none;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        box-shadow: none;
+        line-height: 1.3;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .chart-toggle-pill .btn-toggle:hover:not(.active) {
+        color: #343a40;
+    }
+    [data-bs-theme="dark"] .chart-toggle-pill .btn-toggle:hover:not(.active) {
+        color: #dee2e6;
+    }
+    .chart-toggle-pill .btn-toggle.active {
+        background-color: #ffffff;
+        color: #10b981;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+    }
+    [data-bs-theme="dark"] .chart-toggle-pill .btn-toggle.active {
+        background-color: #343a40;
+        color: #34d399;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    }
 </style>
 
 <script>
     function accountFormSetup() {
         return {
             accountType: '',
+            createNewAsset: '{{ form.create_new_asset.value|default:"CREATE_NEW" }}',
             fieldsMap: {{ form.fields_by_type_json|safe }},
             depositPrincipal: '{{ form.deposit_principal.value|default_if_none:"" }}',
             depositRate: '{{ form.deposit_rate.value|default_if_none:"" }}',
@@ -483,22 +531,135 @@
                             </div>
                         </div>
 
-                        <!-- Linked Physical Asset Section (PHYSICAL_VALUATION & INSURANCE_SURRENDER Strategies) -->
+                        <!-- Linked Physical Asset & Policy Section (PHYSICAL_VALUATION & INSURANCE_SURRENDER Strategies) -->
                         <div class="mb-3"
-                             x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('linked_physical_asset')"
+                             x-show="fieldsMap[accountType] && (fieldsMap[accountType].includes('linked_physical_asset') || fieldsMap[accountType].includes('asset_name'))"
                              x-cloak
-                             :aria-hidden="!(fieldsMap[accountType] && fieldsMap[accountType].includes('linked_physical_asset'))">
+                             :aria-hidden="!(fieldsMap[accountType] && (fieldsMap[accountType].includes('linked_physical_asset') || fieldsMap[accountType].includes('asset_name')))">
+                            
                             <div class="d-flex align-items-center gap-2 mb-3 text-muted small">
-                                <i class="bi bi-house-door text-primary fs-6"></i>
-                                <span>{% trans "Link property, vehicle, or real estate asset for valuation." %}</span>
+                                <i class="bi bi-house-door text-primary fs-6" x-show="accountType !== 'LIFE_INSURANCE'"></i>
+                                <i class="bi bi-shield-check text-primary fs-6" x-show="accountType === 'LIFE_INSURANCE'"></i>
+                                <span x-show="accountType !== 'LIFE_INSURANCE'">{% trans "Configure physical asset details (Real Estate, Vehicle, Property)." %}</span>
+                                <span x-show="accountType === 'LIFE_INSURANCE'">{% trans "Configure policy details, premium schedule, and payment account." %}</span>
                             </div>
-                            <div>
+
+                            <!-- Mode Selector: Create New vs Select Existing (Pill Toggle) -->
+                            <div class="mb-3">
+                                <label class="form-label text-muted small text-uppercase fw-bold mb-2">{% trans "Asset / Policy Setup" %}</label>
+                                <div class="chart-toggle-pill w-100">
+                                    <button type="button" 
+                                            class="btn-toggle" 
+                                            :class="{ 'active': createNewAsset === 'CREATE_NEW' }" 
+                                            @click="createNewAsset = 'CREATE_NEW'">
+                                        <i class="bi bi-plus-circle me-1"></i> {% trans "Create New Inline" %}
+                                    </button>
+                                    <button type="button" 
+                                            class="btn-toggle" 
+                                            :class="{ 'active': createNewAsset === 'SELECT' }" 
+                                            @click="createNewAsset = 'SELECT'">
+                                        <i class="bi bi-link-45deg me-1"></i> {% trans "Select Existing" %}
+                                    </button>
+                                </div>
+                                <input type="hidden" name="create_new_asset" :value="createNewAsset">
+                                {% if form.create_new_asset.errors %}
+                                    <div class="text-danger small mt-1">{{ form.create_new_asset.errors|first }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Select Existing Asset Dropdown -->
+                            <div class="mb-3" x-show="createNewAsset === 'SELECT'" x-cloak>
                                 <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Select Physical Asset" %}</label>
                                 {{ form.linked_physical_asset }}
-                                <div class="form-text">{% trans "Link property, vehicle, or real estate asset." %}</div>
+                                <div class="form-text">{% trans "Link an existing physical asset record." %}</div>
                                 {% if form.linked_physical_asset.errors %}
                                     <div class="text-danger small mt-1">{{ form.linked_physical_asset.errors|first }}</div>
                                 {% endif %}
+                            </div>
+
+                            <!-- Inline Asset / Policy Fields -->
+                            <div x-show="createNewAsset === 'CREATE_NEW'" x-cloak>
+                                <div class="row g-3">
+                                    <!-- Asset Name (Common) -->
+                                    <div class="col-12" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('asset_name')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Asset / Policy Name" %}</label>
+                                        {{ form.asset_name }}
+                                        <div class="form-text">{% trans "Descriptive name (e.g. Pune Apartment, Honda City, LIC Jeevan Anand)." %}</div>
+                                        {% if form.asset_name.errors %}
+                                            <div class="text-danger small mt-1">{{ form.asset_name.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Physical Valuation Specific Fields (Real Estate, Vehicle) -->
+                                    <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('acquisition_cost')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Acquisition Cost" %}</label>
+                                        {{ form.acquisition_cost }}
+                                        <div class="form-text">{% trans "Purchase price or cost." %}</div>
+                                        {% if form.acquisition_cost.errors %}
+                                            <div class="text-danger small mt-1">{{ form.acquisition_cost.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('acquisition_date')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Acquisition Date" %}</label>
+                                        {{ form.acquisition_date }}
+                                        <div class="form-text">{% trans "Date purchased or acquired." %}</div>
+                                        {% if form.acquisition_date.errors %}
+                                            <div class="text-danger small mt-1">{{ form.acquisition_date.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Insurance Policy Specific Fields (Life Insurance) -->
+                                    <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('policy_number')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Policy Number" %}</label>
+                                        {{ form.policy_number }}
+                                        {% if form.policy_number.errors %}
+                                            <div class="text-danger small mt-1">{{ form.policy_number.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('policy_start_date')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Policy Start Date" %}</label>
+                                        {{ form.policy_start_date }}
+                                        {% if form.policy_start_date.errors %}
+                                            <div class="text-danger small mt-1">{{ form.policy_start_date.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Sum Assured & Premium Amount on the Same Line (col-6 each) -->
+                                    <div class="col-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('sum_assured')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Sum Assured" %}</label>
+                                        {{ form.sum_assured }}
+                                        {% if form.sum_assured.errors %}
+                                            <div class="text-danger small mt-1">{{ form.sum_assured.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('premium_amount')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Premium Amount" %}</label>
+                                        {{ form.premium_amount }}
+                                        {% if form.premium_amount.errors %}
+                                            <div class="text-danger small mt-1">{{ form.premium_amount.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('premium_frequency')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Premium Frequency" %}</label>
+                                        {{ form.premium_frequency }}
+                                        {% if form.premium_frequency.errors %}
+                                            <div class="text-danger small mt-1">{{ form.premium_frequency.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('premium_payment_account')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Premium Payment Account" %}</label>
+                                        {{ form.premium_payment_account }}
+                                        <div class="form-text">{% trans "Bank/Cash account for premium payments." %}</div>
+                                        {% if form.premium_payment_account.errors %}
+                                            <div class="text-danger small mt-1">{{ form.premium_payment_account.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -509,7 +670,8 @@
                                 !fieldsMap[accountType].includes('deposit_rate') && 
                                 !fieldsMap[accountType].includes('credit_limit') && 
                                 !fieldsMap[accountType].includes('linked_loan') && 
-                                !fieldsMap[accountType].includes('linked_physical_asset')
+                                !fieldsMap[accountType].includes('linked_physical_asset') &&
+                                !fieldsMap[accountType].includes('asset_name')
                              )">
                             <i class="bi bi-info-circle me-1"></i>
                             {% trans "No additional configuration required for this account type. Click Save Account to finish." %}

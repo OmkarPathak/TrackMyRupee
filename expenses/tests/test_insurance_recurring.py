@@ -2,12 +2,13 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import TestCase
 
 from expenses.account_valuation import PREMIUM_FREQUENCY_TO_RECURRING_FREQUENCY
 from expenses.forms import AccountForm, RecurringTransactionForm
 from expenses.management.commands.send_notifications import Command as SendNotificationsCommand
-from expenses.models import Account, Notification, PhysicalAsset, RecurringTransaction, UserProfile
+from expenses.models import Account, Expense, Notification, PhysicalAsset, RecurringTransaction, UserProfile
 
 
 class InsuranceRecurringTransactionTests(TestCase):
@@ -343,3 +344,77 @@ class InsuranceRecurringTransactionTests(TestCase):
         account.save()
         rt.refresh_from_db()
         self.assertFalse(rt.is_active)
+
+    def test_past_start_date_auto_triggers_expense_and_advances_next_due_date(self):
+        """Creating/saving an insurance policy with a past start date automatically generates an Expense transaction."""
+        today = date.today()
+        past_start = today - timedelta(days=1)
+
+        form_data = {
+            'account_name': 'HDFC Ergo Term Insurance',
+            'account_type': 'LIFE_INSURANCE',
+            'currency': 'INR',
+            'opening_balance': '0',
+            'create_new_asset': 'CREATE_NEW',
+            'asset_name': 'HDFC Term Policy',
+            'policy_number': 'POL-999',
+            'sum_assured': '5000000',
+            'premium_amount': '15000.00',
+            'premium_frequency': 'ANNUAL',
+            'policy_start_date': past_start.strftime('%Y-%m-%d'),
+            'premium_payment_account': self.payment_account.id,
+        }
+
+        form = AccountForm(data=form_data, user=self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+        account = form.save()
+
+        # Check recurring transaction created
+        rt = RecurringTransaction.objects.get(physical_asset=account.linked_physical_asset, transaction_type='INSURANCE_PREMIUM')
+        self.assertEqual(rt.last_processed_date, past_start)
+        self.assertGreater(rt.next_due_date, today)
+
+        # Check Expense record generated
+        expense = Expense.objects.filter(
+            user=self.user,
+            account=self.payment_account,
+            amount=Decimal('15000.00'),
+            date=past_start
+        ).first()
+        self.assertIsNotNone(expense)
+        self.assertEqual(expense.category, 'Insurance')
+        self.assertIn('HDFC Term Policy premium', expense.description)
+
+    def test_cooldown_bypassed_when_schedules_due(self):
+        """process_user_recurring_transactions runs even if cooldown cache key exists when due items exist."""
+        today = date.today()
+        past_start = today - timedelta(days=1)
+
+        # Create schedule manually with past start date and not processed yet
+        rt = RecurringTransaction.objects.create(
+            user=self.user,
+            transaction_type='INSURANCE_PREMIUM',
+            account=self.payment_account,
+            amount=Decimal('5000.00'),
+            frequency='YEARLY',
+            start_date=past_start,
+            description="Test Policy Premium",
+            is_active=True,
+        )
+
+        # Simulate existing 24hr cooldown cache
+        cache_key = f'recurring_processed_{self.user.id}_{today}'
+        cache.set(cache_key, True, 86400)
+
+        # Call process_user_recurring_transactions without force
+        from expenses.views.mixins import process_user_recurring_transactions
+        process_user_recurring_transactions(self.user, force=False)
+
+        rt.refresh_from_db()
+        self.assertEqual(rt.last_processed_date, past_start)
+        self.assertGreater(rt.next_due_date, today)
+
+        # Verify expense was created
+        expense = Expense.objects.filter(user=self.user, date=past_start, amount=Decimal('5000.00')).first()
+        self.assertIsNotNone(expense)
+

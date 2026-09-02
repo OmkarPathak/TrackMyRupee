@@ -54,13 +54,15 @@ def process_user_recurring_transactions(user, force=False):
     today = timezone.localdate()
 
     # Skip if already processed today for this user (prevents redundant writes on every page load)
-    # Bypass cooldown when running unit tests ('test' in sys.argv) or when force=True
+    # Bypass cooldown when running unit tests ('test' in sys.argv), when force=True, or when user has due items (next_due_date <= today)
     import sys
     is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
     cooldown_key = f'recurring_processed_{user.id}_{today}'
     if not is_testing and not force:
-        if not cache.add(cooldown_key, True, 86400):  # atomic lock acquisition for 24 hours
-            return
+        has_due_items = RecurringTransaction.objects.filter(user=user, is_active=True, next_due_date__lte=today).exists()
+        if not has_due_items:
+            if not cache.add(cooldown_key, True, 86400):  # atomic lock acquisition for 24 hours
+                return
     else:
         cache.set(cooldown_key, True, 86400)
 
@@ -149,15 +151,15 @@ def process_user_recurring_transactions(user, force=False):
                 description = f"{rt.description} (Recurring)"
                 posted_successfully = False
                 
-                if rt.transaction_type == 'EXPENSE':
-                    category = rt.category or 'Uncategorized'
+                if rt.transaction_type in ('EXPENSE', 'INSURANCE_PREMIUM'):
+                    category = rt.category or ('Insurance' if rt.transaction_type == 'INSURANCE_PREMIUM' else 'Uncategorized')
                     exists = Expense.objects.filter(user=user, date=current_date, amount=rt.amount, description=description, currency=rt.currency, category=category).exists()
                     if not exists:
                         try:
                             Expense(
                                 user=user, date=current_date, amount=rt.amount,
                                 currency=rt.currency, category=category,
-                                description=description, payment_method=rt.payment_method,
+                                description=description, payment_method=rt.payment_method or 'OTHER',
                                 exchange_rate=exchange_rate, base_amount=base_amount,
                                 account=rt.account,
                             ).save()

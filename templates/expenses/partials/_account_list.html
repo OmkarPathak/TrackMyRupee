@@ -580,7 +580,7 @@
 })();
 </script>
 
-{% if messages %}
+{% if messages and request.META.HTTP_HX_REQUEST or messages and request.headers.hx_request %}
 <div id="django-messages-toast-container" hx-swap-oob="beforeend">
     {% for message in messages %}
     <div class="toast align-items-center text-bg-{% if message.tags == 'error' %}danger{% elif message.tags == 'info' %}info{% else %}{{ message.tags }}{% endif %} border-0 shadow-lg mb-2"
