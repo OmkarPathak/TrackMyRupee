@@ -869,35 +869,233 @@
         .price-amount { font-size: 32px !important; }
         .price-period { margin-bottom: 12px !important; }
 
-        /* BILLING TOGGLE */
-        .billing-toggle {
-            display: flex; align-items: center; justify-content: center; gap: 12px;
-            margin: 32px auto 0; width: fit-content;
+        /* PRICING REDESIGN */
+        .pricing-container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 4rem 1rem;
         }
-        .billing-toggle-label {
-            font-size: 14px; font-weight: 500; color: var(--ink3);
-            cursor: pointer; transition: color .2s; user-select: none;
+        
+        .pricing-tag {
+            font-size: 0.75rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.14em !important;
+            color: #059669 !important;
+            text-transform: uppercase !important;
         }
-        .billing-toggle-label.active { color: var(--ink); }
-        .billing-toggle-track {
-            position: relative; width: 48px; height: 26px;
-            background: var(--paper3); border-radius: 99px;
-            cursor: pointer; transition: background .2s;
-            border: 1.5px solid var(--border); flex-shrink: 0;
+
+        .pricing-title {
+            font-size: 2.5rem !important;
+            font-weight: 800 !important;
+            color: var(--bs-body-color, #18181b) !important;
+            letter-spacing: -0.03em !important;
+            line-height: 1.2 !important;
         }
-        .billing-toggle-track.yearly { background: var(--accent-light); border-color: var(--accent); }
-        .billing-toggle-thumb {
-            position: absolute; top: 3px; left: 3px;
-            width: 18px; height: 18px; border-radius: 50%;
-            background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+        @media (max-width: 768px) {
+            .pricing-title {
+                font-size: 1.85rem !important;
+            }
         }
-        .billing-toggle-track.yearly .billing-toggle-thumb { transform: translateX(22px); background: var(--accent); }
-        .billing-save-badge {
-            font-size: 11px; font-weight: 500;
-            background: var(--accent-light); color: var(--accent);
-            padding: 3px 10px; border-radius: 99px;
-            margin-left: 4px;
+
+        .pricing-subtitle {
+            font-size: 1rem !important;
+            color: var(--bs-secondary-color, #71717a) !important;
+            max-width: 580px !important;
+            margin: 0 auto !important;
+            line-height: 1.5 !important;
+        }
+
+        .billing-switch-wrapper {
+            background: #ffffff !important;
+            border: 1px solid #e4e4e7 !important;
+            border-radius: 9999px !important;
+            padding: 4px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .billing-pill-option {
+            padding: 8px 22px !important;
+            border-radius: 9999px !important;
+            font-size: 0.9rem !important;
+            cursor: pointer !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            user-select: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+
+        .billing-pill-option.fw-bold,
+        .billing-pill-option.active {
+            background-color: #059669 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35) !important;
+        }
+
+        .billing-pill-option.text-muted:not(.active):not(.fw-bold) {
+            background-color: transparent !important;
+            color: #71717a !important;
+        }
+
+        .discount-badge {
+            font-size: 0.72rem !important;
+            font-weight: 700 !important;
+            padding: 2px 7px !important;
+            border-radius: 9999px !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .billing-pill-option.text-muted:not(.active):not(.fw-bold) .discount-badge {
+            background: rgba(5, 150, 105, 0.12) !important;
+            color: #059669 !important;
+        }
+
+        .billing-pill-option.fw-bold .discount-badge,
+        .billing-pill-option.active .discount-badge {
+            background: rgba(255, 255, 255, 0.22) !important;
+            color: #ffffff !important;
+        }
+
+        .pricing-card {
+            border-radius: 24px !important;
+            transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            overflow: visible !important;
+        }
+
+        .pricing-card-light {
+            background: #ffffff !important;
+            border: 1px solid #e4e4e7 !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+            color: #18181b !important;
+        }
+
+        .pricing-card-dark {
+            background: #18181b !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
+            color: #ffffff !important;
+        }
+
+        .pricing-card-header {
+            padding: 2rem 2rem 1.25rem 2rem !important;
+        }
+
+        .pricing-card-body {
+            padding: 0 2rem 2rem 2rem !important;
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .plan-badge-label {
+            font-size: 0.8rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.08em !important;
+            text-transform: uppercase !important;
+        }
+
+        .pricing-card-light .plan-badge-label {
+            color: #71717a !important;
+        }
+
+        .pricing-card-dark .plan-badge-label {
+            color: #a1a1aa !important;
+        }
+
+        .price-display {
+            font-size: 2.75rem !important;
+            font-weight: 800 !important;
+            line-height: 1.1 !important;
+            letter-spacing: -0.03em !important;
+        }
+
+        .badge-most-popular {
+            background: #059669 !important;
+            color: #ffffff !important;
+            font-size: 0.68rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.08em !important;
+            padding: 6px 16px !important;
+            border-radius: 9999px !important;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45) !important;
+            text-transform: uppercase !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            white-space: nowrap !important;
+            z-index: 10 !important;
+        }
+
+        .feature-list {
+            list-style: none !important;
+            padding: 0 !important;
+            margin: 0 0 2rem 0 !important;
+            flex: 1 !important;
+        }
+
+        .feature-item {
+            display: flex !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+            margin-bottom: 0.9rem !important;
+            font-size: 0.92rem !important;
+            line-height: 1.4 !important;
+        }
+
+        .pricing-card-light .feature-item {
+            color: #27272a !important;
+        }
+
+        .pricing-card-dark .feature-item {
+            color: #e4e4e7 !important;
+        }
+
+        svg.check-icon,
+        .check-icon {
+            width: 18px !important;
+            height: 18px !important;
+            min-width: 18px !important;
+            max-width: 18px !important;
+            min-height: 18px !important;
+            max-height: 18px !important;
+            color: #059669 !important;
+            stroke: #059669 !important;
+            margin-top: 2px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .btn-emerald {
+            background-color: #059669 !important;
+            border-color: #059669 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .btn-emerald:hover {
+            background-color: #047857 !important;
+            border-color: #047857 !important;
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45) !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .btn-outline-pill {
+            border: 1px solid #d4d4d8 !important;
+            background: transparent !important;
+            color: #18181b !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .btn-outline-pill:hover {
+            border-color: #18181b !important;
+            background: rgba(0, 0, 0, 0.03) !important;
         }
 
         /* LANGUAGES */
@@ -1908,268 +2106,180 @@
 
 <!-- PRICING -->
 <section class="landing-section" id="pricing" style="background: var(--tmr-surface-1); border-top: 1px solid var(--tmr-surface-3); border-bottom: 1px solid var(--tmr-surface-3);">
-    <div class="container py-5 text-center">
-        <div class="section-tag mx-auto">{% trans "Simple pricing" %}</div>
-        <h2 class="section-title">{% trans "Less than a chai a day. More clarity than any spreadsheet." %}</h2>
-        <p class="section-sub mx-auto mb-2">{% trans "Replaces your expense logger, loan calculator, net worth tracker, and spreadsheets for less than ₹1.3/day. Start free, upgrade when you're ready." %}</p>
-        <p class="section-sub mx-auto mt-0" style="font-size: 14px; font-weight: 500; color: var(--tmr-teal-600);">{% trans "Trusted by paying subscribers across India — no investors, no pressure, just a product people choose to pay for." %}</p>
-        <!-- Billing Toggle -->
-        <div class="billing-toggle mb-5">
-            <span class="billing-toggle-label" id="lp-label-monthly">{% trans "Monthly" %}</span>
-            <div class="billing-toggle-track yearly" id="lp-billing-track" role="switch" aria-checked="true" aria-label="{% trans 'Toggle billing interval' %}" tabindex="0">
-                <div class="billing-toggle-thumb"></div>
-            </div>
-            <span class="billing-toggle-label active" id="lp-label-yearly">{% trans "Yearly" %} <span class="billing-save-badge">{% trans "Save ~40%" %}</span></span>
+    <div class="pricing-container fade-in">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <div class="pricing-tag mb-2">{% trans "SIMPLE PRICING" %}</div>
+            <h2 class="pricing-title mb-3">{% trans "Choose the plan that fits your financial goals" %}</h2>
+            <p class="pricing-subtitle">{% trans "Start free, upgrade when you need more power. No hidden fees, cancel anytime." %}</p>
         </div>
 
-        <div class="row g-4">
+        <!-- Monthly / Yearly Toggle -->
+        <div class="d-flex flex-column align-items-center mb-5">
+            <div class="billing-switch-wrapper mb-2">
+                <div id="lp-label-monthly" class="billing-pill-option text-muted" style="cursor: pointer;">
+                    {% trans "Monthly" %}
+                </div>
+                <div id="lp-label-yearly" class="billing-pill-option fw-bold active" style="cursor: pointer;">
+                    {% trans "Yearly" %} <span class="discount-badge">-17%</span>
+                </div>
+                <!-- Retain element for script logic -->
+                <div class="d-none" id="lp-billing-track" role="switch" aria-checked="true" aria-label="{% trans 'Toggle billing interval' %}" tabindex="0"></div>
+            </div>
+        </div>
+
+        <!-- Pricing Cards Grid -->
+        <div class="row row-cols-1 row-cols-lg-3 g-4 align-items-stretch mb-5 text-start">
             <!-- Free Plan -->
-            <div class="col-lg-4">
-                <div class="price-card h-100 text-start">
-                    <div class="mb-4">
-                        <div class="price-name">{{ PLAN_DETAILS.FREE.name }}</div>
-                        <p class="text-muted small mb-3">{{ PLAN_DETAILS.FREE.tagline }}</p>
-                        <div class="price-amount">₹{{ PLAN_DETAILS.FREE.price_yearly }}</div>
-                        <div class="price-period">{{ PLAN_DETAILS.FREE.pricing_note }}</div>
+            <div class="col">
+                <div class="pricing-card pricing-card-light hover-lift">
+                    <div class="pricing-card-header">
+                        <div class="plan-badge-label mb-2">{{ PLAN_DETAILS.FREE.name }}</div>
+                        <div class="price-display mb-1">
+                            ₹{{ PLAN_DETAILS.FREE.price_yearly }}
+                        </div>
+                        <div class="text-muted small mb-3">{{ PLAN_DETAILS.FREE.pricing_note }}</div>
+                        <div class="text-muted small fw-medium">{{ PLAN_DETAILS.FREE.tagline }}</div>
                     </div>
+                    <div class="pricing-card-body">
+                        <ul class="feature-list">
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "90 expenses / month" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "2 accounts · 5 budget categories" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "Full net worth tracking (2mo history)" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "AI insights included" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "Community support" %}</span>
+                            </li>
+                        </ul>
 
-                    <div class="pricing-features flex-grow-1 mb-4">
-                        <div class="feature-category-label py-2 border-bottom">{% trans "EXPENSES & TRACKING" %}</div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Expenses / month" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.expenses_per_month == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.FREE.limits.expenses_per_month }}{% endif %}</span>
+                        <div class="mt-auto">
+                            <a href="{% url 'account_signup' %}" class="btn btn-outline-pill rounded-pill w-100 fw-bold py-2-5 text-center text-decoration-none">{% trans "Get started free" %}</a>
                         </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Accounts" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.accounts == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.FREE.limits.accounts }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Loans" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.loans == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.FREE.limits.loans == 0 %}—{% else %}{{ PLAN_DETAILS.FREE.limits.loans }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Recurring transactions" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.recurring_transactions == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.FREE.limits.recurring_transactions == 0 %}—{% else %}{{ PLAN_DETAILS.FREE.limits.recurring_transactions }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Budget categories" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.budget_categories == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.FREE.limits.budget_categories }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Savings goals" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.savings_goals == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.FREE.limits.savings_goals }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom mb-4">
-                            <span class="text-muted">{% trans "Email notifications" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.FREE.limits.email_notifications|yesno:"✓,—" }}</span>
-                        </div>
-
-                        <div class="feature-category-label py-2 border-bottom">{% trans "ANALYTICS & INSIGHTS" %}</div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Dashboard" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.FREE.limits.dashboard }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Net worth tracking" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.net_worth_history == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.FREE.limits.net_worth_history }} {% trans "months" %}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "AI insights" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.ai_insights == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.FREE.limits.ai_insights %}✓{% else %}—{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom text-muted">
-                            <span class="text-muted">{% trans "Export CSV" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.export_csv %}✓{% else %}—{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom text-muted">
-                            <span class="text-muted">{% trans "Year in Review" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.FREE.limits.year_in_review %}✓{% else %}—{% endif %}</span>
-                        </div>
-
-                        <div class="feature-category-label py-2 border-bottom">{% trans "SUPPORT" %}</div>
-                        <div class="d-flex justify-content-between py-2">
-                            <span class="text-muted">{% trans "Support" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.FREE.limits.support }}</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-auto">
-                        <a href="{% url 'account_signup' %}" class="price-btn outline w-100">{% trans "Get started free" %}</a>
                     </div>
                 </div>
             </div>
-            <!-- Plus Plan -->
-            <div class="col-lg-4">
-                <div class="price-card featured h-100 text-start">
-                    <div class="mb-4">
-                        <div class="price-name">{{ PLAN_DETAILS.PLUS.name }}</div>
-                        <p class="text-muted small mb-3">{{ PLAN_DETAILS.PLUS.tagline }}</p>
-                        <div class="price-amount">
+
+            <!-- Plus Plan (Featured / Dark) -->
+            <div class="col">
+                <div class="pricing-card pricing-card-dark hover-lift">
+                    <span class="badge-most-popular">{% trans "MOST POPULAR" %}</span>
+                    <div class="pricing-card-header">
+                        <div class="plan-badge-label mb-2">{{ PLAN_DETAILS.PLUS.name }}</div>
+                        <div class="price-display mb-1">
                             <span class="lp-plan-price"
                                 data-monthly="{{ PLAN_DETAILS.PLUS.price_monthly }}"
                                 data-yearly="{{ PLAN_DETAILS.PLUS.price_yearly }}">
                                 ₹{{ PLAN_DETAILS.PLUS.price_yearly }}
                             </span>
+                            <small class="fs-6 opacity-75 lp-price-period">/{% trans "yr" %}</small>
                         </div>
-                        <div class="price-period lp-price-period">{{ PLAN_DETAILS.PLUS.pricing_note }}</div>
+                        <div class="opacity-75 small mb-3 alt-price-plus">or ₹49/mo</div>
+                        <div class="opacity-75 small fw-medium">{{ PLAN_DETAILS.PLUS.tagline }}</div>
                     </div>
+                    <div class="pricing-card-body">
+                        <ul class="feature-list">
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "Unlimited expenses" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "10 accounts · 1 loan · 5 recurring" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "15 budget categories · 5 goals" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "CSV export + Year in Review" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "Email support" %}</span>
+                            </li>
+                        </ul>
 
-                    <div class="pricing-features flex-grow-1 mb-4">
-                        <div class="feature-category-label py-2 border-bottom">{% trans "EXPENSES & TRACKING" %}</div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Expenses / month" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.expenses_per_month == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PLUS.limits.expenses_per_month }}{% endif %}</span>
+                        <div class="mt-auto">
+                            <a href="{% url 'account_signup' %}" class="btn btn-emerald rounded-pill w-100 fw-bold py-2-5 shadow lp-price-btn text-center text-decoration-none"
+                                data-label="{% trans 'Get Plus' %}"
+                                data-monthly="{{ plans_monthly.PLUS.price|default:'49'|floatformat:0 }}"
+                                data-yearly="{{ plans_yearly.PLUS.price|default:'299'|floatformat:0 }}"
+                            >{% trans "Get Plus" %}</a>
                         </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Accounts" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.accounts == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PLUS.limits.accounts }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Loans" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.loans == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.PLUS.limits.loans == 0 %}—{% else %}{{ PLAN_DETAILS.PLUS.limits.loans }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Recurring transactions" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.recurring_transactions == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.PLUS.limits.recurring_transactions == 0 %}—{% else %}{{ PLAN_DETAILS.PLUS.limits.recurring_transactions }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Budget categories" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.budget_categories == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PLUS.limits.budget_categories }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">{% trans "Savings goals" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.savings_goals == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PLUS.limits.savings_goals }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom mb-4">
-                            <span class="text-muted">{% trans "Email notifications" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.PLUS.limits.email_notifications|yesno:"✓,—" }}</span>
-                        </div>
-
-                        <div class="feature-category-label py-2 border-bottom">{% trans "ANALYTICS & INSIGHTS" %}</div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PLUS.limits.dashboard %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "Dashboard" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.PLUS.limits.dashboard }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PLUS.limits.net_worth %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "Net worth tracking" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.net_worth_history == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PLUS.limits.net_worth_history }} {% trans "months" %}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PLUS.limits.ai_insights %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "AI insights" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.ai_insights == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.PLUS.limits.ai_insights %}✓{% else %}—{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PLUS.limits.export_csv %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "Export CSV" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.export_csv %}✓{% else %}—{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PLUS.limits.year_in_review %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "Year in Review" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PLUS.limits.year_in_review %}✓{% else %}—{% endif %}</span>
-                        </div>
-
-                        <div class="feature-category-label py-2 border-bottom">{% trans "SUPPORT" %}</div>
-                        <div class="d-flex justify-content-between py-2">
-                            <span class="text-muted">{% trans "Support" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.PLUS.limits.support }}</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-auto">
-                        <a href="{% url 'account_signup' %}" class="price-btn solid lp-price-btn w-100"
-                            data-label="{% trans 'Get Plus' %}"
-                            data-monthly="{{ plans_monthly.PLUS.price|default:'49'|floatformat:0 }}"
-                            data-yearly="{{ plans_yearly.PLUS.price|default:'299'|floatformat:0 }}"
-                        >{% trans "Get Plus" %}</a>
                     </div>
                 </div>
             </div>
+
             <!-- Pro Plan -->
-            <div class="col-lg-4">
-                <div class="price-card h-100 text-start">
-                    <div class="mb-4">
-                        <div class="price-name">{{ PLAN_DETAILS.PRO.name }}</div>
-                        <p class="text-muted small mb-3">{{ PLAN_DETAILS.PRO.tagline }}</p>
-                        <div class="price-amount">
+            <div class="col">
+                <div class="pricing-card pricing-card-light hover-lift">
+                    <div class="pricing-card-header">
+                        <div class="plan-badge-label mb-2">{{ PLAN_DETAILS.PRO.name }}</div>
+                        <div class="price-display mb-1">
                             <span class="lp-plan-price"
                                 data-monthly="{{ PLAN_DETAILS.PRO.price_monthly }}"
                                 data-yearly="{{ PLAN_DETAILS.PRO.price_yearly }}">
                                 ₹{{ PLAN_DETAILS.PRO.price_yearly }}
                             </span>
+                            <small class="fs-6 text-muted lp-price-period">/{% trans "yr" %}</small>
                         </div>
-                        <div class="price-period lp-price-period">{{ PLAN_DETAILS.PRO.pricing_note }}</div>
+                        <div class="text-muted small mb-3 alt-price-pro">or ₹99/mo</div>
+                        <div class="text-muted small fw-medium">{{ PLAN_DETAILS.PRO.tagline }}</div>
                     </div>
+                    <div class="pricing-card-body">
+                        <ul class="feature-list">
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "Unlimited accounts, loans, recurring" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "Unlimited budget categories & goals" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "Full net worth history" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "CSV export + Year in Review" %}</span>
+                            </li>
+                            <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "7-day free trial · Priority support" %}</span>
+                            </li>
+                        </ul>
 
-                    <div class="pricing-features flex-grow-1 mb-4">
-                        <div class="feature-category-label py-2 border-bottom">{% trans "EXPENSES & TRACKING" %}</div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.expenses_per_month == -1 %}text-success{% endif %}">
-                            <span class="text-muted">{% trans "Expenses / month" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.expenses_per_month == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PRO.limits.expenses_per_month }}{% endif %}</span>
+                        <div class="mt-auto">
+                            <a href="{% url 'account_signup' %}" class="btn btn-outline-pill rounded-pill w-100 fw-bold py-2-5 shadow-sm lp-price-btn text-center text-decoration-none"
+                                data-label="{% trans 'Get Pro' %}"
+                                data-monthly="{{ plans_monthly.PRO.price|default:'99'|floatformat:0 }}"
+                                data-yearly="{{ plans_yearly.PRO.price|default:'499'|floatformat:0 }}"
+                            >{% trans "Get Pro" %}</a>
                         </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.accounts == -1 %}text-success{% endif %}">
-                            <span class="text-muted">{% trans "Accounts" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.accounts == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PRO.limits.accounts }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.loans == -1 %}text-success{% endif %}">
-                            <span class="text-muted">{% trans "Loans" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.loans == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.PRO.limits.loans == 0 %}—{% else %}{{ PLAN_DETAILS.PRO.limits.loans }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.recurring_transactions == -1 %}text-success{% endif %}">
-                            <span class="text-muted">{% trans "Recurring transactions" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.recurring_transactions == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.PRO.limits.recurring_transactions == 0 %}—{% else %}{{ PLAN_DETAILS.PRO.limits.recurring_transactions }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.budget_categories == -1 %}text-success{% endif %}">
-                            <span class="text-muted">{% trans "Budget categories" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.budget_categories == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PRO.limits.budget_categories }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.savings_goals == -1 %}text-success{% endif %}">
-                            <span class="text-muted">{% trans "Savings goals" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.savings_goals == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PRO.limits.savings_goals }}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom mb-4">
-                            <span class="text-muted">{% trans "Email notifications" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.PRO.limits.email_notifications|yesno:"✓,—" }}</span>
-                        </div>
-
-                        <div class="feature-category-label py-2 border-bottom">{% trans "ANALYTICS & INSIGHTS" %}</div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.dashboard %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "Dashboard" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.PRO.limits.dashboard }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.net_worth %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "Net worth tracking" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.net_worth_history == -1 %}{% trans "Unlimited" %}{% else %}{{ PLAN_DETAILS.PRO.limits.net_worth_history }} {% trans "months" %}{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.ai_insights %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "AI insights" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.ai_insights == -1 %}{% trans "Unlimited" %}{% elif PLAN_DETAILS.PRO.limits.ai_insights %}✓{% else %}—{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.export_csv %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "Export CSV / PDF" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.export_csv %}✓{% else %}—{% endif %}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom {% if PLAN_DETAILS.PRO.limits.year_in_review %}text-success{% else %}text-muted{% endif %}">
-                            <span class="text-muted">{% trans "Year in Review" %}</span>
-                            <span class="fw-bold">{% if PLAN_DETAILS.PRO.limits.year_in_review %}✓{% else %}—{% endif %}</span>
-                        </div>
-
-                        <div class="feature-category-label py-2 border-bottom">{% trans "SUPPORT" %}</div>
-                        <div class="d-flex justify-content-between py-2">
-                            <span class="text-muted">{% trans "Support" %}</span>
-                            <span class="fw-bold">{{ PLAN_DETAILS.PRO.limits.support }}</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-auto">
-                        <a href="{% url 'account_signup' %}" class="price-btn outline lp-price-btn w-100"
-                            data-label="{% trans 'Get Pro' %}"
-                            data-monthly="{{ plans_monthly.PRO.price|default:'99'|floatformat:0 }}"
-                            data-yearly="{{ plans_yearly.PRO.price|default:'499'|floatformat:0 }}"
-                        >{% trans "Get Pro" %}</a>
                     </div>
                 </div>
             </div>
         </div>
-        <p class="price-note mt-3">{% blocktrans %}14-day money back guarantee on paid plans. No credit card required for free tier.{% endblocktrans %}</p>
+
+        <!-- Guarantee Footer Note -->
+        <div class="text-center text-muted small mt-4 mb-2">
+            <span class="fw-semibold text-body">{% trans "AI insights and net worth tracking" %}</span> {% trans "are included on every plan. Cancel anytime, no lock-in." %}
+        </div>
     </div>
 </section>
 
@@ -2283,7 +2393,11 @@
         billingTrack.classList.toggle('yearly', isYearly);
         billingTrack.setAttribute('aria-checked', isYearly);
         labelMonthly.classList.toggle('active', !isYearly);
+        labelMonthly.classList.toggle('fw-bold', !isYearly);
+        labelMonthly.classList.toggle('text-muted', isYearly);
         labelYearly.classList.toggle('active', isYearly);
+        labelYearly.classList.toggle('fw-bold', isYearly);
+        labelYearly.classList.toggle('text-muted', !isYearly);
 
         document.querySelectorAll('.lp-plan-price').forEach(el => {
             const price = isYearly ? el.dataset.yearly : el.dataset.monthly;
@@ -2291,7 +2405,14 @@
         });
 
         document.querySelectorAll('.lp-price-period').forEach(el => {
-            el.textContent = isYearly ? '{% trans "per year · Early supporter price" %}' : '{% trans "per month" %}';
+            el.textContent = isYearly ? '/yr' : '/mo';
+        });
+
+        document.querySelectorAll('.alt-price-plus').forEach(el => {
+            el.textContent = isYearly ? 'or ₹49/mo' : 'or ₹499/yr';
+        });
+        document.querySelectorAll('.alt-price-pro').forEach(el => {
+            el.textContent = isYearly ? 'or ₹99/mo' : 'or ₹999/yr';
         });
 
         document.querySelectorAll('.lp-price-btn').forEach(el => {

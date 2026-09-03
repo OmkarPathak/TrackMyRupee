@@ -10,195 +10,212 @@
     }
     
     .pricing-tag {
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        color: #059669;
-        text-transform: uppercase;
+        font-size: 0.75rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.14em !important;
+        color: #059669 !important;
+        text-transform: uppercase !important;
     }
 
     .pricing-title {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: var(--bs-body-color);
-        letter-spacing: -0.03em;
-        line-height: 1.2;
+        font-size: 2.5rem !important;
+        font-weight: 800 !important;
+        color: var(--bs-body-color, #18181b) !important;
+        letter-spacing: -0.03em !important;
+        line-height: 1.2 !important;
     }
     @media (max-width: 768px) {
         .pricing-title {
-            font-size: 1.85rem;
+            font-size: 1.85rem !important;
         }
     }
 
     .pricing-subtitle {
-        font-size: 1rem;
-        color: var(--bs-secondary-color);
-        max-width: 580px;
-        margin: 0 auto;
-        line-height: 1.5;
+        font-size: 1rem !important;
+        color: var(--bs-secondary-color, #71717a) !important;
+        max-width: 580px !important;
+        margin: 0 auto !important;
+        line-height: 1.5 !important;
     }
 
     /* Custom Billing Switch */
     .billing-switch-wrapper {
-        background: var(--bs-body-bg, #ffffff);
-        border: 1px solid var(--bs-border-color, #e4e4e7);
-        border-radius: 9999px;
-        padding: 4px;
-        display: inline-flex;
-        align-items: center;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        background: #ffffff !important;
+        border: 1px solid #e4e4e7 !important;
+        border-radius: 9999px !important;
+        padding: 4px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+    }
+
+    [data-bs-theme="dark"] .billing-switch-wrapper {
+        background: #1f2328 !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
     }
 
     .billing-pill-option {
-        padding: 8px 22px;
-        border-radius: 9999px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        user-select: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        padding: 8px 22px !important;
+        border-radius: 9999px !important;
+        font-size: 0.9rem !important;
+        cursor: pointer !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        user-select: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
     }
 
-    .billing-pill-option.fw-bold {
+    .billing-pill-option.fw-bold,
+    .billing-pill-option.active {
         background-color: #059669 !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35) !important;
     }
 
-    .billing-pill-option.text-muted {
+    .billing-pill-option.text-muted:not(.active):not(.fw-bold) {
         background-color: transparent !important;
-        color: var(--bs-secondary-color, #71717a) !important;
+        color: #71717a !important;
     }
 
     .discount-badge {
-        font-size: 0.72rem;
-        font-weight: 700;
-        padding: 2px 7px;
-        border-radius: 9999px;
-        transition: all 0.2s ease;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        padding: 2px 7px !important;
+        border-radius: 9999px !important;
+        transition: all 0.2s ease !important;
     }
 
-    .billing-pill-option.text-muted .discount-badge {
-        background: rgba(5, 150, 105, 0.12);
-        color: #059669;
+    .billing-pill-option.text-muted:not(.active):not(.fw-bold) .discount-badge {
+        background: rgba(5, 150, 105, 0.12) !important;
+        color: #059669 !important;
     }
 
-    .billing-pill-option.fw-bold .discount-badge {
-        background: rgba(255, 255, 255, 0.22);
-        color: #ffffff;
+    .billing-pill-option.fw-bold .discount-badge,
+    .billing-pill-option.active .discount-badge {
+        background: rgba(255, 255, 255, 0.22) !important;
+        color: #ffffff !important;
     }
 
     /* Pricing Cards */
     .pricing-card {
-        border-radius: 24px;
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
+        border-radius: 24px !important;
+        transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        overflow: visible !important;
     }
 
     .pricing-card-light {
-        background: var(--bs-card-bg, #ffffff);
-        border: 1px solid var(--bs-border-color, #e4e4e7);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        background: #ffffff !important;
+        border: 1px solid #e4e4e7 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+        color: #18181b !important;
     }
 
     .pricing-card-dark {
-        background: #18181b;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-        color: #ffffff;
+        background: #18181b !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
+        color: #ffffff !important;
     }
 
     [data-bs-theme="dark"] .pricing-card-light {
-        background: #1f2328;
-        border-color: rgba(255, 255, 255, 0.1);
+        background: #1f2328 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        color: #f4f4f5 !important;
     }
 
     .pricing-card-header {
-        padding: 2rem 2rem 1.25rem 2rem;
+        padding: 2rem 2rem 1.25rem 2rem !important;
     }
 
     .pricing-card-body {
-        padding: 0 2rem 2rem 2rem;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+        padding: 0 2rem 2rem 2rem !important;
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     .plan-badge-label {
-        font-size: 0.8rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 0.8rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.08em !important;
+        text-transform: uppercase !important;
     }
 
     .pricing-card-light .plan-badge-label {
-        color: var(--bs-secondary-color, #71717a);
+        color: #71717a !important;
     }
 
     .pricing-card-dark .plan-badge-label {
-        color: #a1a1aa;
+        color: #a1a1aa !important;
     }
 
     .price-display {
-        font-size: 2.75rem;
-        font-weight: 800;
-        line-height: 1.1;
-        letter-spacing: -0.03em;
+        font-size: 2.75rem !important;
+        font-weight: 800 !important;
+        line-height: 1.1 !important;
+        letter-spacing: -0.03em !important;
     }
 
     .badge-most-popular {
-        background: #059669;
-        color: #ffffff;
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        padding: 6px 16px;
-        border-radius: 9999px;
-        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45);
-        text-transform: uppercase;
-        position: absolute;
-        top: 0;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        white-space: nowrap;
+        background: #059669 !important;
+        color: #ffffff !important;
+        font-size: 0.68rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.08em !important;
+        padding: 6px 16px !important;
+        border-radius: 9999px !important;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45) !important;
+        text-transform: uppercase !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        white-space: nowrap !important;
+        z-index: 10 !important;
     }
 
     /* Checkmark bullets */
     .feature-list {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 2rem 0;
-        flex: 1;
+        list-style: none !important;
+        padding: 0 !important;
+        margin: 0 0 2rem 0 !important;
+        flex: 1 !important;
     }
 
     .feature-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 0.9rem;
-        font-size: 0.92rem;
-        line-height: 1.4;
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        margin-bottom: 0.9rem !important;
+        font-size: 0.92rem !important;
+        line-height: 1.4 !important;
     }
 
     .pricing-card-light .feature-item {
-        color: var(--bs-body-color, #27272a);
+        color: #27272a !important;
     }
 
     .pricing-card-dark .feature-item {
-        color: #e4e4e7;
+        color: #e4e4e7 !important;
     }
 
+    svg.check-icon,
     .check-icon {
-        width: 18px;
-        height: 18px;
-        min-width: 18px;
-        color: #059669;
-        margin-top: 2px;
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        max-width: 18px !important;
+        min-height: 18px !important;
+        max-height: 18px !important;
+        color: #059669 !important;
+        stroke: #059669 !important;
+        margin-top: 2px !important;
+        flex-shrink: 0 !important;
     }
 
     /* Buttons */
@@ -206,40 +223,36 @@
         background-color: #059669 !important;
         border-color: #059669 !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
-        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
+        transition: all 0.2s ease !important;
     }
 
     .btn-emerald:hover {
         background-color: #047857 !important;
         border-color: #047857 !important;
-        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45);
-        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45) !important;
+        transform: translateY(-1px) !important;
     }
 
     .btn-outline-pill {
-        border: 1px solid var(--bs-border-color, #d4d4d8);
-        background: transparent;
-        color: var(--bs-body-color);
-        transition: all 0.2s ease;
+        border: 1px solid #d4d4d8 !important;
+        background: transparent !important;
+        color: #18181b !important;
+        transition: all 0.2s ease !important;
     }
 
     .btn-outline-pill:hover {
-        border-color: var(--bs-body-color);
-        background: rgba(0, 0, 0, 0.03);
+        border-color: #18181b !important;
+        background: rgba(0, 0, 0, 0.03) !important;
     }
 
     [data-bs-theme="dark"] .btn-outline-pill {
-        border-color: rgba(255, 255, 255, 0.2);
-        color: #ffffff;
-    }
-
-    [data-bs-theme="dark"] .btn-outline-pill:hover {
-        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        color: #ffffff !important;
     }
 
     .hover-lift:hover {
-        transform: translateY(-4px);
+        transform: translateY(-4px) !important;
     }
 </style>
 
@@ -291,23 +304,23 @@
                 <div class="pricing-card-body">
                     <ul class="feature-list">
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "90 expenses / month" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "2 accounts · 5 budget categories" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "Full net worth tracking (2mo history)" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "AI insights included" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "Community support" %}</span>
                         </li>
                     </ul>
@@ -333,31 +346,31 @@
                             data-yearly="{{ PLAN_DETAILS.PLUS.price_yearly }}">
                             ₹{{ PLAN_DETAILS.PLUS.price_yearly }}
                         </span>
-                        <small class="fs-6 opacity-75 plan-suffix">/{% trans "mo" %}</small>
+                        <small class="fs-6 opacity-75 plan-suffix">/{% trans "yr" %}</small>
                     </div>
-                    <div class="opacity-75 small mb-3 alt-price-plus">or ₹499/yr</div>
+                    <div class="opacity-75 small mb-3 alt-price-plus">or ₹49/mo</div>
                     <div class="opacity-75 small fw-medium">{{ PLAN_DETAILS.PLUS.tagline }}</div>
                 </div>
                 <div class="pricing-card-body">
                     <ul class="feature-list">
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "Unlimited expenses" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "10 accounts · 1 loan · 5 recurring" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "15 budget categories · 5 goals" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "CSV export + Year in Review" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "Email support" %}</span>
                         </li>
                     </ul>
@@ -384,31 +397,31 @@
                             data-yearly="{{ PLAN_DETAILS.PRO.price_yearly }}">
                             ₹{{ PLAN_DETAILS.PRO.price_yearly }}
                         </span>
-                        <small class="fs-6 text-muted plan-suffix">/{% trans "mo" %}</small>
+                        <small class="fs-6 text-muted plan-suffix">/{% trans "yr" %}</small>
                     </div>
-                    <div class="text-muted small mb-3 alt-price-pro">or ₹999/yr</div>
+                    <div class="text-muted small mb-3 alt-price-pro">or ₹99/mo</div>
                     <div class="text-muted small fw-medium">{{ PLAN_DETAILS.PRO.tagline }}</div>
                 </div>
                 <div class="pricing-card-body">
                     <ul class="feature-list">
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "Unlimited accounts, loans, recurring" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "Unlimited budget categories & goals" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "Full net worth history" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "CSV export + Year in Review" %}</span>
                         </li>
                         <li class="feature-item">
-                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             <span>{% trans "7-day free trial · Priority support" %}</span>
                         </li>
                     </ul>
@@ -493,8 +506,11 @@ function updatePricing() {
     // Update label styles
     labelMonthly.classList.toggle('text-muted', isYearly);
     labelMonthly.classList.toggle('fw-bold', !isYearly);
+    labelMonthly.classList.toggle('active', !isYearly);
+
     labelYearly.classList.toggle('text-muted', !isYearly);
     labelYearly.classList.toggle('fw-bold', isYearly);
+    labelYearly.classList.toggle('active', isYearly);
 
     // Update prices
     document.querySelectorAll('.plan-price').forEach(el => {

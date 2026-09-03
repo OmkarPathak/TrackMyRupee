@@ -1894,6 +1894,7 @@ def home_view(request):
         'TRANSFER': {'items': [], 'total': Decimal('0.00'), 'icon': '🔄', 'label': _('Transfers')},
         'LOAN': {'items': [], 'total': Decimal('0.00'), 'icon': '🏦', 'label': _('Loan Repayments')},
         'CAPITAL': {'items': [], 'total': Decimal('0.00'), 'icon': '💼', 'label': _('Capital Events')},
+        'INSURANCE_PREMIUM': {'items': [], 'total': Decimal('0.00'), 'icon': '🛡️', 'label': _('Insurance Premiums')},
     }
     
     total_recurring_commitment = Decimal('0.00')
@@ -1942,7 +1943,14 @@ def home_view(request):
         group['items'].sort(key=lambda x: x['date'])
 
     # Calculate Net Recurring Balance (Positive if surplus, Negative if deficit)
-    recurring_net_balance = recurring_groups['INCOME']['total'] - recurring_groups['EXPENSE']['total'] - recurring_groups['INVESTMENT']['total'] - recurring_groups['LOAN']['total'] - recurring_groups['CAPITAL']['total']
+    recurring_net_balance = (
+        recurring_groups['INCOME']['total']
+        - recurring_groups['EXPENSE']['total']
+        - recurring_groups['INVESTMENT']['total']
+        - recurring_groups['LOAN']['total']
+        - recurring_groups['CAPITAL']['total']
+        - recurring_groups['INSURANCE_PREMIUM']['total']
+    )
 
     # --- Expense Projection Chart Logic ---
     proj_labels = []
