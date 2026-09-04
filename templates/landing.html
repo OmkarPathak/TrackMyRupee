@@ -316,6 +316,7 @@
             padding: 10px 24px; border-radius: 99px;
             font-size: 14px; font-weight: 500;
             transition: background .2s, transform .15s;
+            display: inline-flex; align-items: center; justify-content: center;
         }
         .nav-cta:hover { background: var(--accent) !important; transform: translateY(-1px); }
 
@@ -356,7 +357,7 @@
             background: var(--tmr-teal-400);
             color: #ffffff;
             padding: 12px 22px;
-            border-radius: var(--radius-md);
+            border-radius: 99px;
             font-size: 14px;
             font-weight: 700;
             letter-spacing: -0.01em;
@@ -364,21 +365,21 @@
             border: none;
             cursor: pointer;
             transition: background .2s, transform .15s;
-            display: inline-flex; align-items: center; gap: var(--space-2);
+            display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
         }
         .btn-primary-landing:hover { background: var(--tmr-teal-600); transform: translateY(-1px); color: #ffffff; }
         .btn-secondary-landing {
             background: transparent;
             color: var(--tmr-ink-600);
             padding: 12px 18px;
-            border-radius: var(--radius-md);
+            border-radius: 99px;
             font-size: 14px;
             font-weight: 500;
             text-decoration: none;
             border: 1px solid var(--tmr-surface-3);
             cursor: pointer;
             transition: border-color .2s, transform .15s;
-            display: inline-flex; align-items: center; gap: var(--space-2);
+            display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
         }
         .btn-secondary-landing:hover { border-color: var(--tmr-ink-900); transform: translateY(-1px); color: var(--tmr-ink-900); }
         .hero-trust { display: flex; gap: 20px; margin-top: 28px; flex-wrap: wrap; }
@@ -834,8 +835,9 @@
         .price-features li { font-size: 14px; color: var(--tmr-ink-800); display: flex; align-items: flex-start; gap: 10px; line-height: 1.4; }
         .price-features li::before { content: '✓'; color: var(--tmr-teal-400); flex-shrink: 0; font-weight: 700; }
         .price-btn {
-            display: block; width: 100%; text-align: center;
-            padding: 12px; border-radius: var(--radius-md);
+            display: inline-flex; width: 100%; text-align: center;
+            align-items: center; justify-content: center;
+            padding: 12px; border-radius: 99px;
             font-size: 14px; font-weight: 700;
             text-decoration: none; cursor: pointer; border: none;
             transition: all .2s;
@@ -1077,6 +1079,9 @@
             color: #ffffff !important;
             box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
             transition: all 0.2s ease !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
         .btn-emerald:hover {
@@ -1091,6 +1096,9 @@
             background: transparent !important;
             color: #18181b !important;
             transition: all 0.2s ease !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
         .btn-outline-pill:hover {
