@@ -612,13 +612,14 @@ body.demo-mode .sidebar {
 .sidebar .nav-link {
   position: relative;
   color: #64748b;
-  padding: 0.6rem 0.85rem;
+  padding: 0.45rem 0.85rem;
   margin: 0.15rem 0;
   transition: all 0.15s ease-in-out;
   border: none;
   border-radius: 8px;
   font-weight: 500;
   font-size: 0.9rem;
+  line-height: 1.25;
   opacity: 1;
 }
 
@@ -724,12 +725,27 @@ body.demo-mode .sidebar {
 }
 
 .sidebar-section-title {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   font-weight: 700;
-  color: var(--bs-secondary-color);
-  opacity: 0.8;
+  color: #475569;
+  opacity: 1;
+  margin-top: 0.85rem !important;
+  margin-bottom: 0.3rem !important;
+  padding-top: 0.75rem !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-section-title:first-of-type {
+  border-top: none !important;
+  margin-top: 0.2rem !important;
+  padding-top: 0 !important;
+}
+
+[data-bs-theme="dark"] .sidebar-section-title {
+  color: #94a3b8;
+  border-top-color: rgba(255, 255, 255, 0.08);
 }
 
 .account-item {
@@ -873,6 +889,8 @@ body.has-sidebar {
 
   [data-bs-theme="dark"] body.has-sidebar main {
     background-color: rgba(255, 255, 255, 0.03) !important;
+    border-top: 0.5px solid rgba(255, 255, 255, 0.08) !important;
+    border-left: 0.5px solid rgba(255, 255, 255, 0.08) !important;
   }
 
   body.has-sidebar.demo-mode main {
