@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from ..account_types import investment_codes
 from ..ledger_read_service import LedgerReadService
-from ..models import Account, Expense, Income, Transfer
+from ..models import Account, CapitalEvent, Expense, Income, Transfer
 from ..templatetags.digit_filters import compact_amount
 from ..utils import get_exchange_rate
 
@@ -75,6 +75,14 @@ def mom_analysis_view(request):
     mo_cb_rf_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_cb_rf}
     mo_exp_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_exp}
     mo_inv_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inv}
+
+    # Add capital events (not excluded from averages) to the expense map
+    batch_cap = CapitalEvent.objects.filter(
+        user=user, date__gte=history_start, exclude_from_averages=False
+    ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+    for item in batch_cap:
+        key = (item['m'].year, item['m'].month)
+        mo_exp_map[key] = mo_exp_map.get(key, 0.0) + float(item['total'])
 
 
     # 2. Net Worth Calculation (Backwards reconstruction)

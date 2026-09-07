@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext as _
 
-from expenses.models import Account, EmailLog, Expense, Income
+from expenses.models import Account, CapitalEvent, EmailLog, Expense, Income
 from expenses.templatetags.digit_filters import compact_amount
 from expenses.utils import get_exchange_rate
 
@@ -117,6 +117,12 @@ class Command(BaseCommand):
         cb_rf_income = inc_qs.filter(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
         savings_rate_denominator = total_income - cb_rf_income
         total_expense = exp_qs.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
+
+        # Include capital events (not excluded from averages) in expense total
+        total_cap_events = CapitalEvent.objects.filter(
+            user=user, date__range=[start_date, end_date], exclude_from_averages=False
+        ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
+        total_expense += total_cap_events
         
         if total_income == 0 and total_expense == 0:
             return {'has_data': False}

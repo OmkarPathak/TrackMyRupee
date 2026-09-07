@@ -160,7 +160,7 @@
 
             <!-- Capital Events -->
             <div class="d-flex align-items-center position-relative px-0">
-                <a href="{% url 'capital-event-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'capital_event' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Capital Events' %}">
+                <a href="{% url 'capital-event-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'capital-event' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Capital Events' %}">
                     <i class="bi bi-gem fs-5"></i>
                     <span class="nav-text">{% trans "Capital Events" %}</span>
                 </a>

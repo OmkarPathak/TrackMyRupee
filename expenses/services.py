@@ -543,13 +543,21 @@ class SalaryAnalysisService:
             interest = (repay.interest_portion or Decimal('0')) * (repay.exchange_rate or Decimal('1'))
             total_loan_interest += interest
         
-        # Savings = Income - Expenses (including interest) - Principal
-        total_expenses_with_interest = total_expenses + total_loan_interest
+        # Include capital events (not excluded from averages) in expenses
+        total_cap_events = CapitalEvent.objects.filter(
+            user=user,
+            date__gte=cycle_start,
+            date__lte=cycle_end,
+            exclude_from_averages=False,
+        ).aggregate(total=Sum('base_amount'))['total'] or Decimal('0')
+
+        # Savings = Income - Expenses (including interest) - Principal - Capital Events
+        total_expenses_with_interest = total_expenses + total_loan_interest + total_cap_events
         savings = total_income - total_expenses_with_interest - total_loan_principal
         
         # Calculate daily burn
         num_days = (cycle_end - cycle_start).days + 1
-        daily_burn = total_expenses / num_days if num_days > 0 else Decimal('0')
+        daily_burn = (total_expenses + total_cap_events) / num_days if num_days > 0 else Decimal('0')
         
         # Calculate savings rate
         savings_rate = (savings / savings_rate_denominator * 100) if savings_rate_denominator > 0 else Decimal('0')
@@ -558,7 +566,7 @@ class SalaryAnalysisService:
             'cycle_start': cycle_start,
             'cycle_end': cycle_end,
             'total_income': float(total_income),
-            'total_expenses': float(total_expenses),
+            'total_expenses': float(total_expenses + total_cap_events),
             'total_loan_principal': float(total_loan_principal),
             'savings': float(savings),
             'daily_burn': float(daily_burn.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)),
