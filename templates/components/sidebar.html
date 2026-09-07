@@ -14,6 +14,17 @@
     
 
 
+    <!-- Quick Search / Find a page Trigger -->
+    <div class="px-3 mb-3 sidebar-search-container">
+        <button class="btn btn-search-trigger d-flex align-items-center justify-content-between w-100 py-2 px-3 border rounded-3 text-secondary bg-body-tertiary shadow-none" id="sidebarSearchTrigger" type="button" data-bs-toggle="modal" data-bs-target="#pageSearchModal" onclick="window.togglePageSearchModal()" title="{% trans 'Find a page... (⌘K)' %}">
+            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                <i class="bi bi-search flex-shrink-0 fs-6"></i>
+                <span class="nav-text small text-truncate">{% trans "Find a page" %}</span>
+            </div>
+            <kbd class="nav-text badge bg-body border text-secondary fw-normal px-1.5 py-1 flex-shrink-0 command-kbd" style="font-size: 0.65rem; font-family: inherit;">⌘ K</kbd>
+        </button>
+    </div>
+
     <!-- Sidebar Navigation -->
     <div class="sidebar-content flex-grow-1 overflow-y-auto px-0">
         <div class="nav flex-column gap-1">
@@ -175,7 +186,7 @@
             <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Settings" %}</div>
 
             <!-- Settings -->
-            <a href="{% url 'settings-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'settings' in request.resolver_match.url_name or 'settings' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Settings' %}">
+            <a href="{% url 'settings-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'settings' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Settings' %}">
                 <i class="bi bi-gear fs-5"></i>
                 <span class="nav-text">{% trans "Settings" %}</span>
             </a>
@@ -242,3 +253,146 @@
         </div>
     </div>
 </div>
+
+<!-- Quick Search / Command Palette Modal -->
+<div class="modal fade" id="pageSearchModal" tabindex="-1" aria-labelledby="pageSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-top modal-md mt-5">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom px-3 py-2 bg-body-tertiary">
+                <div class="input-group input-group-lg border-0 shadow-none">
+                    <span class="input-group-text bg-transparent border-0 pe-2 text-secondary">
+                        <i class="bi bi-search fs-5"></i>
+                    </span>
+                    <input type="text" id="pageSearchInput" class="form-control bg-transparent border-0 shadow-none ps-1 fs-6" placeholder="{% trans 'Find a page...' %}" autocomplete="off" aria-label="Search pages">
+                </div>
+                <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-2" style="max-height: 380px; overflow-y: auto;" id="pageSearchResults">
+                <div class="text-uppercase text-muted fw-bold px-3 py-2" style="font-size: 0.68rem; letter-spacing: 0.05em;">{% trans "Navigation Links" %}</div>
+                <div class="list-group list-group-flush border-0" id="pageSearchList">
+                    <a href="{% url 'home' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-speedometer2 fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Dashboard" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Overview of your monthly summary and stats" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'analytics' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-pie-chart fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Analytics" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Category distribution and insights" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'analytics-mom' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-graph-up-arrow fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Trends" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Month-over-month income and expense trends" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'all-transactions' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-list-columns-reverse fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Transactions" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Complete ledger of all transactions" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'expense-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-credit-card fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Expenses" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Manage and track individual expenses" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'income-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-cash-coin fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Income" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Track earnings, salary, and cash flow" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'budget' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-wallet2 fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Budgets" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Category budget limits and progress" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'recurring-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-arrow-repeat fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Subscriptions" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Recurring bills and subscriptions" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'calendar' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-calendar3 fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Calendar" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Schedule of upcoming dues and payments" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'account-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-bank fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Accounts" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Bank, cash, and wallet accounts" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'holding-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-pie-chart fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Holdings" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Investments and assets portfolio" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'capital-event-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-gem fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Capital Events" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Major purchases and capital activities" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'goal-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-bullseye fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Goals" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Savings goals and progress tracking" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'settings-home' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-gear fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Settings" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Profile, preferences, and account configuration" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                </div>
+                <div id="noPageSearchMatches" class="text-center py-4 text-muted d-none">
+                    <i class="bi bi-search fs-3 opacity-50 d-block mb-2"></i>
+                    <span>{% trans "No matching pages found" %}</span>
+                </div>
+            </div>
+            <div class="modal-footer bg-body-tertiary border-top px-3 py-2 d-flex justify-content-between align-items-center">
+                <small class="text-muted" style="font-size: 0.75rem;"><kbd class="badge bg-body text-secondary border fw-normal">↑</kbd> <kbd class="badge bg-body text-secondary border fw-normal">↓</kbd> {% trans "Navigate" %} &nbsp;&bull;&nbsp; <kbd class="badge bg-body text-secondary border fw-normal">↵</kbd> {% trans "Select" %}</small>
+                <small class="text-muted" style="font-size: 0.75rem;"><kbd class="badge bg-body text-secondary border fw-normal">ESC</kbd> {% trans "Close" %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+

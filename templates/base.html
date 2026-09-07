@@ -959,7 +959,9 @@
     </script>
 
     <main class="container pt-2 pt-lg-4 pb-4 flex-grow-1">
-        {% block content %}{% endblock %}
+        <div class="main-content-container">
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
     {% if not user.is_authenticated %}

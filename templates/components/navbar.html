@@ -1,7 +1,7 @@
 {% load static i18n %}
 {% if user.is_authenticated %}
 <!-- Unified Navbar for Authenticated Users -->
-<nav class="navbar navbar-expand-lg sticky-top d-none d-lg-flex bg-body-tertiary border-bottom">
+<nav class="navbar navbar-expand-lg sticky-top d-none d-lg-flex bg-body-tertiary">
     <div class="d-flex w-100 px-3">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2 d-lg-none" href="{% url 'home' %}">
             <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" width="32" height="32" class="d-inline-block align-text-top rounded-3">
