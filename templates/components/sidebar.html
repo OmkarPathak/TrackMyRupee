@@ -383,14 +383,85 @@
                         <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
                     </a>
                 </div>
+
+                <!-- Settings Sub-Pages -->
+                <div class="text-uppercase text-muted fw-bold px-3 pt-3 pb-2" style="font-size: 0.68rem; letter-spacing: 0.05em;">{% trans "Settings" %}</div>
+                <div class="list-group list-group-flush border-0" id="pageSearchSettingsList">
+                    <a href="{% url 'profile-settings' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-person-circle fs-5 text-secondary"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Profile" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Edit your name, email and personal info" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'currency-settings' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-currency-exchange fs-5 text-secondary"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Currency" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Change your default currency" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'language-settings' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-translate fs-5 text-secondary"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Language" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Select your preferred display language" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'upload' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-cloud-upload fs-5 text-secondary"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Upload" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Import transactions from a CSV file" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'export-data' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-cloud-download fs-5 text-secondary"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Export" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Download your data as a spreadsheet" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'category-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-tags fs-5 text-secondary"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Categories" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Manage expense and income categories" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'payment-history' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-receipt-cutoff fs-5 text-secondary"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Payments" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "View subscription and billing history" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                </div>
                 <div id="noPageSearchMatches" class="text-center py-4 text-muted d-none">
                     <i class="bi bi-search fs-3 opacity-50 d-block mb-2"></i>
                     <span>{% trans "No matching pages found" %}</span>
                 </div>
             </div>
             <div class="modal-footer bg-body-tertiary border-top px-3 py-2 d-flex justify-content-between align-items-center">
-                <small class="text-muted" style="font-size: 0.75rem;"><kbd class="badge bg-body text-secondary border fw-normal">↑</kbd> <kbd class="badge bg-body text-secondary border fw-normal">↓</kbd> {% trans "Navigate" %} &nbsp;&bull;&nbsp; <kbd class="badge bg-body text-secondary border fw-normal">↵</kbd> {% trans "Select" %}</small>
-                <small class="text-muted" style="font-size: 0.75rem;"><kbd class="badge bg-body text-secondary border fw-normal">ESC</kbd> {% trans "Close" %}</small>
+                <small class="text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                    <kbd class="badge bg-body text-secondary border fw-normal lh-1">↑</kbd>
+                    <kbd class="badge bg-body text-secondary border fw-normal lh-1">↓</kbd>
+                    <span>{% trans "Navigate" %}</span>
+                    <span class="mx-1 opacity-50">&bull;</span>
+                    <kbd class="badge bg-body text-secondary border fw-normal lh-1">↵</kbd>
+                    <span>{% trans "Select" %}</span>
+                </small>
+                <small class="text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                    <kbd class="badge bg-body text-secondary border fw-normal lh-1">ESC</kbd>
+                    <span>{% trans "Close" %}</span>
+                </small>
             </div>
         </div>
     </div>

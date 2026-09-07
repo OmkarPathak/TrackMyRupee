@@ -78,7 +78,7 @@
     let selectedIndex = -1;
 
     function getSearchItems() {
-        return Array.from(document.querySelectorAll('#pageSearchList .search-page-item'));
+        return Array.from(document.querySelectorAll('#pageSearchList .search-page-item, #pageSearchSettingsList .search-page-item'));
     }
 
     function filterPages(query) {
