@@ -38,17 +38,23 @@ def webpush_vapid_key(request):
 
 def notifications(request):
     """Provides unread notifications to all templates."""
-    if request.user.is_authenticated:
+    if not request.user.is_authenticated:
+        return {'notifications': [], 'has_unread_notifications': False}
+
+    cache_key = f'notifications_{request.user.id}'
+    result = cache.get(cache_key)
+    if result is None:
         # Evaluate once to avoid 3 separate queries (filter + exists + count)
         unread_notifications = list(
             Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:9]
         )
-        return {
+        result = {
             'notifications': unread_notifications,
             'has_unread_notifications': bool(unread_notifications),
             'unread_notifications_count': len(unread_notifications),
         }
-    return {'notifications': [], 'has_unread_notifications': False}
+        cache.set(cache_key, result, 60)  # 60-second TTL
+    return result
 
 def currency_symbol(request):
     """Provides the user's preferred currency symbol to all templates."""
@@ -188,6 +194,15 @@ def personalization(request):
 
 def active_announcement(request):
     """Provides the active modal feature announcement to all templates."""
+    tier = 'ANONYMOUS'
+    if request.user.is_authenticated and hasattr(request.user, 'profile'):
+        tier = request.user.profile.active_tier or 'FREE'
+
+    cache_key = f'active_announcement_{tier}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
         now = timezone.now()
         announcements = Announcement.objects.filter(
@@ -203,7 +218,6 @@ def active_announcement(request):
                 active = ann
                 break
             elif request.user.is_authenticated and hasattr(request.user, 'profile'):
-                tier = request.user.profile.active_tier
                 if ann.audience == 'PAID' and tier in ['PLUS', 'PRO']:
                     active = ann
                     break
@@ -211,10 +225,21 @@ def active_announcement(request):
                     active = ann
                     break
 
-        return {
+        result = {
             'active_announcement': active
         }
+
+        ttl = 300
+        if active and active.expires_at:
+            remaining = int((active.expires_at - now).total_seconds())
+            if remaining > 0:
+                ttl = min(300, remaining)
+
+        cache.set(cache_key, result, ttl)
+        return result
     except Exception:
         return {
             'active_announcement': None
         }
+
+

@@ -108,6 +108,20 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         current_status = self.request.GET.get('status', 'active')
         display_balances = {}
 
+        # Memoize exchange rate lookups within this request.
+        # get_exchange_rate may hit an external API or DB for each unique currency pair;
+        # with N accounts across K currencies this reduces calls from O(N×3) to O(K).
+        _rate_cache: dict = {}
+
+        def cached_rate(from_currency, to_currency):
+            key = (from_currency, to_currency)
+            if key not in _rate_cache:
+                try:
+                    _rate_cache[key] = get_exchange_rate(from_currency, to_currency)
+                except Exception:
+                    _rate_cache[key] = Decimal('1.0')
+            return _rate_cache[key]
+
         if current_status == 'active':
             try:
                 display_balances = LedgerReadService.get_account_balances(accounts)
@@ -148,7 +162,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             account.days_since_update = delta.days
 
             try:
-                rate = get_exchange_rate(account.currency, user_currency)
+                rate = cached_rate(account.currency, user_currency)
             except Exception:
                 rate = Decimal('1.0')
             bal_val = account.accrued_value if getattr(account, 'has_accrued_value', False) else account.display_balance
@@ -171,7 +185,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             pinned_total = Decimal('0.00')
             for acc in pinned_accs:
                 try:
-                    rate = get_exchange_rate(acc.currency, user_currency)
+                    rate = cached_rate(acc.currency, user_currency)
                 except Exception:
                     rate = Decimal('1.0')
                 bal_val = acc.accrued_value if getattr(acc, 'has_accrued_value', False) else acc.display_balance
@@ -201,7 +215,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             group_total = Decimal('0.00')
             for acc in group_accs:
                 try:
-                    rate = get_exchange_rate(acc.currency, user_currency)
+                    rate = cached_rate(acc.currency, user_currency)
                 except Exception:
                     rate = Decimal('1.0')
                 bal_val = acc.accrued_value if getattr(acc, 'has_accrued_value', False) else acc.display_balance
@@ -305,6 +319,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         # Build type_chips for all account categories so filter pills remain visible even when a type filter is active
         all_status_accounts = list(
             Account.objects.filter(user=self.request.user, is_active=(current_status == 'active'))
+            .only('id', 'name', 'account_type', 'is_pinned')
         )
         search_query = self.request.GET.get('search', '').strip()
         if search_query:

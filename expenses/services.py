@@ -3,6 +3,7 @@ import logging
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.core.cache import cache
 from django.db.models import F, Sum
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
@@ -29,12 +30,16 @@ class FinancialService:
     def get_monthly_history(user, months=6):
         """
         Returns a list of monthly income and expense totals for the last N months.
+        Results are cached per-user for 5 minutes to avoid re-running 3 DB queries
+        on every dashboard load.
         """
+        cache_key = f'monthly_history_{user.id}_{months}'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         today = timezone.now().date()
         history = []
-        
-        # We can optimize this by getting all data in 2 queries and grouping in Python,
-        # or using TruncMonth. Let's use TruncMonth for robustness.
         
         start_date = _month_start_offset(today, months - 1)
         
@@ -47,7 +52,6 @@ class FinancialService:
         ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount'))
 
         # Include Loan Repayment interest as expense
-        
         loan_repayment_qs = LoanRepayment.objects.filter(
             loan__user=user, date__gte=start_date, date__lte=today
         ).annotate(month=TruncMonth('date')).values('month').annotate(
@@ -66,22 +70,19 @@ class FinancialService:
             exp = float(expense_map.get(curr, 0)) + float(loan_interest_map.get(curr, 0))
             emi = float(loan_emi_map.get(curr, 0))
             
-            # Savings = Income - Expenses (including interest) - Principal portion
-            # Which is same as Income - (Expenses + Principal portion) = Income - (Expenses without interest + EMI)
-            # Actually, Income - Expense - EMI_Principal = Income - (Expense_with_interest) - EMI_Principal
-            
             history.append({
                 'month': curr,
                 'income': inc,
                 'expense': exp,
-                'savings': inc - exp - (emi - float(loan_interest_map.get(curr, 0))) # EMI - Interest = Principal
+                'savings': inc - exp - (emi - float(loan_interest_map.get(curr, 0)))
             })
             # Move to next month
             if curr.month == 12:
                 curr = curr.replace(year=curr.year + 1, month=1)
             else:
                 curr = curr.replace(month=curr.month + 1)
-                
+
+        cache.set(cache_key, history, 300)  # 5-minute TTL
         return history
 
     @staticmethod

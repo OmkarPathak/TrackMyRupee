@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.db.models import Sum
+from django.db.models import Case, Count, DecimalField, F, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -93,23 +93,24 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         }
         context['recurring_data'] = recurring_data
         
-        # Calculate stats for the filtered queryset
+        # Calculate stats and totals by group type for the filtered queryset in a single DB query
         filtered_queryset = self.object_list
-        context['filtered_count'] = filtered_queryset.count()
-        context['filtered_amount'] = filtered_queryset.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-        
-        # Calculate sums by group type
-        context['earned_total'] = filtered_queryset.filter(
-            source_type__in=['Salary', 'Freelance / Consulting', 'Business']
-        ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-        
-        context['passive_total'] = filtered_queryset.filter(
-            source_type__in=['Investment Returns', 'Rental Income']
-        ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-        
-        context['one_off_total'] = filtered_queryset.filter(
-            source_type__in=['Cashback & Rewards', 'Refund / Reimbursement', 'Other']
-        ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+        earned_types = ['Salary', 'Freelance / Consulting', 'Business']
+        passive_types = ['Investment Returns', 'Rental Income']
+        one_off_types = ['Cashback & Rewards', 'Refund / Reimbursement', 'Other']
+
+        stats = filtered_queryset.aggregate(
+            count=Count('id'),
+            total=Sum('base_amount'),
+            earned=Sum(Case(When(source_type__in=earned_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField())),
+            passive=Sum(Case(When(source_type__in=passive_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField())),
+            one_off=Sum(Case(When(source_type__in=one_off_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField())),
+        )
+        context['filtered_count'] = stats['count']
+        context['filtered_amount'] = stats['total'] or Decimal('0.00')
+        context['earned_total'] = stats['earned'] or Decimal('0.00')
+        context['passive_total'] = stats['passive'] or Decimal('0.00')
+        context['one_off_total'] = stats['one_off'] or Decimal('0.00')
 
         # Calculate monthly earned income for the last 6 months (chronological)
         current_date = timezone.now().date()

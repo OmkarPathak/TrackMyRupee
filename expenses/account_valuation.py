@@ -552,8 +552,15 @@ def get_interest_summary(user: User, start_date=None, end_date=None) -> dict[str
     """
     Compute DB-side interest summary reportable for a user across a date range.
     Returns {'interest_earned': Decimal, 'interest_charged': Decimal}.
+    Results are cached for 5 minutes to avoid 2-4 repeated queries per account list load.
     """
+    from django.core.cache import cache
     from .models import Expense, Income
+
+    cache_key = f'interest_summary_{user.id}_{start_date}_{end_date}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     income_qs = Income.objects.filter(user=user)
     expense_qs = Expense.objects.filter(user=user)
@@ -583,10 +590,12 @@ def get_interest_summary(user: User, start_date=None, end_date=None) -> dict[str
             category__iexact='Interest Charged'
         ).aggregate(total=Sum('base_amount'))['total'] or Decimal('0.00')
 
-    return {
+    result = {
         'interest_earned': income_interest,
         'interest_charged': expense_interest,
     }
+    cache.set(cache_key, result, 300)  # 5-minute TTL
+    return result
 
 
 def process_matured_deposit_incomes(user=None):

@@ -2729,6 +2729,20 @@ class FinancialAuditLog(models.Model):
         return f"{self.user.username} - {self.action} on {self.model_name} {self.object_id}"
 
 
+def invalidate_announcement_cache():
+    try:
+        from django.core.cache import cache
+        cache.delete_many([
+            'active_announcement_ANONYMOUS',
+            'active_announcement_FREE',
+            'active_announcement_PLUS',
+            'active_announcement_PRO',
+            'active_announcement_ALL',
+        ])
+    except Exception:
+        pass
+
+
 class Announcement(models.Model):
     AUDIENCE_CHOICES = [('ALL', 'All users'), ('PAID', 'Paid tiers'), ('FREE', 'Free tier')]
     STATUS_CHOICES = [('DRAFT', 'Draft'), ('QUEUED', 'Queued'), ('SENT', 'Sent')]
@@ -2755,5 +2769,14 @@ class Announcement(models.Model):
             if ext not in allowed:
                 raise ValidationError({'image': f"Unsupported image extension '{ext}'. Allowed extensions are: {', '.join(allowed)}"})
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        invalidate_announcement_cache()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        invalidate_announcement_cache()
+
     def __str__(self):
         return self.title
+

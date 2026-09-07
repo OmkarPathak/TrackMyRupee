@@ -434,13 +434,13 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
                             
         context['transactions'] = tx_list
 
-        # Total amount (Base Currency)
+        # Total amount (Base Currency) - reuse pre-calculated section sums to save 5 DB queries
         context['filtered_amount'] = (
-            (expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or 0) +
-            (incomes.aggregate(Sum('base_amount'))['base_amount__sum'] or 0) +
-            (transfers.aggregate(Sum('converted_amount'))['converted_amount__sum'] or 0) +
-            (loan_repayments.aggregate(Sum('base_amount'))['base_amount__sum'] or 0) +
-            (capital_events.aggregate(Sum('base_amount'))['base_amount__sum'] or 0)
+            context['expense_amount'] +
+            context['income_amount'] +
+            context['transfer_amount'] +
+            context['loan_amount'] +
+            context['capital_event_amount']
         )
 
         # Filter options

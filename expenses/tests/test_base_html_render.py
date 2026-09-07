@@ -21,9 +21,7 @@ class BaseHtmlRenderTest(TestCase):
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
 
-        # Verify Bootstrap CSS non-blocking attributes & noscript fallback
-        self.assertIn('media="print" onload="this.media=\'all\'"', content)
-        self.assertIn('<noscript>', content)
+        # Verify Bootstrap CSS link presence
         self.assertIn('bootstrap@5.3.3', content)
 
         # Verify defer on chart.js and htmx.org

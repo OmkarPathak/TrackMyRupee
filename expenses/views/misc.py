@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Case, Count, Q, Sum, When
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.formats import date_format
@@ -93,16 +93,24 @@ class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
             count=Count('id')
         )
         
-        # Get individual income records to identify Salary day
-        incomes_list = Income.objects.filter(income_filters)
+        # Get Income Data for the month via DB aggregation
+        income_qs = Income.objects.filter(income_filters).values('date').annotate(
+            total=Sum('base_amount'),
+            count=Count('id'),
+            salary_count=Count(Case(
+                When(Q(source_type='Salary') | Q(description__icontains='salary') | Q(source__icontains='salary'), then=1),
+                default=None
+            ))
+        )
         from collections import defaultdict
         income_map = defaultdict(lambda: {'total': 0, 'count': 0, 'has_salary': False})
-        for inc in incomes_list:
-            day = inc.date.day
-            income_map[day]['total'] += inc.base_amount
-            income_map[day]['count'] += 1
-            if inc.source_type == 'Salary' or 'salary' in (inc.description or '').lower() or 'salary' in (inc.source or '').lower():
-                income_map[day]['has_salary'] = True
+        for item in income_qs:
+            day = item['date'].day
+            income_map[day] = {
+                'total': item['total'] or 0,
+                'count': item['count'],
+                'has_salary': (item['salary_count'] or 0) > 0
+            }
 
         # Get investment data (Transfers to investment/FD accounts)
         investment_filters = Q(user=self.request.user, date__year=year, date__month=month, to_account__account_type__in=list(investment_codes()))

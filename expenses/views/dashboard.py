@@ -48,12 +48,17 @@ def home_view(request):
     """
     Dashboard view with filters and multiple charts.
     """
+    # Compute once — reused both for the onboarding redirect AND the year-in-review
+    # banner near the bottom of this view, avoiding a second identical EXISTS pair.
+    has_any_data = (
+        Expense.objects.filter(user=request.user).exists()
+        or Income.objects.filter(user=request.user).exists()
+    )
+
     # Defensive check: Redirect to onboarding if user has NO data AND hasn't finished the flow
     try:
-        if not request.user.profile.has_seen_tutorial:
-            has_any_data = Expense.objects.filter(user=request.user).exists() or Income.objects.filter(user=request.user).exists()
-            if not has_any_data:
-                return redirect('onboarding')
+        if not request.user.profile.has_seen_tutorial and not has_any_data:
+            return redirect('onboarding')
     except UserProfile.DoesNotExist:
         # Ensure profile exists, then redirect
         UserProfile.objects.get_or_create(user=request.user)
@@ -192,8 +197,13 @@ def home_view(request):
             incomes = incomes.filter(date__month__in=selected_months)
             investments = investments.filter(date__month__in=selected_months)
     
-    total_income = incomes.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-    total_cb_rf_income = incomes.filter(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+    # One aggregate call instead of two DB round-trips
+    _income_agg = incomes.aggregate(
+        total=Sum('base_amount'),
+        cb_rf=Sum('base_amount', filter=Q(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement'])),
+    )
+    total_income = _income_agg['total'] or 0
+    total_cb_rf_income = _income_agg['cb_rf'] or 0
     savings_rate_denominator = total_income - total_cb_rf_income
     total_investments = sum_transfers_base(investments)
     
@@ -290,8 +300,11 @@ def home_view(request):
         if selected_months:
             budget_events = budget_events.filter(date__month__in=selected_months)
             
-    for e in budget_events.iterator():
-        cat_name = e.get_subtype_display()
+    # Group by subtype in DB (one query returning N_distinct_subtypes rows) instead of
+    # fetching every CapitalEvent row into Python to sum them.
+    _subtype_display = dict(CapitalEvent._meta.get_field('subtype').flatchoices)
+    for item in budget_events.values('subtype').annotate(total=Sum('base_amount')):
+        cat_name = _subtype_display.get(item['subtype'], item['subtype'])
         matched_cat = None
         for uc_name in user_categories.keys():
             if uc_name.lower() == cat_name.lower():
@@ -299,8 +312,7 @@ def home_view(request):
                 break
         if matched_cat:
             cat_name = matched_cat
-            
-        merged_category_map[cat_name] = merged_category_map.get(cat_name, 0.0) + float(e.base_amount)
+        merged_category_map[cat_name] = merged_category_map.get(cat_name, 0.0) + float(item['total'])
     
     # Add Loan Interest to breakdown
     if total_loan_interest > 0:
@@ -514,7 +526,6 @@ def home_view(request):
     total_expenses_base = expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
     
     # Include capital events that are NOT excluded from averages (i.e. exclude_from_averages=False)
-    included_capital_events_total = Decimal('0.00')
     included_events_qs = CapitalEvent.objects.filter(user=request.user, exclude_from_averages=False)
     if effective_start_date or effective_end_date:
         if effective_start_date:
@@ -526,12 +537,14 @@ def home_view(request):
             included_events_qs = included_events_qs.filter(date__year__in=selected_years)
         if selected_months:
             included_events_qs = included_events_qs.filter(date__month__in=selected_months)
-            
-    for e in included_events_qs.iterator():
-        included_capital_events_total += e.base_amount
-        
+
+    # Single aggregate replaces both the Python-loop sum and the separate .count() call
+    _cap_agg = included_events_qs.aggregate(total=Sum('base_amount'), count=Count('id'))
+    included_capital_events_total = _cap_agg['total'] or Decimal('0.00')
+    _included_events_count = _cap_agg['count'] or 0
+
     total_expenses = total_expenses_base + total_loan_interest + included_capital_events_total
-    transaction_count = expenses.count() + loan_repayments_selected.count() + included_events_qs.count()
+    transaction_count = expenses.count() + loan_repayments_selected.count() + _included_events_count
     
     # Savings for display = Income - Operating Expenses - Interest Paid
     # (Does NOT include principal repayment, since principal is returning borrowed money, not spending)
@@ -842,7 +855,18 @@ def home_view(request):
     # --- Emotional Feedback / Insights Logic (Enhanced) ---
     
     insights = []
-    
+
+    # Pre-fetch maturing accounts once — used in both the Anomaly Detection alert block
+    # (is_current_month_view only) and the Smart Bullet Insights block (always).
+    # Avoids running the same identical Account query twice per request.
+    maturing_soon_accounts = list(Account.objects.filter(
+        user=request.user,
+        is_active=True,
+        deposit_maturity_date__isnull=False,
+        deposit_maturity_date__gte=now.date(),
+        deposit_maturity_date__lte=now.date() + timedelta(days=30),
+    ).order_by('deposit_maturity_date'))
+
     # helper for streaks
     def get_monthly_savings_status(u, y, m):
         status = monthly_summary_map.get((y, m), {'income': 0, 'expense': 0})
@@ -926,16 +950,8 @@ def home_view(request):
                         'allow_share': False
                     })
 
-        # 0.5 Fixed-Income Maturing Soon Alert
-        maturing_accounts = Account.objects.filter(
-            user=request.user,
-            is_active=True,
-            deposit_maturity_date__isnull=False,
-            deposit_maturity_date__gte=now.date(),
-            deposit_maturity_date__lte=now.date() + timedelta(days=30),
-        ).order_by('deposit_maturity_date')
-
-        for mat_acc in maturing_accounts:
+        # 0.5 Fixed-Income Maturing Soon Alert (uses pre-fetched list from above)
+        for mat_acc in maturing_soon_accounts:
             mat_date_str = date_format(mat_acc.deposit_maturity_date, 'd M Y')
             mat_amount_str = f"{mat_acc.currency}{compact_amount(mat_acc.balance, mat_acc.currency)}"
             insights.append({
@@ -1025,9 +1041,6 @@ def home_view(request):
                     y_calc -= 1
                 
                 m_cat_total = cat_3m_map.get((y_calc, m_calc), 0)
-                if m_cat_total > 0:
-                    cat_3_month_total += m_cat_total
-                    cat_months_counted += 1
                 if m_cat_total > 0:
                     cat_3_month_total += m_cat_total
                     cat_months_counted += 1
@@ -1561,8 +1574,7 @@ def home_view(request):
             _(" At this pace (using your year-to-date average), you could save {proj} by year's end."),
             proj=proj_bold
         )
-    # Check for onboarding (True if user has NO data at all)
-    has_any_data = Expense.objects.filter(user=request.user).exists() or Income.objects.filter(user=request.user).exists()
+    # has_any_data was computed once at the very top of this view — no second query needed.
 
     # Logic for "Year in Review" Banner
     show_year_in_review = False
@@ -1668,15 +1680,8 @@ def home_view(request):
         })
 
     # Maturing Fixed-Income Accounts Bullet Insight
-    maturing_bullet_accounts = Account.objects.filter(
-        user=request.user,
-        is_active=True,
-        deposit_maturity_date__isnull=False,
-        deposit_maturity_date__gte=now.date(),
-        deposit_maturity_date__lte=now.date() + timedelta(days=30),
-    ).order_by('deposit_maturity_date')
-
-    for mat_acc in maturing_bullet_accounts:
+    # Reuse the pre-fetched list from above — no second DB query
+    for mat_acc in maturing_soon_accounts:
         mat_date_str = date_format(mat_acc.deposit_maturity_date, 'd M Y')
         mat_amount_str = f"{mat_acc.currency}{compact_amount(mat_acc.balance, mat_acc.currency)}"
         raw_insights.append({

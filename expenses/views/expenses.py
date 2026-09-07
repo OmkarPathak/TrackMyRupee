@@ -88,10 +88,11 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Calculate stats for the filtered queryset
+        # Calculate stats for the filtered queryset in a single DB query
         filtered_queryset = self.object_list
-        context['filtered_count'] = filtered_queryset.count()
-        context['filtered_amount'] = filtered_queryset.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+        stats = filtered_queryset.aggregate(count=Count('id'), total=Sum('base_amount'))
+        context['filtered_count'] = stats['count']
+        context['filtered_amount'] = stats['total'] or 0
 
         # Get unique years and categories for validation
         user_expenses = Expense.objects.filter(user=self.request.user)

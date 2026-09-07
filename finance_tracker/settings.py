@@ -271,10 +271,25 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Cache — use Redis when available, fall back to local memory cache.
-# Redis dramatically speeds up context processors and recurring-tx cooldowns.
+# ---------------------------------------------------------------------------
+# Cache — single definition that handles all environments.
+# Priority: test → Redis (if REDIS_URL set) → LocMemCache
+#
+# Production (no Redis): LocMemCache — in-process, no disk I/O.
+# Capped at 500 entries (~10–20 MB) to stay safe on the 512 MB server.
+# Per-process (not shared across gunicorn workers), but all cache TTLs
+# are intentionally short (60–300 s) so stale data is bounded.
+# ---------------------------------------------------------------------------
 _redis_url = os.environ.get('REDIS_URL')
-if _redis_url:
+
+if 'test' in sys.argv:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'test-cache',
+        }
+    }
+elif _redis_url:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.redis.RedisCache',
@@ -287,6 +302,9 @@ else:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'OPTIONS': {
+                'MAX_ENTRIES': 500,  # ~10-20 MB; safe for 512 MB RAM
+            }
         }
     }
 
@@ -438,24 +456,7 @@ LEDGER_READ_COHORT_USER_IDS = _env_int_set('LEDGER_READ_COHORT_USER_IDS')
 LEDGER_READ_EXCLUDE_USER_IDS = _env_int_set('LEDGER_READ_EXCLUDE_USER_IDS')
 NET_WORTH_EXTENDED_MODELS_ENABLED = _env_bool('NET_WORTH_EXTENDED_MODELS_ENABLED', True)
 
-if 'test' in sys.argv:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'test-cache',
-        }
-    }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-            'LOCATION': '/tmp/django_cache',
-            'TIMEOUT': 600,
-            'OPTIONS': {
-                'MAX_ENTRIES': 1000
-            }
-        }
-    }
+# (Cache backend is configured above — single definition, no override needed.)
 
 # Logging
 # Routes the 'expenses' logger (used by ledger read compare) to the console.

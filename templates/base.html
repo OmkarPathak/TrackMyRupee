@@ -88,6 +88,11 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    {% if POSTHOG_API_KEY %}
+    <link rel="preconnect" href="https://us-assets.i.posthog.com" crossorigin>
+    <link rel="preconnect" href="https://us.i.posthog.com" crossorigin>
+    {% endif %}
 
     <!-- Preload critical stylesheets -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style"
@@ -336,14 +341,7 @@
         {% block extra_head %}{% endblock %}
 
     <!-- Google Fonts (Unifying with Landing Page) -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet" media="print" onload="this.media='all'">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    </noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- PWA -->
     <link rel="manifest" href="{% url 'manifest' %}">
@@ -358,7 +356,7 @@
         // Pass hashed static URL to iOS splash generator
         window.PWA_ICON_URL = "{% static 'img/pwa-icon-512.png' %}";
     </script>
-    <script src="{% static 'js/ios-pwa-splash.js' %}"></script>
+    <script defer src="{% static 'js/ios-pwa-splash.js' %}"></script>
 
     <!-- Service Worker -->
     <script>
@@ -547,19 +545,13 @@
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"
-        media="print" onload="this.media='all'">
-    <noscript>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-            integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    </noscript>
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" media="print" onload="this.media='all'">
-    <noscript>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    </noscript>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     {% load static %}
+    <!-- Preload critical local stylesheet so the browser fetches it in parallel -->
+    <link rel="preload" href="{% static 'style.css' %}?v=1.9" as="style">
     <link rel="stylesheet" href="{% static 'style.css' %}?v=1.9">
     <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.4">
     <link rel="stylesheet" href="{% static 'css/dashboard_filter.css' %}">
@@ -1132,8 +1124,8 @@
     <!-- Block for Modals -->
     {% block modals %}{% endblock %}
 
-    <!-- Skeleton Loader JS (must load before loader logic) -->
-    <script src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
+    <!-- Skeleton Loader JS — deferred so it doesn't block first paint -->
+    <script defer src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 
@@ -1325,7 +1317,7 @@
     </script>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
 
@@ -1745,7 +1737,7 @@
     {% include 'components/cookie_consent.html' %}
 
     {% block scripts %}{% endblock %}
-    <script src="{% static 'js/sidebar.js' %}"></script>
+    <script defer src="{% static 'js/sidebar.js' %}"></script>
     {% block extra_body %}{% endblock %}
 
     {% if user.is_authenticated %}
