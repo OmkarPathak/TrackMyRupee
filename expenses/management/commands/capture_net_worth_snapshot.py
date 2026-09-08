@@ -46,16 +46,16 @@ class Command(BaseCommand):
                     from django.conf import settings
                     if getattr(settings, 'NET_WORTH_EXTENDED_MODELS_ENABLED', False):
                         from expenses.account_types import KIND, classify
-                        accounts = list(user.accounts.filter(is_active=True))
+                        acc_type_map = dict(
+                            user.accounts.filter(is_active=True).values_list('id', 'account_type')
+                        )
                         total_assets = sum(
-                            v for a in accounts
-                            if classify(a.account_type)[0] == KIND.ASSET
-                            and (v := account_balances.get(a.pk)) is not None
+                            v for pk, v in account_balances.items()
+                            if classify(acc_type_map.get(pk, 'OTHER'))[0] == KIND.ASSET
                         )
                         total_liabilities = sum(
-                            abs(v) for a in accounts
-                            if classify(a.account_type)[0] == KIND.LIABILITY
-                            and (v := account_balances.get(a.pk)) is not None
+                            abs(v) for pk, v in account_balances.items()
+                            if classify(acc_type_map.get(pk, 'OTHER'))[0] == KIND.LIABILITY
                         )
                     else:
                         # Legacy heuristic (preserved for flag-off path)

@@ -11,6 +11,8 @@ from django.utils import timezone
 from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext as _
 
+from expenses.account_types import resolve_category_selector
+from expenses.ledger_read_service import LedgerReadService
 from expenses.models import Account, CapitalEvent, EmailLog, Expense, Income
 from expenses.templatetags.digit_filters import compact_amount
 from expenses.utils import get_exchange_rate
@@ -57,46 +59,43 @@ class Command(BaseCommand):
         sent_count = 0
         for user in users:
             try:
-                subject = f"Your Financial Summary for {month_name} 📊"
-                if EmailLog.objects.filter(user=user, subject=subject, status='SENT').exists():
-                    self.stdout.write(f"Report for {month_name} already sent to {user.email}, skipping.")
+                report_data = self.get_report_data(user, start_date, end_date)
+                if not report_data or not report_data.get('has_data'):
                     continue
 
-                data = self.get_report_data(user, start_date, end_date)
-                if not data['has_data']:
+                if options['test']:
+                    self.stdout.write(f"--- Report Data for {user.username} ({start_date} to {end_date}) ---")
+                    self.stdout.write(str(report_data))
                     continue
 
-                if options.get('test'):
-                    self.stdout.write(f"User: {user.email} - NW: {data['nw_at_end']}, Savings: {data['savings']}")
-                    continue
-
-                # Render and send email
-                context = {
+                html_message = render_to_string('emails/monthly_report.html', {
                     'user': user,
-                    'month_name': month_name,
-                    'data': data,
-                    'currency_symbol': user.profile.currency if hasattr(user, 'profile') else '₹',
-                }
-                
-                html_message = render_to_string('emails/monthly_report.html', context)
-                
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'data': report_data,
+                    'currency_symbol': user.profile.currency if hasattr(user, 'profile') else '₹'
+                })
+
+                month_name = end_date.strftime('%B %Y')
+                subject = f"Your Monthly Financial Report - {month_name}"
+
                 send_mail(
                     subject=subject,
-                    message=f"Greetings {user.username}, Your monthly financial summary for {month_name} is ready. Check it out on TrackMyRupee!",
+                    message="",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
                     html_message=html_message,
+                    fail_silently=False
                 )
-                
+
                 EmailLog.objects.create(
                     user=user,
                     to_email=user.email,
                     subject=subject,
-                    body=f"Greetings {user.username}, Your monthly financial summary for {month_name} is ready.",
+                    body=subject,
                     html_body=html_message,
-                    status='SENT',
+                    status='SENT'
                 )
-
                 sent_count += 1
                 if sent_count % 10 == 0:
                     self.stdout.write(f"Sent {sent_count} reports...")
@@ -108,11 +107,11 @@ class Command(BaseCommand):
 
     def get_report_data(self, user, start_date, end_date):
         currency_symbol = user.profile.currency if hasattr(user, 'profile') else '₹'
-        
+
         # 1. Transactions - Using base_amount for multi-currency compatibility
         inc_qs = Income.objects.filter(user=user, date__range=[start_date, end_date])
         exp_qs = Expense.objects.filter(user=user, date__range=[start_date, end_date])
-        
+
         total_income = inc_qs.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
         cb_rf_income = inc_qs.filter(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
         savings_rate_denominator = total_income - cb_rf_income
@@ -123,46 +122,62 @@ class Command(BaseCommand):
             user=user, date__range=[start_date, end_date], exclude_from_averages=False
         ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
         total_expense += total_cap_events
-        
+
         if total_income == 0 and total_expense == 0:
             return {'has_data': False}
 
         savings = total_income - total_expense
         savings_rate = round((savings / savings_rate_denominator * 100), 1) if savings_rate_denominator > 0 else 0
-        
-        # 2. Top 3 Categories
-        top_categories = exp_qs.values('category').annotate(
+
+        # 2. Top 10 Categories with percentage
+        top_cats_raw = list(exp_qs.values('category').annotate(
             total=Sum('base_amount')
-        ).order_by('-total')[:3]
-        
-        # 3. Net Worth Change (Reconstruction)
-        accounts = Account.objects.filter(user=user)
-        current_nw = Decimal('0.00')
-        for acc in accounts:
-            if acc.currency == currency_symbol:
-                current_nw += acc.balance
-            else:
-                rate = get_exchange_rate(acc.currency, currency_symbol)
-                current_nw += (acc.balance * rate).quantize(Decimal('0.01'))
-        
-        # Calculate cashflow from end of report month until today to find NW at end of report month
-        today = timezone.now().date()
-        cashflow_since_report = Income.objects.filter(user=user, date__gt=end_date, date__lte=today).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
-        expense_since_report = Expense.objects.filter(user=user, date__gt=end_date, date__lte=today).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
-        
-        nw_at_end = current_nw - (cashflow_since_report - expense_since_report)
+        ).order_by('-total')[:10])
+        top_cat_total = sum(c['total'] for c in top_cats_raw) or Decimal('1')
+        top_categories = [
+            {**c, 'pct': round(float(c['total']) / float(top_cat_total) * 100)}
+            for c in top_cats_raw
+        ]
+
+        # 3. Net Worth & Accounts Partitioning using LedgerReadService
+        net_worth, account_base_balances = LedgerReadService.get_net_worth(user, as_of=end_date)
+        nw_at_end = net_worth
+
+        investment_codes = resolve_category_selector(['Investments'])
+        acc_type_map = dict(user.accounts.filter(is_active=True).values_list('id', 'account_type'))
+        total_investments = Decimal('0.00')
+        credit_card_pending = Decimal('0.00')
+        for pk, val in account_base_balances.items():
+            atype = acc_type_map.get(pk, 'OTHER')
+            if atype in investment_codes:
+                total_investments += val
+            if atype == 'CREDIT_CARD':
+                credit_card_pending += abs(val)
+
         nw_at_start = nw_at_end - (total_income - total_expense)
-        
         nw_change = nw_at_end - nw_at_start
         nw_change_pct = round((nw_change / nw_at_start * 100), 1) if nw_at_start > 0 else 0
 
-        # 4. AI Insight (Highlighted context)
+        # 4. Capital Events
+        capital_events_qs = CapitalEvent.objects.filter(
+            user=user, date__range=[start_date, end_date], is_deleted=False
+        ).order_by('-amount')
+        capital_events = [
+            {
+                'label': f"{e.get_subtype_display()}: {e.note}" if e.note else e.get_subtype_display(),
+                'date': e.date,
+                'amount': e.base_amount,
+            }
+            for e in capital_events_qs
+        ]
+
+        # 5. AI Insight (Highlighted context)
         ai_insight = None
         if top_categories:
             top_cat = top_categories[0]
             top_pct = round(float(top_cat['total']) / float(total_expense) * 100) if total_expense > 0 else 0
-            potential = float(top_cat['total']) * 0.15 # Suggest 15% saving
-            
+            potential = float(top_cat['total']) * 0.15  # Suggest 15% saving
+
             ai_insight = _("You spent <b>{pct}%</b> of your total budget on <b>{cat}</b>. Reducing this by 15% next month could save you <b>{sym}{savings}</b>!").format(
                 cat=escape(top_cat['category']),
                 pct=top_pct,
@@ -176,7 +191,10 @@ class Command(BaseCommand):
             'expense': total_expense,
             'savings': savings,
             'savings_rate': savings_rate,
-            'top_categories': list(top_categories),
+            'total_investments': total_investments,
+            'credit_card_pending': credit_card_pending,
+            'top_categories': top_categories,
+            'capital_events': capital_events,
             'nw_at_end': nw_at_end,
             'nw_change': nw_change,
             'nw_change_pct': nw_change_pct,

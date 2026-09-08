@@ -11,32 +11,45 @@
         .header { background-color: #ffffff; padding: 30px 40px; text-align: center; border-bottom: 1px solid #f0f0f0; }
         .content { padding: 40px; }
         .footer { background-color: #f8fcfb; padding: 30px 40px; text-align: center; font-size: 13px; color: #7f8c8d; border-top: 1px solid #e0edea; }
-        
+
         .h1 { font-size: 24px; font-weight: 800; margin: 0; color: #1a1a1a; letter-spacing: -0.5px; }
         .text-muted { color: #8898aa; font-size: 14px; }
-        
+
         /* Metric Cards */
-        .metric-grid { margin-top: 30px; margin-bottom: 30px; }
-        .metric-card { background-color: #fcfdfd; border: 1px solid #edf2f6; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
-        .metric-label { font-size: 12px; font-weight: 700; color: #8898aa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .metric-value { font-size: 22px; font-weight: 800; color: #1D9E75; }
-        .metric-trend { font-size: 13px; font-weight: 600; margin-top: 5px; }
+        .metric-grid { margin-top: 25px; margin-bottom: 25px; }
+        .metric-card { background-color: #fcfdfd; border: 1px solid #edf2f6; border-radius: 12px; padding: 18px; margin-bottom: 15px; }
+        .metric-label { font-size: 11px; font-weight: 700; color: #8898aa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+        .metric-value { font-size: 20px; font-weight: 800; color: #1D9E75; }
+        .metric-value.val-expense { color: #E05C45; }
+        .metric-value.val-neutral { color: #2D3748; }
+        .metric-trend { font-size: 12px; font-weight: 600; margin-top: 4px; }
         .trend-up { color: #1D9E75; }
         .trend-down { color: #E05C45; }
-        
-        /* Categories Table */
-        .category-item { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
+
+        /* Categories Bar Chart */
+        .category-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .category-header { font-size: 14px; margin-bottom: 4px; }
         .category-name { font-weight: 600; color: #2d3748; }
         .category-amount { float: right; font-weight: 700; color: #1a1a1a; }
-        
+        .bar-bg { background-color: #edf2f6; border-radius: 4px; height: 8px; width: 100%; overflow: hidden; margin-top: 4px; }
+        .bar-fill { background-color: #1D9E75; height: 100%; border-radius: 4px; }
+
+        /* Capital Events Block */
+        .capital-events { background-color: #fdf8f7; border-radius: 12px; padding: 20px; border-left: 4px solid #E05C45; margin-top: 30px; }
+        .capital-events h3 { font-size: 14px; font-weight: 700; margin: 0 0 12px 0; color: #E05C45; text-transform: uppercase; letter-spacing: 0.5px; }
+        .event-item { padding: 6px 0; border-bottom: 1px solid #f5e6e3; font-size: 14px; }
+        .event-item:last-child { border-bottom: none; }
+        .event-label { color: #2d3748; font-weight: 500; }
+        .event-amount { float: right; font-weight: 700; color: #E05C45; }
+
         /* AI Insight Block */
-        .ai-insight { background-color: #e9f7f2; border-radius: 12px; padding: 20px; border-left: 4px solid #1D9E75; margin-top: 40px; }
+        .ai-insight { background-color: #e9f7f2; border-radius: 12px; padding: 20px; border-left: 4px solid #1D9E75; margin-top: 30px; }
         .ai-insight h3 { font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1D9E75; text-transform: uppercase; letter-spacing: 0.5px; }
         .ai-insight p { margin: 0; font-size: 14px; color: #2D3748; }
-        
+
         .btn { display: inline-block; background-color: #1D9E75; color: #ffffff; padding: 14px 28px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 15px; margin-top: 30px; box-shadow: 0 4px 15px rgba(29, 158, 117, 0.2); }
         .logo { font-size: 20px; font-weight: 800; color: #1D9E75; text-decoration: none; display: block; margin-bottom: 5px; }
-        
+
         @media only screen and (max-width: 620px) {
             .container { width: 100% !important; border-radius: 0 !important; }
             .content { padding: 25px !important; }
@@ -49,14 +62,49 @@
             <div class="header">
                 <a href="https://trackmyrupee.com" class="logo">TrackMyRupee</a>
                 <div class="h1">Greetings, {{ user.username }}!</div>
-                <div class="text-muted">Your Financial Report for {{ month_name }}</div>
+                <div class="text-muted">Your Financial Report for {{ end_date|date:"F Y" }}</div>
             </div>
-            
+
             <div class="content">
                 <p style="margin: 0; font-size: 16px; color: #4a5568;">Great job tracking your finances. Here's how your money moved last month:</p>
-                
+
                 <div class="metric-grid">
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <!-- Row 1: Income & Expenses -->
+                        <tr>
+                            <td width="48%">
+                                <div class="metric-card">
+                                    <div class="metric-label">Total Income</div>
+                                    <div class="metric-value">{{ currency_symbol }}{{ data.income|floatformat:0 }}</div>
+                                </div>
+                            </td>
+                            <td width="4%">&nbsp;</td>
+                            <td width="48%">
+                                <div class="metric-card">
+                                    <div class="metric-label">Total Expenses</div>
+                                    <div class="metric-value val-expense">{{ currency_symbol }}{{ data.expense|floatformat:0 }}</div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 2: Investments & Credit Card -->
+                        <tr>
+                            <td width="48%">
+                                <div class="metric-card">
+                                    <div class="metric-label">Total Investments</div>
+                                    <div class="metric-value val-neutral">{{ currency_symbol }}{{ data.total_investments|floatformat:0 }}</div>
+                                </div>
+                            </td>
+                            <td width="4%">&nbsp;</td>
+                            <td width="48%">
+                                <div class="metric-card">
+                                    <div class="metric-label">Credit Card Pending</div>
+                                    <div class="metric-value val-expense">{{ currency_symbol }}{{ data.credit_card_pending|floatformat:0 }}</div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 3: Savings Rate & Net Worth Growth -->
                         <tr>
                             <td width="48%">
                                 <div class="metric-card">
@@ -80,31 +128,48 @@
                         </tr>
                     </table>
                 </div>
-                
+
                 <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 15px;">Top Spending Categories</h2>
                 <div class="categories">
                     {% for cat in data.top_categories %}
                     <div class="category-item">
-                        <span class="category-name">{{ cat.category }}</span>
-                        <span class="category-amount">{{ currency_symbol }}{{ cat.total|floatformat:0 }}</span>
+                        <div class="category-header">
+                            <span class="category-name">{{ cat.category }}</span>
+                            <span class="category-amount">{{ currency_symbol }}{{ cat.total|floatformat:0 }}</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" style="width: {{ cat.pct }}%;"></div>
+                        </div>
                     </div>
                     {% empty %}
                     <p class="text-muted">No expenses recorded for this month.</p>
                     {% endfor %}
                 </div>
-                
+
+                {% if data.capital_events %}
+                <div class="capital-events">
+                    <h3>📌 Capital & One-Off Events</h3>
+                    {% for event in data.capital_events %}
+                    <div class="event-item">
+                        <span class="event-label">{{ event.label }} ({{ event.date|date:"M d" }})</span>
+                        <span class="event-amount">{{ currency_symbol }}{{ event.amount|floatformat:0 }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 {% if data.ai_insight %}
                 <div class="ai-insight">
                     <h3>💡 Smart Insight</h3>
                     <p>{{ data.ai_insight|safe }}</p>
                 </div>
                 {% endif %}
-                
+
                 <div style="text-align: center;">
                     <a href="https://trackmyrupee.com/home" class="btn">View Full Dashboard</a>
                 </div>
             </div>
-            
+
             <div class="footer">
                 <p style="margin-bottom: 10px;">You are receiving this because you are a verified user of TrackMyRupee.<br>Keep tracking, keep growing!</p>
                 <div style="margin-top: 15px;">
@@ -116,3 +181,4 @@
     </div>
 </body>
 </html>
+

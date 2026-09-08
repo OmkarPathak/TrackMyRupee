@@ -124,7 +124,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
         if current_status == 'active':
             try:
-                display_balances = LedgerReadService.get_account_balances(accounts)
+                today_date = timezone.now().date()
+                unused_net_worth, display_balances = LedgerReadService.get_net_worth(self.request.user, as_of=today_date)
             except Exception:
                 display_balances = {}
 

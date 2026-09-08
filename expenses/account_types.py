@@ -305,3 +305,42 @@ def get_fields_for_account_type(code: str) -> list[str]:
     extra_fields = ACCOUNT_TYPE_EXTRA_FIELDS.get(code, [])
     return base_fields + extra_fields
 
+
+# ---------------------------------------------------------------------------
+# Category Selector Resolver for LedgerReadService filtering
+# ---------------------------------------------------------------------------
+_GROUP_CODES: dict[str, frozenset[str]] = {
+    group_name: frozenset(code for code, _ in choices)
+    for group_name, choices in ACCOUNT_TYPES
+}
+
+
+def resolve_category_selector(names: list[str]) -> set[str]:
+    """
+    Resolve a list of category group names or bare account_type codes into
+    a flat set of account_type codes.
+
+    Each entry in `names` may be:
+      - A category-group name from ACCOUNT_TYPES (e.g. 'Investments', 'Cash & Bank')
+        → expands to all codes in that group
+      - A bare account_type code (e.g. 'CREDIT_CARD', 'MUTUAL_FUND')
+        → used as-is
+
+    Raises ValueError for any unrecognized name/code.
+    """
+    result: set[str] = set()
+    for name in names:
+        if name in _GROUP_CODES:
+            result.update(_GROUP_CODES[name])
+        elif name in ACCOUNT_TYPE_META:
+            result.add(name)
+        else:
+            raise ValueError(
+                f"resolve_category_selector: {name!r} is neither a known category-group "
+                f"name nor an account_type code. "
+                f"Known groups: {sorted(_GROUP_CODES)}. "
+                f"Known codes: {sorted(ACCOUNT_TYPE_META)}."
+            )
+    return result
+
+

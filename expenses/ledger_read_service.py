@@ -37,7 +37,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.db.models import Sum
 
-from .account_types import KIND, STRATEGY, classify, strategy_for
+from .account_types import KIND, STRATEGY, classify, strategy_for, resolve_category_selector
 from .fx import FXService
 from .ledger_rollout import is_user_in_read_cohort
 from .models import (
@@ -391,14 +391,25 @@ class LedgerReadService:
     # ──────────────────────────────────────────────────────────────────────────
 
     @classmethod
-    def get_net_worth(cls, user, as_of: date_type | None = None):
+    def get_net_worth(
+        cls,
+        user,
+        as_of: date_type | None = None,
+        include_categories: list[str] | None = None,
+        exclude_categories: list[str] | None = None,
+    ):
         """
-        Compute net worth for a user.
+        Compute net worth for a user with optional category filtering.
 
         Args:
-            user:  Django User instance.
+            user: Django User instance.
             as_of: Optional date for historical snapshot reproduction.
                    FX rates are resolved as-of this date.
+            include_categories: Optional list of category group names (e.g. 'Investments')
+                                or account_type codes (e.g. 'MUTUAL_FUND').
+                                If specified, only accounts in these categories are included.
+            exclude_categories: Optional list of category group names or account_type codes
+                                to exclude. Ignored if include_categories is specified.
 
         Returns:
             (total_net_worth: Decimal, account_base_balances: dict)
@@ -406,6 +417,13 @@ class LedgerReadService:
         Query budget (NET_WORTH_EXTENDED_MODELS_ENABLED=True): ≤ 8
         Query budget (flag=False): ≤ 4 (backward identical to current)
         """
+        _include_codes: set[str] | None = None
+        _exclude_codes: set[str] | None = None
+        if include_categories is not None:
+            _include_codes = resolve_category_selector(include_categories)
+        elif exclude_categories is not None:
+            _exclude_codes = resolve_category_selector(exclude_categories)
+
         # Q1: accounts
         accounts = list(user.accounts.filter(is_active=True).select_related('linked_loan', 'linked_physical_asset'))
         extended = getattr(settings, "NET_WORTH_EXTENDED_MODELS_ENABLED", False)
@@ -551,16 +569,18 @@ class LedgerReadService:
                         account_value = FXService.convert_using_map(
                             ledger_bal, account.currency, fx_map
                         )
-                        # Keep pre-change semantics (not yet split by kind when flag off)
-                        account_base_balances[account.pk] = account_value
-                        total_assets += account_value  # pre-change: everything added to net_worth
-                        continue
                 else:
                     account_value = ledger_bal
                     if account.currency != base_currency:
                         account_value = FXService.convert_using_map(
                             account_value, account.currency, fx_map
                         )
+
+                if _include_codes is not None and account.account_type not in _include_codes:
+                    continue
+                if _exclude_codes is not None and account.account_type in _exclude_codes:
+                    continue
+
                 account_base_balances[account.pk] = account_value
                 total_assets += account_value  # pre-change: everything added to net_worth
                 continue
@@ -691,6 +711,11 @@ class LedgerReadService:
                     ledger_bal, account.currency, fx_map
                 )
 
+            if _include_codes is not None and account.account_type not in _include_codes:
+                continue
+            if _exclude_codes is not None and account.account_type in _exclude_codes:
+                continue
+
             account_base_balances[account.pk] = account_value
 
             if kind == KIND.ASSET:
@@ -698,6 +723,14 @@ class LedgerReadService:
             else:
                 # LIABILITY: amount is positive when owed (convention: liabilities positive in this split)
                 total_liabilities += abs(account_value)
+
+        # If category filtering was requested, return filtered subset net worth directly
+        if _include_codes is not None or _exclude_codes is not None:
+            if not extended:
+                return total_assets.quantize(Decimal("0.01")), account_base_balances
+            else:
+                total_net_worth = (total_assets - total_liabilities).quantize(Decimal("0.01"))
+                return total_net_worth, account_base_balances
 
         # ── Goals (internal earmarking) ─────────────────────────────────────
         # Goal reserves are already included in account balances (goal contributions debit
