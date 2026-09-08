@@ -46,8 +46,7 @@ class NetWorthFilteringTests(TestCase):
         Valuation.objects.create(
             holding=self.holding,
             as_of_date='2026-01-01',
-            value=Decimal('50000.00'),
-            cost_basis=Decimal('40000.00')
+            value=Decimal('50000.00')
         )
 
         # Credit Card: Owed ₹5,000 (represented as negative balance)
@@ -63,13 +62,13 @@ class NetWorthFilteringTests(TestCase):
         self.re_asset = PhysicalAsset.objects.create(
             user=self.user,
             name='Apartment',
-            asset_type='REAL_ESTATE',
+            asset_class='REAL_ESTATE',
             acquisition_cost=Decimal('80000.00'),
             currency='INR',
             is_active=True
         )
         AssetValuation.objects.create(
-            physical_asset=self.re_asset,
+            asset=self.re_asset,
             as_of_date='2026-01-01',
             value=Decimal('100000.00')
         )
@@ -127,9 +126,9 @@ class NetWorthFilteringTests(TestCase):
             LedgerReadService.get_net_worth(self.user, include_categories=['NonExistent'])
 
     def test_query_count_unfiltered_vs_filtered(self):
-        """Category filtering happens in Python loop and adds zero DB queries."""
+        """Category filtering happens in Python loop and adds zero DB queries (skips goals/loans lookup)."""
         with self.assertNumQueries(7):
             LedgerReadService.get_net_worth(self.user)
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(5):
             LedgerReadService.get_net_worth(self.user, include_categories=['Investments'])

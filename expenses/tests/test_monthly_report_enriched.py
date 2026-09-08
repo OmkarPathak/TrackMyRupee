@@ -37,8 +37,7 @@ class MonthlyReportEnrichedTests(TestCase):
         Valuation.objects.create(
             holding=self.holding,
             as_of_date='2026-01-15',
-            value=Decimal('30000.00'),
-            cost_basis=Decimal('20000.00')
+            value=Decimal('30000.00')
         )
 
         # Credit Card Account (owed ₹4,000)
@@ -62,7 +61,6 @@ class MonthlyReportEnrichedTests(TestCase):
         # Capital Event in Jan 2026
         CapitalEvent.objects.create(
             user=self.user,
-            event_type='EXPENSE',
             subtype='LAPTOP_PURCHASE',
             note='MacBook Pro M3',
             amount=Decimal('150000.00'),

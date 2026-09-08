@@ -38,8 +38,7 @@ class AccountListViewNetWorthTests(TestCase):
         Valuation.objects.create(
             holding=self.holding,
             as_of_date=timezone.now().date(),
-            value=Decimal('50000.00'),
-            cost_basis=Decimal('40000.00')
+            value=Decimal('50000.00')
         )
 
     def test_account_list_view_shows_market_value_for_mutual_fund(self):
