@@ -320,7 +320,7 @@
                                         {% elif tx.type == 'INCOME' %}
                                             <span class="badge-soft badge-soft-success"><i class="bi bi-wallet2 me-1"></i>{{ tx.cat }}</span>
                                         {% elif tx.type == 'LOAN' %}
-                                            <span class="badge bg-warning-subtle text-warning-emphasis"><i class="bi bi-shield-lock me-1"></i>{{ tx.cat }}</span>
+                                            <span class="badge-soft badge-soft-warning"><i class="bi bi-shield-lock me-1"></i>{{ tx.cat }}</span>
                                         {% elif tx.type == 'CAPITAL_EVENT' %}
                                             <span class="badge-soft badge-soft-danger"><i class="bi bi-flag me-1"></i>{{ tx.cat }}</span>
                                         {% else %}
