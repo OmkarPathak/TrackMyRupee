@@ -33,6 +33,8 @@ from expenses.models import (
 @override_settings(LEDGER_READ_ENABLED=True, LEDGER_WRITE_ENABLED=True)
 class CachedLedgerBalancePerformanceTestCase(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.user = User.objects.create_user(username="val_test_user", password="password123")
         UserProfile.objects.get_or_create(user=self.user, defaults={"currency": "₹"})
         self.account = Account.objects.create(

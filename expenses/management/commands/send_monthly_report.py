@@ -50,7 +50,7 @@ class Command(BaseCommand):
             # Fallback if allauth is not set up correctly or models missing
             pass
 
-        if options['user_id']:
+        if options.get('user_id'):
             users = users.filter(id=options['user_id'])
 
         total_users = users.count()
@@ -59,11 +59,17 @@ class Command(BaseCommand):
         sent_count = 0
         for user in users:
             try:
+                month_name = end_date.strftime('%B %Y')
+                subject = f"Your Monthly Financial Report - {month_name}"
+
+                if EmailLog.objects.filter(user=user, subject=subject, status='SENT').exists():
+                    continue
+
                 report_data = self.get_report_data(user, start_date, end_date)
                 if not report_data or not report_data.get('has_data'):
                     continue
 
-                if options['test']:
+                if options.get('test'):
                     self.stdout.write(f"--- Report Data for {user.username} ({start_date} to {end_date}) ---")
                     self.stdout.write(str(report_data))
                     continue
