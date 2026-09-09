@@ -553,7 +553,7 @@
     <!-- Preload critical local stylesheet so the browser fetches it in parallel -->
     <link rel="preload" href="{% static 'style.css' %}?v=1.9" as="style">
     <link rel="stylesheet" href="{% static 'style.css' %}?v=1.9">
-    <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.4">
+    <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.5">
     <link rel="stylesheet" href="{% static 'css/dashboard_filter.css' %}">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/css/bootstrap-multiselect.min.css">
@@ -1739,7 +1739,7 @@
     {% include 'components/cookie_consent.html' %}
 
     {% block scripts %}{% endblock %}
-    <script defer src="{% static 'js/sidebar.js' %}"></script>
+    <script defer src="{% static 'js/sidebar.js' %}?v=1.1"></script>
     {% block extra_body %}{% endblock %}
 
     {% if user.is_authenticated %}

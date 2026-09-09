@@ -43,6 +43,50 @@
             };
         }
 
+        // Manage & preserve sidebar scroll position across page loads / navigation
+        const sidebarContent = sidebar ? sidebar.querySelector('.sidebar-content') : null;
+        if (sidebarContent) {
+            // Restore saved scroll position if available in sessionStorage
+            const savedScrollTop = sessionStorage.getItem('sidebarScrollTop');
+            if (savedScrollTop !== null) {
+                sidebarContent.scrollTop = parseInt(savedScrollTop, 10);
+            }
+
+            // Always ensure active link is visible in sidebar scroll container
+            const activeLink = sidebarContent.querySelector('.nav-link.active');
+            if (activeLink) {
+                const containerRect = sidebarContent.getBoundingClientRect();
+                const activeRect = activeLink.getBoundingClientRect();
+
+                const isAbove = activeRect.top < containerRect.top;
+                const isBelow = activeRect.bottom > containerRect.bottom;
+
+                if (isAbove || isBelow) {
+                    activeLink.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+                }
+            }
+
+            // Save scroll position on scroll and link click
+            if (!sidebarContent.dataset.scrollListenerAttached) {
+                sidebarContent.dataset.scrollListenerAttached = 'true';
+                
+                let scrollTimeout;
+                sidebarContent.addEventListener('scroll', function() {
+                    if (scrollTimeout) clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(function() {
+                        sessionStorage.setItem('sidebarScrollTop', sidebarContent.scrollTop);
+                    }, 50);
+                }, { passive: true });
+
+                sidebarContent.addEventListener('click', function(e) {
+                    const link = e.target.closest('.nav-link');
+                    if (link) {
+                        sessionStorage.setItem('sidebarScrollTop', sidebarContent.scrollTop);
+                    }
+                });
+            }
+        }
+
         // Detect OS for keyboard shortcut display (⌘ K vs Ctrl K)
         const commandKbd = document.querySelectorAll('.command-kbd');
         const isMac = (navigator.userAgentData && navigator.userAgentData.platform)
