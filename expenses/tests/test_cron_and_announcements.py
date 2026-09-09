@@ -19,6 +19,7 @@ from expenses.views.notifications import (
     trigger_daily_reminders_view,
     trigger_lifecycle_emails,
     trigger_monthly_reports_view,
+    trigger_net_worth_snapshots_view,
     trigger_notifications,
 )
 
@@ -56,6 +57,7 @@ class CronConcurrencyTests(TestCase):
             trigger_lifecycle_emails,
             trigger_monthly_reports_view,
             trigger_daily_reminders_view,
+            trigger_net_worth_snapshots_view,
             trigger_announcements,
         ]
         for view in cron_views:

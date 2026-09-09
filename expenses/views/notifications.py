@@ -204,6 +204,17 @@ def trigger_daily_reminders_view(request):
 
 @csrf_exempt
 @require_POST
+def trigger_net_worth_snapshots_view(request):
+    """
+    HTTP endpoint to trigger daily net worth snapshots via external cron service.
+    """
+    if not _cron_authorized(request):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    return _dispatch_cron_command('capture_net_worth_snapshot', lock_timeout=900)
+
+
+@csrf_exempt
+@require_POST
 def trigger_announcements(request):
     """
     HTTP endpoint to trigger broadcast announcement sending via external cron service.
