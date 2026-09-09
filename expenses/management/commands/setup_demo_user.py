@@ -82,6 +82,8 @@ class Command(BaseCommand):
                 exp_models.JournalEntry.objects.filter(user=user).delete()
                 exp_models.LedgerAccount.objects.filter(user=user).delete()
 
+                exp_models.AssetValuation.objects.filter(asset__user=user).delete()
+                exp_models.PhysicalAsset.objects.filter(user=user).delete()
                 exp_models.Valuation.objects.filter(holding__account__user=user).delete()
                 exp_models.Holding.objects.filter(account__user=user).delete()
                 exp_models.Account.objects.filter(user=user).delete()
@@ -433,7 +435,7 @@ class Command(BaseCommand):
             user=user,
             from_account=acc_main,
             to_account=acc_savings,
-            amount=Decimal('50000.00'),
+            amount=Decimal('200000.00'),
             date=window_start,
             description="Initial Emergency Savings Seed"
         )
@@ -560,6 +562,40 @@ class Command(BaseCommand):
 
         add_repayments(home_loan, Decimal('9.25'), months_to_add=18, day_of_month=7)
         add_repayments(personal_loan, Decimal('13.50'), months_to_add=18, day_of_month=12)
+
+        # Linked Loan Account so get_net_worth includes Long-Term Loans
+        acc_home_loan = Account.objects.create(
+            user=user,
+            name="Home Renovation Loan",
+            account_type="HOME_LOAN",
+            balance=Decimal('0.00'),
+            currency='₹',
+            linked_loan=home_loan,
+        )
+
+        # Physical Asset so get_net_worth includes Physical Assets
+        asset_real_estate = exp_models.PhysicalAsset.objects.create(
+            user=user,
+            name="2BHK Flat, Baner",
+            asset_class="REAL_ESTATE",
+            acquisition_cost=Decimal("6500000.00"),
+            acquisition_date=today - timedelta(days=365 * 3),
+            currency='₹',
+        )
+        exp_models.AssetValuation.objects.create(
+            asset=asset_real_estate,
+            value=Decimal("6500000.00"),
+            as_of_date=today,
+            source="Property Valuation",
+        )
+        acc_real_estate = Account.objects.create(
+            user=user,
+            name="2BHK Flat, Baner",
+            account_type="REAL_ESTATE",
+            balance=Decimal("6500000.00"),
+            currency='₹',
+            linked_physical_asset=asset_real_estate,
+        )
 
         self.stdout.write(self.style.SUCCESS('Created demo loans with repayment history'))
 
@@ -805,9 +841,29 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Created Holdings and Valuations on Demat account'))
         self.stdout.write(self.style.SUCCESS('Created Capital Events (6 types)'))
 
-        # 10. Net worth floor: guarantee strictly positive demo net worth.
-        # This protects the live demo from rendering negative net worth due to liabilities.
+        # 10. Net worth & Account balance safeguards: guarantee strictly positive demo net worth and positive savings account balances.
         target_floor = Decimal('250000.00')
+        current_net_worth, base_balances = LedgerReadService.get_net_worth(user)
+
+        # Ensure all liquid savings/bank accounts are strictly positive (>= ₹15,000)
+        from expenses.account_types import KIND, classify
+        target_min_bal = Decimal('15000.00')
+        for account in Account.objects.filter(user=user, is_active=True):
+            kind, _ = classify(account.account_type)
+            if kind == KIND.ASSET and account.account_type in ['SAVINGS_ACCOUNT', 'SALARY_ACCOUNT', 'CURRENT_ACCOUNT', 'CASH_WALLET', 'DIGITAL_WALLET', 'BANK', 'CASH']:
+                curr_bal = base_balances.get(account.id, Decimal('0.00'))
+                if curr_bal <= target_min_bal:
+                    top_up = (target_min_bal - curr_bal + Decimal('20000.00')).quantize(Decimal('0.01'))
+                    Income.objects.create(
+                        user=user,
+                        source='Account Balance Safeguard',
+                        amount=top_up,
+                        date=window_start,
+                        description=f'Safeguard top-up to keep {account.name} balance positive',
+                        account=account,
+                    )
+
+        # Re-evaluate net worth after account balance safeguards
         current_net_worth, _ = LedgerReadService.get_net_worth(user)
         if current_net_worth <= target_floor:
             top_up = (target_floor - current_net_worth + Decimal('50000.00')).quantize(Decimal('0.01'))

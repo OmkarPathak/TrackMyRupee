@@ -259,6 +259,109 @@ class LandingPageView(TemplateView):
         response['Link'] = '</llms.txt>; rel="service-doc", </sitemap.xml>; rel="describedby", </.well-known/api-catalog>; rel="api-catalog"'
         return response
 
+    def _get_demo_net_worth_breakdown(self):
+        from django.core.cache import cache
+        from expenses.account_types import ACCOUNT_TYPES, KIND, classify
+        from expenses.ledger_read_service import LedgerReadService
+
+        cache_key = 'landing_demo_networth_breakdown'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        demo_user = User.objects.filter(username='demo').first()
+        if not demo_user:
+            return []
+
+        try:
+            net_worth, base_balances = LedgerReadService.get_net_worth(demo_user)
+        except Exception:
+            return []
+
+        if not base_balances:
+            return []
+
+        account_type_to_group = {}
+        for group_name, types in ACCOUNT_TYPES:
+            if group_name == 'Legacy':
+                continue
+            for code, label in types:
+                if code not in account_type_to_group:
+                    account_type_to_group[code] = group_name
+
+        GROUP_META = {
+            'Cash & Bank': {'category': 'cat-cash', 'icon': 'bi-bank', 'label': 'Cash & Bank'},
+            'Fixed-Income': {'category': 'cat-fixed', 'icon': 'bi-safe', 'label': 'Fixed-Income'},
+            'Investments': {'category': 'cat-invest', 'icon': 'bi-graph-up-arrow', 'label': 'Investments'},
+            'Physical Assets': {'category': 'cat-physical', 'icon': 'bi-house-door', 'label': 'Physical Assets'},
+            'Short-Term Credit': {'category': 'cat-credit', 'icon': 'bi-credit-card', 'label': 'Credit Card'},
+            'Long-Term Loans': {'category': 'cat-loan', 'icon': 'bi-building-down', 'label': 'Loans'},
+            'Insurance': {'category': 'cat-insurance', 'icon': 'bi-shield-check', 'label': 'Insurance'},
+        }
+
+        # Select representative account (largest absolute valuation) per category group
+        accounts_by_id = {acc.id: acc for acc in Account.objects.filter(id__in=base_balances.keys())}
+        grouped = {}
+        for acc_id, val in base_balances.items():
+            account = accounts_by_id.get(acc_id)
+            if not account:
+                continue
+            kind, strat = classify(account.account_type)
+            group_name = account_type_to_group.get(account.account_type, 'Cash & Bank')
+            abs_val = abs(val)
+
+            if group_name not in grouped or abs_val > grouped[group_name]['abs_value']:
+                grouped[group_name] = {
+                    'account': account,
+                    'value': val,
+                    'abs_value': abs_val,
+                    'group_name': group_name,
+                    'is_liability': (kind == KIND.LIABILITY),
+                }
+
+        asset_rows = []
+        liability_rows = []
+
+        def _fmt_inr(val):
+            val_int = abs(int(round(val)))
+            s = str(val_int)
+            if len(s) <= 3:
+                res = s
+            else:
+                res = s[-3:]
+                s = s[:-3]
+                groups = []
+                while len(s) > 2:
+                    groups.append(s[-2:])
+                    s = s[:-2]
+                if s:
+                    groups.append(s)
+                res = ",".join(reversed(groups)) + "," + res
+            return res
+
+        for grp_name, data in grouped.items():
+            meta = GROUP_META.get(grp_name, {'category': 'cat-cash', 'icon': 'bi-cash', 'label': grp_name})
+            row = {
+                'name': data['account'].name,
+                'category': meta['category'],
+                'category_label': meta.get('label', grp_name),
+                'icon': meta['icon'],
+                'amount': float(data['abs_value']),
+                'formatted_amount': _fmt_inr(data['abs_value']),
+                'is_liability': data['is_liability'],
+            }
+            if data['is_liability']:
+                liability_rows.append((data['abs_value'], row))
+            else:
+                asset_rows.append((data['abs_value'], row))
+
+        asset_rows.sort(key=lambda x: x[0], reverse=True)
+        liability_rows.sort(key=lambda x: x[0], reverse=True)
+
+        result = [r[1] for r in asset_rows] + [r[1] for r in liability_rows]
+        cache.set(cache_key, result, timeout=900)
+        return result
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         plans = SubscriptionPlan.objects.filter(is_active=True)
@@ -266,6 +369,7 @@ class LandingPageView(TemplateView):
         context['plans_yearly'] = {p.tier: p for p in plans.filter(duration='YEARLY')}
         context['plans'] = context['plans_yearly']
         context['total_users_count'] = User.objects.count()
+        context['demo_networth_rows'] = self._get_demo_net_worth_breakdown()
         return context
 
 class FeaturesPageView(TemplateView):

@@ -365,7 +365,7 @@ class LedgerReadService:
                 LoanRepayment.objects
                 .filter(loan_id__in=missing_loan_ids)
                 .values('loan_id')
-                .annotate(total=Sum('principal_amount'))
+                .annotate(total=Sum('principal_portion'))
             )
             repaid_map = {r['loan_id']: r['total'] or Decimal('0.00') for r in repaid_rows}
 

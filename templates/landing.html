@@ -1386,6 +1386,120 @@
                 filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1));
             }
         }
+
+        /* Live Net Worth Demo Widget Styles */
+        .tmr-demo-card {
+            background: #ffffff;
+            border: 1px solid var(--tmr-ink-200, #D4D4D2);
+            border-radius: 20px;
+            padding: 22px 22px 18px;
+            box-shadow: 0 1px 2px rgba(26,26,25,0.05), 0 16px 40px rgba(26,26,25,0.07);
+            overflow: hidden;
+        }
+        .tmr-nw-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--tmr-ink-400, #9E9D9A);
+            margin-bottom: 4px;
+        }
+        .tmr-nw-value {
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            font-variant-numeric: tabular-nums;
+            color: var(--tmr-ink-900, #1A1A19);
+        }
+        .tmr-nw-sub {
+            font-size: 12px;
+            color: var(--tmr-teal-600, #0F6E56);
+            font-weight: 700;
+            margin-top: 4px;
+            min-height: 20px;
+            line-height: 20px;
+        }
+        .tmr-live-badge {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--tmr-teal-600, #0F6E56);
+            letter-spacing: 0.06em;
+        }
+        .tmr-pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--tmr-teal-400, #1D9E75);
+            display: inline-block;
+            animation: tmrPulse 1.6s ease-in-out infinite;
+        }
+        @keyframes tmrPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+        .tmr-demo-rows {
+        }
+        .tmr-demo-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--tmr-surface-0, #faf9f6);
+            border-radius: 12px;
+            padding: 10px 12px;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .tmr-demo-row.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tmr-row-icon {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+        .tmr-row-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .tmr-row-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--tmr-ink-900, #1A1A19);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tmr-row-cat {
+            font-size: 11px;
+            color: var(--tmr-ink-400, #9E9D9A);
+        }
+        .tmr-row-amt {
+            font-size: 14px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+        .cat-cash .tmr-row-icon { background: #E1F5EE; color: #085041; }
+        .cat-cash .tmr-row-amt { color: #0F6E56; }
+        .cat-fixed .tmr-row-icon { background: #FDF3E3; color: #633806; }
+        .cat-fixed .tmr-row-amt { color: #D4831A; }
+        .cat-invest .tmr-row-icon { background: #E6F1FB; color: #0C447C; }
+        .cat-invest .tmr-row-amt { color: #378ADD; }
+        .cat-physical .tmr-row-icon { background: #E1F5EE; color: #085041; }
+        .cat-physical .tmr-row-amt { color: #0F6E56; }
+        .cat-credit .tmr-row-icon { background: #FEF0EE; color: #712B13; }
+        .cat-credit .tmr-row-amt { color: #E05C45; }
+        .cat-loan .tmr-row-icon { background: #FEF0EE; color: #712B13; }
+        .cat-loan .tmr-row-amt { color: #E05C45; }
+        .cat-insurance .tmr-row-icon { background: #E1F5EE; color: #085041; }
+        .cat-insurance .tmr-row-amt { color: #0F6E56; }
     </style>
 </head>
 
@@ -1451,97 +1565,35 @@
 <section class="landing-section" id="networth" style="background: var(--tmr-surface-1);">
     <div class="container py-5">
         <div class="row align-items-center g-5">
-            <!-- Left Dashboard Card -->
+            <!-- Left Dashboard Card: Live Net Worth Demo Widget -->
             <div class="col-lg-5 order-2 order-lg-1">
-                <div class="networth-dashboard-card mx-auto mx-lg-0">
-                    <!-- Top Bar: Title & Time Tabs -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                        <div style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--tmr-ink-400);">
-                            {% trans "Net Worth Trajectory" %}
+                {{ demo_networth_rows|json_script:"networth-demo-data" }}
+                <div class="tmr-demo-card mx-auto mx-lg-0">
+                    <div class="tmr-demo-top d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="tmr-nw-label">{% trans "NET WORTH" %}</div>
+                            <div class="tmr-nw-value" id="tmrNwValue">₹0</div>
+                            <div class="tmr-nw-sub" id="tmrNwSub"></div>
                         </div>
-                        <div class="d-flex gap-1">
-                            <span class="networth-time-tab">1M</span>
-                            <span class="networth-time-tab active">6M</span>
-                            <span class="networth-time-tab">1Y</span>
-                            <span class="networth-time-tab">ALL</span>
-                        </div>
-                    </div>
-
-                    <!-- Net Worth Main Total & Badge -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5">
-                        <div style="font-size: clamp(20px, 4vw, 28px); font-weight: 800; color: var(--tmr-ink-900); letter-spacing: -0.03em; white-space: nowrap;">
-                            ₹18,45,000
-                        </div>
-                        <span class="badge rounded-pill px-2.5 py-1" style="background: var(--tmr-teal-50); color: var(--tmr-teal-600); font-size: 11.5px; font-weight: 700; white-space: nowrap;">
-                            <i class="bi bi-arrow-up-right me-1"></i>+14.2% YoY
-                        </span>
-                    </div>
-
-                    <!-- Solid Single-Color Compact SVG Line Chart -->
-                    <div class="position-relative mb-3">
-                        <svg viewBox="0 0 340 95" style="width: 100%; height: auto; overflow: visible;">
-                            <!-- Subtle Grid Lines -->
-                            <line x1="0" y1="15" x2="340" y2="15" stroke="#EBEBEA" stroke-dasharray="4 4" stroke-width="1"/>
-                            <line x1="0" y1="45" x2="340" y2="45" stroke="#EBEBEA" stroke-dasharray="4 4" stroke-width="1"/>
-                            <line x1="0" y1="75" x2="340" y2="75" stroke="#EBEBEA" stroke-dasharray="4 4" stroke-width="1"/>
-
-                            <!-- Solid Single-Color Area Fill -->
-                            <path d="M 0,80 C 50,73 90,58 140,46 C 190,34 240,24 340,12 L 340,88 L 0,88 Z"
-                                fill="var(--tmr-teal-50)" stroke="none" />
-
-                            <!-- Solid Single-Color Curve Line -->
-                            <path d="M 0,80 C 50,73 90,58 140,46 C 190,34 240,24 340,12"
-                                fill="none" stroke="var(--tmr-teal-400)" stroke-width="2.5" stroke-linecap="round" />
-
-                            <!-- X Axis Labels -->
-                            <text x="5" y="96" font-size="9.5" fill="var(--tmr-ink-400)" font-weight="600" font-family="sans-serif">Oct</text>
-                            <text x="110" y="96" font-size="9.5" fill="var(--tmr-ink-400)" font-weight="600" font-family="sans-serif">Dec</text>
-                            <text x="215" y="96" font-size="9.5" fill="var(--tmr-ink-400)" font-weight="600" font-family="sans-serif">Feb</text>
-                            <text x="310" y="96" font-size="9.5" fill="var(--tmr-ink-400)" font-weight="600" font-family="sans-serif">Mar</text>
-
-                            <!-- Pulse Active Point -->
-                            <circle cx="340" cy="12" r="4" fill="var(--tmr-teal-400)" />
-                            <circle cx="340" cy="12" r="7.5" fill="none" stroke="var(--tmr-teal-400)" stroke-width="1.2" opacity="0.5" />
-                        </svg>
-                    </div>
-
-                    <!-- Solid Multi-Asset Breakdown Bar -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1.5" style="font-size: 10.5px; font-weight: 700; color: var(--tmr-ink-600);">
-                            <span>{% trans "Asset Distribution" %}</span>
-                            <span>4 {% trans "Account Types" %}</span>
-                        </div>
-                        <div class="networth-asset-bar">
-                            <div class="networth-asset-seg-1" title="Savings & Liquid (45%)"></div>
-                            <div class="networth-asset-seg-2" title="Mutual Funds & Stocks (30%)"></div>
-                            <div class="networth-asset-seg-3" title="FDs & EPF (15%)"></div>
-                            <div class="networth-asset-seg-4" title="Liabilities (10%)"></div>
+                        <div class="tmr-live-badge d-flex align-items-center gap-1 fw-bold">
+                            <span class="tmr-pulse-dot me-1"></span>
+                            <span>{% trans "LIVE" %}</span>
                         </div>
                     </div>
 
-                    <!-- Dual Metric Highlight Cards -->
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="networth-metric-box">
-                                <div style="font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tmr-ink-400); margin-bottom: 2px;">
-                                    {% trans "6-Month Growth" %}
-                                </div>
-                                <div style="font-size: clamp(13px, 3.5vw, 17px); font-weight: 800; color: var(--tmr-ink-900); letter-spacing: -0.02em; white-space: nowrap;">
-                                    +₹2,14,000
-                                </div>
+                    <div class="tmr-demo-rows d-flex flex-column gap-2" id="tmrDemoRows">
+                        {% for item in demo_networth_rows %}
+                        <div class="tmr-demo-row {{ item.category }}">
+                            <div class="tmr-row-icon"><i class="bi {{ item.icon|default:'bi-cash' }}"></i></div>
+                            <div class="tmr-row-body">
+                                <div class="tmr-row-name">{{ item.name }}</div>
+                                <div class="tmr-row-cat">{{ item.category_label }}</div>
                             </div>
+                            <div class="tmr-row-amt">{% if item.is_liability %}-{% else %}+{% endif %}₹{{ item.formatted_amount }}</div>
                         </div>
-                        <div class="col-6">
-                            <div class="networth-metric-box">
-                                <div style="font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tmr-ink-400); margin-bottom: 2px;">
-                                    {% trans "Savings Rate" %}
-                                </div>
-                                <div style="font-size: clamp(13px, 3.5vw, 17px); font-weight: 800; color: var(--tmr-teal-600); letter-spacing: -0.02em; white-space: nowrap;">
-                                    41.6%
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
+
                 </div>
             </div>
 
@@ -1559,7 +1611,7 @@
                 </p>
 
                 <!-- 2x2 Account Category Micro-Cards -->
-                <div class="row g-3">
+                <div class="row g-3 d-none d-md-flex">
                     <!-- Card 1 -->
                     <div class="col-sm-6">
                         <div class="account-category-card">
@@ -2522,5 +2574,107 @@
         });
     </script>
     {% endif %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var dataEl = document.getElementById('networth-demo-data');
+            if (!dataEl) return;
+            var rowsData = [];
+            try {
+                rowsData = JSON.parse(dataEl.textContent);
+            } catch (e) {
+                return;
+            }
+            if (!rowsData || !rowsData.length) return;
+
+            function fmtINR(n) {
+                var sign = n < 0 ? '-' : '';
+                n = Math.abs(Math.round(n));
+                return sign + '₹' + n.toLocaleString('en-IN');
+            }
+
+            var rowsEl = document.getElementById('tmrDemoRows');
+            var nwValEl = document.getElementById('tmrNwValue');
+            var nwSubEl = document.getElementById('tmrNwSub');
+            if (!rowsEl || !nwValEl || !nwSubEl) return;
+
+            var rowEls = Array.from(rowsEl.children);
+            var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (prefersReduced) {
+                var total = 0;
+                rowsData.forEach(function (item, i) {
+                    var sign = item.is_liability ? -1 : 1;
+                    total += sign * item.amount;
+                    if (rowEls[i]) rowEls[i].classList.add('show');
+                });
+                nwValEl.textContent = fmtINR(total);
+                nwSubEl.textContent = '{% trans "All accounts, one number." %}';
+                return;
+            }
+
+            var running = 0;
+            var animFrame = null;
+            var timeouts = [];
+
+            function animateTo(target) {
+                if (animFrame) cancelAnimationFrame(animFrame);
+                var start = running;
+                var delta = target - start;
+                var t0 = performance.now();
+                var dur = 500;
+                function step(t) {
+                    var p = Math.min(1, (t - t0) / dur);
+                    var eased = 1 - Math.pow(1 - p, 3);
+                    nwValEl.textContent = fmtINR(start + delta * eased);
+                    if (p < 1) {
+                        animFrame = requestAnimationFrame(step);
+                    } else {
+                        running = target;
+                    }
+                }
+                animFrame = requestAnimationFrame(step);
+            }
+
+            function reset() {
+                timeouts.forEach(function (t) { clearTimeout(t); });
+                timeouts = [];
+                if (animFrame) cancelAnimationFrame(animFrame);
+                running = 0;
+                nwValEl.textContent = '₹0';
+                nwSubEl.innerHTML = '&nbsp;';
+                rowEls.forEach(function (el) {
+                    el.classList.remove('show');
+                });
+            }
+
+            function run() {
+                reset();
+                var total = 0;
+                rowsData.forEach(function (item, i) {
+                    var t = setTimeout(function () {
+                        if (rowEls[i]) {
+                            rowEls[i].classList.add('show');
+                        }
+                        var sign = item.is_liability ? -1 : 1;
+                        total += sign * item.amount;
+                        animateTo(total);
+                        nwSubEl.textContent = (item.is_liability ? '− {% trans "subtracted" %} ' : '+ {% trans "added" %} ') + item.name;
+
+                        if (i === rowsData.length - 1) {
+                            var tFinal = setTimeout(function () {
+                                nwSubEl.textContent = '{% trans "All accounts, one number." %}';
+                            }, 550);
+                            timeouts.push(tFinal);
+                            var tLoop = setTimeout(run, 3200);
+                            timeouts.push(tLoop);
+                        }
+                    }, i * 900);
+                    timeouts.push(t);
+                });
+            }
+
+            run();
+        });
+    </script>
 </body>
 </html>
