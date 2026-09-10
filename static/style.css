@@ -223,27 +223,27 @@ body.has-sidebar .card:has(> .table-responsive) {
 .filter-pill-all.active,
 .filter-pill-income.active,
 .nav-pills-standard .nav-link.active {
-  border-color: #1D9E75 !important;
-  color: #1D9E75 !important;
+  border-color: var(--color-success-text, #0F7657) !important;
+  color: var(--color-success-text, #0F7657) !important;
   background-color: transparent !important;
   box-shadow: none !important;
 }
 
 .filter-pill-expense.active {
-  border-color: #E05C45 !important;
-  color: #E05C45 !important;
+  border-color: var(--color-danger-text, #B93822) !important;
+  color: var(--color-danger-text, #B93822) !important;
   background-color: transparent !important;
 }
 
 .filter-pill-transfer.active {
-  border-color: #378ADD !important;
-  color: #378ADD !important;
+  border-color: var(--color-info-text, #1E65B5) !important;
+  color: var(--color-info-text, #1E65B5) !important;
   background-color: transparent !important;
 }
 
 .filter-pill-loan.active {
-  border-color: #B45309 !important;
-  color: #B45309 !important;
+  border-color: var(--color-warning-text, #9C5400) !important;
+  color: var(--color-warning-text, #9C5400) !important;
   background-color: transparent !important;
 }
 
@@ -319,10 +319,15 @@ body.has-sidebar .card:has(> .table-responsive) {
 
 :root {
   --color-primary: #1a1a18; /* Warm Ink Black */
-  --color-secondary: #1D9E75; /* Forest Green */
-  --color-success: #1D9E75; /* Forest Green */
-  --color-danger: #E05C45; /* Warm Danger Red */
-  --color-warning: #D4831A; /* Warm Amber */
+  --color-secondary: #0F7657; /* Forest Green (Accessible Text Contrast >= 4.5:1) */
+  --color-success: #1D9E75; /* Forest Green (Buttons/Fill UI >= 3.0:1) */
+  --color-success-text: #0F7657; /* Deep Forest Green (Text Contrast >= 4.5:1 on Light BGs & Option C) */
+  --color-danger: #E05C45; /* Warm Danger Red (Buttons/UI) */
+  --color-danger-text: #B93822; /* Accessible Warm Red (Text Contrast >= 4.5:1 on Light BGs & Option C) */
+  --color-warning: #D4831A; /* Warm Amber (UI) */
+  --color-warning-text: #9C5400; /* Accessible Amber (Text Contrast >= 4.5:1 on Light BGs) */
+  --color-info-text: #1E65B5; /* Accessible Transfer Blue (Text Contrast >= 4.5:1) */
+  --color-muted-text: #595855; /* Accessible Muted Transfer Grey (Text Contrast >= 4.5:1) */
   --bg-color: #faf8f5; /* Light Cream/Beige */
   --surface-color: #ffffff;
   --text-main: #1a1a18; /* Warm Ink Black */
@@ -1021,15 +1026,15 @@ body.has-sidebar {
 }
 
 .text-teal {
-  color: #1D9E75 !important;
+  color: var(--color-success-text, #0F7657) !important;
 }
 
 .text-coral {
-  color: #E05C45 !important;
+  color: var(--color-danger-text, #B93822) !important;
 }
 
 .text-amber {
-  color: #D4831A !important;
+  color: var(--color-warning-text, #9C5400) !important;
 }
 
 /* Payment Method Badges */
@@ -1043,17 +1048,17 @@ body.has-sidebar {
   text-transform: capitalize;
 }
 
-.pay-cash { background-color: rgba(29, 158, 117, 0.1); color: #1D9E75; }
-.pay-credit-card { background-color: rgba(55, 138, 221, 0.1); color: #378ADD; }
-.pay-debit-card { background-color: rgba(133, 183, 235, 0.15); color: #378ADD; }
-.pay-upi { background-color: rgba(212, 131, 26, 0.1); color: #D4831A; }
-.pay-netbanking { background-color: rgba(93, 202, 165, 0.15); color: #1D9E75; }
+.pay-cash { background-color: #E6F4EF; color: var(--color-success-text, #0F7657); }
+.pay-credit-card { background-color: #EBF3FC; color: var(--color-info-text, #1E65B5); }
+.pay-debit-card { background-color: #EBF3FC; color: var(--color-info-text, #1E65B5); }
+.pay-upi { background-color: #FDF4E7; color: var(--color-warning-text, #9C5400); }
+.pay-netbanking { background-color: #E6F4EF; color: var(--color-success-text, #0F7657); }
 
-[data-bs-theme="dark"] .pay-cash { background-color: rgba(29, 158, 117, 0.2); color: #9FE1CB; }
-[data-bs-theme="dark"] .pay-credit-card { background-color: rgba(55, 138, 221, 0.2); color: #85B7EB; }
-[data-bs-theme="dark"] .pay-debit-card { background-color: rgba(133, 183, 235, 0.25); color: #85B7EB; }
-[data-bs-theme="dark"] .pay-upi { background-color: rgba(212, 131, 26, 0.2); color: #F4B44E; }
-[data-bs-theme="dark"] .pay-netbanking { background-color: rgba(93, 202, 165, 0.25); color: #9FE1CB; }
+[data-bs-theme="dark"] .pay-cash { background-color: rgba(93, 202, 165, 0.15); color: #5DCAA5; }
+[data-bs-theme="dark"] .pay-credit-card { background-color: rgba(133, 183, 235, 0.15); color: #85B7EB; }
+[data-bs-theme="dark"] .pay-debit-card { background-color: rgba(133, 183, 235, 0.15); color: #85B7EB; }
+[data-bs-theme="dark"] .pay-upi { background-color: rgba(244, 180, 78, 0.15); color: #F4B44E; }
+[data-bs-theme="dark"] .pay-netbanking { background-color: rgba(93, 202, 165, 0.15); color: #5DCAA5; }
 
 /* Dashboard Soft Badges */
 .badge-soft {
@@ -1203,8 +1208,13 @@ body.has-sidebar {
   
   /* Semantic Colors for Dark Mode Contrast */
   --color-success: #5DCAA5;
+  --color-success-text: #5DCAA5;
   --color-danger: #F49C8C;
+  --color-danger-text: #F49C8C;
   --color-warning: #F4B44E;
+  --color-warning-text: #F4B44E;
+  --color-info-text: #85B7EB;
+  --color-muted-text: #B0B5BD;
   --bs-success-rgb: 93, 202, 165;
   --bs-danger-rgb: 244, 156, 140;
   --bs-warning-rgb: 244, 180, 78;

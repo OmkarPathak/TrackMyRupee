@@ -1905,7 +1905,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             {% if salary_breakdown.spending_pace.status == 'on_track' %}
                                 <span class="header-chip bg-success bg-opacity-10 text-success border-success border-opacity-10">{% trans "On track" %}</span>
                             {% elif salary_breakdown.spending_pace.status == 'near_limit' %}
-                                <span class="header-chip bg-warning bg-opacity-10 border-warning border-opacity-10" style="color: #D4831A;">{% trans "Near limit" %}</span>
+                                <span class="header-chip bg-warning bg-opacity-10 border-warning border-opacity-10 text-amber">{% trans "Near limit" %}</span>
                             {% else %}
                                 <span class="header-chip bg-danger bg-opacity-10 text-danger border-danger border-opacity-10">{% trans "Over budget" %}</span>
                             {% endif %}
@@ -2606,8 +2606,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="fw-bold signed-amount" style="font-size: 0.901rem; color: {% if item.type == 'INCOME' %}#1D9E75;{% elif item.type == 'INVESTMENT' %}#378ADD;{% elif item.type == 'TRANSFER' %}#9E9D9A;{% else %}#E05C45;{% endif %}">
-                                            {% if item.type == 'INCOME' %}+{% elif item.type == 'TRANSFER' %}{% else %}-{% endif %}{{ currency_symbol }}{{ item.amount|compact_amount:currency_symbol|translate_digits }}
+                                        <span class="fw-bold signed-amount {% if item.type == 'INCOME' %}amount-inflow{% elif item.type == 'INVESTMENT' %}text-teal{% elif item.type == 'TRANSFER' %}text-secondary{% else %}amount-outflow{% endif %}" style="font-size: 0.901rem;">
+                                            {% if item.type == 'INCOME' %}<i class="bi bi-arrow-down-left small me-1" aria-hidden="true"></i>+{% elif item.type == 'TRANSFER' %}<i class="bi bi-arrow-left-right small me-1" aria-hidden="true"></i>{% else %}<i class="bi bi-arrow-up-right small me-1" aria-hidden="true"></i>-{% endif %}{{ currency_symbol }}{{ item.amount|compact_amount:currency_symbol|translate_digits }}
                                         </span>
                                     </div>
                                 </a>

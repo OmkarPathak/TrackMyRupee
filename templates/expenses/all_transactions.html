@@ -142,17 +142,29 @@
         letter-spacing: 0.02em;
     }
 
-    .type-expense { background-color: rgba(224, 92, 69, 0.1); color: var(--color-danger); }
-    .type-income { background-color: rgba(93, 202, 165, 0.15); color: var(--color-success); }
-    .type-transfer { background-color: rgba(55, 138, 221, 0.1); color: #378ADD; }
-    .type-loan { background-color: rgba(245, 158, 11, 0.12); color: #B45309; }
-    .type-capital_event { background-color: rgba(108, 117, 125, 0.1); color: #E05C45; }
+    .type-expense { background-color: #FDE8ED; color: var(--color-danger-text, #B93822); }
+    .type-income { background-color: #E6F4EF; color: var(--color-success-text, #0F7657); }
+    .type-transfer { background-color: #EBF3FC; color: var(--color-info-text, #1E65B5); }
+    .type-loan { background-color: #FDF4E7; color: var(--color-warning-text, #9C5400); }
+    .type-capital_event { background-color: #FDE8ED; color: var(--color-danger-text, #B93822); }
 
-    .amount-expense { color: var(--color-danger); }
-    .amount-income { color: var(--color-success) !important; }
-    .amount-transfer { color: #378ADD; }
-    .amount-loan { color: #B45309; }
-    .amount-capital_event { color: #E05C45; }
+    [data-bs-theme="dark"] .type-expense { background-color: rgba(248, 113, 113, 0.18); color: #F49C8C; }
+    [data-bs-theme="dark"] .type-income { background-color: rgba(93, 202, 165, 0.18); color: #5DCAA5; }
+    [data-bs-theme="dark"] .type-transfer { background-color: rgba(133, 183, 235, 0.18); color: #85B7EB; }
+    [data-bs-theme="dark"] .type-loan { background-color: rgba(244, 180, 78, 0.18); color: #F4B44E; }
+    [data-bs-theme="dark"] .type-capital_event { background-color: rgba(248, 113, 113, 0.18); color: #F49C8C; }
+
+    .amount-expense { color: var(--color-danger-text, #B93822) !important; }
+    .amount-income { color: var(--color-success-text, #0F7657) !important; }
+    .amount-transfer { color: var(--color-info-text, #1E65B5) !important; }
+    .amount-loan { color: var(--color-warning-text, #9C5400) !important; }
+    .amount-capital_event { color: var(--color-danger-text, #B93822) !important; }
+
+    [data-bs-theme="dark"] .amount-expense { color: var(--color-danger-text, #F49C8C) !important; }
+    [data-bs-theme="dark"] .amount-income { color: var(--color-success-text, #5DCAA5) !important; }
+    [data-bs-theme="dark"] .amount-transfer { color: var(--color-info-text, #85B7EB) !important; }
+    [data-bs-theme="dark"] .amount-loan { color: var(--color-warning-text, #F4B44E) !important; }
+    [data-bs-theme="dark"] .amount-capital_event { color: var(--color-danger-text, #F49C8C) !important; }
 
     .empty-state-container {
         display: flex;
