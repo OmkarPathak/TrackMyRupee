@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from expenses.account_types import resolve_category_selector
 from expenses.ledger_read_service import LedgerReadService
-from expenses.models import Account, CapitalEvent, EmailLog, Expense, Income
+from expenses.models import Account, CapitalEvent, EmailLog, Expense, Income, LoanRepayment
 from expenses.templatetags.digit_filters import compact_amount
 from expenses.utils import get_exchange_rate
 
@@ -121,13 +121,21 @@ class Command(BaseCommand):
         total_income = inc_qs.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
         cb_rf_income = inc_qs.filter(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
         savings_rate_denominator = total_income - cb_rf_income
-        total_expense = exp_qs.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
 
-        # Include capital events (not excluded from averages) in expense total
-        total_cap_events = CapitalEvent.objects.filter(
-            user=user, date__range=[start_date, end_date], exclude_from_averages=False
+        # Total regular expenses
+        total_regular_expense = exp_qs.aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
+
+        # Include loan repayments in total monthly outflow/expense
+        total_loan_repayments = LoanRepayment.objects.filter(
+            loan__user=user, date__range=[start_date, end_date]
         ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
-        total_expense += total_cap_events
+
+        # Include capital events in total monthly outflow/expense
+        total_cap_events = CapitalEvent.objects.filter(
+            user=user, date__range=[start_date, end_date], is_deleted=False
+        ).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0')
+
+        total_expense = total_regular_expense + total_loan_repayments + total_cap_events
 
         if total_income == 0 and total_expense == 0:
             return {'has_data': False}
@@ -135,10 +143,10 @@ class Command(BaseCommand):
         savings = total_income - total_expense
         savings_rate = round((savings / savings_rate_denominator * 100), 1) if savings_rate_denominator > 0 else 0
 
-        # 2. Top 10 Categories with percentage
+        # 2. Top 4 Categories with percentage
         top_cats_raw = list(exp_qs.values('category').annotate(
             total=Sum('base_amount')
-        ).order_by('-total')[:10])
+        ).order_by('-total')[:4])
         top_cat_total = sum(c['total'] for c in top_cats_raw) or Decimal('1')
         top_categories = [
             {**c, 'pct': round(float(c['total']) / float(top_cat_total) * 100)}
@@ -195,6 +203,9 @@ class Command(BaseCommand):
             'has_data': True,
             'income': total_income,
             'expense': total_expense,
+            'regular_expense': total_regular_expense,
+            'loan_repayments': total_loan_repayments,
+            'capital_events_total': total_cap_events,
             'savings': savings,
             'savings_rate': savings_rate,
             'total_investments': total_investments,
