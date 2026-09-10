@@ -876,14 +876,14 @@
             font-size: 0.75rem !important;
             font-weight: 800 !important;
             letter-spacing: 0.14em !important;
-            color: #059669 !important;
+            color: var(--color-success-text) !important;
             text-transform: uppercase !important;
         }
 
         .pricing-title {
             font-size: 2.5rem !important;
             font-weight: 800 !important;
-            color: var(--bs-body-color, #18181b) !important;
+            color: var(--bs-body-color) !important;
             letter-spacing: -0.03em !important;
             line-height: 1.2 !important;
         }
@@ -895,15 +895,15 @@
 
         .pricing-subtitle {
             font-size: 1rem !important;
-            color: var(--bs-secondary-color, #71717a) !important;
+            color: var(--bs-secondary-color) !important;
             max-width: 580px !important;
             margin: 0 auto !important;
             line-height: 1.5 !important;
         }
 
         .billing-switch-wrapper {
-            background: #ffffff !important;
-            border: 1px solid #e4e4e7 !important;
+            background: var(--surface-color) !important;
+            border: 1px solid var(--border-color) !important;
             border-radius: 9999px !important;
             padding: 4px !important;
             display: inline-flex !important;
@@ -925,14 +925,14 @@
 
         .billing-pill-option.fw-bold,
         .billing-pill-option.active {
-            background-color: #059669 !important;
+            background-color: var(--color-success) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35) !important;
+            box-shadow: 0 4px 12px rgba(29, 158, 117, 0.35) !important;
         }
 
         .billing-pill-option.text-muted:not(.active):not(.fw-bold) {
             background-color: transparent !important;
-            color: #71717a !important;
+            color: var(--color-muted-text) !important;
         }
 
         .discount-badge {
@@ -944,8 +944,8 @@
         }
 
         .billing-pill-option.text-muted:not(.active):not(.fw-bold) .discount-badge {
-            background: rgba(5, 150, 105, 0.12) !important;
-            color: #059669 !important;
+            background: rgba(29, 158, 117, 0.12) !important;
+            color: var(--color-success-text) !important;
         }
 
         .billing-pill-option.fw-bold .discount-badge,
@@ -965,10 +965,10 @@
         }
 
         .pricing-card-light {
-            background: #ffffff !important;
-            border: 1px solid #e4e4e7 !important;
+            background: var(--surface-color) !important;
+            border: 1px solid var(--border-color) !important;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
-            color: #18181b !important;
+            color: var(--color-text) !important;
         }
 
         .pricing-card-dark {
@@ -997,7 +997,7 @@
         }
 
         .pricing-card-light .plan-badge-label {
-            color: #71717a !important;
+            color: var(--color-muted-text) !important;
         }
 
         .pricing-card-dark .plan-badge-label {
@@ -1012,14 +1012,14 @@
         }
 
         .badge-most-popular {
-            background: #059669 !important;
+            background: var(--color-success) !important;
             color: #ffffff !important;
             font-size: 0.68rem !important;
             font-weight: 800 !important;
             letter-spacing: 0.08em !important;
             padding: 6px 16px !important;
             border-radius: 9999px !important;
-            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45) !important;
+            box-shadow: 0 4px 14px rgba(29, 158, 117, 0.45) !important;
             text-transform: uppercase !important;
             position: absolute !important;
             top: 0 !important;
@@ -1046,7 +1046,7 @@
         }
 
         .pricing-card-light .feature-item {
-            color: #27272a !important;
+            color: var(--color-text) !important;
         }
 
         .pricing-card-dark .feature-item {
@@ -1054,22 +1054,22 @@
         }
 
         [data-bs-theme="dark"] .pricing-card-light {
-            background: #181c24 !important;
-            border-color: rgba(255, 255, 255, 0.12) !important;
-            color: #f4f4f5 !important;
+            background: var(--surface-color) !important;
+            border-color: var(--border-color) !important;
+            color: var(--color-text) !important;
         }
 
         [data-bs-theme="dark"] .pricing-card-light .feature-item {
-            color: #f4f4f5 !important;
+            color: var(--color-text) !important;
         }
 
         [data-bs-theme="dark"] .pricing-card-light .plan-badge-label,
         [data-bs-theme="dark"] .pricing-card-light .text-muted {
-            color: #a1a1aa !important;
+            color: var(--color-muted-text) !important;
         }
 
         [data-bs-theme="dark"] .pricing-card-light .price-display {
-            color: #ffffff !important;
+            color: var(--color-text) !important;
         }
 
         svg.check-icon,
@@ -1080,17 +1080,17 @@
             max-width: 18px !important;
             min-height: 18px !important;
             max-height: 18px !important;
-            color: #059669 !important;
-            stroke: #059669 !important;
+            color: var(--color-success-text) !important;
+            stroke: var(--color-success-text) !important;
             margin-top: 2px !important;
             flex-shrink: 0 !important;
         }
 
         .btn-emerald {
-            background-color: #059669 !important;
-            border-color: #059669 !important;
+            background-color: var(--color-success) !important;
+            border-color: var(--color-success) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
+            box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35) !important;
             transition: all 0.2s ease !important;
             display: inline-flex !important;
             align-items: center !important;
@@ -1098,16 +1098,16 @@
         }
 
         .btn-emerald:hover {
-            background-color: #047857 !important;
-            border-color: #047857 !important;
-            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45) !important;
+            background-color: var(--bs-primary-text-emphasis) !important;
+            border-color: var(--bs-primary-text-emphasis) !important;
+            box-shadow: 0 6px 20px rgba(29, 158, 117, 0.45) !important;
             transform: translateY(-1px) !important;
         }
 
         .btn-outline-pill {
-            border: 1px solid #d4d4d8 !important;
+            border: 1px solid var(--border-color) !important;
             background: transparent !important;
-            color: #18181b !important;
+            color: var(--color-text) !important;
             transition: all 0.2s ease !important;
             display: inline-flex !important;
             align-items: center !important;
@@ -1115,7 +1115,7 @@
         }
 
         .btn-outline-pill:hover {
-            border-color: #18181b !important;
+            border-color: var(--color-text) !important;
             background: rgba(0, 0, 0, 0.03) !important;
         }
 

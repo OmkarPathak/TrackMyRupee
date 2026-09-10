@@ -360,6 +360,20 @@ body.has-sidebar .card:has(> .table-responsive) {
   --bs-success: #1D9E75;
   --bs-success-rgb: 29, 158, 117;
 
+  /* Toast Notification Standardized Colors */
+  .toast.text-bg-success,
+  .toast.bg-success {
+    background-color: var(--bs-success) !important;
+    color: #ffffff !important;
+  }
+
+  [data-bs-theme="dark"] .toast.text-bg-success,
+  [data-bs-theme="dark"] .toast.bg-success {
+    background-color: rgba(var(--bs-success-rgb), 0.15) !important;
+    color: var(--color-success-text) !important;
+    border: 1px solid rgba(var(--bs-success-rgb), 0.3) !important;
+  }
+
   /* Override Bootstrap warning */
   --bs-warning: #D4831A;
   --bs-warning-rgb: 224, 123, 57;
@@ -1054,11 +1068,11 @@ body.has-sidebar {
 .pay-upi { background-color: #FDF4E7; color: var(--color-warning-text, #9C5400); }
 .pay-netbanking { background-color: #E6F4EF; color: var(--color-success-text, #0F7657); }
 
-[data-bs-theme="dark"] .pay-cash { background-color: rgba(93, 202, 165, 0.15); color: #5DCAA5; }
-[data-bs-theme="dark"] .pay-credit-card { background-color: rgba(133, 183, 235, 0.15); color: #85B7EB; }
-[data-bs-theme="dark"] .pay-debit-card { background-color: rgba(133, 183, 235, 0.15); color: #85B7EB; }
-[data-bs-theme="dark"] .pay-upi { background-color: rgba(244, 180, 78, 0.15); color: #F4B44E; }
-[data-bs-theme="dark"] .pay-netbanking { background-color: rgba(93, 202, 165, 0.15); color: #5DCAA5; }
+[data-bs-theme="dark"] .pay-cash { background-color: rgba(var(--bs-success-rgb), 0.15); color: var(--color-success-text); }
+[data-bs-theme="dark"] .pay-credit-card { background-color: rgba(133, 183, 235, 0.15); color: var(--color-info-text); }
+[data-bs-theme="dark"] .pay-debit-card { background-color: rgba(133, 183, 235, 0.15); color: var(--color-info-text); }
+[data-bs-theme="dark"] .pay-upi { background-color: rgba(var(--bs-warning-rgb), 0.15); color: var(--color-warning-text); }
+[data-bs-theme="dark"] .pay-netbanking { background-color: rgba(var(--bs-success-rgb), 0.15); color: var(--color-success-text); }
 
 /* Dashboard Soft Badges */
 .badge-soft {
@@ -1221,22 +1235,22 @@ body.has-sidebar {
 }
 
 [data-bs-theme="dark"] .pricing-card-light {
-  background: #181c24 !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  color: #f4f4f5 !important;
+  background: var(--surface-color) !important;
+  border-color: var(--border-color) !important;
+  color: var(--color-text) !important;
 }
 
 [data-bs-theme="dark"] .pricing-card-light .feature-item {
-  color: #f4f4f5 !important;
+  color: var(--color-text) !important;
 }
 
 [data-bs-theme="dark"] .pricing-card-light .plan-badge-label,
 [data-bs-theme="dark"] .pricing-card-light .text-muted {
-  color: #a1a1aa !important;
+  color: var(--color-muted-text) !important;
 }
 
 [data-bs-theme="dark"] .pricing-card-light .price-display {
-  color: #ffffff !important;
+  color: var(--color-text) !important;
 }
 
 body {
