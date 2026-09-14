@@ -1,36 +1,38 @@
 {% load i18n static %}
-<nav class="landing-nav">
+<header class="landing-nav">
     <div class="container d-flex align-items-center justify-content-between py-3">
         <a class="nav-logo" href="{% url 'landing' %}">
             <img src="{% static 'icon.svg' %}" alt="TrackMyRupee Logo" width="28" height="28">
             TrackMyRupee
         </a>
-        <ul class="nav-links d-none d-lg-flex list-unstyled mb-0 gap-4">
-            {% if is_landing %}
-            <li><a href="#features" class="text-decoration-none">{% trans "Features" %}</a></li>
-            <li><a href="#pricing" class="text-decoration-none">{% trans "Pricing" %}</a></li>
-            {% else %}
-            <li><a href="{% url 'landing' %}#features" class="text-decoration-none">{% trans "Features" %}</a></li>
-            <li><a href="{% url 'landing' %}#pricing" class="text-decoration-none">{% trans "Pricing" %}</a></li>
-            {% endif %}
-            <li><a href="{% url 'demo_login' %}" class="text-decoration-none">{% trans "Live Demo" %}</a></li>
-            <li><a href="{% url 'blog_list' %}" class="text-decoration-none">{% trans "Blog" %}</a></li>
-            <li><a href="{% url 'account_login' %}" class="text-decoration-none">{% trans "Login" %}</a></li>
-            <li><a class="nav-cta text-decoration-none" href="{% url 'account_signup' %}">{% trans "Start Free" %}</a></li>
-        </ul>
+        <nav class="d-none d-lg-flex" aria-label="{% trans 'Main navigation' %}">
+            <ul class="nav-links list-unstyled mb-0 gap-4 d-flex">
+                {% if is_landing %}
+                <li><a href="#features" class="text-decoration-none">{% trans "Features" %}</a></li>
+                <li><a href="#pricing" class="text-decoration-none">{% trans "Pricing" %}</a></li>
+                {% else %}
+                <li><a href="{% url 'landing' %}#features" class="text-decoration-none">{% trans "Features" %}</a></li>
+                <li><a href="{% url 'landing' %}#pricing" class="text-decoration-none">{% trans "Pricing" %}</a></li>
+                {% endif %}
+                <li><a href="{% url 'demo_login' %}" class="text-decoration-none">{% trans "Live Demo" %}</a></li>
+                <li><a href="{% url 'blog_list' %}" class="text-decoration-none">{% trans "Blog" %}</a></li>
+                <li><a href="{% url 'account_login' %}" class="text-decoration-none">{% trans "Login" %}</a></li>
+                <li><a class="nav-cta text-decoration-none" href="{% url 'account_signup' %}">{% trans "Start Free" %}</a></li>
+            </ul>
+        </nav>
 
         <div class="mobile-nav-actions d-lg-none d-flex align-items-center gap-3">
             <a href="{% url 'account_login' %}" class="d-lg-none" style="font-size: 14px; color: var(--ink, var(--tmr-ink-900)); text-decoration: none; font-weight: 500;">{% trans "Login" %}</a>
-            <button class="hamburger" id="hamburger-btn" aria-label="Menu">
+            <button class="hamburger" id="hamburger-btn" aria-label="{% trans 'Menu' %}">
                 <span></span>
                 <span></span>
                 <span></span>
             </button>
         </div>
     </div>
-</nav>
+</header>
 
-<div class="mobile-menu" id="mobile-menu">
+<nav class="mobile-menu" id="mobile-menu" aria-label="{% trans 'Mobile navigation' %}">
     <button
         type="button"
         onclick="toggleMenu()"
@@ -47,7 +49,7 @@
     <a href="{% url 'blog_list' %}">{% trans "Blog" %}</a>
     <a href="{% url 'demo_login' %}">{% trans "Live Demo" %}</a>
     <a href="{% url 'account_signup' %}" class="nav-cta">{% trans "Start Free" %}</a>
-</div>
+</nav>
 
 <script>
     if (typeof toggleMenu !== 'function') {

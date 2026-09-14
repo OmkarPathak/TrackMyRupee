@@ -68,9 +68,9 @@
 
     .billing-pill-option.fw-bold,
     .billing-pill-option.active {
-        background-color: var(--color-success) !important;
+        background-color: var(--color-success-text, #0F7657) !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(29, 158, 117, 0.35) !important;
+        box-shadow: 0 4px 12px rgba(15, 118, 87, 0.35) !important;
     }
 
     .billing-pill-option.text-muted:not(.active):not(.fw-bold) {
@@ -162,14 +162,14 @@
     }
 
     .badge-most-popular {
-        background: #059669 !important;
+        background: var(--color-success-text, #0F7657) !important;
         color: #ffffff !important;
         font-size: 0.68rem !important;
         font-weight: 800 !important;
         letter-spacing: 0.08em !important;
         padding: 6px 16px !important;
         border-radius: 9999px !important;
-        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45) !important;
+        box-shadow: 0 4px 14px rgba(15, 118, 87, 0.45) !important;
         text-transform: uppercase !important;
         position: absolute !important;
         top: 0 !important;
@@ -239,18 +239,19 @@
 
     /* Buttons */
     .btn-emerald {
-        background-color: var(--color-success) !important;
-        border-color: var(--color-success) !important;
+        background-color: var(--color-success-text, #0F7657) !important;
+        border-color: var(--color-success-text, #0F7657) !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35) !important;
+        box-shadow: 0 4px 14px rgba(15, 118, 87, 0.35) !important;
         transition: all 0.2s ease !important;
     }
 
     .btn-emerald:hover {
-        background-color: var(--bs-primary-text-emphasis) !important;
-        border-color: var(--bs-primary-text-emphasis) !important;
-        box-shadow: 0 6px 20px rgba(29, 158, 117, 0.45) !important;
+        background-color: var(--bs-primary-text-emphasis, #085041) !important;
+        border-color: var(--bs-primary-text-emphasis, #085041) !important;
+        box-shadow: 0 6px 20px rgba(15, 118, 87, 0.45) !important;
         transform: translateY(-1px) !important;
+        color: #ffffff !important;
     }
 
     .btn-outline-pill {

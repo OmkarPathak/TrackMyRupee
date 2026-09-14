@@ -373,7 +373,7 @@
     </header>
     
     <!-- CONTENT -->
-    <div class="features-content">
+    <main class="features-content" id="main-content">
         {% for category in features %}
         <section class="feature-category">
             <div class="category-header">
@@ -390,7 +390,7 @@
             </div>
         </section>
         {% endfor %}
-    </div>
+    </main>
     
     <!-- FOOTER -->
     {% include "components/public_footer.html" with is_landing=False %}
