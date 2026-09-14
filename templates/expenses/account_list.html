@@ -4,12 +4,12 @@
 {% block content %}
 <style>
     .nav-pills-custom .nav-link.active {
-        background-color: #1D9E75 !important;
+        background-color: var(--color-secondary, #0F7657) !important;
         color: white !important;
     }
     .nav-pills-custom .nav-link:not(.active):hover {
         background-color: rgba(29, 158, 117, 0.1);
-        color: #1D9E75;
+        color: var(--color-success-text, #0F7657);
     }
     .accounts-summary-card {
         background-color: rgba(var(--bs-primary-rgb), 0.10);
@@ -20,7 +20,7 @@
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: #6b7280;
+        color: var(--color-muted-text, #595855);
         font-weight: 700;
     }
     .accounts-summary-amount {
@@ -31,7 +31,7 @@
         font-variant-numeric: tabular-nums;
     }
     .accounts-summary-meta {
-        color: #6b7280;
+        color: var(--color-muted-text, #595855);
         font-size: 0.9rem;
     }
     @media (max-width: 575.98px) {

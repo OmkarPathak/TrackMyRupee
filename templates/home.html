@@ -2857,61 +2857,51 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         let currentColors = getThemeColor();
-        const CHART_COLORS = {
-            // ── 6-color calm-yet-bright palette ──────────────────────────
-            // Hues spread across 159→192→212→174→234→170 (33–60° gaps)
-            // so adjacent slices are always clearly distinguishable.
-            teal:       '#0E9DB8',  // H192 – Vivid Teal      (largest slice anchor)
-            green:      '#1D9E75',  // H159 – Forest Green    (brand primary)
-            skyBlue:    '#4A90D9',  // H212 – Sky Blue        (clearly distinct blue)
-            aqua:       '#3DBEAA',  // H174 – Fresh Aqua      (mid teal-green)
-            periwinkle: '#7B80CF',  // H234 – Soft Periwinkle (blue-purple contrast)
-            mint:       '#52C4A3',  // H163 – Bright Mint     (lighter green finish)
-            // Semantic keys kept for line/bar charts
-            coral:      '#E05C45',
-            amber:      '#D4831A',
-            blue:       '#378ADD',
+        const isDarkTheme = () => document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const getChartPalette = () => {
+            return isDarkTheme() ? [
+                '#0E9DB8',  // Teal        H192 (5.26:1 on dark)
+                '#1D9E75',  // Green       H159 (4.99:1 on dark)
+                '#4A90D9',  // Sky Blue    H212 (5.06:1 on dark)
+                '#3DBEAA',  // Aqua        H174 (7.36:1 on dark)
+                '#7B80CF',  // Periwinkle  H234 (4.70:1 on dark)
+                '#52C4A3',  // Mint        H163 (7.88:1 on dark)
+                '#5AACDF',  // Cyan-Blue   H202 (6.77:1 on dark)
+                '#85CAB3',  // Soft Sage   H164 (8.94:1 on dark)
+                '#9B96D9',  // Lavender    H244 (6.25:1 on dark)
+                '#6DD4BC',  // Aqua Mint   H170 (9.50:1 on dark)
+            ] : [
+                '#0E9DB8',  // Teal        (3.21:1 on white)
+                '#1D9E75',  // Green       (3.39:1 on white)
+                '#4A90D9',  // Sky Blue    (3.34:1 on white)
+                '#199986',  // Deep Aqua   (3.53:1 on white)
+                '#7B80CF',  // Periwinkle  (3.60:1 on white)
+                '#289E78',  // Deep Mint   (3.36:1 on white)
+                '#257DB5',  // Cyan-Blue   (4.49:1 on white)
+                '#3C8E75',  // Soft Sage   (3.95:1 on white)
+                '#635BB5',  // Lavender    (5.68:1 on white)
+                '#1F9479',  // Aqua Mint   (3.77:1 on white)
+            ];
         };
 
-        const CATEGORY_PALETTE = [
-            CHART_COLORS.teal,        // #0E9DB8 H192
-            CHART_COLORS.green,       // #1D9E75 H159  ← 33° gap
-            CHART_COLORS.skyBlue,     // #4A90D9 H212  ← 53° gap
-            CHART_COLORS.aqua,        // #3DBEAA H174  ← 38° gap
-            CHART_COLORS.periwinkle,  // #7B80CF H234  ← 60° gap
-            CHART_COLORS.mint,        // #52C4A3 H163  ← 71° gap
-            // Extended wrap-around (still well-spaced)
-            '#5AACDF',  // H202 – Light Cyan-Blue
-            '#85CAB3',  // H164 – Soft Sage
-            '#9B96D9',  // H244 – Pale Lavender
-            '#6DD4BC',  // H170 – Aqua Mint
-        ];
-        Chart.defaults.font.family = "'DM Sans', 'Inter', sans-serif";
-        Chart.defaults.color = currentColors.text;
-        
-        // Premium Animation Defaults
-        if (Chart.defaults.animation) {
-            Chart.defaults.animation.duration = 1500;
-            Chart.defaults.animation.easing = 'easeOutQuart';
-        }
-        
-        // Initialize in window scope if not already done, though it's done at L1981
-        if (!window.charts) window.charts = {};
-        Object.assign(charts, window.charts); // Sync local reference with global if they differ (should be same)
+        const getChartColors = () => {
+            const dark = isDarkTheme();
+            return {
+                teal:       '#0E9DB8',
+                green:      '#1D9E75',
+                skyBlue:    '#4A90D9',
+                aqua:       dark ? '#3DBEAA' : '#199986',
+                periwinkle: '#7B80CF',
+                mint:       dark ? '#52C4A3' : '#289E78',
+                coral:      '#E05C45',
+                amber:      dark ? '#D4831A' : '#C67512',
+                blue:       '#378ADD',
+            };
+        };
 
-        // --- Solid Color Helper ---
-        const chartPalette = [
-            '#0E9DB8',  // Teal        H192
-            '#1D9E75',  // Green       H159
-            '#4A90D9',  // Sky Blue    H212
-            '#3DBEAA',  // Aqua        H174
-            '#7B80CF',  // Periwinkle  H234
-            '#52C4A3',  // Mint        H163
-            '#5AACDF',  // Cyan-Blue   H202
-            '#85CAB3',  // Soft Sage   H164
-            '#9B96D9',  // Lavender    H244
-            '#6DD4BC',  // Aqua Mint   H170
-        ];
+        const CHART_COLORS = getChartColors();
+        const CATEGORY_PALETTE = getChartPalette();
+        const chartPalette = getChartPalette();
 
         const formatCurrencyCompact = (value) => '{{ currency_symbol }}' + window.compactAmount(value, '{{ currency_symbol }}');
 
@@ -3774,11 +3764,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
                     const newColors = getThemeColor();
                     Chart.defaults.color = newColors.text;
+                    const newPalette = getChartPalette();
                     
                     // Update Budget Chart remaining color
-                    if (charts.budget) {
+                    if (charts.budget && charts.budget.data && charts.budget.data.datasets && charts.budget.data.datasets[1]) {
                         charts.budget.data.datasets[1].backgroundColor = newColors.remaining;
                         charts.budget.update();
+                    }
+
+                    // Update Category / Donut charts with theme-accessible palette
+                    if (charts.category && charts.category.data && charts.category.data.datasets) {
+                        charts.category.data.datasets.forEach(ds => {
+                            ds.backgroundColor = newPalette;
+                        });
+                        charts.category.update('none');
+                    }
+                    if (charts.payment && charts.payment.data && charts.payment.data.datasets) {
+                        charts.payment.data.datasets.forEach(ds => {
+                            ds.backgroundColor = newPalette;
+                        });
+                        charts.payment.update('none');
                     }
                     
                     // Update Grid Lines for all charts - with defensive checks
