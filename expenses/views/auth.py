@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -572,24 +573,64 @@ class PricingView(TemplateView):
         context['plans'] = context['plans_yearly']
         return context
 
+@login_required
 def resend_verification_email(request):
     """
     AJAX view to resend verification email.
+
+    Rate-limited to prevent email bombing:
+      - Per-user cooldown: 300 s between consecutive sends.
+      - Per-user daily cap: 5 sends per 24 h window.
+    Both limits are enforced via Django's cache backend and scoped to the
+    authenticated user's PK, so rotating IPs cannot bypass them.
     """
+    from django.core.cache import cache
+
+    from allauth.account.internal.flows.email_verification import (
+        send_verification_email_for_user,
+    )
     from allauth.account.models import EmailAddress
-    from allauth.account.utils import send_email_confirmation
-    
-    if request.method == 'POST':
-        email = request.user.email
-        try:
-            email_address = EmailAddress.objects.get(user=request.user, email=email)
-            if not email_address.verified:
-                send_email_confirmation(request, request.user)
-                return JsonResponse({'success': True})
-            return JsonResponse({'success': False, 'error': 'Already verified'})
-        except EmailAddress.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Email not found'})
-    return JsonResponse({'success': False}, status=400)
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False}, status=400)
+
+    user = request.user
+
+    # --- Rate limiting ---
+    COOLDOWN_SECONDS = 300   # 5 minutes between sends
+    MAX_PER_DAY = 5          # hard daily cap
+
+    cooldown_key = f'resend_verify_cooldown_{user.pk}'
+    daily_key    = f'resend_verify_daily_{user.pk}'
+
+    if cache.get(cooldown_key):
+        return JsonResponse(
+            {'success': False, 'error': 'Please wait a few minutes before requesting another email.'},
+            status=429,
+        )
+
+    daily_count = cache.get(daily_key, 0)
+    if daily_count >= MAX_PER_DAY:
+        return JsonResponse(
+            {'success': False, 'error': 'You have reached the daily limit for verification emails. Please try again tomorrow.'},
+            status=429,
+        )
+    # --- End rate limiting ---
+
+    email = user.email
+    try:
+        email_address = EmailAddress.objects.get(user=user, email=email)
+        if not email_address.verified:
+            send_verification_email_for_user(request, user)
+
+            # Arm cooldown and increment daily counter
+            cache.set(cooldown_key, True, timeout=COOLDOWN_SECONDS)
+            cache.set(daily_key, daily_count + 1, timeout=86400)
+
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'error': 'Already verified'})
+    except EmailAddress.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Email not found'})
 
 class UpdatePWALoginView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
