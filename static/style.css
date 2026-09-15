@@ -326,7 +326,7 @@ body.has-sidebar .card:has(> .table-responsive) {
   --color-danger-text: #B93822; /* Accessible Warm Red (Text Contrast >= 4.5:1 on Light BGs & Option C) */
   --color-warning: #D4831A; /* Warm Amber (UI) */
   --color-warning-text: #9C5400; /* Accessible Amber (Text Contrast >= 4.5:1 on Light BGs) */
-  --color-info-text: #1E65B5; /* Accessible Transfer Blue (Text Contrast >= 4.5:1) */
+  --color-info-text: #165A9E; /* Accessible Transfer Blue (Text Contrast >= 4.5:1) */
   --color-muted-text: #595855; /* Accessible Muted Transfer Grey (Text Contrast >= 4.5:1) */
   --bg-color: #faf8f5; /* Light Cream/Beige */
   --surface-color: #ffffff;
@@ -664,13 +664,13 @@ body.demo-mode .sidebar {
 /* Active Item State with Soft Green Wash */
 .sidebar .nav-link.active {
   background-color: rgba(29, 158, 117, 0.1) !important;
-  color: #1D9E75 !important;
+  color: var(--color-success-text, #0F7657) !important;
   font-weight: 600;
   border: none !important;
 }
 
 .sidebar .nav-link.active i {
-  color: #1D9E75 !important;
+  color: var(--color-success-text, #0F7657) !important;
 }
 
 /* Collapsed Sidebar Item Styles */
@@ -1461,19 +1461,22 @@ a:hover {
 
 /* Text Colors */
 .text-primary {
-  color: var(--color-success) !important; /* Forest Green to match Primary Buttons */
+  color: var(--color-success-text, #0F7657) !important; /* Forest Green Accessible Text */
 }
 .text-secondary {
   color: var(--color-primary) !important; /* Warm Ink Black for secondary text */
 }
 .text-success {
-  color: var(--color-success) !important;
+  color: var(--color-success-text, #0F7657) !important;
 }
 .text-danger {
-  color: var(--color-danger) !important;
+  color: var(--color-danger-text, #B93822) !important;
 }
 .text-warning {
-  color: var(--color-warning) !important;
+  color: var(--color-warning-text, #9C5400) !important;
+}
+.text-info {
+  color: var(--color-info-text, #165A9E) !important;
 }
  
 /* Override Bootstrap Dropdown Active State */
@@ -2388,17 +2391,21 @@ a:hover {
 }
 
 /* --- Global Mobile Input Zoom Prevention --- */
-@media screen and (max-width: 768px) {
-  input[type="text"],
-  input[type="number"],
-  input[type="date"],
-  input[type="email"],
-  input[type="password"],
+@media screen and (max-width: 991.98px) {
+  input,
   select,
   textarea,
   .form-control,
-  .form-select {
-    font-size: 16px !important; /* Force 16px to prevent auto-zoom on mobile focus */
+  .form-select,
+  .form-control-sm,
+  .form-select-sm,
+  .input-group-sm > .form-control,
+  .input-group-sm > .form-select,
+  .input-group-sm > .input-group-text,
+  .multiselect-search,
+  .multiselect-btn,
+  .filter-date-input-group input {
+    font-size: 16px !important; /* Force >= 16px to prevent auto-zoom on mobile focus (WCAG 1.4.4) */
   }
   
   body {

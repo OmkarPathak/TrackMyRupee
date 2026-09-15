@@ -527,7 +527,7 @@
     /* Smart tags */
     .daily-tag-recurring {
         background: rgba(var(--bs-primary-rgb), 0.10);
-        color: var(--bs-primary);
+        color: var(--color-success-text, #0F7657);
         font-size: 0.65rem;
         font-weight: 600;
         padding: 2px 8px;
@@ -567,7 +567,7 @@
         opacity: 0.8;
     }
     .salary-cycle-subtle a {
-        color: var(--bs-primary);
+        color: var(--color-success-text, #0F7657);
         font-weight: 600;
         text-decoration: none;
         display: inline-flex;
@@ -858,7 +858,7 @@
             <div class="d-flex flex-wrap gap-2">
                 <div style="min-width: 180px;">
                     <label for="category-select" class="visually-hidden">{% trans "Categories" %}</label>
-                    <select name="category" id="category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories' %}" aria-label="{% trans 'Categories' %}">
+                    <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories' %}" aria-label="{% trans 'Categories' %}">
                         {% for c in all_categories %}
                             <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
                         {% endfor %}
@@ -897,13 +897,13 @@
         <!-- Date Range Group -->
         <div class="row g-2">
             <div class="col-6">
-                <div class="input-group input-group-sm">
+                <div class="input-group">
                     <span class="input-group-text bg-body-tertiary border-end-0">{% trans "From" %}</span>
                     <input type="date" name="start_date" class="form-control" value="{{ start_date|default:'' }}">
                 </div>
             </div>
             <div class="col-6">
-                <div class="input-group input-group-sm">
+                <div class="input-group">
                     <span class="input-group-text bg-body-tertiary border-end-0">{% trans "To" %}</span>
                     <input type="date" name="end_date" class="form-control" value="{{ end_date|default:'' }}">
                 </div>
@@ -914,7 +914,7 @@
         <div class="row g-2">
             <div class="col-12">
                 <label for="mobile-category-select" class="visually-hidden">{% trans "Categories" %}</label>
-                <select name="category" id="mobile-category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories' %}" aria-label="{% trans 'Categories' %}">
+                <select name="category" id="mobile-category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories' %}" aria-label="{% trans 'Categories' %}">
                     {% for c in all_categories %}
                         <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
                     {% endfor %}
@@ -1289,7 +1289,7 @@
             </div>
             <div>
                 <div class="alert-heading fw-bold mb-0 text-primary" style="font-family: 'Instrument Serif', sans-serif; font-size: 1rem;">{% blocktrans %}Your {{ year_in_review_year }} in Review is Ready ✨{% endblocktrans %}</div>
-                <p class="mb-0 small text-muted" style="opacity: 0.85;">{% trans "See your financial year wrapped and discover your top spending habits." %}</p>
+                <p class="mb-0 small text-muted">{% trans "See your financial year wrapped and discover your top spending habits." %}</p>
             </div>
         </div>
         <a href="{% url 'year_in_review' year_in_review_year %}" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold text-nowrap flex-shrink-0 shadow-sm mt-2 mt-sm-0 me-sm-4">{% trans "View Now" %}</a>
@@ -1570,8 +1570,8 @@ document.addEventListener('DOMContentLoaded', function() {
         color: var(--bs-body-color);
     }
     .spending-pace-tab-btn.active {
-        color: var(--bs-primary);
-        border-bottom-color: var(--bs-primary);
+        color: var(--color-success-text, #0F7657);
+        border-bottom-color: var(--color-success-text, #0F7657);
     }
     /* Hide the status badge when on the Impulse tab */
     #spendingPaceTabs .spending-pace-tab-btn[data-bs-target="#impulse-panel"].active ~ * #spending-pace-status-badge {
@@ -2282,7 +2282,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- SECTION: SPENDING -->
-<h2 class="h6 text-muted small text-uppercase fw-bold mb-4 mt-4 px-1 d-flex align-items-center fade-in" style="letter-spacing: 1px; opacity: 0.7;">
+<h2 class="h6 text-muted small text-uppercase fw-bold mb-4 mt-4 px-1 d-flex align-items-center fade-in" style="letter-spacing: 1px;">
     <span class="me-2 text-primary">●</span> {% trans "Spending Analysis" %}
 </h2>
 
@@ -2529,7 +2529,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- SECTION: CASHFLOW -->
-<h2 class="h6 text-muted small text-uppercase fw-bold mb-4 mt-4 px-1 d-flex align-items-center fade-in" style="letter-spacing: 1px; opacity: 0.7; animation-delay: 0.8s;">
+<h2 class="h6 text-muted small text-uppercase fw-bold mb-4 mt-4 px-1 d-flex align-items-center fade-in" style="letter-spacing: 1px; animation-delay: 0.8s;">
     <span class="me-2 text-success">●</span> {% trans "Cashflow & Commitments" %}
 </h2>
 <div class="row g-4 mb-4 fade-in" style="animation-delay: 0.9s;">
@@ -2606,7 +2606,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <a href="{% url 'recurring-edit' item.uuid|default:item.pk %}" class="list-group-item list-group-item-action bg-transparent border-0 d-flex align-items-center py-2 px-3 hover-bg-light transition-all text-decoration-none text-inherit">
                                     <div class="d-flex flex-column flex-grow-1 min-w-0">
                                         <div class="mb-0 text-truncate fw-bold text-inherit" style="font-size: 0.85rem;">{{ item.description }}</div>
-                                        <small class="text-muted opacity-75" style="font-size: 0.85rem; font-weight: 400;">
+                                        <small class="text-muted" style="font-size: 0.85rem; font-weight: 400;">
                                             {{ item.date|date:"d M"|translate_digits }} · {% if item.type == 'TRANSFER' %}{{ item.from_account }} → {{ item.to_account }}{% else %}{{ item.category }}{% endif %}
                                         </small>
                                     </div>
@@ -2674,7 +2674,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- SECTION: FORECAST -->
-<h2 class="h6 text-muted small text-uppercase fw-bold mb-4 mt-4 px-1 d-flex align-items-center fade-in" style="letter-spacing: 1px; opacity: 0.7; animation-delay: 1.0s;">
+<h2 class="h6 text-muted small text-uppercase fw-bold mb-4 mt-4 px-1 d-flex align-items-center fade-in" style="letter-spacing: 1px; animation-delay: 1.0s;">
     <span class="me-2 text-success">●</span> {% trans "Future Forecast" %}
 </h2>
 <div class="row g-4 mb-4 fade-in" style="animation-delay: 1.1s;">

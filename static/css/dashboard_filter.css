@@ -186,7 +186,7 @@
     border: 1px solid var(--bs-border-color);
     border-radius: 6px;
     padding: 0.5rem 0.75rem;
-    font-size: 0.9rem;
+    font-size: 1rem; /* 16px to prevent iOS mobile auto-zoom */
     color: var(--bs-body-color);
 }
 
