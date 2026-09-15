@@ -47,7 +47,7 @@
 
     <!-- Main Holdings Card Container -->
     <div class="card rounded-4 border-0 shadow-sm overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
-        <div class="card-header bg-transparent border-bottom p-3 p-md-4 d-flex align-items-center justify-content-between">
+        <div class="card-header bg-transparent border-0 p-3 p-md-4 d-flex align-items-center justify-content-between">
             <h2 class="h5 mb-0 fw-bold">{% trans "All Holdings" %}</h2>
         </div>
         <div class="card-body p-0">
@@ -95,15 +95,33 @@
                                         {% endwith %}
                                     </td>
                                     <td class="text-end pe-4">
-                                        <div class="d-flex justify-content-end gap-1">
-                                            {% if h.scheme_code %}
-                                                <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}" aria-label="{% trans 'Refresh NAV' %}">
-                                                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
-                                                </a>
-                                            {% endif %}
-                                            <a href="{% url 'holding-delete' h.pk %}" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Delete' %}" aria-label="{% trans 'Delete Holding' %}" onclick="return confirm('{% trans "Are you sure you want to remove this holding?" %}');">
-                                                <i class="bi bi-trash" aria-hidden="true"></i>
-                                            </a>
+                                        <div class="dropdown">
+                                            <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    aria-label="{% trans 'Holding actions' %}"
+                                                    data-bs-popper-config='{"strategy":"fixed"}'>
+                                                <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                                <span class="visually-hidden">{% trans "Holding actions" %}</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                                {% if h.scheme_code %}
+                                                <li>
+                                                    <a class="dropdown-item py-2" href="{% url 'refresh-holding-nav' h.pk %}">
+                                                        <i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>{% trans "Refresh NAV" %}
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                <li>
+                                                    <button type="button" class="dropdown-item py-2 text-danger border-0 bg-transparent w-100 text-start"
+                                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                            data-url="{% url 'holding-delete' h.pk %}"
+                                                            data-message="{% blocktrans with name=h.instrument_name %}Are you sure you want to remove holding '{{ name }}'?{% endblocktrans %}">
+                                                        <i class="bi bi-trash me-2" aria-hidden="true"></i>{% trans "Delete" %}
+                                                    </button>
+                                                </li>
+                                            </ul>
                                         </div>
                                     </td>
                                 </tr>

@@ -20,11 +20,11 @@
         transition: color 0.2s ease;
     }
     .wizard-step-tab.active .wizard-step-title {
-        color: #10b981;
+        color: var(--color-secondary, #0F7657);
         font-weight: 700;
     }
     .wizard-step-tab.completed .wizard-step-title {
-        color: #10b981;
+        color: var(--color-secondary, #0F7657);
     }
     
     /* Monthly & Switch Rule Cards */
@@ -35,7 +35,7 @@
         transition: all 0.2s ease;
     }
     .monthly-rule-card:hover, .card-switch-wrapper:hover {
-        border-color: rgba(16, 185, 129, 0.4) !important;
+        border-color: rgba(15, 118, 87, 0.4) !important;
     }
 
     [data-bs-theme="dark"] .wizard-step-title {
@@ -68,7 +68,7 @@
         <div class="card shadow-lg border-0 fade-in">
             <div class="card-header bg-transparent py-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="h4 mb-0 fw-bold">{% if form.instance.pk %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %} {% trans "Subscription" %}</h2>
+                    <h1 class="h4 mb-0 fw-bold">{% if form.instance.pk %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %} {% trans "Subscription" %}</h1>
                     <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2" id="stepCounterBadge">{% trans "Step 1 of 3" %}</span>
                 </div>
             </div>
@@ -107,7 +107,7 @@
                     <div class="wizard-step-content" id="step1Content">
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-bold">{% trans "Transaction Type" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.transaction_type.id_for_label }}">{% trans "Transaction Type" %}</label>
                                 {{ form.transaction_type }}
                                 <div class="form-text">{% trans "Choose expense, income, transfer, loan repayment, or capital event." %}</div>
                                 {% if form.transaction_type.errors %}
@@ -115,7 +115,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-bold">{% trans "Description / Name" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.description.id_for_label }}">{% trans "Description / Name" %}</label>
                                 {{ form.description }}
                                 <div class="form-text">{% trans "Name of the subscription (e.g. Netflix, Rent, Uber One)." %}</div>
                                 {% if form.description.errors %}
@@ -124,7 +124,7 @@
                             </div>
 
                             <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold">{% trans "Amount" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.amount.id_for_label }}">{% trans "Amount" %}</label>
                                 {{ form.amount }}
                                 <div class="form-text">{% trans "Billing amount per cycle." %}</div>
                                 {% if form.amount.errors %}
@@ -132,7 +132,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold">{% trans "Currency" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.currency.id_for_label }}">{% trans "Currency" %}</label>
                                 {{ form.currency }}
                                 <div class="form-text">{% trans "Primary transaction currency." %}</div>
                                 {% if form.currency.errors %}
@@ -179,7 +179,7 @@
                     <div class="wizard-step-content d-none" id="step2Content">
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-bold">{% trans "Frequency" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.frequency.id_for_label }}">{% trans "Frequency" %}</label>
                                 {{ form.frequency }}
                                 <div class="form-text">{% trans "How frequently this subscription recurs." %}</div>
                                 {% if form.frequency.errors %}
@@ -187,7 +187,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold">{% trans "Start Date" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.start_date.id_for_label }}">{% trans "Start Date" %}</label>
                                 <input type="date" name="{{ form.start_date.name }}" class="form-control" 
                                     value="{{ form.start_date.value|date:'Y-m-d'|default:'' }}{% if not form.start_date.value %}{% now 'Y-m-d' %}{% endif %}" required id="{{ form.start_date.id_for_label }}">
                                 <div class="form-text">{% trans "First occurrence date." %}</div>
@@ -196,7 +196,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold">{% trans "End Date (Optional)" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.end_date.id_for_label }}">{% trans "End Date (Optional)" %}</label>
                                 <div class="input-group">
                                     <input type="date" name="{{ form.end_date.name }}" class="form-control" 
                                         value="{{ form.end_date.value|date:'Y-m-d'|default:'' }}" id="{{ form.end_date.id_for_label }}">
@@ -279,7 +279,7 @@
                     <div class="wizard-step-content d-none" id="step3Content">
                         <div class="row g-3">
                             <div class="col-12 col-md-6" id="accountGroup">
-                                <label class="form-label fw-bold">{% trans "Account" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.account.id_for_label }}">{% trans "Account" %}</label>
                                 {{ form.account }}
                                 <div class="form-text">{% trans "Select the bank or cash account." %}</div>
                                 {% if form.account.errors %}
@@ -287,7 +287,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-md-6" id="loanGroup" style="display: none;">
-                                <label class="form-label fw-bold">{% trans "Loan" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.loan.id_for_label }}">{% trans "Loan" %}</label>
                                 {{ form.loan }}
                                 <div class="form-text">{% trans "Select the linked loan account." %}</div>
                                 {% if form.loan.errors %}
@@ -295,7 +295,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-md-6" id="physicalAssetGroup" style="display: none;">
-                                <label class="form-label fw-bold">{% trans "Insurance Policy (Optional)" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.physical_asset.id_for_label }}">{% trans "Insurance Policy (Optional)" %}</label>
                                 {{ form.physical_asset }}
                                 <div class="form-text">{% trans "Only needed for policies with a cash/surrender value (whole life, endowment, ULIP). Leave blank for term life or health insurance." %}</div>
                                 {% if form.physical_asset.errors %}
@@ -309,7 +309,7 @@
                             </div>
 
                             <div class="col-12 col-md-6" id="fromAccountGroup" style="display: none;">
-                                <label class="form-label fw-bold">{% trans "From Account" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.from_account.id_for_label }}">{% trans "From Account" %}</label>
                                 {{ form.from_account }}
                                 <div class="form-text">{% trans "Account to transfer funds out from." %}</div>
                                 {% if form.from_account.errors %}
@@ -317,7 +317,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-md-6" id="toAccountGroup" style="display: none;">
-                                <label class="form-label fw-bold">{% trans "To Account" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.to_account.id_for_label }}">{% trans "To Account" %}</label>
                                 {{ form.to_account }}
                                 <div class="form-text">{% trans "Account to receive transferred funds." %}</div>
                                 {% if form.to_account.errors %}
@@ -326,7 +326,7 @@
                             </div>
 
                             <div class="col-12 col-md-6" id="categoryGroup">
-                                <label class="form-label fw-bold">{% trans "Category" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.category.id_for_label }}">{% trans "Category" %}</label>
                                 {{ form.category }}
                                 <div class="form-text">{% trans "Expense category for budget tracking." %}</div>
                                 {% if form.category.errors %}
@@ -334,7 +334,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-12 col-md-6" id="sourceGroup" style="display: none;">
-                                <label class="form-label fw-bold">{% trans "Source (For Income)" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.source.id_for_label }}">{% trans "Source (For Income)" %}</label>
                                 {{ form.source }}
                                 <div class="form-text">{% trans "Income source label (e.g. Employer, Dividends)." %}</div>
                                 {% if form.source.errors %}

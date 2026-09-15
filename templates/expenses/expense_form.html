@@ -7,10 +7,10 @@
 
 {% block content %}
 <style>
-    .border-teal { border-color: #1D9E75 !important; }
-    .text-teal { color: #1D9E75 !important; }
-    .btn-outline-teal { color: #1D9E75; border-color: #1D9E75; }
-    .btn-outline-teal:hover { background-color: #1D9E75; color: white; }
+    .border-teal { border-color: #0F7657 !important; }
+    .text-teal { color: #0F7657 !important; }
+    .btn-outline-teal { color: #0F7657; border-color: #0F7657; }
+    .btn-outline-teal:hover { background-color: #0F7657; color: white; }
     
     .nav-pills-custom .nav-link {
         color: #6c757d;
@@ -21,17 +21,17 @@
     }
     
     .nav-pills-custom .nav-link:hover:not(.active) {
-        color: #1D9E75;
+        color: #0F7657;
     }
     
     .nav-pills-custom .nav-link.active {
-        background-color: #1D9E75 !important;
+        background-color: var(--color-secondary, #0F7657) !important;
         color: #ffffff !important;
-        box-shadow: 0 2px 8px rgba(29, 158, 117, 0.3);
+        box-shadow: 0 2px 8px rgba(15, 118, 87, 0.3);
     }
 
-    .btn-teal { background-color: #1D9E75; color: white; border: none; }
-    .btn-teal:hover { background-color: #168a65; color: white; }
+    .btn-teal { background-color: var(--color-secondary, #0F7657); color: white; border: none; }
+    .btn-teal:hover { background-color: var(--color-secondary-dark, #0A5C42); color: white; }
     
     .parse-highlight {
         animation: highlight-pulse 1.5s ease;
@@ -159,9 +159,9 @@
         <div>
             <div class="mb-4">
                 <div class="d-flex align-items-center">
-                    <h2 class="h4 mb-0 fw-bold">
+                    <h1 class="h4 mb-0 fw-bold">
                         {% if object %}{% trans "Edit Expense" %}{% else %}{% trans "New Expense" %}{% endif %}
-                    </h2>
+                    </h1>
                     <button type="button" class="btn btn-action-outline ms-auto" id="header-add-category-btn"
                             title="{% trans 'Add New Category' %}">
                         <i class="bi bi-plus-lg me-1"></i> {% trans "New Category" %}
@@ -243,7 +243,7 @@
                                         {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
                                     </div>
                                     <div class="col-7">
-                                        <label class="form-label fw-semibold">{% trans "Category" %}</label>
+                                        <label class="form-label fw-semibold" for="{{ form.category.id_for_label }}">{% trans "Category" %}</label>
                                         {{ form.category }}
                                         {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
                                     </div>
@@ -367,7 +367,7 @@
                                         {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
                                     </div>
                                     <div class="col-7">
-                                        <label class="form-label fw-semibold">{% trans "Category" %}</label>
+                                        <label class="form-label fw-semibold" for="{{ form.category.id_for_label }}">{% trans "Category" %}</label>
                                         {{ form.category }}
                                         {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
                                     </div>
