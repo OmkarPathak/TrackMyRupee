@@ -1,10 +1,10 @@
 {% load static i18n digit_filters %}
 
-<div class="sidebar d-none d-lg-flex flex-column" id="sidebar">
+<aside class="sidebar d-none d-lg-flex flex-column" id="sidebar" aria-label="{% trans 'Sidebar' %}">
     <!-- Sidebar Header -->
     <div class="sidebar-header d-flex align-items-center px-3 py-4">
         <a href="{% url 'home' %}" class="sidebar-brand d-flex align-items-center gap-2 text-decoration-none">
-            <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" width="32" height="32" class="rounded-3 shadow-sm">
+            <img src="{% static 'img/logo.svg' %}" alt="" aria-hidden="true" width="32" height="32" class="rounded-3 shadow-sm">
             <span class="brand-text fw-bold fs-5 text-body">TrackMyRupee</span>
         </a>
         <button class="btn btn-link link-body-emphasis ms-auto p-0 sidebar-toggle d-none d-lg-block" id="sidebarCollapse" aria-label="{% trans 'Collapse sidebar' %}" title="{% trans 'Collapse sidebar' %}" aria-expanded="true">
@@ -27,7 +27,7 @@
 
     <!-- Sidebar Navigation -->
     <div class="sidebar-content flex-grow-1 overflow-y-auto px-0">
-        <div class="nav flex-column gap-1">
+        <nav class="nav flex-column gap-1" aria-label="{% trans 'Main Navigation' %}">
             <!-- Overview Section -->
             <div class="sidebar-section sidebar-section-title px-3 mt-2 mb-2">{% trans "Overview" %}</div>
 
@@ -190,7 +190,7 @@
                 <i class="bi bi-gear fs-5"></i>
                 <span class="nav-text">{% trans "Settings" %}</span>
             </a>
-        </div>
+        </nav>
     </div>
 
     <!-- Sidebar Bottom: User Profile & Dropdown -->
@@ -252,7 +252,7 @@
             </ul>
         </div>
     </div>
-</div>
+</aside>
 
 <!-- Quick Search / Command Palette Modal -->
 <div class="modal fade" id="pageSearchModal" tabindex="-1" aria-labelledby="pageSearchModalLabel" aria-hidden="true">

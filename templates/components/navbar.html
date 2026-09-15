@@ -4,7 +4,7 @@
 <nav class="navbar navbar-expand-lg sticky-top d-none d-lg-flex bg-body-tertiary">
     <div class="d-flex w-100 px-3">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2 d-lg-none" href="{% url 'home' %}">
-            <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" width="32" height="32" class="d-inline-block align-text-top rounded-3">
+            <img src="{% static 'img/logo.svg' %}" alt="" aria-hidden="true" width="32" height="32" class="d-inline-block align-text-top rounded-3">
             <span class="fs-4">TrackMyRupee</span>
         </a>
 
@@ -233,7 +233,7 @@
     }
 </style>
 <!-- Mobile Bottom Navigation -->
-<div class="mobile-bottom-nav d-lg-none">
+<nav class="mobile-bottom-nav d-lg-none" aria-label="{% trans 'Mobile Navigation' %}">
     <div class="mobile-nav-capsule">
         {% if request.resolver_match.url_name == 'home' %}
         <button class="mobile-nav-item active" type="button" data-bs-toggle="offcanvas" data-bs-target="#dashboardModeSheet" aria-controls="dashboardModeSheet" title="{% trans 'Dashboard' %}" aria-label="{% trans 'Dashboard' %}">
@@ -276,7 +276,7 @@
     <a id="global-fab" href="#" class="mobile-fab-btn" data-bs-toggle="offcanvas" data-bs-target="#addActionsSheet" aria-controls="addActionsSheet" title="{% trans 'Add' %}" aria-label="{% trans 'Add' %}">
         <i class="bi bi-plus-lg"></i>
     </a>
-</div>
+</nav>
 
 
 <!-- Mobile Add Actions Bottom Sheet -->
@@ -347,7 +347,7 @@
     <div class="drawer-handle-pill"></div>
     <div class="offcanvas-header border-bottom-0 pt-2 pb-3 px-3 w-100 d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
-            <img src="{% static 'img/logo.svg' %}" alt="TrackMyRupee" width="28" height="28" class="rounded-2">
+            <img src="{% static 'img/logo.svg' %}" alt="" aria-hidden="true" width="28" height="28" class="rounded-2">
             <h5 class="offcanvas-title fw-bold mb-0" id="moreMenuSheetLabel">TrackMyRupee</h5>
         </div>
         <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">

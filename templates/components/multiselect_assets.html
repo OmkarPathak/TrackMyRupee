@@ -37,6 +37,10 @@
                     button.addClass('form-select multiselect-btn');
                     if (isSmall) button.addClass('form-select-sm');
                     container.find('input').removeClass('form-select');
+                    const ariaLabel = $(select).attr('aria-label') || $(select).attr('placeholder');
+                    if (ariaLabel) {
+                        button.attr('aria-label', ariaLabel);
+                    }
                 }
             });
         });
