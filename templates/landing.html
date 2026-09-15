@@ -179,7 +179,7 @@
             --tmr-teal-50:   #E1F5EE;
             --tmr-teal-100:  #9FE1CB;
             --tmr-teal-200:  #5DCAA5;
-            --tmr-teal-400:  #1D9E75;   /* primary brand color */
+            --tmr-teal-400:  #0F7657;   /* primary brand color (contrast 5.64:1 on white) */
             --tmr-teal-600:  #0F6E56;
             --tmr-teal-800:  #085041;
             --tmr-teal-900:  #04342C;
@@ -188,7 +188,7 @@
             --tmr-coral-50:  #FEF0EE;
             --tmr-coral-100: #FAC9BF;
             --tmr-coral-200: #F49C8C;
-            --tmr-coral-400: #E05C45;   /* expense color */
+            --tmr-coral-400: #C23E27;   /* expense color (contrast 4.7:1 on white) */
             --tmr-coral-600: #A63C28;
             --tmr-coral-800: #712B13;
             --tmr-coral-900: #4A1B0C;
@@ -197,7 +197,7 @@
             --tmr-amber-50:  #FDF3E3;
             --tmr-amber-100: #FAD9A0;
             --tmr-amber-200: #F4B44E;
-            --tmr-amber-400: #D4831A;   /* alert/warning color */
+            --tmr-amber-400: #8F4E00;   /* alert/warning color (contrast 5.56:1 on white) */
             --tmr-amber-600: #9A5C0D;
             --tmr-amber-800: #633806;
             --tmr-amber-900: #3D2104;
@@ -206,7 +206,7 @@
             --tmr-blue-50:   #E6F1FB;
             --tmr-blue-100:  #B5D4F4;
             --tmr-blue-200:  #85B7EB;
-            --tmr-blue-400:  #378ADD;   /* investment color */
+            --tmr-blue-400:  #185FA5;   /* investment color (contrast 5.72:1 on white) */
             --tmr-blue-600:  #185FA5;
             --tmr-blue-800:  #0C447C;
             --tmr-blue-900:  #042C53;
@@ -215,8 +215,8 @@
             --tmr-ink-50:    #F7F7F6;
             --tmr-ink-100:   #EBEBEA;
             --tmr-ink-200:   #D4D4D2;
-            --tmr-ink-400:   #9E9D9A;
-            --tmr-ink-600:   #6B6B68;
+            --tmr-ink-400:   #595956;   /* neutral labels (contrast 6.72:1 on surface) */
+            --tmr-ink-600:   #4B4B48;   /* secondary text (contrast 7.8:1 on surface) */
             --tmr-ink-800:   #3D3D3B;
             --tmr-ink-900:   #1A1A19;
 
@@ -279,7 +279,7 @@
             --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
 
             /* ── style.css compatibility vars (used by billing toggle) ── */
-            --color-success: #1D9E75;
+            --color-success: #0F7657;
             --color-success-text: #0F7657;
             --color-muted-text: #595855;
             --surface-color: #ffffff;
@@ -465,7 +465,7 @@
         .pain-section { background: var(--tmr-ink-900); }
         .pain-section .section-title { color: var(--tmr-ink-50); }
         .pain-section .section-sub { color: rgba(250,249,246,0.65); }
-        .pain-section .section-tag { color: var(--tmr-teal-400); }
+        .pain-section .section-tag { color: var(--tmr-teal-200, #5DCAA5); }
         .pain-card {
             background: var(--tmr-surface-0); 
             border: 0.1px solid var(--tmr-surface-3);
@@ -967,13 +967,13 @@
         }
 
         .billing-pill-option.text-muted:not(.active):not(.fw-bold) .discount-badge {
-            background: rgba(29, 158, 117, 0.12) !important;
-            color: var(--color-success-text) !important;
+            background: rgba(15, 118, 87, 0.15) !important;
+            color: var(--tmr-teal-800, #085041) !important;
         }
 
         .billing-pill-option.fw-bold .discount-badge,
         .billing-pill-option.active .discount-badge {
-            background: rgba(255, 255, 255, 0.22) !important;
+            background: var(--tmr-teal-800, #085041) !important;
             color: #ffffff !important;
         }
 
@@ -1491,7 +1491,7 @@
             padding: 10px 12px;
             opacity: 0;
             transform: translateY(8px);
-            transition: opacity 0.35s ease, transform 0.35s ease;
+            transition: opacity 0.45s ease, transform 0.45s ease;
         }
         .tmr-demo-row.show {
             opacity: 1;
@@ -1532,15 +1532,15 @@
         .cat-cash .tmr-row-icon { background: #E1F5EE; color: #085041; }
         .cat-cash .tmr-row-amt { color: #0F6E56; }
         .cat-fixed .tmr-row-icon { background: #FDF3E3; color: #633806; }
-        .cat-fixed .tmr-row-amt { color: #D4831A; }
+        .cat-fixed .tmr-row-amt { color: #8F4E00; }
         .cat-invest .tmr-row-icon { background: #E6F1FB; color: #0C447C; }
-        .cat-invest .tmr-row-amt { color: #378ADD; }
+        .cat-invest .tmr-row-amt { color: #185FA5; }
         .cat-physical .tmr-row-icon { background: #E1F5EE; color: #085041; }
         .cat-physical .tmr-row-amt { color: #0F6E56; }
         .cat-credit .tmr-row-icon { background: #FEF0EE; color: #712B13; }
-        .cat-credit .tmr-row-amt { color: #E05C45; }
+        .cat-credit .tmr-row-amt { color: #A63C28; }
         .cat-loan .tmr-row-icon { background: #FEF0EE; color: #712B13; }
-        .cat-loan .tmr-row-amt { color: #E05C45; }
+        .cat-loan .tmr-row-amt { color: #A63C28; }
         .cat-insurance .tmr-row-icon { background: #E1F5EE; color: #085041; }
         .cat-insurance .tmr-row-amt { color: #0F6E56; }
     </style>
@@ -1569,19 +1569,19 @@
                         <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Launch Your Financial System" %}</a>
                         <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Explore Live Demo" %} &rarr;</a>
                     </div>
-                    <div style="font-size: 13px; color: var(--tmr-ink-400); font-weight: 500;">
+                    <div style="font-size: 13px; color: var(--tmr-ink-600); font-weight: 500;">
                         <i class="bi bi-check"></i>
                         {% trans "It's free, takes 2 minutes" %}
                         <i class="bi bi-check"></i>
                         <span>{% blocktrans count count=total_users_count|default:172 %}Used by {{ count }} professional{% plural %}Used by {{ count }} professionals{% endblocktrans %}</span>
                     </div>
                     <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
-                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Bangalore</span>
-                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Mumbai</span>
-                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Pune</span>
-                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Hyderabad</span>
-                        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill fw-medium">Delhi</span>
-                        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill fw-medium">{% trans "and 10 more cities" %}</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Bangalore</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Mumbai</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Pune</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Hyderabad</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Delhi</span>
+                        <span class="badge bg-light text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">{% trans "and 10 more cities" %}</span>
                     </div>
                 </div>
             </div>
@@ -1740,10 +1740,10 @@
                 <div class="demo-card">
                     <div class="row g-4">
                         <div class="col-md-7">
-                            <label class="form-label small fw-700 text-muted text-uppercase mb-2" style="font-size: 0.65rem;">{% trans "What did you spend?" %}</label>
+                            <label class="form-label small fw-700 text-uppercase mb-2" style="font-size: 0.65rem; color: var(--tmr-ink-600);">{% trans "What did you spend?" %}</label>
                             <textarea id="demo-input" class="form-control demo-input w-100" rows="2" 
                                 placeholder="{% trans 'e.g. 500 for lunch with friends' %}" style="resize: none;">500 for lunch with friends</textarea>
-                            <div class="mt-2 d-flex align-items-center gap-2 text-muted" style="font-size: 0.65rem;">
+                            <div class="mt-2 d-flex align-items-center gap-2" style="font-size: 0.65rem; color: var(--tmr-ink-600);">
                                 <i class="bi bi-info-circle"></i>
                                 <span>{% trans "Parsed instantly in your browser" %}</span>
                             </div>
@@ -1766,17 +1766,17 @@
                     </div>
                 </div>
                 <!-- Trust Bar -->
-                <div class="mt-4 d-flex align-items-center justify-content-center gap-2 gap-md-4 text-muted flex-wrap" style="font-size: 0.8rem; opacity: 0.7;">
+                <div class="mt-4 d-flex align-items-center justify-content-center gap-2 gap-md-4 flex-wrap" style="font-size: 0.8rem; color: var(--tmr-ink-600);">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-shield-check text-success"></i>
                         <span>{% trans "No SMS reading" %}</span>
                     </div>
-                    <span class="d-none d-md-block opacity-25">|</span>
+                    <span class="d-none d-md-block opacity-50">|</span>
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-lock text-success"></i>
                         <span>{% trans "No bank login required" %}</span>
                     </div>
-                    <span class="d-none d-md-block opacity-25">|</span>
+                    <span class="d-none d-md-block opacity-50">|</span>
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-person-check text-success"></i>
                         <span>{% trans "Your data, always yours" %}</span>
@@ -2452,7 +2452,7 @@
 <!-- FOUNDER -->
 <section class="founder-section" style="background: var(--tmr-ink-900); padding: var(--space-10) 0;">
     <div class="container text-center">
-        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-4);">{% trans "Built with purpose, not VC pressure" %}</div>
+        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-200, #5DCAA5); margin-bottom: var(--space-4);">{% trans "Built with purpose, not VC pressure" %}</div>
         <img src="https://github.com/OmkarPathak.png" alt="Omkar Pathak" class="founder-avatar rounded-circle mb-4" width="80" height="80" loading="lazy">
         <div class="founder-quote mx-auto mb-4" style="max-width: 800px; font-size: clamp(18px, 3vw, 24px); color: white; line-height: 1.4; opacity: 0.9;">
             {% blocktrans %}I'm Omkar and I built TrackMyRupee after a month where I earned well, invested on time, and still couldn't account for ₹40,000 of my salary. Every app I tried wanted my bank access to solve a problem I had created myself. So I built something that doesn't.{% endblocktrans %}
@@ -2678,7 +2678,7 @@
                 var start = running;
                 var delta = target - start;
                 var t0 = performance.now();
-                var dur = 500;
+                var dur = 850;
                 function step(t) {
                     var p = Math.min(1, (t - t0) / dur);
                     var eased = 1 - Math.pow(1 - p, 3);
@@ -2707,6 +2707,7 @@
             function run() {
                 reset();
                 var total = 0;
+                var stepInterval = 1500;
                 rowsData.forEach(function (item, i) {
                     var t = setTimeout(function () {
                         if (rowEls[i]) {
@@ -2720,12 +2721,12 @@
                         if (i === rowsData.length - 1) {
                             var tFinal = setTimeout(function () {
                                 nwSubEl.textContent = '{% trans "All accounts, one number." %}';
-                            }, 550);
+                            }, 950);
                             timeouts.push(tFinal);
-                            var tLoop = setTimeout(run, 3200);
+                            var tLoop = setTimeout(run, 4000);
                             timeouts.push(tLoop);
                         }
-                    }, i * 900);
+                    }, i * stepInterval);
                     timeouts.push(t);
                 });
             }
