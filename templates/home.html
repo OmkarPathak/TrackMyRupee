@@ -883,7 +883,7 @@
     <div class="salary-cycle-subtle text-muted">
         <span>
             {% trans "Salary cycle:" %} {{ salary_cycle_start|date:"d M" }} - {{ salary_cycle_end|date:"d M" }}
-            <a href="{% url 'profile-settings' %}"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'profile-settings' %}" aria-label="{% trans 'Edit salary cycle in profile settings' %}" title="{% trans 'Edit salary cycle' %}"><i class="bi bi-pencil"></i></a>
         </span>
     </div>
 </div>
@@ -925,7 +925,7 @@
             <button type="submit" class="btn btn-primary rounded-pill d-flex align-items-center justify-content-center flex-grow-1" onclick="showLoader()">
                 <i class="bi bi-filter me-1"></i> {% trans "Apply Filters" %}
             </button>
-            <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center px-4" onclick="showLoader()">
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center px-4" onclick="showLoader()" aria-label="{% trans 'Reset filters' %}" title="{% trans 'Reset filters' %}">
                 <i class="bi bi-arrow-counterclockwise"></i>
             </a>
         </div>
@@ -2344,7 +2344,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% trans "Top Categories" %}
                     </span>
                 </div>
-                <a href="{% url 'category-list' %}" class="btn btn-sm text-decoration-none opacity-25"><i class="bi bi-box-arrow-up-right"></i></a>
+                <a href="{% url 'category-list' %}" class="btn btn-sm text-decoration-none opacity-25" aria-label="{% trans 'View all categories' %}" title="{% trans 'View all categories' %}"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body p-0 d-flex flex-column">
                 <div class="d-flex flex-column flex-grow-1">
@@ -2455,7 +2455,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% trans "Recent Activity" %}
                     </span>
                 </div>
-                <a href="{% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}{% url 'expense-list' %}?start_date={{ salary_cycle_start|date:'Y-m-d' }}&end_date={{ salary_cycle_end|date:'Y-m-d' }}{% elif start_date or end_date %}{% url 'expense-list' %}?start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% else %}{% url 'expense-list' %}?{% url_replace %}{% endif %}" class="btn btn-sm text-decoration-none opacity-25" title="{% trans 'View All' %}"><i class="bi bi-box-arrow-up-right"></i></a>
+                <a href="{% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}{% url 'expense-list' %}?start_date={{ salary_cycle_start|date:'Y-m-d' }}&end_date={{ salary_cycle_end|date:'Y-m-d' }}{% elif start_date or end_date %}{% url 'expense-list' %}?start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% else %}{% url 'expense-list' %}?{% url_replace %}{% endif %}" class="btn btn-sm text-decoration-none opacity-25" title="{% trans 'View all transactions' %}" aria-label="{% trans 'View all transactions' %}"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
@@ -2504,11 +2504,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         <!-- Clickable Stretched Link -->
                         {% if item.transaction_type == 'EXPENSE' %}
-                            <a href="{% url 'expense-edit' item.uuid|default:item.pk %}" class="stretched-link"></a>
+                            <a href="{% url 'expense-edit' item.uuid|default:item.pk %}" class="stretched-link" aria-label="{% trans 'Edit expense' %}{% if item.description %}: {{ item.description }}{% endif %}"><span class="visually-hidden">{% trans 'Edit expense' %}{% if item.description %}: {{ item.description }}{% endif %}</span></a>
                         {% elif item.transaction_type == 'INCOME' %}
-                            <a href="{% url 'income-edit' item.uuid|default:item.pk %}" class="stretched-link"></a>
+                            <a href="{% url 'income-edit' item.uuid|default:item.pk %}" class="stretched-link" aria-label="{% trans 'Edit income' %}{% if item.description %}: {{ item.description }}{% endif %}"><span class="visually-hidden">{% trans 'Edit income' %}{% if item.description %}: {{ item.description }}{% endif %}</span></a>
                         {% elif item.transaction_type == 'TRANSFER' %}
-                            <a href="{% url 'transfer-edit' item.uuid|default:item.pk %}" class="stretched-link"></a>
+                            <a href="{% url 'transfer-edit' item.uuid|default:item.pk %}" class="stretched-link" aria-label="{% trans 'Edit transfer' %}{% if item.description %}: {{ item.description }}{% endif %}"><span class="visually-hidden">{% trans 'Edit transfer' %}{% if item.description %}: {{ item.description }}{% endif %}</span></a>
                         {% endif %}
                     </div>
                     {% empty %}
@@ -2544,7 +2544,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% trans "Recurring Commitments" %}
                     </span>
                 </div>
-                <a href="{% url 'recurring-list' %}" class="btn btn-sm text-decoration-none opacity-25"><i class="bi bi-box-arrow-up-right"></i></a>
+                <a href="{% url 'recurring-list' %}" class="btn btn-sm text-decoration-none opacity-25" aria-label="{% trans 'View all recurring commitments' %}" title="{% trans 'View all recurring commitments' %}"><i class="bi bi-box-arrow-up-right"></i></a>
             </div>
             <div class="card-body bg-transparent p-0 d-flex flex-column h-100">
                 <!-- 1. Top Summary Totals -->
