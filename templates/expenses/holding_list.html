@@ -48,7 +48,7 @@
     <!-- Main Holdings Card Container -->
     <div class="card rounded-4 border-0 shadow-sm overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
         <div class="card-header bg-transparent border-bottom p-3 p-md-4 d-flex align-items-center justify-content-between">
-            <h5 class="mb-0 fw-bold">{% trans "All Holdings" %}</h5>
+            <h2 class="h5 mb-0 fw-bold">{% trans "All Holdings" %}</h2>
         </div>
         <div class="card-body p-0">
             {% if holdings %}
@@ -178,7 +178,7 @@
             {% else %}
                 <div class="p-5 text-center text-muted">
                     <i class="bi bi-pie-chart fs-1 opacity-50 mb-3 d-block"></i>
-                    <h5>{% trans "No Holdings Found" %}</h5>
+                    <div class="h5">{% trans "No Holdings Found" %}</div>
                     <p class="mb-3 text-muted small">{% trans "You haven't added any mutual funds or stock holdings yet." %}</p>
                     {% if user_accounts %}
                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addHoldingModal">

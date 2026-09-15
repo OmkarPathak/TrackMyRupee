@@ -153,21 +153,21 @@
                 <div class="row text-center text-md-start align-items-center h-100 g-0">
                     <div class="col-4 border-end">
                         <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "Earned" %}</div>
-                        <h5 class="fw-bold text-success mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                        <div class="h5 fw-bold text-success mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
                             {{ user.profile.currency }}{{ earned_total|compact_amount:user.profile.currency|translate_digits }}
-                        </h5>
+                        </div>
                     </div>
                     <div class="col-4 border-end ps-1 ps-md-3">
                         <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "Passive" %}</div>
-                        <h5 class="fw-bold text-primary mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                        <div class="h5 fw-bold text-primary mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
                             {{ user.profile.currency }}{{ passive_total|compact_amount:user.profile.currency|translate_digits }}
-                        </h5>
+                        </div>
                     </div>
                     <div class="col-4 ps-1 ps-md-3">
                         <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem;">{% trans "One-off" %}</div>
-                        <h5 class="fw-bold text-primary mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
+                        <div class="h5 fw-bold text-primary mb-0" style="font-size: 0.95rem; font-size: clamp(0.75rem, 3.5vw, 1.2rem);">
                             {{ user.profile.currency }}{{ one_off_total|compact_amount:user.profile.currency|translate_digits }}
-                        </h5>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -323,7 +323,7 @@
                                 </div>
                                 <!-- Center: Description & Source -->
                                 <div class="flex-grow-1 min-width-0 ps-3">
-                                    <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.95rem;">{{ income.description|default:income.source }}</h6>
+                                    <div class="mb-0 fw-bold text-truncate" style="font-size: 0.95rem;">{{ income.description|default:income.source }}</div>
                                     <p class="text-muted small mb-0 mt-1 text-truncate" style="font-size: 0.78rem;">
                                         {{ income.source }}
                                     </p>
@@ -383,7 +383,7 @@
                             <div class="mb-4">
                                 {% include 'illustrations/empty_income.svg' %}
                             </div>
-                            <h4 class="fw-bold text-muted">{% trans "No Income Records" %}</h4>
+                            <div class="h4 fw-bold text-muted">{% trans "No Income Records" %}</div>
                             <p class="text-muted mb-4 max-width-300 mx-auto">
                                 {% if filter_form.date_from or filter_form.date_to or filter_form.source %}
                                     {% trans "We couldn't find any income records matching your filters." %}

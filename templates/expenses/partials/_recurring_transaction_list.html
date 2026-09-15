@@ -114,7 +114,7 @@
         <button type="button" id="all-tab" role="tab" aria-selected="true"
             class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
             data-sub-tab-target="#all"
-            style="font-size: 0.8rem; background-color: #1D9E75; border-color: #1D9E75; color: #fff;">
+            style="font-size: 0.8rem; background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;">
             {% trans "All" %} {{ active_subs|length|translate_digits }}
         </button>
         <button type="button" id="renewing-tab" role="tab" aria-selected="false"
@@ -153,8 +153,8 @@
                     b.style.color = 'var(--bs-secondary-color)';
                     b.setAttribute('aria-selected', 'false');
                 });
-                btn.style.backgroundColor = '#1D9E75';
-                btn.style.borderColor = '#1D9E75';
+                btn.style.backgroundColor = 'var(--color-secondary, #0F7657)';
+                btn.style.borderColor = 'var(--color-secondary, #0F7657)';
                 btn.style.color = '#fff';
                 btn.setAttribute('aria-selected', 'true');
             });
@@ -202,7 +202,7 @@
                                         </td>
                                         <td>
                                             <div>
-                                                <span class="fw-bold {% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
+                                                <span class="{% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
                                                 {% if sub.end_date %}
                                                     <div class="text-danger small" style="font-size: 0.72rem;">
                                                         {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
@@ -348,7 +348,7 @@
                     <div>
                         {% include 'illustrations/empty_recurring.svg' %}
                     </div>
-                    <h4 class="fw-bold">{% trans "No active subscriptions" %}</h4>
+                    <div class="h4 fw-bold">{% trans "No active subscriptions" %}</div>
                     <p class="text-muted mb-4 col-md-6 mx-auto">{% trans "Most people forget at least one renewal every year. Add yours now so we can remind you before you pay." %}</p>
                     {% if is_limit_reached %}
                         <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-medium" data-bs-toggle="modal" data-bs-target="#limitReachedModal">
@@ -401,7 +401,7 @@
                                         </td>
                                         <td>
                                             <div>
-                                                <span class="fw-bold {% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
+                                                <span class="{% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
                                                 {% if sub.end_date %}
                                                     <div class="text-danger small" style="font-size: 0.72rem;">
                                                         {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}

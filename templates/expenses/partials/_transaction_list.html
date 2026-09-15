@@ -458,7 +458,7 @@
                 <div class="mb-4">
                     {% include 'illustrations/empty_generic.svg' %}
                 </div>
-                <h4 class="fw-bold text-body-emphasis">{% trans "No transactions found" %}</h4>
+                <div class="h4 fw-bold text-body-emphasis">{% trans "No transactions found" %}</div>
                 <p class="text-muted small max-width-300 mx-auto mb-4">{% trans "We couldn't find any transactions matching your current filters. Try adjusting your search or date range." %}</p>
                 <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center align-items-center">
                     <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4 w-100 w-sm-auto text-nowrap" hx-get="{% url 'all-transactions' %}" hx-target="#transactions-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">

@@ -303,7 +303,7 @@
                      style="width: 32px; height: 32px; font-size: 0.9rem;">
                     <i class="{{ group.icon }}"></i>
                 </div>
-                <h5 class="fw-bold text-body mb-0" style="font-size: 1.05rem;">{{ group.label }}</h5>
+                <h2 class="h5 fw-bold text-body mb-0" style="font-size: 1.05rem;">{{ group.label }}</h2>
                 <span class="badge rounded-pill bg-body-tertiary text-body-secondary border px-2 py-0.5"
                       style="font-size: 0.72rem;">
                     {{ group.count|translate_digits }}
@@ -527,7 +527,7 @@
 {% else %}
 <div class="text-center py-5">
     <div class="mb-4">{% include 'illustrations/empty_accounts.svg' %}</div>
-    <h5 class="fw-bold text-muted">
+    <div class="h5 fw-bold text-muted">
         {% if search_query %}
             {% trans "No accounts match your search" %}
         {% elif current_status == 'inactive' %}
@@ -535,7 +535,7 @@
         {% else %}
             {% trans "No Accounts Found" %}
         {% endif %}
-    </h5>
+    </div>
     <p class="text-muted small mb-4">
         {% if search_query %}
             {% trans "Try a different search term or clear your filters." %}

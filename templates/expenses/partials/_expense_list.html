@@ -596,7 +596,7 @@
                     <div class="mb-4">
                         {% include 'illustrations/empty_expenses.svg' %}
                     </div>
-                    <h3 class="fw-bold text-body-emphasis mb-2">{% trans "No Expenses Found" %}</h3>
+                    <div class="h3 fw-bold text-body-emphasis mb-2">{% trans "No Expenses Found" %}</div>
                     <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">
                         {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.category or request.GET.year or request.GET.month or request.GET.payment_method or request.GET.account %}
                             {% trans "We couldn't find any expenses matching your filters. Try adjusting your search criteria." %}

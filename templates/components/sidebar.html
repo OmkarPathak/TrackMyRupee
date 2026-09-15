@@ -223,7 +223,7 @@
             <ul class="dropdown-menu shadow-lg border-0 mb-3" aria-labelledby="sidebarUserDropdown" style="min-width: 220px; border-radius: 12px; transform: translateY(-10px);">
                 <li>
                     <div class="px-3 py-2 border-bottom">
-                        <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</h6>
+                        <div class="mb-0 fw-bold text-truncate" style="font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</div>
                         <small class="text-muted d-block text-truncate mt-1" style="font-size: 0.75rem;">{{ user.email }}</small>
                     </div>
                 </li>

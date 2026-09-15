@@ -80,7 +80,7 @@
     <div class="row g-4 mb-4">
         <div class="col-12 col-lg-4">
             <div class="card shadow-sm border-0 rounded-4 p-4 h-100 bg-primary bg-opacity-10">
-                <h6 class="text-muted small text-uppercase fw-bold mb-3" style="letter-spacing: 1px;">{% trans "Goal Summary" %}</h6>
+                <div class="text-muted small text-uppercase fw-bold mb-3" style="letter-spacing: 1px;">{% trans "Goal Summary" %}</div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted">{% trans "Saved" %}</span>
                     <span class="fw-bold text-primary summary-amount-smaller">{{ goal.currency }}{{ goal.current_amount|ind_comma:goal.currency|translate_digits }}</span>
@@ -139,9 +139,9 @@
         <div class="col-12 col-lg-8">
             <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2 px-2">
-                    <h6 class="text-muted small text-uppercase fw-bold mb-0" style="letter-spacing: 1px;">
+                    <div class="text-muted small text-uppercase fw-bold mb-0" style="letter-spacing: 1px;">
                         {% if trend_data.type == 'monthly' %}{% trans "Savings Trend (Last 12 Months)" %}{% else %}{% trans "Savings Trend (Last 30 Days)" %}{% endif %}
-                    </h6>
+                    </div>
                     {% if estimated_days_left %}
                         <span class="badge bg-info bg-opacity-10 text-info rounded-pill">
                             {{ estimated_days_left|translate_digits }} {% trans "days left (est.)" %}
@@ -159,7 +159,7 @@
     <div class="alert alert-warning border-0 rounded-4 mb-4">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
-                <h6 class="fw-bold mb-1">{% trans "Goal Locked" %}</h6>
+                <div class="fw-bold mb-1">{% trans "Goal Locked" %}</div>
                 <p class="mb-0 small">{% trans "This goal exceeds your current plan's limit. Upgrade to resume adding funds." %}</p>
             </div>
             <a href="{% url 'pricing' %}" class="btn btn-warning fw-bold">
@@ -172,7 +172,7 @@
     <div class="card shadow-sm border-0 rounded-4">
         <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div class="d-flex align-items-center gap-2">
-                <h5 class="mb-0 fw-bold">{% trans "Contribution History" %}</h5>
+                <h2 class="h5 mb-0 fw-bold">{% trans "Contribution History" %}</h2>
                 <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{{ contribution_count }} {% trans "Items" %}</span>
             </div>
 
@@ -267,13 +267,13 @@
                                 <div class="mb-4 text-muted">
                                     {% include 'illustrations/empty_accounts.svg' %}
                                 </div>
-                                <h5 class="fw-bold text-muted">
+                                <div class="h5 fw-bold text-muted">
                                     {% if search_query %}
                                         {% trans "No results found for" %} "{{ search_query }}"
                                     {% else %}
                                         {% trans "No Contributions Found" %}
                                     {% endif %}
-                                </h5>
+                                </div>
                                 <p class="text-muted mb-0">
                                     {% if search_query %}
                                         {% trans "Try adjusting your search terms or clearing the filter." %}
