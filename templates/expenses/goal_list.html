@@ -87,6 +87,7 @@
                     <!-- Slim Progress Bar -->
                     <div class="progress mb-2 bg-body-secondary" style="height: 8px; border-radius: 8px;">
                         <div class="progress-bar progress-bar-striped {% if not goal.is_completed %}progress-bar-animated{% endif %} bg-{{ goal.color }}" role="progressbar" 
+                             aria-label="{{ goal.name }}"
                              style="width: {{ goal.progress_percentage }}%; border-radius: 8px;" aria-valuenow="{{ goal.progress_percentage|stringformat:'f'|translate_digits }}" aria-valuemin="0" aria-valuemax="100">
                         </div>
                     </div>

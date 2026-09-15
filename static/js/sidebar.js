@@ -14,11 +14,18 @@
             if (sidebarState === 'collapsed') {
                 sidebar.classList.add('collapsed');
                 body.classList.add('sidebar-collapsed');
+                sidebarCollapseBtn.setAttribute('aria-expanded', 'false');
+                sidebarCollapseBtn.setAttribute('aria-label', 'Expand sidebar');
+                sidebarCollapseBtn.setAttribute('title', 'Expand sidebar');
                 const icon = sidebarCollapseBtn.querySelector('i');
                 if (icon) {
                     icon.classList.remove('bi-chevron-left');
                     icon.classList.add('bi-chevron-right');
                 }
+            } else {
+                sidebarCollapseBtn.setAttribute('aria-expanded', 'true');
+                sidebarCollapseBtn.setAttribute('aria-label', 'Collapse sidebar');
+                sidebarCollapseBtn.setAttribute('title', 'Collapse sidebar');
             }
 
             // Remove existing listener to avoid duplicates
@@ -29,12 +36,18 @@
                 const icon = sidebarCollapseBtn.querySelector('i');
                 if (sidebar.classList.contains('collapsed')) {
                     localStorage.setItem('sidebarState', 'collapsed');
+                    sidebarCollapseBtn.setAttribute('aria-expanded', 'false');
+                    sidebarCollapseBtn.setAttribute('aria-label', 'Expand sidebar');
+                    sidebarCollapseBtn.setAttribute('title', 'Expand sidebar');
                     if (icon) {
                         icon.classList.remove('bi-chevron-left');
                         icon.classList.add('bi-chevron-right');
                     }
                 } else {
                     localStorage.setItem('sidebarState', 'expanded');
+                    sidebarCollapseBtn.setAttribute('aria-expanded', 'true');
+                    sidebarCollapseBtn.setAttribute('aria-label', 'Collapse sidebar');
+                    sidebarCollapseBtn.setAttribute('title', 'Collapse sidebar');
                     if (icon) {
                         icon.classList.remove('bi-chevron-right');
                         icon.classList.add('bi-chevron-left');

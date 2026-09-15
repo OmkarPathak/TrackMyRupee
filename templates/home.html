@@ -2126,6 +2126,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active"
                                class="progress-bar {% if not forloop.last %}border-end border-white border-opacity-25{% endif %} text-decoration-none"
                                role="progressbar"
+                               aria-label="{{ item.type }}"
                                style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; cursor: pointer;"
                                aria-valuenow="{{ item.percent }}"
                                aria-valuemin="0"
@@ -2382,14 +2383,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                      style="--progress-width: {{ item.used_percent }}%; width: {{ item.used_percent }}%" 
                                      aria-valuenow="{{ item.used_percent }}" 
                                      aria-valuemin="0" 
-                                     aria-valuemax="100"></div>
+                                     aria-valuemax="100"
+                                     aria-label="{{ item.name }}"></div>
                             </div>
                             {% else %}
                             <div class="progress w-100 progress-thin progress-animate">
                                 <div class="progress-bar progress-gradient-info" 
                                      role="progressbar" 
                                      style="--progress-width: 100%; width: 100%; opacity: 0.5;" 
-                                     title="{% trans 'No limit set' %}"></div>
+                                     title="{% trans 'No limit set' %}"
+                                     aria-label="{{ item.name }} - {% trans 'No limit set' %}"></div>
                             </div>
                             {% endif %}
                         </div>

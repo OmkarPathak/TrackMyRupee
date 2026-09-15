@@ -222,6 +222,7 @@
                     <!-- Slim Progress Bar -->
                     <div class="progress mb-4 bg-body-secondary" style="height: 8px; border-radius: 8px;">
                         <div class="progress-bar progress-bar-striped {% if summary.loan.is_active %}bg-primary{% else %}bg-success{% endif %}" role="progressbar" 
+                             aria-label="{{ summary.loan.name }}"
                              style="width: {{ summary.progress }}%; border-radius: 8px;" aria-valuenow="{{ summary.progress|stringformat:'f'|translate_digits }}" aria-valuemin="0" aria-valuemax="100">
                         </div>
                     </div>

@@ -484,7 +484,7 @@
                                         {% if account.has_credit_limit %}
                                             <div class="d-flex align-items-center gap-2">
                                                 <div class="progress flex-grow-1 bg-body-tertiary border" style="height: 5px; border-radius: 10px; border-color: rgba(0,0,0,0.06) !important;">
-                                                    <div class="progress-bar rounded-pill {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ account.credit_utilization_pct|stringformat:'f' }}%;" aria-valuenow="{{ account.credit_utilization_pct|stringformat:'f' }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    <div class="progress-bar rounded-pill {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ account.credit_utilization_pct|stringformat:'f' }}%;" aria-label="{% trans 'Credit utilization' %}" aria-valuenow="{{ account.credit_utilization_pct|stringformat:'f' }}" aria-valuemin="0" aria-valuemax="100"></div>
                                                 </div>
                                                 <span class="text-muted fw-semibold flex-shrink-0" style="font-size: 0.68rem; white-space: nowrap;">
                                                     {{ account.credit_utilization_pct|floatformat:1|translate_digits }}% used

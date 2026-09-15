@@ -154,6 +154,7 @@
                 <div class="progress mb-2" style="height: 10px; border-radius: 6px; background-color: var(--bs-secondary-bg);">
                     <div class="progress-bar {% if actual_total_percentage > 100 %}bg-danger{% elif actual_total_percentage >= 85 %}bg-warning{% else %}bg-success{% endif %}" 
                          role="progressbar" 
+                         aria-label="{% trans 'Total budget used' %}"
                          style="width: {{ total_percentage }}%; border-radius: 6px;" 
                          aria-valuenow="{{ total_percentage }}" 
                          aria-valuemin="0" 
@@ -224,6 +225,7 @@
                                 <div class="progress my-2" style="height: 8px; border-radius: 4px; background-color: var(--bs-secondary-bg);">
                                     <div class="progress-bar cat-bar" 
                                          role="progressbar" 
+                                         aria-label="{{ data.category.name }}"
                                          style="width: {{ data.percentage }}%; border-radius: 4px;" 
                                          aria-valuenow="{{ data.percentage }}" 
                                          aria-valuemin="0" 
@@ -281,7 +283,7 @@
                                             <i class="bi bi-pencil-square" style="font-size: 0.85rem;"></i>
                                         </a>
                                     </div>
-                                    <span class=fw-bold fs-6 text-success">
+                                    <span class="fw-bold fs-6 text-success">
                                         {{ data.actual_percentage|floatformat:0|translate_digits }}%
                                     </span>
                                 </div>
@@ -290,6 +292,7 @@
                                 <div class="progress my-2" style="height: 8px; border-radius: 4px; background-color: var(--bs-secondary-bg);">
                                     <div class="progress-bar bg-success" 
                                          role="progressbar" 
+                                         aria-label="{{ data.category.name }}"
                                          style="width: {{ data.percentage }}%; border-radius: 4px;" 
                                          aria-valuenow="{{ data.percentage }}" 
                                          aria-valuemin="0" 

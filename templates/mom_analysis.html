@@ -182,6 +182,7 @@
                             <div class="progress rounded-pill" style="height: 8px;">
                                 <div class="progress-bar {{ asset_allocation.bank_status_class }} rounded-pill" role="progressbar" 
                                      style="width: {{ asset_allocation.bank_pct }}%;" 
+                                     aria-label="{% trans 'Cash & Bank' %}"
                                      aria-valuenow="{{ asset_allocation.bank_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                             <small class="text-muted mt-2 d-block" style="font-size: 0.8rem;">
@@ -194,7 +195,7 @@
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-semibold text-body" style="font-size: 0.9rem;">{% trans "Investments" %}</span>
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="fw-bold text-body" style="font-size: 0.9rem;">{{ asset_allocation.inv_pct }}%</span>
+                                     <span class="fw-bold text-body" style="font-size: 0.9rem;">{{ asset_allocation.inv_pct }}%</span>
                                     <span class="badge {{ asset_allocation.inv_status_badge_class }} rounded-pill py-1 px-2.5 fw-bold" style="font-size: 0.75rem;">
                                         {% trans asset_allocation.inv_status_label %}
                                     </span>
@@ -203,6 +204,7 @@
                             <div class="progress rounded-pill" style="height: 8px;">
                                 <div class="progress-bar {{ asset_allocation.inv_status_class }} rounded-pill" role="progressbar" 
                                      style="width: {{ asset_allocation.inv_pct }}%;" 
+                                     aria-label="{% trans 'Investments' %}"
                                      aria-valuenow="{{ asset_allocation.inv_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                             <small class="text-muted mt-2 d-block" style="font-size: 0.8rem;">

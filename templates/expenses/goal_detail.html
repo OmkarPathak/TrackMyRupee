@@ -115,7 +115,7 @@
                 </div>
                 {% endif %}
                 <div class="progress shadow-sm bg-white mb-2" style="height: 14px; border-radius: 7px;">
-                    <div class="progress-bar bg-success goal-progress-bar" role="progressbar" data-progress="{{ goal.progress_percentage }}" aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-success goal-progress-bar" role="progressbar" data-progress="{{ goal.progress_percentage }}" aria-label="{{ goal.name }}" aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <p class="small text-muted mb-0">
                     {% if goal.is_completed %}
