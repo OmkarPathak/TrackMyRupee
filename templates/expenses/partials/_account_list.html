@@ -29,17 +29,17 @@
     .type-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none; transition: all 0.15s ease; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06); }
     [data-bs-theme="dark"] .type-chip { border-color: rgba(255,255,255,0.08); }
     .type-chip:hover { background-color: var(--bs-secondary-bg); color: var(--bs-body-color); }
-    .type-chip.active { background-color: #1D9E75 !important; color: #fff !important; border-color: #1D9E75 !important; }
+    .type-chip.active { background-color: var(--color-secondary, #0F7657) !important; color: #fff !important; border-color: var(--color-secondary, #0F7657) !important; }
     .type-chip .chip-count { font-weight: 600; opacity: 0.9; }
     .tooltip-balance-info .tooltip-inner { max-width: 320px; text-align: left; padding: 10px 14px; font-size: 0.82rem; line-height: 1.55; }
     @media (max-width: 576px) { .tooltip-balance-info .tooltip-inner { max-width: min(300px, 88vw); } }
     @media (max-width: 767.98px) { .accounts-filter-row { flex-wrap: wrap; } .accounts-search-wrap { flex: 1 1 100%; order: -1; } .accounts-filter-select { flex: 1 1 auto; } }
-    .rate-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(29,158,117,0.1); color: #1D9E75; }
-    .maturity-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(29,158,117,0.08); color: #1D9E75; }
+    .rate-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(15,118,87,0.1); color: var(--color-secondary, #0F7657); }
+    .maturity-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(15,118,87,0.08); color: var(--color-secondary, #0F7657); }
     .billing-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(212,131,26,0.1); color: var(--color-warning); }
     [data-bs-theme="dark"] .billing-badge { background-color: rgba(244,180,78,0.15); color: var(--color-warning); }
     .header-action-btn { height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px !important; transition: all 0.2s ease; border: 1px solid var(--bs-border-color); background: transparent; padding: 0 0.75rem; font-size: 0.875rem; text-decoration: none; color: var(--bs-body-color); font-weight: 500; }
-    .header-action-btn.btn-primary { background-color: #1D9E75 !important; color: white !important; border-color: #1D9E75 !important; }
+    .header-action-btn.btn-primary { background-color: var(--color-secondary, #0F7657) !important; color: white !important; border-color: var(--color-secondary, #0F7657) !important; }
     .header-action-btn:hover { opacity: 0.9; }
     .account-grid-card {
         border-radius: 1rem !important;
@@ -72,17 +72,18 @@
 <!-- PAGE HEADER -->
 <div class="mb-3">
     <div class="d-flex align-items-center justify-content-between gap-3 pt-1 mb-1">
-        <h2 class="fw-bold text-body mb-0" style="font-size: clamp(1.4rem, 4vw, 1.8rem); letter-spacing: -0.02em;">
+        <h1 class="fw-bold text-body mb-0" style="font-size: clamp(1.4rem, 4vw, 1.8rem); letter-spacing: -0.02em;">
             {% if current_status == 'inactive' %}{% trans "Inactive Accounts" %}{% else %}{% trans "Accounts" %}{% endif %}
-        </h2>
+        </h1>
         <div class="d-flex gap-2 align-items-center flex-shrink-0">
             <!-- Funnel filter toggle (matches transaction list pattern) -->
             <button class="filter-toggle-btn position-relative" type="button"
                     data-bs-toggle="collapse" data-bs-target="#accountFilters"
                     aria-expanded="false"
                     aria-controls="accountFilters"
-                    title="{% trans 'Toggle Filters' %}">
-                <i class="bi bi-funnel"></i>
+                    title="{% trans 'Toggle Filters' %}"
+                    aria-label="{% trans 'Toggle Filters' %}">
+                <i class="bi bi-funnel" aria-hidden="true"></i>
                 {% if active_filters_count > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
                     {{ active_filters_count }}
@@ -91,11 +92,11 @@
                 {% endif %}
             </button>
             <a href="{% url 'transfer-list' %}" class="header-action-btn d-inline-flex align-items-center gap-1">
-                <i class="bi bi-clock-history"></i>
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
                 <span class="d-none d-sm-inline">{% trans "History" %}</span>
             </a>
             <a href="{% url 'account-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center gap-1">
-                <i class="bi bi-plus-lg"></i>
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
                 <span>{% trans "Add" %}<span class="d-none d-sm-inline"> {% trans "account" %}</span></span>
             </a>
         </div>

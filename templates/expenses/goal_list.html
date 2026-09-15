@@ -128,15 +128,15 @@
                         </a>
                         {% endif %}
                         <div class="d-flex gap-2">
-                            <a href="{% url 'goal-edit' goal.uuid %}" class="btn btn-outline-secondary btn-sm rounded-3 icon-btn" title="{% trans 'Edit' %}">
-                                <i class="bi bi-pencil"></i>
+                            <a href="{% url 'goal-edit' goal.uuid %}" class="btn btn-outline-secondary btn-sm rounded-3 icon-btn" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit Goal' %}">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
                             </a>
                             <button type="button" class="btn btn-outline-danger btn-sm rounded-3 icon-btn" 
                                     data-bs-toggle="modal" data-bs-target="#deleteModal"
                                     data-url="{% url 'goal-delete' goal.uuid %}"
                                     data-message="{% blocktrans with name=goal.name %}Are you sure you want to delete the goal '{{ name }}'? The funds will not be affected, but the goal tracking will be removed.{% endblocktrans %}"
-                                    title="{% trans 'Delete' %}">
-                                <i class="bi bi-trash"></i>
+                                    title="{% trans 'Delete' %}" aria-label="{% trans 'Delete Goal' %}">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
                             </button>
                         </div>
                     </div>

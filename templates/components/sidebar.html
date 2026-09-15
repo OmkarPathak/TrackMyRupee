@@ -16,9 +16,9 @@
 
     <!-- Quick Search / Find a page Trigger -->
     <div class="px-3 mb-3 sidebar-search-container">
-        <button class="btn btn-search-trigger d-flex align-items-center justify-content-between w-100 py-2 px-3 border rounded-3 text-secondary bg-body-tertiary shadow-none" id="sidebarSearchTrigger" type="button" data-bs-toggle="modal" data-bs-target="#pageSearchModal" onclick="window.togglePageSearchModal()" title="{% trans 'Find a page... (⌘K)' %}">
+        <button class="btn btn-search-trigger d-flex align-items-center justify-content-between w-100 py-2 px-3 border rounded-3 text-secondary bg-body-tertiary shadow-none" id="sidebarSearchTrigger" type="button" data-bs-toggle="modal" data-bs-target="#pageSearchModal" onclick="window.togglePageSearchModal()" title="{% trans 'Find a page... (⌘K)' %}" aria-label="{% trans 'Find a page... (⌘K)' %}">
             <div class="d-flex align-items-center gap-2 overflow-hidden">
-                <i class="bi bi-search flex-shrink-0 fs-6"></i>
+                <i class="bi bi-search flex-shrink-0 fs-6" aria-hidden="true"></i>
                 <span class="nav-text small text-truncate">{% trans "Find a page" %}</span>
             </div>
             <kbd class="nav-text badge bg-body border text-secondary fw-normal px-1.5 py-1 flex-shrink-0 command-kbd" style="font-size: 0.65rem; font-family: inherit;">⌘ K</kbd>

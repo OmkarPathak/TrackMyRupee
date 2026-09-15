@@ -10,10 +10,10 @@
     <div class="bg-transparent d-none d-md-block pt-1 pb-3">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h2 class="mb-0 fw-bold d-flex align-items-center gap-3 mb-1">
+                <h1 class="h2 mb-0 fw-bold d-flex align-items-center gap-3 mb-1">
                     {% if prev_month_url %}
-                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}" hx-get="{{ prev_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                            <i class="bi bi-chevron-left fs-5"></i>
+                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}" aria-label="{% trans 'Previous Month' %}" hx-get="{{ prev_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                            <i class="bi bi-chevron-left fs-5" aria-hidden="true"></i>
                         </button>
                     {% endif %}
                     <span class="h3 mb-0">
@@ -24,11 +24,11 @@
                     {% endif %}
                     </span>
                     {% if next_month_url %}
-                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}" hx-get="{{ next_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                            <i class="bi bi-chevron-right fs-5"></i>
+                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}" aria-label="{% trans 'Next Month' %}" hx-get="{{ next_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                            <i class="bi bi-chevron-right fs-5" aria-hidden="true"></i>
                         </button>
                     {% endif %}
-                </h2>
+                </h1>
                 <p class="text-muted small mb-0 fw-medium">
                     <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot;
                     <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}
@@ -38,8 +38,8 @@
                 </p>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
+                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel" aria-hidden="true"></i>
                     {% if active_filters_count > 0 %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
                         {{ active_filters_count }}
@@ -73,10 +73,10 @@
 
     <div class="bg-transparent d-md-none pt-1 pb-3">
         <div class="d-flex justify-content-between align-items-start gap-2">
-            <h2 class="mb-0 fw-bold d-flex align-items-center gap-3">
+            <h1 class="h2 mb-0 fw-bold d-flex align-items-center gap-3">
                 {% if prev_month_url %}
-                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}" hx-get="{{ prev_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                        <i class="bi bi-chevron-left fs-5"></i>
+                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Previous Month' %}" aria-label="{% trans 'Previous Month' %}" hx-get="{{ prev_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        <i class="bi bi-chevron-left fs-5" aria-hidden="true"></i>
                     </button>
                 {% endif %}
                 <span class="h3 mb-0">
@@ -87,14 +87,14 @@
                 {% endif %}
                 </span>
                 {% if next_month_url %}
-                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}" hx-get="{{ next_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                        <i class="bi bi-chevron-right fs-5"></i>
+                    <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center p-0" title="{% trans 'Next Month' %}" aria-label="{% trans 'Next Month' %}" hx-get="{{ next_month_url }}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        <i class="bi bi-chevron-right fs-5" aria-hidden="true"></i>
                     </button>
                 {% endif %}
-            </h2>
+            </h1>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
+                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel" aria-hidden="true"></i>
                     {% if active_filters_count > 0 %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
                         {{ active_filters_count }}
@@ -149,7 +149,7 @@
                         {% with periods="this_month:This month,last_month:Last month,last_3_months:Last 3 months,this_year:This year,all:All time,custom:Custom" %}
                         {% for period in periods|split_string:"," %}
                             {% with p_val=period|split_string:":"|first p_label=period|split_string:":"|last %}
-                            <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm active{% else %}btn-light text-body border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period == p_val %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg);{% endif %}">
+                            <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm active{% else %}btn-light text-body border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period == p_val %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg);{% endif %}">
                                 <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="handleTimePeriodChange(this)" {% if time_period == p_val %}checked{% endif %}>
                                 {{ p_label }}
                             </label>
@@ -426,17 +426,18 @@
                         <table class="table table-hover table-striped mb-0 text-start align-middle">
                             <thead>
                                 <tr>
-                                    <th class="ps-4" style="width: 40px;">
+                                    <th class="ps-4" style="width: 40px;" scope="col">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                            <input class="form-check-input" type="checkbox" id="selectAll" aria-label="{% trans 'Select all expenses' %}">
+                                            <label class="visually-hidden" for="selectAll">{% trans "Select all expenses" %}</label>
                                         </div>
                                     </th>
-                                    <th>{% trans "Date" %}</th>
-                                    <th>{% trans "Description" %}</th>
-                                    <th>{% trans "Category" %}</th>
-                                    <th>{% trans "Payment Method" %}</th>
-                                    <th>{% trans "Account" %}</th>
-                                    <th>
+                                    <th scope="col">{% trans "Date" %}</th>
+                                    <th scope="col">{% trans "Description" %}</th>
+                                    <th scope="col">{% trans "Category" %}</th>
+                                    <th scope="col">{% trans "Payment Method" %}</th>
+                                    <th scope="col">{% trans "Account" %}</th>
+                                    <th scope="col">
                                         {% if sort_by == 'amount_asc' %}
                                             <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'expense-list' %}?{% url_replace sort='amount_desc' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-up-short"></i></a>
                                         {% elif sort_by == 'amount_desc' %}
@@ -445,7 +446,7 @@
                                             <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'expense-list' %}?{% url_replace sort='amount_desc' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-down-up text-muted opacity-25" style="font-size: 0.8em;"></i></a>
                                         {% endif %}
                                     </th>
-                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
+                                    <th class="text-end pe-4" scope="col">{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -453,7 +454,8 @@
                                 <tr>
                                     <td class="ps-4">
                                         <div class="form-check">
-                                            <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}">
+                                            <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" id="expense-check-{{ expense.pk }}" aria-label="{% trans 'Select expense' %} {{ expense.description|default:expense.category }}">
+                                            <label class="visually-hidden" for="expense-check-{{ expense.pk }}">{% trans "Select expense" %} {{ expense.description|default:expense.category }}</label>
                                         </div>
                                     </td>
                                     <td class="text-nowrap">{{ expense.date|date:"d M Y"|translate_digits }}</td>
@@ -474,8 +476,9 @@
                                     </td>
                                     <td class="text-end pe-4 text-nowrap">
                                         <div class="dropdown hstack gap-3 justify-content-end">
-                                            <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
-                                                <i class="bi bi-three-dots-vertical text-muted"></i>
+                                            <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Expense actions' %}" title="{% trans 'Expense actions' %}">
+                                                <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                                <span class="visually-hidden">{% trans "Actions for" %} {{ expense.description|default:expense.category }}</span>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                                                 <li>
@@ -512,10 +515,10 @@
             <div id="mobileGridView" class="py-2 d-md-none">
                 <div class="d-flex align-items-center mb-2 px-1 mobile-selection-header">
                     <div id="mobileSelectAllRow" class="d-flex align-items-center gap-2">
-                        <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;">
+                        <input class="form-check-input m-0" type="checkbox" id="selectAllMobile" style="width: 16px; height: 16px;" aria-label="{% trans 'Select All' %}">
                         <label class="small text-muted" for="selectAllMobile" style="cursor: pointer;">{% trans "Select All" %}</label>
                     </div>
-                    <button type="button" id="mobileSelectToggle" class="btn btn-link text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader p-0 m-0" style="color: var(--bs-secondary); font-size: 0.78rem;"><i class="bi bi-check2-square"></i> {% trans "Select" %}</button>
+                    <button type="button" id="mobileSelectToggle" class="btn btn-link text-decoration-none fw-semibold d-inline-flex align-items-center gap-1 no-loader p-0 m-0" style="color: var(--bs-secondary-color); font-size: 0.78rem;"><i class="bi bi-check2-square" aria-hidden="true"></i> {% trans "Select" %}</button>
                 </div>
                 {% regroup expenses by date as expenses_by_date %}
                 {% for group in expenses_by_date %}
@@ -529,7 +532,8 @@
                         <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
                             <div class="mobile-card-inner">
                                 <div class="form-check mb-0 z-2 position-relative flex-shrink-0">
-                                    <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;">
+                                    <input class="form-check-input expense-checkbox" type="checkbox" name="expense_ids" value="{{ expense.pk }}" id="mobile-expense-check-{{ expense.pk }}" style="width: 17px; height: 17px; cursor: pointer;" aria-label="{% trans 'Select expense' %} {{ expense.description|default:expense.category }}">
+                                    <label class="visually-hidden" for="mobile-expense-check-{{ expense.pk }}">{% trans "Select expense" %} {{ expense.description|default:expense.category }}</label>
                                 </div>
                                 <div class="category-icon-container" title="{{ expense.category }}">
                                     <i class="bi {% category_icon expense.category user %}"></i>
@@ -550,8 +554,9 @@
                                     <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
                                 </div>
                                 <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
-                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" data-bs-boundary="viewport">
-                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
+                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" data-bs-boundary="viewport" aria-label="{% trans 'Expense actions' %}" title="{% trans 'Expense actions' %}">
+                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50" aria-hidden="true"></i>
+                                        <span class="visually-hidden">{% trans "Actions for" %} {{ expense.description|default:expense.category }}</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
                                         <li>

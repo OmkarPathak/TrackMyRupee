@@ -181,8 +181,8 @@
                     <span class="input-group-text bg-body-tertiary border-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" name="q" class="form-control border-0 bg-body-tertiary ps-0" placeholder="{% trans 'Search contributions...' %}" value="{{ search_query }}">
                     {% if search_query %}
-                        <a href="{% url 'goal-detail' goal.uuid %}" class="btn btn-link text-muted border-0 d-flex align-items-center px-3" data-bs-toggle="tooltip" title="{% trans 'Clear search' %}">
-                            <i class="bi bi-x-lg small"></i>
+                        <a href="{% url 'goal-detail' goal.uuid %}" class="btn btn-link text-muted border-0 d-flex align-items-center px-3" data-bs-toggle="tooltip" title="{% trans 'Clear search' %}" aria-label="{% trans 'Clear search' %}">
+                            <i class="bi bi-x-lg small" aria-hidden="true"></i>
                         </a>
                     {% endif %}
                 </div>
@@ -237,8 +237,9 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="dropdown">
-                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
-                                    <i class="bi bi-three-dots-vertical fs-6"></i>
+                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Contribution actions' %}" title="{% trans 'Contribution actions' %}">
+                                    <i class="bi bi-three-dots-vertical fs-6" aria-hidden="true"></i>
+                                    <span class="visually-hidden">{% trans "Contribution actions" %}</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
                                     {% if contrib.account %}
@@ -293,8 +294,8 @@
                 <ul class="pagination justify-content-center mb-0">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link shadow-none" href="?{% url_replace page=page_obj.previous_page_number %}">
-                            <i class="bi bi-chevron-left"></i>
+                        <a class="page-link shadow-none" href="?{% url_replace page=page_obj.previous_page_number %}" aria-label="{% trans 'Previous page' %}">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
                         </a>
                     </li>
                     {% endif %}
@@ -307,8 +308,8 @@
 
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link shadow-none" href="?{% url_replace page=page_obj.next_page_number %}">
-                            <i class="bi bi-chevron-right"></i>
+                        <a class="page-link shadow-none" href="?{% url_replace page=page_obj.next_page_number %}" aria-label="{% trans 'Next page' %}">
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
                         </a>
                     </li>
                     {% endif %}

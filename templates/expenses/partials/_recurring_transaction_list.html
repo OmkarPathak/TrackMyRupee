@@ -4,15 +4,15 @@
     <!-- Mobile Header -->
     <div class="card-header bg-transparent d-md-none pt-1 pb-3">
         <div class="d-flex justify-content-between align-items-center">
-            <h3 class="mb-0 fw-bold d-flex align-items-center gap-2">
+            <h1 class="h4 mb-0 fw-bold d-flex align-items-center gap-2">
                 <span class="h4 mb-0">{% trans "Subscriptions" %}</span>
-                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideRecurring" aria-expanded="false" title="{% trans 'How it works' %}">
-                    <i class="bi bi-info-lg" style="font-size: 0.65rem;"></i>
+                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideRecurring" aria-expanded="false" title="{% trans 'How it works' %}" aria-label="{% trans 'How it works' %}">
+                    <i class="bi bi-info-lg" style="font-size: 0.65rem;" aria-hidden="true"></i>
                 </button>
-            </h3>
+            </h1>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
+                <button class="filter-toggle-btn position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel" aria-hidden="true"></i>
                     {% if active_filters_count > 0 %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
                         {{ active_filters_count }}
@@ -21,12 +21,12 @@
                     {% endif %}
                 </button>
                 {% if is_limit_reached %}
-                    <button type="button" class="header-action-btn btn-primary d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#limitReachedModal" title="{% trans 'Add Subscription' %}">
-                        <i class="bi bi-plus-lg me-1"></i> {% trans 'Add' %}
+                    <button type="button" class="header-action-btn btn-primary d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#limitReachedModal" title="{% trans 'Add Subscription' %}" aria-label="{% trans 'Add Subscription' %}">
+                        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans 'Add' %}
                     </button>
                 {% else %}
-                    <a href="{% url 'recurring-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center" title="{% trans 'Add' %}">
-                        <i class="bi bi-plus-lg me-1"></i> {% trans 'Add' %}
+                    <a href="{% url 'recurring-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center" title="{% trans 'Add' %}" aria-label="{% trans 'Add Subscription' %}">
+                        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans 'Add' %}
                     </a>
                 {% endif %}
             </div>
@@ -46,9 +46,9 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1">
-                    <h2 class="h3 mb-0 fw-bold">{% trans "Subscriptions" %}</h2>
-                    <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideRecurring" aria-expanded="false" title="{% trans 'How it works' %}">
-                        <i class="bi bi-info-lg" style="font-size: 0.75rem;"></i>
+                    <h1 class="h3 mb-0 fw-bold">{% trans "Subscriptions" %}</h1>
+                    <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideRecurring" aria-expanded="false" title="{% trans 'How it works' %}" aria-label="{% trans 'How it works' %}">
+                        <i class="bi bi-info-lg" style="font-size: 0.75rem;" aria-hidden="true"></i>
                     </button>
                 </div>
                 <p class="text-muted small mb-0 fw-medium">
@@ -244,8 +244,9 @@
                                                 </a>
                                             {% else %}
                                                 <div class="dropdown">
-                                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
-                                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" aria-label="{% trans 'Subscription actions' %}" title="{% trans 'Subscription actions' %}">
+                                                        <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                                        <span class="visually-hidden">{% trans "Subscription actions" %}</span>
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                                         <li>
@@ -308,8 +309,9 @@
                                         {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                     </div>
                                     <div class="dropdown">
-                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
-                                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Subscription actions' %}" title="{% trans 'Subscription actions' %}">
+                                            <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                            <span class="visually-hidden">{% trans "Subscription actions" %}</span>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                             {% if sub.is_locked %}
@@ -441,8 +443,9 @@
                                                 </a>
                                             {% else %}
                                                 <div class="dropdown">
-                                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
-                                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" aria-label="{% trans 'Subscription actions' %}" title="{% trans 'Subscription actions' %}">
+                                                        <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                                        <span class="visually-hidden">{% trans "Subscription actions" %}</span>
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                                         <li>
@@ -505,8 +508,9 @@
                                         {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                     </div>
                                     <div class="dropdown">
-                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
-                                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Subscription actions' %}" title="{% trans 'Subscription actions' %}">
+                                            <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                            <span class="visually-hidden">{% trans "Subscription actions" %}</span>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                             {% if sub.is_locked %}
@@ -639,8 +643,9 @@
                                         {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
                                     </div>
                                     <div class="dropdown">
-                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
-                                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Subscription actions' %}" title="{% trans 'Subscription actions' %}">
+                                            <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                            <span class="visually-hidden">{% trans "Subscription actions" %}</span>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                             {% if sub.is_locked %}

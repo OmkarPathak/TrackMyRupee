@@ -4,10 +4,10 @@
     <!-- Mobile Header -->
     <div class="d-md-none pb-3 mb-3">
         <div class="d-flex justify-content-between align-items-center">
-            <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
+            <h1 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h1>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
+                <button class="filter-toggle-btn position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel" aria-hidden="true"></i>
                     {% if active_filters_count > 0 %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
                         {{ active_filters_count }}
@@ -16,7 +16,7 @@
                     {% endif %}
                 </button>
                 <a href="{% url 'capital-event-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center">
-                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add" %}
+                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans "Add" %}
                 </a>
             </div>
         </div>
@@ -34,10 +34,10 @@
     <!-- Desktop Header -->
     <div class="d-none d-md-block pt-1 pb-3 mb-4">
         <div class="d-flex justify-content-between align-items-center">
-            <h2 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h2>
+            <h1 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h1>
             <div class="d-flex gap-2 align-items-center">
-                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
+                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
+                    <i class="bi bi-funnel" aria-hidden="true"></i>
                     {% if active_filters_count > 0 %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
                         {{ active_filters_count }}
@@ -47,7 +47,7 @@
                 </button>
 
                 <a href="{% url 'capital-event-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
-                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Capital Event" %}
+                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans "Add Capital Event" %}
                 </a>
             </div>
         </div>
@@ -81,7 +81,7 @@
                         {% with periods="this_month:This month,last_month:Last month,last_3_months:Last 3 months,this_year:This year,all:All time,custom:Custom" %}
                         {% for period in periods|split_string:"," %}
                             {% with p_val=period|split_string:":"|first p_label=period|split_string:":"|last %}
-                            <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm active{% else %}btn-light text-body border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period == p_val %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg);{% endif %}">
+                            <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm active{% else %}btn-light text-body border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period == p_val %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg);{% endif %}">
                                 <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="handleTimePeriodChange(this)" {% if time_period == p_val %}checked{% endif %}>
                                 {{ p_label }}
                             </label>
@@ -184,8 +184,9 @@
                             </td>
                             <td class="text-end pe-4 text-nowrap">
                                 <div class="dropdown hstack gap-3 justify-content-end">
-                                    <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'>
-                                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                                    <button class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Capital event actions' %}" title="{% trans 'Capital event actions' %}">
+                                        <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                        <span class="visually-hidden">{% trans "Capital event actions" %}</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                         <li>
@@ -281,8 +282,9 @@
                                     </div>
 
                                     <div class="dropdown">
-                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
-                                            <i class="bi bi-three-dots-vertical text-muted"></i>
+                                        <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Capital event actions' %}" title="{% trans 'Capital event actions' %}">
+                                            <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                            <span class="visually-hidden">{% trans "Capital event actions" %}</span>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                             <li>

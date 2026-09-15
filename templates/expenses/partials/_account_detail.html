@@ -144,7 +144,7 @@
                     <div>
                         <div class="d-flex align-items-start justify-content-between gap-3 mb-1">
                             <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
-                                <h2 class="fw-bold text-body mb-0 account-title-text text-break">{{ account.name }}</h2>
+                                <h1 class="fw-bold text-body mb-0 account-title-text text-break">{{ account.name }}</h1>
                                 <span class="badge badge-soft-primary rounded-pill px-2.5 py-1 small fw-medium">{{ account.get_account_type_display }}</span>
                                 {% if not account.is_active %}
                                     <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill border">{% trans "Inactive" %}</span>
@@ -158,29 +158,29 @@
                             <div class="d-flex gap-2 flex-shrink-0">
                                 {% if user.username != 'demo' %}
                                     {% if account.is_active %}
-                                    <a href="{% url 'transfer-create' %}?from_account={{ account.uuid }}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Transfer' %}">
-                                        <i class="bi bi-arrow-left-right"></i>
+                                    <a href="{% url 'transfer-create' %}?from_account={{ account.uuid }}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Transfer' %}" aria-label="{% trans 'Transfer' %}">
+                                        <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
                                     </a>
                                     {% else %}
-                                    <button class="btn btn-sm hero-action-btn disabled" disabled data-bs-toggle="tooltip" title="{% trans 'Restore account to transfer' %}">
-                                        <i class="bi bi-arrow-left-right"></i>
+                                    <button class="btn btn-sm hero-action-btn disabled" disabled data-bs-toggle="tooltip" title="{% trans 'Restore account to transfer' %}" aria-label="{% trans 'Restore account to transfer' %}">
+                                        <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
                                     </button>
                                     {% endif %}
                                 {% endif %}
                                 {% if account.is_active %}
-                                    <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Edit' %}">
-                                        <i class="bi bi-pencil"></i>
+                                    <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
                                     </a>
                                 {% else %}
-                                    <button class="btn btn-sm hero-action-btn disabled" disabled data-bs-toggle="tooltip" title="{% trans 'Restore account to edit' %}">
-                                        <i class="bi bi-pencil"></i>
+                                    <button class="btn btn-sm hero-action-btn disabled" disabled data-bs-toggle="tooltip" title="{% trans 'Restore account to edit' %}" aria-label="{% trans 'Restore account to edit' %}">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
                                     </button>
                                 {% endif %}
                                 {% if account.holdings.exists %}
                                     {% for h in account.holdings.all %}
                                         {% if h.scheme_code and h.is_active %}
-                                            <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}">
-                                                <i class="bi bi-arrow-repeat"></i>
+                                            <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}" aria-label="{% trans 'Refresh NAV' %}">
+                                                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
                                             </a>
                                         {% endif %}
                                     {% endfor %}
@@ -322,42 +322,42 @@
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.8rem; {% if not selected_tx_type %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.8rem; {% if not selected_tx_type %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "All" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=EXPENSE&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.8rem; {% if selected_tx_type == 'EXPENSE' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.8rem; {% if selected_tx_type == 'EXPENSE' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Expenses" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=INCOME&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.8rem; {% if selected_tx_type == 'INCOME' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.8rem; {% if selected_tx_type == 'INCOME' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Income" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=TRANSFER&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.8rem; {% if selected_tx_type == 'TRANSFER' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.8rem; {% if selected_tx_type == 'TRANSFER' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Transfers" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=SAVINGS&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.8rem; {% if selected_tx_type == 'SAVINGS' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.8rem; {% if selected_tx_type == 'SAVINGS' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Savings" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=LOAN&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.8rem; {% if selected_tx_type == 'LOAN' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.8rem; {% if selected_tx_type == 'LOAN' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Loan Repayments" %}
                     </a>
                 </div>
@@ -402,42 +402,42 @@
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.78rem; {% if not selected_tx_type %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.78rem; {% if not selected_tx_type %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "All" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=EXPENSE&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.78rem; {% if selected_tx_type == 'EXPENSE' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.78rem; {% if selected_tx_type == 'EXPENSE' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Expenses" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=INCOME&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.78rem; {% if selected_tx_type == 'INCOME' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.78rem; {% if selected_tx_type == 'INCOME' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Income" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=TRANSFER&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.78rem; {% if selected_tx_type == 'TRANSFER' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.78rem; {% if selected_tx_type == 'TRANSFER' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Transfers" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=SAVINGS&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.78rem; {% if selected_tx_type == 'SAVINGS' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.78rem; {% if selected_tx_type == 'SAVINGS' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Savings" %}
                     </a>
                     <a href="#" 
                        hx-get="{% url 'account-detail' account.uuid %}?tx_type=LOAN&q={{ search_query }}"
                        hx-target="#account-detail-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"
                        class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all"
-                       style="font-size: 0.78rem; {% if selected_tx_type == 'LOAN' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+                       style="font-size: 0.78rem; {% if selected_tx_type == 'LOAN' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
                         {% trans "Loan Repayments" %}
                     </a>
                 </div>
@@ -519,8 +519,9 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="dropdown">
-                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
-                                    <i class="bi bi-three-dots-vertical fs-6"></i>
+                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Transaction actions' %}" title="{% trans 'Transaction actions' %}">
+                                    <i class="bi bi-three-dots-vertical fs-6" aria-hidden="true"></i>
+                                    <span class="visually-hidden">{% trans "Transaction actions" %}</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
                                     {% if item.transaction_type == 'EXPENSE' %}
@@ -733,8 +734,9 @@
 
                             <!-- Far Right: Menu -->
                             <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
-                                <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" data-bs-boundary="viewport">
-                                    <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
+                                <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" data-bs-boundary="viewport" aria-label="{% trans 'Transaction actions' %}" title="{% trans 'Transaction actions' %}">
+                                    <i class="bi bi-three-dots-vertical text-body-secondary opacity-50" aria-hidden="true"></i>
+                                    <span class="visually-hidden">{% trans "Transaction actions" %}</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
                                     {% if item.transaction_type == 'EXPENSE' %}

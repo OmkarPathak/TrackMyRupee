@@ -31,7 +31,7 @@
     .view-toggle-btn, .filter-toggle-btn {
         width: 36px;
         padding: 0;
-        color: var(--bs-secondary);
+        color: var(--bs-secondary-color);
     }
     .header-action-btn {
         padding: 0 0.75rem;
@@ -40,9 +40,9 @@
         color: var(--bs-body-color);
     }
     .header-action-btn.btn-primary {
-        background-color: var(--bs-primary) !important;
+        background-color: var(--color-secondary, #0F7657) !important;
+        border-color: var(--color-secondary, #0F7657) !important;
         color: white !important;
-        border: none !important;
     }
     .view-toggle-btn.active, .filter-toggle-btn[aria-expanded="true"] {
         background: rgba(var(--bs-primary-rgb), 0.1) !important;

@@ -5,27 +5,29 @@
     <!-- Header Controls -->
     <div class="d-flex flex-row justify-content-between align-items-center mb-3 gap-2">
         <div class="d-flex align-items-center gap-2">
-            <h2 class="h3 mb-0 fw-bold text-body">{% trans "Budget" %}</h2>
+            <h1 class="h3 mb-0 fw-bold text-body">{% trans "Budget" %}</h1>
             <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" 
                     style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" 
                     data-bs-toggle="collapse" 
                     data-bs-target="#guideBudgets" 
                     aria-expanded="false" 
+                    aria-label="{% trans 'How it works' %}"
                     title="{% trans 'How it works' %}">
-                <i class="bi bi-info-lg" style="font-size: 0.75rem;"></i>
+                <i class="bi bi-info-lg" style="font-size: 0.75rem;" aria-hidden="true"></i>
             </button>
         </div>
         
         <div class="d-flex align-items-center gap-2">
             <!-- Mobile Filter Toggle Button (opens Mobile Filter Drawer on < 768px) -->
-            <button class="filter-toggle-btn position-relative d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#budgetFilters" aria-expanded="false" aria-controls="budgetFilters" title="{% trans 'Toggle Filters' %}">
-                <i class="bi bi-funnel"></i>
+            <button class="filter-toggle-btn position-relative d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#budgetFilters" aria-expanded="false" aria-controls="budgetFilters" aria-label="{% trans 'Toggle Filters' %}" title="{% trans 'Toggle Filters' %}">
+                <i class="bi bi-funnel" aria-hidden="true"></i>
             </button>
 
             <!-- Desktop Header Filter Form (Visible on desktop >= 768px) -->
             <form method="get" id="desktopBudgetFilterForm" class="d-none d-md-flex align-items-center gap-2 flex-nowrap">
                 <div class="budget-select-wrapper">
                     <select name="sort" 
+                            aria-label="{% trans 'Sort budgets' %}"
                             class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
                             style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
                             hx-get="{% url 'budget' %}" 
@@ -43,6 +45,7 @@
                 </div>
                 <div class="budget-select-wrapper">
                     <select name="month" 
+                            aria-label="{% trans 'Filter by month' %}"
                             class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
                             style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
                             hx-get="{% url 'budget' %}" 
@@ -61,6 +64,7 @@
                 </div>
                 <div class="budget-select-wrapper">
                     <select name="year" 
+                            aria-label="{% trans 'Filter by year' %}"
                             class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
                             style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
                             hx-get="{% url 'budget' %}" 
@@ -212,8 +216,9 @@
                                         </a>
                                         <a href="{% url 'category-edit' data.category.uuid %}?next={{ request.path }}" 
                                            class="text-muted small text-decoration-none opacity-50 opacity-100-hover ms-1" 
-                                           title="{% trans 'Edit Category' %}">
-                                            <i class="bi bi-pencil-square" style="font-size: 0.85rem;"></i>
+                                           title="{% trans 'Edit Category' %}"
+                                           aria-label="{% trans 'Edit Category' %}: {{ data.category.name }}">
+                                            <i class="bi bi-pencil-square" style="font-size: 0.85rem;" aria-hidden="true"></i>
                                         </a>
                                     </div>
                                     <span class="fw-bold fs-6 cat-pct">
@@ -279,8 +284,9 @@
                                         </a>
                                         <a href="{% url 'category-edit' data.category.uuid %}?next={{ request.path }}" 
                                            class="text-muted small text-decoration-none opacity-50 opacity-100-hover ms-1" 
-                                           title="{% trans 'Edit Category' %}">
-                                            <i class="bi bi-pencil-square" style="font-size: 0.85rem;"></i>
+                                           title="{% trans 'Edit Category' %}"
+                                           aria-label="{% trans 'Edit Category' %}: {{ data.category.name }}">
+                                            <i class="bi bi-pencil-square" style="font-size: 0.85rem;" aria-hidden="true"></i>
                                         </a>
                                     </div>
                                     <span class="fw-bold fs-6 text-success">
@@ -339,8 +345,8 @@
                         {% trans "No limit set" %}
                         <span class="text-muted fw-normal fs-6 ms-1">· {{ no_limit_count }} {% trans "categories" %}</span>
                     </p>
-                    <button class="btn btn-sm rounded-circle p-1 text-muted border-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" type="button">
-                        <i class="bi bi-chevron-down collapse-icon"></i>
+                    <button class="btn btn-sm rounded-circle p-1 text-muted border-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" type="button" aria-label="{% trans 'Toggle no limit categories' %}" aria-hidden="true" tabindex="-1">
+                        <i class="bi bi-chevron-down collapse-icon" aria-hidden="true"></i>
                     </button>
                 </div>
                 <div class="collapse show" id="noLimitCollapse">

@@ -6,12 +6,12 @@
     <!-- Header Row -->
     <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
         <div>
-            <h3 class="fw-bold mb-1">{% trans "Investment & Holdings Portfolio" %}</h3>
+            <h1 class="h3 fw-bold mb-1">{% trans "Investment & Holdings Portfolio" %}</h1>
             <p class="text-muted small mb-0">{% trans "Track your mutual funds, stocks, and asset valuations across all accounts in real-time." %}</p>
         </div>
         {% if user_accounts %}
-        <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addHoldingModal">
-            <i class="bi bi-plus-lg"></i>
+        <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addHoldingModal" aria-label="{% trans 'Add Holding' %}">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
             <span>{% trans "Add Holding" %}</span>
         </button>
         {% endif %}
@@ -97,12 +97,12 @@
                                     <td class="text-end pe-4">
                                         <div class="d-flex justify-content-end gap-1">
                                             {% if h.scheme_code %}
-                                                <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}">
-                                                    <i class="bi bi-arrow-repeat"></i>
+                                                <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}" aria-label="{% trans 'Refresh NAV' %}">
+                                                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
                                                 </a>
                                             {% endif %}
-                                            <a href="{% url 'holding-delete' h.pk %}" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Delete' %}" onclick="return confirm('{% trans "Are you sure you want to remove this holding?" %}');">
-                                                <i class="bi bi-trash"></i>
+                                            <a href="{% url 'holding-delete' h.pk %}" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" data-bs-toggle="tooltip" title="{% trans 'Delete' %}" aria-label="{% trans 'Delete Holding' %}" onclick="return confirm('{% trans "Are you sure you want to remove this holding?" %}');">
+                                                <i class="bi bi-trash" aria-hidden="true"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -129,8 +129,9 @@
 
                                 <!-- 3-Dot Actions Menu -->
                                 <div class="dropdown flex-shrink-0">
-                                    <button class="btn btn-link text-body-secondary p-0 border-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots-vertical fs-6"></i>
+                                    <button class="btn btn-link text-body-secondary p-0 border-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% trans 'Holding actions' %}" title="{% trans 'Holding actions' %}">
+                                        <i class="bi bi-three-dots-vertical fs-6" aria-hidden="true"></i>
+                                        <span class="visually-hidden">{% trans "Holding actions" %}</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-1">
                                         {% if h.scheme_code %}

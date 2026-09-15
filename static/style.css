@@ -345,11 +345,11 @@ body.has-sidebar .card:has(> .table-responsive) {
   --bs-info: #3d7a8a;
   --bs-info-rgb: 61, 122, 138;
 
-  /* Override Bootstrap primary (default blue → Forest Green) */
-  --bs-primary: #1D9E75;
-  --bs-primary-rgb: 29, 158, 117;
-  --bs-primary-bg-subtle: rgba(29, 158, 117, 0.1);
-  --bs-primary-border-subtle: rgba(29, 158, 117, 0.2);
+  /* Override Bootstrap primary (default blue → Forest Green, accessible text contrast >= 4.5:1) */
+  --bs-primary: #0F7657;
+  --bs-primary-rgb: 15, 118, 87;
+  --bs-primary-bg-subtle: rgba(15, 118, 87, 0.1);
+  --bs-primary-border-subtle: rgba(15, 118, 87, 0.2);
   --bs-primary-text-emphasis: #085041;
 
   /* Override Bootstrap danger (default red → Warm Red) */
@@ -1213,7 +1213,7 @@ body.has-sidebar {
 }
 
 [data-bs-theme="dark"] {
-  --color-primary: #3d8b6a; /* Lighter Forest Green for Dark Mode */
+  --color-primary: #5DCAA5; /* Accessible Light Forest Green for Dark Mode (Contrast >= 7.5:1) */
   --color-background: #111315; /* Landing Page BG */
   --color-surface: #1a1d21; /* Landing Page Surface */
   --color-text: #faf9f6;
@@ -1229,9 +1229,60 @@ body.has-sidebar {
   --color-warning-text: #F4B44E;
   --color-info-text: #85B7EB;
   --color-muted-text: #B0B5BD;
+  --color-secondary-text: #B0B5BD;
   --bs-success-rgb: 93, 202, 165;
   --bs-danger-rgb: 244, 156, 140;
   --bs-warning-rgb: 244, 180, 78;
+}
+
+[data-bs-theme="dark"] a {
+  color: var(--color-success-text, #5DCAA5);
+}
+
+[data-bs-theme="dark"] a:hover {
+  color: #8CE2C2;
+}
+
+[data-bs-theme="dark"] .btn-outline-primary,
+[data-bs-theme="dark"] .btn-outline-success {
+  --bs-btn-color: var(--color-success-text, #5DCAA5);
+  --bs-btn-border-color: var(--color-success-text, #5DCAA5);
+  --bs-btn-hover-bg: var(--color-success-text, #5DCAA5);
+  --bs-btn-hover-border-color: var(--color-success-text, #5DCAA5);
+  --bs-btn-hover-color: #111315;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary {
+  color: var(--color-muted-text, #B0B5BD);
+  border-color: var(--color-muted-text, #B0B5BD);
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary:hover {
+  background-color: var(--color-muted-text, #B0B5BD) !important;
+  color: #111315 !important;
+}
+
+[data-bs-theme="dark"] .btn-link {
+  color: var(--color-success-text, #5DCAA5);
+}
+
+[data-bs-theme="dark"] .nav-link {
+  color: var(--color-muted-text, #B0B5BD);
+}
+
+[data-bs-theme="dark"] .nav-link:hover,
+[data-bs-theme="dark"] .nav-link.active {
+  color: var(--color-success-text, #5DCAA5) !important;
+}
+
+[data-bs-theme="dark"] .page-link {
+  color: var(--color-muted-text, #B0B5BD);
+}
+
+[data-bs-theme="dark"] .command-kbd {
+  color: var(--color-muted-text, #B0B5BD) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 [data-bs-theme="dark"] .pricing-card-light {
@@ -1464,7 +1515,10 @@ a:hover {
   color: var(--color-success-text, #0F7657) !important; /* Forest Green Accessible Text */
 }
 .text-secondary {
-  color: var(--color-primary) !important; /* Warm Ink Black for secondary text */
+  color: var(--color-primary) !important; /* Warm Ink Black for secondary text in light mode */
+}
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--color-muted-text, #B0B5BD) !important; /* Accessible silver-grey for secondary text in dark mode */
 }
 .text-success {
   color: var(--color-success-text, #0F7657) !important;
@@ -3217,12 +3271,12 @@ a:hover {
   }
 }
 
-/* Active filter pill color matching Apply button (#1D9E75) */
+/* Active filter pill color with accessible forest green >= 4.5:1 */
 .time-period-pill.active,
 .time-period-pill.btn-primary,
 label.time-period-pill.active {
-  background-color: #1D9E75 !important;
-  border-color: #1D9E75 !important;
+  background-color: var(--color-secondary, #0F7657) !important;
+  border-color: var(--color-secondary, #0F7657) !important;
   color: #ffffff !important;
 }
 

@@ -50,7 +50,7 @@
         transition: all 0.2s ease;
         border: 1px solid var(--bs-border-color);
         background: transparent;
-        color: var(--bs-secondary);
+        color: var(--bs-secondary-color);
     }
     .view-toggle-btn, .filter-toggle-btn {
         width: 36px;
@@ -62,9 +62,9 @@
         color: var(--bs-body-color);
     }
     .header-action-btn.btn-primary {
-        background-color: var(--bs-primary) !important;
+        background-color: var(--color-secondary, #0F7657) !important;
+        border-color: var(--color-secondary, #0F7657) !important;
         color: white !important;
-        border: none !important;
     }
     .view-toggle-btn.active, .filter-toggle-btn[aria-expanded="true"] {
         background: rgba(var(--bs-primary-rgb), 0.1) !important;
