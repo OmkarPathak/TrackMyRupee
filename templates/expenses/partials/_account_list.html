@@ -36,7 +36,7 @@
     @media (max-width: 767.98px) { .accounts-filter-row { flex-wrap: wrap; } .accounts-search-wrap { flex: 1 1 100%; order: -1; } .accounts-filter-select { flex: 1 1 auto; } }
     .rate-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(15,118,87,0.1); color: var(--color-secondary, #0F7657); }
     .maturity-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(15,118,87,0.08); color: var(--color-secondary, #0F7657); }
-    .billing-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(212,131,26,0.1); color: var(--color-warning); }
+    .billing-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(212,131,26,0.1); color: var(--color-warning-text, #8F4E00); }
     [data-bs-theme="dark"] .billing-badge { background-color: rgba(244,180,78,0.15); color: var(--color-warning); }
     .header-action-btn { height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px !important; transition: all 0.2s ease; border: 1px solid var(--bs-border-color); background: transparent; padding: 0 0.75rem; font-size: 0.875rem; text-decoration: none; color: var(--bs-body-color); font-weight: 500; }
     .header-action-btn.btn-primary { background-color: var(--color-secondary, #0F7657) !important; color: white !important; border-color: var(--color-secondary, #0F7657) !important; }
@@ -247,7 +247,7 @@
                     <span class="fw-semibold text-body me-1">{% trans "Short-term credit" %}</span>
                     <span class="opacity-60 d-none d-sm-inline"> ({% trans "excluded from allocation" %})</span>
                 </div>
-                <div class="fw-bold" style="color: #E05C45; font-size: 0.85rem; font-variant-numeric: tabular-nums;">
+                <div class="fw-bold" style="color: var(--color-danger-text, #B93822); font-size: 0.85rem; font-variant-numeric: tabular-nums;">
                     &minus;{{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}
                 </div>
             </div>
@@ -295,9 +295,12 @@
 
         <!-- Group header section divider -->
         <div class="account-group-header d-flex align-items-center justify-content-between py-2 px-1 mb-2 {% if not group.is_open %}collapsed{% endif %}"
+             role="button"
+             tabindex="0"
              data-bs-toggle="collapse"
              data-bs-target="#group-{{ group.type }}"
-             aria-expanded="{% if group.is_open %}true{% else %}false{% endif %}">
+             aria-expanded="{% if group.is_open %}true{% else %}false{% endif %}"
+             aria-controls="group-{{ group.type }}">
             <div class="d-flex align-items-center gap-2">
                 <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 {{ group.icon_bg }}"
                      style="width: 32px; height: 32px; font-size: 0.9rem;">
@@ -351,8 +354,11 @@
                                                 data-bs-toggle="dropdown"
                                                 data-bs-popper-config='{"strategy":"fixed"}'
                                                 aria-expanded="false"
+                                                aria-label="{% trans 'Account actions' %}"
+                                                title="{% trans 'Account actions' %}"
                                                 style="width: 24px; height: 24px; line-height: 1;">
-                                            <i class="bi bi-three-dots-vertical text-muted" style="font-size: 0.9rem;"></i>
+                                            <i class="bi bi-three-dots-vertical text-muted" style="font-size: 0.9rem;" aria-hidden="true"></i>
+                                            <span class="visually-hidden">{% trans "Account actions" %}</span>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1 py-1">
                                             {% if current_status == 'inactive' %}
@@ -548,7 +554,7 @@
     {% if current_status == 'active' and not search_query %}
         <a href="{% url 'account-create' %}"
            class="btn btn-sm px-4 py-2 rounded-3 fw-bold text-white d-inline-flex align-items-center justify-content-center gap-1"
-           style="background-color: #1D9E75; border-color: #1D9E75;">
+           style="background-color: var(--color-primary, #0F7657); border-color: var(--color-primary, #0F7657);">
             <i class="bi bi-plus-lg"></i><span>{% trans "Add Account" %}</span>
         </a>
     {% elif search_query %}
@@ -570,14 +576,31 @@
         var el = document.getElementById('accounts-search-input');
         if (el && document.activeElement === el) el.blur();
     }
+    function setupGroupHeaders() {
+        document.querySelectorAll('.account-group-header[role="button"]').forEach(function(header) {
+            if (!header.dataset.hasKeyHandler) {
+                header.dataset.hasKeyHandler = 'true';
+                header.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.click();
+                    }
+                });
+            }
+        });
+    }
+    function init() {
+        blurSearchInput();
+        setupGroupHeaders();
+    }
     // On initial load
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', blurSearchInput);
+        document.addEventListener('DOMContentLoaded', init);
     } else {
-        blurSearchInput();
+        init();
     }
     // After every HTMX swap that re-renders this partial
-    document.body.addEventListener('htmx:afterSettle', blurSearchInput);
+    document.body.addEventListener('htmx:afterSettle', init);
 })();
 </script>
 
