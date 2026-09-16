@@ -337,15 +337,14 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 ACCOUNT_PASSWORD_CHANGE_REDIRECT_URL = 'profile-settings'
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_SIGNUP_FORM_CLASS = 'expenses.forms.CustomSignupForm'
+ACCOUNT_ADAPTER = 'expenses.adapters.CustomAccountAdapter'
 
 # Per-IP rate limits for allauth's built-in endpoints (allauth >= 0.56 / 65.x).
 # Values are "<count>/<period>" where period is s/m/h/d.
-# confirm_email: 1 resend per 5 min per IP — matches the 300 s cooldown in our
-# custom resend view, providing defence-in-depth at the allauth layer too.
 ACCOUNT_RATE_LIMITS = {
-    "confirm_email": "1/5m",   # resend confirmation: 1 per 5 min per IP
+    "confirm_email": "3/d",    # resend confirmation: max 3 per day per IP
     "login_failed": "5/5m",    # brute-force protection
-    "signup": "5/h",           # registration spam protection
+    "signup": "3/h",           # registration spam protection
 }
 
 

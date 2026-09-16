@@ -579,10 +579,10 @@ def resend_verification_email(request):
     AJAX view to resend verification email.
 
     Rate-limited to prevent email bombing:
-      - Per-user cooldown: 300 s between consecutive sends.
-      - Per-user daily cap: 5 sends per 24 h window.
-    Both limits are enforced via Django's cache backend and scoped to the
-    authenticated user's PK, so rotating IPs cannot bypass them.
+      - Active user check: Inactive users cannot send emails.
+      - Per-user/email DB-backed cooldown: 15 minutes between consecutive sends.
+      - Per-user/email DB-backed daily cap: 3 sends per 24 h window.
+      - Secondary cache-backed cooldown (300 s) for fast non-DB rejection.
     """
     from django.core.cache import cache
 
@@ -590,22 +590,39 @@ def resend_verification_email(request):
         send_verification_email_for_user,
     )
     from allauth.account.models import EmailAddress
+    from expenses.adapters import CustomAccountAdapter
 
     if request.method != 'POST':
         return JsonResponse({'success': False}, status=400)
 
     user = request.user
 
-    # --- Rate limiting ---
-    COOLDOWN_SECONDS = 300   # 5 minutes between sends
-    MAX_PER_DAY = 5          # hard daily cap
+    # 0. Active user check
+    if not user.is_active:
+        return JsonResponse(
+            {'success': False, 'error': 'Account is inactive.'},
+            status=403,
+        )
+
+    # 1. DB-backed rate limiting check (via CustomAccountAdapter)
+    adapter = CustomAccountAdapter()
+    is_blocked, error_message = adapter.is_email_bomb_risk(user.email, user=user)
+    if is_blocked:
+        return JsonResponse(
+            {'success': False, 'error': str(error_message)},
+            status=429,
+        )
+
+    # 2. Fast cache-backed cooldown check
+    COOLDOWN_SECONDS = 900   # 15 minutes
+    MAX_PER_DAY = 3          # hard daily cap
 
     cooldown_key = f'resend_verify_cooldown_{user.pk}'
     daily_key    = f'resend_verify_daily_{user.pk}'
 
     if cache.get(cooldown_key):
         return JsonResponse(
-            {'success': False, 'error': 'Please wait a few minutes before requesting another email.'},
+            {'success': False, 'error': 'Please wait 15 minutes before requesting another email.'},
             status=429,
         )
 
@@ -615,7 +632,6 @@ def resend_verification_email(request):
             {'success': False, 'error': 'You have reached the daily limit for verification emails. Please try again tomorrow.'},
             status=429,
         )
-    # --- End rate limiting ---
 
     email = user.email
     try:

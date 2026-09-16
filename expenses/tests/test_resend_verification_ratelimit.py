@@ -91,14 +91,14 @@ class ResendVerificationRateLimitTests(TestCase):
     # ------------------------------------------------------------------
 
     @patch('allauth.account.internal.flows.email_verification.send_verification_email_for_user')
-    def test_daily_cap_blocks_after_five_sends(self, mock_send):
-        """After 5 successful sends in a day the next one must be blocked."""
+    def test_daily_cap_blocks_after_three_sends(self, mock_send):
+        """After 3 successful sends in a day the next one must be blocked."""
         daily_key = f'resend_verify_daily_{self.user.pk}'
         cooldown_key = f'resend_verify_cooldown_{self.user.pk}'
 
-        # Simulate 5 sends already recorded today
-        cache.set(daily_key, 5, timeout=86400)
-        # Cooldown expired (they waited 5 min between each send)
+        # Simulate 3 sends already recorded today
+        cache.set(daily_key, 3, timeout=86400)
+        # Cooldown expired (they waited 15 min between each send)
         cache.delete(cooldown_key)
 
         response = self.client.post(self.url)
