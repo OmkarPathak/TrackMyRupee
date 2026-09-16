@@ -72,6 +72,6 @@ class LandingDemoWidgetTest(TestCase):
         # Warm cache
         self.client.get(reverse('landing'))
 
-        # Cold landing page check query count
-        with self.assertNumQueries(3):  # 2 SubscriptionPlan queries + 1 User count query
+        # Cold landing page check query count (demo breakdown & user count cached)
+        with self.assertNumQueries(2):  # 2 SubscriptionPlan queries (User count and demo breakdown are cached)
             self.client.get(reverse('landing'))

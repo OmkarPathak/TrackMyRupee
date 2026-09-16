@@ -63,17 +63,22 @@ class SettingsHomeView(LoginRequiredMixin, TemplateView):
     template_name = 'expenses/settings_home.html'
 
     def get_context_data(self, **kwargs):
+        from django.core.cache import cache
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Calculate summary information for DPDP "View My Data" requirement
-        num_accounts = Account.objects.filter(user=user).count()
-        num_expenses = Expense.objects.filter(user=user).count()
-        num_incomes = Income.objects.filter(user=user).count()
-        num_transactions = num_expenses + num_incomes
+        cache_key = f'settings_summary_counts_{user.id}'
+        cached_data = cache.get(cache_key)
+        if cached_data is None:
+            num_accounts = Account.objects.filter(user=user).count()
+            num_expenses = Expense.objects.filter(user=user).count()
+            num_incomes = Income.objects.filter(user=user).count()
+            num_transactions = num_expenses + num_incomes
+            cached_data = {'num_accounts': num_accounts, 'num_transactions': num_transactions}
+            cache.set(cache_key, cached_data, 300)
 
-        context['num_accounts'] = num_accounts
-        context['num_transactions'] = num_transactions
+        context['num_accounts'] = cached_data['num_accounts']
+        context['num_transactions'] = cached_data['num_transactions']
         return context
 
 

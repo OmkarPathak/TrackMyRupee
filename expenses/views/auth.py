@@ -360,16 +360,23 @@ class LandingPageView(TemplateView):
         liability_rows.sort(key=lambda x: x[0], reverse=True)
 
         result = [r[1] for r in asset_rows] + [r[1] for r in liability_rows]
-        cache.set(cache_key, result, timeout=900)
+        cache.set(cache_key, result, timeout=3600)
         return result
 
     def get_context_data(self, **kwargs):
+        from django.core.cache import cache
         context = super().get_context_data(**kwargs)
         plans = SubscriptionPlan.objects.filter(is_active=True)
         context['plans_monthly'] = {p.tier: p for p in plans.filter(duration='MONTHLY')}
         context['plans_yearly'] = {p.tier: p for p in plans.filter(duration='YEARLY')}
         context['plans'] = context['plans_yearly']
-        context['total_users_count'] = User.objects.count()
+
+        total_users_count = cache.get('landing_total_users_count')
+        if total_users_count is None:
+            total_users_count = User.objects.count()
+            cache.set('landing_total_users_count', total_users_count, timeout=3600)
+        context['total_users_count'] = total_users_count
+
         context['demo_networth_rows'] = self._get_demo_net_worth_breakdown()
         return context
 

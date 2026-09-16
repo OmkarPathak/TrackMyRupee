@@ -198,20 +198,26 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query))
             transfers = transfers.filter(description__icontains=search_query)
             loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
-            capital_events = capital_events.filter(Q(note__icontains=search_query) | Q(subtype__icontains=search_query))
+        from django.db.models import Count
 
-        context['expense_count'] = expenses.count()
-        context['income_count'] = incomes.count()
-        context['transfer_count'] = transfers.count()
-        context['loan_count'] = loan_repayments.count()
-        context['capital_event_count'] = capital_events.count()
+        exp_stats = expenses.aggregate(cnt=Count('uuid'), total=Sum('base_amount'), min_date=Min('date'), max_date=Max('date'))
+        inc_stats = incomes.aggregate(cnt=Count('uuid'), total=Sum('base_amount'), min_date=Min('date'), max_date=Max('date'))
+        trf_stats = transfers.aggregate(cnt=Count('uuid'), total=Sum('converted_amount'))
+        loan_stats = loan_repayments.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
+        cap_stats = capital_events.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
+
+        context['expense_count'] = exp_stats['cnt'] or 0
+        context['income_count'] = inc_stats['cnt'] or 0
+        context['transfer_count'] = trf_stats['cnt'] or 0
+        context['loan_count'] = loan_stats['cnt'] or 0
+        context['capital_event_count'] = cap_stats['cnt'] or 0
         context['filtered_count'] = context['expense_count'] + context['income_count'] + context['transfer_count'] + context['loan_count'] + context['capital_event_count']
 
-        context['expense_amount'] = expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-        context['income_amount'] = incomes.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-        context['transfer_amount'] = transfers.aggregate(Sum('converted_amount'))['converted_amount__sum'] or 0
-        context['loan_amount'] = loan_repayments.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-        context['capital_event_amount'] = capital_events.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+        context['expense_amount'] = exp_stats['total'] or 0
+        context['income_amount'] = inc_stats['total'] or 0
+        context['transfer_amount'] = trf_stats['total'] or 0
+        context['loan_amount'] = loan_stats['total'] or 0
+        context['capital_event_amount'] = cap_stats['total'] or 0
 
         net_remaining = context['income_amount'] - context['expense_amount'] - context['capital_event_amount']
         context['net_remaining'] = net_remaining
@@ -223,12 +229,9 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
 
         # Daily sparkline trend calculation
         from datetime import timedelta
-        # Use DB aggregation instead of loading all dates into Python memory
-        expense_range = expenses.aggregate(min=Min('date'), max=Max('date'))
-        income_range  = incomes.aggregate(min=Min('date'),  max=Max('date'))
         candidate_dates = [d for d in [
-            expense_range['min'], expense_range['max'],
-            income_range['min'],  income_range['max'],
+            exp_stats['min_date'], exp_stats['max_date'],
+            inc_stats['min_date'], inc_stats['max_date'],
         ] if d]
         if candidate_dates:
             min_date = min(candidate_dates)

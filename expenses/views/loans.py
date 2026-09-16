@@ -54,19 +54,7 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
         if status_filter not in ('active', 'inactive', 'all'):
             status_filter = 'active'
 
-        # Compute pill counts and sync active status across ALL user loans
-        all_loans = list(Loan.objects.filter(user=self.request.user).prefetch_related('repayments'))
-        for loan in all_loans:
-            LoanService.sync_loan_active_status(loan)
-
-        active_count = sum(1 for l in all_loans if l.is_active)
-        inactive_count = sum(1 for l in all_loans if not l.is_active)
-        all_count = len(all_loans)
-
-        filtered_loans = self.object_list
-
         from django.db.models import Sum
-
         from ..models import CapitalEvent, LoanRepayment
 
         repayment_totals = (
@@ -91,6 +79,24 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
             r['linked_loan_id']: float(r['total_prepaid'] or 0)
             for r in capital_prepayment_totals
         }
+
+        # Compute pill counts and sync active status across ALL user loans
+        all_loans = list(Loan.objects.filter(user=self.request.user))
+        for loan in all_loans:
+            r = repayment_map.get(loan.id, {})
+            p_paid = float(r.get('total_principal') or 0)
+            c_paid = capital_prepayment_map.get(loan.id, 0)
+            rem = max(float(loan.initial_principal) - p_paid - c_paid, 0)
+            should_be_active = rem > 0
+            if loan.is_active != should_be_active:
+                loan.is_active = should_be_active
+                loan.save(update_fields=['is_active', 'updated_at'])
+
+        active_count = sum(1 for l in all_loans if l.is_active)
+        inactive_count = sum(1 for l in all_loans if not l.is_active)
+        all_count = len(all_loans)
+
+        filtered_loans = self.object_list
 
         loan_summaries = []
         for loan in filtered_loans:

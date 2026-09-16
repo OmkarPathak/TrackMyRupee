@@ -255,7 +255,8 @@ class LoanService:
         and any capital event prepayments linked to the loan.
         Auto-syncs active status based on remaining principal.
         """
-        LoanService.sync_loan_active_status(loan)
+        if hasattr(loan, '_cached_summary'):
+            return loan._cached_summary
 
         repayments = loan.repayments.aggregate(
             total_principal=Sum('principal_portion'),
@@ -274,15 +275,27 @@ class LoanService:
             .aggregate(total=Sum('amount'))['total']
         ) or Decimal('0.00')
 
-        remaining_principal = loan.remaining_principal
+        # Cache on loan object to avoid subqueries inside remaining_principal
+        loan.paid_principal = principal_paid
+        loan.capital_prepaid = capital_prepaid
 
-        return {
+        rem = Decimal(str(loan.initial_principal)) - Decimal(str(principal_paid)) - Decimal(str(capital_prepaid))
+        remaining_principal = max(rem, Decimal('0.00'))
+
+        should_be_active = remaining_principal > Decimal('0.00')
+        if loan.is_active != should_be_active:
+            loan.is_active = should_be_active
+            loan.save(update_fields=['is_active', 'updated_at'])
+
+        summary = {
             'principal_paid': float(principal_paid),
             'capital_prepaid': float(capital_prepaid),
             'interest_paid': float(interest_paid),
             'total_paid': float(total_paid),
             'remaining_principal': float(remaining_principal)
         }
+        loan._cached_summary = summary
+        return summary
 
     @staticmethod
     def generate_amortization_schedule(loan):

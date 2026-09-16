@@ -51,11 +51,8 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         all_transactions = self.object_list
         today = date.today()
         
-        # Categories for filter
-        user_transactions = RecurringTransaction.objects.filter(user=self.request.user)
-        categories = user_transactions.values_list('category', flat=True).distinct().order_by('category')
-        # Filter out None/Empty if any
-        categories = [c for c in categories if c]
+        # Categories for filter derived from object_list to save DB query
+        categories = sorted(list({t.category for t in all_transactions if t.category}))
         
         context['categories'] = categories
         context['selected_categories'] = self.request.GET.getlist('category')
@@ -141,7 +138,7 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         
         # Nudge context for upgrade banner (use is_plus/is_pro to respect subscription expiry)
         profile = self.request.user.profile
-        active_count = RecurringTransaction.objects.filter(user=self.request.user, is_active=True).count()
+        active_count = len(active_subs)
         
         from finance_tracker.plans import get_limit
         limit = get_limit(profile.active_tier, 'recurring_transactions')
