@@ -4,12 +4,12 @@
     <!-- Mobile Header (Matching Subscriptions Page Layout) -->
     <div class="d-md-none pt-1 pb-2">
         <div class="d-flex justify-content-between align-items-center">
-            <h3 class="mb-0 fw-bold d-flex align-items-center gap-2">
-                <span class="h4 mb-0">{% trans "Loans & Liabilities" %}</span>
+            <h1 class="h4 mb-0 fw-bold d-flex align-items-center gap-2">
+                <span>{% trans "Loans & Liabilities" %}</span>
                 <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideLoans" aria-expanded="false" title="{% trans 'How it works' %}">
                     <i class="bi bi-info-lg" style="font-size: 0.65rem;"></i>
                 </button>
-            </h3>
+            </h1>
             <a href="{% url 'loan-create' %}" class="btn btn-sm btn-primary fw-bold rounded-3 px-3 shadow-sm d-flex align-items-center gap-1" onclick="window.showLoader()">
                 <i class="bi bi-plus-lg"></i>{% trans "Add" %}
             </a>
@@ -38,10 +38,10 @@
                 <div class="bg-body-tertiary p-3 rounded d-inline-block text-start shadow-sm border">
                     {% if status_filter == 'inactive' %}
                     <p class="text-muted small mb-1">{% trans "Remaining Debt (Paid Off)" %}</p>
-                    <h4 class="mb-0 fw-bold text-success">{{ user.profile.currency }}0</h4>
+                    <div class="h4 mb-0 fw-bold text-success">{{ user.profile.currency }}0</div>
                     {% else %}
                     <p class="text-muted small mb-1">{% trans "Total Remaining Debt" %}</p>
-                    <h4 class="mb-0 fw-bold text-danger">{{ user.profile.currency }}{{ total_debt|compact_amount:user.profile.currency|translate_digits }}</h4>
+                    <div class="h4 mb-0 fw-bold text-danger">{{ user.profile.currency }}{{ total_debt|compact_amount:user.profile.currency|translate_digits }}</div>
                     {% endif %}
                 </div>
             </div>
@@ -54,33 +54,33 @@
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
         <div class="d-flex align-items-center gap-2 overflow-x-auto pb-1 hide-scrollbar" style="scrollbar-width: none;">
             <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
-                    style="font-size: 0.8rem; {% if status_filter == 'active' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
+                    style="font-size: 0.8rem; {% if status_filter == 'active' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=active"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
                     hx-push-url="true"
                     hx-indicator="#global-progress-bar">
-                {% trans "Active" %}<span class="ms-2 opacity-75">{{ active_count|translate_digits }}</span>
+                {% trans "Active" %}<span class="ms-2 {% if status_filter != 'active' %}opacity-75{% endif %}">{{ active_count|translate_digits }}</span>
             </button>
 
             <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
-                    style="font-size: 0.8rem; {% if status_filter == 'inactive' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
+                    style="font-size: 0.8rem; {% if status_filter == 'inactive' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=inactive"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
                     hx-push-url="true"
                     hx-indicator="#global-progress-bar">
-                {% trans "Paid Off" %}{% if inactive_count > 0 %}<span class="ms-2 opacity-75">{{ inactive_count|translate_digits }}</span>{% endif %}
+                {% trans "Paid Off" %}{% if inactive_count > 0 %}<span class="ms-2 {% if status_filter != 'inactive' %}opacity-75{% endif %}">{{ inactive_count|translate_digits }}</span>{% endif %}
             </button>
 
             <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap"
-                    style="font-size: 0.8rem; {% if status_filter == 'all' %}background-color: #1D9E75; border-color: #1D9E75; color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
+                    style="font-size: 0.8rem; {% if status_filter == 'all' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color);{% endif %}"
                     hx-get="{% url 'loan-list' %}?status=all"
                     hx-target="#loans-shell"
                     hx-swap="outerHTML show:none"
                     hx-push-url="true"
                     hx-indicator="#global-progress-bar">
-                {% trans "All Loans" %}<span class="ms-2 opacity-75">{{ all_count|translate_digits }}</span>
+                {% trans "All Loans" %}<span class="ms-2 {% if status_filter != 'all' %}opacity-75{% endif %}">{{ all_count|translate_digits }}</span>
             </button>
         </div>
 
@@ -95,14 +95,14 @@
         <div class="col-12 {% if loan_summaries|length >= 2 %}col-lg-6{% else %}col-lg-12{% endif %}">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-transparent border-bottom p-4">
-                    <h5 class="fw-bold mb-0">{% trans "Portfolio Debt Breakdown" %}</h5>
+                    <h2 class="h5 fw-bold mb-0">{% trans "Portfolio Debt Breakdown" %}</h2>
                     <p class="text-muted small mb-0">{% trans "Distribution of Principal Paid vs. Interest Paid vs. Debt Remaining" %}</p>
                 </div>
                 <div class="card-body p-4 d-flex align-items-center">
                     <div class="row align-items-center g-4 w-100 m-0">
                         <!-- Donut Chart with Center KPI Overlay -->
                         <div class="col-12 col-sm-5 text-center p-0">
-                            <div style="position: relative; height: 185px; width: 185px; margin: 0 auto;">
+                            <div style="position: relative; height: 185px; max-width: 185px; width: 100%; margin: 0 auto;">
                                 <canvas id="portfolioBreakdownChart"></canvas>
                                 <div class="position-absolute top-50 start-50 translate-middle text-center pointer-events-none" style="margin-top: -2px;">
                                     <div class="fw-bold h4 mb-0 text-body">{{ portfolio_totals.paid_pct|translate_digits }}%</div>
@@ -118,7 +118,7 @@
                                 <div class="p-2 px-3 rounded-3 border bg-body-tertiary breakdown-item transition-all" data-index="0" style="cursor: pointer;">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="d-flex align-items-center gap-2 small fw-semibold">
-                                            <span class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: #1D9E75;"></span>
+                                            <span class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: var(--color-secondary, #0F7657);"></span>
                                             {% trans "Principal Paid" %}
                                         </span>
                                         <span class="fw-bold text-success small">{{ user.profile.currency }}{{ portfolio_totals.tot_principal_paid|ind_comma:user.profile.currency|translate_digits }}</span>
@@ -161,13 +161,13 @@
             </div>
         </div>
         {% if loan_summaries|length >= 2 %}
-        <div class="col-12 col-lg-7">
+        <div class="col-12 col-lg-6">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-transparent border-bottom p-4">
-                    <h5 class="fw-bold mb-0">{% trans "Loan Principal Progress Comparison" %}</h5>
+                    <h2 class="h5 fw-bold mb-0">{% trans "Loan Principal Progress Comparison" %}</h2>
                     <p class="text-muted small mb-0">{% trans "Principal paid off vs. remaining principal per loan" %}</p>
                 </div>
-                <div class="card-body p-4">
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
                     <div style="position: relative; height: 210px;">
                         <canvas id="loanComparisonChart"></canvas>
                     </div>
@@ -191,7 +191,7 @@
                                 {% if summary.loan.loan_type == 'HOME' %}🏠{% elif summary.loan.loan_type == 'CAR' %}🚗{% elif summary.loan.loan_type == 'EDUCATION' %}🎓{% else %}💳{% endif %}
                             </div>
                             <div>
-                                <h5 class="fw-bold mb-0 text-truncate" style="max-width: 170px;">{{ summary.loan.name }}</h5>
+                                <h3 class="h5 fw-bold mb-0 text-truncate" style="max-width: 170px;">{{ summary.loan.name }}</h3>
                                 <p class="text-secondary small mb-0 mt-1 d-flex align-items-center gap-1">
                                     <i class="bi bi-calendar3"></i> {% trans "Started:" %} {{ summary.loan.start_date|date:"M d, Y" }}
                                 </p>
@@ -199,9 +199,9 @@
                         </div>
                         <div>
                             {% if summary.loan.is_active %}
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">{% trans "Active" %}</span>
+                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill px-2.5 py-1">{% trans "Active" %}</span>
                             {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1">{% trans "Paid Off" %}</span>
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill px-2.5 py-1">{% trans "Paid Off" %}</span>
                             {% endif %}
                         </div>
                     </div>
@@ -210,7 +210,7 @@
                     <div class="d-flex justify-content-between align-items-end mb-2">
                         <div>
                             <span class="text-secondary small d-block mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Paid Off" %}</span>
-                            <h4 class="fw-bold mb-0 text-success">{{ summary.progress|floatformat:1|translate_digits }}%</h4>
+                            <div class="h4 fw-bold mb-0 text-success">{{ summary.progress|floatformat:1|translate_digits }}%</div>
                         </div>
                         <div class="text-end">
                             <span class="text-secondary small d-block mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Remaining" %}</span>
@@ -239,10 +239,10 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <button type="button" class="btn btn-outline-danger btn-sm rounded-3 icon-btn" 
-                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                    data-url="{% url 'loan-delete' summary.loan.uuid %}"
-                                    data-message="{% blocktrans with name=summary.loan.name %}Are you sure you want to delete the loan '{{ name }}'? This will remove all associated records.{% endblocktrans %}"
-                                    title="{% trans 'Delete' %}">
+                                     data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                     data-url="{% url 'loan-delete' summary.loan.uuid %}"
+                                     data-message="{% blocktrans with name=summary.loan.name %}Are you sure you want to delete the loan '{{ name }}'? This will remove all associated records.{% endblocktrans %}"
+                                     title="{% trans 'Delete' %}">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -257,10 +257,10 @@
                 <i class="bi bi-bank" style="font-size: 5rem; color: #dee2e6;"></i>
             </div>
             {% if status_filter == 'inactive' %}
-            <h4 class="fw-bold">{% trans "No Paid Off Loans" %}</h4>
+            <h2 class="h4 fw-bold">{% trans "No Paid Off Loans" %}</h2>
             <p class="text-muted mb-4">{% trans "Loans will automatically move here once they are 100% paid off." %}</p>
             {% else %}
-            <h4 class="fw-bold">{% trans "No Loans Found" %}</h4>
+            <h2 class="h4 fw-bold">{% trans "No Loans Found" %}</h2>
             <p class="text-muted mb-4">{% trans "Add your loans to see your accurate net worth and track repayment progress." %}</p>
             <a href="{% url 'loan-create' %}" class="btn btn-primary shadow">{% trans "Add Your First Loan" %}</a>
             {% endif %}

@@ -82,7 +82,7 @@
     {% endif %}
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- Preconnect to CDNs for speedier connection establishment -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -683,12 +683,12 @@
             width: 100% !important;
             flex: 1 1 auto !important;
             margin: 0 !important;
-            height: 30px !important;
-            /* Compact height */
+            height: 36px !important;
+            /* Comfortable touch height */
             padding: 0 12px !important;
             /* Text padding only */
             border-radius: 0 !important;
-            font-size: 0.875rem !important;
+            font-size: 16px !important; /* 16px prevents iOS/mobile auto-zoom */
             border: none !important;
             /* NO BORDER */
             background: transparent !important;
@@ -766,6 +766,35 @@
             margin-right: 8px;
             vertical-align: middle;
             cursor: pointer;
+        }
+
+        /* Prevent auto-zoom on mobile inputs and ensure layout stability */
+        @media screen and (max-width: 991.98px) {
+            input,
+            select,
+            textarea,
+            .form-control,
+            .form-select,
+            .form-control-sm,
+            .form-select-sm,
+            .multiselect-search,
+            .searchable-select-search {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Elevation for open action dropdowns to prevent overlapping sibling cards */
+        .card:has(.dropdown-menu.show),
+        .expense-card:has(.dropdown-menu.show),
+        .mobile-card-inner:has(.dropdown-menu.show),
+        tr:has(.dropdown-menu.show) {
+            z-index: 1050 !important;
+            position: relative !important;
+        }
+
+        .dropdown:has(.dropdown-menu.show),
+        .dropdown.show {
+            z-index: 1055 !important;
         }
     </style>
 
@@ -1547,7 +1576,9 @@
                     wrapper.classList.add('open');
                     search.value = '';
                     buildOptions('');
-                    setTimeout(function() { search.focus(); }, 50);
+                    if (window.innerWidth >= 768 && !('ontouchstart' in window)) {
+                        setTimeout(function() { search.focus(); }, 50);
+                    }
                 }
 
                 function close() {
@@ -1645,6 +1676,8 @@
     .searchable-select-search {
         margin-bottom: 0.4rem;
         border-radius: 0.375rem;
+        font-size: 16px !important;
+        height: 36px;
     }
     .searchable-select-list {
         max-height: 200px;
@@ -2108,6 +2141,29 @@
         });
 
     })();
+
+    /* ---- Ensure open action dropdowns always float above sibling cards/rows ---- */
+    document.addEventListener('show.bs.dropdown', function (e) {
+        var card = e.target.closest('.card, .expense-card, tr');
+        if (card) {
+            card.style.setProperty('z-index', '1050', 'important');
+        }
+        var dropdown = e.target.closest('.dropdown');
+        if (dropdown) {
+            dropdown.style.setProperty('z-index', '1055', 'important');
+        }
+    });
+
+    document.addEventListener('hidden.bs.dropdown', function (e) {
+        var card = e.target.closest('.card, .expense-card, tr');
+        if (card) {
+            card.style.removeProperty('z-index');
+        }
+        var dropdown = e.target.closest('.dropdown');
+        if (dropdown) {
+            dropdown.style.removeProperty('z-index');
+        }
+    });
     </script>
 
 {% if active_announcement %}

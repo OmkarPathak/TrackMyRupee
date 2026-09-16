@@ -91,14 +91,29 @@
     #filter-form .input-group-text,
     #filter-form .btn {
         height: 36px !important;
-        font-size: 0.875rem !important;
+        font-size: 1rem !important;
         display: flex;
         align-items: center;
     }
 
+    @media (min-width: 768px) {
+        #filter-form .form-control,
+        #filter-form .form-select,
+        #filter-form .input-group-text,
+        #filter-form .btn {
+            font-size: 0.875rem !important;
+        }
+    }
+
     #filter-form .multiselect.dropdown-toggle {
         height: 36px !important;
-        font-size: 0.875rem !important;
+        font-size: 1rem !important;
+    }
+
+    @media (min-width: 768px) {
+        #filter-form .multiselect.dropdown-toggle {
+            font-size: 0.875rem !important;
+        }
     }
 
     #filter-form .btn {

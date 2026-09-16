@@ -673,6 +673,11 @@ body.demo-mode .sidebar {
   color: var(--color-success-text, #0F7657) !important;
 }
 
+.sidebar .nav-link.active .badge-soft-success {
+  color: #064e3b !important;
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
 /* Collapsed Sidebar Item Styles */
 .sidebar.collapsed .nav-link {
   justify-content: center;
@@ -1104,7 +1109,7 @@ body.has-sidebar {
 
 .badge-soft-success {
   background-color: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  color: #065f46;
   border: 1px solid rgba(16, 185, 129, 0.18);
 }
 
@@ -2457,6 +2462,9 @@ a:hover {
   .input-group-sm > .form-select,
   .input-group-sm > .input-group-text,
   .multiselect-search,
+  .multiselect-filter input,
+  .multiselect-container .multiselect-filter input,
+  .searchable-select-search,
   .multiselect-btn,
   .filter-date-input-group input {
     font-size: 16px !important; /* Force >= 16px to prevent auto-zoom on mobile focus (WCAG 1.4.4) */

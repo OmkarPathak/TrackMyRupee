@@ -345,29 +345,6 @@
                 }
             });
 
-            if (window.innerWidth < 768) {
-                shell.querySelectorAll('#filter-form .btn-group').forEach(function(btnGroup) {
-                    const observer = new MutationObserver(function() {
-                        const dropdown = btnGroup.querySelector('.dropdown-menu');
-                        if (!dropdown) return;
-                        const isOpen = dropdown.classList.contains('show');
-                        let backdrop = btnGroup.querySelector('.multiselect-backdrop');
-                        if (isOpen && !backdrop) {
-                            backdrop = document.createElement('div');
-                            backdrop.className = 'multiselect-backdrop';
-                            backdrop.addEventListener('click', function() {
-                                const toggle = btnGroup.querySelector('.dropdown-toggle');
-                                if (toggle) toggle.click();
-                            });
-                            btnGroup.appendChild(backdrop);
-                        } else if (!isOpen && backdrop) {
-                            backdrop.remove();
-                        }
-                    });
-                    observer.observe(btnGroup, { attributes: true, subtree: true, attributeFilter: ['class'] });
-                });
-            }
-
             shell.addEventListener('click', function(e) {
                 const mobileSelectToggle = e.target.closest('#mobileSelectToggle');
                 if (!mobileSelectToggle) {
@@ -553,7 +530,7 @@
                                     </div>
                                     <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
                                 </div>
-                                <div class="dropdown flex-shrink-0 position-relative" style="z-index: 10;">
+                                <div class="dropdown flex-shrink-0">
                                     <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" data-bs-boundary="viewport" aria-label="{% trans 'Expense actions' %}" title="{% trans 'Expense actions' %}">
                                         <i class="bi bi-three-dots-vertical text-body-secondary opacity-50" aria-hidden="true"></i>
                                         <span class="visually-hidden">{% trans "Actions for" %} {{ expense.description|default:expense.category }}</span>
