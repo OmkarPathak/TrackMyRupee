@@ -67,13 +67,13 @@
     ─────────────────────────────────────────────────────────── */
     :root,
     [data-bs-theme="dark"] {
-        --alloc-cash:        #1D9E75;  /* Forest Green  – Cash & Bank (app primary)  */
-        --alloc-fixed:       #0E8FA8;  /* Deep Teal     – Fixed-Income / Deposits    */
+        --alloc-cash:        #137959;  /* Forest Green  – Cash & Bank (app primary)  */
+        --alloc-fixed:       #09738A;  /* Deep Teal     – Fixed-Income / Deposits    */
         --alloc-invest:      #3D72B4;  /* Steel Blue    – Investments / Equity       */
-        --alloc-credit:      #6B8FA3;  /* Slate Blue    – Credit / Retirement / PF   */
-        --alloc-loan:        #C99A3F;  /* Gold          – Loans / Gold / Commodities */
-        --alloc-physical:    #BF7A5C;  /* Terracotta    – Physical / Real Estate     */
-        --alloc-other:       #8577B0;  /* Muted Purple  – Legacy / Alternative       */
+        --alloc-credit:      #4C7085;  /* Slate Blue    – Credit / Retirement / PF   */
+        --alloc-loan:        #9E7220;  /* Gold          – Loans / Gold / Commodities */
+        --alloc-physical:    #99593D;  /* Terracotta    – Physical / Real Estate     */
+        --alloc-other:       #6E5F99;  /* Muted Purple  – Legacy / Alternative       */
     }
 
     /* SVG Gauge Styles */
@@ -2141,12 +2141,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% for item in asset_allocation %}
                             <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active"
                                class="progress-bar {% if not forloop.last %}border-end border-white border-opacity-25{% endif %} text-decoration-none"
-                               role="progressbar"
-                               aria-label="{{ item.type }}"
-                               style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; cursor: pointer;"
-                               aria-valuenow="{{ item.percent }}"
-                               aria-valuemin="0"
-                               aria-valuemax="100">
+                               aria-label="{{ item.type }}: {{ item.percent|floatformat:0|translate_digits }}%"
+                               style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; cursor: pointer;">
                                  {% if item.percent > 12 %}
                                     <span class="fw-bold text-white" style="font-size: 0.75rem;">{{ item.percent|floatformat:0|translate_digits }}%</span>
                                  {% endif %}

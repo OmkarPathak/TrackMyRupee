@@ -2545,15 +2545,19 @@ a:hover {
 }
 
 .mobile-nav-item.active {
-  color: #1D9E75;
+  color: var(--color-success-text, #0F7657) !important;
+  background-color: transparent !important;
+  font-weight: 600;
 }
 
 [data-bs-theme="dark"] .mobile-nav-item.active {
-  color: #34D399;
+  color: #5DCAA5 !important;
+  background-color: transparent !important;
 }
 
 .mobile-nav-item.active > i:not(.position-absolute) {
   transform: scale(1.15);
+  color: inherit;
 }
 
 .mobile-nav-item:active {
@@ -2566,16 +2570,22 @@ a:hover {
   width: 60px;
   min-width: 60px;
   height: 60px;
-  background-color: #1D9E75;
+  background-color: #0F7657;
   border-radius: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff !important;
   text-decoration: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(29, 158, 117, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(15, 118, 87, 0.18);
   border: none;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-bs-theme="dark"] .mobile-fab-btn {
+  background-color: #5DCAA5;
+  color: #064e3b !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(93, 202, 165, 0.25);
 }
 
 .mobile-fab-btn i {

@@ -236,9 +236,9 @@
 <nav class="mobile-bottom-nav d-lg-none" aria-label="{% trans 'Mobile Navigation' %}">
     <div class="mobile-nav-capsule">
         {% if request.resolver_match.url_name == 'home' %}
-        <button class="mobile-nav-item active" type="button" data-bs-toggle="offcanvas" data-bs-target="#dashboardModeSheet" aria-controls="dashboardModeSheet" title="{% trans 'Dashboard' %}" aria-label="{% trans 'Dashboard' %}">
+        <a href="{% url 'home' %}" class="mobile-nav-item active" title="{% trans 'Dashboard' %}" aria-label="{% trans 'Dashboard' %}">
             <i class="bi bi-house-door-fill"></i>
-        </button>
+        </a>
         {% else %}
         <a href="{% url 'home' %}" class="mobile-nav-item" title="{% trans 'Dashboard' %}" aria-label="{% trans 'Dashboard' %}">
             <i class="bi bi-house-door"></i>
@@ -379,10 +379,25 @@
 
         <style>
             .mobile-grid-item {
-                transition: background-color 0.2s;
+                transition: background-color 0.2s, color 0.2s;
             }
             .mobile-grid-item:active, .mobile-grid-item:hover {
                 background-color: var(--bs-tertiary-bg);
+            }
+            .mobile-grid-item.active {
+                background-color: transparent !important;
+                color: #0F7657 !important;
+                font-weight: 600;
+            }
+            .mobile-grid-item.active i {
+                color: #0F7657 !important;
+            }
+            [data-bs-theme="dark"] .mobile-grid-item.active {
+                background-color: transparent !important;
+                color: #5DCAA5 !important;
+            }
+            [data-bs-theme="dark"] .mobile-grid-item.active i {
+                color: #5DCAA5 !important;
             }
             /* Prevent any row-level negative margin bleed */
             #moreMenuSheet .offcanvas-body .row {
