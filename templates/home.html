@@ -24,7 +24,6 @@
 {% endblock %}
 
 {% block content %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
     /* Date Filter UI moved to base.html */
 
@@ -4071,6 +4070,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 30);
         };
 
+        // Lazily loads html2canvas (~200KB) only when the user actually shares/downloads a card,
+        // instead of blocking every dashboard page load with it.
+        function loadHtml2Canvas() {
+            if (typeof html2canvas !== 'undefined') {
+                return Promise.resolve();
+            }
+            if (window._html2canvasLoadPromise) {
+                return window._html2canvasLoadPromise;
+            }
+            window._html2canvasLoadPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error('Failed to load html2canvas'));
+                document.head.appendChild(script);
+            });
+            return window._html2canvasLoadPromise;
+        }
+
         window.downloadBreakdown = function() {
             if (window.showLoader) window.showLoader();
 
@@ -4082,25 +4100,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Ensure html2canvas is loaded
-                if (typeof html2canvas === 'undefined') {
-                    if (window.hideLoader) window.hideLoader();
-                    alert("{% trans 'Sharing engine still loading, please wait a second...' %}");
-                    return;
-                }
-
-                html2canvas(card, {
-                    backgroundColor: null,
-                    scale: 2 
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'My-Salary-Wrapped-TrackMyRupee.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    if (window.hideLoader) window.hideLoader();
+                loadHtml2Canvas().then(() => {
+                    html2canvas(card, {
+                        backgroundColor: null,
+                        scale: 2 
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'My-Salary-Wrapped-TrackMyRupee.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        if (window.hideLoader) window.hideLoader();
+                    }).catch(err => {
+                        console.error("Image generation failed:", err);
+                        if (window.hideLoader) window.hideLoader();
+                    });
                 }).catch(err => {
-                    console.error("Image generation failed:", err);
+                    console.error("Failed to load sharing engine:", err);
                     if (window.hideLoader) window.hideLoader();
+                    alert("{% trans 'Sharing engine failed to load. Please check your connection and try again.' %}");
                 });
             }, 50);
         };

@@ -3,13 +3,26 @@ import logging
 from allauth.account.signals import user_logged_in, user_signed_up
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db.backends.signals import connection_created
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from .ledger_service import LedgerPostingService
-from .models import Account, Category, PhysicalAsset, RecurringTransaction, UserProfile
+from .models import (
+    Account,
+    CapitalEvent,
+    Category,
+    Expense,
+    Income,
+    LoanRepayment,
+    PhysicalAsset,
+    RecurringTransaction,
+    Transfer,
+    UserProfile,
+)
 from .posthog_utils import ph_capture, ph_identify
+from .services import FinancialService
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +38,18 @@ def on_user_signed_up(sender, request, user, **kwargs):
 
 @receiver(user_logged_in)
 def on_user_logged_in(sender, request, user, **kwargs):
-    """Capture a login event and refresh PostHog person properties."""
+    """Capture a login event, refresh PostHog person properties, and pre-warm the dashboard cache."""
     sociallogin = kwargs.get('sociallogin')
     method = 'google' if sociallogin else 'email'
     ph_identify(user)  # refreshes tier / email in case they changed
     ph_capture(user, 'user_logged_in', {'method': method})
+
+    # Pre-warm the monthly-history cache so it's already hot by the time the post-login
+    # redirect lands on the dashboard.
+    try:
+        FinancialService.get_monthly_history(user, 6)
+    except Exception:
+        logger.warning("Failed to pre-warm dashboard cache for user %s", user.id, exc_info=True)
 
 
 
@@ -149,3 +169,41 @@ def handle_physical_asset_deactivation(sender, instance, **kwargs):
         return
     if not instance.is_active:
         RecurringTransaction.objects.filter(physical_asset=instance, is_active=True).update(is_active=False)
+
+
+def _dashboard_cache_user_id(instance):
+    """Resolve the owning user id for cache-invalidation, regardless of model shape."""
+    if isinstance(instance, LoanRepayment):
+        return instance.loan.user_id
+    return instance.user_id
+
+
+def invalidate_dashboard_cache(sender, instance, **kwargs):
+    """Invalidate cached dashboard data whenever a transaction affecting it is saved/deleted.
+
+    Keeps the LocMemCache-backed dashboard (home_default_data / monthly_summary_map /
+    monthly_history) from ever serving stale numbers after the user logs an expense,
+    salary, transfer, loan repayment, capital event, or account change.
+    """
+    if kwargs.get('raw', False):
+        return
+    try:
+        user_id = _dashboard_cache_user_id(instance)
+    except Exception:
+        return
+    if not user_id:
+        return
+    try:
+        cache.delete_many([
+            f'home_default_data_{user_id}',
+            f'monthly_summary_map_{user_id}',
+            f'monthly_history_{user_id}_6',
+        ])
+    except Exception:
+        pass
+
+
+_DASHBOARD_CACHE_MODELS = (Expense, Income, Transfer, LoanRepayment, CapitalEvent, Account, RecurringTransaction)
+for _model in _DASHBOARD_CACHE_MODELS:
+    post_save.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_save_{_model.__name__}')
+    post_delete.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_delete_{_model.__name__}')

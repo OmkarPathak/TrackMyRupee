@@ -66,7 +66,27 @@ def home_view(request):
 
     # Process recurring transactions
     process_user_recurring_transactions(request.user)
-    
+
+    # --- ZERO-QUERY WARM LOAD ---
+    # 95%+ of dashboard opens (login/PWA) hit this view with no filter params. Cache the
+    # fully-built context for 5 minutes so repeat loads skip every query below entirely.
+    # Cache is invalidated immediately on transaction mutations via signals (see signals.py).
+    is_default_filter_view = not any([
+        request.GET.get('year'), request.GET.get('month'), request.GET.get('category'),
+        request.GET.get('start_date'), request.GET.get('end_date'),
+    ])
+    home_cache_key = f'home_default_data_{request.user.id}' if is_default_filter_view else None
+    if home_cache_key:
+        cached_context = cache.get(home_cache_key)
+        if cached_context is not None:
+            context = dict(cached_context)
+            # Refresh the handful of fields that are request/profile-specific and must never be stale.
+            context['is_net_worth_locked'] = not request.user.profile.has_net_worth_access
+            context['is_ai_locked'] = not request.user.profile.has_ai_access
+            context['show_tutorial'] = not request.user.profile.has_seen_tutorial or request.GET.get('tour') == 'true'
+            context['is_new_user'] = not has_any_data
+            return render(request, 'home.html', context)
+
     # --- NET WORTH TREND (Last 6 Months) ---
     net_worth_history = FinancialService.get_monthly_history(request.user, 6)
     
@@ -248,24 +268,29 @@ def home_view(request):
         batch_loan = LoanRepayment.objects.filter(loan__user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total_interest=Sum(F('interest_portion') * F('exchange_rate')))
         batch_cap_exp = CapitalEvent.objects.filter(user=request.user, date__gte=hist_start, exclude_from_averages=False).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
         
-        monthly_summary_map = {} # (year, month) -> {'income': 0, 'expense': 0}
+        # 'expense' is the combined total (expense + loan interest + capital events) used by
+        # the trend/average code below. 'expense_base' and 'loan_interest' are kept separate
+        # too, so YTD / historical-average figures elsewhere can be derived without extra queries.
+        monthly_summary_map = {} # (year, month) -> {'income': 0, 'expense': 0, 'expense_base': 0, 'loan_interest': 0}
         for item in batch_inc:
             dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-            monthly_summary_map[(dt.year, dt.month)] = {'income': float(item['total']), 'expense': 0.0}
+            monthly_summary_map[(dt.year, dt.month)] = {'income': float(item['total']), 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
         for item in batch_exp:
             dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
             if (dt.year, dt.month) not in monthly_summary_map:
-                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
+                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
             monthly_summary_map[(dt.year, dt.month)]['expense'] = float(item['total'])
+            monthly_summary_map[(dt.year, dt.month)]['expense_base'] = float(item['total'])
         for item in batch_loan:
             dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
             if (dt.year, dt.month) not in monthly_summary_map:
-                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
+                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
             monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total_interest'] or 0)
+            monthly_summary_map[(dt.year, dt.month)]['loan_interest'] += float(item['total_interest'] or 0)
         for item in batch_cap_exp:
             dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
             if (dt.year, dt.month) not in monthly_summary_map:
-                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0}
+                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
             monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total'] or 0)
         
         cache.set(monthly_summary_cache_key, monthly_summary_map, 300) # Cache for 5 minutes
@@ -303,6 +328,9 @@ def home_view(request):
     # Group by subtype in DB (one query returning N_distinct_subtypes rows) instead of
     # fetching every CapitalEvent row into Python to sum them.
     _subtype_display = dict(CapitalEvent._meta.get_field('subtype').flatchoices)
+    # Captured here so the net-worth-change block below can reuse this period's total
+    # instead of firing a duplicate CapitalEvent query with the same filters.
+    period_capital_events_budget_total = 0.0
     for item in budget_events.values('subtype').annotate(total=Sum('base_amount')):
         cat_name = _subtype_display.get(item['subtype'], item['subtype'])
         matched_cat = None
@@ -313,6 +341,7 @@ def home_view(request):
         if matched_cat:
             cat_name = matched_cat
         merged_category_map[cat_name] = merged_category_map.get(cat_name, 0.0) + float(item['total'])
+        period_capital_events_budget_total += float(item['total'])
     
     # Add Loan Interest to breakdown
     if total_loan_interest > 0:
@@ -728,19 +757,10 @@ def home_view(request):
     current_month = current_date.month 
 
     # 1. Calculate YTD Savings (Strictly for current year, regardless of filters)
-    ytd_income = Income.objects.filter(user=request.user, date__year=current_year, date__month__lte=current_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-    ytd_expenses = Expense.objects.filter(user=request.user, date__year=current_year, date__month__lte=current_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-    ytd_loan_stats = LoanRepayment.objects.filter(
-        loan__user=request.user,
-        date__year=current_year,
-        date__month__lte=current_month,
-    ).aggregate(
-        total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-        total_emi=Sum('base_amount')
-    )
-    ytd_loan_interest = ytd_loan_stats['total_interest'] or 0
-    ytd_loan_emi = ytd_loan_stats['total_emi'] or 0
-    ytd_loan_principal = ytd_loan_emi - ytd_loan_interest
+    # Derived from monthly_summary_map (already batched above) instead of 3 extra DB queries.
+    ytd_income = sum(monthly_summary_map.get((current_year, m), {}).get('income', 0.0) for m in range(1, current_month + 1))
+    ytd_expenses = sum(monthly_summary_map.get((current_year, m), {}).get('expense_base', 0.0) for m in range(1, current_month + 1))
+    ytd_loan_interest = sum(monthly_summary_map.get((current_year, m), {}).get('loan_interest', 0.0) for m in range(1, current_month + 1))
     # Keep projection semantics aligned with displayed savings (principal excluded).
     ytd_savings = ytd_income - (ytd_expenses + ytd_loan_interest)
     
@@ -2040,12 +2060,30 @@ def home_view(request):
     
     # Get income and expense sums for the current month ONLY (for change indicators)
     curr_mon_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    month_income_sum = Income.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-    month_expense_sum = Expense.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-    month_loan_interest = LoanRepayment.objects.filter(loan__user=request.user, date__gte=curr_mon_start).aggregate(
-        total_interest=Sum(F('interest_portion') * F('exchange_rate'))
-    )['total_interest'] or Decimal('0.00')
-    month_cap_events = CapitalEvent.objects.filter(user=request.user, date__gte=curr_mon_start, exclude_from_budget=False).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+
+    # If the view above already computed totals for exactly this calendar month (the default,
+    # unfiltered dashboard view — including the common case where the salary cycle happens to
+    # span the full calendar month), reuse them instead of firing 4 duplicate queries.
+    _reuse_month_totals = (
+        not (start_date or end_date)
+        and is_current_month_view
+        and (
+            not salary_cycle_active
+            or (salary_cycle_start == curr_mon_start.date() and salary_cycle_end and salary_cycle_end >= now.date())
+        )
+    )
+    if _reuse_month_totals:
+        month_income_sum = Decimal(str(total_income))
+        month_expense_sum = Decimal(str(total_expenses_base))
+        month_loan_interest = Decimal(str(total_loan_interest))
+        month_cap_events = Decimal(str(period_capital_events_budget_total))
+    else:
+        month_income_sum = Income.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+        month_expense_sum = Expense.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
+        month_loan_interest = LoanRepayment.objects.filter(loan__user=request.user, date__gte=curr_mon_start).aggregate(
+            total_interest=Sum(F('interest_portion') * F('exchange_rate'))
+        )['total_interest'] or Decimal('0.00')
+        month_cap_events = CapitalEvent.objects.filter(user=request.user, date__gte=curr_mon_start, exclude_from_budget=False).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
     
     # Net change (savings) is the growth in net worth
     net_worth_change = month_income_sum - (month_expense_sum + month_loan_interest + month_cap_events)
@@ -2141,8 +2179,22 @@ def home_view(request):
     hero_metrics['savings_amount'] = net_worth_change
 
     # --- NET WORTH FORECAST (Next 3 Months) ---
-    historical_avg = FinancialService.get_historical_average(request.user, months=3)
-    avg_monthly_savings = Decimal(str(historical_avg['avg_income'] - historical_avg['avg_expense']))
+    # Derive the 3-month historical average from monthly_summary_map (0 extra DB queries)
+    # instead of FinancialService.get_historical_average, which re-queries the same data.
+    _hist_y, _hist_m = now.year, now.month
+    _hist_months = []
+    for _hist_i in range(3):
+        _hist_m -= 1
+        if _hist_m == 0:
+            _hist_m = 12
+            _hist_y -= 1
+        _hist_months.append((_hist_y, _hist_m))
+    _hist_income_sum = sum(monthly_summary_map.get(k, {}).get('income', 0.0) for k in _hist_months)
+    _hist_expense_sum = sum(
+        monthly_summary_map.get(k, {}).get('expense_base', 0.0) + monthly_summary_map.get(k, {}).get('loan_interest', 0.0)
+        for k in _hist_months
+    )
+    avg_monthly_savings = Decimal(str((_hist_income_sum - _hist_expense_sum) / 3))
     
     net_worth_forecasts = []
     
@@ -2180,14 +2232,22 @@ def home_view(request):
     excluded_capital_events_total = sum(e.base_amount for e in capital_events_list if e.exclude_from_averages)
     # Onboarding Checklist State
     profile = request.user.profile
-    checklist_status = {
-        'accounts': Account.objects.filter(user=request.user).exists(),
-        'income': Income.objects.filter(user=request.user).exists(),
-        'expense': Expense.objects.filter(user=request.user).exists(),
-        'budget': Category.objects.filter(user=request.user, limit__isnull=False).exists(),
-        'goal': SavingsGoal.objects.filter(user=request.user).exists(),
-        'recurring': RecurringTransaction.objects.filter(user=request.user).exists(),
-    }
+    # Once fully complete (or dismissed) this can't practically go back to "incomplete" for a
+    # normal user, so cache that terminal state for 24h and skip the 6 EXISTS queries entirely.
+    checklist_cache_key = f'checklist_done_{request.user.id}'
+    if cache.get(checklist_cache_key):
+        checklist_status = {k: True for k in ('accounts', 'income', 'expense', 'budget', 'goal', 'recurring')}
+    else:
+        checklist_status = {
+            'accounts': Account.objects.filter(user=request.user).exists(),
+            'income': Income.objects.filter(user=request.user).exists(),
+            'expense': Expense.objects.filter(user=request.user).exists(),
+            'budget': Category.objects.filter(user=request.user, limit__isnull=False).exists(),
+            'goal': SavingsGoal.objects.filter(user=request.user).exists(),
+            'recurring': RecurringTransaction.objects.filter(user=request.user).exists(),
+        }
+        if profile.dismissed_onboarding_checklist or all(checklist_status.values()):
+            cache.set(checklist_cache_key, True, 60 * 60 * 24)
     completed_count = sum(1 for status in checklist_status.values() if status)
     show_onboarding_checklist = not profile.dismissed_onboarding_checklist and completed_count < 6
 
@@ -2273,7 +2333,7 @@ def home_view(request):
         'is_net_worth_locked': not request.user.profile.has_net_worth_access,
         'is_ai_locked': not request.user.profile.has_ai_access,
         'sparkline_points': sparkline_points,
-        'accounts': accounts,
+        'accounts': list(accounts),
         'account_base_balances': account_base_balances,
         'total_liabilities': total_liabilities,
         'net_worth_before_liabilities': net_worth_before_liabilities,
@@ -2367,6 +2427,9 @@ def home_view(request):
         'capital_event_callout': capital_event_callout,
     }
 
+    if home_cache_key:
+        cache.set(home_cache_key, context, 300)
+
     # --- SMART CONTEXTUAL NUDGES ---
     # Instead of showing on the dashboard, we add them to the notification system.
     
@@ -2421,7 +2484,8 @@ def home_view(request):
             slug='nudge-organize-spend'
         )
     
-    # 3. Potential Recurring Nudge: Looking for patterns
+    # 3. Potential Recurring Nudge: Looking for patterns (throttled: the GROUP BY below is
+    # expensive, so only re-check once per day per user instead of on every page load).
     recurring_suffix = ' (Recurring)'
 
     def normalize_recurring_description(value):
@@ -2430,47 +2494,51 @@ def home_view(request):
             normalized = normalized[:-len(recurring_suffix)].rstrip()
         return normalized
 
-    three_months_ago = now - timedelta(days=90)
-    repeating_expenses = Expense.objects.filter(
-        user=request.user, 
-        date__gte=three_months_ago
-    ).values('description', 'amount').annotate(
-        count=Count('id')
-    ).filter(count__gte=3).exclude(
-        description__in=['', 'Miscellaneous', 'Other']
-    ).exclude(
-        description__iendswith=recurring_suffix
-    ).order_by('-count')
-    
-    top_repeat = None
-    if repeating_expenses.exists():
-        # Optimization: Fetch active recurring descriptions (normalized) for the user to compare
-        active_recurring_desc = set(RecurringTransaction.objects.filter(
-            user=request.user, is_active=True, transaction_type='EXPENSE'
-        ).values_list('description', flat=True))
+    nudge_repeat_cache_key = f'nudge_repeat_checked_{request.user.id}'
+    if cache.get(nudge_repeat_cache_key) is None:
+        three_months_ago = now - timedelta(days=90)
+        repeating_expenses = Expense.objects.filter(
+            user=request.user, 
+            date__gte=three_months_ago
+        ).values('description', 'amount').annotate(
+            count=Count('id')
+        ).filter(count__gte=3).exclude(
+            description__in=['', 'Miscellaneous', 'Other']
+        ).exclude(
+            description__iendswith=recurring_suffix
+        ).order_by('-count')
         
-        # Normalize for comparison
-        active_recurring_desc_norm = {normalize_recurring_description(d) for d in active_recurring_desc}
-        
-        for repeat in repeating_expenses[:10]: # Check top 10 candidates
-            desc_norm = normalize_recurring_description(repeat['description'])
-            if desc_norm not in active_recurring_desc_norm:
-                top_repeat = repeat
-                break
+        top_repeat = None
+        if repeating_expenses.exists():
+            # Optimization: Fetch active recurring descriptions (normalized) for the user to compare
+            active_recurring_desc = set(RecurringTransaction.objects.filter(
+                user=request.user, is_active=True, transaction_type='EXPENSE'
+            ).values_list('description', flat=True))
+            
+            # Normalize for comparison
+            active_recurring_desc_norm = {normalize_recurring_description(d) for d in active_recurring_desc}
+            
+            for repeat in repeating_expenses[:10]: # Check top 10 candidates
+                desc_norm = normalize_recurring_description(repeat['description'])
+                if desc_norm not in active_recurring_desc_norm:
+                    top_repeat = repeat
+                    break
 
-    if top_repeat:
-        # link to recurring form with pre-filled description and amount
-        recurring_link = f"{reverse('recurring-create')}?description={top_repeat['description']}&amount={top_repeat['amount']}"
-        add_nudge_alt(
-            _('Automate Repeat Bills?'),
-            format_html(
-                _('Looks like {desc} repeats monthly. Want to transition it to a recurring transaction?'),
-                desc=top_repeat['description']
-            ),
-            n_type='ANALYTICS',
-            link=recurring_link,
-            slug=f"nudge-recurring-{top_repeat['description']}-{now.year}-{now.month}"
-        )
+        if top_repeat:
+            # link to recurring form with pre-filled description and amount
+            recurring_link = f"{reverse('recurring-create')}?description={top_repeat['description']}&amount={top_repeat['amount']}"
+            add_nudge_alt(
+                _('Automate Repeat Bills?'),
+                format_html(
+                    _('Looks like {desc} repeats monthly. Want to transition it to a recurring transaction?'),
+                    desc=top_repeat['description']
+                ),
+                n_type='ANALYTICS',
+                link=recurring_link,
+                slug=f"nudge-recurring-{top_repeat['description']}-{now.year}-{now.month}"
+            )
+
+        cache.set(nudge_repeat_cache_key, True, 60 * 60 * 24)
 
     return render(request, 'home.html', context)
 
