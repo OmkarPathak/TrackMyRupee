@@ -49,7 +49,7 @@
             <div class="card border-0 shadow-lg">
                 <div class="card-header bg-transparent py-3">
                     <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="h4 mb-0 fw-bold">{% if event %}{% trans "Edit Capital Event" %}{% else %}{% trans "Add Capital Event" %}{% endif %}</h2>
+                        <h1 class="h4 mb-0 fw-bold">{% if event %}{% trans "Edit Capital Event" %}{% else %}{% trans "Add Capital Event" %}{% endif %}</h1>
                     </div>
                 </div>
                 <div class="card-body p-4">
@@ -65,16 +65,16 @@
                         <!-- Row 1: Amount + Currency + Date -->
                         <div class="row g-3 mb-3">
                             <div class="col-md-5">
-                                <label class="form-label fw-semibold">{{ form.amount.label }} <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold" for="{{ form.amount.id_for_label }}">{{ form.amount.label }} <span class="text-danger">*</span></label>
                                 {{ form.amount }}
                                 {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label fw-semibold">{{ form.currency.label }}</label>
+                                <label class="form-label fw-semibold" for="{{ form.currency.id_for_label }}">{{ form.currency.label }}</label>
                                 {{ form.currency }}
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">{{ form.date.label }} <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold" for="{{ form.date.id_for_label }}">{{ form.date.label }} <span class="text-danger">*</span></label>
                                 {{ form.date }}
                                 {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>{% endif %}
                             </div>
@@ -83,12 +83,12 @@
                         <!-- Row 2: Subtype + Account -->
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ form.subtype.label }} <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold" for="{{ form.subtype.id_for_label }}">{{ form.subtype.label }} <span class="text-danger">*</span></label>
                                 {{ form.subtype }}
                                 {% if form.subtype.errors %}<div class="text-danger small mt-1">{{ form.subtype.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ form.account.label }}</label>
+                                <label class="form-label fw-semibold" for="{{ form.account.id_for_label }}">{{ form.account.label }}</label>
                                 {{ form.account }}
                                 <div class="form-text">{% trans "Used to update your account balance." %}</div>
                             </div>
@@ -96,7 +96,7 @@
 
                         <!-- Loan link (shown only for relevant subtypes) -->
                         <div class="mb-3" id="loan-link-row">
-                            <label class="form-label fw-semibold">{{ form.linked_loan.label }}</label>
+                            <label class="form-label fw-semibold" for="{{ form.linked_loan.id_for_label }}">{{ form.linked_loan.label }}</label>
                             {{ form.linked_loan }}
                             <div class="form-text">
                                 {% trans "Optionally link to an existing loan so the Loan Detail page shows total capital committed." %}
@@ -107,7 +107,7 @@
 
                         <!-- Note -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">{{ form.note.label }}</label>
+                            <label class="form-label fw-semibold" for="{{ form.note.id_for_label }}">{{ form.note.label }}</label>
                             {{ form.note }}
                         </div>
 

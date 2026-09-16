@@ -7,13 +7,13 @@
         <div class="card border-0 shadow-lg">
             <div class="card-header bg-transparent py-3">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h2 class="h4 mb-0 fw-bold">
+                    <h1 class="h4 mb-0 fw-bold">
                         {% if form.instance.pk %}
                             {% trans "Edit Loan" %}
                         {% else %}
                             {% trans "Add New Loan" %}
                         {% endif %}
-                    </h2>
+                    </h1>
                     <a href="{% url 'loan-list' %}" class="btn btn-action-cancel">
                         <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
                     </a>
@@ -34,19 +34,19 @@
                     {% csrf_token %}
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase">{% trans "Loan Name" %}</label>
+                        <label class="form-label fw-bold small text-uppercase" for="{{ form.name.id_for_label }}">{% trans "Loan Name" %}</label>
                         {{ form.name }}
                         {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold small text-uppercase">{% trans "Loan Type" %}</label>
+                            <label class="form-label fw-bold small text-uppercase" for="{{ form.loan_type.id_for_label }}">{% trans "Loan Type" %}</label>
                             {{ form.loan_type }}
                             {% if form.loan_type.errors %}<div class="text-danger small">{{ form.loan_type.errors }}</div>{% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold small text-uppercase">{% trans "Currency" %}</label>
+                            <label class="form-label fw-bold small text-uppercase" for="{{ form.currency.id_for_label }}">{% trans "Currency" %}</label>
                             {{ form.currency }}
                             {% if form.currency.errors %}<div class="text-danger small">{{ form.currency.errors }}</div>{% endif %}
                         </div>
@@ -54,12 +54,12 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold small text-uppercase">{% trans "Principal Amount" %}</label>
+                            <label class="form-label fw-bold small text-uppercase" for="{{ form.initial_principal.id_for_label }}">{% trans "Principal Amount" %}</label>
                             {{ form.initial_principal }}
                             {% if form.initial_principal.errors %}<div class="text-danger small">{{ form.initial_principal.errors }}</div>{% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold small text-uppercase">{% trans "Interest Rate (%)" %}</label>
+                            <label class="form-label fw-bold small text-uppercase" for="{{ form.interest_rate.id_for_label }}">{% trans "Interest Rate (%)" %}</label>
                             {{ form.interest_rate }}
                             {% if form.interest_rate.errors %}<div class="text-danger small">{{ form.interest_rate.errors }}</div>{% endif %}
                         </div>
@@ -67,12 +67,12 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold small text-uppercase">{% trans "Duration (Months)" %}</label>
+                            <label class="form-label fw-bold small text-uppercase" for="{{ form.duration_months.id_for_label }}">{% trans "Duration (Months)" %}</label>
                             {{ form.duration_months }}
                             {% if form.duration_months.errors %}<div class="text-danger small">{{ form.duration_months.errors }}</div>{% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold small text-uppercase">{% trans "Start Date" %}</label>
+                            <label class="form-label fw-bold small text-uppercase" for="{{ form.start_date.id_for_label }}">{% trans "Start Date" %}</label>
                             {{ form.start_date }}
                             {% if form.start_date.errors %}<div class="text-danger small">{{ form.start_date.errors }}</div>{% endif %}
                         </div>

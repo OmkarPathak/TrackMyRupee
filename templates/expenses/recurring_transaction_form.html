@@ -141,7 +141,7 @@
                             </div>
 
                             <div class="col-12" id="paymentMethodGroup">
-                                <label class="form-label fw-bold">{% trans "Payment Source Method" %}</label>
+                                <label class="form-label fw-bold" for="{{ form.payment_method.id_for_label }}">{% trans "Payment Source Method" %}</label>
                                 <div class="d-none">
                                     {{ form.payment_method }}
                                 </div>

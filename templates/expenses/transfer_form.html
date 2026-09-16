@@ -97,13 +97,13 @@
                     <div id="quickAddAlert" class="d-none"></div>
                     <form id="quickAddAccountForm">
                         <div class="mb-3">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Name" %}</label>
-                            <input type="text" name="name" class="form-control" placeholder="{% trans 'e.g. HDFC Bank' %}" required>
+                            <label class="form-label text-muted small text-uppercase fw-bold" for="quick_account_name">{% trans "Account Name" %}</label>
+                            <input type="text" name="name" id="quick_account_name" class="form-control" placeholder="{% trans 'e.g. HDFC Bank' %}" required>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Type" %}</label>
-                                <select name="account_type" class="form-select">
+                                <label class="form-label text-muted small text-uppercase fw-bold" for="quick_account_type">{% trans "Account Type" %}</label>
+                                <select name="account_type" id="quick_account_type" class="form-select">
                                     <option value="BANK">{% trans "Bank Account" %}</option>
                                     <option value="CASH">{% trans "Cash" %}</option>
                                     <option value="CREDIT_CARD">{% trans "Credit Card" %}</option>
@@ -112,8 +112,8 @@
                                 </select>
                             </div>
                             <div class="col-6">
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Currency" %}</label>
-                                <select name="currency" class="form-select">
+                                <label class="form-label text-muted small text-uppercase fw-bold" for="quick_currency">{% trans "Currency" %}</label>
+                                <select name="currency" id="quick_currency" class="form-select">
                                     <option value="₹">₹ INR</option>
                                     <option value="$">$ USD</option>
                                     <option value="€">€ EUR</option>
@@ -128,10 +128,10 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Initial Balance" %}</label>
+                            <label class="form-label text-muted small text-uppercase fw-bold" for="quick_initial_balance">{% trans "Initial Balance" %}</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent"><i class="bi bi-wallet2"></i></span>
-                                <input type="number" name="balance" class="form-control" step="0.01" value="0.00">
+                                <input type="number" name="balance" id="quick_initial_balance" class="form-control" step="0.01" value="0.00">
                             </div>
                         </div>
                     </form>

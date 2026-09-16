@@ -22,11 +22,11 @@
         transition: color 0.2s ease;
     }
     .wizard-step-tab.active .wizard-step-title {
-        color: #10b981;
+        color: #0F7657;
         font-weight: 700;
     }
     .wizard-step-tab.completed .wizard-step-title {
-        color: #10b981;
+        color: #0F7657;
     }
 
     [data-bs-theme="dark"] .wizard-step-title {
@@ -256,13 +256,13 @@
             <div class="card-header bg-transparent py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h2 class="h4 fw-bold mb-0">
+                        <h1 class="h4 fw-bold mb-0">
                             {% if form.instance.pk %}
                                 {% trans "Edit Account" %}
                             {% else %}
                                 {% trans "Add New Account" %}
                             {% endif %}
-                        </h2>
+                        </h1>
                         <p class="text-muted small mb-0">{% trans "Wallets, Bank Accounts, Deposits, or Portfolios" %}</p>
                     </div>
                     <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2" id="stepCounterBadge">{% trans "Step 1 of 2" %}</span>
@@ -300,7 +300,7 @@
                     <div class="wizard-step-content" id="step1Content">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Name" %}</label>
+                                <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.name.id_for_label }}">{% trans "Account Name" %}</label>
                                 {{ form.name }}
                                 <div class="form-text">{% trans "Give this account a clear name (e.g. HDFC Savings, Emergency Fund)." %}</div>
                                 {% if form.name.errors %}
@@ -309,7 +309,7 @@
                             </div>
 
                             <div class="col-12 col-sm-6">
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Account Type" %}</label>
+                                <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.account_type.id_for_label }}">{% trans "Account Type" %}</label>
                                 {{ form.account_type }}
                                 <div class="form-text">{% trans "Category of bank or asset account." %}</div>
                                 {% if form.account_type.errors %}
@@ -318,7 +318,7 @@
                             </div>
 
                             <div class="col-12 col-sm-6">
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Currency" %}</label>
+                                <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.currency.id_for_label }}">{% trans "Currency" %}</label>
                                 {{ form.currency }}
                                 <div class="form-text">{% trans "Base currency of this account." %}</div>
                                 {% if form.currency.errors %}
@@ -327,7 +327,7 @@
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Initial Balance" %}</label>
+                                <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.balance.id_for_label }}">{% trans "Initial Balance" %}</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-wallet2"></i></span>
                                     {{ form.balance }}
@@ -353,7 +353,7 @@
                             </div>
                             <div class="row g-3">
                                 <div class="col-12 col-sm-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Principal" %}</label>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_principal.id_for_label }}">{% trans "Deposit Principal" %}</label>
                                     {{ form.deposit_principal }}
                                     <div class="form-text">{% trans "Original amount invested." %}</div>
                                     {% if form.deposit_principal.errors %}
@@ -361,7 +361,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Annual Interest Rate (%)" %}</label>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_rate.id_for_label }}">{% trans "Annual Interest Rate (%)" %}</label>
                                     {{ form.deposit_rate }}
                                     <div class="form-text">{% trans "e.g. 7.25 for 7.25% p.a." %}</div>
                                     {% if form.deposit_rate.errors %}
@@ -369,7 +369,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Start Date" %}</label>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_start_date.id_for_label }}">{% trans "Deposit Start Date" %}</label>
                                     {{ form.deposit_start_date }}
                                     <div class="form-text">{% trans "Date deposit was booked." %}</div>
                                     {% if form.deposit_start_date.errors %}
@@ -377,7 +377,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Maturity Date" %}</label>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_maturity_date.id_for_label }}">{% trans "Deposit Maturity Date" %}</label>
                                     {{ form.deposit_maturity_date }}
                                     <div class="form-text">{% trans "Date deposit matures." %}</div>
                                     {% if form.deposit_maturity_date.errors %}
@@ -385,7 +385,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Deposit Closed Date" %}</label>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_closed_date.id_for_label }}">{% trans "Deposit Closed Date" %}</label>
                                     {{ form.deposit_closed_date }}
                                     <div class="form-text">{% trans "Optional date if closed early." %}</div>
                                     {% if form.deposit_closed_date.errors %}
@@ -393,7 +393,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Compounding Frequency" %}</label>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_compounding.id_for_label }}">{% trans "Compounding Frequency" %}</label>
                                     {{ form.deposit_compounding }}
                                     <div class="form-text">{% trans "Interest compounding schedule." %}</div>
                                     {% if form.deposit_compounding.errors %}
@@ -433,7 +433,7 @@
                                     <h6 class="fw-bold text-primary small mb-3">{% trans "Recurring Deposit (RD) Schedule" %}</h6>
                                     <div class="row g-3">
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Monthly Installment Amount" %}</label>
+                                            <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.rd_installment_amount.id_for_label }}">{% trans "Monthly Installment Amount" %}</label>
                                             {{ form.rd_installment_amount }}
                                             <div class="form-text">{% trans "Recurring monthly contribution." %}</div>
                                             {% if form.rd_installment_amount.errors %}
@@ -441,7 +441,7 @@
                                             {% endif %}
                                         </div>
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Installment Day (1-28)" %}</label>
+                                            <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.rd_installment_day.id_for_label }}">{% trans "Installment Day (1-28)" %}</label>
                                             {{ form.rd_installment_day }}
                                             <div class="form-text">{% trans "Day of month installment is paid." %}</div>
                                             {% if form.rd_installment_day.errors %}
@@ -494,7 +494,7 @@
                             </div>
                             <div class="row g-3">
                                 <div class="col-12 col-md-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Credit Limit" %}</label>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.credit_limit.id_for_label }}">{% trans "Credit Limit" %}</label>
                                     {{ form.credit_limit }}
                                     <div class="form-text">{% trans "Total credit line limit (optional)." %}</div>
                                     {% if form.credit_limit.errors %}
@@ -502,7 +502,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Billing Day of Month (1-31)" %}</label>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.credit_card_billing_day.id_for_label }}">{% trans "Billing Day of Month (1-31)" %}</label>
                                     {{ form.credit_card_billing_day }}
                                     <div class="form-text">{% trans "Day of month bill is generated (optional)." %}</div>
                                     {% if form.credit_card_billing_day.errors %}
@@ -522,7 +522,7 @@
                                 <span>{% trans "Link an existing loan record to track remaining liability." %}</span>
                             </div>
                             <div>
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Select Loan" %}</label>
+                                <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.linked_loan.id_for_label }}">{% trans "Select Loan" %}</label>
                                 {{ form.linked_loan }}
                                 <div class="form-text">{% trans "Link a loan record to track remaining liability." %}</div>
                                 {% if form.linked_loan.errors %}
@@ -569,7 +569,7 @@
 
                             <!-- Select Existing Asset Dropdown -->
                             <div class="mb-3" x-show="createNewAsset === 'SELECT'" x-cloak>
-                                <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Select Physical Asset" %}</label>
+                                <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.linked_physical_asset.id_for_label }}">{% trans "Select Physical Asset" %}</label>
                                 {{ form.linked_physical_asset }}
                                 <div class="form-text">{% trans "Link an existing physical asset record." %}</div>
                                 {% if form.linked_physical_asset.errors %}
@@ -582,7 +582,7 @@
                                 <div class="row g-3">
                                     <!-- Asset Name (Common) -->
                                     <div class="col-12" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('asset_name')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Asset / Policy Name" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.asset_name.id_for_label }}">{% trans "Asset / Policy Name" %}</label>
                                         {{ form.asset_name }}
                                         <div class="form-text">{% trans "Descriptive name (e.g. Pune Apartment, Honda City, LIC Jeevan Anand)." %}</div>
                                         {% if form.asset_name.errors %}
@@ -592,7 +592,7 @@
 
                                     <!-- Physical Valuation Specific Fields (Real Estate, Vehicle) -->
                                     <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('acquisition_cost')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Acquisition Cost" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.acquisition_cost.id_for_label }}">{% trans "Acquisition Cost" %}</label>
                                         {{ form.acquisition_cost }}
                                         <div class="form-text">{% trans "Purchase price or cost." %}</div>
                                         {% if form.acquisition_cost.errors %}
@@ -601,7 +601,7 @@
                                     </div>
 
                                     <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('acquisition_date')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Acquisition Date" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.acquisition_date.id_for_label }}">{% trans "Acquisition Date" %}</label>
                                         {{ form.acquisition_date }}
                                         <div class="form-text">{% trans "Date purchased or acquired." %}</div>
                                         {% if form.acquisition_date.errors %}
@@ -611,7 +611,7 @@
 
                                     <!-- Insurance Policy Specific Fields (Life Insurance) -->
                                     <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('policy_number')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Policy Number" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.policy_number.id_for_label }}">{% trans "Policy Number" %}</label>
                                         {{ form.policy_number }}
                                         {% if form.policy_number.errors %}
                                             <div class="text-danger small mt-1">{{ form.policy_number.errors|first }}</div>
@@ -619,7 +619,7 @@
                                     </div>
 
                                     <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('policy_start_date')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Policy Start Date" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.policy_start_date.id_for_label }}">{% trans "Policy Start Date" %}</label>
                                         {{ form.policy_start_date }}
                                         {% if form.policy_start_date.errors %}
                                             <div class="text-danger small mt-1">{{ form.policy_start_date.errors|first }}</div>
@@ -628,7 +628,7 @@
 
                                     <!-- Sum Assured & Premium Amount on the Same Line (col-6 each) -->
                                     <div class="col-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('sum_assured')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Sum Assured" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.sum_assured.id_for_label }}">{% trans "Sum Assured" %}</label>
                                         {{ form.sum_assured }}
                                         {% if form.sum_assured.errors %}
                                             <div class="text-danger small mt-1">{{ form.sum_assured.errors|first }}</div>
@@ -636,7 +636,7 @@
                                     </div>
 
                                     <div class="col-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('premium_amount')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Premium Amount" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.premium_amount.id_for_label }}">{% trans "Premium Amount" %}</label>
                                         {{ form.premium_amount }}
                                         {% if form.premium_amount.errors %}
                                             <div class="text-danger small mt-1">{{ form.premium_amount.errors|first }}</div>
@@ -644,7 +644,7 @@
                                     </div>
 
                                     <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('premium_frequency')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Premium Frequency" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.premium_frequency.id_for_label }}">{% trans "Premium Frequency" %}</label>
                                         {{ form.premium_frequency }}
                                         {% if form.premium_frequency.errors %}
                                             <div class="text-danger small mt-1">{{ form.premium_frequency.errors|first }}</div>
@@ -652,7 +652,7 @@
                                     </div>
 
                                     <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('premium_payment_account')" x-cloak>
-                                        <label class="form-label text-muted small text-uppercase fw-bold">{% trans "Premium Payment Account" %}</label>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.premium_payment_account.id_for_label }}">{% trans "Premium Payment Account" %}</label>
                                         {{ form.premium_payment_account }}
                                         <div class="form-text">{% trans "Bank/Cash account for premium payments." %}</div>
                                         {% if form.premium_payment_account.errors %}

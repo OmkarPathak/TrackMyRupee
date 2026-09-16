@@ -237,7 +237,7 @@
                                 <!-- Primary: Amount & Category (hero row) -->
                                 <div class="row mb-3">
                                     <div class="col-5">
-                                        <label class="form-label fw-semibold">{% trans "Amount" %}</label>
+                                        <label class="form-label fw-semibold" for="{{ form.amount.id_for_label }}">{% trans "Amount" %}</label>
                                         <input type="number" name="{{ form.amount.html_name }}" class="form-control form-control-lg expense-amount-input" 
                                             value="{{ form.amount.value|default:'' }}" required id="{{ form.amount.id_for_label }}" step="0.01" placeholder="0.00" inputmode="decimal">
                                         {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
@@ -253,7 +253,7 @@
 
                                 <!-- Description -->
                                 <div class="mb-3">
-                                    <label class="form-label">{% trans "Description" %}</label>
+                                    <label class="form-label" for="{{ form.description.id_for_label }}">{% trans "Description" %}</label>
                                     <input type="text" name="{{ form.description.html_name }}" class="form-control" 
                                         value="{{ form.description.value|default:'' }}" id="{{ form.description.id_for_label }}" placeholder="{% trans 'What did you spend on?' %}">
                                     {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
@@ -261,7 +261,7 @@
 
                                 <!-- Account -->
                                 <div class="mb-3">
-                                    <label class="form-label">{% trans "Account" %}</label>
+                                    <label class="form-label" for="{{ form.account.id_for_label }}">{% trans "Account" %}</label>
                                     {{ form.account }}
                                     {% if form.account.errors %}<div class="text-danger small mt-1">{{ form.account.errors.0 }}</div>{% endif %}
                                 </div>
@@ -276,20 +276,20 @@
                                         <div class="rounded-3 bg-body-tertiary p-3 mt-2">
                                             <div class="row g-2 mb-3">
                                                 <div class="col-md-6 col-6">
-                                                    <label class="form-label small text-muted">{% trans "Date" %}</label>
+                                                    <label class="form-label small text-muted" for="{{ form.date.id_for_label }}">{% trans "Date" %}</label>
                                                     <input type="date" name="{{ form.date.html_name }}" class="form-control form-control-sm" 
                                                         value="{{ form.date.value|date:'Y-m-d'|default:form.date.value }}" required id="{{ form.date.id_for_label }}">
                                                     {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>{% endif %}
                                                 </div>
                                                 <div class="col-md-6 col-6">
-                                                    <label class="form-label small text-muted">{% trans "Currency" %}</label>
+                                                    <label class="form-label small text-muted" for="{{ form.currency.id_for_label }}">{% trans "Currency" %}</label>
                                                     {{ form.currency }}
                                                     {% if form.currency.errors %}<div class="text-danger small mt-1">{{ form.currency.errors.0 }}</div>{% endif %}
                                                 </div>
                                             </div>
 
                                             <div class="mb-0">
-                                                <label class="form-label small text-muted mb-1">{% trans "Payment Method" %}</label>
+                                                <label class="form-label small text-muted mb-1" for="{{ form.payment_method.id_for_label }}">{% trans "Payment Method" %}</label>
                                                 <div class="d-none d-md-block mb-2">
                                                     {{ form.payment_method }}
                                                 </div>
@@ -361,7 +361,7 @@
                                 <!-- Primary: Amount & Category (hero row) -->
                                 <div class="row g-2 mb-3">
                                     <div class="col-5">
-                                        <label class="form-label fw-semibold">{% trans "Amount" %}</label>
+                                        <label class="form-label fw-semibold" for="{{ form.amount.id_for_label }}">{% trans "Amount" %}</label>
                                         <input type="number" name="{{ form.amount.name }}" class="form-control form-control-lg expense-amount-input" 
                                             value="{{ form.amount.value|default:'' }}" required id="{{ form.amount.id_for_label }}" step="0.01" placeholder="0.00" inputmode="decimal">
                                         {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
@@ -377,7 +377,7 @@
 
                                 <!-- Description -->
                                 <div class="mb-3">
-                                    <label class="form-label">{% trans "Description" %}</label>
+                                    <label class="form-label" for="{{ form.description.id_for_label }}">{% trans "Description" %}</label>
                                     <input type="text" name="{{ form.description.name }}" class="form-control" 
                                         value="{{ form.description.value|default:'' }}" id="{{ form.description.id_for_label }}" placeholder="{% trans 'What did you spend on?' %}">
                                     {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
@@ -385,7 +385,7 @@
 
                                 <!-- Account -->
                                 <div class="mb-3">
-                                    <label class="form-label">{% trans "Account" %}</label>
+                                    <label class="form-label" for="{{ form.account.id_for_label }}">{% trans "Account" %}</label>
                                     {{ form.account }}
                                     {% if form.account.errors %}<div class="text-danger small mt-1">{{ form.account.errors.0 }}</div>{% endif %}
                                 </div>
@@ -400,20 +400,20 @@
                                         <div class="rounded-3 bg-body-tertiary p-3 mt-2">
                                             <div class="row g-2 mb-3">
                                                 <div class="col-md-6 col-6">
-                                                    <label class="form-label small text-muted">{% trans "Date" %}</label>
+                                                    <label class="form-label small text-muted" for="{{ form.date.id_for_label }}">{% trans "Date" %}</label>
                                                     <input type="date" name="{{ form.date.name }}" class="form-control form-control-sm" 
                                                         value="{{ form.date.value|date:'Y-m-d'|default:form.date.value }}" required id="{{ form.date.id_for_label }}">
                                                     {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>{% endif %}
                                                 </div>
                                                 <div class="col-md-6 col-6">
-                                                    <label class="form-label small text-muted">{% trans "Currency" %}</label>
+                                                    <label class="form-label small text-muted" for="{{ form.currency.id_for_label }}">{% trans "Currency" %}</label>
                                                     {{ form.currency }}
                                                     {% if form.currency.errors %}<div class="text-danger small mt-1">{{ form.currency.errors.0 }}</div>{% endif %}
                                                 </div>
                                             </div>
 
                                             <div class="mb-0">
-                                                <label class="form-label small text-muted mb-1">{% trans "Payment Method" %}</label>
+                                                <label class="form-label small text-muted mb-1" for="{{ form.payment_method.id_for_label }}">{% trans "Payment Method" %}</label>
                                                 <div class="d-none d-md-block mb-2">
                                                     {{ form.payment_method }}
                                                 </div>
