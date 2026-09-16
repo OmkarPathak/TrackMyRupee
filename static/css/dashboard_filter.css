@@ -16,7 +16,7 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     min-width: 260px;
     position: relative !important;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232db389' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%230F7657' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
     background-repeat: no-repeat !important;
     background-position: right 1rem center !important;
     background-size: 12px 12px !important;
@@ -50,7 +50,7 @@
     justify-content: flex-start !important;
     min-width: 180px !important;
     position: relative !important;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232db389' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%230F7657' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
     background-repeat: no-repeat !important;
     background-position: right 1rem center !important;
     background-size: 12px 12px !important;
@@ -172,7 +172,7 @@
 
 .filter-date-input-group label {
     display: block;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     color: var(--bs-secondary-color);
     margin-bottom: 0.25rem;
@@ -243,13 +243,13 @@
     color: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Theme Color Overrides (Force Soft Green everywhere) */
+/* Theme Color Overrides (Force High-Contrast Darker Green for WCAG AA compliance) */
 .flatpickr-months,
 .flatpickr-month,
 .flatpickr-current-month,
 .flatpickr-monthDropdown-months,
 .flatpickr-weekdays {
-    background: #2db389 !important; /* Softer shade of green */
+    background: #0F7657 !important; /* > 4.5:1 contrast against white text */
     color: #fff !important;
     fill: #fff !important;
 }
@@ -260,8 +260,8 @@
 }
 
 span.flatpickr-weekday {
-    background: #2db389 !important;
-    color: rgba(255, 255, 255, 0.9) !important;
+    background: #0F7657 !important;
+    color: #ffffff !important;
     font-weight: 600 !important;
 }
 
@@ -286,8 +286,8 @@ span.flatpickr-weekday {
 .flatpickr-day.endRange:hover,
 .flatpickr-day.selected.prevMonthDay,
 .flatpickr-day.selected.nextMonthDay {
-    background: #2db389 !important; /* Consistent soft green */
-    border-color: #2db389 !important;
+    background: #0F7657 !important; /* High contrast green */
+    border-color: #0F7657 !important;
     color: #fff !important;
 }
 
@@ -301,9 +301,9 @@ span.flatpickr-weekday {
 .flatpickr-day.prevMonthDay:hover,
 .flatpickr-day.nextMonthDay:hover,
 .flatpickr-day.focused:hover {
-    background: rgba(45, 179, 137, 0.15) !important; /* Soft green hover/inRange */
+    background: rgba(15, 118, 87, 0.15) !important; /* Soft green hover/inRange */
     border-color: transparent !important;
-    box-shadow: -5px 0 0 rgba(45, 179, 137, 0.15), 5px 0 0 rgba(45, 179, 137, 0.15) !important; /* Remove white box-shadow */
+    box-shadow: -5px 0 0 rgba(15, 118, 87, 0.15), 5px 0 0 rgba(15, 118, 87, 0.15) !important; /* Remove white box-shadow */
 }
 
 .flatpickr-months .flatpickr-prev-month:hover svg, 

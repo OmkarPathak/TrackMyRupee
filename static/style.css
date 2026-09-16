@@ -1062,7 +1062,7 @@ body.has-sidebar {
   align-items: center;
   padding: 2px 8px;
   border-radius: 6px;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 500;
   text-transform: capitalize;
 }
@@ -2813,7 +2813,7 @@ a:hover {
 }
 
 .account-type-subtext {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
   color: #6c757d;
@@ -2890,11 +2890,13 @@ a:hover {
 .insights-indicators {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.75rem;
   margin-top: 1rem;
 }
 
 .indicator-dot {
+  position: relative;
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -2903,6 +2905,17 @@ a:hover {
   cursor: pointer;
   border: none;
   padding: 0;
+}
+
+/* 24px minimum touch target size for WCAG 2.5.8 */
+.indicator-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
 }
 
 .indicator-dot.active {
