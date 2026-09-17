@@ -44,7 +44,7 @@ def _get_client():
         _ph.disabled = False
         _client = _ph
     except ImportError:
-        logger.warning('posthog package is not installed. Server-side events will be skipped.')
+        logger.debug('posthog package is not installed. Server-side events will be skipped.')
         _client = False  # falsy sentinel so we don't retry
 
     return _client

@@ -73,7 +73,8 @@ def llms_txt(request):
     return HttpResponse("llms.txt not found", status=404)
 
 from django.conf.urls.static import static
-
+from django.urls import include, path, re_path
+from django.views.generic import RedirectView, TemplateView
 from django.views.decorators.cache import never_cache
 
 urlpatterns = [
@@ -82,9 +83,7 @@ urlpatterns = [
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('llms.txt', llms_txt),
-    path('favicon.ico', RedirectView.as_view(url='/static/img/pwa-icon-512.png')),
-    path('apple-touch-icon.png', RedirectView.as_view(url='/static/img/pwa-icon-512.png')),
-    path('apple-touch-icon-precomposed.png', RedirectView.as_view(url='/static/img/pwa-icon-512.png')),
+    re_path(r'^(?:favicon\.ico|apple-touch-icon.*\.png)$', RedirectView.as_view(url='/static/img/pwa-icon-512.png')),
     path('blog/', include('blog.urls')),
     path('', include('expenses.urls')),
     # PWA

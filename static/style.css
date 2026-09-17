@@ -2070,18 +2070,15 @@ a:hover {
 }
 
 @media (display-mode: standalone), (max-width: 991.98px) {
-  .navbar,
-  .navbar.sticky-top,
-  .mobile-bottom-nav,
-  body {
+  *, *::before, *::after {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
 }
 
-.is-mobile-app .navbar,
-.is-mobile-app .navbar.sticky-top,
-.is-mobile-app body {
+html.is-mobile-app *,
+.is-mobile-app *,
+body.is-mobile-app * {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
