@@ -1179,14 +1179,19 @@ body.has-sidebar {
 
 /* Override Bootstrap button component colors globally */
 .btn-primary {
+  --bs-btn-color: #ffffff;
   --bs-btn-bg: var(--color-secondary, #0F7657);
   --bs-btn-border-color: var(--color-secondary, #0F7657);
+  --bs-btn-hover-color: #ffffff;
   --bs-btn-hover-bg: #085041;
   --bs-btn-hover-border-color: #085041;
+  --bs-btn-active-color: #ffffff;
   --bs-btn-active-bg: #04342C;
   --bs-btn-active-border-color: #04342C;
+  --bs-btn-disabled-color: #ffffff;
   --bs-btn-disabled-bg: #0F7657;
   --bs-btn-disabled-border-color: #0F7657;
+  color: #ffffff !important;
 }
 .btn-outline-primary {
   --bs-btn-color: var(--color-secondary, #0F7657);

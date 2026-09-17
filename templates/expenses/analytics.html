@@ -37,7 +37,7 @@
         <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
             <i class="bi bi-heart-pulse-fill text-primary"></i>
         </div>
-        <h4 class="fw-bold mb-0">{% trans "Financial Health" %}</h4>
+        <h2 class="h4 fw-bold mb-0">{% trans "Financial Health" %}</h2>
     </div>
     <p class="text-muted small mb-4">{% trans "An overview of your overall fiscal strength, balance rates, and core income vs. spending trends." %}</p>
 
@@ -60,6 +60,21 @@
                     --glass-clean-bg: rgba(33, 37, 41, 0.5);
                     --glass-clean-border: rgba(255, 255, 255, 0.04);
                 }
+                .health-badge-success { background-color: #0F7657 !important; color: #ffffff !important; }
+                .health-badge-info { background-color: #0284C7 !important; color: #ffffff !important; }
+                .health-badge-warning { background-color: #B45309 !important; color: #ffffff !important; }
+                .health-badge-danger { background-color: #DC2626 !important; color: #ffffff !important; }
+
+                .health-link-success { color: #0F7657 !important; }
+                .health-link-info { color: #0284C7 !important; }
+                .health-link-warning { color: #B45309 !important; }
+                .health-link-danger { color: #DC2626 !important; }
+
+                [data-bs-theme="dark"] .health-link-success { color: #34D399 !important; }
+                [data-bs-theme="dark"] .health-link-info { color: #38BDF8 !important; }
+                [data-bs-theme="dark"] .health-link-warning { color: #FBBF24 !important; }
+                [data-bs-theme="dark"] .health-link-danger { color: #F87171 !important; }
+
                 .health-divider-clean { 
                     border-top: 1px solid rgba(var(--bs-{{ health_color }}-rgb), 0.1); 
                     margin-top: 1rem; 
@@ -90,7 +105,7 @@
                     font-size: 0.75rem;
                     font-weight: 700;
                     letter-spacing: 0.5px;
-                    color: #6c757d;
+                    color: #495057;
                     background: transparent;
                     border: none;
                     transition: all 0.2s ease-in-out;
@@ -98,6 +113,9 @@
                     box-shadow: none;
                     line-height: 1.2;
                     text-transform: uppercase;
+                }
+                [data-bs-theme="dark"] .chart-toggle-pill .btn-toggle {
+                    color: #adb5bd;
                 }
                 .chart-toggle-pill .btn-toggle:hover:not(.active) {
                     color: #343a40;
@@ -126,8 +144,8 @@
                         <div>
                             <p class="text-uppercase small fw-bold text-muted mb-0 ls-1">{% trans "Health Score" %}</p>
                             <div class="d-flex align-items-baseline gap-2">
-                                <h1 class="mb-0 fw-black text-{{ health_color }}">{{ health_score }}<span class="fs-4 fw-medium op-5">/100</span></h1>
-                                <span class="badge rounded-pill bg-{{ health_color }} text-white px-3 py-1 small fw-bold">{{ health_label }}</span>
+                                <div class="h1 mb-0 fw-black text-{{ health_color }}">{{ health_score }}<span class="fs-4 fw-medium op-5">/100</span></div>
+                                <span class="badge rounded-pill health-badge-{{ health_color }} px-3 py-1 small fw-bold">{{ health_label }}</span>
                             </div>
                         </div>
                     </div>
@@ -136,7 +154,7 @@
                     <div class="flex-grow-1 health-divider-clean">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <span class="text-{{ health_color }}"><i class="bi bi-robot"></i></span>
-                            <h6 class="fw-bold mb-0 text-dark-emphasis">{% trans "Personalized Insights" %}</h6>
+                            <h3 class="h6 fw-bold mb-0 text-dark-emphasis">{% trans "Personalized Insights" %}</h3>
                         </div>
                         <div class="row g-2">
                         {% if insights %}
@@ -159,7 +177,7 @@
             {% if health_breakdown %}
             <div class="border-top" style="border-color: rgba(var(--bs-{{ health_color }}-rgb), 0.1) !important;">
                 <div class="px-4 py-2">
-                    <a class="text-decoration-none small fw-semibold d-flex align-items-center gap-1 no-loader" data-bs-toggle="collapse" href="#healthBreakdown" role="button" aria-expanded="false" aria-controls="healthBreakdown" style="color: var(--bs-{{ health_color }});">
+                    <a class="text-decoration-none small fw-semibold d-flex align-items-center gap-1 no-loader health-link-{{ health_color }}" data-bs-toggle="collapse" href="#healthBreakdown" role="button" aria-expanded="false" aria-controls="healthBreakdown">
                         <i class="bi bi-chevron-down" style="transition: transform 0.3s;"></i>
                         {% trans "View Breakdown" %}
                     </a>
@@ -202,12 +220,12 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted"><style>@keyframes graph-draw { 0% { stroke-dasharray: 0 30; } 100% { stroke-dasharray: 30 30; } } .anim-graph { animation: graph-draw 3s ease-in-out infinite alternate; }</style><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" class="anim-graph"/><polyline points="17 6 23 6 23 12" class="anim-graph"/></svg>
                     </div>
                     <div>
-                        <h6 class="text-muted mb-0">{% trans "Total Income" %} {% if is_current_year %}(YTD){% endif %}</h6>
+                        <h3 class="h6 text-muted mb-0">{% trans "Total Income" %} {% if is_current_year %}(YTD){% endif %}</h3>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0">
+                <div class="h3 fw-bold mb-0">
                     {{ user.profile.currency }}{{ total_income_ytd|compact_amount:user.profile.currency|translate_digits }}
-                </h3>
+                </div>
             </div>
         </div>
     </div>
@@ -220,12 +238,12 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted"><style>@keyframes cart-roll { 0%,100% { transform: translateX(0); } 50% { transform: translateX(2px); } } .anim-cart { animation: cart-roll 3s ease-in-out infinite; }</style><circle cx="9" cy="21" r="1" class="anim-cart"/><circle cx="20" cy="21" r="1" class="anim-cart"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" class="anim-cart"/></svg>
                     </div>
                     <div>
-                        <h6 class="text-muted mb-0">{% trans "Total Expenses" %} {% if is_current_year %}(YTD){% endif %}</h6>
+                        <h3 class="h6 text-muted mb-0">{% trans "Total Expenses" %} {% if is_current_year %}(YTD){% endif %}</h3>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0">
+                <div class="h3 fw-bold mb-0">
                     {{ user.profile.currency }}{{ total_expense_ytd|compact_amount:user.profile.currency|translate_digits }}
-                </h3>
+                </div>
             </div>
         </div>
     </div>
@@ -238,12 +256,12 @@
                         <i class="bi bi-graph-up-arrow fs-4"></i>
                     </div>
                     <div>
-                        <h6 class="text-muted mb-0">{% trans "Total Invested" %} {% if is_current_year %}(YTD){% endif %}</h6>
+                        <h3 class="h6 text-muted mb-0">{% trans "Total Invested" %} {% if is_current_year %}(YTD){% endif %}</h3>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0 text-success">
+                <div class="h3 fw-bold mb-0 text-success">
                     {{ user.profile.currency }}{{ total_invested_ytd|compact_amount:user.profile.currency|translate_digits }}
-                </h3>
+                </div>
                 <small class="text-muted">{% trans "Proactive wealth building" %}</small>
             </div>
         </div>
@@ -257,12 +275,12 @@
                         <i class="bi bi-piggy-bank fs-4"></i>
                     </div>
                     <div>
-                        <h6 class="text-muted mb-0">{% trans "Savings Rate" %} {% if is_current_year %}(YTD){% endif %}</h6>
+                        <h3 class="h6 text-muted mb-0">{% trans "Savings Rate" %} {% if is_current_year %}(YTD){% endif %}</h3>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0">
+                <div class="h3 fw-bold mb-0">
                     {{ avg_balance_rate|translate_digits }}%
-                </h3>
+                </div>
                  <small class="text-muted">{% trans "Percentage of income unspent/invested" %}</small>
             </div>
         </div>
@@ -274,7 +292,7 @@
         <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-transparent border-bottom py-3">
-                    <h5 class="fw-bold mb-0">{% trans "Income vs Expenses" %}</h5>
+                    <h3 class="h5 fw-bold mb-0">{% trans "Income vs Expenses" %}</h3>
                 </div>
                 <div class="card-body">
                     <div class="chart-container-scrollable" style="overflow-x: auto;">
@@ -293,7 +311,7 @@
         <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100">
                  <div class="card-header bg-transparent border-bottom py-3">
-                    <h5 class="fw-bold mb-0">{% trans "Balance Rate Trend (%)" %}</h5>
+                    <h3 class="h5 fw-bold mb-0">{% trans "Balance Rate Trend (%)" %}</h3>
                 </div>
                 <div class="card-body">
                      <div style="height: 350px;">
@@ -316,7 +334,7 @@
         <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
             <i class="bi bi-pie-chart-fill text-warning"></i>
         </div>
-        <h4 class="fw-bold mb-0">{% trans "Spending Behavior" %}</h4>
+        <h2 class="h4 fw-bold mb-0">{% trans "Spending Behavior" %}</h2>
     </div>
     <p class="text-muted small mb-4">{% trans "Analyze where your money goes by category and identify patterns in your daily spending habits." %}</p>
 
@@ -325,7 +343,7 @@
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-transparent border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <h5 class="fw-bold mb-0">{% trans "Category Distribution" %} ({{ selected_year }})</h5>
+                    <h3 class="h5 fw-bold mb-0">{% trans "Category Distribution" %} ({{ selected_year }})</h3>
                     <div class="chart-toggle-pill">
                         <button type="button" class="btn-toggle active" id="btnDonutView" onclick="switchCategoryView('donut')">
                             {% trans "Donut" %}
@@ -369,7 +387,7 @@
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-transparent border-bottom py-3">
-                    <h5 class="fw-bold mb-0">{% trans "Day-of-Week Spending" %}</h5>
+                    <h3 class="h5 fw-bold mb-0">{% trans "Day-of-Week Spending" %}</h3>
                 </div>
                 <div class="card-body">
                     <div style="height: 350px;">
@@ -392,7 +410,7 @@
         <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
             <i class="bi bi-water text-success"></i>
         </div>
-        <h4 class="fw-bold mb-0">{% trans "Cashflow" %}</h4>
+        <h2 class="h4 fw-bold mb-0">{% trans "Cashflow" %}</h2>
     </div>
     <p class="text-muted small mb-4">{% trans "Trace the flow of your income into various buckets and understand your fixed vs. variable commitments." %}</p>
 
@@ -400,7 +418,7 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-transparent border-bottom py-3">
-                    <h5 class="fw-bold mb-0">{% trans "Income Flow" %}</h5>
+                    <h3 class="h5 fw-bold mb-0">{% trans "Income Flow" %}</h3>
                 </div>
                 <div class="card-body" style="overflow-x: auto;">
                     <div id="sankey_basic" style="width: 100%; min-width: 500px; height: 500px;"></div>
@@ -415,7 +433,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-transparent border-bottom py-3">
-                    <h5 class="fw-bold mb-0">{% trans "Recurring Split" %}</h5>
+                    <h3 class="h5 fw-bold mb-0">{% trans "Recurring Split" %}</h3>
                 </div>
                 <div class="card-body">
                     <div style="height: 350px;">
@@ -439,7 +457,7 @@
         <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
             <i class="bi bi-hourglass-split text-info"></i>
         </div>
-        <h4 class="fw-bold mb-0">{% trans "Forecast" %}</h4>
+        <h2 class="h4 fw-bold mb-0">{% trans "Forecast" %}</h2>
     </div>
     <p class="text-muted small mb-4">{% trans "Predict your end-of-month spending based on your current pace and remaining budget." %}</p>
 
@@ -447,7 +465,7 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-bottom py-3">
-                    <h5 class="fw-bold mb-0">{% trans "Cumulative Spending Burn-down" %}</h5>
+                    <h3 class="h5 fw-bold mb-0">{% trans "Cumulative Spending Burn-down" %}</h3>
                 </div>
                 <div class="card-body">
                     <div style="height: 350px;">
