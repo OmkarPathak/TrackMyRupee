@@ -1292,6 +1292,21 @@ body.has-sidebar {
 
 [data-bs-theme="dark"] .page-link {
   color: var(--color-muted-text, #B0B5BD);
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .page-link:hover {
+  color: #5DCAA5;
+  background-color: rgba(93, 202, 165, 0.15);
+  border-color: rgba(93, 202, 165, 0.3);
+}
+
+[data-bs-theme="dark"] .page-item.active .page-link,
+[data-bs-theme="dark"] .page-link.active {
+  background-color: var(--color-secondary, #0F7657) !important;
+  border-color: var(--color-secondary, #0F7657) !important;
+  color: #ffffff !important;
 }
 
 [data-bs-theme="dark"] .command-kbd {
@@ -1506,17 +1521,20 @@ a:hover {
 
 /* Pagination */
 .page-link {
-  color: var(--color-primary);
+  color: var(--color-success-text, #0F7657);
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
 }
 .page-link:hover {
-  color: var(--color-success);
-  background-color: #faf9f6;
-  border-color: #e8e5de;
+  color: var(--color-secondary-dark, #0A5C42);
+  background-color: rgba(15, 118, 87, 0.08);
+  border-color: rgba(15, 118, 87, 0.2);
 }
-.page-item.active .page-link {
-  background-color: var(--color-success); /* Forest Green selected page */
-  border-color: var(--color-success);
-  color: #fff;
+.page-item.active .page-link,
+.page-link.active {
+  background-color: var(--color-secondary, #0F7657) !important;
+  border-color: var(--color-secondary, #0F7657) !important;
+  color: #ffffff !important;
 }
 
 /* Sidebar / List Group Active State */
@@ -2046,9 +2064,26 @@ a:hover {
     padding-top: calc(env(safe-area-inset-top, 20px) + 0.75rem) !important;
 }
 
-/* Adjust sticky top position if needed */
+/* Adjust sticky top position if needed and remove notch blur in PWA / mobile app mode */
 .is-mobile-app .navbar.sticky-top {
   top: 0;
+}
+
+@media (display-mode: standalone), (max-width: 991.98px) {
+  .navbar,
+  .navbar.sticky-top,
+  .mobile-bottom-nav,
+  body {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+.is-mobile-app .navbar,
+.is-mobile-app .navbar.sticky-top,
+.is-mobile-app body {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* --- Visual Payment Method Selector --- */
