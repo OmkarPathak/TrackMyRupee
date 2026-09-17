@@ -74,6 +74,8 @@ def llms_txt(request):
 
 from django.conf.urls.static import static
 
+from django.views.decorators.cache import never_cache
+
 urlpatterns = [
     path('auth/login/', RedirectView.as_view(pattern_name='account_login', permanent=True)), # Redirect legacy login
     path('accounts/', include('allauth.urls')),
@@ -87,7 +89,7 @@ urlpatterns = [
     path('', include('expenses.urls')),
     # PWA
     path('manifest.json', TemplateView.as_view(template_name='manifest.json', content_type='application/json'), name='manifest'),
-    path('service-worker.js', TemplateView.as_view(template_name='service-worker.js', content_type='application/javascript'), name='service-worker'),
+    path('service-worker.js', never_cache(TemplateView.as_view(template_name='service-worker.js', content_type='application/javascript')), name='service-worker'),
     path('offline/', TemplateView.as_view(template_name='offline.html'), name='offline'),
     path('webpush/', include('webpush.urls')),
 ]

@@ -365,7 +365,25 @@
                 const swUrl = "{% url 'service-worker' %}";
                 navigator.serviceWorker.register(swUrl)
                     .then(registration => {
-                        // console.log('SW registered:', registration);
+                        // Force update check on every page load to detect new deployments immediately
+                        registration.update();
+
+                        // If a updated SW is already waiting, trigger skipWaiting immediately
+                        if (registration.waiting) {
+                            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        }
+
+                        // Listen for newly discovered service worker updates
+                        registration.addEventListener('updatefound', () => {
+                            const installingWorker = registration.installing;
+                            if (installingWorker) {
+                                installingWorker.addEventListener('statechange', () => {
+                                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        installingWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    }
+                                });
+                            }
+                        });
                     })
                     .catch(error => {
                         // console.log('SW registration failed:', error);
@@ -373,7 +391,6 @@
 
                 // Listen for the controlling service worker changing and reload the page
                 // to ensure the user always has the latest version of the app.
-                // We use a guard to prevent multiple reloads and only reload if there was already a controller.
                 let refreshing = false;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (refreshing) return;

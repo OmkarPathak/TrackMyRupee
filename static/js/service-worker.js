@@ -1,5 +1,5 @@
-// Updated: 2026-08-17 19:12 (Force Refresh)
-const CACHE_NAME = 'finance-tracker-v22';
+// Updated: 2026-09-17 (Deployment Auto-Update)
+const CACHE_NAME = 'finance-tracker-v23';
 const OFFLINE_URL = '/offline/';
 
 const ASSETS_TO_CACHE = [
@@ -13,18 +13,24 @@ const ASSETS_TO_CACHE = [
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
+// Listen for message from client (SKIP_WAITING)
+self.addEventListener('message', (event) => {
+  if (event.data && (event.data.type === 'SKIP_WAITING' || event.data === 'skipWaiting')) {
+    self.skipWaiting();
+  }
+});
+
 // Install Event
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Force cache offline page first
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
-// Activate Event
+// Activate Event - Purge outdated caches immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keyList) => {
@@ -42,8 +48,7 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event
 self.addEventListener('fetch', (event) => {
-  // Fix: Ignore non-GET requests (like Razorpay POST) to prevent Cache API errors
-  // Also ignore manifest.json to prevent load failures during install, and admin pages
+  // Ignore non-GET requests, Razorpay, manifest, and admin pages
   if (event.request.method !== 'GET' || 
       event.request.url.includes('razorpay') || 
       event.request.url.includes('manifest.json') ||
@@ -51,13 +56,10 @@ self.addEventListener('fetch', (event) => {
     return; 
   }
 
-  // Fix: Don't cache pricing page to ensure fresh API keys (prevents 400 Bad Request)
+  // Don't cache pricing page
   if (event.request.url.includes('/pricing/')) return;
 
-  // Navigation requests (HTML pages)
-  // CRITICAL FIX: Do NOT cache HTML pages (navigation requests) in the runtime cache.
-  // This prevents one user's dashboard (e.g. at '/') from being served to another user after logout/login.
-  // Strategy: Network Only -> Fallback to Offline Page
+  // Navigation requests (HTML pages) - Network only with offline fallback
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -68,13 +70,30 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets (Cache first, network fallback)
+  // Static assets: Network first, fallback to cache for app domain (/static/)
+  if (event.request.url.includes('/static/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Other static assets (CDNs, etc): Cache first, network fallback
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request).catch(() => {
-        // If both cache and network fail, just return a null response or offline fallback for images if desired
-        return null;
-      });
+      return response || fetch(event.request).catch(() => null);
     })
   );
 });
@@ -116,14 +135,12 @@ self.addEventListener('notificationclick', function(event) {
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
             const url = event.notification.data.url;
             
-            // If the window is already open, focus it
             for (let i = 0; i < clientList.length; i++) {
                 const client = clientList[i];
                 if (client.url.includes(url) && 'focus' in client) {
                     return client.focus();
                 }
             }
-            // Otherwise open a new window
             if (clients.openWindow) {
                 return clients.openWindow(url);
             }
