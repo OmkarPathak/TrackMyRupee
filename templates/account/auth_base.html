@@ -3,7 +3,7 @@
 <html lang="{{ request.LANGUAGE_CODE|default:'en' }}" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <!-- Preconnect to CDNs for speedier connection establishment -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -270,6 +270,17 @@
             html, body {
                 background-color: #ffffff !important;
                 color: #1a1a18 !important;
+            }
+            input,
+            select,
+            textarea,
+            .form-control,
+            .form-control-xl,
+            .form-control-lg,
+            .form-control-sm,
+            .form-select {
+                font-size: 16px !important;
+                touch-action: manipulation;
             }
             .auth-container,
             .auth-form-side {

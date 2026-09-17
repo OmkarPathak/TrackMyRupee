@@ -2458,6 +2458,9 @@ a:hover {
   .form-select,
   .form-control-sm,
   .form-select-sm,
+  .form-control-lg,
+  .form-control-xl,
+  .form-select-lg,
   .input-group-sm > .form-control,
   .input-group-sm > .form-select,
   .input-group-sm > .input-group-text,
@@ -2467,7 +2470,8 @@ a:hover {
   .searchable-select-search,
   .multiselect-btn,
   .filter-date-input-group input {
-    font-size: 16px !important; /* Force >= 16px to prevent auto-zoom on mobile focus (WCAG 1.4.4) */
+    font-size: 16px !important; /* Force >= 16px to prevent auto-zoom on mobile focus */
+    touch-action: manipulation;
   }
   
   body {

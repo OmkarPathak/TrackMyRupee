@@ -82,7 +82,7 @@
     {% endif %}
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- Preconnect to CDNs for speedier connection establishment -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -777,9 +777,12 @@
             .form-select,
             .form-control-sm,
             .form-select-sm,
+            .form-control-lg,
+            .form-control-xl,
             .multiselect-search,
             .searchable-select-search {
                 font-size: 16px !important;
+                touch-action: manipulation;
             }
         }
 
