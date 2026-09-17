@@ -261,7 +261,7 @@
 
     <div class="card-body p-0">
         {% if transactions %}
-            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mt-4">
+            <div class="card border-0 shadow-sm rounded-4 d-none d-md-block">
                 <div class="card-body p-0">
                     <div id="tableView" class="table-responsive">
                         <table class="table table-hover table-striped mb-0 align-middle">
@@ -307,27 +307,29 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div>{{ tx.tx_description|default:"-"|truncatechars:40 }}</div>
+                                        <div class="text-truncate" style="max-width: 250px;" title="{{ tx.tx_description|default:'' }}">{{ tx.tx_description|default:"-"|truncatechars:40 }}</div>
                                         {% if tx.cc_balance_after_payment is not None %}
-                                            <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                            <div class="text-muted small mt-1 text-truncate" style="font-size: 0.75rem; max-width: 250px;">
                                                 {{ tx.to_account_name }} · {% trans "Balance after payment" %}: {{ tx.to_account_currency }}{{ tx.cc_balance_after_payment|compact_amount:tx.to_account_currency|translate_digits }}
                                             </div>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if tx.type == 'EXPENSE' %}
-                                            <span class="badge-soft badge-soft-danger"><i class="bi {% category_icon tx.cat user %} me-1"></i>{{ tx.cat }}</span>
+                                            <span class="badge-soft badge-soft-danger text-nowrap d-inline-block text-truncate" style="max-width: 180px;" title="{{ tx.cat }}"><i class="bi {% category_icon tx.cat user %} me-1"></i>{{ tx.cat }}</span>
                                         {% elif tx.type == 'INCOME' %}
-                                            <span class="badge-soft badge-soft-success"><i class="bi bi-wallet2 me-1"></i>{{ tx.cat }}</span>
+                                            <span class="badge-soft badge-soft-success text-nowrap d-inline-block text-truncate" style="max-width: 180px;" title="{{ tx.cat }}"><i class="bi bi-wallet2 me-1"></i>{{ tx.cat }}</span>
                                         {% elif tx.type == 'LOAN' %}
-                                            <span class="badge-soft badge-soft-warning"><i class="bi bi-shield-lock me-1"></i>{{ tx.cat }}</span>
+                                            <span class="badge-soft badge-soft-warning text-nowrap d-inline-block text-truncate" style="max-width: 180px;" title="{{ tx.cat }}"><i class="bi bi-shield-lock me-1"></i>{{ tx.cat }}</span>
                                         {% elif tx.type == 'CAPITAL_EVENT' %}
-                                            <span class="badge-soft badge-soft-danger"><i class="bi bi-flag me-1"></i>{{ tx.cat }}</span>
+                                            <span class="badge-soft badge-soft-danger text-nowrap d-inline-block text-truncate" style="max-width: 180px;" title="{{ tx.cat }}"><i class="bi bi-flag me-1"></i>{{ tx.cat }}</span>
                                         {% else %}
-                                            <span class="badge-soft badge-soft-primary"><i class="bi bi-arrow-left-right me-1"></i>{% trans "Transfer" %}</span>
+                                            <span class="badge-soft badge-soft-primary text-nowrap"><i class="bi bi-arrow-left-right me-1"></i>{% trans "Transfer" %}</span>
                                         {% endif %}
                                     </td>
-                                    <td class="small text-muted">{{ tx.acc }}</td>
+                                    <td class="small text-muted">
+                                        <div class="text-truncate" style="max-width: 170px;" title="{{ tx.acc }}">{{ tx.acc }}</div>
+                                    </td>
                                     <td class="text-end fw-bold amount-{{ tx.type|lower }} signed-amount">
                                         {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
                                         {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}

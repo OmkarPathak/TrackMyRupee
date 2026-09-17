@@ -1094,11 +1094,13 @@ body.has-sidebar {
 .badge-soft-primary {
   background-color: rgba(29, 158, 117, 0.08);
   color: var(--color-success-text, #0F7657);
+  border: 1px solid rgba(29, 158, 117, 0.18);
 }
 
 [data-bs-theme="dark"] .badge-soft-primary {
   background-color: rgba(29, 158, 117, 0.15);
   color: #9FE1CB;
+  border: 1px solid rgba(29, 158, 117, 0.25);
 }
 
 .badge-soft-secondary {
