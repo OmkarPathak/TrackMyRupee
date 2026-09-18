@@ -3247,6 +3247,7 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
                 context.update(cached_ctx)
                 return context
         budget_data = []
+        categories = Category.objects.filter(user=user)
         
         total_budget = 0
         categorized_spent = 0
