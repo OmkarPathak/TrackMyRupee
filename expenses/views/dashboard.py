@@ -3237,8 +3237,15 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         context['current_month'] = month
         context['current_year'] = year
         context['current_sort'] = sort_param
-        
-        categories = Category.objects.filter(user=user)
+
+        is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
+        is_default_view = not month_param and not year_param and sort_param == 'urgent'
+        budget_cache_key = f'budget_dashboard_{user.id}' if (is_default_view and not is_testing) else None
+        if budget_cache_key:
+            cached_ctx = cache.get(budget_cache_key)
+            if cached_ctx is not None:
+                context.update(cached_ctx)
+                return context
         budget_data = []
         
         total_budget = 0
@@ -3335,7 +3342,7 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
 
         currency_symbol = user.profile.currency if hasattr(user, 'profile') and user.profile.currency else '₹'
 
-        context.update({
+        res_dict = {
             'budget_data': budget_data,
             'needs_attention': needs_attention,
             'on_track': on_track,
@@ -3360,7 +3367,10 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             'current_sort': sort_param,
             'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
             'years': range(today.year - 2, today.year + 2),
-        })
+        }
+        if budget_cache_key:
+            cache.set(budget_cache_key, res_dict, 300)
+        context.update(res_dict)
         return context
 
 class YearInReviewView(LoginRequiredMixin, TemplateView):

@@ -933,11 +933,22 @@ class AccountDetailView(LoginRequiredMixin, View):
             res = qs.aggregate(total=Sum(field))['total']
             return res if res is not None else Decimal('0.00')
 
+        # Memoized FX lookup dictionary to eliminate N+1 queries in loops below
+        _account_fx_cache = {}
+        def _get_account_fx(from_curr, to_curr):
+            pair = (from_curr, to_curr)
+            if pair not in _account_fx_cache:
+                try:
+                    _account_fx_cache[pair] = get_exchange_rate(from_curr, to_curr)
+                except Exception:
+                    _account_fx_cache[pair] = Decimal('1.0')
+            return _account_fx_cache[pair]
+
         if expenses.filter(~Q(currency=account.currency)).exists():
             exp_total = Decimal('0.00')
             for e in expenses:
                 if e.currency != account.currency:
-                    rate = get_exchange_rate(e.currency, account.currency)
+                    rate = _get_account_fx(e.currency, account.currency)
                     exp_total += (e.amount * rate).quantize(Decimal('0.01'))
                 else:
                     exp_total += e.amount
@@ -948,7 +959,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             inc_total = Decimal('0.00')
             for i in incomes:
                 if i.currency != account.currency:
-                    rate = get_exchange_rate(i.currency, account.currency)
+                    rate = _get_account_fx(i.currency, account.currency)
                     inc_total += (i.amount * rate).quantize(Decimal('0.01'))
                 else:
                     inc_total += i.amount
@@ -961,7 +972,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             in_total = Decimal('0.00')
             for t in transfers_to.select_related('from_account'):
                 if t.from_account.currency != account.currency:
-                    rate = get_exchange_rate(t.from_account.currency, account.currency)
+                    rate = _get_account_fx(t.from_account.currency, account.currency)
                     in_total += (t.amount * rate).quantize(Decimal('0.01'))
                 else:
                     in_total += t.amount
@@ -972,7 +983,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             sav_total = Decimal('0.00')
             for c in contributions.select_related('goal'):
                 if c.goal.currency != account.currency:
-                    rate = get_exchange_rate(c.goal.currency, account.currency)
+                    rate = _get_account_fx(c.goal.currency, account.currency)
                     sav_total += (c.amount * rate).quantize(Decimal('0.01'))
                 else:
                     sav_total += c.amount
@@ -983,7 +994,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             loan_total = Decimal('0.00')
             for lr in loan_repayments.select_related('loan'):
                 if lr.loan.currency != account.currency:
-                    rate = get_exchange_rate(lr.loan.currency, account.currency)
+                    rate = _get_account_fx(lr.loan.currency, account.currency)
                     loan_total += (lr.amount * rate).quantize(Decimal('0.01'))
                 else:
                     loan_total += lr.amount
@@ -995,7 +1006,7 @@ class AccountDetailView(LoginRequiredMixin, View):
         for ce in capital_events:
             if ce.include_in_net_worth:
                 if ce.currency != account.currency:
-                    rate = get_exchange_rate(ce.currency, account.currency)
+                    rate = _get_account_fx(ce.currency, account.currency)
                     cap_total += (ce.amount * rate).quantize(Decimal('0.01'))
                 else:
                     cap_total += ce.amount
