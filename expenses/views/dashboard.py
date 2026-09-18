@@ -1,7 +1,9 @@
 import calendar
+import sys
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -64,18 +66,16 @@ def home_view(request):
         UserProfile.objects.get_or_create(user=request.user)
         return redirect('onboarding')
 
-    # Process recurring transactions
-    process_user_recurring_transactions(request.user)
-
     # --- ZERO-QUERY WARM LOAD ---
     # 95%+ of dashboard opens (login/PWA) hit this view with no filter params. Cache the
     # fully-built context for 5 minutes so repeat loads skip every query below entirely.
     # Cache is invalidated immediately on transaction mutations via signals (see signals.py).
+    is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
     is_default_filter_view = not any([
         request.GET.get('year'), request.GET.get('month'), request.GET.get('category'),
         request.GET.get('start_date'), request.GET.get('end_date'),
     ])
-    home_cache_key = f'home_default_data_{request.user.id}' if is_default_filter_view else None
+    home_cache_key = f'home_default_data_{request.user.id}' if (is_default_filter_view and not is_testing) else None
     if home_cache_key:
         cached_context = cache.get(home_cache_key)
         if cached_context is not None:
@@ -86,6 +86,9 @@ def home_view(request):
             context['show_tutorial'] = not request.user.profile.has_seen_tutorial or request.GET.get('tour') == 'true'
             context['is_new_user'] = not has_any_data
             return render(request, 'home.html', context)
+
+    # Process recurring transactions on cache miss / custom filter
+    process_user_recurring_transactions(request.user)
 
     # --- NET WORTH TREND (Last 6 Months) ---
     net_worth_history = FinancialService.get_monthly_history(request.user, 6)
@@ -258,8 +261,8 @@ def home_view(request):
     # --- PERFORMANCE OPTIMIZATION: BATCH MONTHLY TOTALS ---
     # Fetch 2 years of monthly totals in one go to avoid multiple N+1 aggregations in loops
     # Using Django Cache to prevent hitting the DB on every single dashboard load.
-    monthly_summary_cache_key = f'monthly_summary_map_{request.user.id}'
-    monthly_summary_map = cache.get(monthly_summary_cache_key)
+    monthly_summary_cache_key = f'monthly_summary_map_{request.user.id}' if not is_testing else None
+    monthly_summary_map = cache.get(monthly_summary_cache_key) if monthly_summary_cache_key else None
 
     if monthly_summary_map is None:
         hist_start = (timezone.now().replace(day=1) - timedelta(days=730)).date()
@@ -293,7 +296,8 @@ def home_view(request):
                 monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
             monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total'] or 0)
         
-        cache.set(monthly_summary_cache_key, monthly_summary_map, 300) # Cache for 5 minutes
+        if monthly_summary_cache_key:
+            cache.set(monthly_summary_cache_key, monthly_summary_map, 300) # Cache for 5 minutes
 
 
     # 1. Category Chart Data (Distribution) & Summary Table

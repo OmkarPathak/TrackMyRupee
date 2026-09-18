@@ -194,10 +194,12 @@ def invalidate_dashboard_cache(sender, instance, **kwargs):
     if not user_id:
         return
     try:
+        today = timezone.localdate()
         cache.delete_many([
             f'home_default_data_{user_id}',
             f'monthly_summary_map_{user_id}',
             f'monthly_history_{user_id}_6',
+            f'recurring_processed_{user_id}_{today}',
         ])
     except Exception:
         pass

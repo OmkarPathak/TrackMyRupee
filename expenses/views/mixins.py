@@ -62,6 +62,7 @@ def process_user_recurring_transactions(user, force=False):
         if not has_due_items:
             if not cache.add(cooldown_key, True, 86400):  # atomic lock acquisition for 24 hours
                 return
+            return
     else:
         cache.set(cooldown_key, True, 86400)
 
