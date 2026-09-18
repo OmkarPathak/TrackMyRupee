@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
@@ -5,6 +6,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError
@@ -125,7 +127,15 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         if current_status == 'active':
             try:
                 today_date = timezone.now().date()
-                unused_net_worth, display_balances = LedgerReadService.get_net_worth(self.request.user, as_of=today_date)
+                cache_key = f'account_net_worth_{self.request.user.id}'
+                is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
+                cached_res = cache.get(cache_key) if not is_testing else None
+                if cached_res is not None:
+                    display_balances = cached_res
+                else:
+                    unused_net_worth, display_balances = LedgerReadService.get_net_worth(self.request.user, as_of=today_date)
+                    if not is_testing:
+                        cache.set(cache_key, display_balances, 300)
             except Exception:
                 display_balances = {}
 

@@ -200,8 +200,8 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
         from django.db.models import Count
 
-        exp_stats = expenses.aggregate(cnt=Count('uuid'), total=Sum('base_amount'), min_date=Min('date'), max_date=Max('date'))
-        inc_stats = incomes.aggregate(cnt=Count('uuid'), total=Sum('base_amount'), min_date=Min('date'), max_date=Max('date'))
+        exp_stats = expenses.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
+        inc_stats = incomes.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
         trf_stats = transfers.aggregate(cnt=Count('uuid'), total=Sum('converted_amount'))
         loan_stats = loan_repayments.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
         cap_stats = capital_events.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
@@ -226,73 +226,6 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             context['savings_rate'] = round((net_remaining / context['income_amount']) * 100, 1)
         else:
             context['savings_rate'] = 0
-
-        # Daily sparkline trend calculation
-        from datetime import timedelta
-        candidate_dates = [d for d in [
-            exp_stats['min_date'], exp_stats['max_date'],
-            inc_stats['min_date'], inc_stats['max_date'],
-        ] if d]
-        if candidate_dates:
-            min_date = min(candidate_dates)
-            max_date = max(candidate_dates)
-        else:
-            today = datetime.now()
-            min_date = today.replace(day=1).date()
-            last_day = calendar.monthrange(today.year, today.month)[1]
-            max_date = today.replace(day=last_day).date()
-            
-        delta = max_date - min_date
-        if delta.days >= 0 and delta.days <= 90:
-            date_list = [min_date + timedelta(days=i) for i in range(delta.days + 1)]
-            daily_expenses = {d: 0.0 for d in date_list}
-            daily_incomes = {d: 0.0 for d in date_list}
-            
-            for item in expenses.values('date').annotate(total=Sum('base_amount')):
-                d = item['date']
-                if d in daily_expenses:
-                    daily_expenses[d] = float(item['total'] or 0)
-                    
-            for item in incomes.values('date').annotate(total=Sum('base_amount')):
-                d = item['date']
-                if d in daily_incomes:
-                    daily_incomes[d] = float(item['total'] or 0)
-                    
-            expense_trend = [daily_expenses[d] for d in date_list]
-            income_trend = [daily_incomes[d] for d in date_list]
-        else:
-            # Fallback for large date ranges: take last 30 active dates
-            expense_daily_totals = sorted([(item['date'], float(item['total'] or 0)) for item in expenses.values('date').annotate(total=Sum('base_amount'))], key=lambda x: x[0])
-            income_daily_totals = sorted([(item['date'], float(item['total'] or 0)) for item in incomes.values('date').annotate(total=Sum('base_amount'))], key=lambda x: x[0])
-            expense_trend = [val for _, val in expense_daily_totals[-30:]]
-            income_trend = [val for _, val in income_daily_totals[-30:]]
-
-        def generate_sparkline_paths(trend_data, width=100, height=30):
-            if not trend_data or len(trend_data) == 0:
-                return "", ""
-            n = len(trend_data)
-            if n == 1:
-                return f"M 0 {height/2} L {width} {height/2}", f"M 0 {height/2} L {width} {height/2} L {width} {height} L 0 {height} Z"
-            min_val = min(trend_data)
-            max_val = max(trend_data)
-            val_range = max_val - min_val
-            if val_range == 0:
-                val_range = 1
-            points = []
-            for idx, val in enumerate(trend_data):
-                x = (idx / (n - 1)) * width
-                y = height - 2 - ((val - min_val) / val_range) * (height - 4)
-                points.append(f"{x:.1f},{y:.1f}")
-            line_path = "M " + " L ".join(points)
-            fill_path = f"{line_path} L {width:.1f},{height:.1f} L 0.0,{height:.1f} Z"
-            return line_path, fill_path
-
-        inc_line, inc_fill = generate_sparkline_paths(income_trend)
-        exp_line, exp_fill = generate_sparkline_paths(expense_trend)
-        context['income_sparkline_path'] = inc_line
-        context['income_sparkline_fill'] = inc_fill
-        context['expense_sparkline_path'] = exp_line
-        context['expense_sparkline_fill'] = exp_fill
 
         # Convert transactions to list and calculate CC running balance
         tx_list = list(context.get('transactions', []))

@@ -200,6 +200,7 @@ def invalidate_dashboard_cache(sender, instance, **kwargs):
             f'monthly_summary_map_{user_id}',
             f'monthly_history_{user_id}_6',
             f'recurring_processed_{user_id}_{today}',
+            f'account_net_worth_{user_id}',
         ])
     except Exception:
         pass
