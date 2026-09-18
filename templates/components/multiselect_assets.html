@@ -58,16 +58,20 @@
                 window.initSearchableSelects();
             }
             const swappedRoot = event.target || document;
-            swappedRoot.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-                var existing = bootstrap.Tooltip.getInstance(el);
-                if (existing) existing.dispose();
-                new bootstrap.Tooltip(el);
-            });
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                swappedRoot.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                    var existing = bootstrap.Tooltip.getInstance(el);
+                    if (existing) existing.dispose();
+                    new bootstrap.Tooltip(el);
+                });
+            }
         });
         document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-                new bootstrap.Tooltip(el);
-            });
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                    new bootstrap.Tooltip(el);
+                });
+            }
         });
     };
 

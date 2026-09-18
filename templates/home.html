@@ -2800,8 +2800,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('DOMContentLoaded', function() {
         const charts = window.charts = {}; // Make charts accessible globally for updates on visibility changes
-        // Init Bootstrap tooltips
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+        // Init Bootstrap tooltips safely
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+        }
 
         // Accounts grid: add fade mask only when content overflows
         const agc = document.querySelector('.accounts-grid-container');
@@ -3415,8 +3417,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 flag.setAttribute('title', flag.title);
                 marker.appendChild(flag);
                 container.appendChild(marker);
-                // Re-init tooltip for the new element
-                new bootstrap.Tooltip(flag);
+                // Re-init tooltip for the new element safely
+                if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                    new bootstrap.Tooltip(flag);
+                }
             });
         }
 
@@ -4164,7 +4168,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Only show if not already shown in this session
                 if (!sessionStorage.getItem('demo_welcome_shown')) {
                     const welcomeModalElement = document.getElementById('demoWelcomeModal');
-                    if (welcomeModalElement) {
+                    if (welcomeModalElement && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
                         const welcomeModal = new bootstrap.Modal(welcomeModalElement);
                         setTimeout(() => {
                             welcomeModal.show();
