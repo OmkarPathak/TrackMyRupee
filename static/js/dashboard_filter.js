@@ -58,6 +58,7 @@ class DashboardDatePicker {
 
     handlePresetClick(e) {
         const preset = e.currentTarget.dataset.preset;
+        this.trackFilterEvent('dashboard_preset_selected', { preset });
         const range = this.calculateRange(preset);
         
         // Update selection state
@@ -190,6 +191,28 @@ class DashboardDatePicker {
         }
     }
 
+    trackFilterEvent(eventName, properties = {}) {
+        try {
+            const consentGranted = localStorage.getItem('cookieConsent') === 'accepted';
+            const isMobile = window.innerWidth < 768;
+            const eventData = {
+                page: 'dashboard',
+                device: isMobile ? 'mobile' : 'desktop',
+                ...properties,
+            };
+
+            if (typeof window.posthog !== 'undefined' && typeof window.posthog.capture === 'function' && consentGranted) {
+                window.posthog.capture(eventName, eventData);
+            }
+
+            if (typeof window.gtag === 'function' && consentGranted) {
+                window.gtag('event', eventName, eventData);
+            }
+        } catch (e) {
+            // Analytics failures must never break filter operation
+        }
+    }
+
     apply() {
         if (!this.fp || !this.form) return;
         const range = this.fp.selectedDates;
@@ -197,6 +220,11 @@ class DashboardDatePicker {
             const start = this.formatDate(range[0]);
             const end = this.formatDate(range[1]);
             this.updateHiddenInputs(start, end);
+
+            this.trackFilterEvent('dashboard_filter_applied', {
+                start_date: start,
+                end_date: end,
+            });
             
             if (window.showLoader) window.showLoader();
             

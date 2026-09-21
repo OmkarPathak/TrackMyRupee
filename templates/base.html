@@ -1348,10 +1348,12 @@
 
         // Disable HTMX default auto-focusing and focus-scrolling behavior globally
         if (window.htmx) {
+            htmx.config.defaultFocus = false;
             htmx.config.defaultFocusScroll = false;
         }
         document.addEventListener('DOMContentLoaded', function () {
             if (window.htmx) {
+                htmx.config.defaultFocus = false;
                 htmx.config.defaultFocusScroll = false;
             }
         });

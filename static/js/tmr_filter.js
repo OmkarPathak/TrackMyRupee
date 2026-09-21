@@ -235,7 +235,11 @@ class TMRFilterSystem {
         updateSearchClearVisibility();
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
+          const prevSearch = this.state.search;
           this.state.search = e.target.value.trim();
+          if (this.state.search && this.state.search !== prevSearch) {
+            this.trackFilterEvent('filter_search_entered', { query_length: this.state.search.length });
+          }
           if (document.activeElement === searchInput) {
             window.__tmrPreserveSearchFocus = true;
           }
@@ -245,6 +249,7 @@ class TMRFilterSystem {
 
       const clearSearch = () => {
         if (!searchInput.value && !this.state.search) return;
+        this.trackFilterEvent('filter_search_cleared');
         searchInput.value = '';
         updateSearchClearVisibility();
         this.state.search = '';
@@ -450,11 +455,13 @@ class TMRFilterSystem {
   }
 
   removeFilterChip(key) {
+    this.trackFilterEvent('filter_chip_removed', { filter_key: key });
     delete this.state.filters[key];
     this.onStateChanged();
   }
 
   clearAllChips() {
+    this.trackFilterEvent('filter_cleared_all');
     this.state.filters = {};
     this.onStateChanged();
   }
@@ -473,6 +480,29 @@ class TMRFilterSystem {
 
   isMobileViewport() {
     return window.innerWidth < 768;
+  }
+
+  trackFilterEvent(eventName, properties = {}) {
+    try {
+      const consentGranted = localStorage.getItem('cookieConsent') === 'accepted';
+      const eventData = {
+        page: this.pageKey,
+        device: this.isMobileViewport() ? 'mobile' : 'desktop',
+        ...properties,
+      };
+
+      // PostHog Product Analytics
+      if (typeof window.posthog !== 'undefined' && typeof window.posthog.capture === 'function' && consentGranted) {
+        window.posthog.capture(eventName, eventData);
+      }
+
+      // Google Analytics 4
+      if (typeof window.gtag === 'function' && consentGranted) {
+        window.gtag('event', eventName, eventData);
+      }
+    } catch (e) {
+      // Analytics failures must never break the filter UI
+    }
   }
 
   openPopover(anchorEl, contentHtml, onMounted) {
@@ -513,6 +543,7 @@ class TMRFilterSystem {
 
   // --- Popover 1: + Filter Menu ---
   toggleAddFilterPopover(anchorEl) {
+    this.trackFilterEvent('filter_menu_opened');
     const filters = this.config.filters || [];
     const html = `
       <div class="tmr-popover-header">
@@ -550,6 +581,11 @@ class TMRFilterSystem {
           e.stopPropagation();
           const key = item.dataset.filterKey;
           const filterDef = this.getFilterDef(key);
+
+          this.trackFilterEvent('filter_added', {
+            filter_key: key,
+            filter_label: filterDef ? filterDef.label : key,
+          });
 
           // Add filter chip as unset if not already present
           if (!this.state.filters[key]) {
@@ -650,6 +686,7 @@ class TMRFilterSystem {
 
       if (clearBtn) {
         clearBtn.addEventListener('click', () => {
+          this.trackFilterEvent('filter_values_cleared', { filter_key: filterDef.key });
           this.state.filters[filterDef.key] = [];
           this.renderChipRow();
           this.onStateChanged();
@@ -682,6 +719,13 @@ class TMRFilterSystem {
             selected = [...selected, val];
           }
         }
+
+        this.trackFilterEvent('filter_value_selected', {
+          filter_key: filterDef.key,
+          filter_label: filterDef.label,
+          selected_count: selected.length,
+          value: val,
+        });
 
         this.state.filters[filterDef.key] = selected;
         this.renderChipRow();
@@ -754,6 +798,7 @@ class TMRFilterSystem {
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           const key = item.dataset.timeKey;
+          this.trackFilterEvent('filter_time_period_selected', { time_period: key });
           this.state.time_period = key;
 
           const labelSpan = this.container.querySelector('.tmr-time-label');
@@ -794,6 +839,7 @@ class TMRFilterSystem {
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           const key = item.dataset.sortKey;
+          this.trackFilterEvent('filter_sort_selected', { sort: key });
           this.state.sort = key;
 
           const labelSpan = this.container.querySelector('.tmr-sort-label');
@@ -849,6 +895,24 @@ class TMRFilterSystem {
     window.history.replaceState(null, '', newRelativePathQuery);
 
     if (triggerFetch) {
+      const activeFilterKeys = Object.keys(this.state.filters || {}).filter(k => (this.state.filters[k] || []).length > 0);
+      const hasSearch = !!(this.state.search && this.state.search.trim());
+      const hasTime = this.config.supports_time_period !== false &&
+        this.state.time_period &&
+        this.state.time_period !== (this.config.default_time_range || 'this_month');
+      const hasSort = !!(this.state.sort && this.state.sort !== (this.config.default_sort || 'date_desc'));
+
+      this.trackFilterEvent('filter_applied', {
+        has_search: hasSearch,
+        time_period: this.state.time_period || 'this_month',
+        is_custom_time: hasTime,
+        active_filters: activeFilterKeys,
+        active_filters_count: activeFilterKeys.length,
+        sort: this.state.sort || 'date_desc',
+        is_custom_sort: hasSort,
+        total_active_criteria: activeFilterKeys.length + (hasSearch ? 1 : 0) + (hasTime ? 1 : 0) + (hasSort ? 1 : 0),
+      });
+
       // HTMX / AJAX refresh shell
       const shell = document.getElementById(`${this.pageKey}-list-shell`) || 
                     document.getElementById(`${this.pageKey}-shell`) || 
