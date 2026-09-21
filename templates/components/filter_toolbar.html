@@ -18,6 +18,13 @@
              ontouchstart="this.dataset.userActive='1'"
              onfocus="if(!this.dataset.userActive){this.blur();}"
              onblur="delete this.dataset.userActive">
+      <button type="button"
+              class="tmr-search-clear-btn"
+              aria-label="{% trans 'Clear search' %}"
+              title="{% trans 'Clear search' %}"
+              {% if not applied_state.search %}style="display: none;"{% endif %}>
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
     </div>
     {% endif %}
 

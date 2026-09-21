@@ -141,6 +141,7 @@ class TMRFilterSystem {
     // Search input
     const searchInput = this.container.querySelector('.tmr-search-input');
     const searchBox = this.container.querySelector('.tmr-search-box');
+    const searchClearBtn = this.container.querySelector('.tmr-search-clear-btn');
     if (searchInput) {
       let isExplicitUserInteraction = !!window.__tmrPreserveSearchFocus;
 
@@ -223,7 +224,15 @@ class TMRFilterSystem {
       }
 
       let debounceTimer = null;
+      const updateSearchClearVisibility = () => {
+        if (searchClearBtn) {
+          const hasText = !!(searchInput.value && searchInput.value.length > 0);
+          searchClearBtn.style.display = hasText ? 'inline-flex' : 'none';
+        }
+      };
+
       searchInput.addEventListener('input', (e) => {
+        updateSearchClearVisibility();
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           this.state.search = e.target.value.trim();
@@ -232,6 +241,45 @@ class TMRFilterSystem {
           }
           this.onStateChanged();
         }, 300);
+      });
+
+      const clearSearch = () => {
+        if (!searchInput.value && !this.state.search) return;
+        searchInput.value = '';
+        updateSearchClearVisibility();
+        this.state.search = '';
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+        const isFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+        if (isFinePointer) {
+          window.__tmrPreserveSearchFocus = true;
+          allowFocus();
+          searchInput.focus();
+        } else {
+          window.__tmrPreserveSearchFocus = false;
+        }
+        this.onStateChanged();
+      };
+
+      if (searchClearBtn) {
+        updateSearchClearVisibility();
+        searchClearBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+        searchClearBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+        searchClearBtn.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+        searchClearBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          clearSearch();
+        });
+      }
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchInput.value) {
+          e.preventDefault();
+          e.stopPropagation();
+          clearSearch();
+        }
       });
     }
 
@@ -815,7 +863,7 @@ class TMRFilterSystem {
       if (shell && window.htmx) {
         window.htmx.ajax('GET', newRelativePathQuery, {
           target: shell,
-          swap: 'outerHTML show:none focus:false',
+          swap: 'outerHTML show:none',
           indicator: '#global-progress-bar'
         });
       } else {
