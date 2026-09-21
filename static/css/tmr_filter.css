@@ -485,39 +485,51 @@
   }
 }
 
-/* --- Mobile Layout (< 768px): popovers become bottom sheets --- */
+/* --- Mobile Layout (< 768px): popovers become bottom sheets with bottom margin/clearance --- */
 @media (max-width: 767.98px) {
   .tmr-popover-menu {
     position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    top: auto !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    left: 12px !important;
+    right: 12px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: auto !important;
+    max-width: 440px !important;
     min-width: 0 !important;
-    max-height: 75vh;
-    border-radius: 20px 20px 0 0;
+    bottom: calc(76px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) !important;
+    top: auto !important;
+    max-height: calc(75vh - (76px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
+    border-radius: 20px !important;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.22), 0 4px 15px rgba(0, 0, 0, 0.12) !important;
     animation: tmrSlideUp 0.18s ease-out;
-    /* .mobile-bottom-nav uses z-index: 1090 !important - must sit above it */
+    /* Must sit cleanly above bottom navigation and back/forward browser controls */
     z-index: 1200 !important;
   }
 
+  /* Extra bottom clearance in mobile app / PWA standalone mode */
+  .is-mobile-app .tmr-popover-menu {
+    bottom: calc(84px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) !important;
+    max-height: calc(75vh - (84px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
+  }
+
   .tmr-popover-list {
-    max-height: 50vh;
+    max-height: calc(50vh - 40px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 0 8px;
   }
 
   .tmr-popover-header {
-    padding: 8px 12px;
+    padding: 10px 12px;
   }
 
   .tmr-popover-item {
-    padding: 7px 12px;
+    padding: 8px 14px;
     font-size: 0.8125rem;
   }
 
   .tmr-popover-footer {
-    padding: 7px 12px;
+    padding: 10px 14px;
   }
 
   .tmr-popover-footer-btn {

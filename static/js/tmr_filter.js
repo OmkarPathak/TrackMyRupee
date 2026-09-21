@@ -513,10 +513,11 @@ class TMRFilterSystem {
     popover.innerHTML = contentHtml;
 
     if (this.isMobileViewport()) {
-      // On mobile the popover becomes a full-width bottom sheet (see tmr_filter.css),
+      // On mobile the popover becomes a floating bottom sheet (see tmr_filter.css),
       // so it doesn't need anchor-relative positioning - just a dimming backdrop.
       const backdrop = document.createElement('div');
       backdrop.className = 'tmr-popover-backdrop';
+      backdrop.addEventListener('click', () => this.closePopover());
       document.body.appendChild(backdrop);
       this.activeBackdrop = backdrop;
       document.body.style.overflow = 'hidden';
@@ -566,7 +567,6 @@ class TMRFilterSystem {
       const items = popover.querySelectorAll('.tmr-popover-item');
 
       if (searchInput) {
-        setTimeout(() => searchInput.focus(), 50);
         searchInput.addEventListener('input', (e) => {
           const q = e.target.value.toLowerCase();
           items.forEach(item => {
