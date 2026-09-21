@@ -1,7 +1,9 @@
 from datetime import date, timedelta
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
@@ -171,22 +173,78 @@ class NAVIntegrationTests(TestCase):
 
     @override_settings(CRON_SECRET='test-cron-secret', CRON_ALLOW_QUERY_SECRET=True)
     def test_cron_nav_sync_endpoint(self):
-        """HTTP Cron Endpoint /api/cron/sync-nav/ triggers NAV sync cleanly when authorized."""
+        """HTTP Cron Endpoint /api/cron/sync-nav/ triggers async NAV sync cleanly when authorized."""
+        cache.clear()
+
         # 1. Unauthorized request (no secret) -> 403
         resp = self.client.get('/api/cron/sync-nav/')
         self.assertEqual(resp.status_code, 403)
 
-        # 2. Authorized request with X-Cron-Secret header -> 200
-        resp = self.client.get('/api/cron/sync-nav/', HTTP_X_CRON_SECRET='test-cron-secret')
+        # 2. Authorized async request with X-Cron-Secret header -> 200 (dispatched in background)
+        with patch('expenses.views.notifications.call_command') as mock_call:
+            resp = self.client.get('/api/cron/sync-nav/', HTTP_X_CRON_SECRET='test-cron-secret')
+            self.assertEqual(resp.status_code, 200)
+            data = resp.json()
+            self.assertTrue(data['success'])
+            self.assertIn('sync_nav_feed started', data['message'])
+
+        cache.clear()
+
+        # 3. Authorized request with query secret ?secret= -> 200
+        with patch('expenses.views.notifications.call_command'):
+            resp = self.client.get('/api/cron/sync-nav/?secret=test-cron-secret')
+            self.assertEqual(resp.status_code, 200)
+            self.assertTrue(resp.json()['success'])
+
+        cache.clear()
+
+        # 4. Synchronous execution via ?sync=1 -> 200 with summary
+        resp = self.client.get('/api/cron/sync-nav/?sync=1', HTTP_X_CRON_SECRET='test-cron-secret')
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertTrue(data['success'])
         self.assertIn('summary', data)
 
-        # 3. Authorized request with query secret ?secret= -> 200
-        resp = self.client.get('/api/cron/sync-nav/?secret=test-cron-secret')
-        self.assertEqual(resp.status_code, 200)
-        self.assertTrue(resp.json()['success'])
+        # 5. Concurrency lock returns 409
+        cache.set('cron_lock_sync_nav_feed', 1, timeout=60)
+        resp = self.client.get('/api/cron/sync-nav/', HTTP_X_CRON_SECRET='test-cron-secret')
+        self.assertEqual(resp.status_code, 409)
+        self.assertFalse(resp.json()['success'])
+        cache.clear()
+
+    @override_settings(CRON_SECRET='test-cron-secret', CRON_ALLOW_QUERY_SECRET=True)
+    def test_cron_funds_sync_endpoint(self):
+        """HTTP Cron Endpoint /api/cron/sync-funds/ triggers AMFI schemes sync cleanly when authorized."""
+        cache.clear()
+
+        # 1. Unauthorized request (no secret) -> 403
+        resp = self.client.get('/api/cron/sync-funds/')
+        self.assertEqual(resp.status_code, 403)
+
+        # 2. Authorized async request with X-Cron-Secret header -> 200
+        with patch('expenses.views.notifications.call_command') as mock_call:
+            resp = self.client.get('/api/cron/sync-funds/', HTTP_X_CRON_SECRET='test-cron-secret')
+            self.assertEqual(resp.status_code, 200)
+            data = resp.json()
+            self.assertTrue(data['success'])
+            self.assertIn('sync_amfi_schemes started', data['message'])
+
+        cache.clear()
+
+        # 3. Synchronous execution via ?sync=1 -> 200
+        with patch('expenses.nav_provider.NAVFetchService.sync_amfi_scheme_list', return_value=125):
+            resp = self.client.get('/api/cron/sync-funds/?sync=1', HTTP_X_CRON_SECRET='test-cron-secret')
+            self.assertEqual(resp.status_code, 200)
+            data = resp.json()
+            self.assertTrue(data['success'])
+            self.assertEqual(data['count'], 125)
+
+        # 4. Concurrency lock returns 409
+        cache.set('cron_lock_sync_amfi_schemes', 1, timeout=60)
+        resp = self.client.get('/api/cron/sync-funds/', HTTP_X_CRON_SECRET='test-cron-secret')
+        self.assertEqual(resp.status_code, 409)
+        self.assertFalse(resp.json()['success'])
+        cache.clear()
 
     def test_circuit_breaker_backoff(self):
         """SPEC §3a: Circuit-breaker skips persistent failures during normal schedule, but force=True bypasses it."""

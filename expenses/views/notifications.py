@@ -22,7 +22,7 @@ from .mixins import HtmxPartialTemplateMixin
 logger = logging.getLogger(__name__)
 
 
-def _dispatch_cron_command(command_name, lock_timeout=600):
+def _dispatch_cron_command(command_name, lock_timeout=600, **kwargs):
     """
     Runs a management command in a background thread, guarded by a cache lock so
     overlapping triggers (e.g. a retried external cron call) skip instead of running concurrently.
@@ -34,7 +34,7 @@ def _dispatch_cron_command(command_name, lock_timeout=600):
 
     def _run():
         try:
-            call_command(command_name)
+            call_command(command_name, **kwargs)
         except Exception:
             logger.exception(f"Background run of {command_name} failed")
         finally:
@@ -312,19 +312,54 @@ def trigger_sync_nav_cron_view(request):
     """
     HTTP Cron endpoint to sync daily mutual fund NAVs via external services like cron-job.org.
     Accepts GET or POST requests with X-Cron-Secret header or ?secret= query parameter.
+    Runs asynchronously in a background thread by default. Pass ?sync=1 or POST sync=true for synchronous execution.
     """
     if not _cron_authorized(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     force = (request.GET.get('force') or request.POST.get('force', '')).lower() in {'1', 'true', 'yes', 'on'}
-    try:
-        from ..nav_provider import NAVFetchService
-        service = NAVFetchService()
-        summary = service.sync_active_holdings_navs(force=force)
-        return JsonResponse({
-            'success': True,
-            'message': 'NAV sync completed successfully',
-            'summary': summary,
-        })
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    is_sync = (request.GET.get('sync') or request.POST.get('sync', '')).lower() in {'1', 'true', 'yes', 'on'}
+
+    if is_sync:
+        try:
+            from ..nav_provider import NAVFetchService
+            service = NAVFetchService()
+            summary = service.sync_active_holdings_navs(force=force)
+            return JsonResponse({
+                'success': True,
+                'message': 'NAV sync completed successfully',
+                'summary': summary,
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    return _dispatch_cron_command('sync_nav_feed', lock_timeout=900, force=force)
+
+
+@csrf_exempt
+def trigger_sync_funds_cron_view(request):
+    """
+    HTTP Cron endpoint to sync/refresh the local AMFI mutual fund scheme search catalog (AMFIScheme)
+    via external services like cron-job.org or weekly crontab.
+    Accepts GET or POST requests with X-Cron-Secret header or ?secret= query parameter.
+    Runs asynchronously in a background thread by default. Pass ?sync=1 or POST sync=true for synchronous execution.
+    """
+    if not _cron_authorized(request):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    is_sync = (request.GET.get('sync') or request.POST.get('sync', '')).lower() in {'1', 'true', 'yes', 'on'}
+
+    if is_sync:
+        try:
+            from ..nav_provider import NAVFetchService
+            service = NAVFetchService()
+            count = service.sync_amfi_scheme_list()
+            return JsonResponse({
+                'success': True,
+                'message': 'AMFI schemes sync completed successfully',
+                'count': count,
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    return _dispatch_cron_command('sync_amfi_schemes', lock_timeout=1800)

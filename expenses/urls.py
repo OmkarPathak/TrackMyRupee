@@ -144,6 +144,7 @@ urlpatterns = [
     path('api/cron/ledger/reconcile/', views.trigger_ledger_reconcile_view, name='cron-ledger-reconcile'),
     path('api/cron/ledger/maintenance/', views.trigger_ledger_maintenance_view, name='cron-ledger-maintenance'),
     path('api/cron/sync-nav/', views.trigger_sync_nav_cron_view, name='cron-sync-nav'),
+    path('api/cron/sync-funds/', views.trigger_sync_funds_cron_view, name='cron-sync-funds'),
 
     # Loans
     path('loans/', views.LoanListView.as_view(), name='loan-list'),
