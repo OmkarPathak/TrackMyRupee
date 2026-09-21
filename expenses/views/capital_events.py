@@ -1,11 +1,8 @@
 
-import calendar
-from datetime import datetime
-
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -14,6 +11,8 @@ from django.views.generic import DeleteView, ListView, View
 
 from expenses.views.utils import get_safe_redirect_url
 
+from ..filters.definitions import CAPITAL_EVENT_FILTERS
+from ..filters.engine import apply_filter_config
 from ..forms import CapitalEventForm
 from ..models import CapitalEvent, Expense, Loan
 from ..posthog_utils import ph_capture
@@ -33,63 +32,21 @@ class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListVie
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CapitalEvent.objects.filter(user=self.request.user).select_related('account', 'linked_loan').order_by('-date')
-        
-        # Filtering
-        qs = apply_date_filters(qs, self.request)
-        selected_subtypes = self.request.GET.getlist('subtype')
-        search_query = self.request.GET.get('search')
-
-        # Remove empty strings from lists
-        selected_subtypes = [s for s in selected_subtypes if s]
-
-        if selected_subtypes:
-            qs = qs.filter(subtype__in=selected_subtypes)
-
-        if search_query:
-            qs = qs.filter(note__icontains=search_query)
-
-        return qs
+        base_qs = CapitalEvent.objects.filter(user=self.request.user).select_related('account', 'linked_loan')
+        queryset, self.applied_state = apply_filter_config(base_qs, self.request, CAPITAL_EVENT_FILTERS)
+        return queryset
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         
         filtered_queryset = self.object_list
-        ctx['filtered_count'] = filtered_queryset.count()
-        ctx['filtered_amount'] = filtered_queryset.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+        stats = filtered_queryset.aggregate(count=Count('id'), total=Sum('base_amount'))
+        ctx['filtered_count'] = stats['count']
+        ctx['filtered_amount'] = stats['total'] or 0
 
-        user_events = CapitalEvent.objects.filter(user=self.request.user)
-        years_dates = user_events.dates('date', 'year', order='DESC')
-        years = sorted(list(set([d.year for d in years_dates] + [datetime.now().year])), reverse=True)
-        
-        ctx['years'] = years
-        ctx['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
-        
-        time_period = self.request.GET.get('time_period', 'this_month')
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
-        ctx['time_period'] = time_period
-        ctx['start_date'] = start_date or ''
-        ctx['end_date'] = end_date or ''
-        
-        selected_subtypes = self.request.GET.getlist('subtype')
-        search_query = self.request.GET.get('search', '')
-
-        selected_subtypes = [s for s in selected_subtypes if s]
-        
-        ctx['selected_subtypes'] = selected_subtypes
-        ctx['search_query'] = search_query
-
-        active_filters = 0
-        if search_query:
-            active_filters += 1
-        if time_period != 'this_month':
-            active_filters += 1
-        if selected_subtypes:
-            active_filters += 1
-        ctx['active_filters_count'] = active_filters
-
-        ctx['subtype_choices'] = CapitalEvent.SUBTYPE_CHOICES
+        applied_state = getattr(self, 'applied_state', {})
+        ctx['filter_config'] = CAPITAL_EVENT_FILTERS
+        ctx['applied_state'] = applied_state
         return ctx
 
 

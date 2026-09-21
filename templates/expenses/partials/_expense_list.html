@@ -1,13 +1,13 @@
-{% load i18n digit_filters expense_extras humanize %}
+<div id="expense-list-shell">
+{% load i18n digit_filters expense_extras humanize filter_tags %}
 
 <style>
     #tableView table tbody tr:last-child > * {
         border-bottom: 0 !important;
     }
 </style>
-
-<div id="expense-list-shell">
     <div class="bg-transparent d-none d-md-block pt-1 pb-3">
+
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
                 <h1 class="h2 mb-0 fw-bold d-flex align-items-center gap-3 mb-1">
@@ -38,15 +38,6 @@
                 </p>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel" aria-hidden="true"></i>
-                    {% if active_filters_count > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
-                        {{ active_filters_count }}
-                        <span class="visually-hidden">active filters</span>
-                    </span>
-                    {% endif %}
-                </button>
                 <div id="desktopHeaderBulkActions" class="d-md-flex align-items-center gap-2">
                     <span id="bulkEditTooltipWrap" class="d-inline-flex" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans 'Select at least one expense to edit' %}">
                         <button type="button" class="header-icon-btn bulk-edit-btn" id="bulkEditBtn" disabled data-bs-toggle="modal" data-bs-target="#bulkEditModal" aria-label="{% trans 'Edit Selected' %}">
@@ -93,15 +84,6 @@
                 {% endif %}
             </h1>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#expenseFilters" aria-expanded="false" aria-controls="expenseFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel" aria-hidden="true"></i>
-                    {% if active_filters_count > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
-                        {{ active_filters_count }}
-                        <span class="visually-hidden">active filters</span>
-                    </span>
-                    {% endif %}
-                </button>
                 {% if request.user.profile.can_export_csv %}
                 <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-icon-btn no-loader" title="{% trans 'Export' %}">
                     <i class="bi bi-download"></i>
@@ -121,8 +103,12 @@
         </p>
     </div>
 
-    <!-- Collapsible Filter Form -->
-    <div class="collapse {% if time_period == 'custom' and request.GET.pill_clicked %}show{% endif %}" id="expenseFilters">
+    {% if filter_config %}
+    {% render_filter_toolbar filter_config applied_state %}
+    {% endif %}
+
+    <!-- Legacy filter form, retired now that the chip filter toolbar above covers both desktop and mobile. Left in place (hidden) rather than deleted since other scripts on this page still reference its inputs (multiselects, time-period pills). -->
+    <div class="collapse d-none" id="expenseFilters">
         <form method="get" class="mb-4 bg-body p-4 rounded-4 border" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
             <div class="row g-4">
                 <div class="col-12 col-md-3">

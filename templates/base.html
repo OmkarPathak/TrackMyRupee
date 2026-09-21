@@ -81,7 +81,9 @@
     </script>
     {% endif %}
 
-    <meta charset="UTF-8">
+    <!-- HTMX Configuration -->
+    <meta name="htmx-config" content='{"defaultFocusScroll": false}'>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
     <!-- Preconnect to CDNs for speedier connection establishment -->
@@ -644,7 +646,7 @@
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: none;
             }
         }
 
@@ -1344,10 +1346,13 @@
             }
         });
 
-        // Disable HTMX default auto-focusing behavior globally
+        // Disable HTMX default auto-focusing and focus-scrolling behavior globally
+        if (window.htmx) {
+            htmx.config.defaultFocusScroll = false;
+        }
         document.addEventListener('DOMContentLoaded', function () {
             if (window.htmx) {
-                htmx.config.defaultFocus = false;
+                htmx.config.defaultFocusScroll = false;
             }
         });
 
@@ -2164,7 +2169,7 @@
 
     })();
 
-    /* ---- Ensure open action dropdowns always float above sibling cards/rows ---- */
+    /* ---- Ensure open action dropdowns always float above sibling cards/rows & escape overflow clipping ---- */
     document.addEventListener('show.bs.dropdown', function (e) {
         var card = e.target.closest('.card, .expense-card, tr');
         if (card) {
@@ -2173,6 +2178,18 @@
         var dropdown = e.target.closest('.dropdown');
         if (dropdown) {
             dropdown.style.setProperty('z-index', '1055', 'important');
+        }
+        var tableResponsive = e.target.closest('.table-responsive');
+        if (tableResponsive) {
+            tableResponsive.style.setProperty('overflow', 'visible', 'important');
+        }
+        var parentCard = e.target.closest('.card');
+        if (parentCard) {
+            if (parentCard.classList.contains('overflow-hidden')) {
+                parentCard.dataset.hadOverflowHidden = 'true';
+                parentCard.classList.remove('overflow-hidden');
+            }
+            parentCard.style.setProperty('overflow', 'visible', 'important');
         }
     });
 
@@ -2184,6 +2201,18 @@
         var dropdown = e.target.closest('.dropdown');
         if (dropdown) {
             dropdown.style.removeProperty('z-index');
+        }
+        var tableResponsive = e.target.closest('.table-responsive');
+        if (tableResponsive) {
+            tableResponsive.style.removeProperty('overflow');
+        }
+        var parentCard = e.target.closest('.card');
+        if (parentCard) {
+            parentCard.style.removeProperty('overflow');
+            if (parentCard.dataset.hadOverflowHidden === 'true') {
+                delete parentCard.dataset.hadOverflowHidden;
+                parentCard.classList.add('overflow-hidden');
+            }
         }
     });
     </script>

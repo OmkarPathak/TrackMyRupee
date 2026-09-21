@@ -1,4 +1,4 @@
-{% load i18n digit_filters %}
+{% load i18n digit_filters filter_tags %}
 
 <div id="account-list-shell">
 <style>
@@ -22,15 +22,6 @@
         font-variant-numeric: tabular-nums;
     }.balance-bar-wrap { height: 8px; border-radius: 99px; overflow: hidden; display: flex; gap: 2px; background: transparent; }
     .balance-bar-segment { border-radius: 99px; flex-shrink: 0; transition: width 0.4s ease; }
-    .accounts-search-wrap { position: relative; flex: 1 1 180px; min-width: 0; }
-    .accounts-search-wrap .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--bs-secondary-color); font-size: 0.8rem; pointer-events: none; }
-    .accounts-search-input { padding-left: 2rem !important; height: 36px; font-size: 0.875rem; border-radius: 8px !important; }
-    .accounts-filter-select { height: 36px; font-size: 0.875rem; border-radius: 8px !important; cursor: pointer; font-weight: 500; padding-top: 0; padding-bottom: 0; }
-    .type-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none; transition: all 0.15s ease; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06); }
-    [data-bs-theme="dark"] .type-chip { border-color: rgba(255,255,255,0.08); }
-    .type-chip:hover { background-color: var(--bs-secondary-bg); color: var(--bs-body-color); }
-    .type-chip.active { background-color: var(--color-secondary, #0F7657) !important; color: #fff !important; border-color: var(--color-secondary, #0F7657) !important; }
-    .type-chip .chip-count { font-weight: 600; opacity: 0.9; }
     .tooltip-balance-info .tooltip-inner { max-width: 320px; text-align: left; padding: 10px 14px; font-size: 0.82rem; line-height: 1.55; }
     @media (max-width: 576px) { .tooltip-balance-info .tooltip-inner { max-width: min(300px, 88vw); } }
     @media (max-width: 767.98px) { .accounts-filter-row { flex-wrap: wrap; } .accounts-search-wrap { flex: 1 1 100%; order: -1; } .accounts-filter-select { flex: 1 1 auto; } }
@@ -76,21 +67,6 @@
             {% if current_status == 'inactive' %}{% trans "Inactive Accounts" %}{% else %}{% trans "Accounts" %}{% endif %}
         </h1>
         <div class="d-flex gap-2 align-items-center flex-shrink-0">
-            <!-- Funnel filter toggle (matches transaction list pattern) -->
-            <button class="filter-toggle-btn position-relative" type="button"
-                    data-bs-toggle="collapse" data-bs-target="#accountFilters"
-                    aria-expanded="false"
-                    aria-controls="accountFilters"
-                    title="{% trans 'Toggle Filters' %}"
-                    aria-label="{% trans 'Toggle Filters' %}">
-                <i class="bi bi-funnel" aria-hidden="true"></i>
-                {% if active_filters_count > 0 %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
-                    {{ active_filters_count }}
-                    <span class="visually-hidden">active filters</span>
-                </span>
-                {% endif %}
-            </button>
             <a href="{% url 'transfer-list' %}" class="header-action-btn d-inline-flex align-items-center gap-1">
                 <i class="bi bi-clock-history" aria-hidden="true"></i>
                 <span class="d-none d-sm-inline">{% trans "History" %}</span>
@@ -112,84 +88,9 @@
     </p>
 </div>
 
-
-<!-- COLLAPSIBLE FILTER PANEL (matches transaction list pattern) -->
-<div class="collapse" id="accountFilters">
-    <form method="get"
-          id="accounts-filter-form"
-          class="mb-4 mt-3 bg-body p-4 rounded-4 border"
-          style="border-color: rgba(0,0,0,0.08) !important;"
-          hx-get="{% url 'account-list' %}"
-          hx-target="#account-list-shell"
-          hx-swap="outerHTML show:none"
-          hx-push-url="true"
-          hx-indicator="#global-progress-bar">
-
-        <div class="row g-3 align-items-end">
-            <!-- Search -->
-            <div class="col-12 col-md-4">
-                <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search" %}</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                    <input type="text"
-                           id="accounts-search-input"
-                           name="search"
-                           value="{{ search_query }}"
-                           class="form-control bg-light border-start-0 ps-0"
-                           placeholder="{% trans 'Search accounts...' %}"
-                           autocomplete="off">
-                </div>
-            </div>
-
-            <!-- Status -->
-            <div class="col-6 col-md-2">
-                <label class="form-label small text-muted fw-semibold mb-2">{% trans "Status" %}</label>
-                <select name="status" class="form-select">
-                    <option value="active"   {% if current_status == 'active'   %}selected{% endif %}>{% trans "Active" %}</option>
-                    <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
-                </select>
-            </div>
-
-            <!-- Sort -->
-            <div class="col-6 col-md-3">
-                <label class="form-label small text-muted fw-semibold mb-2">{% trans "Sort By" %}</label>
-                <select name="sort" class="form-select">
-                    <option value="balance_desc" {% if sort_by == 'balance_desc' %}selected{% endif %}>{% trans "Balance, high to low" %}</option>
-                    <option value="balance_asc"  {% if sort_by == 'balance_asc'  %}selected{% endif %}>{% trans "Balance, low to high" %}</option>
-                    <option value="name_asc"     {% if sort_by == 'name_asc'     %}selected{% endif %}>{% trans "Name A to Z" %}</option>
-                    <option value="name_desc"    {% if sort_by == 'name_desc'    %}selected{% endif %}>{% trans "Name Z to A" %}</option>
-                </select>
-            </div>
-
-            <!-- Account Type -->
-            <div class="col-12 col-md-3">
-                <label class="form-label small text-muted fw-semibold mb-2">{% trans "Account Type" %}</label>
-                <select name="type" class="form-select">
-                    <option value="">{% trans "All types" %}</option>
-                    {% for group_name, choices in account_types %}
-                        <optgroup label="{{ group_name }}">
-                            {% for val, label in choices %}
-                                <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </optgroup>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Action buttons — second row, right-aligned -->
-            <div class="col-12 d-flex justify-content-end gap-2">
-                <button type="submit" class="btn btn-primary btn-sm px-4">{% trans "Apply" %}</button>
-                <button type="button"
-                        class="btn btn-outline-secondary fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center"
-                        hx-get="{% url 'account-list' %}" hx-params="none"
-                        hx-target="#account-list-shell" hx-swap="outerHTML show:none"
-                        hx-push-url="true" hx-indicator="#global-progress-bar">
-                    {% trans "Reset" %}
-                </button>
-            </div>
-        </div>
-    </form>
-</div>
+{% if filter_config %}
+{% render_filter_toolbar filter_config applied_state %}
+{% endif %}
 
 
 
@@ -262,29 +163,6 @@
 {% include 'partials/guide_accounts.html' %}
 
 
-<!-- TYPE CHIP PILLS -->
-{% if type_chips or grouped_accounts %}
-<div class="d-flex align-items-center gap-2 overflow-x-auto pb-1 mb-3" style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
-    <a href="#"
-       hx-get="{% url 'account-list' %}?status={{ current_status }}{% if sort_by != 'balance_desc' %}&sort={{ sort_by }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
-       hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true"
-       hx-indicator="#global-progress-bar"
-       class="type-chip {% if not selected_type %}active{% endif %} flex-shrink-0">
-        {% trans "All" %} <span class="chip-count">{{ total_account_count|default:account_count|translate_digits }}</span>
-    </a>
-    {% for chip in type_chips %}
-        {% if chip.count > 0 %}
-        <a href="#"
-           hx-get="{% url 'account-list' %}?type={{ chip.type }}&status={{ current_status }}{% if sort_by != 'balance_desc' %}&sort={{ sort_by }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
-           hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true"
-           hx-indicator="#global-progress-bar"
-           class="type-chip {% if selected_type == chip.type %}active{% endif %} flex-shrink-0">
-            {{ chip.label }} <span class="chip-count">{{ chip.count|translate_digits }}</span>
-        </a>
-        {% endif %}
-    {% endfor %}
-</div>
-{% endif %}
 
 
 <!-- ACCOUNT GROUPS -->

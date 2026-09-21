@@ -28,6 +28,7 @@ from .mixins import (
     UUIDOrIntLookupMixin,
     process_user_recurring_transactions,
 )
+from ..filters import EXPENSE_FILTERS, apply_filter_config
 from .utils import apply_date_filters, get_object_by_uuid_or_pk
 
 
@@ -43,46 +44,8 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = Expense.objects.filter(user=self.request.user).select_related('account', 'category_fk').order_by('-date')
-        
-        # Filtering
-        selected_years = self.request.GET.getlist('year')
-        selected_categories = self.request.GET.getlist('category')
-        selected_payment_methods = self.request.GET.getlist('payment_method')
-        selected_accounts = self.request.GET.getlist('account')
-        search_query = self.request.GET.get('search')
-        
-        queryset = apply_date_filters(queryset, self.request)
-
-        # Remove empty strings from lists
-        selected_categories = [c for c in selected_categories if c]
-        selected_payment_methods = [pm for pm in selected_payment_methods if pm]
-        selected_accounts = [acc for acc in selected_accounts if acc]
-
-        if selected_categories:
-            queryset = queryset.filter(category__in=selected_categories)
-        
-        if selected_payment_methods:
-            queryset = queryset.filter(payment_method__in=selected_payment_methods)
-
-        if selected_accounts:
-            queryset = queryset.filter(account_id__in=selected_accounts)
-
-
-        if search_query:
-            queryset = queryset.filter(description__icontains=search_query)
-            
-        # Sorting
-        sort_by = self.request.GET.get('sort', 'date_desc')
-        if sort_by == 'date_asc':
-            queryset = queryset.order_by('date', 'created_at', 'id')
-        elif sort_by == 'amount_desc':
-            queryset = queryset.order_by('-base_amount', '-id')
-        elif sort_by == 'amount_asc':
-            queryset = queryset.order_by('base_amount', 'id')
-        else:
-            queryset = queryset.order_by('-date', '-created_at', '-id')
-            
+        base_qs = Expense.objects.filter(user=self.request.user).select_related('account', 'category_fk')
+        queryset, self.applied_state = apply_filter_config(base_qs, self.request, EXPENSE_FILTERS)
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -94,14 +57,12 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         context['filtered_count'] = stats['count']
         context['filtered_amount'] = stats['total'] or 0
 
-        # Get unique years and categories for validation
+        # Get unique years and categories for legacy UI dropdowns
         user_expenses = Expense.objects.filter(user=self.request.user)
         years_dates = user_expenses.dates('date', 'year', order='DESC')
         years = sorted(list(set([d.year for d in years_dates] + [datetime.now().year])), reverse=True)
-        # Python-side deduplication to handle whitespace variants (e.g. "Goa" vs "Goa ")
         raw_used_categories = user_expenses.values_list('category', flat=True).distinct()
         raw_defined_categories = Category.objects.filter(user=self.request.user).values_list('name', flat=True)
-        # Use a set for final deduplication and strip only the distinct results
         all_cats = {c.strip() for c in raw_used_categories if c} | {c.strip() for c in raw_defined_categories if c}
         categories = sorted(list(all_cats), key=str.lower)
         
@@ -109,25 +70,25 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         context['categories'] = categories
         context['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
         
-        # Determine selected filters for UI
-        time_period = self.request.GET.get('time_period', 'this_month')
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
+        # Filter system config & state
+        context['filter_config'] = EXPENSE_FILTERS
+        applied_state = getattr(self, 'applied_state', {})
+        context['applied_state'] = applied_state
+
+        time_period = applied_state.get('time_period', 'this_month')
+        start_date = applied_state.get('start_date', '')
+        end_date = applied_state.get('end_date', '')
         context['time_period'] = time_period
         context['start_date'] = start_date or ''
         context['end_date'] = end_date or ''
         
-        selected_categories = self.request.GET.getlist('category')
-        selected_payment_methods = self.request.GET.getlist('payment_method')
-        selected_accounts = self.request.GET.getlist('account')
-        search_query = self.request.GET.get('search', '')
+        selected_filters = applied_state.get('filters', {})
+        selected_categories = selected_filters.get('category', [])
+        selected_payment_methods = selected_filters.get('payment_method', [])
+        selected_accounts = selected_filters.get('account', [])
+        search_query = applied_state.get('search', '')
 
-        # Remove empty strings
-        selected_categories = [c for c in selected_categories if c]
-        selected_payment_methods = [pm for pm in selected_payment_methods if pm]
-        selected_accounts = [acc for acc in selected_accounts if acc]
-        
-        sort_by = self.request.GET.get('sort', 'date_desc')
+        sort_by = applied_state.get('sort', 'date_desc')
         context['sort_by'] = sort_by
         context['current_sort'] = sort_by
         context['selected_categories'] = selected_categories
@@ -137,17 +98,13 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         context['payment_methods'] = Expense.PAYMENT_OPTIONS
         context['accounts'] = Account.objects.filter(user=self.request.user, is_active=True).order_by('name')
 
-        active_filters = 0
+        active_filters = len(selected_filters)
         if search_query:
             active_filters += 1
         if time_period != 'this_month':
             active_filters += 1
-        if selected_categories:
-            active_filters += 1
-        if selected_payment_methods:
-            active_filters += 1
-        if selected_accounts:
-            active_filters += 1
+        context['active_filters_count'] = active_filters
+
         if sort_by and sort_by != 'date_desc':
             active_filters += 1
         context['active_filters_count'] = active_filters

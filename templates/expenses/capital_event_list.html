@@ -3,6 +3,8 @@
 
 {% block extra_head %}
     {% include 'components/multiselect_assets.html' %}
+    <link rel="stylesheet" href="/static/css/tmr_filter.css">
+    <script src="/static/js/tmr_filter.js" defer></script>
 {% endblock %}
 
 {% block title %}{% trans "Capital Events" %}{% endblock %}
@@ -40,9 +42,10 @@
         line-height: 1.25;
         max-height: 2.5em;
     }
-    .view-toggle-btn, .filter-toggle-btn, .header-action-btn {
+    .header-action-btn {
         height: 36px;
-        padding: 0;
+        padding: 0 0.75rem;
+        font-size: 0.875rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -50,75 +53,13 @@
         transition: all 0.2s ease;
         border: 1px solid var(--bs-border-color);
         background: transparent;
-        color: var(--bs-secondary-color);
-    }
-    .view-toggle-btn, .filter-toggle-btn {
-        width: 36px;
-    }
-    .header-action-btn {
-        padding: 0 0.75rem;
-        font-size: 0.875rem;
-        text-decoration: none;
         color: var(--bs-body-color);
+        text-decoration: none;
     }
     .header-action-btn.btn-primary {
         background-color: var(--color-secondary, #0F7657) !important;
         border-color: var(--color-secondary, #0F7657) !important;
         color: white !important;
-    }
-    .view-toggle-btn.active, .filter-toggle-btn[aria-expanded="true"] {
-        background: rgba(var(--bs-primary-rgb), 0.1) !important;
-        color: var(--bs-primary) !important;
-        border-color: rgba(var(--bs-primary-rgb), 0.3) !important;
-        box-shadow: none !important;
-    }
-    .filter-toggle-btn:hover {
-        opacity: 0.9;
-    }
-    .filter-toggle-btn[aria-expanded="true"]:hover {
-        opacity: 0.8;
-    }
-    [data-bs-theme="dark"] .view-toggle-btn.active,
-    [data-bs-theme="dark"] .filter-toggle-btn[aria-expanded="true"] {
-        background: rgba(255, 255, 255, 0.1) !important;
-        color: #fff !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
-    }
-
-    /* Filter Bar Standardization */
-    #filter-form .form-control,
-    #filter-form .form-select,
-    #filter-form .input-group-text,
-    #filter-form .btn {
-        height: 36px !important;
-        font-size: 1rem !important;
-        display: flex;
-        align-items: center;
-    }
-
-    @media (min-width: 768px) {
-        #filter-form .form-control,
-        #filter-form .form-select,
-        #filter-form .input-group-text,
-        #filter-form .btn {
-            font-size: 0.875rem !important;
-        }
-    }
-
-    #filter-form .multiselect.dropdown-toggle {
-        height: 36px !important;
-        font-size: 1rem !important;
-    }
-
-    @media (min-width: 768px) {
-        #filter-form .multiselect.dropdown-toggle {
-            font-size: 0.875rem !important;
-        }
-    }
-
-    #filter-form .btn {
-        padding: 0 0.75rem;
-        white-space: nowrap;
     }
 
     /* Category Icon Alignment */

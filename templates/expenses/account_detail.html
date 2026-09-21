@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% load i18n humanize currency_filters digit_filters expense_extras %}
 
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/css/tmr_filter.css">
+    <script src="/static/js/tmr_filter.js" defer></script>
+{% endblock %}
+
 {% block content %}
 <div class="fade-in">
     {% include 'expenses/partials/_account_detail.html' %}

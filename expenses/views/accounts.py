@@ -36,6 +36,7 @@ from ..models import (
     Transfer,
     _run_ledger_shadow,
 )
+from ..filters.definitions import ACCOUNT_DETAIL_FILTERS, ACCOUNT_LIST_FILTERS
 from ..posthog_utils import ph_capture
 from ..utils import get_exchange_rate
 from .mixins import (
@@ -43,7 +44,11 @@ from .mixins import (
     RecurringTransactionMixin,
     UUIDOrIntLookupMixin,
 )
-from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
+from .utils import (
+    apply_date_filters,
+    get_object_by_uuid_or_pk,
+    redirect_to_uuid_url_if_needed,
+)
 
 
 class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
@@ -56,7 +61,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         from .mixins import process_user_recurring_transactions
         process_user_recurring_transactions(self.request.user)
         status = self.request.GET.get('status', 'active')
-        is_active = status == 'active'
+        is_active = status != 'inactive'
         
         # Order by -is_pinned, created_at to ensure pinned accounts stay at top
         queryset = (
@@ -64,25 +69,41 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             .filter(user=self.request.user, is_active=is_active)
             .order_by('-is_pinned', 'created_at', 'id')
         )
-        
-        account_type = self.request.GET.get('type')
-        if account_type:
-            if account_type == 'PINNED':
-                queryset = queryset.filter(is_pinned=True)
-            else:
-                # Check if account_type is a group name or normalized group ID
-                import re
-                group_codes = []
-                for g_name, choices in Account.ACCOUNT_TYPES:
-                    g_id = re.sub(r'[^A-Z0-9_]', '_', g_name.upper())
-                    if account_type == g_name or account_type == g_id:
-                        group_codes = [c for c, _ in choices]
-                        break
-                
-                if group_codes:
-                    queryset = queryset.filter(account_type__in=group_codes)
+
+        pinned = self.request.GET.get('pinned')
+        if pinned == 'pinned':
+            queryset = queryset.filter(is_pinned=True)
+
+        selected_types = [t for t in self.request.GET.getlist('type') if t]
+        if not selected_types and self.request.GET.get('type'):
+            selected_types = [self.request.GET.get('type')]
+
+        if selected_types:
+            import re
+            include_pinned = False
+            matching_codes = []
+            for t in selected_types:
+                if t == 'PINNED':
+                    include_pinned = True
                 else:
-                    queryset = queryset.filter(account_type=account_type)
+                    group_codes = []
+                    for g_name, choices in Account.ACCOUNT_TYPES:
+                        g_id = re.sub(r'[^A-Z0-9_]', '_', g_name.upper())
+                        if t == g_name or t == g_id:
+                            group_codes = [c for c, _ in choices]
+                            break
+                    if group_codes:
+                        matching_codes.extend(group_codes)
+                    else:
+                        matching_codes.append(t)
+
+            type_q = Q()
+            if matching_codes:
+                type_q |= Q(account_type__in=matching_codes)
+            if include_pinned:
+                type_q |= Q(is_pinned=True)
+            if type_q:
+                queryset = queryset.filter(type_q)
 
         # Search by account name
         search_query = self.request.GET.get('search', '').strip()
@@ -327,54 +348,28 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         context['total_balance'] = total_balance.quantize(Decimal('0.01'))
         context['total_balance_currency'] = user_currency
 
-        # Build type_chips for all account categories so filter pills remain visible even when a type filter is active
-        all_status_accounts = list(
-            Account.objects.filter(user=self.request.user, is_active=(current_status == 'active'))
-            .only('id', 'name', 'account_type', 'is_pinned')
-        )
+        selected_types = [t for t in self.request.GET.getlist('type') if t]
+        if not selected_types and self.request.GET.get('type'):
+            selected_types = [self.request.GET.get('type')]
+        pinned = self.request.GET.get('pinned')
         search_query = self.request.GET.get('search', '').strip()
-        if search_query:
-            all_status_accounts = [a for a in all_status_accounts if search_query.lower() in a.name.lower()]
 
-        type_chips = []
-        pinned_chip_count = len([a for a in all_status_accounts if getattr(a, 'is_pinned', False)])
-        if pinned_chip_count > 0:
-            type_chips.append({
-                'type': 'PINNED',
-                'label': _('Pinned'),
-                'count': pinned_chip_count,
-            })
+        applied_filters = {}
+        if selected_types:
+            applied_filters['type'] = selected_types
+        if current_status != 'active':
+            applied_filters['status'] = [current_status]
+        if pinned == 'pinned':
+            applied_filters['pinned'] = [pinned]
 
-        seen_chip_ids = set()
-        import re
-        for group_name, choices in Account.ACCOUNT_TYPES:
-            group_codes = [val for val, _ in choices]
-            g_accs = [a for a in all_status_accounts if a.account_type in group_codes and a.id not in seen_chip_ids]
-            for a in g_accs:
-                seen_chip_ids.add(a.id)
-            group_type_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
-            if len(g_accs) > 0:
-                type_chips.append({
-                    'type': group_type_id,
-                    'label': group_name,
-                    'count': len(g_accs),
-                })
-
-        context['type_chips'] = type_chips
-        context['total_account_count'] = len(all_status_accounts)
+        context['filter_config'] = ACCOUNT_LIST_FILTERS
+        context['applied_state'] = {
+            'search': search_query,
+            'sort': sort_by,
+            'filters': applied_filters,
+        }
         context['search_query'] = search_query
         context['sort_by'] = sort_by
-
-        active_filters_count = 0
-        if search_query:
-            active_filters_count += 1
-        if selected_type:
-            active_filters_count += 1
-        if current_status != 'active':
-            active_filters_count += 1
-        if sort_by != 'balance_desc':
-            active_filters_count += 1
-        context['active_filters_count'] = active_filters_count
 
         context['interest_summary'] = get_interest_summary(self.request.user)
         return context
@@ -721,7 +716,7 @@ class AccountDetailView(LoginRequiredMixin, View):
                 ledger_type=Value(ledger_type, output_field=CharField()),
                 ledger_rank=Value(ledger_rank, output_field=IntegerField()),
             )
-            .values('date', 'ledger_type', 'ledger_rank', 'id')
+            .values('date', 'ledger_type', 'ledger_rank', 'id', 'amount')
             .order_by()
         )
 
@@ -861,9 +856,24 @@ class AccountDetailView(LoginRequiredMixin, View):
             account.has_accrued_value = False
             account.has_maturity_value = False
 
-        query = request.GET.get('q', '')
-        selected_tx_type = request.GET.get('tx_type', '')
-        
+        search_query = request.GET.get('search') or request.GET.get('q', '').strip()
+        time_period = request.GET.get('time_period', 'all')
+        start_date = request.GET.get('start_date') or ''
+        end_date = request.GET.get('end_date') or ''
+        sort_by = request.GET.get('sort', 'date_desc')
+
+        selected_tx_types = [t for t in request.GET.getlist('tx_type') if t]
+        if not selected_tx_types and request.GET.get('tx_type'):
+            selected_tx_types = [request.GET.get('tx_type')]
+
+        selected_categories = [c for c in request.GET.getlist('category') if c]
+        if not selected_categories and request.GET.get('category'):
+            selected_categories = [request.GET.get('category')]
+
+        selected_amounts = [a for a in request.GET.getlist('amount_range') if a]
+        if not selected_amounts and request.GET.get('amount_range'):
+            selected_amounts = [request.GET.get('amount_range')]
+
         # Get all expenses, incomes, and transfers for this account
         expenses = Expense.objects.filter(user=request.user, account=account).select_related('category_fk').order_by('-date')
         incomes = Income.objects.filter(user=request.user, account=account).select_related('source_fk').order_by('-date')
@@ -873,56 +883,57 @@ class AccountDetailView(LoginRequiredMixin, View):
         loan_repayments = LoanRepayment.objects.filter(loan__user=request.user, from_account=account).select_related('loan').order_by('-date')
         capital_events = CapitalEvent.objects.filter(user=request.user, account=account).select_related('linked_loan').order_by('-date')
 
-        if selected_tx_type == 'EXPENSE':
-            incomes = Income.objects.none()
-            transfers_from = Transfer.objects.none()
-            transfers_to = Transfer.objects.none()
-            contributions = GoalContribution.objects.none()
-            loan_repayments = LoanRepayment.objects.none()
-            capital_events = CapitalEvent.objects.none()
-        elif selected_tx_type == 'INCOME':
-            expenses = Expense.objects.none()
-            transfers_from = Transfer.objects.none()
-            transfers_to = Transfer.objects.none()
-            contributions = GoalContribution.objects.none()
-            loan_repayments = LoanRepayment.objects.none()
-            capital_events = CapitalEvent.objects.none()
-        elif selected_tx_type == 'TRANSFER':
-            expenses = Expense.objects.none()
-            incomes = Income.objects.none()
-            contributions = GoalContribution.objects.none()
-            loan_repayments = LoanRepayment.objects.none()
-            capital_events = CapitalEvent.objects.none()
-        elif selected_tx_type == 'SAVINGS':
-            expenses = Expense.objects.none()
-            incomes = Income.objects.none()
-            transfers_from = Transfer.objects.none()
-            transfers_to = Transfer.objects.none()
-            loan_repayments = LoanRepayment.objects.none()
-            capital_events = CapitalEvent.objects.none()
-        elif selected_tx_type == 'LOAN':
-            expenses = Expense.objects.none()
-            incomes = Income.objects.none()
-            transfers_from = Transfer.objects.none()
-            transfers_to = Transfer.objects.none()
-            contributions = GoalContribution.objects.none()
-            capital_events = CapitalEvent.objects.none()
-        elif selected_tx_type == 'CAPITAL':
-            expenses = Expense.objects.none()
-            incomes = Income.objects.none()
-            transfers_from = Transfer.objects.none()
-            transfers_to = Transfer.objects.none()
-            contributions = GoalContribution.objects.none()
-            loan_repayments = LoanRepayment.objects.none()
+        if selected_tx_types:
+            if 'EXPENSE' not in selected_tx_types:
+                expenses = Expense.objects.none()
+            if 'INCOME' not in selected_tx_types:
+                incomes = Income.objects.none()
+            if 'TRANSFER' not in selected_tx_types:
+                transfers_from = Transfer.objects.none()
+                transfers_to = Transfer.objects.none()
+            if 'SAVINGS' not in selected_tx_types:
+                contributions = GoalContribution.objects.none()
+            if 'LOAN' not in selected_tx_types:
+                loan_repayments = LoanRepayment.objects.none()
+            if 'CAPITAL' not in selected_tx_types:
+                capital_events = CapitalEvent.objects.none()
 
-        if query:
-            expenses = expenses.filter(Q(description__icontains=query) | Q(category__icontains=query))
-            incomes = incomes.filter(Q(description__icontains=query) | Q(source__icontains=query))
-            transfers_from = transfers_from.filter(Q(description__icontains=query))
-            transfers_to = transfers_to.filter(Q(description__icontains=query))
-            contributions = contributions.filter(Q(goal__name__icontains=query))
-            loan_repayments = loan_repayments.filter(Q(loan__name__icontains=query))
-            capital_events = capital_events.filter(Q(note__icontains=query) | Q(subtype__icontains=query))
+        if selected_categories:
+            expenses = expenses.filter(category__in=selected_categories)
+            incomes = incomes.filter(Q(source_type__in=selected_categories) | Q(source__in=selected_categories))
+            transfers_from = Transfer.objects.none()
+            transfers_to = Transfer.objects.none()
+            contributions = GoalContribution.objects.none()
+            loan_repayments = LoanRepayment.objects.none()
+            capital_events = CapitalEvent.objects.none()
+
+        if selected_amounts:
+            from ..filters.definitions import filter_amount_range
+            expenses = filter_amount_range(expenses, selected_amounts)
+            incomes = filter_amount_range(incomes, selected_amounts)
+            transfers_from = filter_amount_range(transfers_from, selected_amounts)
+            transfers_to = filter_amount_range(transfers_to, selected_amounts)
+            contributions = filter_amount_range(contributions, selected_amounts)
+            loan_repayments = filter_amount_range(loan_repayments, selected_amounts)
+            capital_events = filter_amount_range(capital_events, selected_amounts)
+
+        if time_period != 'all':
+            expenses = apply_date_filters(expenses, request)
+            incomes = apply_date_filters(incomes, request)
+            transfers_from = apply_date_filters(transfers_from, request)
+            transfers_to = apply_date_filters(transfers_to, request)
+            contributions = apply_date_filters(contributions, request)
+            loan_repayments = apply_date_filters(loan_repayments, request)
+            capital_events = apply_date_filters(capital_events, request)
+
+        if search_query:
+            expenses = expenses.filter(Q(description__icontains=search_query) | Q(category__icontains=search_query))
+            incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query) | Q(source_type__icontains=search_query))
+            transfers_from = transfers_from.filter(description__icontains=search_query)
+            transfers_to = transfers_to.filter(description__icontains=search_query)
+            contributions = contributions.filter(Q(goal__name__icontains=search_query))
+            loan_repayments = loan_repayments.filter(Q(loan__name__icontains=search_query))
+            capital_events = capital_events.filter(Q(note__icontains=search_query) | Q(subtype__icontains=search_query))
 
         base_currency = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
         
@@ -1027,8 +1038,15 @@ class AccountDetailView(LoginRequiredMixin, View):
                 self._build_ledger_source(capital_events, 'CAPITAL_EVENT', 6),
                 all=True,
             )
-            .order_by('-date', 'ledger_rank', '-id')
         )
+        if sort_by == 'date_asc':
+            ledger = ledger.order_by('date', 'ledger_rank', 'id')
+        elif sort_by == 'amount_desc':
+            ledger = ledger.order_by('-amount', '-date', 'ledger_rank', '-id')
+        elif sort_by == 'amount_asc':
+            ledger = ledger.order_by('amount', '-date', 'ledger_rank', '-id')
+        else:
+            ledger = ledger.order_by('-date', 'ledger_rank', '-id')
 
         # Pagination
         paginator = Paginator(ledger, 20)
@@ -1086,6 +1104,14 @@ class AccountDetailView(LoginRequiredMixin, View):
                 item.base_amount_display = item.base_amount if item.currency != account.currency else None
                 item.description = item.note if item.note else item.get_subtype_display()
 
+        applied_filters = {}
+        if selected_tx_types:
+            applied_filters['tx_type'] = selected_tx_types
+        if selected_categories:
+            applied_filters['category'] = selected_categories
+        if selected_amounts:
+            applied_filters['amount_range'] = selected_amounts
+
         context = {
             'account': account,
             'ledger': page_obj,
@@ -1093,10 +1119,19 @@ class AccountDetailView(LoginRequiredMixin, View):
             'is_paginated': paginator.num_pages > 1,
             'currency_symbol': account.currency,
             'base_currency_symbol': base_currency,
-            'search_query': query,
-            'selected_tx_type': selected_tx_type,
+            'search_query': search_query,
+            'selected_tx_type': selected_tx_types[0] if len(selected_tx_types) == 1 else '',
             'filtered_net_total': filtered_net_total,
             'trend_data': self.get_trend_data(account, request.user),
+            'filter_config': ACCOUNT_DETAIL_FILTERS,
+            'applied_state': {
+                'search': search_query,
+                'time_period': time_period,
+                'start_date': start_date,
+                'end_date': end_date,
+                'sort': sort_by,
+                'filters': applied_filters,
+            },
         }
         from django.utils.cache import patch_vary_headers
         template_name = 'expenses/partials/_account_detail.html' if request.headers.get('HX-Request') == 'true' else self.template_name
@@ -1313,14 +1348,47 @@ def search_amfi_schemes(request):
     results = []
     
     # 1. Try local AMFIScheme table first
-    schemes = AMFIScheme.objects.filter(
-        Q(scheme_name__icontains=q) | Q(scheme_code__icontains=q)
-    )[:15]
+    query_words = [w for w in q.split() if w]
+    scheme_filter = Q()
+    for w in query_words:
+        scheme_filter &= Q(scheme_name__icontains=w)
+
+    schemes = list(AMFIScheme.objects.filter(
+        scheme_filter | Q(scheme_code__icontains=q)
+    )[:40])
     
-    if schemes.exists():
+    if schemes:
+        q_lower = q.lower()
+        has_plan_preference = 'direct' in q_lower or 'regular' in q_lower
+        has_opt_preference = 'growth' in q_lower or 'idcw' in q_lower or 'div' in q_lower
+
+        def sort_key(s):
+            name_lower = s.scheme_name.lower()
+            plan_score = 0
+            if not has_plan_preference:
+                if 'direct' in name_lower:
+                    plan_score = 0
+                elif 'regular' in name_lower:
+                    plan_score = 1
+                else:
+                    plan_score = 2
+            
+            opt_score = 0
+            if not has_opt_preference:
+                if 'growth' in name_lower:
+                    opt_score = 0
+                elif 'idcw' in name_lower or 'dividend' in name_lower:
+                    opt_score = 1
+                else:
+                    opt_score = 2
+
+            exact_score = 0 if q_lower in name_lower else 1
+            return (exact_score, plan_score, opt_score, len(s.scheme_name))
+
+        schemes.sort(key=sort_key)
         results = [
             {'scheme_code': s.scheme_code, 'scheme_name': s.scheme_name, 'isin': s.isin}
-            for s in schemes
+            for s in schemes[:15]
         ]
     else:
         # 2. Live fallback to MFapi.in search API

@@ -23,6 +23,7 @@ from .mixins import (
     RecurringTransactionMixin,
     UUIDOrIntLookupMixin,
 )
+from ..filters import INCOME_FILTERS, apply_filter_config
 from .utils import apply_date_filters
 
 
@@ -34,50 +35,15 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Income.objects.filter(user=self.request.user).select_related('account')
-        
-        # Date Filter
-        queryset = apply_date_filters(queryset, self.request)
-        search = self.request.GET.get('search')
-        source_types = self.request.GET.getlist('source_type')
-        income_groups = self.request.GET.getlist('income_group')
-
-        # Search Filter
-        if search:
-            queryset = queryset.filter(description__icontains=search)
-            
-        # Source Type Filter
-        if source_types:
-            queryset = queryset.filter(source_type__in=source_types)
-            
-        # Income Group Filter
-        if income_groups:
-            group_source_types = []
-            if 'EARNED' in income_groups:
-                group_source_types.extend(['Salary', 'Freelance / Consulting', 'Business'])
-            if 'PASSIVE' in income_groups:
-                group_source_types.extend(['Investment Returns', 'Rental Income'])
-            if 'ONE_OFF' in income_groups:
-                group_source_types.extend(['Cashback & Rewards', 'Refund / Reimbursement', 'Other'])
-            
-            if group_source_types:
-                queryset = queryset.filter(source_type__in=group_source_types)
-
-        # Sorting
-        sort_by = self.request.GET.get('sort', 'date_desc')
-        if sort_by == 'date_asc':
-            queryset = queryset.order_by('date', 'created_at', 'id')
-        elif sort_by == 'amount_desc':
-            queryset = queryset.order_by('-base_amount', '-id')
-        elif sort_by == 'amount_asc':
-            queryset = queryset.order_by('base_amount', 'id')
-        else:
-            queryset = queryset.order_by('-date', '-created_at', '-id')
-            
+        base_qs = Income.objects.filter(user=self.request.user).select_related('account')
+        queryset, self.applied_state = apply_filter_config(base_qs, self.request, INCOME_FILTERS)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['filter_config'] = INCOME_FILTERS
+        context['applied_state'] = getattr(self, 'applied_state', {})
+
         from ..models import CURRENCY_CHOICES, Account
         context['currency_choices'] = CURRENCY_CHOICES
         context['accounts'] = Account.objects.filter(user=self.request.user, is_active=True)

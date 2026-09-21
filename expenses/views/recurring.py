@@ -2,6 +2,7 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
@@ -9,6 +10,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from expenses.views.utils import get_safe_redirect_url
 
+from ..filters.definitions import RECURRING_FILTERS
 from ..forms import RecurringTransactionForm
 from ..models import RecurringTransaction
 from ..posthog_utils import ph_capture
@@ -39,23 +41,52 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         if self.filter_expenses_only:
             queryset = queryset.filter(transaction_type__in=['EXPENSE', 'TRANSFER', 'LOAN', 'CAPITAL'])
         queryset = queryset.order_by('-created_at')
-        
+
+        # Filter by Search
+        search_query = self.request.GET.get('search', '').strip()
+        if search_query:
+            queryset = queryset.filter(Q(description__icontains=search_query) | Q(category__icontains=search_query))
+
         # Filter by Category
-        categories = self.request.GET.getlist('category')
+        categories = [c for c in self.request.GET.getlist('category') if c]
+        if not categories and self.request.GET.get('category'):
+            categories = [self.request.GET.get('category')]
         if categories:
             queryset = queryset.filter(category__in=categories)
+
+        # Filter by Billing Cycle (frequency)
+        frequencies = [f for f in self.request.GET.getlist('frequency') if f]
+        if not frequencies and self.request.GET.get('frequency'):
+            frequencies = [self.request.GET.get('frequency')]
+        if frequencies:
+            queryset = queryset.filter(frequency__in=frequencies)
+
+        # Filter by Status
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'cancelled':
+            queryset = queryset.filter(is_active=False)
+
+        # Filter by Account
+        accounts = [a for a in self.request.GET.getlist('account') if a]
+        if not accounts and self.request.GET.get('account'):
+            accounts = [self.request.GET.get('account')]
+        if accounts:
+            queryset = queryset.filter(Q(account_id__in=accounts) | Q(from_account_id__in=accounts) | Q(to_account_id__in=accounts))
+
+        # Filter by Transaction Type
+        types = [t for t in self.request.GET.getlist('transaction_type') if t]
+        if not types and self.request.GET.get('transaction_type'):
+            types = [self.request.GET.get('transaction_type')]
+        if types:
+            queryset = queryset.filter(transaction_type__in=types)
             
         return queryset
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_transactions = self.object_list
         today = date.today()
-        
-        # Categories for filter derived from object_list to save DB query
-        categories = sorted(list({t.category for t in all_transactions if t.category}))
-        
-        context['categories'] = categories
-        context['selected_categories'] = self.request.GET.getlist('category')
         
         # Split into Active and Cancelled
         # We sort active subs by creation date to determine which ones are locked
@@ -123,8 +154,55 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
             
         renewing_soon.sort(key=lambda x: x.annotated_days_until)
 
-        # Sort active subs by days until next occurrence (upcoming first)
-        active_subs.sort(key=lambda x: x.annotated_days_until)
+        # Sort active and cancelled subs
+        sort_by = self.request.GET.get('sort', 'next_date_asc')
+        if sort_by == 'amount_desc':
+            active_subs.sort(key=lambda x: x.base_amount or x.amount, reverse=True)
+            cancelled_subs.sort(key=lambda x: x.base_amount or x.amount, reverse=True)
+        elif sort_by == 'amount_asc':
+            active_subs.sort(key=lambda x: x.base_amount or x.amount)
+            cancelled_subs.sort(key=lambda x: x.base_amount or x.amount)
+        elif sort_by == 'name_asc':
+            active_subs.sort(key=lambda x: (x.description or '').lower())
+            cancelled_subs.sort(key=lambda x: (x.description or '').lower())
+        else: # next_date_asc
+            active_subs.sort(key=lambda x: x.annotated_days_until)
+            cancelled_subs.sort(key=lambda x: (x.next_due_date or date.max))
+
+        search_query = self.request.GET.get('search', '').strip()
+        selected_categories = [c for c in self.request.GET.getlist('category') if c]
+        if not selected_categories and self.request.GET.get('category'):
+            selected_categories = [self.request.GET.get('category')]
+        selected_frequencies = [f for f in self.request.GET.getlist('frequency') if f]
+        if not selected_frequencies and self.request.GET.get('frequency'):
+            selected_frequencies = [self.request.GET.get('frequency')]
+        selected_status = self.request.GET.get('status')
+        selected_accounts = [a for a in self.request.GET.getlist('account') if a]
+        if not selected_accounts and self.request.GET.get('account'):
+            selected_accounts = [self.request.GET.get('account')]
+        selected_types = [t for t in self.request.GET.getlist('transaction_type') if t]
+        if not selected_types and self.request.GET.get('transaction_type'):
+            selected_types = [self.request.GET.get('transaction_type')]
+
+        applied_filters = {}
+        if selected_categories:
+            applied_filters['category'] = selected_categories
+        if selected_frequencies:
+            applied_filters['frequency'] = selected_frequencies
+        if selected_status:
+            applied_filters['status'] = [selected_status]
+        if selected_accounts:
+            applied_filters['account'] = selected_accounts
+        if selected_types:
+            applied_filters['transaction_type'] = selected_types
+
+        context['filter_config'] = RECURRING_FILTERS
+        context['applied_state'] = {
+            'search': search_query,
+            'sort': sort_by,
+            'filters': applied_filters,
+        }
+        context['current_status'] = selected_status
 
         context.update({
             'active_subs': active_subs,

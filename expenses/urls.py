@@ -56,6 +56,7 @@ urlpatterns = [
     path('accounts/<uuid_or_int:pk>/record-maturity-income/', views.RecordMaturityIncomeView.as_view(), name='account-record-maturity-income'),
     path('accounts/quick-add/', views.AccountQuickCreateView.as_view(), name='account-quick-create'),
     path('api/amfi-schemes/search/', views.search_amfi_schemes, name='search-amfi-schemes'),
+    path('api/filters/options/', views.FilterOptionsView.as_view(), name='filter-options-api'),
     path('holdings/', views.HoldingsListView.as_view(), name='holding-list'),
     path('holdings/add/', views.holding_create_view, name='holding-create-global'),
     path('holdings/<int:pk>/refresh-nav/', views.refresh_holding_nav, name='refresh-holding-nav'),

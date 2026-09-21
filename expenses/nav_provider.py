@@ -83,7 +83,7 @@ class MFAPIProvider(BaseNAVProvider):
 class AMFIProvider(BaseNAVProvider):
     """Fallback provider: AMFI raw text feed NAVAll.txt (SPEC §3a)."""
     name = 'AMFI'
-    AMFI_URL = "https://www.amfiindia.com/spages/NAVAll.txt"
+    AMFI_URL = "https://portal.amfiindia.com/spages/NAVAll.txt"
 
     def fetch_latest(self, scheme_code: str) -> tuple[Decimal, date, str | None, str | None] | None:
         scheme_code = str(scheme_code).strip()
@@ -113,12 +113,23 @@ class AMFIProvider(BaseNAVProvider):
             if not line or ';' not in line:
                 continue
             parts = line.split(';')
-            # Columns: Scheme Code; ISIN Div Payout/ Growth; ISIN Div Reinvestment; Scheme Name; Net Asset Value; Date
+            # Format: Scheme Code; ISIN Div Payout/ Growth; ISIN Div Reinvestment; Scheme Name; [Plan; Option;] Net Asset Value; Date
             if len(parts) >= 6 and parts[0].strip() == scheme_code:
-                scheme_name = parts[3].strip()
-                nav_str = parts[4].strip()
-                date_str = parts[5].strip()  # Format: 10-Aug-2026
+                if len(parts) >= 8:
+                    base_name = parts[3].strip()
+                    plan = parts[4].strip()
+                    opt = parts[5].strip()
+                    nav_str = parts[6].strip()
+                    date_str = parts[7].strip()
+                    extra = [p for p in (plan, opt) if p and p != '-']
+                    scheme_name = f"{base_name} - {' - '.join(extra)}" if extra else base_name
+                else:
+                    scheme_name = parts[3].strip()
+                    nav_str = parts[4].strip()
+                    date_str = parts[5].strip()  # Format: 10-Aug-2026
                 isin = parts[1].strip() or parts[2].strip() or None
+                if isin == '-':
+                    isin = None
                 
                 try:
                     nav = Decimal(nav_str)
@@ -256,40 +267,72 @@ class NAVFetchService:
         """
         Populates/updates AMFIScheme search mirror from AMFI NAVAll.txt feed.
         """
-        req = urllib.request.Request(
-            AMFIProvider.AMFI_URL,
-            headers={'User-Agent': 'TrackMyRupee-SchemeSync/1.0'}
-        )
+        lines = []
+        try:
+            import requests
+            resp = requests.get(AMFIProvider.AMFI_URL, headers={'User-Agent': 'TrackMyRupee-SchemeSync/1.0'}, timeout=20)
+            if resp.status_code == 200:
+                lines = resp.text.splitlines()
+        except Exception:
+            pass
+
+        if not lines:
+            try:
+                import ssl
+                ctx = ssl._create_unverified_context()
+                req = urllib.request.Request(
+                    AMFIProvider.AMFI_URL,
+                    headers={'User-Agent': 'TrackMyRupee-SchemeSync/1.0'}
+                )
+                with urllib.request.urlopen(req, timeout=20, context=ctx) as resp:
+                    lines = resp.read().decode('utf-8', errors='ignore').splitlines()
+            except Exception as e:
+                logger.error("Failed to sync AMFI scheme list: %s", e)
+                return 0
+
         count = 0
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                lines = resp.read().decode('utf-8', errors='ignore').splitlines()
-                
-                schemes_to_upsert = []
-                for line in lines:
-                    line = line.strip()
-                    if not line or ';' not in line:
+            schemes_to_upsert = []
+            for line in lines:
+                line = line.strip()
+                if not line or ';' not in line:
+                    continue
+                parts = line.split(';')
+                if len(parts) >= 6:
+                    code = parts[0].strip()
+                    if not code or not code.isdigit():
                         continue
-                    parts = line.split(';')
-                    if len(parts) >= 4:
-                        code = parts[0].strip()
-                        name = parts[3].strip()
-                        isin = parts[1].strip() or parts[2].strip() or None
-                        if code and name and code.isdigit():
-                            schemes_to_upsert.append(AMFIScheme(
-                                scheme_code=code,
-                                scheme_name=name[:255],
-                                isin=isin[:50] if isin else None
-                            ))
-                
-                if schemes_to_upsert:
+                    base_name = parts[3].strip()
+                    if len(parts) >= 8:
+                        plan = parts[4].strip()
+                        opt = parts[5].strip()
+                        extra = [p for p in (plan, opt) if p and p != '-']
+                        name = f"{base_name} - {' - '.join(extra)}" if extra else base_name
+                    else:
+                        name = base_name
+
+                    isin = parts[1].strip() or parts[2].strip() or None
+                    if isin == '-':
+                        isin = None
+
+                    schemes_to_upsert.append(AMFIScheme(
+                        scheme_code=code,
+                        scheme_name=name[:255],
+                        isin=isin[:50] if isin else None
+                    ))
+            
+            if schemes_to_upsert:
+                chunk_size = 2000
+                for i in range(0, len(schemes_to_upsert), chunk_size):
+                    chunk = schemes_to_upsert[i:i + chunk_size]
                     AMFIScheme.objects.bulk_create(
-                        schemes_to_upsert,
+                        chunk,
                         update_conflicts=True,
                         unique_fields=['scheme_code'],
                         update_fields=['scheme_name', 'isin']
                     )
-                    count = len(schemes_to_upsert)
+                count = len(schemes_to_upsert)
         except Exception as e:
             logger.error("Failed to sync AMFI scheme list: %s", e)
         return count
+

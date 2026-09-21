@@ -1,4 +1,4 @@
-{% load i18n digit_filters humanize %}
+{% load i18n digit_filters humanize filter_tags %}
 
 <div id="recurring-list-shell">
     <!-- Mobile Header -->
@@ -11,15 +11,6 @@
                 </button>
             </h1>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel" aria-hidden="true"></i>
-                    {% if active_filters_count > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
-                        {{ active_filters_count }}
-                        <span class="visually-hidden">active filters</span>
-                    </span>
-                    {% endif %}
-                </button>
                 {% if is_limit_reached %}
                     <button type="button" class="header-action-btn btn-primary d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#limitReachedModal" title="{% trans 'Add Subscription' %}" aria-label="{% trans 'Add Subscription' %}">
                         <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans 'Add' %}
@@ -60,15 +51,6 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionFilters" aria-expanded="false" aria-controls="subscriptionFilters" title="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel"></i>
-                    {% if active_filters_count > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
-                        {{ active_filters_count }}
-                        <span class="visually-hidden">active filters</span>
-                    </span>
-                    {% endif %}
-                </button>
                 {% if is_limit_reached %}
                     <button type="button" class="header-action-btn btn-primary" data-bs-toggle="modal" data-bs-target="#limitReachedModal">
                         <i class="bi bi-plus-lg me-1"></i> {% trans "Add Subscription" %}
@@ -84,50 +66,33 @@
 
     {% include 'partials/guide_recurring.html' %}
 
-    <!-- Filter Form -->
-    <div class="collapse {% if time_period == 'custom' and request.GET.pill_clicked %}show{% endif %}" id="subscriptionFilters">
-        <form method="get" class="mb-4 bg-body p-4 rounded-4 border mt-3" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'recurring-list' %}" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-            <div class="row g-4 align-items-end">
-                <div class="col-12 col-md-6">
-                    <label for="category-select" class="form-label small text-muted fw-semibold mb-2">{% trans "Category" %}</label>
-                    <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="Categories...">
-                        {% for cat in categories %}
-                            <option value="{{ cat }}" {% if cat in selected_categories %}selected{% endif %}>
-                                {{ cat }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="col-12 col-md-6 d-flex justify-content-start justify-content-md-end mt-4 mt-md-0">
-                    <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
-                    <button type="button" class="btn btn-outline-secondary fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'recurring-list' %}" hx-params="none" hx-target="#recurring-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
-                </div>
-            </div>
-        </form>
-    </div>
+    {% if filter_config %}
+    {% render_filter_toolbar filter_config applied_state %}
+    {% endif %}
         
     {% include 'components/upgrade_nudge.html' %}
 
     <!-- Navigation Pills (matches all-transactions page style) -->
     <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 hide-scrollbar mt-3 mb-4" style="scrollbar-width: none;" id="subscriptionTabs" role="tablist">
-        <button type="button" id="all-tab" role="tab" aria-selected="true"
+        <button type="button" id="all-tab" role="tab" aria-selected="{% if current_status == 'cancelled' %}false{% else %}true{% endif %}"
             class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
             data-sub-tab-target="#all"
-            style="font-size: 0.8rem; background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;">
+            style="font-size: 0.8rem; {% if current_status != 'cancelled' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
             {% trans "All" %} {{ active_subs|length|translate_digits }}
         </button>
+        {% if current_status != 'cancelled' %}
         <button type="button" id="renewing-tab" role="tab" aria-selected="false"
             class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
             data-sub-tab-target="#renewing"
             style="font-size: 0.8rem; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);">
             {% trans "Renewing Soon" %}{% if renewals_count > 0 %} {{ renewals_count|translate_digits }}{% endif %}
         </button>
-        <button type="button" id="cancelled-tab" role="tab" aria-selected="false"
+        {% endif %}
+        <button type="button" id="cancelled-tab" role="tab" aria-selected="{% if current_status == 'cancelled' %}true{% else %}false{% endif %}"
             class="btn btn-sm rounded-pill fw-semibold px-3 py-1 transition-all text-nowrap sub-pill-btn"
             data-sub-tab-target="#cancelled"
-            style="font-size: 0.8rem; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);">
-            {% trans "Cancelled" %}
+            style="font-size: 0.8rem; {% if current_status == 'cancelled' %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,0.06);{% endif %}">
+            {% trans "Cancelled" %}{% if cancelled_subs %} {{ cancelled_subs|length|translate_digits }}{% endif %}
         </button>
     </div>
     <script>
@@ -165,7 +130,7 @@
     <!-- Tab Contents -->
     <div class="tab-content" id="subscriptionTabsContent">
         <!-- 1. All Subscriptions Tab -->
-        <div class="tab-pane fade show active" id="all" role="tabpanel">
+        <div class="tab-pane fade {% if current_status != 'cancelled' %}show active{% endif %}" id="all" role="tabpanel">
             {% if active_subs %}
                 <!-- Desktop Table View -->
                 <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mb-4">
@@ -551,7 +516,7 @@
         </div>
 
         <!-- 3. Cancelled Tab -->
-        <div class="tab-pane fade" id="cancelled" role="tabpanel">
+        <div class="tab-pane fade {% if current_status == 'cancelled' %}show active{% endif %}" id="cancelled" role="tabpanel">
             {% if cancelled_subs %}
                 <!-- Desktop Table View -->
                 <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mb-4 opacity-75">

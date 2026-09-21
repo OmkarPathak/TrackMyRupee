@@ -117,7 +117,7 @@ body.has-sidebar .table-responsive {
   background-color: #fcfbfa !important;
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.05) !important;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 body.has-sidebar .table-responsive .table,

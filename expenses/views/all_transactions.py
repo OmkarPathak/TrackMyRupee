@@ -23,6 +23,7 @@ from django.views.generic import ListView
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, CapitalEvent, Expense, Income, LoanRepayment, Transfer
 from ..utils import get_exchange_rate
+from ..filters.definitions import ALL_TRANSACTIONS_FILTERS
 from .mixins import HtmxPartialTemplateMixin
 from .utils import apply_date_filters
 
@@ -111,6 +112,12 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         # Handle filtering
         search_query = self.request.GET.get('search')
         selected_types = [t for t in self.request.GET.getlist('type') if t]
+        selected_accounts = [a for a in self.request.GET.getlist('account') if a]
+        if not selected_accounts and self.request.GET.get('account'):
+            selected_accounts = [self.request.GET.get('account')]
+        selected_amounts = [a for a in self.request.GET.getlist('amount_range') if a]
+        if not selected_amounts and self.request.GET.get('amount_range'):
+            selected_amounts = [self.request.GET.get('amount_range')]
 
         # Apply time period filters
         expenses = apply_date_filters(expenses, self.request)
@@ -127,6 +134,21 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             transfers = transfers.filter(description__icontains=search_query)
             loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
             capital_events = capital_events.filter(Q(note__icontains=search_query) | Q(subtype__icontains=search_query))
+
+        if selected_accounts:
+            expenses = expenses.filter(account_id__in=selected_accounts)
+            incomes = incomes.filter(account_id__in=selected_accounts)
+            transfers = transfers.filter(Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts))
+            loan_repayments = loan_repayments.filter(from_account_id__in=selected_accounts)
+            capital_events = capital_events.filter(account_id__in=selected_accounts)
+
+        if selected_amounts:
+            from ..filters.definitions import filter_amount_range
+            expenses = filter_amount_range(expenses, selected_amounts)
+            incomes = filter_amount_range(incomes, selected_amounts)
+            transfers = filter_amount_range(transfers, selected_amounts)
+            loan_repayments = filter_amount_range(loan_repayments, selected_amounts)
+            capital_events = filter_amount_range(capital_events, selected_amounts)
 
         # Filter by Transaction Type
         active_qs = []
@@ -173,13 +195,37 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        # We need the filtered querysets to calculate individual counts
-        # (This is slightly redundant with get_queryset but ensures accuracy)
-        search_query = self.request.GET.get('search')
+        context['filter_config'] = ALL_TRANSACTIONS_FILTERS
+        search_query = self.request.GET.get('search') or ''
         selected_types = [t for t in self.request.GET.getlist('type') if t]
+        selected_accounts = [a for a in self.request.GET.getlist('account') if a]
+        if not selected_accounts and self.request.GET.get('account'):
+            selected_accounts = [self.request.GET.get('account')]
+        selected_amounts = [a for a in self.request.GET.getlist('amount_range') if a]
+        if not selected_amounts and self.request.GET.get('amount_range'):
+            selected_amounts = [self.request.GET.get('amount_range')]
+
         time_period = self.request.GET.get('time_period', 'this_month')
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
+        start_date = self.request.GET.get('start_date') or ''
+        end_date = self.request.GET.get('end_date') or ''
+
+        applied_filters = {}
+        if selected_types:
+            applied_filters['type'] = selected_types
+        if selected_accounts:
+            applied_filters['account'] = selected_accounts
+        if selected_amounts:
+            applied_filters['amount_range'] = selected_amounts
+
+        context['applied_state'] = {
+            'search': search_query,
+            'time_period': time_period,
+            'start_date': start_date,
+            'end_date': end_date,
+            'sort': self.request.GET.get('sort', 'date_desc'),
+            'filters': applied_filters,
+        }
+
 
         expenses = Expense.objects.filter(user=user)
         incomes = Income.objects.filter(user=user)
@@ -198,6 +244,21 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query))
             transfers = transfers.filter(description__icontains=search_query)
             loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
+
+        if selected_accounts:
+            expenses = expenses.filter(account_id__in=selected_accounts)
+            incomes = incomes.filter(account_id__in=selected_accounts)
+            transfers = transfers.filter(Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts))
+            loan_repayments = loan_repayments.filter(from_account_id__in=selected_accounts)
+            capital_events = capital_events.filter(account_id__in=selected_accounts)
+
+        if selected_amounts:
+            from ..filters.definitions import filter_amount_range
+            expenses = filter_amount_range(expenses, selected_amounts)
+            incomes = filter_amount_range(incomes, selected_amounts)
+            transfers = filter_amount_range(transfers, selected_amounts)
+            loan_repayments = filter_amount_range(loan_repayments, selected_amounts)
+            capital_events = filter_amount_range(capital_events, selected_amounts)
         from django.db.models import Count
 
         exp_stats = expenses.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
@@ -403,7 +464,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         sort_by = self.request.GET.get('sort', 'date_desc')
         context['sort_by'] = sort_by
         context['current_sort'] = sort_by
-        
+
         # Calculate active filters count
         active_filters = 0
         if search_query:
@@ -411,6 +472,10 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         if time_period != 'this_month':
             active_filters += 1
         if selected_types:
+            active_filters += 1
+        if selected_accounts:
+            active_filters += 1
+        if selected_amounts:
             active_filters += 1
         if sort_by and sort_by != 'date_desc':
             active_filters += 1

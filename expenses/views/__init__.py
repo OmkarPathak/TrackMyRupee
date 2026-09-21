@@ -10,7 +10,9 @@ from .categories import *
 from .dashboard import *
 from .expenses import *
 from .export import *
+from .filter_api import *
 from .goals import *
+
 from .income import *
 from .loans import *
 from .misc import *

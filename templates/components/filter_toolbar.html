@@ -1,0 +1,84 @@
+{% load i18n %}
+
+<div class="tmr-toolbar-container" id="tmr-toolbar-{{ filter_config.page_key }}" data-page-key="{{ filter_config.page_key }}">
+  <!-- Top Toolbar Zone Row -->
+  <div class="tmr-toolbar-row">
+    <!-- Zone 1: Persistent Search Input -->
+    {% if filter_config.supports_search %}
+    <div class="tmr-search-box">
+      <i class="bi bi-search tmr-search-icon" aria-hidden="true"></i>
+      <input type="text"
+             class="tmr-search-input"
+             autocomplete="off"
+             placeholder="{% trans filter_config.search_placeholder %}"
+             value="{{ applied_state.search|default:'' }}"
+             aria-label="{% trans 'Search description' %}"
+             onpointerdown="this.dataset.userActive='1'"
+             onmousedown="this.dataset.userActive='1'"
+             ontouchstart="this.dataset.userActive='1'"
+             onfocus="if(!this.dataset.userActive){this.blur();}"
+             onblur="delete this.dataset.userActive">
+    </div>
+    {% endif %}
+
+    <!-- Horizontally scrollable on mobile so it never wraps awkwardly under the search box -->
+    <div class="tmr-toolbar-zones">
+      <!-- Zone 2: Time Period Dropdown -->
+      {% if filter_config.supports_time_period is not False %}
+      <div class="tmr-toolbar-zone">
+        <span class="tmr-zone-label">{% trans "TIME" %}</span>
+        <button type="button" class="tmr-toolbar-btn tmr-time-btn" id="tmr-time-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+          <span class="tmr-time-label">
+            {% if applied_state.time_period == 'last_month' %}{% trans "Last month" %}
+            {% elif applied_state.time_period == 'last_3_months' %}{% trans "Last 3 months" %}
+            {% elif applied_state.time_period == 'this_year' %}{% trans "This year" %}
+            {% elif applied_state.time_period == 'all' %}{% trans "All time" %}
+            {% elif applied_state.time_period == 'custom' %}{% trans "Custom range" %}
+            {% else %}{% trans "This month" %}
+            {% endif %}
+          </span>
+          <i class="bi bi-chevron-down ms-1" style="font-size: 0.75rem;"></i>
+        </button>
+      </div>
+      {% endif %}
+
+      <!-- Zone 3: + Filter Button -->
+      <div class="tmr-toolbar-zone">
+        <span class="tmr-zone-label">{% trans "FILTERS" %}</span>
+        <button type="button" class="tmr-toolbar-btn tmr-add-filter-btn" id="tmr-add-filter-btn" aria-haspopup="true" aria-expanded="false">
+          <i class="bi bi-plus-lg"></i>
+          <span>{% trans "Filter" %}</span>
+        </button>
+      </div>
+
+      <!-- Zone 4: Display & Sort -->
+      <div class="tmr-toolbar-zone ms-md-auto">
+        <span class="tmr-zone-label">{% trans "DISPLAY" %}</span>
+        <button type="button" class="tmr-toolbar-btn tmr-sort-btn" id="tmr-sort-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+          <span class="tmr-sort-label">
+            {% for opt in filter_config.sort_options %}
+              {% if opt.key == applied_state.sort %}{% trans opt.label %}{% endif %}
+            {% empty %}
+              {% trans "Date, newest" %}
+            {% endfor %}
+          </span>
+          <i class="bi bi-chevron-down ms-1" style="font-size: 0.75rem;"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chip Row (populated dynamically by tmr_filter.js) -->
+  <div class="tmr-chip-row" id="tmr-chip-row-{{ filter_config.page_key }}">
+    <!-- Dynamic chips rendered by JS -->
+  </div>
+</div>
+
+
+<!-- Embedded Configuration Data -->
+<script id="tmr-filter-config-{{ filter_config.page_key }}" type="application/json">
+  {{ filter_config_json|safe }}
+</script>
+<script id="tmr-applied-state-{{ filter_config.page_key }}" type="application/json">
+  {{ applied_state_json|safe }}
+</script>

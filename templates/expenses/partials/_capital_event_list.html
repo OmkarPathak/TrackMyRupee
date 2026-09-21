@@ -1,4 +1,4 @@
-{% load i18n digit_filters expense_extras humanize %}
+{% load i18n digit_filters expense_extras humanize filter_tags %}
 
 <div id="capital-event-list-shell">
     <!-- Mobile Header -->
@@ -6,15 +6,6 @@
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h1>
             <div class="d-flex align-items-center gap-2">
-                <button class="filter-toggle-btn position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel" aria-hidden="true"></i>
-                    {% if active_filters_count > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
-                        {{ active_filters_count }}
-                        <span class="visually-hidden">active filters</span>
-                    </span>
-                    {% endif %}
-                </button>
                 <a href="{% url 'capital-event-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center">
                     <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans "Add" %}
                 </a>
@@ -36,16 +27,6 @@
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="h4 mb-0 fw-bold">{% trans "Capital Events" %}</h1>
             <div class="d-flex gap-2 align-items-center">
-                <button class="filter-toggle-btn collapsed position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#capitalEventFilters" aria-expanded="false" aria-controls="capitalEventFilters" title="{% trans 'Toggle Filters' %}" aria-label="{% trans 'Toggle Filters' %}">
-                    <i class="bi bi-funnel" aria-hidden="true"></i>
-                    {% if active_filters_count > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.5em;">
-                        {{ active_filters_count }}
-                        <span class="visually-hidden">active filters</span>
-                    </span>
-                    {% endif %}
-                </button>
-
                 <a href="{% url 'capital-event-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
                     <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans "Add Capital Event" %}
                 </a>
@@ -63,69 +44,9 @@
         </div>
     </div>
 
-    <!-- Filter Form -->
-    <div class="collapse {% if time_period == 'custom' and request.GET.pill_clicked %}show{% endif %}" id="capitalEventFilters" style="z-index: 1040; position: relative;">
-        <form method="get" class="mb-4 bg-body p-4 rounded-4 border mt-3" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'capital-event-list' %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-            <div class="row g-4">
-                <div class="col-12 col-md-4">
-                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Search" %}</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" value="{{ search_query }}" placeholder="{% trans 'Search...' %}">
-                    </div>
-                </div>
-                
-                <div class="col-12 col-md-8">
-                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Time Period" %}</label>
-                    <div class="d-flex flex-wrap gap-2">
-                        {% with periods="this_month:This month,last_month:Last month,last_3_months:Last 3 months,this_year:This year,all:All time,custom:Custom" %}
-                        {% for period in periods|split_string:"," %}
-                            {% with p_val=period|split_string:":"|first p_label=period|split_string:":"|last %}
-                            <label class="btn btn-sm rounded-pill fw-medium px-3 transition-all d-inline-flex align-items-center justify-content-center time-period-pill {% if time_period == p_val %}btn-primary text-white border-primary shadow-sm active{% else %}btn-light text-body border-0{% endif %}" style="font-size: 0.85rem; cursor: pointer; {% if time_period == p_val %}background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff;{% else %}background-color: var(--bs-tertiary-bg);{% endif %}">
-                                <input type="radio" name="time_period" value="{{ p_val }}" class="d-none" onchange="handleTimePeriodChange(this)" {% if time_period == p_val %}checked{% endif %}>
-                                {{ p_label }}
-                            </label>
-                            {% endwith %}
-                        {% endfor %}
-                        {% endwith %}
-                    </div>
-
-                    <div class="custom-date-container mt-3 {% if time_period != 'custom' %}d-none{% endif %}">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-6 col-sm-5">
-                                <label class="form-label small text-muted fw-semibold mb-1">{% trans "Start Date" %}</label>
-                                <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" value="{{ start_date }}" aria-label="{% trans 'Start Date' %}">
-                            </div>
-                            <div class="col-6 col-sm-5">
-                                <label class="form-label small text-muted fw-semibold mb-1">{% trans "End Date" %}</label>
-                                <input type="date" name="end_date" id="end_date" class="form-control form-control-sm" value="{{ end_date }}" aria-label="{% trans 'End Date' %}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 mt-3 pt-3 border-top">
-                    <div class="row g-3">
-                        <div class="col-12 col-md">
-                            <label for="subtype-select" class="form-label small text-muted fw-semibold mb-2">{% trans "Type" %}</label>
-                            <select name="subtype" id="subtype-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Types...' %}">
-                                {% for val, label in subtype_choices %}
-                                    <option value="{{ val }}" {% if val in selected_subtypes %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 d-flex justify-content-end mt-4">
-                    <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
-                    <button type="button" class="btn btn-outline-secondary fw-medium btn-sm px-4 d-inline-flex align-items-center justify-content-center" hx-get="{% url 'capital-event-list' %}" hx-params="none" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
-                </div>
-            </div>
-        </form>
-    </div>
+    {% if filter_config %}
+    {% render_filter_toolbar filter_config applied_state %}
+    {% endif %}
 
     {% if events %}
     <div class="card border-0 shadow-sm rounded-4" id="mainCardContainer">
@@ -376,9 +297,16 @@
             </div>
             <div class="h5 mt-3 fw-semibold">{% trans "No capital events yet" %}</div>
             <p class="text-muted">{% trans "Capital events are large one-off payments (e.g. a home loan down payment) that are excluded from your regular analytics so they don't distort your monthly trends." %}</p>
-            <a href="{% url 'capital-event-create' %}" class="btn btn-primary rounded-3 mt-2">
-                <i class="bi bi-plus-lg me-1"></i>{% trans "Record your first capital event" %}
-            </a>
+            <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-2 mt-2">
+                <a href="{% url 'capital-event-create' %}" class="btn btn-primary rounded-3">
+                    <i class="bi bi-plus-lg me-1"></i>{% trans "Record your first capital event" %}
+                </a>
+                {% if request.GET.search or request.GET.start_date or request.GET.end_date or request.GET.subtype or request.GET.account or request.GET.amount_range or request.GET.time_period != 'this_month' %}
+                    <a href="{% url 'capital-event-list' %}" class="btn btn-outline-secondary rounded-3" hx-get="{% url 'capital-event-list' %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>{% trans "Clear Filters" %}
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
     {% endif %}

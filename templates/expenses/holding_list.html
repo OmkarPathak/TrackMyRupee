@@ -2,7 +2,15 @@
 {% load i18n humanize currency_filters digit_filters expense_extras %}
 
 {% block content %}
-<div class="fade-in">
+<style>
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-responsive .dropdown-menu {
+        z-index: 1065 !important;
+    }
+</style>
+<div>
     <!-- Header Row -->
     <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
         <div>
@@ -46,7 +54,7 @@
     </div>
 
     <!-- Main Holdings Card Container -->
-    <div class="card rounded-4 border-0 shadow-sm overflow-hidden" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+    <div class="card rounded-4 border-0 shadow-sm" style="border: 1px solid rgba(0,0,0,0.07) !important;">
         <div class="card-header bg-transparent border-0 p-3 p-md-4 d-flex align-items-center justify-content-between">
             <h2 class="h5 mb-0 fw-bold">{% trans "All Holdings" %}</h2>
         </div>
@@ -101,7 +109,8 @@
                                                     data-bs-toggle="dropdown"
                                                     aria-expanded="false"
                                                     aria-label="{% trans 'Holding actions' %}"
-                                                    data-bs-popper-config='{"strategy":"fixed"}'>
+                                                    data-bs-popper-config='{"strategy":"fixed"}'
+                                                    data-bs-boundary="viewport">
                                                 <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
                                                 <span class="visually-hidden">{% trans "Holding actions" %}</span>
                                             </button>
@@ -147,7 +156,7 @@
 
                                 <!-- 3-Dot Actions Menu -->
                                 <div class="dropdown flex-shrink-0">
-                                    <button class="btn btn-link text-body-secondary p-0 border-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% trans 'Holding actions' %}" title="{% trans 'Holding actions' %}">
+                                    <button class="btn btn-link text-body-secondary p-0 border-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% trans 'Holding actions' %}" title="{% trans 'Holding actions' %}" data-bs-popper-config='{"strategy":"fixed"}' data-bs-boundary="viewport">
                                         <i class="bi bi-three-dots-vertical fs-6" aria-hidden="true"></i>
                                         <span class="visually-hidden">{% trans "Holding actions" %}</span>
                                     </button>
@@ -301,9 +310,29 @@
                             suggestionsBox.innerHTML = '';
                             results.forEach(item => {
                                 const a = document.createElement('a');
-                                a.className = 'dropdown-item py-2 border-bottom text-wrap';
+                                a.className = 'dropdown-item py-2 px-3 border-bottom text-wrap';
                                 a.style.cursor = 'pointer';
-                                a.innerHTML = `<div class="fw-bold text-body-emphasis small">${item.scheme_name}</div><div class="text-muted" style="font-size:0.72rem;">Code: ${item.scheme_code}</div>`;
+
+                                let badges = '';
+                                const nameLower = item.scheme_name.toLowerCase();
+                                if (nameLower.includes('direct')) {
+                                    badges += '<span class="badge bg-success-subtle text-success border border-success-subtle me-1" style="font-size:0.68rem;">Direct</span>';
+                                } else if (nameLower.includes('regular')) {
+                                    badges += '<span class="badge bg-secondary-subtle text-secondary border me-1" style="font-size:0.68rem;">Regular</span>';
+                                }
+                                if (nameLower.includes('growth')) {
+                                    badges += '<span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1" style="font-size:0.68rem;">Growth</span>';
+                                } else if (nameLower.includes('idcw') || nameLower.includes('dividend')) {
+                                    badges += '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle me-1" style="font-size:0.68rem;">IDCW</span>';
+                                }
+
+                                a.innerHTML = `
+                                    <div class="fw-semibold text-body-emphasis small lh-sm mb-1">${item.scheme_name}</div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        ${badges}
+                                        <span class="text-muted ms-1" style="font-size:0.72rem;">Code: ${item.scheme_code}</span>
+                                    </div>
+                                `;
                                 a.addEventListener('click', function(e) {
                                     e.preventDefault();
                                     searchInput.value = item.scheme_name;

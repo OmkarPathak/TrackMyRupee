@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% load i18n digit_filters expense_extras humanize %}
 
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/css/tmr_filter.css">
+    <script src="/static/js/tmr_filter.js" defer></script>
+{% endblock %}
+
 {% block content %}
 <style>
     .table-responsive {
