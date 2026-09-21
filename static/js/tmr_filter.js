@@ -235,16 +235,35 @@ class TMRFilterSystem {
         updateSearchClearVisibility();
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-          const prevSearch = this.state.search;
-          this.state.search = e.target.value.trim();
-          if (this.state.search && this.state.search !== prevSearch) {
-            this.trackFilterEvent('filter_search_entered', { query_length: this.state.search.length });
+          const newSearch = e.target.value.trim();
+          const prevSearch = (this.state.search || '').trim();
+          if (newSearch === prevSearch) return;
+
+          this.state.search = newSearch;
+          if (newSearch) {
+            this.trackFilterEvent('filter_search_entered', { query_length: newSearch.length });
           }
           if (document.activeElement === searchInput) {
             window.__tmrPreserveSearchFocus = true;
           }
           this.onStateChanged();
-        }, 300);
+        }, 450);
+      });
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          clearTimeout(debounceTimer);
+          const newSearch = searchInput.value.trim();
+          const prevSearch = (this.state.search || '').trim();
+          if (newSearch !== prevSearch) {
+            this.state.search = newSearch;
+            if (document.activeElement === searchInput) {
+              window.__tmrPreserveSearchFocus = true;
+            }
+            this.onStateChanged();
+          }
+        }
       });
 
       const clearSearch = () => {
@@ -567,12 +586,16 @@ class TMRFilterSystem {
       const items = popover.querySelectorAll('.tmr-popover-item');
 
       if (searchInput) {
+        let popoverDebounce = null;
         searchInput.addEventListener('input', (e) => {
-          const q = e.target.value.toLowerCase();
-          items.forEach(item => {
-            const text = item.textContent.toLowerCase();
-            item.style.display = text.includes(q) ? 'flex' : 'none';
-          });
+          clearTimeout(popoverDebounce);
+          popoverDebounce = setTimeout(() => {
+            const q = e.target.value.toLowerCase().trim();
+            items.forEach(item => {
+              const text = item.textContent.toLowerCase();
+              item.style.display = text.includes(q) ? 'flex' : 'none';
+            });
+          }, 200);
         });
       }
 
@@ -654,31 +677,36 @@ class TMRFilterSystem {
       const doneBtn = popover.querySelector('.tmr-popover-footer-btn.done');
 
       if (searchInput) {
-        searchInput.addEventListener('input', async (e) => {
-          const q = e.target.value;
-          if (filterDef.source === 'dynamic' && options.length > 50) {
-            // Dynamic server-side search
-            const filteredOpts = await this.fetchFilterOptions(filterDef, q);
-            const listEl = popover.querySelector('.tmr-popover-list');
-            if (listEl) {
-              listEl.innerHTML = filteredOpts.map(opt => {
-                const isChecked = (this.state.filters[filterDef.key] || []).includes(opt.value);
-                return `
-                  <li class="tmr-popover-item ${isChecked ? 'selected' : ''}" data-value="${opt.value}">
-                    <span>${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${opt.label}</span>
-                  </li>
-                `;
-              }).join('');
-              this.bindOptionItemClick(popover, filterDef);
+        let valuesDebounce = null;
+        searchInput.addEventListener('input', (e) => {
+          const rawVal = e.target.value;
+          clearTimeout(valuesDebounce);
+          valuesDebounce = setTimeout(async () => {
+            const q = rawVal.trim();
+            if (filterDef.source === 'dynamic' && options.length > 50) {
+              // Dynamic server-side search
+              const filteredOpts = await this.fetchFilterOptions(filterDef, q);
+              const listEl = popover.querySelector('.tmr-popover-list');
+              if (listEl) {
+                listEl.innerHTML = filteredOpts.map(opt => {
+                  const isChecked = (this.state.filters[filterDef.key] || []).includes(opt.value);
+                  return `
+                    <li class="tmr-popover-item ${isChecked ? 'selected' : ''}" data-value="${opt.value}">
+                      <span>${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${opt.label}</span>
+                    </li>
+                  `;
+                }).join('');
+                this.bindOptionItemClick(popover, filterDef);
+              }
+            } else {
+              // Client-side search
+              const query = q.toLowerCase();
+              items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? 'flex' : 'none';
+              });
             }
-          } else {
-            // Client-side search
-            const query = q.toLowerCase();
-            items.forEach(item => {
-              const text = item.textContent.toLowerCase();
-              item.style.display = text.includes(query) ? 'flex' : 'none';
-            });
-          }
+          }, 250);
         });
       }
 

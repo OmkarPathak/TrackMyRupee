@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters expense_extras humanize %}
+{% load static i18n digit_filters expense_extras humanize %}
 
 {% block extra_head %}
     {% include 'components/multiselect_assets.html' %}
-    <link rel="stylesheet" href="/static/css/tmr_filter.css">
-    <script src="/static/js/tmr_filter.js" defer></script>
+    <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=1.1">
+    <script src="{% static 'js/tmr_filter.js' %}?v=1.1" defer></script>
 {% endblock %}
 
 {% block title %}{% trans "Capital Events" %}{% endblock %}
