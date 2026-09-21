@@ -1,11 +1,13 @@
-// Updated: 2026-09-17 (Deployment Auto-Update)
-const CACHE_NAME = 'finance-tracker-v23';
+// Updated: 2026-09-21 (Deployment Auto-Update)
+const CACHE_NAME = 'finance-tracker-v24';
 const OFFLINE_URL = '/offline/';
 
 const ASSETS_TO_CACHE = [
   '/',
   OFFLINE_URL,
   '/static/style.css',
+  '/static/css/tmr_filter.css',
+  '/static/js/tmr_filter.js',
   '/static/icon.svg',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
