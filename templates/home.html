@@ -910,15 +910,15 @@
         <!-- Date Range Group -->
         <div class="row g-2">
             <div class="col-6">
-                <div class="input-group">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text bg-body-tertiary border-end-0">{% trans "From" %}</span>
-                    <input type="date" name="start_date" class="form-control" value="{{ start_date|default:'' }}">
+                    <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date|default:'' }}">
                 </div>
             </div>
             <div class="col-6">
-                <div class="input-group">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text bg-body-tertiary border-end-0">{% trans "To" %}</span>
-                    <input type="date" name="end_date" class="form-control" value="{{ end_date|default:'' }}">
+                    <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date|default:'' }}">
                 </div>
             </div>
         </div>
@@ -927,7 +927,7 @@
         <div class="row g-2">
             <div class="col-12">
                 <label for="mobile-category-select" class="visually-hidden">{% trans "Categories" %}</label>
-                <select name="category" id="mobile-category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories' %}" aria-label="{% trans 'Categories' %}">
+                <select name="category" id="mobile-category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories' %}" aria-label="{% trans 'Categories' %}">
                     {% for c in all_categories %}
                         <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
                     {% endfor %}

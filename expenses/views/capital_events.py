@@ -1,4 +1,7 @@
 
+import calendar
+from datetime import datetime
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
@@ -47,6 +50,42 @@ class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListVie
         applied_state = getattr(self, 'applied_state', {})
         ctx['filter_config'] = CAPITAL_EVENT_FILTERS
         ctx['applied_state'] = applied_state
+
+        user_events = CapitalEvent.objects.filter(user=self.request.user)
+        years_dates = user_events.dates('date', 'year', order='DESC')
+        years = sorted(list(set([d.year for d in years_dates] + [datetime.now().year])), reverse=True)
+
+        ctx['years'] = years
+        ctx['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
+
+        time_period = applied_state.get('time_period') or self.request.GET.get('time_period', 'this_month')
+        start_date = applied_state.get('start_date') or self.request.GET.get('start_date', '')
+        end_date = applied_state.get('end_date') or self.request.GET.get('end_date', '')
+        search_query = applied_state.get('search') or self.request.GET.get('search', '')
+
+        selected_filters = applied_state.get('filters', {})
+        selected_subtypes = selected_filters.get('subtype')
+        if selected_subtypes is None:
+            raw_subtypes = self.request.GET.getlist('subtype')
+            if not raw_subtypes and self.request.GET.get('subtype'):
+                raw_subtypes = [self.request.GET.get('subtype')]
+            selected_subtypes = [s for s in raw_subtypes if s]
+
+        ctx['time_period'] = time_period
+        ctx['start_date'] = start_date or ''
+        ctx['end_date'] = end_date or ''
+        ctx['search_query'] = search_query
+        ctx['selected_subtypes'] = selected_subtypes
+        ctx['selected_subtype'] = selected_subtypes[0] if selected_subtypes else ''
+        ctx['subtype_choices'] = CapitalEvent.SUBTYPE_CHOICES
+
+        active_filters = len(selected_filters)
+        if search_query:
+            active_filters += 1
+        if time_period != 'this_month':
+            active_filters += 1
+        ctx['active_filters_count'] = active_filters
+
         return ctx
 
 
