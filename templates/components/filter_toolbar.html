@@ -33,8 +33,8 @@
       <!-- Zone 2: Time Period Dropdown -->
       {% if filter_config.supports_time_period is not False %}
       <div class="tmr-toolbar-zone">
-        <span class="tmr-zone-label">{% trans "TIME" %}</span>
-        <button type="button" class="tmr-toolbar-btn tmr-time-btn" id="tmr-time-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="tmr-toolbar-btn tmr-time-btn" id="tmr-time-dropdown-btn" aria-haspopup="true" aria-expanded="false" title="{% trans 'Time period' %}">
+          <i class="bi bi-calendar3 tmr-btn-icon"></i>
           <span class="tmr-time-label">
             {% if applied_state.time_period == 'last_month' %}{% trans "Last month" %}
             {% elif applied_state.time_period == 'last_3_months' %}{% trans "Last 3 months" %}
@@ -53,24 +53,23 @@
             {% else %}{% trans "This month" %}
             {% endif %}
           </span>
-          <i class="bi bi-chevron-down ms-1" style="font-size: 0.75rem;"></i>
+          <i class="bi bi-chevron-down ms-1 tmr-chevron-icon"></i>
         </button>
       </div>
       {% endif %}
 
       <!-- Zone 3: + Filter Button -->
       <div class="tmr-toolbar-zone">
-        <span class="tmr-zone-label">{% trans "FILTERS" %}</span>
-        <button type="button" class="tmr-toolbar-btn tmr-add-filter-btn" id="tmr-add-filter-btn" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-plus-lg"></i>
+        <button type="button" class="tmr-toolbar-btn tmr-add-filter-btn" id="tmr-add-filter-btn" aria-haspopup="true" aria-expanded="false" title="{% trans 'Filters' %}">
+          <i class="bi bi-plus-lg tmr-btn-icon"></i>
           <span>{% trans "Filter" %}</span>
         </button>
       </div>
 
       <!-- Zone 4: Display & Sort -->
       <div class="tmr-toolbar-zone ms-md-auto">
-        <span class="tmr-zone-label">{% trans "DISPLAY" %}</span>
-        <button type="button" class="tmr-toolbar-btn tmr-sort-btn" id="tmr-sort-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="tmr-toolbar-btn tmr-sort-btn" id="tmr-sort-dropdown-btn" aria-haspopup="true" aria-expanded="false" title="{% trans 'Sort order' %}">
+          <i class="bi bi-arrow-down-up tmr-btn-icon"></i>
           <span class="tmr-sort-label">
             {% for opt in filter_config.sort_options %}
               {% if opt.key == applied_state.sort %}{% trans opt.label %}{% endif %}
@@ -78,7 +77,7 @@
               {% trans "Date, newest" %}
             {% endfor %}
           </span>
-          <i class="bi bi-chevron-down ms-1" style="font-size: 0.75rem;"></i>
+          <i class="bi bi-chevron-down ms-1 tmr-chevron-icon"></i>
         </button>
       </div>
     </div>

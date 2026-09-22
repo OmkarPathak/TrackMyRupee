@@ -45,16 +45,25 @@
 .tmr-toolbar-zone {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
-.tmr-zone-label {
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.tmr-btn-icon {
+  font-size: 0.85rem;
   color: var(--bs-secondary-color);
-  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tmr-chevron-icon {
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+  opacity: 0.8;
+}
+
+.tmr-add-filter-btn .tmr-btn-icon {
+  color: inherit;
+  font-size: 0.8rem;
 }
 
 /* Base Toolbar Control Buttons */
@@ -498,7 +507,7 @@
     align-items: center;
     min-width: 0;
     width: 100%;
-    gap: 12px;
+    gap: 8px;
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -513,12 +522,10 @@
 
   .tmr-toolbar-zone {
     flex: 0 0 auto;
-    gap: 6px;
   }
 
-  .tmr-zone-label {
-    font-size: 0.625rem;
-    letter-spacing: 0.06em;
+  .tmr-btn-icon {
+    font-size: 0.75rem;
   }
 
   /* Compact sm-sized control buttons */
