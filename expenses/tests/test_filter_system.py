@@ -2,12 +2,18 @@ from datetime import date
 from decimal import Decimal
 from django.contrib.auth.models import User
 from django.test import RequestFactory, TestCase
+from django.core.cache import cache
 from django.urls import reverse
 
-from ..filters.definitions import EXPENSE_FILTERS, INCOME_FILTERS
+from ..filters.definitions import (
+    EXPENSE_FILTERS,
+    INCOME_FILTERS,
+    get_user_categories,
+    get_user_merchants,
+)
 from ..filters.engine import apply_filter_config
 from ..filters.schema import FilterDef, FilterSetConfig
-from ..models import Account, CapitalEvent, Expense, Income, RecurringTransaction
+from ..models import Account, CapitalEvent, Category, Expense, Income, RecurringTransaction
 
 
 class FilterSystemTestCase(TestCase):
@@ -431,3 +437,70 @@ class FilterSystemTestCase(TestCase):
         self.assertEqual(len(events), 3)
         self.assertGreaterEqual(events[0].base_amount, events[1].base_amount)
         self.assertGreaterEqual(events[1].base_amount, events[2].base_amount)
+
+    def test_category_options_caching_and_invalidation(self):
+        cache.clear()
+        # 1. First call populates cache
+        cats1 = get_user_categories(self.user)
+        self.assertTrue(len(cats1) >= 2)
+
+        # 2. Second call with or without query hits cache, no DB queries
+        with self.assertNumQueries(0):
+            cats2 = get_user_categories(self.user, q='Foo')
+            self.assertEqual(len(cats2), 1)
+            self.assertEqual(cats2[0]['value'], 'Food')
+
+        with self.assertNumQueries(0):
+            cats3 = get_user_categories(self.user)
+            self.assertEqual(cats1, cats3)
+
+        # 3. Cache invalidation on Expense save
+        Expense.objects.create(
+            user=self.user,
+            date=date(2026, 9, 20),
+            amount=Decimal('100.00'),
+            category='Utilities',
+            description='Electricity Bill',
+        )
+        self.assertIsNone(cache.get(f"filter_categories:{self.user.id}"))
+
+        # 4. Re-populate and test invalidation on Category save
+        get_user_categories(self.user)
+        self.assertIsNotNone(cache.get(f"filter_categories:{self.user.id}"))
+
+        Category.objects.create(user=self.user, name='Healthcare')
+        self.assertIsNone(cache.get(f"filter_categories:{self.user.id}"))
+
+    def test_merchant_options_caching_and_invalidation(self):
+        cache.clear()
+        # 1. First call populates cache
+        merchants1 = get_user_merchants(self.user)
+        self.assertTrue(len(merchants1) >= 2)
+
+        # 2. Second call with various keystrokes hits cache, no DB queries
+        with self.assertNumQueries(0):
+            m_z = get_user_merchants(self.user, q='Z')
+            m_zo = get_user_merchants(self.user, q='Zo')
+            m_zom = get_user_merchants(self.user, q='Zom')
+            self.assertTrue(any(opt['value'] == 'Amazon' for opt in m_z))
+            self.assertTrue(any(opt['value'] == 'Amazon' for opt in m_zo))
+            self.assertFalse(any(opt['value'] == 'Amazon' for opt in m_zom))
+            self.assertEqual([opt['value'] for opt in m_zom], ['Zomato', 'Zomato Momos'])
+
+        # 3. Cache invalidation on Expense save
+        new_exp = Expense.objects.create(
+            user=self.user,
+            date=date(2026, 9, 20),
+            amount=Decimal('500.00'),
+            category='Shopping',
+            description='Flipkart Laptop Stand',
+        )
+        self.assertIsNone(cache.get(f"filter_merchants:{self.user.id}"))
+
+        # 4. Re-populate and test invalidation on Expense delete
+        get_user_merchants(self.user)
+        self.assertIsNotNone(cache.get(f"filter_merchants:{self.user.id}"))
+
+        new_exp.delete()
+        self.assertIsNone(cache.get(f"filter_merchants:{self.user.id}"))
+

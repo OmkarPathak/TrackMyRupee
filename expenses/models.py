@@ -663,6 +663,13 @@ class Expense(models.Model):
                 }
             )
 
+            from django.core.cache import cache
+            cache.delete(f"filter_merchants:{self.user_id}")
+            cache.delete(f"filter_categories:{self.user_id}")
+            if old_instance and old_instance.user_id != self.user_id:
+                cache.delete(f"filter_merchants:{old_instance.user_id}")
+                cache.delete(f"filter_categories:{old_instance.user_id}")
+
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             if self.account:
@@ -720,6 +727,10 @@ class Expense(models.Model):
             else:
                 super().delete(*args, **kwargs)
 
+            from django.core.cache import cache
+            cache.delete(f"filter_merchants:{self.user_id}")
+            cache.delete(f"filter_categories:{self.user_id}")
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['user', 'client_dedup_key'], name='idx_expense_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
@@ -747,6 +758,14 @@ class Category(models.Model):
         if self.name:
             self.name = self.name.strip()
         super().save(*args, **kwargs)
+        from django.core.cache import cache
+        cache.delete(f"filter_categories:{self.user_id}")
+
+    def delete(self, *args, **kwargs):
+        user_id = self.user_id
+        super().delete(*args, **kwargs)
+        from django.core.cache import cache
+        cache.delete(f"filter_categories:{user_id}")
 
     class Meta:
         verbose_name_plural = 'Categories'

@@ -29,6 +29,7 @@ from .mixins import (
     process_user_recurring_transactions,
 )
 from ..filters import EXPENSE_FILTERS, apply_filter_config
+from ..filters.definitions import get_user_categories
 from .utils import apply_date_filters, get_object_by_uuid_or_pk
 
 
@@ -57,18 +58,8 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         context['filtered_count'] = stats['count']
         context['filtered_amount'] = stats['total'] or 0
 
-        # Get unique years and categories for legacy UI dropdowns
-        user_expenses = Expense.objects.filter(user=self.request.user)
-        years_dates = user_expenses.dates('date', 'year', order='DESC')
-        years = sorted(list(set([d.year for d in years_dates] + [datetime.now().year])), reverse=True)
-        raw_used_categories = user_expenses.values_list('category', flat=True).distinct()
-        raw_defined_categories = Category.objects.filter(user=self.request.user).values_list('name', flat=True)
-        all_cats = {c.strip() for c in raw_used_categories if c} | {c.strip() for c in raw_defined_categories if c}
-        categories = sorted(list(all_cats), key=str.lower)
-        
-        context['years'] = years
-        context['categories'] = categories
-        context['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
+        # Categories for bulk-edit modal
+        context['categories'] = [c['value'] for c in get_user_categories(user=self.request.user)]
         
         # Filter system config & state
         context['filter_config'] = EXPENSE_FILTERS

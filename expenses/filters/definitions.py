@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
+from django.core.cache import cache
 from django.db.models import Q, QuerySet
 
 from .schema import FilterDef, FilterSetConfig
@@ -20,13 +21,17 @@ def get_user_accounts(user=None, q: Optional[str] = None) -> List[Dict[str, str]
 def get_user_categories(user=None, q: Optional[str] = None) -> List[Dict[str, str]]:
     if not user or not user.is_authenticated:
         return []
-    from ..models import Category, Expense
-    user_expenses = Expense.objects.filter(user=user)
-    raw_used = user_expenses.values_list('category', flat=True).distinct()
-    raw_defined = Category.objects.filter(user=user).values_list('name', flat=True)
-    
-    all_cats = {c.strip() for c in raw_used if c and c.strip()} | {c.strip() for c in raw_defined if c and c.strip()}
-    cats = sorted(list(all_cats), key=str.lower)
+    cache_key = f"filter_categories:{user.id}"
+    cats = cache.get(cache_key)
+    if cats is None:
+        from ..models import Category, Expense
+        user_expenses = Expense.objects.filter(user=user)
+        raw_used = user_expenses.values_list('category', flat=True).distinct()
+        raw_defined = Category.objects.filter(user=user).values_list('name', flat=True)
+        
+        all_cats = {c.strip() for c in raw_used if c and c.strip()} | {c.strip() for c in raw_defined if c and c.strip()}
+        cats = sorted(list(all_cats), key=str.lower)
+        cache.set(cache_key, cats, 600)
     
     if q and q.strip():
         query = q.strip().lower()
@@ -38,21 +43,26 @@ def get_user_categories(user=None, q: Optional[str] = None) -> List[Dict[str, st
 def get_user_merchants(user=None, q: Optional[str] = None) -> List[Dict[str, str]]:
     if not user or not user.is_authenticated:
         return []
-    from ..models import Expense
-    qs = Expense.objects.filter(user=user).values_list('description', flat=True).distinct()
-    
-    merchants = set()
-    for desc in qs:
-        if not desc:
-            continue
-        cleaned = desc.split('-')[0].split('(')[0].strip()
-        if cleaned:
-            first_word = cleaned.split(' ')[0].strip()
-            if first_word:
-                merchants.add(first_word)
-            merchants.add(cleaned)
-            
-    sorted_merchants = sorted(list(merchants), key=str.lower)
+    cache_key = f"filter_merchants:{user.id}"
+    sorted_merchants = cache.get(cache_key)
+    if sorted_merchants is None:
+        from ..models import Expense
+        qs = Expense.objects.filter(user=user).values_list('description', flat=True).distinct()
+        
+        merchants = set()
+        for desc in qs:
+            if not desc:
+                continue
+            cleaned = desc.split('-')[0].split('(')[0].strip()
+            if cleaned:
+                first_word = cleaned.split(' ')[0].strip()
+                if first_word:
+                    merchants.add(first_word)
+                merchants.add(cleaned)
+                
+        sorted_merchants = sorted(list(merchants), key=str.lower)
+        cache.set(cache_key, sorted_merchants, 600)
+
     if q and q.strip():
         query = q.strip().lower()
         sorted_merchants = [m for m in sorted_merchants if query in m.lower()]
