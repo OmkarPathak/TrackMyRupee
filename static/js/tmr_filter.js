@@ -310,6 +310,10 @@ class TMRFilterSystem {
     // Time Dropdown
     const timeBtn = this.container.querySelector('#tmr-time-dropdown-btn');
     if (timeBtn) {
+      const labelSpan = timeBtn.querySelector('.tmr-time-label');
+      if (labelSpan && this.state.time_period === 'custom') {
+        labelSpan.textContent = this.formatDateRange(this.state.start_date, this.state.end_date);
+      }
       timeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.toggleTimePopover(timeBtn);
@@ -524,11 +528,11 @@ class TMRFilterSystem {
     }
   }
 
-  openPopover(anchorEl, contentHtml, onMounted) {
+  openPopover(anchorEl, contentHtml, onMounted, extraClass = '') {
     this.closePopover();
 
     const popover = document.createElement('div');
-    popover.className = 'tmr-popover-menu';
+    popover.className = `tmr-popover-menu ${extraClass}`.trim();
     popover.innerHTML = contentHtml;
 
     if (this.isMobileViewport()) {
@@ -540,12 +544,14 @@ class TMRFilterSystem {
       document.body.appendChild(backdrop);
       this.activeBackdrop = backdrop;
       document.body.style.overflow = 'hidden';
-    } else {
-      this.positionPopover(anchorEl, popover);
     }
 
     document.body.appendChild(popover);
     this.activePopover = popover;
+
+    if (!this.isMobileViewport()) {
+      this.positionPopover(anchorEl, popover);
+    }
 
     if (onMounted) {
       onMounted(popover);
@@ -556,9 +562,16 @@ class TMRFilterSystem {
     const rect = anchorEl.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    const popoverWidth = popover.offsetWidth || 310;
+    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+
+    let left = rect.left + scrollLeft;
+    if (rect.left + popoverWidth > viewportWidth - 12) {
+      left = Math.max(12 + scrollLeft, viewportWidth - popoverWidth - 12 + scrollLeft);
+    }
 
     popover.style.top = `${rect.bottom + scrollTop + 6}px`;
-    popover.style.left = `${rect.left + scrollLeft}px`;
+    popover.style.left = `${left}px`;
   }
 
   // --- Popover 1: + Filter Menu ---
@@ -800,6 +813,28 @@ class TMRFilterSystem {
     return opts;
   }
 
+  formatDateRange(startDateStr, endDateStr) {
+    if (!startDateStr && !endDateStr) return 'Custom range';
+    if (startDateStr && !endDateStr) return `From ${startDateStr}`;
+    if (!startDateStr && endDateStr) return `Until ${endDateStr}`;
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    try {
+      const [sY, sM, sD] = startDateStr.split('-').map(Number);
+      const [eY, eM, eD] = endDateStr.split('-').map(Number);
+      if (sY && sM && sD && eY && eM && eD) {
+        if (sY === eY) {
+          if (sM === eM) {
+            return `${sD}–${eD} ${months[sM - 1]} ${sY}`;
+          }
+          return `${sD} ${months[sM - 1]} – ${eD} ${months[eM - 1]} ${sY}`;
+        }
+        return `${sD} ${months[sM - 1]} ${sY} – ${eD} ${months[eM - 1]} ${eY}`;
+      }
+    } catch (e) {}
+    return `${startDateStr} – ${endDateStr}`;
+  }
+
   // --- Popover 3: Time Period Menu ---
   toggleTimePopover(anchorEl) {
     const timeOptions = [
@@ -811,6 +846,8 @@ class TMRFilterSystem {
     ];
 
     const currentKey = this.state.time_period || 'this_month';
+    const isCustom = currentKey === 'custom';
+
     const html = `
       <ul class="tmr-popover-list">
         ${timeOptions.map(opt => `
@@ -818,16 +855,69 @@ class TMRFilterSystem {
             <span>${opt.key === currentKey ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${opt.label}</span>
           </li>
         `).join('')}
+        <li class="tmr-popover-divider"></li>
+        <li class="tmr-popover-item ${isCustom ? 'selected' : ''}" data-time-key="custom">
+          <span>${isCustom ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} Custom range</span>
+        </li>
       </ul>
+      <div class="tmr-custom-date-container" id="tmr-custom-date-drawer" style="display: ${isCustom ? 'block' : 'none'};">
+        <div class="tmr-custom-date-row">
+          <div class="tmr-custom-date-field">
+            <label class="tmr-custom-date-label">From</label>
+            <input type="date" class="tmr-custom-date-input tmr-custom-start" value="${this.state.start_date || ''}">
+          </div>
+          <div class="tmr-custom-date-field">
+            <label class="tmr-custom-date-label">To</label>
+            <input type="date" class="tmr-custom-date-input tmr-custom-end" value="${this.state.end_date || ''}">
+          </div>
+        </div>
+        <div class="tmr-custom-date-actions">
+          <button type="button" class="tmr-popover-footer-btn clear tmr-custom-cancel">Cancel</button>
+          <button type="button" class="tmr-popover-footer-btn done tmr-custom-apply">Apply</button>
+        </div>
+      </div>
     `;
 
     this.openPopover(anchorEl, html, (popover) => {
+      const customDrawer = popover.querySelector('#tmr-custom-date-drawer');
+      const startInput = popover.querySelector('.tmr-custom-start');
+      const endInput = popover.querySelector('.tmr-custom-end');
+      const customItem = popover.querySelector('[data-time-key="custom"]');
+
       popover.querySelectorAll('.tmr-popover-item').forEach(item => {
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           const key = item.dataset.timeKey;
+
+          if (key === 'custom') {
+            const isHidden = customDrawer.style.display === 'none';
+            if (isHidden) {
+              customDrawer.style.display = 'block';
+              popover.querySelectorAll('.tmr-popover-item').forEach(i => {
+                i.classList.remove('selected');
+                const check = i.querySelector('.tmr-check-icon');
+                if (check) check.remove();
+              });
+              customItem.classList.add('selected');
+              if (!customItem.querySelector('.tmr-check-icon')) {
+                const span = customItem.querySelector('span');
+                if (span) span.insertAdjacentHTML('afterbegin', '<i class="bi bi-check-lg tmr-check-icon"></i> ');
+              }
+              if (!this.isMobileViewport()) {
+                this.positionPopover(anchorEl, popover);
+              }
+              startInput.focus();
+            } else {
+              startInput.focus();
+            }
+            return;
+          }
+
+          // Selecting a standard preset
           this.trackFilterEvent('filter_time_period_selected', { time_period: key });
           this.state.time_period = key;
+          this.state.start_date = '';
+          this.state.end_date = '';
 
           const labelSpan = this.container.querySelector('.tmr-time-label');
           if (labelSpan) {
@@ -839,7 +929,72 @@ class TMRFilterSystem {
           this.onStateChanged();
         });
       });
-    });
+
+      // Custom drawer buttons
+      const cancelBtn = popover.querySelector('.tmr-custom-cancel');
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (this.state.time_period !== 'custom') {
+            customDrawer.style.display = 'none';
+            customItem.classList.remove('selected');
+            const check = customItem.querySelector('.tmr-check-icon');
+            if (check) check.remove();
+          } else {
+            this.closePopover();
+          }
+        });
+      }
+
+      const applyBtn = popover.querySelector('.tmr-custom-apply');
+      if (applyBtn) {
+        applyBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          let sVal = startInput.value ? startInput.value.trim() : '';
+          let eVal = endInput.value ? endInput.value.trim() : '';
+
+          if (!sVal && !eVal) {
+            startInput.focus();
+            return;
+          }
+
+          if (sVal && eVal && sVal > eVal) {
+            const tmp = sVal;
+            sVal = eVal;
+            eVal = tmp;
+            startInput.value = sVal;
+            endInput.value = eVal;
+          }
+
+          this.state.time_period = 'custom';
+          this.state.start_date = sVal;
+          this.state.end_date = eVal;
+
+          this.trackFilterEvent('filter_time_period_selected', {
+            time_period: 'custom',
+            start_date: sVal,
+            end_date: eVal,
+          });
+
+          const labelSpan = this.container.querySelector('.tmr-time-label');
+          if (labelSpan) {
+            labelSpan.textContent = this.formatDateRange(sVal, eVal);
+          }
+
+          this.closePopover();
+          this.onStateChanged();
+        });
+      }
+
+      const onEnter = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (applyBtn) applyBtn.click();
+        }
+      };
+      if (startInput) startInput.addEventListener('keydown', onEnter);
+      if (endInput) endInput.addEventListener('keydown', onEnter);
+    }, 'tmr-time-popover');
   }
 
   // --- Popover 4: Sort Menu ---

@@ -238,15 +238,6 @@ EXPENSE_FILTERS = FilterSetConfig(
             custom_filter_fn=filter_amount_range,
         ),
         FilterDef(
-            key="merchant",
-            label="Merchant",
-            type="multi_select",
-            source="dynamic",
-            options_fn=get_user_merchants,
-            searchable=True,
-            custom_filter_fn=filter_merchant,
-        ),
-        FilterDef(
             key="recurring",
             label="Recurring",
             type="single_select",

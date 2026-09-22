@@ -40,7 +40,16 @@
             {% elif applied_state.time_period == 'last_3_months' %}{% trans "Last 3 months" %}
             {% elif applied_state.time_period == 'this_year' %}{% trans "This year" %}
             {% elif applied_state.time_period == 'all' %}{% trans "All time" %}
-            {% elif applied_state.time_period == 'custom' %}{% trans "Custom range" %}
+            {% elif applied_state.time_period == 'custom' %}
+              {% if applied_state.start_date and applied_state.end_date %}
+                {{ applied_state.start_date }} &ndash; {{ applied_state.end_date }}
+              {% elif applied_state.start_date %}
+                {% trans "From" %} {{ applied_state.start_date }}
+              {% elif applied_state.end_date %}
+                {% trans "Until" %} {{ applied_state.end_date }}
+              {% else %}
+                {% trans "Custom range" %}
+              {% endif %}
             {% else %}{% trans "This month" %}
             {% endif %}
           </span>

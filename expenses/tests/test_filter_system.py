@@ -517,4 +517,25 @@ class FilterSystemTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context['active_filters_count'], 4)
 
+    def test_custom_date_range_filtering(self):
+        self.client.login(username='filteruser', password='password123')
+        url = reverse('expense-list') + '?time_period=custom&start_date=2026-09-12&end_date=2026-09-15'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        expenses = list(resp.context['expenses'])
+        self.assertEqual(len(expenses), 2)
+        self.assertIn(self.e1, expenses)
+        self.assertIn(self.e2, expenses)
+        self.assertNotIn(self.e3, expenses)
+
+        applied_state = resp.context['applied_state']
+        self.assertEqual(applied_state['time_period'], 'custom')
+        self.assertEqual(applied_state['start_date'], '2026-09-12')
+        self.assertEqual(applied_state['end_date'], '2026-09-15')
+
+        content = resp.content.decode('utf-8')
+        self.assertIn('2026-09-12 &ndash; 2026-09-15', content)
+
+
 

@@ -368,6 +368,94 @@
   color: var(--tmr-filter-primary-hover);
 }
 
+.tmr-popover-divider {
+  height: 1px;
+  background-color: var(--bs-border-color-translucent);
+  margin: 4px 0;
+  list-style: none;
+}
+
+.tmr-popover-menu.tmr-time-popover {
+  min-width: 320px;
+  max-width: 360px;
+}
+
+.tmr-custom-date-container {
+  padding: 12px 14px 12px;
+  border-top: 1px solid var(--bs-border-color-translucent);
+  background-color: var(--bs-tertiary-bg);
+}
+
+.tmr-custom-date-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tmr-custom-date-field {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tmr-custom-date-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--bs-secondary-color);
+  margin-bottom: 4px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tmr-custom-date-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 36px;
+  padding: 4px 6px;
+  font-size: 0.8125rem;
+  line-height: normal;
+  border-radius: 8px;
+  border: 1px solid var(--bs-border-color);
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.tmr-custom-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  margin-left: 2px;
+  padding: 0;
+  opacity: 0.65;
+  transition: opacity 0.15s ease;
+}
+
+.tmr-custom-date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.tmr-custom-date-input:focus {
+  outline: none;
+  border-color: var(--tmr-filter-primary);
+  box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.15);
+}
+
+.tmr-custom-date-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+@media (max-width: 340px) {
+  .tmr-custom-date-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
 /* Responsive Handling */
 @media (max-width: 767.98px) {
   .tmr-desktop-only {
