@@ -739,6 +739,7 @@ class Expense(models.Model):
             models.Index(fields=['user', 'category']),
             models.Index(fields=['user', 'payment_method']),
             models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', '-date'], name='expense_user_date_idx'),
             models.Index(fields=['user', 'account']),
             models.Index(fields=['linked_physical_asset']),
         ]

@@ -504,3 +504,17 @@ class FilterSystemTestCase(TestCase):
         new_exp.delete()
         self.assertIsNone(cache.get(f"filter_merchants:{self.user.id}"))
 
+    def test_expense_list_active_filters_count(self):
+        self.client.login(username='filteruser', password='password123')
+        # Default: time_period='this_month', sort='date_desc' -> 0
+        resp = self.client.get(reverse('expense-list'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context['active_filters_count'], 0)
+
+        # 1 filter (category) + search (+1) + time_period=all (+1) + sort=amount_desc (+1) -> 4
+        url = reverse('expense-list') + '?category=Food&search=Momos&time_period=all&sort=amount_desc'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context['active_filters_count'], 4)
+
+

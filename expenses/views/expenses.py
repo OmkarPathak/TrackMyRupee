@@ -94,7 +94,6 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
             active_filters += 1
         if time_period != 'this_month':
             active_filters += 1
-        context['active_filters_count'] = active_filters
 
         if sort_by and sort_by != 'date_desc':
             active_filters += 1
