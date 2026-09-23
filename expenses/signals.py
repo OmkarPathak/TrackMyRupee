@@ -7,6 +7,7 @@ from django.core.cache import cache
 from django.db.backends.signals import connection_created
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from .ledger_service import LedgerPostingService
 from .models import (
@@ -202,6 +203,7 @@ def invalidate_dashboard_cache(sender, instance, **kwargs):
             f'recurring_processed_{user_id}_{today}',
             f'account_net_worth_{user_id}',
             f'budget_dashboard_{user_id}',
+            f'analytics_default_data_{user_id}',
         ])
     except Exception:
         pass

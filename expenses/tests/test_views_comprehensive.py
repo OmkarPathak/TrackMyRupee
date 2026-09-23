@@ -1439,6 +1439,24 @@ class AllTransactionsViewTest(BaseComprehensiveTest):
         transactions = response.context['transactions']
         self.assertEqual(len(transactions), 2)
     
+    def test_all_transactions_search_by_income_source_type_updates_summary_stats(self):
+        """Test that searching by income source_type includes the item in transactions AND summary stats."""
+        Income.objects.create(
+            user=self.user,
+            account=self.account,
+            amount=5000,
+            source='TechCorp',
+            description='Monthly payout',
+            source_type='Dividend',
+            date=date.today(),
+        )
+        response = self.client.get(reverse('all-transactions'), {'search': 'Dividend'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['transactions']), 1)
+        self.assertEqual(response.context['income_count'], 1)
+        self.assertEqual(response.context['filtered_count'], 1)
+        self.assertEqual(response.context['income_amount'], Decimal('5000.00'))
+    
     def test_all_transactions_shows_only_user_data(self):
         """Test that users only see their own transactions."""
         Expense.objects.create(

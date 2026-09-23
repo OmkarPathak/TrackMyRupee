@@ -1,7 +1,4 @@
 
-import calendar
-from datetime import datetime
-
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
@@ -51,12 +48,6 @@ class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListVie
         ctx['filter_config'] = CAPITAL_EVENT_FILTERS
         ctx['applied_state'] = applied_state
 
-        user_events = CapitalEvent.objects.filter(user=self.request.user)
-        years_dates = user_events.dates('date', 'year', order='DESC')
-        years = sorted(list(set([d.year for d in years_dates] + [datetime.now().year])), reverse=True)
-
-        ctx['years'] = years
-        ctx['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
 
         time_period = applied_state.get('time_period') or self.request.GET.get('time_period', 'this_month')
         start_date = applied_state.get('start_date') or self.request.GET.get('start_date', '')

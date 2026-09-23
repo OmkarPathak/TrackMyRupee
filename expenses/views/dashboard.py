@@ -2629,6 +2629,7 @@ def complete_tutorial(request):
 
 class AnalyticsView(LoginRequiredMixin, TemplateView):
     template_name = 'expenses/analytics.html'
+    _force_cache_in_testing = False
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2638,6 +2639,19 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         if not hasattr(user, 'profile') or not user.profile.has_ai_access:
             context['is_locked'] = True
             return context
+
+        is_testing = (getattr(settings, 'TESTING', False) or 'test' in sys.argv) and not getattr(self, '_force_cache_in_testing', False)
+        year_param = self.request.GET.get('year')
+        cap_events_param = self.request.GET.get('include_capital_events')
+        is_default_view = not year_param and not cap_events_param
+        analytics_cache_key = f'analytics_default_data_{user.id}' if (is_default_view and not is_testing) else None
+        if analytics_cache_key:
+            cached_context = cache.get(analytics_cache_key)
+            if cached_context is not None:
+                context.update(cached_context)
+                context['view'] = self
+                context['is_locked'] = not getattr(user, 'profile', None) or not user.profile.has_ai_access
+                return context
         
         today = timezone.now().date()
         
@@ -3285,6 +3299,10 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         context['forecast_income'] = forecast_income
         context['forecast_expenses'] = forecast_expenses
         context['forecast_labels'] = forecast_labels
+
+        if analytics_cache_key:
+            cache_context = {k: v for k, v in context.items() if k != 'view'}
+            cache.set(analytics_cache_key, cache_context, 300)
 
         return context
 

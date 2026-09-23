@@ -1,9 +1,6 @@
-import calendar
-from datetime import datetime
 from decimal import Decimal
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.cache import cache
 from django.db.models import (
     BigIntegerField,
     Case,
@@ -34,7 +31,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
     context_object_name = 'transactions'
     paginate_by = 25
 
-    def get_queryset(self):
+    def _build_filtered_querysets(self):
         user = self.request.user
         
         # 1. Normalize Expenses
@@ -111,7 +108,6 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
 
         # Handle filtering
         search_query = self.request.GET.get('search')
-        selected_types = [t for t in self.request.GET.getlist('type') if t]
         selected_accounts = [a for a in self.request.GET.getlist('account') if a]
         if not selected_accounts and self.request.GET.get('account'):
             selected_accounts = [self.request.GET.get('account')]
@@ -149,6 +145,33 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             transfers = filter_amount_range(transfers, selected_amounts)
             loan_repayments = filter_amount_range(loan_repayments, selected_amounts)
             capital_events = filter_amount_range(capital_events, selected_amounts)
+
+        return {
+            'expenses': expenses,
+            'incomes': incomes,
+            'transfers': transfers,
+            'loan_repayments': loan_repayments,
+            'capital_events': capital_events,
+        }
+
+    def _get_filtered_querysets(self):
+        """Builds the five per-type querysets (expenses, incomes, transfers, loan_repayments, capital_events)
+        with search/account/amount/date filters applied. Single source of truth, called by both
+        get_queryset() (for the unioned/paginated list) and get_context_data() (for the summary stats),
+        so the two can never diverge again. Cached on self per request."""
+        if not hasattr(self, '_cached_filtered_querysets'):
+            self._cached_filtered_querysets = self._build_filtered_querysets()
+        return self._cached_filtered_querysets
+
+    def get_queryset(self):
+        filtered_qs = self._get_filtered_querysets()
+        expenses = filtered_qs['expenses']
+        incomes = filtered_qs['incomes']
+        transfers = filtered_qs['transfers']
+        loan_repayments = filtered_qs['loan_repayments']
+        capital_events = filtered_qs['capital_events']
+
+        selected_types = [t for t in self.request.GET.getlist('type') if t]
 
         # Filter by Transaction Type
         active_qs = []
@@ -227,38 +250,12 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         }
 
 
-        expenses = Expense.objects.filter(user=user)
-        incomes = Income.objects.filter(user=user)
-        transfers = Transfer.objects.filter(user=user)
-        loan_repayments = LoanRepayment.objects.filter(loan__user=user)
-        capital_events = CapitalEvent.objects.filter(user=user)
-
-        expenses = apply_date_filters(expenses, self.request)
-        incomes = apply_date_filters(incomes, self.request)
-        transfers = apply_date_filters(transfers, self.request)
-        loan_repayments = apply_date_filters(loan_repayments, self.request)
-        capital_events = apply_date_filters(capital_events, self.request)
-
-        if search_query:
-            expenses = expenses.filter(Q(description__icontains=search_query) | Q(category__icontains=search_query))
-            incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query))
-            transfers = transfers.filter(description__icontains=search_query)
-            loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
-
-        if selected_accounts:
-            expenses = expenses.filter(account_id__in=selected_accounts)
-            incomes = incomes.filter(account_id__in=selected_accounts)
-            transfers = transfers.filter(Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts))
-            loan_repayments = loan_repayments.filter(from_account_id__in=selected_accounts)
-            capital_events = capital_events.filter(account_id__in=selected_accounts)
-
-        if selected_amounts:
-            from ..filters.definitions import filter_amount_range
-            expenses = filter_amount_range(expenses, selected_amounts)
-            incomes = filter_amount_range(incomes, selected_amounts)
-            transfers = filter_amount_range(transfers, selected_amounts)
-            loan_repayments = filter_amount_range(loan_repayments, selected_amounts)
-            capital_events = filter_amount_range(capital_events, selected_amounts)
+        filtered_qs = self._get_filtered_querysets()
+        expenses = filtered_qs['expenses']
+        incomes = filtered_qs['incomes']
+        transfers = filtered_qs['transfers']
+        loan_repayments = filtered_qs['loan_repayments']
+        capital_events = filtered_qs['capital_events']
         from django.db.models import Count
 
         exp_stats = expenses.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
@@ -440,21 +437,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             context['capital_event_amount']
         )
 
-        # Filter options
-        cache_key = f'all_tx_years_{user.id}'
-        cached_years = cache.get(cache_key)
-        if cached_years is None:
-            expense_years = {d.year for d in Expense.objects.filter(user=user).dates('date', 'year', order='DESC')}
-            income_years = {d.year for d in Income.objects.filter(user=user).dates('date', 'year', order='DESC')}
-            transfer_years = {d.year for d in Transfer.objects.filter(user=user).dates('date', 'year', order='DESC')}
-            loan_years = {d.year for d in LoanRepayment.objects.filter(loan__user=user).dates('date', 'year', order='DESC')}
-            capital_event_years = {d.year for d in CapitalEvent.objects.filter(user=user).dates('date', 'year', order='DESC')}
-            all_years = expense_years.union(income_years).union(transfer_years).union(loan_years).union(capital_event_years)
-            cached_years = sorted(list(all_years.union({datetime.now().year})), reverse=True)
-            cache.set(cache_key, cached_years, 600)
-        context['years'] = cached_years
-        context['months_list'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
-        
+
         # Selected values
         context['selected_types'] = selected_types
         context['search_query'] = search_query or ''

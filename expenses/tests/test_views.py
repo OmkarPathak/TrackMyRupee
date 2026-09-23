@@ -1,6 +1,7 @@
 import json
 from datetime import date, timedelta
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -412,6 +413,60 @@ class AnalyticsViewTest(BaseViewTest):
         self.assertEqual(response.status_code, 200)
         self.assertIn('income_data', response.context)
         self.assertIn('expense_data', response.context)
+
+    def test_analytics_caching_default_view_hit_and_miss(self):
+        from expenses.views.dashboard import AnalyticsView
+        url = reverse('analytics')
+        self.user.profile.tier = 'PRO'
+        self.user.profile.is_lifetime = True
+        self.user.profile.save()
+
+        cache_key = f'analytics_default_data_{self.user.id}'
+        cache.delete(cache_key)
+        self.assertIsNone(cache.get(cache_key))
+
+        with patch.object(AnalyticsView, '_force_cache_in_testing', True):
+            # 1. Miss / Cold load
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            cached_data = cache.get(cache_key)
+            self.assertIsNotNone(cached_data)
+
+            # 2. Inject marker to prove cache hit serves from cache
+            cached_data['test_cache_hit_marker'] = True
+            cache.set(cache_key, cached_data, 300)
+
+            response2 = self.client.get(url)
+            self.assertEqual(response2.status_code, 200)
+            self.assertTrue(response2.context.get('test_cache_hit_marker'))
+
+            # 3. Filtered load bypasses cache
+            response3 = self.client.get(f"{url}?year={date.today().year - 1}")
+            self.assertEqual(response3.status_code, 200)
+            self.assertNotIn('test_cache_hit_marker', response3.context)
+
+    def test_analytics_cache_invalidation_on_mutation(self):
+        cache_key = f'analytics_default_data_{self.user.id}'
+        cache.set(cache_key, {'dummy': True}, 300)
+        self.assertIsNotNone(cache.get(cache_key))
+
+        # Mutation: creating an Expense triggers invalidate_dashboard_cache
+        account = Account.objects.create(user=self.user, name='Bank', balance=1000)
+        Expense.objects.create(
+            user=self.user,
+            account=account,
+            amount=50,
+            category='Food',
+            description='Test Snack',
+            date=date.today()
+        )
+        self.assertIsNone(cache.get(cache_key))
+
+        # Re-set cache, delete expense -> should invalidate again
+        cache.set(cache_key, {'dummy': True}, 300)
+        self.assertIsNotNone(cache.get(cache_key))
+        Expense.objects.filter(user=self.user).delete()
+        self.assertIsNone(cache.get(cache_key))
 
     def test_mom_analysis_access(self):
         url = reverse('analytics-mom')
