@@ -373,7 +373,7 @@ class TMRFilterSystem {
       valBtn.className = 'tmr-chip-value-btn';
       
       const valText = this.formatChipValueText(filterDef, selectedVals);
-      valBtn.innerHTML = `<span>${valText}</span><i class="bi bi-caret-down-fill ms-1" style="font-size: 0.65rem;"></i>`;
+      valBtn.innerHTML = `<span>${valText}</span><i class="bi bi-caret-down-fill"></i>`;
       valBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.toggleChipValuePopover(valBtn, filterDef);

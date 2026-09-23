@@ -47,18 +47,42 @@
   align-items: center;
 }
 
+/* Universal vertical centering for all icons in the filter toolbar and popovers */
+.tmr-toolbar-container i.bi,
+.tmr-popover-menu i.bi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.tmr-toolbar-container i.bi::before,
+.tmr-popover-menu i.bi::before {
+  vertical-align: 0;
+  line-height: 1;
+}
+
 .tmr-btn-icon {
   font-size: 0.85rem;
   color: var(--bs-secondary-color);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .tmr-chevron-icon {
   font-size: 0.75rem;
   color: var(--bs-secondary-color);
   opacity: 0.8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-left: 0;
+  flex-shrink: 0;
 }
 
 .tmr-add-filter-btn .tmr-btn-icon {
@@ -75,6 +99,7 @@
   background-color: var(--bs-body-bg);
   font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1;
   color: var(--bs-body-color);
   display: inline-flex;
   align-items: center;
@@ -82,6 +107,14 @@
   cursor: pointer;
   transition: all 0.15s ease-in-out;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.tmr-time-label,
+.tmr-sort-label,
+.tmr-toolbar-btn > span {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .tmr-toolbar-btn:hover {
@@ -116,6 +149,12 @@
 .tmr-search-box .tmr-search-icon {
   position: absolute;
   left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   color: var(--bs-secondary-color);
   font-size: 0.9rem;
   pointer-events: none;
@@ -187,13 +226,14 @@
   border-radius: 12px;
   font-size: 0.84rem;
   font-weight: 600;
+  line-height: 1;
   overflow: hidden;
   position: relative;
   transition: all 0.15s ease-in-out;
   background-color: var(--tmr-filter-bg-active);
   border: 1px solid var(--tmr-filter-border-active);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-  margin-bottom: 8px;
+  margin: 0;
 }
 
 .tmr-chip.tmr-chip-unset {
@@ -202,7 +242,10 @@
 }
 
 .tmr-chip-label {
-  padding: 5px 8px 5px 12px;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 8px 6px 12px;
+  line-height: 1;
   color: var(--bs-body-color);
   background-color: rgba(var(--bs-body-color-rgb), 0.03);
   border-right: 1px solid var(--bs-border-color-translucent);
@@ -210,7 +253,7 @@
 }
 
 .tmr-chip-value-btn {
-  padding: 5px 8px;
+  padding: 6px 8px;
   color: var(--tmr-filter-primary);
   display: inline-flex;
   align-items: center;
@@ -219,7 +262,23 @@
   border: none;
   background: transparent;
   font-weight: 700;
+  line-height: 1;
   outline: none;
+}
+
+.tmr-chip-value-btn > span {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.tmr-chip-value-btn i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 0.65rem;
+  margin: 0;
 }
 
 .tmr-chip.tmr-chip-unset .tmr-chip-value-btn {
@@ -235,12 +294,22 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 8px;
+  padding: 6px 8px;
   color: var(--bs-secondary-color);
   cursor: pointer;
   border: none;
   background: transparent;
+  line-height: 1;
   transition: color 0.15s ease;
+}
+
+.tmr-chip-remove-btn i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 0.75rem;
+  margin: 0;
 }
 
 .tmr-chip-remove-btn:hover {
@@ -255,8 +324,12 @@
   font-weight: 600;
   color: var(--bs-secondary-color);
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px 8px;
   border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  margin: 0;
   transition: all 0.15s ease;
 }
 
@@ -329,6 +402,13 @@
   transition: background-color 0.1s ease;
 }
 
+.tmr-popover-item > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.2;
+}
+
 .tmr-popover-item:hover {
   background-color: var(--bs-tertiary-bg);
 }
@@ -341,7 +421,11 @@
 .tmr-popover-item .tmr-check-icon {
   color: var(--tmr-filter-primary);
   font-weight: 800;
-  margin-right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-right: 0;
 }
 
 .tmr-popover-footer {
