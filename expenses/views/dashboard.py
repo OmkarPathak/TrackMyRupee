@@ -20,6 +20,7 @@ from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
 from ..account_types import investment_codes
+from ..filters import DASHBOARD_FILTERS
 from ..ledger_read_service import LedgerReadService
 from ..models import (
     Account,
@@ -71,10 +72,15 @@ def home_view(request):
     # fully-built context for 5 minutes so repeat loads skip every query below entirely.
     # Cache is invalidated immediately on transaction mutations via signals (see signals.py).
     is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
-    is_default_filter_view = not any([
-        request.GET.get('year'), request.GET.get('month'), request.GET.get('category'),
-        request.GET.get('start_date'), request.GET.get('end_date'),
-    ])
+    time_period_param = request.GET.get('time_period')
+    is_default_filter_view = (
+        (not time_period_param or time_period_param == 'this_month')
+        and not request.GET.get('year')
+        and not request.GET.get('month')
+        and not request.GET.get('category')
+        and not request.GET.get('start_date')
+        and not request.GET.get('end_date')
+    )
     home_cache_key = f'home_default_data_{request.user.id}' if (is_default_filter_view and not is_testing) else None
     if home_cache_key:
         cached_context = cache.get(home_cache_key)
@@ -85,6 +91,16 @@ def home_view(request):
             context['is_ai_locked'] = not request.user.profile.has_ai_access
             context['show_tutorial'] = not request.user.profile.has_seen_tutorial or request.GET.get('tour') == 'true'
             context['is_new_user'] = not has_any_data
+            context['filter_config'] = DASHBOARD_FILTERS
+            if 'applied_state' not in context:
+                context['applied_state'] = {
+                    'search': '',
+                    'time_period': 'this_month',
+                    'start_date': '',
+                    'end_date': '',
+                    'sort': '',
+                    'filters': {},
+                }
             return render(request, 'home.html', context)
 
     # Process recurring transactions on cache miss / custom filter
@@ -122,86 +138,165 @@ def home_view(request):
     days_passed = now.day
     
     # Filter Logic
+    time_period = request.GET.get('time_period')
+    start_date = request.GET.get('start_date') or ''
+    end_date = request.GET.get('end_date') or ''
+    start_date_str = start_date
+    end_date_str = end_date
     selected_years = request.GET.getlist('year')
     selected_months = request.GET.getlist('month')
-    selected_categories = request.GET.getlist('category')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
+    selected_categories = [c.strip() for c in request.GET.getlist('category') if c and c.strip()]
 
     start_date_obj = None
     end_date_obj = None
-    if start_date:
+    if start_date_str:
         try:
-            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+            start_date_obj = datetime.strptime(start_date_str, '%Y-%m-%d').date()
         except ValueError:
             pass
-    if end_date:
+    if end_date_str:
         try:
-            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+            end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d').date()
         except ValueError:
             pass
 
     # Remove empty strings from lists
     selected_years = [y for y in selected_years if y]
     selected_months = [m for m in selected_months if m]
-    selected_categories = [c for c in selected_categories if c]
 
     salary_cycle_active = False
     salary_cycle_start = None
     salary_cycle_end = None
+    trend_is_daily = False
+    effective_start_date = None
+    effective_end_date = None
+    today = timezone.localtime().date()
+    display_year = None
+    display_month = None
 
-    # For single month/year views, align all dashboard cards to salary cycle.
-    if not (start_date or end_date):
-        has_filter_params = selected_years or selected_months or selected_categories
-        if not has_filter_params:
-            selected_years = [str(now.year)]
-            selected_months = [str(now.month)]
+    if not time_period:
+        if start_date_obj or end_date_obj:
+            time_period = 'custom'
+        elif selected_years or selected_months:
+            time_period = 'custom'
+        else:
+            time_period = 'this_month'
 
-        if len(selected_months) == 1 and len(selected_years) == 1:
+    if time_period == 'this_month':
+        try:
+            target_date = date(now.year, now.month, calendar.monthrange(now.year, now.month)[1])
+            salary_cycle_start, salary_cycle_end = SalaryAnalysisService.get_salary_cycle_dates(request.user, target_date)
+            salary_cycle_active = True
+            effective_start_date = salary_cycle_start
+            effective_end_date = salary_cycle_end
+        except (ValueError, IndexError):
+            salary_cycle_active = False
+            effective_start_date = today.replace(day=1)
+            last_day = calendar.monthrange(today.year, today.month)[1]
+            effective_end_date = today.replace(day=last_day)
+
+        trend_title = _("Daily Expenses for Salary Cycle") if salary_cycle_active else _("Daily Expenses for This Month")
+        trend_is_daily = True
+        selected_years = [str(now.year)]
+        selected_months = [str(now.month)]
+        display_year = str(now.year)
+        display_month = _(calendar.month_name[now.month])
+
+    elif time_period == 'last_month':
+        first_day_this_month = today.replace(day=1)
+        last_day_last_month = first_day_this_month - timedelta(days=1)
+        effective_start_date = last_day_last_month.replace(day=1)
+        effective_end_date = last_day_last_month
+        trend_title = _("Daily Expenses for %(month)s/%(year)s") % {'month': last_day_last_month.month, 'year': last_day_last_month.year}
+        trend_is_daily = True
+        selected_years = [str(last_day_last_month.year)]
+        selected_months = [str(last_day_last_month.month)]
+        display_year = str(last_day_last_month.year)
+        display_month = _(calendar.month_name[last_day_last_month.month])
+
+    elif time_period == 'last_3_months':
+        effective_start_date = today - timedelta(days=90)
+        effective_end_date = today
+        trend_title = _("Expenses Trend (Last 3 Months)")
+        trend_is_daily = False
+        display_year = str(today.year)
+        display_month = None
+
+    elif time_period == 'this_year':
+        effective_start_date = today.replace(month=1, day=1)
+        effective_end_date = today.replace(month=12, day=31)
+        trend_title = _("Expenses Trend (This Year)")
+        trend_is_daily = False
+        display_year = str(today.year)
+        display_month = None
+
+    elif time_period == 'all':
+        effective_start_date = None
+        effective_end_date = None
+        trend_title = _("All-Time Expenses Trend")
+        trend_is_daily = False
+        display_year = None
+        display_month = None
+
+    elif time_period == 'custom':
+        if start_date_obj or end_date_obj:
+            effective_start_date = start_date_obj
+            effective_end_date = end_date_obj
+            trend_title = _("Expenses Trend (Custom Range)")
+            if start_date_obj and end_date_obj:
+                trend_is_daily = (end_date_obj - start_date_obj).days <= 60
+            else:
+                trend_is_daily = True
+            display_year = None
+            display_month = None
+        elif len(selected_months) == 1 and len(selected_years) == 1:
             try:
                 sel_month = int(selected_months[0])
                 sel_year = int(selected_years[0])
                 target_date = date(sel_year, sel_month, calendar.monthrange(sel_year, sel_month)[1])
                 salary_cycle_start, salary_cycle_end = SalaryAnalysisService.get_salary_cycle_dates(request.user, target_date)
                 salary_cycle_active = True
+                effective_start_date = salary_cycle_start
+                effective_end_date = salary_cycle_end
             except (ValueError, IndexError):
                 salary_cycle_active = False
-
-    effective_start_date = None
-    effective_end_date = None
-
-    # Date Range takes precedence
-    if start_date or end_date:
-        effective_start_date = start_date
-        effective_end_date = end_date
-        
-        # Reset lists for UI clarity since we are in range mode
-        selected_years = []
-        selected_months = []
-        
-        trend_title = _("Expenses Trend (Custom Range)")
-    elif salary_cycle_active:
-        effective_start_date = salary_cycle_start
-        effective_end_date = salary_cycle_end
-        trend_title = _("Daily Expenses for Salary Cycle")
-    else:
-        if selected_years:
-            expenses = expenses.filter(date__year__in=selected_years)
-        if selected_months:
-            expenses = expenses.filter(date__month__in=selected_months)
-            
-        if len(selected_months) == 1 and len(selected_years) == 1:
-            trend_title = _("Daily Expenses for %(month)s/%(year)s") % {'month': selected_months[0], 'year': selected_years[0]}
+                effective_start_date = date(sel_year, sel_month, 1)
+                effective_end_date = date(sel_year, sel_month, calendar.monthrange(sel_year, sel_month)[1])
+            trend_title = _("Daily Expenses for Salary Cycle") if salary_cycle_active else (_("Daily Expenses for %(month)s/%(year)s") % {'month': selected_months[0], 'year': selected_years[0]})
+            trend_is_daily = True
+            display_year = str(sel_year)
+            display_month = _(calendar.month_name[sel_month])
         else:
+            effective_start_date = None
+            effective_end_date = None
             trend_title = _("Monthly Expenses Trend")
+            trend_is_daily = False
+            display_year = selected_years[0] if len(selected_years) == 1 else None
+            display_month = _(calendar.month_name[int(selected_months[0])]) if len(selected_months) == 1 else None
 
     if effective_start_date:
         expenses = expenses.filter(date__gte=effective_start_date)
     if effective_end_date:
         expenses = expenses.filter(date__lte=effective_end_date)
+    if not (effective_start_date or effective_end_date):
+        if selected_years:
+            expenses = expenses.filter(date__year__in=selected_years)
+        if selected_months:
+            expenses = expenses.filter(date__month__in=selected_months)
 
     if selected_categories:
         expenses = expenses.filter(category__in=selected_categories)
+
+    applied_state = {
+        'search': '',
+        'time_period': time_period,
+        'start_date': start_date_str if time_period == 'custom' else (effective_start_date.strftime('%Y-%m-%d') if time_period == 'custom' and effective_start_date else ''),
+        'end_date': end_date_str if time_period == 'custom' else (effective_end_date.strftime('%Y-%m-%d') if time_period == 'custom' and effective_end_date else ''),
+        'sort': '',
+        'filters': {
+            'category': selected_categories,
+        } if selected_categories else {},
+    }
         
     # Income Logic (Mirroring Expense Filters)
     incomes = Income.objects.filter(user=request.user).select_related('account', 'source_fk')
@@ -406,21 +501,10 @@ def home_view(request):
         category_amounts = [float(item['total']) for item in category_data]
     
     # 2. Time Trend (Stacked) Data
-    
-    # Determine Labels (X-Axis)
-    # Determine Labels (X-Axis)
-    if start_date or end_date:
-        # For custom range, if range < 60 days, show daily. Else monthly.
-        # Simple heuristic: Always show daily for custom range for now, or let logic decide.
-        # Let's stick to: if explicit month selected -> daily. If range -> daily (usually granular).
-        trend_qs = expenses.annotate(period=TruncDay('date'))
-        date_fmt = '%d %b'
-    elif len(selected_months) == 1 and len(selected_years) == 1:
-        # Daily view
+    if trend_is_daily:
         trend_qs = expenses.annotate(period=TruncDay('date'))
         date_fmt = '%d %b'
     else:
-        # Monthly view
         trend_qs = expenses.annotate(period=TruncMonth('date'))
         date_fmt = '%b %Y'
 
@@ -433,13 +517,6 @@ def home_view(request):
     trend_iso_dates = [p.strftime('%Y-%m-%d') for p in periods]
     
     trend_data = [float(item['total']) for item in total_data]
-
-
-    # Determine if this is a daily (single-month) view
-    trend_is_daily = bool(
-        (start_date or end_date) or
-        (len(selected_months) == 1 and len(selected_years) == 1)
-    )
 
     # Compute 7-day rolling average for daily views
     trend_7d_avg = []
@@ -465,11 +542,7 @@ def home_view(request):
     top_amounts = [float(e.base_amount) for e in top_expenses_qs]
 
     # --- NEW: Income vs Expenses Trend Data ---
-    # Re-use the truncation logic determined above
-    if start_date or end_date or (len(selected_months) == 1 and len(selected_years) == 1):
-        trunc_func = TruncDay
-    else:
-        trunc_func = TruncMonth
+    trunc_func = TruncDay if trend_is_daily else TruncMonth
         
     inc_trend = incomes.annotate(period=trunc_func('date')).values('period').annotate(total=Sum('base_amount')).order_by('period')
     exp_trend_base = expenses.annotate(period=trunc_func('date')).values('period').annotate(total=Sum('base_amount')).order_by('period')
@@ -824,13 +897,10 @@ def home_view(request):
     }
 
     # Prepare display labels for the template
-    display_year = None
-    display_month = None
-    
-    if len(selected_years) == 1:
+    if not display_year and len(selected_years) == 1:
         display_year = selected_years[0]
         
-    if len(selected_months) == 1:
+    if not display_month and len(selected_months) == 1:
         try:
             m_idx = int(selected_months[0])
             display_month = _(calendar.month_name[m_idx])
@@ -2400,8 +2470,10 @@ def home_view(request):
         'top_category': top_category,
         'projected_savings': projected_savings, # NEW
         'avg_monthly_savings': avg_monthly_savings,
-        'start_date': start_date,
-        'end_date': end_date,
+        'filter_config': DASHBOARD_FILTERS,
+        'applied_state': applied_state,
+        'start_date': start_date_str or (start_date_obj.strftime('%Y-%m-%d') if start_date_obj else ''),
+        'end_date': end_date_str or (end_date_obj.strftime('%Y-%m-%d') if end_date_obj else ''),
         'start_date_obj': start_date_obj,
         'end_date_obj': end_date_obj,
         'prev_month_data': prev_month_data,

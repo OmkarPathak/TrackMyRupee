@@ -645,3 +645,234 @@
   z-index: 1190;
   animation: tmrFadeIn 0.15s ease-out;
 }
+
+/* ==========================================================================
+   Dashboard Header Inline Filter Bar (Desktop & Mobile)
+   Aligns Month Navigation (< Sep 2026 >) and Filter Buttons on the same row.
+   ========================================================================== */
+
+.dashboard-header-container {
+  width: 100%;
+  position: relative;
+  z-index: 100;
+}
+
+.dashboard-header-main {
+  width: 100%;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+.dashboard-header-left {
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.dashboard-month-nav {
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dashboard-nav-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  color: var(--bs-body-color);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.dashboard-nav-btn:hover {
+  background-color: var(--bs-tertiary-bg);
+  color: var(--bs-primary);
+}
+
+.dashboard-month-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dashboard-filter-slot {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
+.dashboard-action-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  font-size: 1.25rem;
+}
+
+/* Dashboard specific overrides for TMR Toolbar */
+#tmr-toolbar-dashboard {
+  margin-bottom: 0 !important;
+  gap: 0 !important;
+}
+
+#tmr-toolbar-dashboard .tmr-toolbar-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#tmr-toolbar-dashboard .tmr-toolbar-zones {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+#tmr-toolbar-dashboard .tmr-time-label {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-chip-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.dashboard-chip-row:empty {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* --- Mobile Responsiveness (< 768px) --- */
+@media (max-width: 767.98px) {
+  .dashboard-header-main {
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .dashboard-header-main::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dashboard-header-left {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .dashboard-month-nav {
+    gap: 2px;
+  }
+
+  .dashboard-nav-btn {
+    width: 26px;
+    height: 28px;
+    min-width: 26px;
+    min-height: 28px;
+    font-size: 0.85rem;
+  }
+
+  .dashboard-month-title {
+    font-size: 1.1rem;
+  }
+
+  #tmr-toolbar-dashboard .tmr-toolbar-row {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  #tmr-toolbar-dashboard .tmr-toolbar-zones {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  #tmr-toolbar-dashboard .tmr-toolbar-btn {
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 8px !important;
+    font-size: 0.775rem !important;
+    gap: 3px !important;
+    border-radius: 8px !important;
+  }
+
+  #tmr-toolbar-dashboard .tmr-toolbar-btn .tmr-btn-icon {
+    font-size: 0.75rem !important;
+  }
+
+  #tmr-toolbar-dashboard .tmr-time-label {
+    max-width: 120px;
+  }
+
+  .dashboard-filter-slot {
+    margin-left: 0 !important;
+  }
+
+  .dashboard-header-actions {
+    gap: 2px;
+  }
+
+  .dashboard-action-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 1rem;
+    padding: 0 !important;
+  }
+}
+
+.dashboard-sub-row {
+  min-height: 28px;
+}
+
+@media (min-width: 768px) {
+  .dashboard-sub-row:empty,
+  .dashboard-sub-row:not(:has(*:not(:empty))) {
+    display: none !important;
+  }
+}
+
+/* Extra small devices (< 360px) */
+@media (max-width: 359.98px) {
+  .dashboard-month-title {
+    font-size: 1rem;
+  }
+  #tmr-toolbar-dashboard .tmr-time-label {
+    max-width: 90px;
+  }
+}
+

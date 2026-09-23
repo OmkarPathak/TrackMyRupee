@@ -179,6 +179,12 @@ class FilterSystemTestCase(TestCase):
         self.assertEqual(resp_cap.status_code, 200)
         self.assertEqual(resp_cap.json()['page'], 'capital_events')
 
+        # Test Dashboard page category options
+        resp_dash = self.client.get(reverse('filter-options-api') + '?page=dashboard&filter=category')
+        self.assertEqual(resp_dash.status_code, 200)
+        self.assertEqual(resp_dash.json()['page'], 'dashboard')
+        self.assertTrue(any(opt['value'] == 'Food' for opt in resp_dash.json()['options']))
+
         # Test Invalid Page key
         resp_bad = self.client.get(reverse('filter-options-api') + '?page=unknown&filter=account')
         self.assertEqual(resp_bad.status_code, 400)

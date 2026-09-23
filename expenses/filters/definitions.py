@@ -598,3 +598,26 @@ CAPITAL_EVENT_FILTERS = FilterSetConfig(
     search_field="note",
 )
 
+
+DASHBOARD_FILTERS = FilterSetConfig(
+    page_key="dashboard",
+    filters=[
+        FilterDef(
+            key="category",
+            label="Category",
+            type="multi_select",
+            source="dynamic",
+            options_fn=get_user_categories,
+            field_name="category",
+            lookup_expr="in",
+        ),
+    ],
+    sort_options=[],
+    default_sort="",
+    default_time_range="this_month",
+    supports_time_period=True,
+    supports_search=False,
+    supports_sort=False,
+    external_chip_row=True,
+)
+

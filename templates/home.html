@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
-{% load static currency_filters i18n digit_filters expense_extras humanize %}
+{% load static currency_filters i18n digit_filters expense_extras humanize filter_tags %}
 
 {% block extra_head %}
     {% include 'components/multiselect_assets.html' %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=1.9">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
-    <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{% static 'js/tmr_filter.js' %}?v=1.9" defer></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <script defer src="{% static 'js/tutorial.js' %}"></script>
     <script>
@@ -703,16 +702,16 @@
 </script>
 {% endif %}
 
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-1 gap-3 fade-in" style="position: relative; z-index: 100;">
-    <!-- Mobile Header (One Line) -->
-    <div class="d-flex d-md-none justify-content-between align-items-center w-100">
-        <div class="d-flex align-items-center gap-2">
+<div class="dashboard-header-container mb-2 fade-in" style="position: relative; z-index: 100;">
+    <div class="dashboard-header-main d-flex align-items-center justify-content-between">
+        <!-- Month Navigation -->
+        <div class="dashboard-month-nav d-flex align-items-center">
             {% if prev_month_url %}
-                <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" style="min-width: 36px; min-height: 36px;" title="{% trans 'Previous Month' %}" aria-label="{% trans 'Previous Month' %}">
+                <a href="{{ prev_month_url }}" class="btn btn-sm dashboard-nav-btn d-flex align-items-center justify-content-center" title="{% trans 'Previous Month' %}" aria-label="{% trans 'Previous Month' %}">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             {% endif %}
-            <h1 class="h3 mb-0 d-flex align-items-center gap-2">
+            <h1 class="dashboard-month-title fw-bold mb-0 text-body d-flex align-items-center">
                 {% if selected_month and selected_year %}
                     {{ selected_month|slice:":3" }} {{ selected_year|translate_digits }}
                 {% elif selected_month %}
@@ -722,14 +721,22 @@
                 {% endif %}
             </h1>
             {% if next_month_url %}
-                <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" style="min-width: 36px; min-height: 36px;" title="{% trans 'Next Month' %}" aria-label="{% trans 'Next Month' %}">
+                <a href="{{ next_month_url }}" class="btn btn-sm dashboard-nav-btn d-flex align-items-center justify-content-center" title="{% trans 'Next Month' %}" aria-label="{% trans 'Next Month' %}">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             {% endif %}
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-sm btn-link text-primary d-inline-flex align-items-center justify-content-center p-1" 
-                    style="min-width: 36px; min-height: 36px;"
+
+        <!-- Unified Filter Toolbar ("This month" & Filter buttons) -->
+        {% if filter_config %}
+        <div class="dashboard-filter-slot">
+            {% render_filter_toolbar filter_config applied_state %}
+        </div>
+        {% endif %}
+
+        <!-- Header Action Buttons (Desktop only) -->
+        <div class="dashboard-header-actions d-none d-md-flex align-items-center">
+            <button class="btn btn-sm btn-link text-primary dashboard-action-btn d-inline-flex align-items-center justify-content-center p-1" 
                     type="button" 
                     data-bs-toggle="collapse" 
                     data-bs-target="#collapseInsights" 
@@ -737,214 +744,52 @@
                     aria-controls="collapseInsights"
                     title="{% trans 'Financial Intelligence' %}"
                     aria-label="{% trans 'Financial Intelligence' %}">
-                <i class="bi bi-stars fs-5"></i>
+                <i class="bi bi-stars"></i>
             </button>
-            <button class="btn btn-sm btn-link text-muted d-inline-flex align-items-center justify-content-center p-1" 
-                    style="min-width: 36px; min-height: 36px;"
+            <button class="btn btn-sm btn-link text-muted dashboard-action-btn d-inline-flex align-items-center justify-content-center p-1" 
                     data-bs-toggle="modal" 
                     data-bs-target="#savingsMethodModal" 
                     title="{% trans 'How it works' %}"
                     aria-label="{% trans 'How it works' %}">
-                <i class="bi bi-info-circle fs-5"></i>
-            </button>
-            <button class="btn btn-link text-decoration-none text-muted d-inline-flex align-items-center justify-content-center p-1 border-0 fs-6" 
-                    style="min-height: 36px;"
-                    type="button" 
-                    data-bs-toggle="collapse" 
-                    data-bs-target="#dashboardFilters" 
-                    aria-expanded="false" 
-                    aria-controls="dashboardFilters"
-                    aria-label="{% trans 'Filters' %}">
-                <i class="bi bi-funnel me-1"></i> {% trans "Filters" %}
+                <i class="bi bi-info-circle"></i>
             </button>
         </div>
     </div>
+    <!-- Filter Pills Row (Full-width dedicated row to avoid cramping) -->
+    <div class="tmr-chip-row dashboard-chip-row" id="tmr-chip-row-dashboard"></div>
+</div>
 
-    <!-- Desktop Header -->
-    <div class="d-none d-md-flex align-items-center gap-2">
-        {% if prev_month_url %}
-            <a href="{{ prev_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="{% trans 'Previous Month' %}">
-                <i class="bi bi-chevron-left"></i>
-            </a>
+<!-- Secondary Row: Salary cycle (left) & Mobile Action Buttons (right) -->
+<div class="mb-1 fade-in dashboard-sub-row d-flex align-items-center justify-content-between">
+    <div class="salary-cycle-subtle text-muted">
+        {% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}
+        <span>
+            {% trans "Salary cycle:" %} {{ salary_cycle_start|date:"d M" }} - {{ salary_cycle_end|date:"d M" }}
+            <a href="{% url 'profile-settings' %}" class="d-inline-flex align-items-center justify-content-center p-1" style="min-width: 24px; min-height: 24px;" aria-label="{% trans 'Edit salary cycle in profile settings' %}" title="{% trans 'Edit salary cycle' %}"><i class="bi bi-pencil"></i></a>
+        </span>
         {% endif %}
-        
-        <h1 class="h3 fw-bold mb-0 text-body">
-            {% if selected_month and selected_year %}
-                {{ selected_month|slice:":3" }} {{ selected_year|translate_digits }}
-            {% elif selected_month %}
-                {{ selected_month }}
-            {% else %}
-                {% trans "Dashboard" %}
-            {% endif %}
-        </h1>
-
-
-        {% if next_month_url %}
-            <a href="{{ next_month_url }}" class="btn btn-sm d-flex align-items-center justify-content-center" title="{% trans 'Next Month' %}">
-                <i class="bi bi-chevron-right"></i>
-            </a>
-        {% endif %}
-
     </div>
-    
-    <div class="d-none d-md-flex align-items-center gap-2">
-        <button class="btn btn-sm btn-link text-primary p-0 me-1" 
+
+    <!-- Mobile Action Buttons (Spark and Info on same row as salary day) -->
+    <div class="dashboard-header-actions d-flex d-md-none align-items-center gap-1 ms-auto">
+        <button class="btn btn-sm btn-link text-primary dashboard-action-btn d-inline-flex align-items-center justify-content-center p-1" 
                 type="button" 
                 data-bs-toggle="collapse" 
                 data-bs-target="#collapseInsights" 
                 aria-expanded="false" 
                 aria-controls="collapseInsights"
-                title="{% trans 'Financial Intelligence' %}">
-            <i class="bi bi-stars fs-5"></i>
+                title="{% trans 'Financial Intelligence' %}"
+                aria-label="{% trans 'Financial Intelligence' %}">
+            <i class="bi bi-stars"></i>
         </button>
-        <button class="btn btn-sm btn-link text-muted p-0 me-2" data-bs-toggle="modal" data-bs-target="#savingsMethodModal" title="{% trans 'How it works' %}">
-            <i class="bi bi-info-circle fs-5"></i>
+        <button class="btn btn-sm btn-link text-muted dashboard-action-btn d-inline-flex align-items-center justify-content-center p-1" 
+                data-bs-toggle="modal" 
+                data-bs-target="#savingsMethodModal" 
+                title="{% trans 'How it works' %}"
+                aria-label="{% trans 'How it works' %}">
+            <i class="bi bi-info-circle"></i>
         </button>
-        
-        <!-- Desktop Filter Form (Hidden on Mobile) -->
-        <form method="get" class="d-none d-md-flex flex-wrap align-items-center gap-2" id="dashboard-home-filter-form" style="position: relative; z-index: 1040;">
-            <!-- Hidden Actual Inputs -->
-            <input type="hidden" name="start_date" id="start_date" value="{{ start_date|default:'' }}">
-            <input type="hidden" name="end_date" id="end_date" value="{{ end_date|default:'' }}">
-
-            <!-- Date Range Trigger -->
-            <div class="dropdown">
-                <button type="button" class="date-range-trigger" id="date-range-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                    <i class="bi bi-calendar3"></i>
-                    <span id="active-range-text" class="fw-medium">
-                        {% if start_date_obj and end_date_obj %}
-                            {{ start_date_obj|date:"d M Y" }} - {{ end_date_obj|date:"d M Y" }}
-                        {% elif start_date and end_date %}
-                            {{ start_date }} - {{ end_date }}
-                        {% else %}
-                            {% trans "Select Date Range" %}
-                        {% endif %}
-                    </span>
-                </button>
-                
-                <div class="dropdown-menu filter-dropdown-menu shadow-lg border-0">
-                    <div class="filter-split-view">
-                        <!-- Left Sidebar: Presets -->
-                        <div class="filter-presets-sidebar">
-                            <div class="preset-item" data-preset="today">{% trans "Today" %}</div>
-                            <div class="preset-item" data-preset="yesterday">{% trans "Yesterday" %}</div>
-                            <div class="preset-item" data-preset="last-7-days">{% trans "Last 7 days" %}</div>
-                            <div class="preset-item" data-preset="last-30-days">{% trans "Last 30 days" %}</div>
-                            <div class="preset-item" data-preset="this-month">{% trans "This month" %}</div>
-                            <div class="preset-item" data-preset="last-month">{% trans "Last month" %}</div>
-                            <div class="preset-item" data-preset="last-90-days">{% trans "Last 90 days" %}</div>
-                            <div class="preset-item" data-preset="quarter-to-date">{% trans "Quarter to date" %}</div>
-                            <div class="preset-item" data-preset="this-year">{% trans "This year" %}</div>
-                        </div>
-
-                        <!-- Right Area: Calendar and Inputs -->
-                        <div class="filter-main-content">
-                            <div class="filter-inputs-row">
-                                <div class="filter-date-input-group">
-                                    <label>{% trans "Start Date" %}</label>
-                                    <input type="text" id="visual-start-date" readonly placeholder="YYYY-MM-DD">
-                                </div>
-                                <div class="text-muted mt-3">
-                                    <i class="bi bi-arrow-right"></i>
-                                </div>
-                                <div class="filter-date-input-group">
-                                    <label>{% trans "End Date" %}</label>
-                                    <input type="text" id="visual-end-date" readonly placeholder="YYYY-MM-DD">
-                                </div>
-                            </div>
-
-                            <!-- Flatpickr Inline Calendar -->
-                            <div id="inline-calendar"></div>
-
-                            <div class="filter-action-footer">
-                                <button type="button" class="btn btn-light btn-sm px-3 rounded-pill" id="cancel-filter-btn">{% trans "Cancel" %}</button>
-                                <button type="button" class="btn btn-primary btn-sm px-4 rounded-pill fw-bold" id="apply-filter-btn">{% trans "Apply Range" %}</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="vr mx-1 opacity-25"></div>
-
-            <!-- Select Groups -->
-            <div class="d-flex flex-wrap gap-2">
-                <div style="min-width: 180px;">
-                    <label for="category-select" class="visually-hidden">{% trans "Categories" %}</label>
-                    <select name="category" id="category-select" class="form-control django-multi-select" multiple placeholder="{% trans 'Categories' %}" aria-label="{% trans 'Categories' %}">
-                        {% for c in all_categories %}
-                            <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="d-flex gap-2 ms-md-auto">
-                <button type="submit" class="btn btn-primary btn-sm d-flex align-items-center px-3" onclick="showLoader()">
-                    <i class="bi bi-filter me-1"></i> {% trans "Apply" %}
-                </button>
-                <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center px-3" onclick="showLoader()">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> {% trans "Reset" %}
-                </a>
-            </div>
-        </form>
     </div>
-</div>
-
-{% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}
-<div class="mb-1 fade-in salary-cycle-subtle-wrap">
-    <div class="salary-cycle-subtle text-muted">
-        <span>
-            {% trans "Salary cycle:" %} {{ salary_cycle_start|date:"d M" }} - {{ salary_cycle_end|date:"d M" }}
-            <a href="{% url 'profile-settings' %}" class="d-inline-flex align-items-center justify-content-center p-1" style="min-width: 24px; min-height: 24px;" aria-label="{% trans 'Edit salary cycle in profile settings' %}" title="{% trans 'Edit salary cycle' %}"><i class="bi bi-pencil"></i></a>
-        </span>
-    </div>
-</div>
-{% endif %}
-
-
-<!-- Mobile Filter Form (Realigned) -->
-<div class="collapse d-md-none w-100" id="dashboardFilters" style="position: relative; z-index: 1050;">
-    <form method="get" class="mb-4 d-flex flex-column gap-3 bg-body-tertiary p-3 rounded shadow-sm" id="dashboard-mobile-filter-form">
-        <!-- Date Range Group -->
-        <div class="row g-2">
-            <div class="col-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-body-tertiary border-end-0">{% trans "From" %}</span>
-                    <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date|default:'' }}">
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-body-tertiary border-end-0">{% trans "To" %}</span>
-                    <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date|default:'' }}">
-                </div>
-            </div>
-        </div>
-
-        <!-- Selects Grid -->
-        <div class="row g-2">
-            <div class="col-12">
-                <label for="mobile-category-select" class="visually-hidden">{% trans "Categories" %}</label>
-                <select name="category" id="mobile-category-select" class="form-control form-control-sm django-multi-select" multiple placeholder="{% trans 'Categories' %}" aria-label="{% trans 'Categories' %}">
-                    {% for c in all_categories %}
-                        <option value="{{ c }}" {% if c in selected_categories %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary rounded-pill d-flex align-items-center justify-content-center flex-grow-1" onclick="showLoader()">
-                <i class="bi bi-filter me-1"></i> {% trans "Apply Filters" %}
-            </button>
-            <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center px-4" onclick="showLoader()" aria-label="{% trans 'Reset filters' %}" title="{% trans 'Reset filters' %}">
-                <i class="bi bi-arrow-counterclockwise"></i>
-            </a>
-        </div>
-    </form>
 </div>
 
 {% if user.username != 'demo' %}
@@ -4153,7 +3998,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </div><!-- END #full-report-view -->
 
 
-<script src="{% static 'js/dashboard_filter.js' %}"></script>
 <script src="{% static 'js/insights_carousel.js' %}"></script>
 
 {% endblock %}

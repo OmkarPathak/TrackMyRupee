@@ -15,27 +15,50 @@ class DashboardDatePickerTest(TestCase):
         Expense.objects.create(user=self.user, amount=150, account=self.account, category='Food', description='Groceries', date='2026-08-01')
         self.client.login(username='picker_user', password='password123')
 
-    def test_dashboard_last_month_date_range_render(self):
-        # Request dashboard with Last Month date range: start_date=2026-07-01 and end_date=2026-07-31
+    def test_dashboard_custom_date_range_render(self):
+        # Request dashboard with Custom date range: start_date=2026-07-01 and end_date=2026-07-31
         response = self.client.get(reverse('home') + '?start_date=2026-07-01&end_date=2026-07-31')
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
         
-        # Verify context receives the exact requested start_date string
+        # Verify context receives the exact requested start_date and end_date
         self.assertEqual(response.context['start_date'], '2026-07-01')
         self.assertEqual(response.context['end_date'], '2026-07-31')
+        self.assertEqual(response.context['applied_state']['time_period'], 'custom')
+        self.assertEqual(response.context['applied_state']['start_date'], '2026-07-01')
+        self.assertEqual(response.context['applied_state']['end_date'], '2026-07-31')
         
-        # Verify hidden inputs have exact requested dates and not March 1, 2026
-        self.assertIn('value="2026-07-01"', content)
-        self.assertIn('value="2026-07-31"', content)
-        
-        # Verify formatted trigger button label in HTML
-        self.assertIn('01 Jul 2026 - 31 Jul 2026', content)
+        # Verify unified filter toolbar renders with page key
+        self.assertIn('data-page-key="dashboard"', content)
+        self.assertIn('2026-07-01 &ndash; 2026-07-31', content)
 
     def test_dashboard_default_date_range_render(self):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
         
-        # Verify default trigger text when no range query params are set
-        self.assertIn('Select Date Range', content)
+        # Verify default time period is this_month
+        self.assertEqual(response.context['applied_state']['time_period'], 'this_month')
+        self.assertIn('data-page-key="dashboard"', content)
+        self.assertIn('This month', content)
+        
+        # Verify sort button is omitted on dashboard (supports_sort=False)
+        self.assertNotIn('tmr-sort-btn', content)
+
+    def test_dashboard_category_filter(self):
+        Expense.objects.create(user=self.user, amount=200, account=self.account, category='Entertainment', description='Cinema', date='2026-08-01')
+        response = self.client.get(reverse('home') + '?category=Food&start_date=2026-07-01&end_date=2026-08-31')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['applied_state']['filters']['category'], ['Food'])
+        
+        # Verify only Food expenses are included in category breakdown
+        category_data = response.context['category_data']
+        cat_names = [item['category'] for item in category_data]
+        self.assertIn('Food', cat_names)
+        self.assertNotIn('Entertainment', cat_names)
+
+    def test_dashboard_time_period_presets(self):
+        for preset in ['last_month', 'last_3_months', 'this_year', 'all']:
+            response = self.client.get(reverse('home') + f'?time_period={preset}')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.context['applied_state']['time_period'], preset)

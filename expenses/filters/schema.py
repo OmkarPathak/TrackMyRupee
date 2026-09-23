@@ -79,6 +79,8 @@ class FilterSetConfig:
     search_placeholder: str = 'Search description...'
     search_field: str = 'description'
     supports_time_period: bool = True
+    supports_sort: bool = True
+    external_chip_row: bool = False
 
     def get_filter(self, key: str) -> Optional[FilterDef]:
         for f in self.filters:
@@ -92,6 +94,8 @@ class FilterSetConfig:
             'supports_search': self.supports_search,
             'search_placeholder': self.search_placeholder,
             'supports_time_period': self.supports_time_period,
+            'supports_sort': self.supports_sort,
+            'external_chip_row': self.external_chip_row,
             'default_time_range': self.default_time_range,
             'default_sort': self.default_sort,
             'sort_options': self.sort_options,

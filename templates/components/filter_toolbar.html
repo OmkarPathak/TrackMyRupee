@@ -67,6 +67,7 @@
       </div>
 
       <!-- Zone 4: Display & Sort -->
+      {% if filter_config.supports_sort is not False and filter_config.sort_options %}
       <div class="tmr-toolbar-zone ms-md-auto">
         <button type="button" class="tmr-toolbar-btn tmr-sort-btn" id="tmr-sort-dropdown-btn" aria-haspopup="true" aria-expanded="false" title="{% trans 'Sort order' %}">
           <i class="bi bi-arrow-down-up tmr-btn-icon"></i>
@@ -80,13 +81,16 @@
           <i class="bi bi-chevron-down ms-1 tmr-chevron-icon"></i>
         </button>
       </div>
+      {% endif %}
     </div>
   </div>
 
   <!-- Chip Row (populated dynamically by tmr_filter.js) -->
+  {% if not filter_config.external_chip_row %}
   <div class="tmr-chip-row" id="tmr-chip-row-{{ filter_config.page_key }}">
     <!-- Dynamic chips rendered by JS -->
   </div>
+  {% endif %}
 </div>
 
 
