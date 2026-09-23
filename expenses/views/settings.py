@@ -1,11 +1,13 @@
 import logging
+import threading
 
 from allauth.socialaccount.models import SocialAccount
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import IntegrityError
+from django.core.cache import cache
+from django.db import IntegrityError, transaction
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone, translation
@@ -18,10 +20,12 @@ from ..models import (
     DeletionRequestAuditLog,
     Expense,
     Income,
+    Notification,
     RecurringTransaction,
     UserProfile,
 )
 from ..posthog_utils import ph_capture
+from ..signals import invalidate_dashboard_cache
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +54,7 @@ def log_and_notify_deletion(user):
             send_mail(
                 subject=subject,
                 message=text_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
+                from_email=django_settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
                 html_message=html_message,
             )
@@ -83,7 +87,7 @@ class SettingsHomeView(LoginRequiredMixin, TemplateView):
 
 
 class UserDeleteView(LoginRequiredMixin, DeleteView):
-    model = settings.AUTH_USER_MODEL # Handled via get_object
+    model = django_settings.AUTH_USER_MODEL # Handled via get_object
     success_url = reverse_lazy('landing')
     template_name = 'expenses/account_confirm_delete.html'
 
@@ -100,7 +104,7 @@ class UserDeleteView(LoginRequiredMixin, DeleteView):
         return redirect(self.success_url)
 
 class WithdrawConsentView(LoginRequiredMixin, DeleteView):
-    model = settings.AUTH_USER_MODEL
+    model = django_settings.AUTH_USER_MODEL
     success_url = reverse_lazy('landing')
     template_name = 'expenses/withdraw_consent_confirm.html'
 
@@ -114,6 +118,112 @@ class WithdrawConsentView(LoginRequiredMixin, DeleteView):
         user.delete()
         messages.success(self.request, _("Your consent has been withdrawn and your account and data have been permanently deleted as per DPDPA requirements."))
         return redirect(self.success_url)
+
+
+def recalculate_user_transactions(user_id, old_currency, new_currency):
+    """
+    Recalculates exchange_rate and base_amount for all user transactions (Expense, Income, RecurringTransaction)
+    in a single atomic transaction. If any transaction fails, all changes roll back to prevent partial-completion
+    data corruption, user profile currency is reverted to old_currency, and a failure Notification is created.
+    """
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    try:
+        user = User.objects.select_related('profile').get(id=user_id)
+    except User.DoesNotExist:
+        logger.error(f"User {user_id} does not exist for currency recalculation")
+        return False
+
+    user.profile.refresh_from_db()
+    if user.profile.currency != new_currency:
+        user.profile.currency = new_currency
+        user.profile.save(update_fields=['currency'])
+
+    success = False
+    try:
+        with transaction.atomic():
+            for model in [Expense, Income, RecurringTransaction]:
+                transactions = list(model.objects.filter(user=user))
+                for tx in transactions:
+                    tx.user = user
+                    tx.save()
+
+        success = True
+        invalidate_dashboard_cache(user_id=user.id)
+
+        try:
+            link = str(reverse_lazy('currency-settings'))
+        except Exception:
+            link = None
+
+        Notification.objects.create(
+            user=user,
+            title=_("Currency Recalculation Completed"),
+            message=_("All transactions have been recalculated to your new base currency (%(currency)s).") % {'currency': new_currency},
+            notification_type='SYSTEM',
+            link=link,
+        )
+        logger.info(f"Successfully recalculated transactions for user {user_id} to {new_currency}")
+    except Exception as e:
+        logger.exception(f"Currency recalculation failed for user {user_id}: {e}")
+        try:
+            UserProfile.objects.filter(user_id=user_id).update(currency=old_currency)
+        except Exception:
+            logger.exception(f"Failed to revert profile currency for user {user_id}")
+
+        invalidate_dashboard_cache(user_id=user.id)
+
+        try:
+            link = str(reverse_lazy('currency-settings'))
+        except Exception:
+            link = None
+
+        try:
+            Notification.objects.create(
+                user=user,
+                title=_("Currency Recalculation Failed"),
+                message=_("Failed to recalculate transactions to %(currency)s. Your base currency has been reverted to %(old_currency)s.") % {
+                    'currency': new_currency,
+                    'old_currency': old_currency,
+                },
+                notification_type='SYSTEM',
+                link=link,
+            )
+        except Exception:
+            logger.exception(f"Failed to create failure notification for user {user_id}")
+    finally:
+        cache.delete(f'currency_recalc_lock_{user_id}')
+
+    return success
+
+
+def dispatch_currency_recalculation(user_id, old_currency, new_currency, run_async=None):
+    """
+    Guarded by a user-scoped cache lock to prevent overlapping runs.
+    Dispatches recalculate_user_transactions in a background thread by default.
+    """
+    lock_key = f'currency_recalc_lock_{user_id}'
+    if not cache.add(lock_key, 1, timeout=600):
+        logger.warning(f"Currency recalculation already in progress for user {user_id}")
+        return False
+
+    if run_async is None:
+        run_async = getattr(django_settings, 'CURRENCY_RECALCULATION_ASYNC', True)
+
+    def _run():
+        try:
+            recalculate_user_transactions(user_id, old_currency, new_currency)
+        finally:
+            cache.delete(lock_key)
+
+    if not run_async:
+        _run()
+        return True
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+    return True
 
 
 class CurrencyUpdateView(LoginRequiredMixin, UpdateView):
@@ -134,21 +244,17 @@ class CurrencyUpdateView(LoginRequiredMixin, UpdateView):
         ph_capture(self.request.user, 'currency_changed', {'old_currency': old_currency, 'new_currency': form.cleaned_data.get('currency', '')})
         
         if old_currency != new_currency:
-            user = self.request.user
-            skipped_count = 0
-            for model in [Expense, Income, RecurringTransaction]:
-                transactions = model.objects.filter(user=user)
-                for tx in transactions:
-                    try:
-                        tx.save() 
-                    except IntegrityError:
-                        skipped_count += 1
-                        continue
-            
-            if skipped_count > 0:
-                messages.warning(self.request, _('Currency preference updated. %(count)d transactions were skipped due to potential duplication.') % {'count': skipped_count})
+            dispatched = dispatch_currency_recalculation(self.request.user.id, old_currency, new_currency)
+            if dispatched:
+                messages.info(
+                    self.request,
+                    _("Currency preference updated to %(currency)s. Historical transactions are being recalculated in the background.") % {'currency': new_currency}
+                )
             else:
-                messages.success(self.request, _('Currency preference updated successfully.'))
+                messages.warning(
+                    self.request,
+                    _("Currency preference updated to %(currency)s, but a recalculation is already in progress.") % {'currency': new_currency}
+                )
         else:
             messages.success(self.request, _('Currency preference updated successfully.'))
             
@@ -171,11 +277,11 @@ class LanguageUpdateView(LoginRequiredMixin, UpdateView):
         
         response = super().form_valid(form)
         ph_capture(self.request.user, 'language_changed', {'new_language': form.cleaned_data.get('language', '')})
-        response.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang)
+        response.set_cookie(django_settings.LANGUAGE_COOKIE_NAME, lang)
         return response
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
-    model = settings.AUTH_USER_MODEL
+    model = django_settings.AUTH_USER_MODEL
     form_class = ProfileUpdateForm
     template_name = 'expenses/profile_settings.html'
     success_url = reverse_lazy('profile-settings')

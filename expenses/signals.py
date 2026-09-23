@@ -179,7 +179,7 @@ def _dashboard_cache_user_id(instance):
     return instance.user_id
 
 
-def invalidate_dashboard_cache(sender, instance, **kwargs):
+def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwargs):
     """Invalidate cached dashboard data whenever a transaction affecting it is saved/deleted.
 
     Keeps the LocMemCache-backed dashboard (home_default_data / monthly_summary_map /
@@ -188,10 +188,11 @@ def invalidate_dashboard_cache(sender, instance, **kwargs):
     """
     if kwargs.get('raw', False):
         return
-    try:
-        user_id = _dashboard_cache_user_id(instance)
-    except Exception:
-        return
+    if user_id is None and instance is not None:
+        try:
+            user_id = _dashboard_cache_user_id(instance)
+        except Exception:
+            return
     if not user_id:
         return
     try:
