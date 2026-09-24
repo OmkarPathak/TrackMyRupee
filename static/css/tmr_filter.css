@@ -468,6 +468,22 @@
   list-style: none;
 }
 
+.tmr-popover-section-header {
+  padding: 6px 14px 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bs-secondary-color);
+  list-style: none;
+  user-select: none;
+}
+
+.tmr-popover-item.tmr-popover-item-inactive {
+  color: var(--bs-secondary-color);
+  opacity: 0.85;
+}
+
 .tmr-popover-menu.tmr-time-popover {
   min-width: 320px;
   max-width: 360px;

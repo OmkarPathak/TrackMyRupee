@@ -38,19 +38,22 @@ class FilterDef:
             if isinstance(opt, dict):
                 val = str(opt.get('value', ''))
                 lbl = str(opt.get('label', val))
+                item = {**opt, 'value': val, 'label': lbl}
             elif isinstance(opt, (list, tuple)) and len(opt) == 2:
                 val = str(opt[0])
                 lbl = str(opt[1])
+                item = {'value': val, 'label': lbl}
             else:
                 val = str(opt)
                 lbl = str(opt)
+                item = {'value': val, 'label': lbl}
             
             if q and q.strip():
                 query = q.strip().lower()
                 if query not in val.lower() and query not in lbl.lower():
                     continue
 
-            formatted.append({'value': val, 'label': lbl})
+            formatted.append(item)
         return formatted
 
     def to_dict(self) -> Dict[str, Any]:

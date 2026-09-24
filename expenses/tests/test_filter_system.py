@@ -8,6 +8,7 @@ from django.urls import reverse
 from ..filters.definitions import (
     EXPENSE_FILTERS,
     INCOME_FILTERS,
+    get_user_accounts,
     get_user_categories,
     get_user_merchants,
 )
@@ -542,6 +543,54 @@ class FilterSystemTestCase(TestCase):
 
         content = resp.content.decode('utf-8')
         self.assertIn('2026-09-12 &ndash; 2026-09-15', content)
+
+    def test_account_options_active_first_inactive_last(self):
+        # Create active and inactive accounts
+        # Names chosen to test alphabetical sort vs active status sort
+        # A_inactive should come AFTER Z_active
+        acc_a_inactive = Account.objects.create(user=self.user, name='AAA Old Bank', is_active=False)
+        acc_z_active = Account.objects.create(user=self.user, name='ZZZ New Bank', is_active=True)
+
+        options = get_user_accounts(self.user)
+        # Verify active accounts come before inactive accounts
+        active_opts = [opt for opt in options if opt.get('is_active') is True]
+        inactive_opts = [opt for opt in options if opt.get('is_active') is False]
+
+        self.assertTrue(len(active_opts) >= 3)  # Cash Account, HDFC Credit Card, ZZZ New Bank
+        self.assertEqual(len(inactive_opts), 1)  # AAA Old Bank
+
+        # AAA Old Bank must be in inactive_opts and have (Inactive) in label
+        self.assertEqual(inactive_opts[0]['value'], str(acc_a_inactive.id))
+        self.assertEqual(inactive_opts[0]['label'], 'AAA Old Bank (Inactive)')
+        self.assertFalse(inactive_opts[0]['is_active'])
+
+        # In full list, all active options must appear before inactive options
+        active_indices = [i for i, opt in enumerate(options) if opt.get('is_active') is True]
+        inactive_indices = [i for i, opt in enumerate(options) if opt.get('is_active') is False]
+        self.assertLess(max(active_indices), min(inactive_indices))
+
+        # Test search query "inactive" matches inactive accounts
+        search_inac = get_user_accounts(self.user, q='inactive')
+        self.assertTrue(any(opt['value'] == str(acc_a_inactive.id) for opt in search_inac))
+
+    def test_filter_options_api_account_inactive_handling(self):
+        acc_inactive = Account.objects.create(user=self.user, name='Closed ICICI', is_active=False)
+        self.client.login(username='filteruser', password='password123')
+
+        url = reverse('filter-options-api') + '?page=expenses&filter=account'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        data = resp.json()
+        self.assertEqual(data['page'], 'expenses')
+        self.assertEqual(data['filter'], 'account')
+        options = data['options']
+
+        # Verify last option is the inactive account
+        last_opt = options[-1]
+        self.assertEqual(last_opt['value'], str(acc_inactive.id))
+        self.assertEqual(last_opt['label'], 'Closed ICICI (Inactive)')
+        self.assertFalse(last_opt['is_active'])
 
 
 

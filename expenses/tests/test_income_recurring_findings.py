@@ -200,7 +200,9 @@ class IncomeAndRecurringFindingsTestCase(TestCase):
         self.assertEqual(rt.yearly_equivalent, Decimal('52000.00'))
 
         # (c) Dashboard 6-month forecast context
-        resp_dash = self.client.get(reverse('home'))
+        self.profile.tier = 'PRO'
+        self.profile.save()
+        resp_dash = self.client.get(reverse('analytics'))
         self.assertEqual(resp_dash.status_code, 200)
         forecast_expenses = resp_dash.context.get('forecast_expenses')
         self.assertIsNotNone(forecast_expenses)
@@ -327,7 +329,7 @@ class IncomeAndRecurringFindingsTestCase(TestCase):
             'frequency': 'MONTHLY',
             'description': 'Freelance Retainer',
         }
-        resp_update = self.client.post(reverse('income-update', kwargs={'pk': income_obj.pk}), update_data, follow=True)
+        resp_update = self.client.post(reverse('income-edit', kwargs={'pk': income_obj.pk}), update_data, follow=True)
         self.assertEqual(resp_update.status_code, 200)
         self.assertTrue(RecurringTransaction.objects.filter(user=self.user, source='Freelance / Consulting', is_active=True).exists())
 

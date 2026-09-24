@@ -668,14 +668,7 @@ class TMRFilterSystem {
         <input type="text" class="tmr-popover-search" placeholder="Search ${filterDef.label.toLowerCase()}...">
       </div>` : ''}
       <ul class="tmr-popover-list">
-        ${options.map(opt => {
-          const isChecked = currentSelected.includes(opt.value);
-          return `
-            <li class="tmr-popover-item ${isChecked ? 'selected' : ''}" data-value="${opt.value}">
-              <span>${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${opt.label}</span>
-            </li>
-          `;
-        }).join('')}
+        ${this.renderOptionsListHtml(options, currentSelected)}
       </ul>
       <div class="tmr-popover-footer">
         <button type="button" class="tmr-popover-footer-btn clear">Clear</button>
@@ -701,22 +694,23 @@ class TMRFilterSystem {
               const filteredOpts = await this.fetchFilterOptions(filterDef, q);
               const listEl = popover.querySelector('.tmr-popover-list');
               if (listEl) {
-                listEl.innerHTML = filteredOpts.map(opt => {
-                  const isChecked = (this.state.filters[filterDef.key] || []).includes(opt.value);
-                  return `
-                    <li class="tmr-popover-item ${isChecked ? 'selected' : ''}" data-value="${opt.value}">
-                      <span>${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${opt.label}</span>
-                    </li>
-                  `;
-                }).join('');
+                listEl.innerHTML = this.renderOptionsListHtml(filteredOpts, this.state.filters[filterDef.key] || []);
                 this.bindOptionItemClick(popover, filterDef);
               }
             } else {
               // Client-side search
               const query = q.toLowerCase();
+              let visibleInactive = 0;
               items.forEach(item => {
                 const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(query) ? 'flex' : 'none';
+                const matches = text.includes(query);
+                item.style.display = matches ? 'flex' : 'none';
+                if (matches && item.classList.contains('tmr-popover-item-inactive')) {
+                  visibleInactive++;
+                }
+              });
+              popover.querySelectorAll('.tmr-popover-section-header, .tmr-popover-divider').forEach(h => {
+                h.style.display = (!query || visibleInactive > 0) ? 'block' : 'none';
               });
             }
           }, 250);
@@ -741,6 +735,40 @@ class TMRFilterSystem {
         });
       }
     });
+  }
+
+  renderOptionsListHtml(options, currentSelected) {
+    let html = '';
+    let seenInactive = false;
+    let hasActiveBefore = false;
+
+    for (let i = 0; i < options.length; i++) {
+      const opt = options[i];
+      const valStr = String(opt.value);
+      const isChecked = currentSelected.includes(valStr);
+      const isInactive = opt.is_active === false;
+
+      if (!isInactive) {
+        hasActiveBefore = true;
+      } else if (!seenInactive) {
+        seenInactive = true;
+        if (hasActiveBefore) {
+          html += `<li class="tmr-popover-divider"></li>`;
+          html += `<li class="tmr-popover-section-header">Inactive</li>`;
+        }
+      }
+
+      html += `
+        <li class="tmr-popover-item ${isChecked ? 'selected' : ''} ${isInactive ? 'tmr-popover-item-inactive' : ''}" data-value="${opt.value}">
+          <span>
+            ${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''}
+            ${isInactive && !isChecked ? '<i class="bi bi-slash-circle text-muted" style="font-size: 0.85em;"></i>' : ''}
+            <span class="tmr-option-text">${opt.label}</span>
+          </span>
+        </li>
+      `;
+    }
+    return html;
   }
 
   bindOptionItemClick(popover, filterDef) {
@@ -777,8 +805,16 @@ class TMRFilterSystem {
           items.forEach(i => i.classList.remove('selected'));
         }
         item.classList.toggle('selected', isChecked);
-        const labelText = item.textContent.replace('✓', '').trim();
-        item.innerHTML = `<span>${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${labelText}</span>`;
+        const isInactive = item.classList.contains('tmr-popover-item-inactive');
+        const textSpan = item.querySelector('.tmr-option-text');
+        const labelText = textSpan ? textSpan.textContent.trim() : item.textContent.replace('✓', '').trim();
+        item.innerHTML = `
+          <span>
+            ${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''}
+            ${isInactive && !isChecked ? '<i class="bi bi-slash-circle text-muted" style="font-size: 0.85em;"></i>' : ''}
+            <span class="tmr-option-text">${labelText}</span>
+          </span>
+        `;
 
         // Live apply changes
         this.onStateChanged();

@@ -8,14 +8,31 @@ from .schema import FilterDef, FilterSetConfig
 
 # --- Dynamic Option Providers ---
 
-def get_user_accounts(user=None, q: Optional[str] = None) -> List[Dict[str, str]]:
+def get_user_accounts(user=None, q: Optional[str] = None) -> List[Dict[str, Any]]:
     if not user or not user.is_authenticated:
         return []
     from ..models import Account
-    qs = Account.objects.filter(user=user).order_by('name')
+    
+    active_qs = Account.objects.filter(user=user, is_active=True).order_by('name')
+    inactive_qs = Account.objects.filter(user=user, is_active=False).order_by('name')
+    
     if q and q.strip():
-        qs = qs.filter(name__icontains=q.strip())
-    return [{'value': str(acc.id), 'label': acc.name} for acc in qs]
+        search_term = q.strip()
+        active_qs = active_qs.filter(name__icontains=search_term)
+        if search_term.lower() in 'inactive':
+            pass
+        else:
+            inactive_qs = inactive_qs.filter(name__icontains=search_term)
+
+    active_opts = [
+        {'value': str(acc.id), 'label': acc.name, 'is_active': True}
+        for acc in active_qs
+    ]
+    inactive_opts = [
+        {'value': str(acc.id), 'label': f"{acc.name} (Inactive)", 'is_active': False}
+        for acc in inactive_qs
+    ]
+    return active_opts + inactive_opts
 
 
 def get_user_categories(user=None, q: Optional[str] = None) -> List[Dict[str, str]]:
