@@ -1,5 +1,5 @@
-// Updated: 2026-09-22 (Deployment Auto-Update)
-const CACHE_NAME = 'finance-tracker-v32';
+// Updated: 2026-09-24 (Speech Recognition & Clean Fetch Strategy)
+const CACHE_NAME = 'finance-tracker-v33';
 const OFFLINE_URL = '/offline/';
 
 const ASSETS_TO_CACHE = [
@@ -52,9 +52,13 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event
 self.addEventListener('fetch', (event) => {
-  // Ignore non-GET requests, Razorpay, manifest, and admin pages
-  if (event.request.method !== 'GET' || 
-      event.request.url.includes('razorpay') || 
+  // Only handle standard HTTP/HTTPS GET requests
+  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
+    return;
+  }
+
+  // Ignore Razorpay, manifest, and admin pages
+  if (event.request.url.includes('razorpay') || 
       event.request.url.includes('manifest.json') ||
       event.request.url.includes('/admin/')) {
     return; 
@@ -62,6 +66,9 @@ self.addEventListener('fetch', (event) => {
 
   // Don't cache pricing page
   if (event.request.url.includes('/pricing/')) return;
+
+  const url = new URL(event.request.url);
+  const isSameOrigin = url.origin === self.location.origin;
 
   // Navigation requests (HTML pages) - Network only with offline fallback
   if (event.request.mode === 'navigate') {
@@ -74,8 +81,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: Network first, fallback to cache for app domain (/static/)
-  if (event.request.url.includes('/static/')) {
+  // Static assets on same origin (/static/): Network first, fallback to cache
+  if (isSameOrigin && url.pathname.startsWith('/static/')) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
@@ -94,12 +101,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Other static assets (CDNs, etc): Cache first, network fallback
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request).catch(() => null);
-    })
-  );
+  // Explicitly cached CDN assets (Bootstrap, Chart.js, jsdelivr): Cache first, network fallback
+  const isCachedCdnAsset = ASSETS_TO_CACHE.some(cachedUrl => {
+    return cachedUrl.startsWith('http') && event.request.url.startsWith(cachedUrl.split('?')[0]);
+  }) || url.hostname.includes('jsdelivr.net');
+
+  if (isCachedCdnAsset) {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request).then((networkResp) => {
+          if (networkResp && networkResp.status === 200) {
+            const respClone = networkResp.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, respClone));
+          }
+          return networkResp;
+        }).catch(() => null);
+      })
+    );
+    return;
+  }
+
+  // All other requests (e.g. Speech Recognition APIs, external services, dynamic endpoints):
+  // Let browser handle natively without Service Worker interception
 });
 
 // Push Notification Event

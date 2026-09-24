@@ -1238,119 +1238,129 @@
 
 <script>
     // --- Speech Recognition Logic ---
-    const micBtn = document.getElementById('btn-mic');
-    const nlInput = document.getElementById('nl-input');
-    const listeningStatus = document.getElementById('listening-status');
-    const permissionModalElement = document.getElementById('speechPermissionModal');
-    const permissionModal = permissionModalElement ? new bootstrap.Modal(permissionModalElement) : null;
+    (function initSpeechRecognition() {
+        let recognition = null;
+        let isListening = false;
 
-    let recognition;
-    let isListening = false;
-
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        
-        // Configure for Indian English
-        recognition.lang = 'en-IN';
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
-        recognition.onstart = function() {
-            isListening = true;
-            if (micBtn) micBtn.classList.add('listening');
-            if (listeningStatus) listeningStatus.style.display = 'flex';
-        };
-
-        recognition.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            
-            // Append to existing text if any
-            if (nlInput) {
-                const currentVal = nlInput.value.trim();
-                nlInput.value = currentVal ? currentVal + ' ' + transcript : transcript;
-                nlInput.focus();
-                
-                // Trigger the existing input listener if any
-                const inputEvent = new Event('input', { bubbles: true });
-                nlInput.dispatchEvent(inputEvent);
+        function stopListening() {
+            isListening = false;
+            const micBtn = document.getElementById('btn-mic');
+            const listeningStatus = document.getElementById('listening-status');
+            if (micBtn) micBtn.classList.remove('listening');
+            if (listeningStatus) listeningStatus.style.display = 'none';
+            if (recognition) {
+                try {
+                    recognition.stop();
+                } catch (e) {}
+                recognition = null;
             }
-            
-            // Stop listening once the text is converted
-            stopListening();
-        };
-
-        recognition.onerror = function(event) {
-            console.error('Speech recognition error', event.error);
-            stopListening();
-            
-            if (event.error === 'not-allowed' && permissionModal) {
-                permissionModal.show();
-            }
-        };
-
-        recognition.onend = function() {
-            stopListening();
-        };
-    } else {
-        console.warn('Web Speech API is not supported or disabled in this context.');
-    }
-
-    function stopListening() {
-        isListening = false;
-        if (micBtn) micBtn.classList.remove('listening');
-        if (listeningStatus) listeningStatus.style.display = 'none';
-        if (recognition) recognition.stop();
-    }
-
-    function startListening() {
-        if (!recognition) {
-            if (!window.isSecureContext) {
-                alert('{% trans "Speech recognition requires a secure connection (HTTPS) to work on mobile devices. Please use localhost on your computer or host the app with SSL." %}');
-            } else {
-                alert('{% trans "Speech recognition is not supported in this browser. Please try Chrome, Edge, or Safari." %}');
-            }
-            return;
         }
-        
-        // Check permissions first if supported by browser
-        if (navigator.permissions && navigator.permissions.query) {
-            navigator.permissions.query({ name: 'microphone' }).then(function(permissionStatus) {
-                if (permissionStatus.state === 'denied' && permissionModal) {
-                    permissionModal.show();
+
+        function startListening() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                if (!window.isSecureContext) {
+                    alert('{% trans "Speech recognition requires a secure connection (HTTPS) to work on mobile devices. Please use localhost on your computer or host the app with SSL." %}');
                 } else {
-                    try {
-                        recognition.start();
-                    } catch (e) {
-                        recognition.stop();
-                    }
+                    alert('{% trans "Speech recognition is not supported in this browser. Please try Chrome, Edge, or Safari." %}');
                 }
-            });
-        } else {
-            // Fallback for browsers that don't support permission query
+                return;
+            }
+
+            if (isListening && recognition) {
+                stopListening();
+                return;
+            }
+
+            const micBtn = document.getElementById('btn-mic');
+            const nlInput = document.getElementById('nl-input');
+            const listeningStatus = document.getElementById('listening-status');
+            const permissionModalElement = document.getElementById('speechPermissionModal');
+            const permissionModal = permissionModalElement && typeof bootstrap !== 'undefined' ? (bootstrap.Modal.getInstance(permissionModalElement) || new bootstrap.Modal(permissionModalElement)) : null;
+
             try {
+                if (recognition) {
+                    try { recognition.abort(); } catch (e) {}
+                }
+
+                recognition = new SpeechRecognition();
+                recognition.lang = 'en-IN';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                recognition.onstart = function() {
+                    isListening = true;
+                    if (micBtn) micBtn.classList.add('listening');
+                    if (listeningStatus) listeningStatus.style.display = 'flex';
+                };
+
+                recognition.onresult = function(event) {
+                    if (event.results && event.results.length > 0 && event.results[0].length > 0) {
+                        const transcript = event.results[0][0].transcript;
+                        if (nlInput) {
+                            const currentVal = nlInput.value.trim();
+                            nlInput.value = currentVal ? currentVal + ' ' + transcript : transcript;
+                            nlInput.focus();
+                            nlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+                    stopListening();
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    stopListening();
+                    
+                    if ((event.error === 'not-allowed' || event.error === 'service-not-allowed') && permissionModal) {
+                        permissionModal.show();
+                    }
+                };
+
+                recognition.onend = function() {
+                    stopListening();
+                };
+
+                // CRITICAL: start() must be invoked synchronously within the direct click event handler
+                // to maintain browser user gesture activation.
                 recognition.start();
-            } catch (e) {
-                recognition.stop();
+            } catch (err) {
+                console.error('Failed to start speech recognition:', err);
+                stopListening();
             }
         }
-    }
 
-    window.requestMicAccess = function() {
-        if (permissionModal) permissionModal.hide();
-        startListening();
-    };
+        window.requestMicAccess = function() {
+            const permissionModalElement = document.getElementById('speechPermissionModal');
+            const permissionModal = permissionModalElement && typeof bootstrap !== 'undefined' ? (bootstrap.Modal.getInstance(permissionModalElement) || new bootstrap.Modal(permissionModalElement)) : null;
+            if (permissionModal) permissionModal.hide();
+            startListening();
+        };
 
-    if (micBtn) {
-        micBtn.addEventListener('click', function() {
-            if (isListening) {
-                stopListening();
-            } else {
-                startListening();
+        function bindMicButton() {
+            const micBtn = document.getElementById('btn-mic');
+            if (micBtn && !micBtn.dataset.micBound) {
+                micBtn.dataset.micBound = 'true';
+                micBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (isListening) {
+                        stopListening();
+                    } else {
+                        startListening();
+                    }
+                });
             }
-        });
-    }
+        }
 
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindMicButton);
+        } else {
+            bindMicButton();
+        }
+    })();
+</script>
+
+<script>
     // ---- Large Expense Smart Prompt ----
     // If user types an amount above the threshold, show a non-blocking suggestion
     // to log it as a Capital Event instead.

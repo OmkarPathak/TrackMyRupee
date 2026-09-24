@@ -395,9 +395,10 @@
                 // Listen for the controlling service worker changing and reload the page
                 // to ensure the user always has the latest version of the app.
                 let refreshing = false;
+                let hadController = Boolean(navigator.serviceWorker.controller);
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (refreshing) return;
-                    if (navigator.serviceWorker.controller) {
+                    if (hadController) {
                         refreshing = true;
                         window.location.reload();
                     }
