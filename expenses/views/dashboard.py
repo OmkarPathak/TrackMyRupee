@@ -3259,11 +3259,12 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         monthly_rec_income_baseline = 0
         monthly_rec_expense_baseline = 0
         for r in active_recurring:
-            monthly_amt, _yearly_amt = calculate_recurring_equivalents(r.frequency, r.base_amount or r.amount)
-            if r.transaction_type == 'INCOME':
-                monthly_rec_income_baseline += float(monthly_amt)
-            elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
-                monthly_rec_expense_baseline += float(monthly_amt)
+            if r.frequency == 'MONTHLY':
+                amt = float(r.base_amount or r.amount)
+                if r.transaction_type == 'INCOME':
+                    monthly_rec_income_baseline += amt
+                elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
+                    monthly_rec_expense_baseline += amt
         
         for i in range(1, 7):
             forecast_year = today.year
