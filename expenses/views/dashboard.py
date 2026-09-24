@@ -36,6 +36,10 @@ from ..models import (
     Transfer,
     UserProfile,
 )
+from ..recurring_utils import (
+    calculate_recurring_equivalents,
+    get_recurring_month_occurrence_amount,
+)
 from ..services import FinancialService, LoanService, SalaryAnalysisService
 from ..templatetags.digit_filters import compact_amount
 from ..utils import (
@@ -3255,11 +3259,11 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         monthly_rec_income_baseline = 0
         monthly_rec_expense_baseline = 0
         for r in active_recurring:
-            if r.frequency == 'MONTHLY':
-                if r.transaction_type == 'INCOME':
-                    monthly_rec_income_baseline += float(r.amount)
-                elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
-                    monthly_rec_expense_baseline += float(r.amount)
+            monthly_amt, _ = calculate_recurring_equivalents(r.frequency, r.base_amount or r.amount)
+            if r.transaction_type == 'INCOME':
+                monthly_rec_income_baseline += float(monthly_amt)
+            elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
+                monthly_rec_expense_baseline += float(monthly_amt)
         
         for i in range(1, 7):
             forecast_year = today.year
@@ -3275,18 +3279,11 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             rec_expense_for_month = 0
             
             for r in active_recurring:
-                if r.frequency == 'MONTHLY':
-                    if r.transaction_type == 'INCOME':
-                        rec_income_for_month += float(r.amount)
-                    elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
-                        rec_expense_for_month += float(r.amount)
-                elif r.frequency == 'YEARLY':
-                    # Only add if it happens in this specific month
-                    if r.start_date.month == forecast_month:
-                        if r.transaction_type == 'INCOME':
-                            rec_income_for_month += float(r.amount)
-                        elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
-                            rec_expense_for_month += float(r.amount)
+                month_amt = get_recurring_month_occurrence_amount(r, forecast_year, forecast_month)
+                if r.transaction_type == 'INCOME':
+                    rec_income_for_month += float(month_amt)
+                elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
+                    rec_expense_for_month += float(month_amt)
             
             # Combine Historical Avg (minus recurring) + Specific Month's Recurring
             # We assume historical avg includes average recurring, so we substitute

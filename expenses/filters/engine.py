@@ -32,7 +32,8 @@ def apply_filter_config(
     from ..views.utils import apply_date_filters
 
     # 1. Date / Time Period Filter
-    queryset = apply_date_filters(queryset, request)
+    if config.supports_time_period:
+        queryset = apply_date_filters(queryset, request)
 
 
     # 2. Search Query Filter
@@ -40,7 +41,14 @@ def apply_filter_config(
     search_query = search_query.strip()
     if search_query and config.supports_search:
         applied_state['search'] = search_query
-        queryset = queryset.filter(**{f"{config.search_field}__icontains": search_query})
+        if getattr(config, 'search_fields', None):
+            from django.db.models import Q
+            search_q = Q()
+            for sf in config.search_fields:
+                search_q |= Q(**{f"{sf}__icontains": search_query})
+            queryset = queryset.filter(search_q)
+        else:
+            queryset = queryset.filter(**{f"{config.search_field}__icontains": search_query})
 
     # 3. Process Chip Filters declared in config
     for filter_def in config.filters:
@@ -77,14 +85,19 @@ def apply_filter_config(
             continue
 
     # 4. Sorting
-    sort_by = applied_state['sort']
-    if sort_by == 'date_asc':
-        queryset = queryset.order_by('date', 'created_at', 'id')
-    elif sort_by == 'amount_desc':
-        queryset = queryset.order_by('-base_amount', '-id')
-    elif sort_by == 'amount_asc':
-        queryset = queryset.order_by('base_amount', 'id')
-    else:  # default date_desc
-        queryset = queryset.order_by('-date', '-created_at', '-id')
+    if config.supports_sort:
+        sort_by = applied_state['sort']
+        if sort_by == 'date_asc':
+            queryset = queryset.order_by('date', 'created_at', 'id')
+        elif sort_by == 'amount_desc':
+            queryset = queryset.order_by('-base_amount', '-id')
+        elif sort_by == 'amount_asc':
+            queryset = queryset.order_by('base_amount', 'id')
+        elif sort_by == 'date_desc':
+            try:
+                queryset.model._meta.get_field('date')
+                queryset = queryset.order_by('-date', '-created_at', '-id')
+            except Exception:
+                queryset = queryset.order_by('-created_at', '-id')
 
     return queryset, applied_state

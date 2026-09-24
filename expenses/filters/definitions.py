@@ -178,17 +178,34 @@ def filter_income_groups(queryset: QuerySet, values: List[str]) -> QuerySet:
     if not values:
         return queryset
     
+    from ..models import INCOME_GROUP_TYPES
     group_source_types = []
-    if 'EARNED' in values:
-        group_source_types.extend(['Salary', 'Freelance / Consulting', 'Business'])
-    if 'PASSIVE' in values:
-        group_source_types.extend(['Investment Returns', 'Rental Income'])
-    if 'ONE_OFF' in values:
-        group_source_types.extend(['Cashback & Rewards', 'Refund / Reimbursement', 'Other'])
+    for val in values:
+        if val in INCOME_GROUP_TYPES:
+            group_source_types.extend(INCOME_GROUP_TYPES[val])
 
     if group_source_types:
         return queryset.filter(source_type__in=group_source_types)
     return queryset
+
+
+def filter_recurring_status(queryset: QuerySet, values: List[str]) -> QuerySet:
+    if not values:
+        return queryset
+    val = values[0] if isinstance(values, list) else values
+    if val == 'active':
+        return queryset.filter(is_active=True)
+    elif val == 'cancelled':
+        return queryset.filter(is_active=False)
+    return queryset
+
+
+def filter_recurring_accounts(queryset: QuerySet, values: List[str]) -> QuerySet:
+    if not values:
+        return queryset
+    return queryset.filter(
+        Q(account_id__in=values) | Q(from_account_id__in=values) | Q(to_account_id__in=values)
+    )
 
 
 # --- Page Configurations ---
@@ -508,6 +525,7 @@ RECURRING_FILTERS = FilterSetConfig(
                 {"value": "active", "label": "Active"},
                 {"value": "cancelled", "label": "Cancelled"},
             ],
+            custom_filter_fn=filter_recurring_status,
         ),
         FilterDef(
             key="account",
@@ -515,6 +533,7 @@ RECURRING_FILTERS = FilterSetConfig(
             type="multi_select",
             source="dynamic",
             options_fn=get_user_accounts,
+            custom_filter_fn=filter_recurring_accounts,
         ),
         FilterDef(
             key="transaction_type",
@@ -542,6 +561,7 @@ RECURRING_FILTERS = FilterSetConfig(
     supports_search=True,
     search_placeholder="Search subscriptions...",
     search_field="description",
+    search_fields=["description", "category"],
 )
 
 

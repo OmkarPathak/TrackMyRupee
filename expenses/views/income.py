@@ -16,7 +16,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import IncomeForm
-from ..models import Income, RecurringTransaction
+from ..models import INCOME_GROUP_TYPES, Income, RecurringTransaction
 from ..posthog_utils import ph_capture
 from .mixins import (
     HtmxPartialTemplateMixin,
@@ -61,9 +61,9 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         
         # Calculate stats and totals by group type for the filtered queryset in a single DB query
         filtered_queryset = self.object_list
-        earned_types = ['Salary', 'Freelance / Consulting', 'Business']
-        passive_types = ['Investment Returns', 'Rental Income']
-        one_off_types = ['Cashback & Rewards', 'Refund / Reimbursement', 'Other']
+        earned_types = INCOME_GROUP_TYPES['EARNED']
+        passive_types = INCOME_GROUP_TYPES['PASSIVE']
+        one_off_types = INCOME_GROUP_TYPES['ONE_OFF']
 
         stats = filtered_queryset.aggregate(
             count=Count('id'),
@@ -97,7 +97,7 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
 
         monthly_totals_qs = Income.objects.filter(
             user=self.request.user,
-            source_type__in=['Salary', 'Freelance / Consulting', 'Business'],
+            source_type__in=INCOME_GROUP_TYPES['EARNED'],
             date__gte=start_dt,
             date__lte=end_dt
         ).annotate(
@@ -177,6 +177,42 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         }
         return context
 
+def _create_recurring_from_income(request, form):
+    """
+    Helper to create an active recurring transaction from an income form if requested.
+    Emits appropriate info message whether newly created or already existing.
+    """
+    if not form.cleaned_data.get('add_to_recurring'):
+        return None
+
+    existing_rt = RecurringTransaction.objects.filter(
+        user=request.user,
+        transaction_type='INCOME',
+        source=form.instance.source,
+        is_active=True
+    ).exists()
+
+    if not existing_rt:
+        rt = RecurringTransaction.objects.create(
+            user=request.user,
+            transaction_type='INCOME',
+            amount=form.instance.amount,
+            currency=form.instance.currency,
+            account=form.instance.account,
+            source=form.instance.source,
+            frequency=form.cleaned_data.get('frequency'),
+            start_date=form.instance.date,
+            last_processed_date=form.instance.date,
+            description=form.instance.description,
+            is_active=True
+        )
+        messages.info(request, _("A recurring income subscription has also been created."))
+        return rt
+    else:
+        messages.info(request, _("A recurring subscription for this source already exists."))
+        return None
+
+
 class IncomeCreateView(LoginRequiredMixin, CreateView):
     model = Income
     form_class = IncomeForm
@@ -206,31 +242,7 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
         })
         messages.success(self.request, _("Income record added successfully!"))
         
-        if form.cleaned_data.get('add_to_recurring'):
-            existing_rt = RecurringTransaction.objects.filter(
-                user=self.request.user,
-                transaction_type='INCOME',
-                source=form.instance.source,
-                is_active=True
-            ).exists()
-            
-            if not existing_rt:
-                RecurringTransaction.objects.create(
-                    user=self.request.user,
-                    transaction_type='INCOME',
-                    amount=form.instance.amount,
-                    currency=form.instance.currency,
-                    account=form.instance.account,
-                    source=form.instance.source,
-                    frequency=form.cleaned_data.get('frequency'),
-                    start_date=form.instance.date,
-                    last_processed_date=form.instance.date,
-                    description=form.instance.description,
-                    is_active=True
-                )
-                messages.info(self.request, _("A recurring income subscription has also been created."))
-            else:
-                messages.info(self.request, _("A recurring subscription for this source already exists."))
+        _create_recurring_from_income(self.request, form)
             
         return response
 
@@ -264,7 +276,6 @@ class IncomeUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
         return super().get_success_url()
 
     def form_valid(self, form):
-        from django.db import IntegrityError
         try:
             response = super().form_valid(form)
             ph_capture(self.request.user, 'income_updated', {
@@ -272,31 +283,7 @@ class IncomeUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
                 'currency': self.object.currency,
             })
             messages.success(self.request, _("Income record updated successfully!"))
-            if form.cleaned_data.get('add_to_recurring'):
-                existing_rt = RecurringTransaction.objects.filter(
-                    user=self.request.user,
-                    transaction_type='INCOME',
-                    source=form.instance.source,
-                    is_active=True
-                ).exists()
-                
-                if not existing_rt:
-                    RecurringTransaction.objects.create(
-                        user=self.request.user,
-                        transaction_type='INCOME',
-                        amount=form.instance.amount,
-                        currency=form.instance.currency,
-                        account=form.instance.account,
-                        source=form.instance.source,
-                        frequency=form.cleaned_data.get('frequency'),
-                        start_date=form.instance.date,
-                        last_processed_date=form.instance.date,
-                        description=form.instance.description,
-                        is_active=True
-                    )
-                    messages.info(self.request, _("A recurring income subscription has also been created."))
-                else:
-                    messages.info(self.request, _("A recurring subscription for this source already exists."))
+            _create_recurring_from_income(self.request, form)
             return response
         except IntegrityError:
             messages.error(self.request, _("This income entry already exists."))

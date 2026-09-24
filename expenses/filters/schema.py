@@ -78,6 +78,7 @@ class FilterSetConfig:
     supports_search: bool = True
     search_placeholder: str = 'Search description...'
     search_field: str = 'description'
+    search_fields: Optional[List[str]] = None
     supports_time_period: bool = True
     supports_sort: bool = True
     external_chip_row: bool = False

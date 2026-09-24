@@ -10,10 +10,12 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from expenses.views.utils import get_safe_redirect_url
 
-from ..filters.definitions import RECURRING_FILTERS
+from ..filters import RECURRING_FILTERS, apply_filter_config
 from ..forms import RecurringTransactionForm
 from ..models import RecurringTransaction
 from ..posthog_utils import ph_capture
+from ..recurring_utils import calculate_recurring_equivalents
+from finance_tracker.plans import get_limit
 from .mixins import (
     HtmxPartialTemplateMixin,
     RecurringTransactionMixin,
@@ -32,57 +34,19 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
     def get_queryset(self):
         if not self.request.user.is_authenticated:
             return RecurringTransaction.objects.none()
-        queryset = RecurringTransaction.objects.filter(user=self.request.user).select_related(
+        base_qs = RecurringTransaction.objects.filter(user=self.request.user).select_related(
             'account',
             'from_account',
             'to_account',
             'loan',
         )
         if self.filter_expenses_only:
-            queryset = queryset.filter(transaction_type__in=['EXPENSE', 'TRANSFER', 'LOAN', 'CAPITAL'])
-        queryset = queryset.order_by('-created_at')
+            base_qs = base_qs.filter(transaction_type__in=['EXPENSE', 'TRANSFER', 'LOAN', 'CAPITAL'])
+        base_qs = base_qs.order_by('-created_at')
 
-        # Filter by Search
-        search_query = self.request.GET.get('search', '').strip()
-        if search_query:
-            queryset = queryset.filter(Q(description__icontains=search_query) | Q(category__icontains=search_query))
-
-        # Filter by Category
-        categories = [c for c in self.request.GET.getlist('category') if c]
-        if not categories and self.request.GET.get('category'):
-            categories = [self.request.GET.get('category')]
-        if categories:
-            queryset = queryset.filter(category__in=categories)
-
-        # Filter by Billing Cycle (frequency)
-        frequencies = [f for f in self.request.GET.getlist('frequency') if f]
-        if not frequencies and self.request.GET.get('frequency'):
-            frequencies = [self.request.GET.get('frequency')]
-        if frequencies:
-            queryset = queryset.filter(frequency__in=frequencies)
-
-        # Filter by Status
-        status = self.request.GET.get('status')
-        if status == 'active':
-            queryset = queryset.filter(is_active=True)
-        elif status == 'cancelled':
-            queryset = queryset.filter(is_active=False)
-
-        # Filter by Account
-        accounts = [a for a in self.request.GET.getlist('account') if a]
-        if not accounts and self.request.GET.get('account'):
-            accounts = [self.request.GET.get('account')]
-        if accounts:
-            queryset = queryset.filter(Q(account_id__in=accounts) | Q(from_account_id__in=accounts) | Q(to_account_id__in=accounts))
-
-        # Filter by Transaction Type
-        types = [t for t in self.request.GET.getlist('transaction_type') if t]
-        if not types and self.request.GET.get('transaction_type'):
-            types = [self.request.GET.get('transaction_type')]
-        if types:
-            queryset = queryset.filter(transaction_type__in=types)
-            
+        queryset, self.applied_state = apply_filter_config(base_qs, self.request, RECURRING_FILTERS)
         return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_transactions = self.object_list
@@ -91,11 +55,16 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         # Split into Active and Cancelled
         # We sort active subs by creation date to determine which ones are locked
         active_subs = [t for t in all_transactions if t.is_active]
-        active_subs.sort(key=lambda x: x.created_at or x.id) # Fallback to ID if created_at is null
+        active_subs.sort(key=lambda x: (x.created_at or today, x.id or 0)) # Fallback to ID if created_at is null
         
         profile = self.request.user.profile
-        for sub in active_subs:
-            sub.is_locked = profile.is_recurring_locked(sub)
+        limit = get_limit(profile.active_tier, 'recurring_transactions')
+        if limit == -1:
+            for sub in active_subs:
+                sub.is_locked = False
+        else:
+            for idx, sub in enumerate(active_subs):
+                sub.is_locked = idx >= limit
             
         cancelled_subs = [t for t in all_transactions if not t.is_active]
         
@@ -106,28 +75,8 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         for sub in active_subs:
             if sub.transaction_type in ('TRANSFER', 'INCOME'):
                 continue
-            amount = sub.base_amount
-            if sub.frequency == 'DAILY':
-                total_monthly += amount * 30
-                total_yearly += amount * 365
-            elif sub.frequency == 'WEEKLY':
-                total_monthly += amount * 4
-                total_yearly += amount * 52
-            elif sub.frequency == 'BIWEEKLY':
-                total_monthly += amount * 2
-                total_yearly += amount * 26
-            elif sub.frequency == 'MONTHLY':
-                total_monthly += amount
-                total_yearly += amount * 12
-            elif sub.frequency == 'QUARTERLY':
-                total_monthly += amount / 3
-                total_yearly += amount * 4
-            elif sub.frequency == 'SEMIANNUALLY':
-                total_monthly += amount / 6
-                total_yearly += amount * 2
-            elif sub.frequency == 'YEARLY':
-                total_monthly += amount / 12
-                total_yearly += amount
+            total_monthly += sub.monthly_equivalent
+            total_yearly += sub.yearly_equivalent
 
         # Identify "Renewing Soon" (This Month)
         renewing_soon = []
@@ -155,7 +104,8 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         renewing_soon.sort(key=lambda x: x.annotated_days_until)
 
         # Sort active and cancelled subs
-        sort_by = self.request.GET.get('sort', 'next_date_asc')
+        applied_state = getattr(self, 'applied_state', {})
+        sort_by = applied_state.get('sort', 'next_date_asc')
         if sort_by == 'amount_desc':
             active_subs.sort(key=lambda x: x.base_amount or x.amount, reverse=True)
             cancelled_subs.sort(key=lambda x: x.base_amount or x.amount, reverse=True)
@@ -169,39 +119,11 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
             active_subs.sort(key=lambda x: x.annotated_days_until)
             cancelled_subs.sort(key=lambda x: (x.next_due_date or date.max))
 
-        search_query = self.request.GET.get('search', '').strip()
-        selected_categories = [c for c in self.request.GET.getlist('category') if c]
-        if not selected_categories and self.request.GET.get('category'):
-            selected_categories = [self.request.GET.get('category')]
-        selected_frequencies = [f for f in self.request.GET.getlist('frequency') if f]
-        if not selected_frequencies and self.request.GET.get('frequency'):
-            selected_frequencies = [self.request.GET.get('frequency')]
-        selected_status = self.request.GET.get('status')
-        selected_accounts = [a for a in self.request.GET.getlist('account') if a]
-        if not selected_accounts and self.request.GET.get('account'):
-            selected_accounts = [self.request.GET.get('account')]
-        selected_types = [t for t in self.request.GET.getlist('transaction_type') if t]
-        if not selected_types and self.request.GET.get('transaction_type'):
-            selected_types = [self.request.GET.get('transaction_type')]
-
-        applied_filters = {}
-        if selected_categories:
-            applied_filters['category'] = selected_categories
-        if selected_frequencies:
-            applied_filters['frequency'] = selected_frequencies
-        if selected_status:
-            applied_filters['status'] = [selected_status]
-        if selected_accounts:
-            applied_filters['account'] = selected_accounts
-        if selected_types:
-            applied_filters['transaction_type'] = selected_types
+        applied_filters = applied_state.get('filters', {})
+        selected_status = applied_filters.get('status', [None])[0] if 'status' in applied_filters else None
 
         context['filter_config'] = RECURRING_FILTERS
-        context['applied_state'] = {
-            'search': search_query,
-            'sort': sort_by,
-            'filters': applied_filters,
-        }
+        context['applied_state'] = applied_state
         context['current_status'] = selected_status
 
         context.update({
@@ -215,11 +137,7 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         })
         
         # Nudge context for upgrade banner (use is_plus/is_pro to respect subscription expiry)
-        profile = self.request.user.profile
         active_count = len(active_subs)
-        
-        from finance_tracker.plans import get_limit
-        limit = get_limit(profile.active_tier, 'recurring_transactions')
         
         if limit != -1:
             if profile.active_tier == 'PLUS':
@@ -365,25 +283,9 @@ class RecurringTransactionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, D
         return RecurringTransaction.objects.filter(user=self.request.user)
 
     def form_valid(self, form):
-        # Calculate savings
-        from django.contrib import messages
-        from django.utils.translation import gettext as _
+        # Calculate savings in base currency
         obj = self.object
-        amount = obj.amount
-        if obj.frequency == 'DAILY':
-            yearly_saving = amount * 365
-        elif obj.frequency == 'WEEKLY':
-            yearly_saving = amount * 52
-        elif obj.frequency == 'BIWEEKLY':
-            yearly_saving = amount * 26
-        elif obj.frequency == 'MONTHLY':
-            yearly_saving = amount * 12
-        elif obj.frequency == 'QUARTERLY':
-            yearly_saving = amount * 4
-        elif obj.frequency == 'SEMIANNUALLY':
-            yearly_saving = amount * 2
-        else: # YEARLY
-            yearly_saving = amount
+        yearly_saving = obj.yearly_equivalent
             
         currency = '₹'
         if hasattr(self.request.user, 'profile'):

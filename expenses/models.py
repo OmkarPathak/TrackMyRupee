@@ -793,6 +793,12 @@ class Income(models.Model):
         ('Other', _('Other')),
     ]
 
+    INCOME_GROUP_TYPES = {
+        'EARNED': ['Salary', 'Freelance / Consulting', 'Business'],
+        'PASSIVE': ['Investment Returns', 'Rental Income'],
+        'ONE_OFF': ['Cashback & Rewards', 'Refund / Reimbursement', 'Other'],
+    }
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField(verbose_name=_('Date'))
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount'))
@@ -995,6 +1001,8 @@ class Income(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.source} - {self.amount}"
+
+INCOME_GROUP_TYPES = Income.INCOME_GROUP_TYPES
 
 class Transfer(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
@@ -1431,6 +1439,20 @@ class RecurringTransaction(models.Model):
             models.Index(fields=['next_due_date'], name='rt_next_due_date_idx'),
             models.Index(fields=['user', 'is_active', 'next_due_date'], name='rt_user_active_due_idx'),
         ]
+
+    @property
+    def monthly_equivalent(self):
+        """Calculate monthly equivalent cost/income in base currency."""
+        from .recurring_utils import calculate_recurring_equivalents
+        amt = self.base_amount if self.base_amount is not None else self.amount
+        return calculate_recurring_equivalents(self.frequency, amt)[0]
+
+    @property
+    def yearly_equivalent(self):
+        """Calculate yearly equivalent cost/income in base currency."""
+        from .recurring_utils import calculate_recurring_equivalents
+        amt = self.base_amount if self.base_amount is not None else self.amount
+        return calculate_recurring_equivalents(self.frequency, amt)[1]
 
     def __str__(self):
         return f"{self.transaction_type} - {self.description} ({self.frequency})"
