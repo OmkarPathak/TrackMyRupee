@@ -1,5 +1,5 @@
-// Updated: 2026-09-24 (Speech Recognition & Clean Fetch Strategy)
-const CACHE_NAME = 'finance-tracker-v33';
+// Updated: 2026-09-24 (iOS PWA Notch Blur Fix & Cache Update)
+const CACHE_NAME = 'finance-tracker-v34';
 const OFFLINE_URL = '/offline/';
 
 const ASSETS_TO_CACHE = [

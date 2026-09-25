@@ -101,6 +101,13 @@
         border-radius: 50%;
         position: relative;
         z-index: 10;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+    }
+
+    .mic-btn i {
+        pointer-events: none;
     }
 
     .mic-btn:hover {
@@ -1242,18 +1249,26 @@
         let recognition = null;
         let isListening = false;
 
+        function cleanupRecognition() {
+            if (recognition) {
+                try {
+                    recognition.onstart = null;
+                    recognition.onresult = null;
+                    recognition.onerror = null;
+                    recognition.onend = null;
+                    recognition.abort();
+                } catch (e) {}
+                recognition = null;
+            }
+        }
+
         function stopListening() {
             isListening = false;
             const micBtn = document.getElementById('btn-mic');
             const listeningStatus = document.getElementById('listening-status');
             if (micBtn) micBtn.classList.remove('listening');
             if (listeningStatus) listeningStatus.style.display = 'none';
-            if (recognition) {
-                try {
-                    recognition.stop();
-                } catch (e) {}
-                recognition = null;
-            }
+            cleanupRecognition();
         }
 
         function startListening() {
@@ -1267,10 +1282,13 @@
                 return;
             }
 
-            if (isListening && recognition) {
+            if (isListening) {
                 stopListening();
                 return;
             }
+
+            // Always abort and release any prior audio session before creating a fresh instance
+            cleanupRecognition();
 
             const micBtn = document.getElementById('btn-mic');
             const nlInput = document.getElementById('nl-input');
@@ -1279,22 +1297,19 @@
             const permissionModal = permissionModalElement && typeof bootstrap !== 'undefined' ? (bootstrap.Modal.getInstance(permissionModalElement) || new bootstrap.Modal(permissionModalElement)) : null;
 
             try {
-                if (recognition) {
-                    try { recognition.abort(); } catch (e) {}
-                }
+                const rec = new SpeechRecognition();
+                recognition = rec;
+                rec.lang = 'en-IN';
+                rec.continuous = false;
+                rec.interimResults = false;
 
-                recognition = new SpeechRecognition();
-                recognition.lang = 'en-IN';
-                recognition.continuous = false;
-                recognition.interimResults = false;
-
-                recognition.onstart = function() {
+                rec.onstart = function() {
                     isListening = true;
                     if (micBtn) micBtn.classList.add('listening');
                     if (listeningStatus) listeningStatus.style.display = 'flex';
                 };
 
-                recognition.onresult = function(event) {
+                rec.onresult = function(event) {
                     if (event.results && event.results.length > 0 && event.results[0].length > 0) {
                         const transcript = event.results[0][0].transcript;
                         if (nlInput) {
@@ -1307,7 +1322,7 @@
                     stopListening();
                 };
 
-                recognition.onerror = function(event) {
+                rec.onerror = function(event) {
                     console.error('Speech recognition error:', event.error);
                     stopListening();
                     
@@ -1316,13 +1331,13 @@
                     }
                 };
 
-                recognition.onend = function() {
+                rec.onend = function() {
                     stopListening();
                 };
 
                 // CRITICAL: start() must be invoked synchronously within the direct click event handler
                 // to maintain browser user gesture activation.
-                recognition.start();
+                rec.start();
             } catch (err) {
                 console.error('Failed to start speech recognition:', err);
                 stopListening();
