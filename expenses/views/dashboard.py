@@ -82,6 +82,8 @@ def home_view(request):
         and not request.GET.get('year')
         and not request.GET.get('month')
         and not request.GET.get('category')
+        and not request.GET.get('payment_method')
+        and not request.GET.get('account')
         and not request.GET.get('start_date')
         and not request.GET.get('end_date')
     )
@@ -150,6 +152,8 @@ def home_view(request):
     selected_years = request.GET.getlist('year')
     selected_months = request.GET.getlist('month')
     selected_categories = [c.strip() for c in request.GET.getlist('category') if c and c.strip()]
+    selected_payment_methods = [pm.strip() for pm in request.GET.getlist('payment_method') if pm and pm.strip()]
+    selected_accounts = [a.strip() for a in request.GET.getlist('account') if a and a.strip()]
 
     start_date_obj = None
     end_date_obj = None
@@ -290,6 +294,18 @@ def home_view(request):
 
     if selected_categories:
         expenses = expenses.filter(category__in=selected_categories)
+    if selected_payment_methods:
+        expenses = expenses.filter(payment_method__in=selected_payment_methods)
+    if selected_accounts:
+        expenses = expenses.filter(account_id__in=selected_accounts)
+
+    applied_filters = {}
+    if selected_categories:
+        applied_filters['category'] = selected_categories
+    if selected_payment_methods:
+        applied_filters['payment_method'] = selected_payment_methods
+    if selected_accounts:
+        applied_filters['account'] = selected_accounts
 
     applied_state = {
         'search': '',
@@ -297,13 +313,15 @@ def home_view(request):
         'start_date': start_date_str if time_period == 'custom' else (effective_start_date.strftime('%Y-%m-%d') if time_period == 'custom' and effective_start_date else ''),
         'end_date': end_date_str if time_period == 'custom' else (effective_end_date.strftime('%Y-%m-%d') if time_period == 'custom' and effective_end_date else ''),
         'sort': '',
-        'filters': {
-            'category': selected_categories,
-        } if selected_categories else {},
+        'filters': applied_filters,
     }
         
     # Income Logic (Mirroring Expense Filters)
     incomes = Income.objects.filter(user=request.user).select_related('account', 'source_fk')
+    if selected_accounts:
+        incomes = incomes.filter(account_id__in=selected_accounts)
+        investments = investments.filter(Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts))
+
     if effective_start_date or effective_end_date:
         if effective_start_date:
             incomes = incomes.filter(date__gte=effective_start_date)
@@ -331,6 +349,8 @@ def home_view(request):
     
     # Fetch loan repayments for the selected period (moved up to fix UnboundLocalError)
     loan_repayments_selected = LoanRepayment.objects.filter(loan__user=request.user).select_related('loan')
+    if selected_accounts:
+        loan_repayments_selected = loan_repayments_selected.filter(from_account_id__in=selected_accounts)
     if effective_start_date or effective_end_date:
         if effective_start_date:
             loan_repayments_selected = loan_repayments_selected.filter(date__gte=effective_start_date)
@@ -417,6 +437,8 @@ def home_view(request):
 
     # Fetch capital events in the viewed period with exclude_from_budget=False
     budget_events = CapitalEvent.objects.filter(user=request.user, exclude_from_budget=False)
+    if selected_accounts:
+        budget_events = budget_events.filter(account_id__in=selected_accounts)
     if effective_start_date or effective_end_date:
         if effective_start_date:
             budget_events = budget_events.filter(date__gte=effective_start_date)
@@ -553,6 +575,8 @@ def home_view(request):
     
     # Include loan repayments in expense trend
     loan_repayments_filtered = LoanRepayment.objects.filter(loan__user=request.user).select_related('loan')
+    if selected_accounts:
+        loan_repayments_filtered = loan_repayments_filtered.filter(from_account_id__in=selected_accounts)
     if effective_start_date or effective_end_date:
         if effective_start_date:
             loan_repayments_filtered = loan_repayments_filtered.filter(date__gte=effective_start_date)
@@ -637,6 +661,8 @@ def home_view(request):
     
     # Include capital events that are NOT excluded from averages (i.e. exclude_from_averages=False)
     included_events_qs = CapitalEvent.objects.filter(user=request.user, exclude_from_averages=False)
+    if selected_accounts:
+        included_events_qs = included_events_qs.filter(account_id__in=selected_accounts)
     if effective_start_date or effective_end_date:
         if effective_start_date:
             included_events_qs = included_events_qs.filter(date__gte=effective_start_date)
@@ -819,6 +845,8 @@ def home_view(request):
 
     # 4a. Internal Transfers (excluded from income/expense, just movement)
     transfers_qs = Transfer.objects.filter(user=request.user).select_related('from_account', 'to_account')
+    if selected_accounts:
+        transfers_qs = transfers_qs.filter(Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts))
     if effective_start_date or effective_end_date:
         if effective_start_date:
             transfers_qs = transfers_qs.filter(date__gte=effective_start_date)
@@ -936,10 +964,14 @@ def home_view(request):
                 nm = curr_month + 1
                 ny = curr_year
 
-            # Construct Query String (Preserve Categories)
+            # Construct Query String (Preserve Categories, Payment Methods, Accounts)
             base_qs = []
             for c in selected_categories:
                 base_qs.append(f'category={c}')
+            for pm in selected_payment_methods:
+                base_qs.append(f'payment_method={pm}')
+            for a in selected_accounts:
+                base_qs.append(f'account={a}')
             
             qs_prev = base_qs + [f'year={py}', f'month={pm}']
             qs_next = base_qs + [f'year={ny}', f'month={nm}']
@@ -1257,16 +1289,7 @@ def home_view(request):
             recurring_desc_lower = [d.strip().lower() for d in recurring_desc_set if d]
 
             # Build period queryset (same filters as the main expense queryset)
-            period_expenses_qs = Expense.objects.filter(user=request.user).select_related('account', 'category_fk')
-            if effective_start_date:
-                period_expenses_qs = period_expenses_qs.filter(date__gte=effective_start_date)
-            if effective_end_date:
-                period_expenses_qs = period_expenses_qs.filter(date__lte=effective_end_date)
-            if not (effective_start_date or effective_end_date):
-                if selected_years:
-                    period_expenses_qs = period_expenses_qs.filter(date__year__in=selected_years)
-                if selected_months:
-                    period_expenses_qs = period_expenses_qs.filter(date__month__in=selected_months)
+            period_expenses_qs = expenses
 
             # Build SQL Q for "planned" expenses:
             # planned = contains '(recurring)' OR description (lowercased) is in recurring_desc_lower
@@ -1691,6 +1714,8 @@ def home_view(request):
     # --- Capital Events for the current period ---
     # Fetch all capital events for the viewed period in a single query (no N+1).
     capital_events_qs = CapitalEvent.objects.filter(user=request.user).select_related('account', 'linked_loan')
+    if selected_accounts:
+        capital_events_qs = capital_events_qs.filter(account_id__in=selected_accounts)
     if effective_start_date or effective_end_date:
         if effective_start_date:
             capital_events_qs = capital_events_qs.filter(date__gte=effective_start_date)
@@ -2145,6 +2170,9 @@ def home_view(request):
     _reuse_month_totals = (
         not (start_date or end_date)
         and is_current_month_view
+        and not selected_categories
+        and not selected_payment_methods
+        and not selected_accounts
         and (
             not salary_cycle_active
             or (salary_cycle_start == curr_mon_start.date() and salary_cycle_end and salary_cycle_end >= now.date())
@@ -2463,6 +2491,8 @@ def home_view(request):
         'selected_year': display_year,    # NEW: For template display labels
         'selected_month': display_month,  # NEW: For template display labels
         'selected_categories': selected_categories,
+        'selected_payment_methods': selected_payment_methods,
+        'selected_accounts': selected_accounts,
         'salary_cycle_active': salary_cycle_active,
         'salary_cycle_start': salary_cycle_start,
         'salary_cycle_end': salary_cycle_end,

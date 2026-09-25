@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.urls import reverse
 
 from ..filters.definitions import (
+    DASHBOARD_FILTERS,
     EXPENSE_FILTERS,
     INCOME_FILTERS,
     get_user_accounts,
@@ -591,6 +592,95 @@ class FilterSystemTestCase(TestCase):
         self.assertEqual(last_opt['value'], str(acc_inactive.id))
         self.assertEqual(last_opt['label'], 'Closed ICICI (Inactive)')
         self.assertFalse(last_opt['is_active'])
+
+    def test_dashboard_filter_config_definitions(self):
+        filter_keys = [f.key for f in DASHBOARD_FILTERS.filters]
+        self.assertIn('category', filter_keys)
+        self.assertIn('payment_method', filter_keys)
+        self.assertIn('account', filter_keys)
+
+        pm_filter = DASHBOARD_FILTERS.get_filter('payment_method')
+        self.assertEqual(pm_filter.type, 'multi_select')
+        self.assertEqual(pm_filter.source, 'static')
+        pm_values = [opt['value'] for opt in pm_filter.get_options_list()]
+        self.assertIn('Cash', pm_values)
+        self.assertIn('Credit Card', pm_values)
+        self.assertIn('Debit Card', pm_values)
+        self.assertIn('UPI', pm_values)
+        self.assertIn('NetBanking', pm_values)
+
+        acc_filter = DASHBOARD_FILTERS.get_filter('account')
+        self.assertEqual(acc_filter.type, 'multi_select')
+        self.assertEqual(acc_filter.source, 'dynamic')
+
+    def test_filter_options_api_dashboard_endpoints(self):
+        self.client.login(username='filteruser', password='password123')
+
+        # Test Dashboard Payment Method options
+        url_pm = reverse('filter-options-api') + '?page=dashboard&filter=payment_method'
+        resp_pm = self.client.get(url_pm)
+        self.assertEqual(resp_pm.status_code, 200)
+        data_pm = resp_pm.json()
+        self.assertEqual(data_pm['page'], 'dashboard')
+        self.assertEqual(data_pm['filter'], 'payment_method')
+        pm_opts = [opt['value'] for opt in data_pm['options']]
+        self.assertIn('Cash', pm_opts)
+        self.assertIn('Credit Card', pm_opts)
+
+        # Test Dashboard Account options
+        url_acc = reverse('filter-options-api') + '?page=dashboard&filter=account'
+        resp_acc = self.client.get(url_acc)
+        self.assertEqual(resp_acc.status_code, 200)
+        data_acc = resp_acc.json()
+        self.assertEqual(data_acc['page'], 'dashboard')
+        self.assertEqual(data_acc['filter'], 'account')
+        self.assertTrue(len(data_acc['options']) >= 2)
+
+    def test_dashboard_view_payment_method_filtering(self):
+        self.client.login(username='filteruser', password='password123')
+
+        # 1. Filter by Cash
+        resp_cash = self.client.get(reverse('home') + '?payment_method=Cash&time_period=all')
+        self.assertEqual(resp_cash.status_code, 200)
+        applied_state = resp_cash.context['applied_state']
+        self.assertEqual(applied_state['filters']['payment_method'], ['Cash'])
+        self.assertEqual(resp_cash.context['hero_metrics']['spent'], Decimal('250.00'))
+
+        # 2. Filter by Credit Card
+        resp_card = self.client.get(reverse('home') + '?payment_method=Credit%20Card&time_period=all')
+        self.assertEqual(resp_card.status_code, 200)
+        applied_state = resp_card.context['applied_state']
+        self.assertEqual(applied_state['filters']['payment_method'], ['Credit Card'])
+        # e2 (1500) + e3 (12000) = 13500
+        self.assertEqual(resp_card.context['hero_metrics']['spent'], Decimal('13500.00'))
+
+    def test_dashboard_view_account_filtering(self):
+        self.client.login(username='filteruser', password='password123')
+
+        # Filter by Cash Account
+        resp = self.client.get(reverse('home') + f'?account={self.account_cash.id}&time_period=all')
+        self.assertEqual(resp.status_code, 200)
+        applied_state = resp.context['applied_state']
+        self.assertEqual(applied_state['filters']['account'], [str(self.account_cash.id)])
+        # Only e1 (250) on account_cash
+        self.assertEqual(resp.context['hero_metrics']['spent'], Decimal('250.00'))
+        # Only i1 (80000) on account_cash
+        self.assertEqual(resp.context['hero_metrics']['income'], Decimal('80000.00'))
+
+    def test_dashboard_view_combined_filtering(self):
+        self.client.login(username='filteruser', password='password123')
+
+        # Filter by Category=Shopping, Payment Method=Credit Card, Account=account_card
+        url = reverse('home') + f'?category=Shopping&payment_method=Credit%20Card&account={self.account_card.id}&time_period=all'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        applied_state = resp.context['applied_state']
+        self.assertEqual(applied_state['filters']['category'], ['Shopping'])
+        self.assertEqual(applied_state['filters']['payment_method'], ['Credit Card'])
+        self.assertEqual(applied_state['filters']['account'], [str(self.account_card.id)])
+        # Only e3 (12000) matches Shopping + Credit Card + account_card
+        self.assertEqual(resp.context['hero_metrics']['spent'], Decimal('12000.00'))
+
 
 
 
