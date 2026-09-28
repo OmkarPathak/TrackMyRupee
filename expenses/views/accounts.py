@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import CharField, IntegerField, Q, Value
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -433,52 +433,54 @@ class AccountUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
         if getattr(settings, 'LEDGER_WRITE_ENABLED', False):
             from ..ledger_service import LedgerPostingService
 
-            try:
-                ledger_balance_before_adjustment = LedgerReadService.get_account_ledger_delta(self.object)
-            except Exception:
-                ledger_balance_before_adjustment = old_balance
+            with transaction.atomic():
+                locked_account = Account.objects.select_for_update().get(pk=self.object.pk)
+                try:
+                    ledger_balance_before_adjustment = LedgerReadService.get_account_ledger_delta(locked_account)
+                except Exception:
+                    ledger_balance_before_adjustment = old_balance
 
-            target_balance = self.object.balance.quantize(Decimal('0.01'))
-            balance_delta = (target_balance - ledger_balance_before_adjustment).quantize(Decimal('0.01'))
+                target_balance = locked_account.balance.quantize(Decimal('0.01'))
+                balance_delta = (target_balance - ledger_balance_before_adjustment).quantize(Decimal('0.01'))
 
-            if balance_delta == Decimal('0.00'):
-                return response
+                if balance_delta == Decimal('0.00'):
+                    return response
 
-            version_token = f"ACCOUNT_BALANCE_EDIT-{int(self.object.updated_at.timestamp() * 1000000)}"
+                version_token = f"ACCOUNT_BALANCE_EDIT-{int(locked_account.updated_at.timestamp() * 1000000)}"
 
-            def _post_shadow_entry():
-                LedgerPostingService.post_account_balance_adjustment(
-                    account=self.object,
-                    delta=balance_delta,
-                    version_token=version_token,
-                    metadata={
-                        'kind': 'MANUAL_BALANCE_EDIT',
-                        'actor_user_id': self.request.user.id,
-                        'old_balance': str(old_balance),
-                        'new_balance': str(self.object.balance),
-                        'ledger_balance_before_adjustment': str(ledger_balance_before_adjustment),
+                def _post_shadow_entry():
+                    LedgerPostingService.post_account_balance_adjustment(
+                        account=locked_account,
+                        delta=balance_delta,
+                        version_token=version_token,
+                        metadata={
+                            'kind': 'MANUAL_BALANCE_EDIT',
+                            'actor_user_id': self.request.user.id,
+                            'old_balance': str(old_balance),
+                            'new_balance': str(locked_account.balance),
+                            'ledger_balance_before_adjustment': str(ledger_balance_before_adjustment),
+                        },
+                    )
+
+                _run_ledger_shadow(
+                    _post_shadow_entry,
+                    source_type='ADJUSTMENT',
+                    source_id=locked_account.id,
+                    action='ACCOUNT_BALANCE_EDIT',
+                    payload={
+                        'handler': 'account_balance_edit',
+                        'version_token': version_token,
+                        'account': {
+                            'account_id': locked_account.id,
+                            'user_id': locked_account.user_id,
+                            'currency': locked_account.currency,
+                            'old_balance': str(old_balance),
+                            'new_balance': str(locked_account.balance),
+                            'ledger_balance_before_adjustment': str(ledger_balance_before_adjustment),
+                            'delta': str(balance_delta),
+                        },
                     },
                 )
-
-            _run_ledger_shadow(
-                _post_shadow_entry,
-                source_type='ADJUSTMENT',
-                source_id=self.object.id,
-                action='ACCOUNT_BALANCE_EDIT',
-                payload={
-                    'handler': 'account_balance_edit',
-                    'version_token': version_token,
-                    'account': {
-                        'account_id': self.object.id,
-                        'user_id': self.object.user_id,
-                        'currency': self.object.currency,
-                        'old_balance': str(old_balance),
-                        'new_balance': str(self.object.balance),
-                        'ledger_balance_before_adjustment': str(ledger_balance_before_adjustment),
-                        'delta': str(balance_delta),
-                    },
-                },
-            )
 
         return response
 
@@ -1300,33 +1302,63 @@ class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
     def post(self, request, *args, **kwargs):
         account = get_object_by_uuid_or_pk(Account, kwargs.get('pk') or kwargs.get('uuid'), user=request.user)
 
-        today_val = account.deposit_closed_date or account.deposit_maturity_date or date.today()
-        current_val = get_current(account, today=today_val)
-        baseline_val = get_baseline(account, today=today_val) or Decimal('0.00')
-        interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
+        with transaction.atomic():
+            locked_account = Account.objects.select_for_update().get(pk=account.pk)
+            today_val = locked_account.deposit_closed_date or locked_account.deposit_maturity_date or date.today()
+            current_val = get_current(locked_account, today=today_val)
+            baseline_val = get_baseline(locked_account, today=today_val) or Decimal('0.00')
+            interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
 
-        if interest_earned <= Decimal('0.00'):
-            messages.warning(request, _("No accrued interest earned to record for %(name)s.") % {'name': account.name})
-        else:
-            Income.objects.create(
-                user=request.user,
-                date=today_val,
-                amount=interest_earned,
-                currency=account.currency,
-                source_type='Investment Returns',
-                source=f"Interest from {account.name}",
-                account=account,
-                description=f"Accrued interest earned on deposit {account.name}",
-            )
-            messages.success(
-                request,
-                _("Recorded %(currency)s%(amount)s interest for %(name)s as Income under 'Investment Returns'.") % {
-                    'currency': account.currency,
-                    'amount': interest_earned,
-                    'name': account.name,
-                }
-            )
-            ph_capture(request.user, 'maturity_income_recorded', {})
+            if interest_earned <= Decimal('0.00'):
+                messages.warning(request, _("No accrued interest earned to record for %(name)s.") % {'name': locked_account.name})
+            else:
+                existing_income = Income.objects.filter(
+                    user=request.user,
+                    account=locked_account,
+                    source_type='Investment Returns',
+                    date=today_val,
+                    amount=interest_earned,
+                ).exists()
+
+                if existing_income:
+                    messages.info(
+                        request,
+                        _("Maturity interest for %(name)s on %(date)s has already been recorded.") % {
+                            'name': locked_account.name,
+                            'date': today_val,
+                        }
+                    )
+                else:
+                    dedup_key = f"maturity_{locked_account.id}_{today_val}_{interest_earned}"
+                    try:
+                        Income.objects.create(
+                            user=request.user,
+                            date=today_val,
+                            amount=interest_earned,
+                            currency=locked_account.currency,
+                            source_type='Investment Returns',
+                            source=f"Interest from {locked_account.name}",
+                            account=locked_account,
+                            description=f"Accrued interest earned on deposit {locked_account.name}",
+                            client_dedup_key=dedup_key,
+                        )
+                        messages.success(
+                            request,
+                            _("Recorded %(currency)s%(amount)s interest for %(name)s as Income under 'Investment Returns'.") % {
+                                'currency': locked_account.currency,
+                                'amount': interest_earned,
+                                'name': locked_account.name,
+                            }
+                        )
+                        ph_capture(request.user, 'maturity_income_recorded', {})
+                    except IntegrityError:
+                        messages.info(
+                            request,
+                            _("Maturity interest for %(name)s on %(date)s has already been recorded.") % {
+                                'name': locked_account.name,
+                                'date': today_val,
+                            }
+                        )
 
         redirect_url = request.META.get('HTTP_REFERER') or reverse_lazy('account-list')
         return redirect(redirect_url)

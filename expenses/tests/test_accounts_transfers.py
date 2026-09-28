@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.db import connection
@@ -264,3 +265,91 @@ class AccountTransferTest(TestCase):
         response = self.client.post(reverse('transfer-delete', kwargs={'pk': transfer.pk}))
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Transfer.objects.filter(pk=transfer.pk).exists())
+
+    def test_record_maturity_income_duplicate_prevention(self):
+        """
+        Tests RecordMaturityIncomeView duplicate prevention:
+        1. Calling post() records accrued interest as an Income entry.
+        2. Calling post() a second time in succession (simulating a double-submit or retry)
+           detects the already-recorded maturity income and does NOT create a duplicate entry.
+        3. Scoping by maturity cycle: when an account is renewed for a new cycle
+           (with an updated maturity date), subsequent recording for that new cycle
+           succeeds without being blocked by previous cycles.
+        """
+        # Create an FD account that matured yesterday
+        past_maturity = date.today() - timedelta(days=1)
+        start_date = past_maturity - timedelta(days=365)
+        fd_account = Account.objects.create(
+            user=self.user,
+            name='Test Fixed Deposit',
+            account_type='FIXED_DEPOSIT',
+            balance=Decimal('100000.00'),
+            deposit_principal=Decimal('100000.00'),
+            deposit_rate=Decimal('7.0000'),
+            deposit_start_date=start_date,
+            deposit_maturity_date=past_maturity,
+            deposit_compounding='ANNUAL',
+            record_maturity_income=True,
+        )
+
+        url = reverse('account-record-maturity-income', kwargs={'pk': fd_account.pk})
+
+        # 1. First submission -> should create Income entry
+        resp1 = self.client.post(url)
+        self.assertEqual(resp1.status_code, 302)
+        incomes = Income.objects.filter(account=fd_account, source_type='Investment Returns')
+        self.assertEqual(incomes.count(), 1)
+        first_income = incomes.first()
+        self.assertEqual(first_income.date, past_maturity)
+        self.assertGreater(first_income.amount, Decimal('0.00'))
+
+        # 2. Second submission in succession (double-click / browser resubmit)
+        resp2 = self.client.post(url)
+        self.assertEqual(resp2.status_code, 302)
+        # Verify still only 1 Income entry exists (no duplicate created)
+        self.assertEqual(Income.objects.filter(account=fd_account, source_type='Investment Returns').count(), 1)
+
+        # 3. Simulate deposit renewal (new maturity cycle)
+        # Suppose the FD is renewed with a new start date and a new maturity date that has arrived
+        renewed_maturity = date.today()
+        fd_account.deposit_start_date = past_maturity
+        fd_account.deposit_maturity_date = renewed_maturity
+        fd_account.deposit_principal = Decimal('107000.00')
+        fd_account.save()
+
+        resp3 = self.client.post(url)
+        self.assertEqual(resp3.status_code, 302)
+        # Now there should be exactly 2 Income entries: one for cycle 1, one for cycle 2
+        incomes = Income.objects.filter(account=fd_account, source_type='Investment Returns').order_by('date')
+        self.assertEqual(incomes.count(), 2)
+        self.assertEqual(incomes[0].date, past_maturity)
+        self.assertEqual(incomes[1].date, renewed_maturity)
+
+    def test_account_update_view_balance_edit_locking_and_adjustment(self):
+        """
+        Tests manual balance edit via AccountUpdateView under LEDGER_WRITE_ENABLED.
+        Verifies that select_for_update() is acquired on the Account row when computing
+        and posting the shadow balance adjustment.
+
+        NOTE ON CONCURRENCY & SQLITE TEST LIMITATION:
+        Under SQLite (the test database backend configured in settings.py),
+        `connection.features.has_select_for_update` is False, meaning SQLite ignores
+        row-level SELECT FOR UPDATE statements and only utilizes database-level locking.
+        Under production PostgreSQL (where has_select_for_update is True),
+        Account.objects.select_for_update() ensures that concurrent edits serialize,
+        preventing stale ledger delta reads during balance reconciliation.
+        """
+        with override_settings(LEDGER_WRITE_ENABLED=True):
+            with patch.object(Account.objects, 'select_for_update', wraps=Account.objects.select_for_update) as mock_sfu:
+                edit_url = reverse('account-edit', kwargs={'pk': self.bank.pk})
+                response = self.client.post(edit_url, {
+                    'name': self.bank.name,
+                    'account_type': self.bank.account_type,
+                    'balance': '6500.00',
+                    'currency': self.bank.currency,
+                })
+                self.assertEqual(response.status_code, 302)
+                self.assertTrue(mock_sfu.called)
+
+                self.bank.refresh_from_db()
+                self.assertEqual(self.bank.balance, Decimal('6500.00'))
