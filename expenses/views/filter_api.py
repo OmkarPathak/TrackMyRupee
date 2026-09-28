@@ -9,6 +9,7 @@ from ..filters.definitions import (
     CAPITAL_EVENT_FILTERS,
     DASHBOARD_FILTERS,
     EXPENSE_FILTERS,
+    GOAL_DETAIL_FILTERS,
     INCOME_FILTERS,
     RECURRING_FILTERS,
 )
@@ -19,6 +20,7 @@ CONFIG_MAP = {
     'transactions': ALL_TRANSACTIONS_FILTERS,
     'accounts': ACCOUNT_LIST_FILTERS,
     'account_detail': ACCOUNT_DETAIL_FILTERS,
+    'goal_detail': GOAL_DETAIL_FILTERS,
     'recurring': RECURRING_FILTERS,
     'capital_events': CAPITAL_EVENT_FILTERS,
     'dashboard': DASHBOARD_FILTERS,

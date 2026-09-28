@@ -1,8 +1,13 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters currency_filters expense_extras %}
+{% load static i18n digit_filters currency_filters expense_extras filter_tags %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=1.5">
+    <script src="{% static 'js/tmr_filter.js' %}?v=1.5" defer></script>
+{% endblock %}
 
 {% block content %}
-<div class="container fade-in">
+<div class="fade-in">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
             <nav aria-label="breadcrumb">
@@ -77,7 +82,7 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-4">
+    <div class="row g-3 mb-3 mb-md-4">
         <div class="col-12 col-lg-4">
             <div class="card shadow-sm border-0 rounded-4 p-4 h-100 bg-primary bg-opacity-10">
                 <div class="text-muted small text-uppercase fw-bold mb-3" style="letter-spacing: 1px;">{% trans "Goal Summary" %}</div>
@@ -169,40 +174,34 @@
     </div>
     {% endif %}
 
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div class="d-flex align-items-center gap-2">
+    <div class="card rounded-4 border-0 shadow-sm transaction-ledger-card mb-4">
+        <!-- Card Header: Title + Filter Toolbar -->
+        <div class="bg-transparent pb-2 border-0">
+            <div class="d-flex align-items-center gap-2 mb-2">
                 <h2 class="h5 mb-0 fw-bold">{% trans "Contribution History" %}</h2>
-                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{{ contribution_count }} {% trans "Items" %}</span>
+                <span class="badge bg-body-tertiary text-body-secondary border rounded-pill px-2.5 py-1 small fw-normal">{{ page_obj.paginator.count|translate_digits }} {% trans "Items" %}</span>
             </div>
 
-            <form method="get" class="d-flex align-items-center gap-2 w-100" style="max-width: 300px;">
-                <div class="input-group input-group-sm rounded-3 overflow-hidden shadow-none border">
-                    <span class="input-group-text bg-body-tertiary border-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" name="q" class="form-control border-0 bg-body-tertiary ps-0" placeholder="{% trans 'Search contributions...' %}" value="{{ search_query }}">
-                    {% if search_query %}
-                        <a href="{% url 'goal-detail' goal.uuid %}" class="btn btn-link text-muted border-0 d-flex align-items-center px-3" data-bs-toggle="tooltip" title="{% trans 'Clear search' %}" aria-label="{% trans 'Clear search' %}">
-                            <i class="bi bi-x-lg small" aria-hidden="true"></i>
-                        </a>
-                    {% endif %}
-                </div>
-            </form>
+            {% if filter_config %}
+            {% render_filter_toolbar filter_config applied_state %}
+            {% endif %}
         </div>
 
-        {% if search_query %}
+        {% if search_query or applied_state.filters or applied_state.time_period != 'all' %}
         <div class="alert bg-primary-subtle border-0 rounded-0 mb-0 py-2 px-4 shadow-none">
             <div class="d-flex justify-content-between align-items-center">
                 <span class="small fw-bold text-primary-emphasis text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">
-                    <i class="bi bi-filter-left me-1"></i> {% trans "Filtered Results" %}: "{{ search_query }}"
+                    <i class="bi bi-filter-left me-1"></i> {% trans "Filtered Results" %}{% if search_query %}: "{{ search_query }}"{% endif %}
                 </span>
                 <span class="small fw-bold text-success" style="font-size: 0.85rem;">
-                    {% trans "Search Total" %}: {{ goal.currency }}{{ filtered_total|ind_comma:goal.currency|translate_digits }}
+                    {% trans "Filtered Total" %}: {{ goal.currency }}{{ filtered_total|ind_comma:goal.currency|translate_digits }}
                 </span>
             </div>
         </div>
         {% endif %}
 
-        <div class="table-responsive">
+        <!-- Desktop Table View -->
+        <div class="table-responsive d-none d-md-block">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-body-tertiary">
                     <tr>
@@ -268,14 +267,14 @@
                                     {% include 'illustrations/empty_accounts.svg' %}
                                 </div>
                                 <div class="h5 fw-bold text-muted">
-                                    {% if search_query %}
-                                        {% trans "No results found for" %} "{{ search_query }}"
+                                    {% if search_query or applied_state.filters or applied_state.time_period != 'all' %}
+                                        {% trans "No results found" %}{% if search_query %} {% trans "for" %} "{{ search_query }}"{% endif %}
                                     {% else %}
                                         {% trans "No Contributions Found" %}
                                     {% endif %}
                                 </div>
                                 <p class="text-muted mb-0">
-                                    {% if search_query %}
+                                    {% if search_query or applied_state.filters or applied_state.time_period != 'all' %}
                                         {% trans "Try adjusting your search terms or clearing the filter." %}
                                     {% else %}
                                         {% trans "There are no contributions recorded for this goal yet." %}
@@ -288,30 +287,144 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Mobile Grid View -->
+        <div id="mobileGridView" class="py-2 d-md-none px-3">
+            {% regroup contributions by date as contributions_by_date %}
+            {% for group in contributions_by_date %}
+            <div class="mb-3">
+                <!-- Day Header -->
+                <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                    <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                        {{ group.grouper|date:"d M Y"|translate_digits }}
+                    </div>
+                </div>
+                <!-- Day's Items -->
+                {% for contrib in group.list %}
+                <div class="card expense-card rounded-4 position-relative mb-3" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+                    <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
+                        <div class="mobile-card-inner">
+                            <!-- Left-Mid: Icon (Vertically Centered) -->
+                            <div class="category-icon-container">
+                                <i class="bi bi-piggy-bank text-warning"></i>
+                            </div>
+
+                            <!-- Middle: Info -->
+                            <div class="flex-grow-1 min-width-0 px-1">
+                                <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;"
+                                     data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Goal Contribution' %}">
+                                    {% trans "Goal Contribution" %}
+                                </div>
+                                <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                    <span class="text-truncate">
+                                        {% if contrib.account %}
+                                            {% trans "From" %}: {{ contrib.account.name }}
+                                        {% else %}
+                                            {% trans "No source account" %}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Right: Amount + Type Badge -->
+                            <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
+                                <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
+                                    <span class="signed-amount text-success">
+                                        +{{ goal.currency }}{{ contrib.amount|ind_comma:goal.currency|translate_digits }}
+                                    </span>
+                                </div>
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Savings" %}</span>
+                            </div>
+
+                            <!-- Far Right: Menu -->
+                            <div class="dropdown flex-shrink-0">
+                                <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" data-bs-boundary="viewport" aria-label="{% trans 'Contribution actions' %}" title="{% trans 'Contribution actions' %}">
+                                    <i class="bi bi-three-dots-vertical text-body-secondary opacity-50" aria-hidden="true"></i>
+                                    <span class="visually-hidden">{% trans "Contribution actions" %}</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
+                                    {% if contrib.account %}
+                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'account-detail' contrib.account.uuid %}"><i class="bi bi-eye me-2"></i> {% trans "View Account" %}</a></li>
+                                    {% endif %}
+                                    <li><a class="dropdown-item py-2 px-3" href="{% url 'goal-contribution-edit' contrib.uuid %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
+                                    <li>
+                                        <a class="dropdown-item py-2 px-3 text-danger cursor-pointer"
+                                           href="#"
+                                           data-bs-toggle="modal"
+                                           data-bs-target="#deleteModal"
+                                           data-url="{% url 'goal-contribution-delete' contrib.uuid %}?next={{ request.get_full_path|urlencode }}"
+                                           data-message="{% trans 'Are you sure you want to delete this contribution? The amount will be refunded to your account balance.' %}">
+                                            <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <div class="py-4">
+                    <div class="mb-4 text-muted">
+                        {% include 'illustrations/empty_accounts.svg' %}
+                    </div>
+                    <div class="h5 fw-bold text-muted">
+                        {% if search_query or applied_state.filters or applied_state.time_period != 'all' %}
+                            {% trans "No results found" %}{% if search_query %} {% trans "for" %} "{{ search_query }}"{% endif %}
+                        {% else %}
+                            {% trans "No Contributions Found" %}
+                        {% endif %}
+                    </div>
+                    <p class="text-muted mb-0">
+                        {% if search_query or applied_state.filters or applied_state.time_period != 'all' %}
+                            {% trans "Try adjusting your search terms or clearing the filter." %}
+                        {% else %}
+                            {% trans "There are no contributions recorded for this goal yet." %}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
         {% if is_paginated %}
         <div class="card-footer bg-transparent py-3 border-top">
-            <nav>
+            <nav aria-label="Contribution pagination">
                 <ul class="pagination justify-content-center mb-0">
                     {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link shadow-none" href="?{% url_replace page=page_obj.previous_page_number %}" aria-label="{% trans 'Previous page' %}">
-                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
-                        </a>
-                    </li>
+                        <li class="page-item">
+                            <a class="page-link shadow-none" href="?{% url_replace page=page_obj.previous_page_number %}" aria-label="{% trans 'Previous' %}">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link shadow-none">&laquo;</span>
+                        </li>
                     {% endif %}
 
-                    <li class="page-item disabled">
-                        <span class="page-link bg-transparent border-0 text-muted">
-                            {% trans "Page" %} {{ page_obj.number|translate_digits }} {% trans "of" %} {{ page_obj.paginator.num_pages|translate_digits }}
-                        </span>
-                    </li>
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link shadow-none">{{ num|translate_digits }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link shadow-none" href="?{% url_replace page=num %}">{{ num|translate_digits }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
 
                     {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link shadow-none" href="?{% url_replace page=page_obj.next_page_number %}" aria-label="{% trans 'Next page' %}">
-                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                        </a>
-                    </li>
+                        <li class="page-item">
+                            <a class="page-link shadow-none" href="?{% url_replace page=page_obj.next_page_number %}" aria-label="{% trans 'Next' %}">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link shadow-none">&raquo;</span>
+                        </li>
                     {% endif %}
                 </ul>
             </nav>
@@ -325,6 +438,135 @@
     max-width: 160px;
     max-height: 140px;
     height: auto;
+}
+
+/* Remove bottom border from last row to keep the card bottom clean */
+.table tbody tr:last-child td {
+    border-bottom: 0 !important;
+}
+.table {
+    border-bottom: 0 !important;
+}
+/* Soften table row borders for premium look */
+.table th, .table td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+[data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .table td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+@media (max-width: 767.98px) {
+    .transaction-ledger-card {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .transaction-ledger-card .card-header {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-top: 0 !important;
+        border-bottom: none !important;
+    }
+    .transaction-ledger-card .card-header form {
+        max-width: 100% !important;
+    }
+    .transaction-ledger-card .card-footer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        border-top: none !important;
+    }
+    #mobileGridView {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    #mobileGridView .expense-card .card-body > .mobile-card-inner {
+        display: grid !important;
+        /* Precise widths for card components: icon: 38px info: 1fr amount: 95px menu: 30px */
+        grid-template-columns: 38px minmax(0, 1fr) 95px 30px !important;
+        grid-template-areas: "icon info amount menu" !important;
+        align-items: center !important;
+        gap: 0 !important;
+        transition: all 0.3s ease;
+    }
+
+    #mobileGridView .expense-card .category-icon-container { 
+        grid-area: icon; 
+        margin: 0 !important; 
+        width: 32px !important;
+        height: 32px !important;
+        justify-self: center;
+    }
+    #mobileGridView .expense-card .flex-grow-1 { 
+        grid-area: info; 
+        margin: 0 !important; 
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        overflow: hidden;
+    }
+    #mobileGridView .expense-card .flex-shrink-0.text-end { 
+        grid-area: amount; 
+        margin: 0 !important; 
+        width: 100% !important;
+        padding-right: 4px; /* Space before menu */
+    }
+    #mobileGridView .expense-card .dropdown { 
+        grid-area: menu; 
+        margin: 0 !important; 
+        justify-self: center;
+    }
+}
+
+/* Card View Styles */
+.expense-card {
+    border-radius: 16px !important;
+    border: 1px solid var(--bs-border-color-translucent) !important;
+    background-color: var(--bs-body-bg);
+}
+
+[data-bs-theme="dark"] .expense-card {
+    border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* Category Icon Alignment */
+.category-icon-container {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--bs-secondary-color);
+    border-radius: 12px;
+    background-color: transparent;
+}
+.expense-card:hover .category-icon-container {
+    background-color: var(--bs-tertiary-bg);
+    transform: scale(1.08);
+    color: var(--bs-primary);
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    line-height: 1.25;
+    max-height: 2.5em;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+@media (max-width: 576px) {
+    .category-icon-container {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
 }
 
 #addContributionModal {

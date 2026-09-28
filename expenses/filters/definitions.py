@@ -682,3 +682,39 @@ DASHBOARD_FILTERS = FilterSetConfig(
     external_chip_row=True,
 )
 
+
+GOAL_DETAIL_FILTERS = FilterSetConfig(
+    page_key="goal_detail",
+    filters=[
+        FilterDef(
+            key="account",
+            label="Account",
+            type="multi_select",
+            source="dynamic",
+            options_fn=get_user_accounts,
+            field_name="account_id",
+            lookup_expr="in",
+        ),
+        FilterDef(
+            key="amount_range",
+            label="Amount",
+            type="single_select",
+            source="static",
+            options=["Under ₹500", "₹500 to ₹2,000", "₹2,000 to ₹10,000", "Over ₹10,000"],
+            custom_filter_fn=filter_amount_range,
+        ),
+    ],
+    sort_options=[
+        {"key": "date_desc", "label": "Date, newest"},
+        {"key": "date_asc", "label": "Date, oldest"},
+        {"key": "amount_desc", "label": "Amount, highest"},
+        {"key": "amount_asc", "label": "Amount, lowest"},
+    ],
+    default_sort="date_desc",
+    default_time_range="all",
+    supports_time_period=True,
+    supports_search=True,
+    search_placeholder="Search contributions...",
+    search_field="account__name",
+)
+

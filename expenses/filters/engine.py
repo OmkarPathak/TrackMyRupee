@@ -89,10 +89,23 @@ def apply_filter_config(
         sort_by = applied_state['sort']
         if sort_by == 'date_asc':
             queryset = queryset.order_by('date', 'created_at', 'id')
-        elif sort_by == 'amount_desc':
-            queryset = queryset.order_by('-base_amount', '-id')
-        elif sort_by == 'amount_asc':
-            queryset = queryset.order_by('base_amount', 'id')
+        elif sort_by in ('amount_desc', 'amount_asc'):
+            amount_field = 'base_amount'
+            model = getattr(queryset, 'model', None)
+            if model:
+                try:
+                    model._meta.get_field('base_amount')
+                    amount_field = 'base_amount'
+                except Exception:
+                    try:
+                        model._meta.get_field('amount')
+                        amount_field = 'amount'
+                    except Exception:
+                        amount_field = 'base_amount'
+            if sort_by == 'amount_desc':
+                queryset = queryset.order_by(f'-{amount_field}', '-id')
+            else:
+                queryset = queryset.order_by(amount_field, 'id')
         elif sort_by == 'date_desc':
             try:
                 queryset.model._meta.get_field('date')

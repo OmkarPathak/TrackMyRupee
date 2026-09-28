@@ -5,8 +5,9 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from expenses.filters import GOAL_DETAIL_FILTERS
 from expenses.forms import SavingsGoalForm
-from expenses.models import GoalContribution, SavingsGoal
+from expenses.models import Account, GoalContribution, SavingsGoal
 from finance_tracker.plans import PLAN_DETAILS
 
 
@@ -423,3 +424,149 @@ class SavingsGoalTests(TestCase):
         goal2.refresh_from_db()
         self.assertEqual(goal2.current_amount, Decimal('0.00'))
         self.assertEqual(goal2.contributions.count(), 0)
+
+
+class SavingsGoalDetailUnifiedFiltersTests(TestCase):
+    def setUp(self):
+        from django.utils import timezone
+        self.client = Client()
+        self.user = User.objects.create_user(username='filteruser', password='testpassword')
+        self.user.profile.tier = 'PRO'
+        self.user.profile.is_lifetime = True
+        self.user.profile.save()
+        self.client.login(username='filteruser', password='testpassword')
+
+        self.account_hdfc = Account.objects.create(
+            user=self.user,
+            name='HDFC Bank',
+            account_type='SAVINGS',
+            balance=Decimal('50000.00'),
+            currency='₹',
+        )
+        self.account_icici = Account.objects.create(
+            user=self.user,
+            name='ICICI Bank',
+            account_type='SAVINGS',
+            balance=Decimal('30000.00'),
+            currency='₹',
+        )
+
+        self.goal = SavingsGoal.objects.create(
+            user=self.user,
+            name='Europe Trip',
+            target_amount=Decimal('200000.00'),
+            currency='₹',
+        )
+
+        today = timezone.localdate()
+        self.c1 = GoalContribution.objects.create(
+            goal=self.goal,
+            account=self.account_hdfc,
+            amount=Decimal('250.00'),
+            date=today,
+        )
+        self.c2 = GoalContribution.objects.create(
+            goal=self.goal,
+            account=self.account_icici,
+            amount=Decimal('1500.00'),
+            date=today,
+        )
+
+    def test_goal_detail_context_and_table_rendering(self):
+        response = self.client.get(reverse('goal-detail', kwargs={'pk': self.goal.pk}))
+        self.assertEqual(response.status_code, 200)
+
+        # Context contains unified filter keys
+        self.assertIn('filter_config', response.context)
+        self.assertEqual(response.context['filter_config'], GOAL_DETAIL_FILTERS)
+        self.assertIn('applied_state', response.context)
+        self.assertEqual(response.context['applied_state']['time_period'], 'all')
+        self.assertEqual(response.context['applied_state']['sort'], 'date_desc')
+        self.assertEqual(response.context['filtered_total'], Decimal('1750.00'))
+
+        # Template contains ledger card, mobile grid view, and unified toolbar
+        content = response.content.decode('utf-8')
+        self.assertIn('transaction-ledger-card', content)
+        self.assertIn('mobileGridView', content)
+        self.assertIn('tmr-toolbar-goal_detail', content)
+        self.assertIn('Contribution History', content)
+        self.assertIn('HDFC Bank', content)
+        self.assertIn('ICICI Bank', content)
+
+    def test_goal_detail_filter_by_account(self):
+        # Filter for HDFC only
+        response = self.client.get(
+            reverse('goal-detail', kwargs={'pk': self.goal.pk}),
+            {'account': [str(self.account_hdfc.id)]}
+        )
+        self.assertEqual(response.status_code, 200)
+        contribs = response.context['contributions']
+        self.assertEqual(len(contribs), 1)
+        self.assertEqual(contribs[0].id, self.c1.id)
+        self.assertEqual(response.context['filtered_total'], Decimal('250.00'))
+
+    def test_goal_detail_filter_by_amount_range(self):
+        # Under ₹500 should return c1 (250) only
+        resp_under_500 = self.client.get(
+            reverse('goal-detail', kwargs={'pk': self.goal.pk}),
+            {'amount_range': 'Under ₹500'}
+        )
+        self.assertEqual(resp_under_500.status_code, 200)
+        self.assertEqual(len(resp_under_500.context['contributions']), 1)
+        self.assertEqual(resp_under_500.context['contributions'][0].id, self.c1.id)
+        self.assertEqual(resp_under_500.context['filtered_total'], Decimal('250.00'))
+
+        # ₹500 to ₹2,000 should return c2 (1500) only
+        resp_mid = self.client.get(
+            reverse('goal-detail', kwargs={'pk': self.goal.pk}),
+            {'amount_range': '₹500 to ₹2,000'}
+        )
+        self.assertEqual(resp_mid.status_code, 200)
+        self.assertEqual(len(resp_mid.context['contributions']), 1)
+        self.assertEqual(resp_mid.context['contributions'][0].id, self.c2.id)
+        self.assertEqual(resp_mid.context['filtered_total'], Decimal('1500.00'))
+
+    def test_goal_detail_search_by_account_name(self):
+        # Search "ICICI"
+        response = self.client.get(
+            reverse('goal-detail', kwargs={'pk': self.goal.pk}),
+            {'search': 'ICICI'}
+        )
+        self.assertEqual(response.status_code, 200)
+        contribs = response.context['contributions']
+        self.assertEqual(len(contribs), 1)
+        self.assertEqual(contribs[0].id, self.c2.id)
+        self.assertEqual(response.context['search_query'], 'ICICI')
+
+    def test_goal_detail_sorting(self):
+        # Sort amount descending (1500 then 250)
+        resp_desc = self.client.get(
+            reverse('goal-detail', kwargs={'pk': self.goal.pk}),
+            {'sort': 'amount_desc'}
+        )
+        self.assertEqual(resp_desc.status_code, 200)
+        amounts_desc = [c.amount for c in resp_desc.context['contributions']]
+        self.assertEqual(amounts_desc, [Decimal('1500.00'), Decimal('250.00')])
+
+        # Sort amount ascending (250 then 1500)
+        resp_asc = self.client.get(
+            reverse('goal-detail', kwargs={'pk': self.goal.pk}),
+            {'sort': 'amount_asc'}
+        )
+        self.assertEqual(resp_asc.status_code, 200)
+        amounts_asc = [c.amount for c in resp_asc.context['contributions']]
+        self.assertEqual(amounts_asc, [Decimal('250.00'), Decimal('1500.00')])
+
+    def test_goal_detail_filter_options_api(self):
+        # API options for goal_detail account filter
+        response = self.client.get(
+            reverse('filter-options-api'),
+            {'page': 'goal_detail', 'filter': 'account'}
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['page'], 'goal_detail')
+        self.assertEqual(data['filter'], 'account')
+        option_labels = [opt['label'] for opt in data['options']]
+        self.assertIn('HDFC Bank', option_labels)
+        self.assertIn('ICICI Bank', option_labels)

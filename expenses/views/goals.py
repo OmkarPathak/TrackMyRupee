@@ -16,6 +16,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 
 from expenses.views.utils import get_safe_redirect_url
 
+from ..filters import GOAL_DETAIL_FILTERS, apply_filter_config
 from ..forms import GoalContributionForm, SavingsGoalForm
 from ..models import GoalContribution, SavingsGoal
 from ..posthog_utils import ph_capture
@@ -318,12 +319,12 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
     def _get_context_data(self, request, goal, form=None):
         # Use DB queryset directly (no list()) — _get_estimated_completion & _build_trend_data now use DB aggregation
         all_contributions_qs = goal.contributions.select_related('account')
-        contributions_qs = all_contributions_qs.order_by('-date', '-id')
         is_locked = self._is_locked(request.user, goal)
 
-        search_query = (request.GET.get('q') or '').strip()
-        if search_query:
-            contributions_qs = contributions_qs.filter(account__name__icontains=search_query)
+        contributions_qs, applied_state = apply_filter_config(
+            all_contributions_qs, request, GOAL_DETAIL_FILTERS
+        )
+        search_query = applied_state.get('search', '')
 
         filtered_total = contributions_qs.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
         total_count = contributions_qs.count()
@@ -422,6 +423,8 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             'remaining_amount': remaining_amount,
             'filtered_total': filtered_total,
             'search_query': search_query,
+            'filter_config': GOAL_DETAIL_FILTERS,
+            'applied_state': applied_state,
             'trend_data': trend_data,
             'form': form or GoalContributionForm(user=request.user),
             'completion_status': completion_status,
