@@ -15,7 +15,6 @@ from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
 from expenses.views.utils import get_safe_redirect_url
-from finance_tracker.plans import get_limit
 
 from ..forms import GoalContributionForm, SavingsGoalForm
 from ..models import GoalContribution, SavingsGoal
@@ -40,11 +39,8 @@ class SavingsGoalListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         all_goals = list(context.get('object_list') or self.get_queryset())
         profile = self.request.user.profile
-        from finance_tracker.plans import get_limit
-        limit = get_limit(profile.active_tier, 'savings_goals')
-        if limit == -1: limit = len(all_goals) + 1 # Unused for infinity, but for safety
-        for i, goal in enumerate(all_goals):
-            goal.is_locked = limit != -1 and i >= limit
+        for goal in all_goals:
+            goal.is_locked = profile.is_goal_locked(goal, ordered_goals=all_goals)
         context.update({'goals': all_goals, 'total_saved': round(sum(g.current_amount for g in all_goals), 2), 'can_create_goal': profile.can_add_goal()})
         return context
 
@@ -84,14 +80,10 @@ class SavingsGoalUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
             
-        obj = self.get_object(); profile = request.user.profile
-        from finance_tracker.plans import get_limit
-        limit = get_limit(profile.active_tier, 'savings_goals')
-        if limit != -1:
-            goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
-            if obj in goals and goals.index(obj) >= limit:
-                messages.error(request, _("This goal is locked."))
-                return redirect('goal-list')
+        obj = self.get_object()
+        if request.user.profile.is_goal_locked(obj):
+            messages.error(request, _("This goal is locked."))
+            return redirect('goal-list')
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -126,14 +118,9 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
     template_name = 'expenses/goal_detail.html'
 
     def _is_locked(self, user, goal):
-        is_locked = False
         if user.is_authenticated:
-            profile = user.profile
-            limit = get_limit(profile.active_tier, 'savings_goals')
-            if limit != -1:
-                goals = list(SavingsGoal.objects.filter(user=user).order_by('created_at', 'id'))
-                is_locked = goal in goals and goals.index(goal) >= limit
-        return is_locked
+            return user.profile.is_goal_locked(goal)
+        return False
 
     def _get_estimated_completion(self, goal, contributions_qs):
         if goal.is_completed:
@@ -461,14 +448,9 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
             except:
                 pass
         # Lock check for POST contributions
-        profile = request.user.profile
-        
-        limit = get_limit(profile.active_tier, 'savings_goals')
-        if limit != -1:
-             goals = list(SavingsGoal.objects.filter(user=request.user).order_by('created_at', 'id'))
-             if goal in goals and goals.index(goal) >= limit:
-                 messages.error(request, _("This goal is locked."))
-                 return redirect('goal-list')
+        if request.user.profile.is_goal_locked(goal):
+            messages.error(request, _("This goal is locked."))
+            return redirect('goal-list')
 
         form = GoalContributionForm(request.POST, user=request.user)
 

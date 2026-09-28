@@ -1613,6 +1613,22 @@ class UserProfile(models.Model):
             return True
         return False
 
+    def is_goal_locked(self, goal, ordered_goals=None):
+        """Check if a specific savings goal is locked based on tier limits."""
+        limit = get_limit(self.active_tier, 'savings_goals')
+        if limit == -1:
+            return False
+
+        if not goal or not getattr(goal, 'pk', None):
+            return False
+
+        goals = ordered_goals if ordered_goals is not None else list(
+            self.user.savings_goals.order_by('created_at', 'id')
+        )
+        if goal in goals and goals.index(goal) >= limit:
+            return True
+        return False
+
     @property
     def active_tier(self):
         """Returns the actual active tier string (respecting subscription expiry)."""
@@ -1833,6 +1849,8 @@ class GoalContribution(models.Model):
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
+            locked_goal = SavingsGoal.objects.select_for_update().get(pk=self.goal_id)
+            self.goal = locked_goal
             old_instance = None
             if self.pk:
                 old_instance = GoalContribution.objects.select_related('goal', 'account').select_for_update().get(pk=self.pk)
@@ -1847,7 +1865,7 @@ class GoalContribution(models.Model):
                         
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
-                self.goal.current_amount -= old_instance.amount
+                locked_goal.current_amount -= old_instance.amount
             
             super().save(*args, **kwargs)
             
@@ -1863,8 +1881,8 @@ class GoalContribution(models.Model):
                 locked_account.balance -= apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
             
-            self.goal.current_amount += self.amount
-            self.goal.save()
+            locked_goal.current_amount += self.amount
+            locked_goal.save(update_fields=['current_amount', 'updated_at'])
 
             def _post_shadow_entry():
                 from .ledger_service import LedgerPostingService
@@ -1923,6 +1941,9 @@ class GoalContribution(models.Model):
             
     def delete(self, *args, **kwargs):
         with transaction.atomic():
+            locked_goal = SavingsGoal.objects.select_for_update().get(pk=self.goal_id)
+            self.goal = locked_goal
+
             # Update account balance and goal's current amount when deleting a contribution
             if self.account:
                 locked_account = Account.objects.select_for_update().get(pk=self.account_id)
@@ -1935,8 +1956,8 @@ class GoalContribution(models.Model):
                 locked_account.balance += apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
                 
-            self.goal.current_amount -= self.amount
-            self.goal.save()
+            locked_goal.current_amount -= self.amount
+            locked_goal.save(update_fields=['current_amount', 'updated_at'])
 
             def _post_shadow_entry():
                 from .ledger_service import LedgerPostingService
