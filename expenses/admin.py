@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.templatetags.static import static
+from django.utils import timezone
 from django.utils.html import format_html
 
 from .models import (

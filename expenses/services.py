@@ -246,6 +246,13 @@ class LoanService:
         Re-activates if remaining principal > 0.
         Returns the updated is_active boolean.
         """
+        if hasattr(loan, 'paid_principal'):
+            delattr(loan, 'paid_principal')
+        if hasattr(loan, 'capital_prepaid'):
+            delattr(loan, 'capital_prepaid')
+        if hasattr(loan, '_cached_summary'):
+            delattr(loan, '_cached_summary')
+
         rem = loan.remaining_principal
         should_be_active = rem > Decimal('0.00')
         if loan.is_active != should_be_active:
@@ -258,7 +265,6 @@ class LoanService:
         """
         Calculates total paid and remaining principal based on actual repayments
         and any capital event prepayments linked to the loan.
-        Auto-syncs active status based on remaining principal.
         """
         if hasattr(loan, '_cached_summary'):
             return loan._cached_summary
@@ -286,11 +292,6 @@ class LoanService:
 
         rem = Decimal(str(loan.initial_principal)) - Decimal(str(principal_paid)) - Decimal(str(capital_prepaid))
         remaining_principal = max(rem, Decimal('0.00'))
-
-        should_be_active = remaining_principal > Decimal('0.00')
-        if loan.is_active != should_be_active:
-            loan.is_active = should_be_active
-            loan.save(update_fields=['is_active', 'updated_at'])
 
         summary = {
             'principal_paid': float(principal_paid),

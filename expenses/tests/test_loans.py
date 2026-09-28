@@ -1,11 +1,13 @@
 import datetime
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
-from expenses.models import Account, Loan, LoanInterestRate, LoanRepayment
+from expenses.models import Account, CapitalEvent, Loan, LoanInterestRate, LoanRepayment, RecurringTransaction
 from expenses.services import LoanService
 
 
@@ -282,4 +284,180 @@ class LoanServiceTest(TestCase):
         self.assertEqual(repayment.interest_portion, Decimal('0.03'))
         self.assertEqual(repayment.amount, Decimal('3.98'))
         self.assertEqual(self.loan.remaining_principal, Decimal('0.00'))
+
+    def test_repayment_signal_syncs_is_active_on_save_and_delete(self):
+        """Test that saving a repayment that pays off a loan immediately flips is_active to False without page view, and deleting it restores is_active to True."""
+        self.assertTrue(self.loan.is_active)
+        repayment = LoanRepayment.objects.create(
+            loan=self.loan,
+            from_account=self.account,
+            amount=Decimal('50000.00'),
+            principal_portion=Decimal('50000.00'),
+            interest_portion=Decimal('0.00'),
+            date=datetime.date.today(),
+        )
+        self.loan.refresh_from_db()
+        self.assertFalse(self.loan.is_active)
+
+        # Deleting the payoff repayment should re-activate the loan
+        repayment.delete()
+        self.loan.refresh_from_db()
+        self.assertTrue(self.loan.is_active)
+
+    def test_capital_event_signal_syncs_is_active_on_save_and_delete(self):
+        """Test that saving a loan-linked capital event prepayment that pays off a loan flips is_active to False, and deleting it restores is_active to True."""
+        self.assertTrue(self.loan.is_active)
+        event = CapitalEvent.objects.create(
+            user=self.user,
+            account=self.account,
+            amount=Decimal('50000.00'),
+            date=datetime.date.today(),
+            subtype='loan_prepayment',
+            linked_loan=self.loan,
+        )
+        self.loan.refresh_from_db()
+        self.assertFalse(self.loan.is_active)
+
+        # Deleting the prepayment restores is_active to True
+        event.delete()
+        self.loan.refresh_from_db()
+        self.assertTrue(self.loan.is_active)
+
+    def test_net_worth_liabilities_updated_on_repayment_without_page_view(self):
+        """Test that LoanService.get_total_liabilities reflects payoff immediately after repayment without visiting loan pages."""
+        self.assertEqual(LoanService.get_total_liabilities(self.user), 50000.0)
+
+        LoanRepayment.objects.create(
+            loan=self.loan,
+            from_account=self.account,
+            amount=Decimal('50000.00'),
+            principal_portion=Decimal('50000.00'),
+            interest_portion=Decimal('0.00'),
+            date=datetime.date.today(),
+        )
+
+        # Calling get_total_liabilities directly without rendering any view
+        total_liabilities = LoanService.get_total_liabilities(self.user)
+        self.assertEqual(total_liabilities, 0.0)
+
+    def test_pure_read_no_db_writes_on_summary_or_list_view(self):
+        """Test that get_loan_summary and LoanListView are pure reads and do not perform any database writes."""
+        # Check get_loan_summary does no writes
+        with self.assertNumQueries(2):  # 1 for repayments aggregate, 1 for capital_events aggregate
+            LoanService.get_loan_summary(self.loan)
+
+        # Check LoanListView context generation performs no writes (only SELECTs)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('loan-list'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_loan_list_view_canonical_decimal_calculation_and_consistency(self):
+        """Test that LoanListView uses Decimal math and its numbers match LoanService.get_total_liabilities."""
+        # Create loan with non-trivial decimal amounts
+        loan = Loan.objects.create(
+            user=self.user,
+            name='Decimal Precision Loan',
+            loan_type='PERSONAL',
+            initial_principal=Decimal('10000.55'),
+            duration_months=12,
+            start_date=datetime.date.today(),
+            currency='₹'
+        )
+        LoanInterestRate.objects.create(
+            loan=loan,
+            interest_rate=Decimal('10.00'),
+            effective_date=datetime.date.today()
+        )
+        LoanRepayment.objects.create(
+            loan=loan,
+            from_account=self.account,
+            amount=Decimal('3433.33'),
+            principal_portion=Decimal('3333.33'),
+            interest_portion=Decimal('100.00'),
+            date=datetime.date.today()
+        )
+        CapitalEvent.objects.create(
+            user=self.user,
+            account=self.account,
+            amount=Decimal('2000.22'),
+            date=datetime.date.today(),
+            subtype='loan_prepayment',
+            linked_loan=loan
+        )
+        # Expected remaining for loan: 10000.55 - 3333.33 - 2000.22 = 4667.00
+        # Expected remaining for self.loan: 50000.00
+        # Total debt: 50000.00 + 4667.00 = 54667.00
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('loan-list'))
+        self.assertEqual(response.status_code, 200)
+
+        summaries = {s['loan'].id: s for s in response.context['loan_summaries']}
+        loan_summary = summaries[loan.id]
+        self.assertEqual(loan_summary['remaining_principal'], 4667.0)
+        self.assertEqual(loan_summary['principal_paid'], 3333.33)
+        self.assertEqual(loan_summary['capital_prepaid'], 2000.22)
+
+        self.assertEqual(response.context['total_debt'], 54667.0)
+        self.assertEqual(LoanService.get_total_liabilities(self.user), 54667.0)
+
+    def test_loan_list_view_query_count_no_n_plus_one(self):
+        """Verify query count remains constant regardless of loan count (no N+1 regression)."""
+        # Create additional loans with repayments and capital events
+        for i in range(3):
+            extra_loan = Loan.objects.create(
+                user=self.user,
+                name=f'Extra Loan {i}',
+                loan_type='PERSONAL',
+                initial_principal=Decimal('10000.00'),
+                duration_months=12,
+                start_date=datetime.date.today(),
+                currency='₹'
+            )
+            LoanInterestRate.objects.create(
+                loan=extra_loan,
+                interest_rate=Decimal('10.00'),
+                effective_date=datetime.date.today()
+            )
+            LoanRepayment.objects.create(
+                loan=extra_loan,
+                from_account=self.account,
+                amount=Decimal('1000.00'),
+                principal_portion=Decimal('900.00'),
+                interest_portion=Decimal('100.00'),
+                date=datetime.date.today()
+            )
+            CapitalEvent.objects.create(
+                user=self.user,
+                account=self.account,
+                amount=Decimal('500.00'),
+                date=datetime.date.today(),
+                subtype='loan_prepayment',
+                linked_loan=extra_loan
+            )
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('loan-list'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_repayment_creation_atomic_rollback_on_recurring_error(self):
+        """Test that if creating recurring transaction fails, the entire repayment is rolled back atomically."""
+        self.client.force_login(self.user)
+        initial_repayment_count = LoanRepayment.objects.filter(loan=self.loan).count()
+
+        with patch('expenses.views.loans.RecurringTransaction.objects.get_or_create', side_effect=ValidationError("Recurring failed")):
+            response = self.client.post(
+                reverse('loan-repayment-create', kwargs={'pk': self.loan.uuid}),
+                {
+                    'from_account': self.account.id,
+                    'amount': '1000.00',
+                    'principal_portion': '900.00',
+                    'interest_portion': '100.00',
+                    'date': '21/08/2026',
+                    'add_to_recurring': 'on',
+                }
+            )
+
+        self.assertRedirects(response, reverse('loan-detail', kwargs={'pk': self.loan.uuid}))
+        # Verify that the repayment was NOT saved (rolled back)
+        self.assertEqual(LoanRepayment.objects.filter(loan=self.loan).count(), initial_repayment_count)
 

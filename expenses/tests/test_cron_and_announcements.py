@@ -228,3 +228,35 @@ class FeatureAnnouncementTests(TestCase):
         self.assertIn("Big Announcement!", plain)
         self.assertIn("Check out our new features at TrackMyRupee.", plain)
 
+    def test_announcement_admin_is_active_display(self):
+        from expenses.admin import AnnouncementAdmin
+        admin_obj = AnnouncementAdmin(Announcement, None)
+
+        # 1. No expiry date -> Active
+        ann_no_expiry = Announcement.objects.create(title="No Expiry", body="Body")
+        self.assertIn("Active", admin_obj.is_active_display(ann_no_expiry))
+
+        # 2. Future expiry date -> Active
+        ann_future = Announcement.objects.create(
+            title="Future Expiry",
+            body="Body",
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+        self.assertIn("Active", admin_obj.is_active_display(ann_future))
+
+        # 3. Past expiry date -> Expired
+        ann_past = Announcement.objects.create(
+            title="Past Expiry",
+            body="Body",
+            expires_at=timezone.now() - timedelta(days=1),
+        )
+        self.assertIn("Expired", admin_obj.is_active_display(ann_past))
+
+        # 4. Admin changelist request renders cleanly without NameError
+        self.client.force_login(self.admin)
+        response = self.client.get('/tmr_admin/expenses/announcement/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Expired")
+        self.assertContains(response, "Active")
+
+

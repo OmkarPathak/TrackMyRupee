@@ -16,6 +16,7 @@ from .models import (
     Category,
     Expense,
     Income,
+    Loan,
     LoanRepayment,
     PhysicalAsset,
     RecurringTransaction,
@@ -23,7 +24,7 @@ from .models import (
     UserProfile,
 )
 from .posthog_utils import ph_capture, ph_identify
-from .services import FinancialService
+from .services import FinancialService, LoanService
 
 logger = logging.getLogger(__name__)
 
@@ -170,6 +171,32 @@ def handle_physical_asset_deactivation(sender, instance, **kwargs):
         return
     if not instance.is_active:
         RecurringTransaction.objects.filter(physical_asset=instance, is_active=True).update(is_active=False)
+
+
+@receiver(post_save, sender=LoanRepayment)
+@receiver(post_delete, sender=LoanRepayment)
+def handle_loan_repayment_active_status(sender, instance, **kwargs):
+    """Sync loan active status when a LoanRepayment is saved or deleted."""
+    if kwargs.get('raw', False):
+        return
+    if getattr(instance, 'loan_id', None):
+        try:
+            LoanService.sync_loan_active_status(instance.loan)
+        except Loan.DoesNotExist:
+            pass
+
+
+@receiver(post_save, sender=CapitalEvent)
+@receiver(post_delete, sender=CapitalEvent)
+def handle_capital_event_loan_active_status(sender, instance, **kwargs):
+    """Sync loan active status when a CapitalEvent with a linked loan is saved or deleted."""
+    if kwargs.get('raw', False):
+        return
+    if getattr(instance, 'linked_loan_id', None):
+        try:
+            LoanService.sync_loan_active_status(instance.linked_loan)
+        except Loan.DoesNotExist:
+            pass
 
 
 def _dashboard_cache_user_id(instance):

@@ -2229,9 +2229,6 @@ class LoanRepayment(models.Model):
                 }
             )
 
-            from .services import LoanService
-            LoanService.sync_loan_active_status(self.loan)
-
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             if self.from_account:
@@ -2286,9 +2283,6 @@ class LoanRepayment(models.Model):
                 )
             else:
                 super().delete(*args, **kwargs)
-
-            from .services import LoanService
-            LoanService.sync_loan_active_status(self.loan)
 
 
 class DeletionRequestAuditLog(models.Model):

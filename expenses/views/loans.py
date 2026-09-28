@@ -54,6 +54,7 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
         if status_filter not in ('active', 'inactive', 'all'):
             status_filter = 'active'
 
+        from decimal import Decimal
         from django.db.models import Sum
         from ..models import CapitalEvent, LoanRepayment
 
@@ -76,21 +77,15 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
             .annotate(total_prepaid=Sum('amount'))
         )
         capital_prepayment_map = {
-            r['linked_loan_id']: float(r['total_prepaid'] or 0)
+            r['linked_loan_id']: r['total_prepaid'] or Decimal('0.00')
             for r in capital_prepayment_totals
         }
 
-        # Compute pill counts and sync active status across ALL user loans
         all_loans = list(Loan.objects.filter(user=self.request.user))
         for loan in all_loans:
             r = repayment_map.get(loan.id, {})
-            p_paid = float(r.get('total_principal') or 0)
-            c_paid = capital_prepayment_map.get(loan.id, 0)
-            rem = max(float(loan.initial_principal) - p_paid - c_paid, 0)
-            should_be_active = rem > 0
-            if loan.is_active != should_be_active:
-                loan.is_active = should_be_active
-                loan.save(update_fields=['is_active', 'updated_at'])
+            loan.paid_principal = r.get('total_principal') or Decimal('0.00')
+            loan.capital_prepaid = capital_prepayment_map.get(loan.id) or Decimal('0.00')
 
         active_count = sum(1 for l in all_loans if l.is_active)
         inactive_count = sum(1 for l in all_loans if not l.is_active)
@@ -101,29 +96,33 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
         loan_summaries = []
         for loan in filtered_loans:
             r = repayment_map.get(loan.id, {})
-            principal_paid = float(r.get('total_principal') or 0)
-            interest_paid = float(r.get('total_interest') or 0)
-            total_paid = float(r.get('total_amount') or 0)
-            capital_prepaid = capital_prepayment_map.get(loan.id, 0)
-            remaining_principal = max(float(loan.initial_principal) - principal_paid - capital_prepaid, 0)
-            initial = float(loan.initial_principal)
-            progress = min((1 - remaining_principal / initial) * 100, 100) if initial > 0 else 100
+            principal_paid = r.get('total_principal') or Decimal('0.00')
+            interest_paid = r.get('total_interest') or Decimal('0.00')
+            total_paid = r.get('total_amount') or Decimal('0.00')
+            capital_prepaid = capital_prepayment_map.get(loan.id) or Decimal('0.00')
+
+            loan.paid_principal = principal_paid
+            loan.capital_prepaid = capital_prepaid
+            remaining_principal = loan.remaining_principal
+
+            initial = loan.initial_principal
+            progress = min((Decimal('1') - remaining_principal / initial) * Decimal('100'), Decimal('100')) if initial > 0 else Decimal('100')
             summary = {
                 'loan': loan,
-                'principal_paid': principal_paid,
-                'capital_prepaid': capital_prepaid,
-                'interest_paid': interest_paid,
-                'total_paid': total_paid,
-                'remaining_principal': remaining_principal,
-                'progress': progress,
+                'principal_paid': float(principal_paid),
+                'capital_prepaid': float(capital_prepaid),
+                'interest_paid': float(interest_paid),
+                'total_paid': float(total_paid),
+                'remaining_principal': float(remaining_principal),
+                'progress': float(progress),
             }
             loan_summaries.append(summary)
 
         # Total remaining debt across all active loans for top summary card
-        total_debt = sum(
-            max(float(l.initial_principal) - float(repayment_map.get(l.id, {}).get('total_principal') or 0) - capital_prepayment_map.get(l.id, 0), 0)
+        total_debt = float(sum(
+            l.remaining_principal
             for l in all_loans if l.is_active
-        )
+        ))
 
         # Portfolio Chart Data
         tot_principal_paid = sum(s['principal_paid'] + s['capital_prepaid'] for s in loan_summaries)
@@ -453,38 +452,39 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         form = LoanRepaymentForm(request.POST, user=request.user, loan=loan)
         if form.is_valid():
             try:
-                repayment = form.save(commit=False)
-                repayment.loan = loan
-                repayment.save()
+                with transaction.atomic():
+                    repayment = form.save(commit=False)
+                    repayment.loan = loan
+                    repayment.save()
 
-                if form.cleaned_data.get('add_to_recurring'):
-                    recurring_defaults = {
-                        'amount': repayment.amount,
-                        'currency': loan.currency,
-                        'account': repayment.from_account,
-                        'loan': loan,
-                        'frequency': form.cleaned_data.get('recurring_frequency') or 'MONTHLY',
-                        'start_date': repayment.date,
-                        'last_processed_date': repayment.date,
-                        'description': _("Loan EMI: %(name)s") % {'name': loan.name},
-                        'is_active': True,
-                    }
+                    if form.cleaned_data.get('add_to_recurring'):
+                        recurring_defaults = {
+                            'amount': repayment.amount,
+                            'currency': loan.currency,
+                            'account': repayment.from_account,
+                            'loan': loan,
+                            'frequency': form.cleaned_data.get('recurring_frequency') or 'MONTHLY',
+                            'start_date': repayment.date,
+                            'last_processed_date': repayment.date,
+                            'description': _("Loan EMI: %(name)s") % {'name': loan.name},
+                            'is_active': True,
+                        }
 
-                    rt, created = RecurringTransaction.objects.get_or_create(
-                        user=request.user,
-                        transaction_type='LOAN',
-                        loan=loan,
-                        is_active=True,
-                        defaults=recurring_defaults,
-                    )
+                        rt, created = RecurringTransaction.objects.get_or_create(
+                            user=request.user,
+                            transaction_type='LOAN',
+                            loan=loan,
+                            is_active=True,
+                            defaults=recurring_defaults,
+                        )
 
-                    if not created:
-                        for key, value in recurring_defaults.items():
-                            setattr(rt, key, value)
-                        rt.save()
-                        messages.info(request, _("Recurring loan repayment updated."))
-                    else:
-                        messages.info(request, _("Recurring loan repayment created."))
+                        if not created:
+                            for key, value in recurring_defaults.items():
+                                setattr(rt, key, value)
+                            rt.save()
+                            messages.info(request, _("Recurring loan repayment updated."))
+                        else:
+                            messages.info(request, _("Recurring loan repayment created."))
 
                 messages.success(request, _("Repayment recorded successfully!"))
                 ph_capture(request.user, 'loan_repayment_added', {'amount': str(repayment.amount)})
