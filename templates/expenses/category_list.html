@@ -1,5 +1,10 @@
 {% extends 'expenses/settings_base.html' %}
-{% load i18n digit_filters expense_extras %}
+{% load static i18n digit_filters expense_extras %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=1.5">
+    <script src="{% static 'js/tmr_filter.js' %}?v=1.5" defer></script>
+{% endblock %}
 
 {% block settings_content %}
 <div class="fade-in">

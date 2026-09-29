@@ -7,6 +7,7 @@ from ..filters.definitions import (
     ACCOUNT_LIST_FILTERS,
     ALL_TRANSACTIONS_FILTERS,
     CAPITAL_EVENT_FILTERS,
+    CATEGORY_LIST_FILTERS,
     DASHBOARD_FILTERS,
     EXPENSE_FILTERS,
     GOAL_DETAIL_FILTERS,
@@ -24,6 +25,9 @@ CONFIG_MAP = {
     'recurring': RECURRING_FILTERS,
     'capital_events': CAPITAL_EVENT_FILTERS,
     'dashboard': DASHBOARD_FILTERS,
+    'category': CATEGORY_LIST_FILTERS,
+    'category_list': CATEGORY_LIST_FILTERS,
+    'categories': CATEGORY_LIST_FILTERS,
 }
 
 

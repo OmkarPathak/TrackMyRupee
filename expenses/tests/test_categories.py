@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from expenses.filters import CATEGORY_LIST_FILTERS
 from expenses.models import Category, Expense, RecurringTransaction
 from finance_tracker.plans import PLAN_DETAILS
 
@@ -57,6 +58,95 @@ class CategoryListViewTests(TestCase):
         self.assertFalse(response.context['reached_limit'])
         self.assertNotIn('nudge_at_limit', response.context)
         self.assertNotContains(response, "You've reached your limit")
+
+    def test_category_list_filter_search(self):
+        """Filtering categories by search query returns matching categories."""
+        self.user.profile.tier = 'PRO'
+        self.user.profile.save()
+
+        Category.objects.create(user=self.user, name='Groceries')
+        Category.objects.create(user=self.user, name='Utilities')
+        Category.objects.create(user=self.user, name='Travel')
+
+        response = self.client.get(f"{self.url}?search=Gro")
+        self.assertEqual(response.status_code, 200)
+        names = [c.name for c in response.context['categories']]
+        self.assertEqual(names, ['Groceries'])
+        self.assertEqual(response.context['applied_state']['search'], 'Gro')
+
+    def test_category_list_filter_budget_status(self):
+        """Filtering by budget_status separates budgeted and unbudgeted categories."""
+        self.user.profile.tier = 'PRO'
+        self.user.profile.save()
+
+        Category.objects.create(user=self.user, name='Budgeted Food', limit=Decimal('5000.00'))
+        Category.objects.create(user=self.user, name='Unbudgeted Fun', limit=None)
+
+        # 1. Budgeted
+        resp_budgeted = self.client.get(f"{self.url}?budget_status=budgeted")
+        self.assertEqual(resp_budgeted.status_code, 200)
+        budgeted_names = [c.name for c in resp_budgeted.context['categories']]
+        self.assertIn('Budgeted Food', budgeted_names)
+        self.assertNotIn('Unbudgeted Fun', budgeted_names)
+
+        # 2. Unbudgeted
+        resp_unbudgeted = self.client.get(f"{self.url}?budget_status=unbudgeted")
+        self.assertEqual(resp_unbudgeted.status_code, 200)
+        unbudgeted_names = [c.name for c in resp_unbudgeted.context['categories']]
+        self.assertIn('Unbudgeted Fun', unbudgeted_names)
+        self.assertNotIn('Budgeted Food', unbudgeted_names)
+
+    def test_category_list_sort(self):
+        """Sorting categories by name and budget limit works as expected."""
+        self.user.profile.tier = 'PRO'
+        self.user.profile.save()
+
+        Category.objects.create(user=self.user, name='Beta', limit=Decimal('5000.00'))
+        Category.objects.create(user=self.user, name='Alpha', limit=Decimal('1000.00'))
+        Category.objects.create(user=self.user, name='Gamma', limit=Decimal('2000.00'))
+        Category.objects.create(user=self.user, name='Delta', limit=None)
+
+        # 1. Name A-Z (default)
+        resp_name_asc = self.client.get(f"{self.url}?sort=name_asc")
+        names_asc = [c.name for c in resp_name_asc.context['categories']]
+        self.assertEqual(names_asc, ['Alpha', 'Beta', 'Delta', 'Gamma'])
+
+        # 2. Name Z-A
+        resp_name_desc = self.client.get(f"{self.url}?sort=name_desc")
+        names_desc = [c.name for c in resp_name_desc.context['categories']]
+        self.assertEqual(names_desc, ['Gamma', 'Delta', 'Beta', 'Alpha'])
+
+        # 3. Limit desc (nulls last)
+        resp_limit_desc = self.client.get(f"{self.url}?sort=limit_desc")
+        limit_desc_names = [c.name for c in resp_limit_desc.context['categories']]
+        self.assertEqual(limit_desc_names, ['Beta', 'Gamma', 'Alpha', 'Delta'])
+
+        # 4. Limit asc (nulls last)
+        resp_limit_asc = self.client.get(f"{self.url}?sort=limit_asc")
+        limit_asc_names = [c.name for c in resp_limit_asc.context['categories']]
+        self.assertEqual(limit_asc_names, ['Alpha', 'Gamma', 'Beta', 'Delta'])
+
+    def test_category_list_filter_context_and_toolbar(self):
+        """Category list renders filter toolbar and passes config and state in context."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['filter_config'], CATEGORY_LIST_FILTERS)
+        self.assertIn('applied_state', response.context)
+        self.assertContains(response, 'id="tmr-toolbar-category"')
+        self.assertContains(response, 'tmr_filter.css')
+        self.assertContains(response, 'tmr_filter.js')
+
+    def test_category_filter_options_api(self):
+        """Filter options API supports page=category with budget_status."""
+        api_url = reverse('filter-options-api') + '?page=category&filter=budget_status'
+        response = self.client.get(api_url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['page'], 'category')
+        self.assertEqual(data['filter'], 'budget_status')
+        opt_values = [opt['value'] for opt in data['options']]
+        self.assertIn('budgeted', opt_values)
+        self.assertIn('unbudgeted', opt_values)
 
 
 class CategoryUpdateViewTests(TestCase):

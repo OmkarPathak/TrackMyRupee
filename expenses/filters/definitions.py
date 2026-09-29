@@ -718,3 +718,45 @@ GOAL_DETAIL_FILTERS = FilterSetConfig(
     search_field="account__name",
 )
 
+
+def filter_category_budget_status(queryset: QuerySet, values: List[str]) -> QuerySet:
+    if not values:
+        return queryset
+    val = values[0] if isinstance(values, list) else values
+    if val == "budgeted":
+        return queryset.filter(limit__isnull=False, limit__gt=0)
+    elif val == "unbudgeted":
+        return queryset.filter(Q(limit__isnull=True) | Q(limit=0))
+    return queryset
+
+
+CATEGORY_LIST_FILTERS = FilterSetConfig(
+    page_key="category",
+    filters=[
+        FilterDef(
+            key="budget_status",
+            label="Budget",
+            type="single_select",
+            source="static",
+            options=[
+                {"value": "budgeted", "label": "With budget limit"},
+                {"value": "unbudgeted", "label": "Without budget limit"},
+            ],
+            custom_filter_fn=filter_category_budget_status,
+        ),
+    ],
+    sort_options=[
+        {"key": "name_asc", "label": "Name, A to Z"},
+        {"key": "name_desc", "label": "Name, Z to A"},
+        {"key": "limit_desc", "label": "Monthly limit, highest"},
+        {"key": "limit_asc", "label": "Monthly limit, lowest"},
+    ],
+    default_sort="name_asc",
+    supports_time_period=False,
+    supports_search=True,
+    search_placeholder="Search categories...",
+    search_field="name",
+)
+
+CATEGORY_FILTERS = CATEGORY_LIST_FILTERS
+

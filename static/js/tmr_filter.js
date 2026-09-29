@@ -1137,6 +1137,7 @@ class TMRFilterSystem {
                     document.getElementById(`${this.pageKey}-shell`) || 
                     document.getElementById(`${this.pageKey.replace(/s$/, '')}-list-shell`) ||
                     document.getElementById(`${this.pageKey.replace(/s$/, '')}-detail-shell`) ||
+                    document.getElementById('category-list-shell') ||
                     document.getElementById('account-list-shell') || 
                     document.getElementById('account-detail-shell') || 
                     document.getElementById('capital-event-list-shell') || 

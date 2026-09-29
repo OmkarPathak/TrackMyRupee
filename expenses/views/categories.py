@@ -11,6 +11,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from expenses.views.utils import get_safe_redirect_url
 
+from ..filters import CATEGORY_LIST_FILTERS, apply_filter_config
 from ..forms import CategoryForm
 from ..models import Category
 from ..posthog_utils import ph_capture
@@ -50,15 +51,15 @@ class CategoryListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             return redirect(target_url)
 
     def get_queryset(self):
-        queryset = Category.objects.filter(user=self.request.user).order_by('name')
-        search_query = self.request.GET.get('search')
-        if search_query:
-            queryset = queryset.filter(name__icontains=search_query)
+        base_qs = Category.objects.filter(user=self.request.user)
+        queryset, self.applied_state = apply_filter_config(base_qs, self.request, CATEGORY_LIST_FILTERS)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['search_query'] = self.request.GET.get('search', '')
+        context['filter_config'] = CATEGORY_LIST_FILTERS
+        context['applied_state'] = getattr(self, 'applied_state', {})
+        context['search_query'] = (getattr(self, 'applied_state', {}) or {}).get('search', '')
         
         # Nudge context for upgrade banner
         profile = self.request.user.profile

@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, Tuple
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet
 from django.http import HttpRequest
 
 from .schema import FilterSetConfig
@@ -106,6 +106,14 @@ def apply_filter_config(
                 queryset = queryset.order_by(f'-{amount_field}', '-id')
             else:
                 queryset = queryset.order_by(amount_field, 'id')
+        elif sort_by == 'name_asc':
+            queryset = queryset.order_by('name', 'id')
+        elif sort_by == 'name_desc':
+            queryset = queryset.order_by('-name', '-id')
+        elif sort_by == 'limit_desc':
+            queryset = queryset.order_by(F('limit').desc(nulls_last=True), 'name', 'id')
+        elif sort_by == 'limit_asc':
+            queryset = queryset.order_by(F('limit').asc(nulls_last=True), 'name', 'id')
         elif sort_by == 'date_desc':
             try:
                 queryset.model._meta.get_field('date')
