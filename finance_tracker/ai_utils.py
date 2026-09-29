@@ -36,17 +36,30 @@ def predict_category_rule_based(description):
                 return category
     return None
 
-def predict_category_ai(description, user=None, categories=None, skip_genai=False):
+def predict_category_ai(description, user=None, categories=None, skip_genai=False, history_map=None):
     """
     Predicts category using:
-    1. Historical Data (User-specific Custom Categories)
+    1. Historical Data (User-specific Custom Categories or pre-fetched history_map)
     2. Rule-Based Keywords (General)
     3. Generative AI (Gemini) - Fallback
     """
     description = description.strip()
     
     # 0. Check Historical Data (Personalization)
-    if user:
+    if history_map is not None:
+        desc_lower = description.lower()
+        if isinstance(history_map, dict):
+            if 'exact' in history_map and desc_lower in history_map['exact']:
+                return history_map['exact'][desc_lower]
+            elif desc_lower in history_map:
+                return history_map[desc_lower]
+
+            words = desc_lower.split()
+            if len(words) >= 1:
+                first_word = words[0]
+                if len(first_word) > 3 and 'prefix' in history_map and first_word in history_map['prefix']:
+                    return history_map['prefix'][first_word]
+    elif user:
         try:
             # Avoid circular import
             from django.db.models import Count

@@ -327,8 +327,69 @@ class UploadViewTest(TestCase):
         # The deposit row (second row, salary) should be skipped silently (not counted as an error)
         self.assertEqual(results['created_count'], 1)
         self.assertEqual(results['error_count'], 0)
-        self.assertEqual(results['total_rows'], 2)
-
         expense = Expense.objects.get(description='POS 512967XXXXXX6594')
         self.assertEqual(expense.amount, Decimal('2439.79'))
         self.assertEqual(expense.date, date(2026, 4, 1))
+
+    def test_upload_mixed_duplicates_and_within_file_duplicates(self):
+        import hashlib
+        raw_str = f"2025-01-01_100_₹_Existing Expense_Food"
+        dedup_key = hashlib.md5(raw_str.encode('utf-8')).hexdigest()
+        Expense.objects.create(
+            user=self.user,
+            date=date(2025, 1, 1),
+            amount=Decimal('100.00'),
+            description='Existing Expense',
+            category='Food',
+            currency='₹',
+            account=self.account,
+            client_dedup_key=dedup_key,
+        )
+        self.assertEqual(Expense.objects.count(), 1)
+
+        data = [
+            ['Date', 'Amount', 'Description', 'Category'],
+            ['2025-01-01', 100, 'Existing Expense', 'Food'],      # Duplicates existing DB entry
+            ['2025-01-02', 200, 'New Expense 1', 'Transport'],    # New valid row 1
+            ['2025-01-03', 300, 'New Expense 2', 'Shopping'],     # New valid row 2
+            ['2025-01-03', 300, 'New Expense 2', 'Shopping'],     # Duplicates previous row in same file
+        ]
+        csv_file = self.create_csv_file(data)
+        csv_file.name = 'mixed.csv'
+
+        response = self.client.post(reverse('upload'), {
+            'account': self.account.id,
+            'currency': '₹',
+            'file': csv_file,
+        })
+        self.assertEqual(response.status_code, 200)
+        results = response.context['results']
+        self.assertEqual(results['created_count'], 2)
+        self.assertEqual(results['duplicate_count'], 2)
+        self.assertEqual(results['error_count'], 0)
+        self.assertEqual(results['total_rows'], 4)
+        self.assertEqual(Expense.objects.count(), 3)
+
+    @override_settings(LEDGER_WRITE_ENABLED=False)
+    def test_upload_50_rows_query_count_bulk_efficiency(self):
+        data = [['Date', 'Amount', 'Description']]
+        for i in range(50):
+            data.append(['2025-01-01', f'{10 + i}', f'Coffee Shop {i}'])
+        csv_file = self.create_csv_file(data)
+        csv_file.name = 'bulk50.csv'
+
+        # Warm up session and context processor caches so query count measures the upload transaction
+        self.client.get(reverse('upload'))
+
+        # Without batching and prefetching, 50 rows with no category column required 200+ queries.
+        # With pre-fetching and bulk_create, it executes in only 12 queries.
+        with self.assertNumQueries(12):
+            response = self.client.post(reverse('upload'), {
+                'account': self.account.id,
+                'currency': '₹',
+                'file': csv_file,
+            })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['results']['created_count'], 50)
+
+

@@ -4,6 +4,7 @@ import json
 import dns.flags
 import dns.message
 import dns.rdatatype
+from django.core.cache import cache
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -11,6 +12,7 @@ from django.urls import reverse
 @override_settings(RECAPTCHA_PUBLIC_KEY=None, RECAPTCHA_PRIVATE_KEY=None)
 class StaticPageTest(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = Client()
 
     def test_landing_page(self):
@@ -38,6 +40,56 @@ class StaticPageTest(TestCase):
         # Usually tests use locmem backend.
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 302)
+
+    def test_contact_form_hourly_rate_limit(self):
+        url = reverse('contact')
+        data = {
+            'name': 'Rate Tester',
+            'email': 'ratetest@example.com',
+            'subject': 'Rate limit check',
+            'message': 'This is a valid test message with sufficient length.',
+            'website': ''
+        }
+        ip_header = {'HTTP_X_FORWARDED_FOR': '203.0.113.10'}
+
+        # RATE_LIMIT_HOURLY is 3; first 3 requests succeed (redirect 302)
+        for _ in range(3):
+            res = self.client.post(url, data, **ip_header)
+            self.assertEqual(res.status_code, 302)
+
+        # 4th request from same IP within the hour is rejected
+        res = self.client.post(url, data, **ip_header)
+        self.assertEqual(res.status_code, 200)
+        messages_list = list(res.context['messages'])
+        self.assertTrue(any("Too many submissions" in str(m) for m in messages_list))
+
+    def test_contact_form_spam_keyword_rejected(self):
+        url = reverse('contact')
+        data = {
+            'name': 'Spammer',
+            'email': 'spammer@example.com',
+            'subject': 'Unsolicited offer',
+            'message': 'Buy cheap viagra now with instant discount!',
+            'website': ''
+        }
+        response = self.client.post(url, data, HTTP_X_FORWARDED_FOR='203.0.113.20')
+        self.assertEqual(response.status_code, 200)
+        messages_list = list(response.context['messages'])
+        self.assertTrue(any("potential spam" in str(m) for m in messages_list))
+
+    def test_contact_form_disposable_email_rejected(self):
+        url = reverse('contact')
+        data = {
+            'name': 'Disposable User',
+            'email': 'throwaway@tempmail.com',
+            'subject': 'Disposable email check',
+            'message': 'This is a valid long enough message from disposable email.',
+            'website': ''
+        }
+        response = self.client.post(url, data, HTTP_X_FORWARDED_FOR='203.0.113.30')
+        self.assertEqual(response.status_code, 200)
+        messages_list = list(response.context['messages'])
+        self.assertTrue(any("permanent email address" in str(m).lower() for m in messages_list))
 
     def test_demo_login(self):
         from django.contrib.auth.models import User
