@@ -1,6 +1,7 @@
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import JsonResponse
@@ -120,22 +121,30 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
         form = CapitalEventForm(request.POST, user=request.user)
         from_expense_id = request.POST.get('from_expense_id')
         if form.is_valid():
-            with transaction.atomic():
-                event = form.save(commit=False)
-                event.user = request.user
-                event.save()
+            try:
+                with transaction.atomic():
+                    event = form.save(commit=False)
+                    event.user = request.user
+                    event.save()
 
-                # Optionally delete the original expense after conversion
-                if from_expense_id and request.POST.get('delete_source_expense') == '1':
-                    try:
-                        Expense.objects.get(pk=from_expense_id, user=request.user).delete()
-                        messages.info(request, _("Original expense deleted after conversion."))
-                    except Expense.DoesNotExist:
-                        pass
+                    # Optionally delete the original expense after conversion
+                    if from_expense_id and request.POST.get('delete_source_expense') == '1':
+                        try:
+                            Expense.objects.get(pk=from_expense_id, user=request.user).delete()
+                            messages.info(request, _("Original expense deleted after conversion."))
+                        except Expense.DoesNotExist:
+                            pass
 
-            messages.success(request, _("Capital event recorded successfully."))
-            ph_capture(request.user, 'capital_event_created', {'subtype': getattr(event, 'subtype', ''), 'amount': str(event.amount)})
-            return redirect('capital-event-list')
+                messages.success(request, _("Capital event recorded successfully."))
+                ph_capture(request.user, 'capital_event_created', {'subtype': getattr(event, 'subtype', ''), 'amount': str(event.amount)})
+                return redirect('capital-event-list')
+            except (RuntimeError, ValidationError):
+                messages.error(request, _("Unable to save capital event because currency conversion failed or data is invalid."))
+                return render(request, self.template_name, {
+                    'form': form,
+                    'from_expense_id': from_expense_id,
+                    'user_loans': Loan.objects.filter(user=request.user, is_active=True),
+                })
 
         return render(request, self.template_name, {
             'form': form,
@@ -168,14 +177,24 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
         event = self.get_object(pk, request.user)
         form = CapitalEventForm(request.POST, instance=event, user=request.user)
         if form.is_valid():
-            with transaction.atomic():
-                form.save()
-            messages.success(request, _("Capital event updated."))
-            ph_capture(request.user, 'capital_event_updated', {})
-            next_url = request.POST.get('next') or request.GET.get('next')
-            if next_url:
-                return redirect(next_url)
-            return redirect('capital-event-list')
+            try:
+                with transaction.atomic():
+                    form.save()
+                messages.success(request, _("Capital event updated."))
+                ph_capture(request.user, 'capital_event_updated', {})
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                return redirect('capital-event-list')
+            except (RuntimeError, ValidationError):
+                messages.error(request, _("Unable to update capital event because currency conversion failed or data is invalid."))
+                next_url = request.POST.get('next') or request.GET.get('next') or ''
+                return render(request, self.template_name, {
+                    'form': form,
+                    'event': event,
+                    'user_loans': Loan.objects.filter(user=request.user, is_active=True),
+                    'next_url': next_url,
+                })
 
         next_url = request.POST.get('next') or request.GET.get('next') or ''
         return render(request, self.template_name, {
@@ -211,21 +230,28 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
         event = get_object_by_uuid_or_pk(CapitalEvent, pk, user=request.user)
-        with transaction.atomic():
-            expense = Expense(
-                user=request.user,
-                date=event.date,
-                amount=event.amount,
-                currency=event.currency,
-                description=event.note or event.get_subtype_display(),
-                category=event.get_subtype_display(),
-                account=event.account,
-            )
-            expense.save()
-            event.delete()
-        messages.success(request, _("Capital event converted to a regular expense."))
-        ph_capture(request.user, 'capital_event_converted_to_expense', {})
-        return redirect('expense-list')
+        try:
+            with transaction.atomic():
+                expense = Expense(
+                    user=request.user,
+                    date=event.date,
+                    amount=event.amount,
+                    currency=event.currency,
+                    description=event.note or event.get_subtype_display(),
+                    category=event.get_subtype_display(),
+                    account=event.account,
+                )
+                expense.save()
+                event.delete()
+            messages.success(request, _("Capital event converted to a regular expense."))
+            ph_capture(request.user, 'capital_event_converted_to_expense', {})
+            return redirect('expense-list')
+        except (RuntimeError, ValidationError):
+            messages.error(request, _("Unable to convert capital event because currency conversion failed or data is invalid."))
+            next_url = request.POST.get('next') or request.GET.get('next') or request.META.get('HTTP_REFERER')
+            if next_url:
+                return redirect(get_safe_redirect_url(request, next_url, reverse_lazy('capital-event-list')))
+            return redirect('capital-event-list')
 
 
 def capital_event_loans_ajax(request):

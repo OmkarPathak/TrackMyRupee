@@ -4,6 +4,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.contrib.messages import get_messages
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -679,6 +680,32 @@ class CapitalEventCreateViewTest(TestCase):
         response = self.client.post(reverse('capital-event-create'), data)
         self.assertEqual(response.status_code, 302)
 
+    @patch('expenses.models.get_exchange_rate', side_effect=RuntimeError("Currency conversion failed"))
+    def test_post_currency_conversion_failure_handled(self, mock_rate):
+        expense = Expense.objects.create(
+            user=self.user, date=date.today(), amount=Decimal('1500.00'),
+            description='Dentist', category='Medical', account=self.account, currency='₹',
+        )
+        count_before = CapitalEvent.objects.filter(user=self.user).count()
+        data = {
+            'date': date.today().isoformat(),
+            'amount': '3000.00',
+            'currency': '$',
+            'account': self.account.id,
+            'subtype': 'medical_lump_sum',
+            'note': 'Hospital bill',
+            'from_expense_id': expense.id,
+            'delete_source_expense': '1',
+        }
+        response = self.client.post(reverse('capital-event-create'), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('form', response.context)
+        self.assertEqual(CapitalEvent.objects.filter(user=self.user).count(), count_before)
+        self.assertTrue(Expense.objects.filter(id=expense.id).exists())
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('currency conversion failed' in str(m).lower() for m in messages))
+
+
 
 # ===========================================================================
 # 7. VIEW TESTS — update
@@ -786,6 +813,28 @@ class CapitalEventUpdateViewTest(TestCase):
         # New account decremented
         self.assertEqual(other_account.balance, Decimal('3000.00'))
 
+    @patch('expenses.models.get_exchange_rate', side_effect=RuntimeError("Currency conversion failed"))
+    def test_post_currency_conversion_failure_handled(self, mock_rate):
+        original_amount = self.event.amount
+        original_note = self.event.note
+        data = {
+            'date': date.today().isoformat(),
+            'amount': '6000.00',
+            'currency': '$',
+            'account': self.account.id,
+            'subtype': 'other',
+            'note': 'New note',
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('form', response.context)
+        self.event.refresh_from_db()
+        self.assertEqual(self.event.amount, original_amount)
+        self.assertEqual(self.event.note, original_note)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('currency conversion failed' in str(m).lower() for m in messages))
+
+
 
 # ===========================================================================
 # 8. VIEW TESTS — delete
@@ -879,6 +928,29 @@ class CapitalEventConvertViewTest(TestCase):
         self.assertEqual(response.status_code, 302)
         expense = Expense.objects.get(user=self.user, amount=Decimal('500.00'))
         self.assertIsNone(expense.account)
+
+    @patch('expenses.fx.get_exchange_rate')
+    @patch('expenses.models.get_exchange_rate')
+    def test_post_currency_conversion_failure_handled(self, mock_rate, mock_fx_rate):
+        mock_rate.return_value = Decimal('80.00')
+        mock_fx_rate.return_value = Decimal('80.00')
+        event = CapitalEvent.objects.create(
+            user=self.user, amount=Decimal('4500.00'), date=date.today(),
+            subtype='large_purchase', note='Laptop', account=self.account, currency='$',
+        )
+        mock_rate.side_effect = RuntimeError("Currency conversion failed")
+        mock_fx_rate.side_effect = RuntimeError("Currency conversion failed")
+        url = reverse('capital-event-convert', kwargs={'pk': event.pk})
+        initial_expense_count = Expense.objects.filter(user=self.user).count()
+        response = self.client.post(url, HTTP_REFERER='/capital-events/')
+        self.assertRedirects(response, '/capital-events/')
+        # Original capital event must still exist (not deleted)
+        self.assertTrue(CapitalEvent.objects.filter(id=event.id).exists())
+        # No new expense should have been created
+        self.assertEqual(Expense.objects.filter(user=self.user).count(), initial_expense_count)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('currency conversion failed' in str(m).lower() for m in messages))
+
 
 
 # ===========================================================================
