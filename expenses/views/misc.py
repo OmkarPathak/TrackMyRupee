@@ -27,6 +27,8 @@ from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View
 
+import logging
+
 from ..account_types import investment_codes
 from ..forms import ContactForm
 from ..models import (
@@ -39,6 +41,11 @@ from ..models import (
 )
 from ..posthog_utils import ph_capture
 from .mixins import HtmxPartialTemplateMixin
+
+logger = logging.getLogger(__name__)
+
+# Iteration safety cap; should stay consistent with MAX_CATCHUP_PER_RUN in expenses/views/mixins.py
+MAX_CATCHUP_PER_RUN = 100
 
 
 class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
@@ -132,7 +139,6 @@ class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
         avg_expense = sum(expense_days) / len(expense_days) if expense_days else 0
         
         # Get pending recurring transactions for the month
-        from collections import defaultdict
         pending_recurring_map = defaultdict(list)
         recurring_configs = RecurringTransaction.objects.filter(user=self.request.user, is_active=True)
         
@@ -146,13 +152,28 @@ class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
                 continue
             
             # Project forward if the next due date is before the viewing month
+            forward_iterations = 0
             while check_date < view_month_start:
+                if forward_iterations >= MAX_CATCHUP_PER_RUN:
+                    logger.warning(
+                        "RecurringTransaction %s exceeded iteration cap (%s) during forward projection to %s.",
+                        rt.id, MAX_CATCHUP_PER_RUN, view_month_start,
+                    )
+                    break
                 if rt.end_date and check_date > rt.end_date:
                     break
                 check_date = rt.get_next_date(check_date, rt.frequency)
+                forward_iterations += 1
             
             # Collect all occurrences within the month
+            month_iterations = 0
             while check_date <= view_month_end:
+                if month_iterations >= MAX_CATCHUP_PER_RUN:
+                    logger.warning(
+                        "RecurringTransaction %s exceeded iteration cap (%s) during monthly occurrence collection for %s-%s.",
+                        rt.id, MAX_CATCHUP_PER_RUN, year, month,
+                    )
+                    break
                 if rt.end_date and check_date > rt.end_date:
                     break
                 # Only show if not yet processed
@@ -164,6 +185,7 @@ class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
                         'currency': rt.currency
                     })
                 check_date = rt.get_next_date(check_date, rt.frequency)
+                month_iterations += 1
 
         # Build Calendar Grid
         cal = calendar.Calendar(firstweekday=6) # Start on Sunday

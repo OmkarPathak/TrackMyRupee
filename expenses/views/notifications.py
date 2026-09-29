@@ -236,17 +236,7 @@ def trigger_ledger_retry_view(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     limit = _get_int_param(request, 'limit', 200)
-    try:
-        call_command('retry_ledger_shadow_failures', limit=limit)
-        return JsonResponse(
-            {
-                'success': True,
-                'message': 'Ledger retry triggered successfully',
-                'limit': limit,
-            }
-        )
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return _dispatch_cron_command('retry_ledger_shadow_failures', lock_timeout=300, limit=limit)
 
 
 @csrf_exempt
@@ -261,17 +251,7 @@ def trigger_ledger_reconcile_view(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     threshold = _get_threshold_param(request, '0.01')
-    try:
-        call_command('reconcile_ledgers', threshold=threshold)
-        return JsonResponse(
-            {
-                'success': True,
-                'message': 'Ledger reconciliation triggered successfully',
-                'threshold': threshold,
-            }
-        )
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return _dispatch_cron_command('reconcile_ledgers', lock_timeout=600, threshold=threshold)
 
 
 @csrf_exempt
@@ -288,23 +268,13 @@ def trigger_ledger_maintenance_view(request):
 
     retry_limit = _get_int_param(request, 'retry_limit', 200)
     threshold = _get_threshold_param(request, '0.01')
-    try:
-        call_command(
-            'run_ledger_maintenance',
-            retry_limit=retry_limit,
-            reconcile=True,
-            threshold=threshold,
-        )
-        return JsonResponse(
-            {
-                'success': True,
-                'message': 'Ledger maintenance triggered successfully',
-                'retry_limit': retry_limit,
-                'threshold': threshold,
-            }
-        )
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return _dispatch_cron_command(
+        'run_ledger_maintenance',
+        lock_timeout=900,
+        retry_limit=retry_limit,
+        reconcile=True,
+        threshold=threshold,
+    )
 
 
 @csrf_exempt

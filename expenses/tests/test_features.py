@@ -1,6 +1,6 @@
 import io
 import zipfile
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -73,6 +73,26 @@ class FeatureViewTest(BaseFeatureTest):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'expenses/partials/_calendar_content.html')
         self.assertTemplateNotUsed(response, 'base.html')
+
+    def test_calendar_with_stale_recurring_transaction_iteration_cap(self):
+        past_date = date.today() - timedelta(days=365 * 5)
+        RecurringTransaction.objects.create(
+            user=self.user,
+            description="Stale Daily Gym",
+            amount=Decimal('50.00'),
+            frequency='DAILY',
+            start_date=past_date,
+            next_due_date=past_date,
+            transaction_type='EXPENSE',
+            currency='₹',
+            is_active=True,
+        )
+
+        with self.assertLogs('expenses.views.misc', level='WARNING') as cm:
+            response = self.client.get(reverse('calendar'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(any("exceeded iteration cap" in log for log in cm.output))
 
     def test_budget_view(self):
         url = reverse('budget')
