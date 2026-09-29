@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
@@ -142,3 +143,28 @@ class OnboardingViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.profile.refresh_from_db()
         self.assertTrue(self.user.profile.dismissed_onboarding_checklist)
+
+    @patch('expenses.views.auth.Expense.objects.create')
+    def test_onboarding_currency_conversion_failure_returns_clean_error(self, mock_create):
+        """Currency conversion or domain validation error returns user-friendly error message."""
+        mock_create.side_effect = RuntimeError("Failed to fetch exchange rate for USD to INR")
+        data = {'step': 'expense', 'amount': 100, 'description': 'Coffee', 'category': 'Food'}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        res_data = response.json()
+        self.assertFalse(res_data['success'])
+        self.assertIn("currency conversion failed or data is invalid", res_data['error'])
+        self.assertNotIn("USD to INR", res_data['error'])
+
+    @patch('expenses.views.auth.Expense.objects.create')
+    def test_onboarding_unexpected_exception_returns_generic_message_without_leaking(self, mock_create):
+        """Unexpected internal exceptions return a generic safe message without leaking internals."""
+        mock_create.side_effect = Exception("psycopg2.OperationalError: password authentication failed for user 'postgres'")
+        data = {'step': 'expense', 'amount': 100, 'description': 'Coffee', 'category': 'Food'}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        res_data = response.json()
+        self.assertFalse(res_data['success'])
+        self.assertEqual(res_data['error'], "Something went wrong, please try again.")
+        self.assertNotIn("psycopg2", res_data['error'])
+        self.assertNotIn("postgres", res_data['error'])

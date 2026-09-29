@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import date
 from decimal import Decimal
 
@@ -7,6 +8,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import connection
 from django.http import JsonResponse
@@ -15,6 +17,8 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import TemplateView
+
+logger = logging.getLogger(__name__)
 
 from ..models import (
     CURRENCY_CHOICES,
@@ -242,8 +246,18 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                 profile.save()
                 return JsonResponse({'success': True})
                 
+        except (RuntimeError, ValidationError) as e:
+            logger.warning("Onboarding step validation/currency error: %s", e, exc_info=True)
+            return JsonResponse({
+                'success': False,
+                'error': _('Unable to save onboarding data because currency conversion failed or data is invalid.')
+            }, status=400)
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+            logger.error("Unexpected error during onboarding step: %s", e, exc_info=True)
+            return JsonResponse({
+                'success': False,
+                'error': _('Something went wrong, please try again.')
+            }, status=400)
         
         return JsonResponse({'success': False, 'error': 'Invalid step'}, status=400)
 

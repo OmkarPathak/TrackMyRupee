@@ -65,22 +65,26 @@ class CategoryListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         from finance_tracker.plans import get_limit
         limit = get_limit(profile.active_tier, 'budget_categories')
         
+        reached_limit = not profile.can_add_category()
+        context['reached_limit'] = reached_limit
+
         if limit != -1:
             total_categories = Category.objects.filter(user=self.request.user).count()
             if profile.active_tier == 'PLUS':
                 upgrade_tier = 'PRO'
             else:
                 upgrade_tier = 'PLUS'
-            context['reached_limit'] = total_categories >= limit
             context['current_count'] = total_categories
             context['limit'] = limit
             context['nudge_current'] = total_categories
             context['nudge_limit'] = limit
             context['nudge_feature_name'] = 'categories'
             context['nudge_upgrade_tier'] = upgrade_tier
-            context['nudge_at_limit'] = total_categories >= limit
-        
-        context['reached_limit'] = not profile.can_add_category()
+            context['nudge_at_limit'] = reached_limit
+            if limit == 0:
+                context['show_nudge'] = True
+            else:
+                context['show_nudge'] = total_categories >= max(1, int(limit * 0.6))
         
         from ..utils import BOOTSTRAP_ICONS
         context['bootstrap_icons'] = BOOTSTRAP_ICONS
@@ -191,8 +195,9 @@ class CategoryUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
             new_name = self.object.name
             
             if old_name != new_name:
-                from ..models import Expense
+                from ..models import Expense, RecurringTransaction
                 Expense.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
+                RecurringTransaction.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
                 
             ph_capture(self.request.user, 'category_updated', {})
             return response
