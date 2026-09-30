@@ -460,18 +460,15 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
         self.fields['auth_email'].widget.attrs.update({'class': 'form-control'})
 
         # Check if user has social account
-        cache_key = f'social_acc_exists_{self.instance.id}'
-        has_social = cache.get(cache_key)
-        if has_social is None:
-            has_social = SocialAccount.objects.filter(user=self.instance).exists()
-            cache.set(cache_key, has_social, 3600)
+        has_social = SocialAccount.objects.filter(user=self.instance).exists() if self.instance.pk else False
 
         if has_social:
-            for field in ['first_name', 'last_name', 'auth_email']:
-                self.fields[field].disabled = True
-                self.fields[field].widget.attrs['disabled'] = 'disabled'
-                self.fields[field].required = False
-            self.fields['auth_email'].help_text = "Managed by social login. You cannot change this info."
+            self.fields['auth_email'].disabled = True
+            self.fields['auth_email'].widget.attrs['disabled'] = 'disabled'
+            self.fields['auth_email'].widget.attrs['readonly'] = 'readonly'
+            self.fields['auth_email'].widget.attrs['class'] = 'form-control bg-light'
+            self.fields['auth_email'].required = False
+            self.fields['auth_email'].help_text = _("Managed by social login. Email address cannot be changed.")
 
     def clean_auth_email(self):
         email = self.cleaned_data.get('auth_email')

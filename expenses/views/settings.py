@@ -276,6 +276,7 @@ class LanguageUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, _('Language preference updated successfully.'))
         
         response = super().form_valid(form)
+        invalidate_dashboard_cache(user_id=self.request.user.id)
         ph_capture(self.request.user, 'language_changed', {'new_language': form.cleaned_data.get('language', '')})
         response.set_cookie(django_settings.LANGUAGE_COOKIE_NAME, lang)
         return response
@@ -319,5 +320,6 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, _("Profile updated successfully."))
         response = super().form_valid(form)
+        invalidate_dashboard_cache(user_id=self.request.user.id)
         ph_capture(self.request.user, 'profile_updated', {})
         return response

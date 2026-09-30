@@ -335,3 +335,26 @@ class SalaryDateFormTest(TestCase):
         # Invalid: Greater than 31
         form = SalaryDateUpdateForm(data={'salary_date': '32'}, instance=self.user.profile)
         # Same as above
+
+    def test_profile_update_form_social_user_email_disabled(self):
+        """Test that ProfileUpdateForm disables email change for social users with a note."""
+        from allauth.socialaccount.models import SocialAccount
+        from expenses.forms import ProfileUpdateForm
+
+        SocialAccount.objects.create(user=self.user, provider='google', uid='12345')
+        form = ProfileUpdateForm(instance=self.user)
+        self.assertTrue(form.fields['auth_email'].disabled)
+        self.assertFalse(form.fields['first_name'].disabled)
+        self.assertFalse(form.fields['last_name'].disabled)
+        self.assertIn("social login", str(form.fields['auth_email'].help_text).lower())
+
+    def test_profile_update_view_social_user_renders_note(self):
+        """Test that profile settings page renders the social login note and enabled submit button."""
+        from allauth.socialaccount.models import SocialAccount
+
+        SocialAccount.objects.create(user=self.user, provider='google', uid='12345')
+        self.client.force_login(self.user)
+        response = self.client.get('/settings/profile/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Managed by social login. Email address cannot be changed.")
+        self.assertNotContains(response, '<button type="submit" class="btn btn-primary" disabled>')

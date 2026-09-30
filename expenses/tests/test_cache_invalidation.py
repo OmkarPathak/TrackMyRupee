@@ -118,3 +118,17 @@ class CacheInvalidationTest(TestCase):
         self._warm_cache()
         loan.delete()
         self._assert_cache_invalidated()
+
+    def test_user_profile_invalidation(self):
+        # 1. Update salary_date
+        self._warm_cache()
+        profile = self.user.profile
+        profile.salary_date = 15
+        profile.save()
+        self._assert_cache_invalidated()
+
+        # 2. Update currency
+        self._warm_cache()
+        profile.currency = '$'
+        profile.save()
+        self._assert_cache_invalidated()

@@ -213,6 +213,10 @@ def _dashboard_cache_user_id(instance):
             return instance.goal.user_id
         except Exception:
             return None
+    if isinstance(instance, User):
+        return instance.id
+    if isinstance(instance, UserProfile):
+        return instance.user_id
     return getattr(instance, 'user_id', None)
 
 
@@ -259,6 +263,7 @@ _DASHBOARD_CACHE_MODELS = (
     SavingsGoal,
     GoalContribution,
     Loan,
+    UserProfile,
 )
 for _model in _DASHBOARD_CACHE_MODELS:
     post_save.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_save_{_model.__name__}')
