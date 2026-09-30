@@ -461,29 +461,31 @@ class SalaryAnalysisService:
         Example:
             If salary_date=15 and target_date=2026-05-25, returns (2026-05-15, 2026-06-14)
         """
-        user_profile = user.profile
-        salary_date = user_profile.salary_date
+        profile = getattr(user, 'profile', None) if user else None
+        salary_date = getattr(profile, 'salary_date', None)
 
-        # Determine which month's salary cycle contains target_date
-        if target_date.day >= salary_date:
+        if not salary_date or not (1 <= salary_date <= 31):
+            cycle_start = date(target_date.year, target_date.month, 1)
+            last_day = calendar.monthrange(target_date.year, target_date.month)[1]
+            return cycle_start, date(target_date.year, target_date.month, last_day)
+
+        def effective_salary_day(year, month):
+            return min(salary_date, calendar.monthrange(year, month)[1])
+
+        eff_curr = effective_salary_day(target_date.year, target_date.month)
+        if target_date.day >= eff_curr:
             # Salary cycle starts in current month
-            cycle_start = get_safe_date(target_date.year, target_date.month, salary_date)
-            
-            # Next cycle starts next month
-            if target_date.month == 12:
-                cycle_end = get_safe_date(target_date.year + 1, 1, salary_date) - timedelta(days=1)
-            else:
-                cycle_end = get_safe_date(target_date.year, target_date.month + 1, salary_date) - timedelta(days=1)
+            cycle_start = date(target_date.year, target_date.month, eff_curr)
+            next_year, next_month = (target_date.year + 1, 1) if target_date.month == 12 else (target_date.year, target_date.month + 1)
+            eff_next = effective_salary_day(next_year, next_month)
+            cycle_end = date(next_year, next_month, eff_next) - timedelta(days=1)
         else:
             # Salary cycle started in previous month
-            if target_date.month == 1:
-                cycle_start = get_safe_date(target_date.year - 1, 12, salary_date)
-            else:
-                cycle_start = get_safe_date(target_date.year, target_date.month - 1, salary_date)
-            
-            # Current month's salary date is the end
-            cycle_end = get_safe_date(target_date.year, target_date.month, salary_date) - timedelta(days=1)
-        
+            prev_year, prev_month = (target_date.year - 1, 12) if target_date.month == 1 else (target_date.year, target_date.month - 1)
+            eff_prev = effective_salary_day(prev_year, prev_month)
+            cycle_start = date(prev_year, prev_month, eff_prev)
+            cycle_end = date(target_date.year, target_date.month, eff_curr) - timedelta(days=1)
+
         return cycle_start, cycle_end
     
     @staticmethod

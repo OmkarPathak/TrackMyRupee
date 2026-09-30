@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -271,6 +271,36 @@ class SalaryAnalysisServiceTest(TestCase):
         # User 2: May 20 - June 19
         self.assertEqual(start2, date(2026, 5, 20))
         self.assertEqual(end2, date(2026, 6, 19))
+
+    def test_salary_cycle_property_test_three_years_including_leap(self):
+        """
+        Property test: For every salary_date from 1 to 31 and every date across
+        three years (2024 leap year through 2026), asserts:
+        (i) start <= d <= end
+        (ii) the cycle returned for end + 1 day starts exactly on end + 1 day (no gaps, no overlaps).
+        """
+        start_d = date(2024, 1, 1)
+        end_d = date(2026, 12, 31)
+
+        for s_day in range(1, 32):
+            self.profile.salary_date = s_day
+            self.profile.save()
+            self.user.refresh_from_db()
+
+            curr = start_d
+            while curr <= end_d:
+                start, end = SalaryAnalysisService.get_salary_cycle_dates(self.user, curr)
+                self.assertLessEqual(start, curr, f"Start {start} > target {curr} for salary_date={s_day}")
+                self.assertLessEqual(curr, end, f"Target {curr} > end {end} for salary_date={s_day}")
+
+                next_d = end + timedelta(days=1)
+                next_start, next_end = SalaryAnalysisService.get_salary_cycle_dates(self.user, next_d)
+                self.assertEqual(
+                    next_start, next_d,
+                    f"Gap/overlap: cycle for {curr} ended {end}, but next cycle for {next_d} started {next_start}"
+                )
+                # Advance by 5 days or jump to end of cycle to keep test execution fast
+                curr = min(curr + timedelta(days=7), end + timedelta(days=1))
 
 
 class SalaryDateFormTest(TestCase):

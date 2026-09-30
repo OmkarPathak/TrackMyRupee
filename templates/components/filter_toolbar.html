@@ -33,7 +33,7 @@
       <!-- Zone 2: Time Period Dropdown -->
       {% if filter_config.supports_time_period is not False %}
       <div class="tmr-toolbar-zone">
-        <button type="button" class="tmr-toolbar-btn tmr-time-btn" id="tmr-time-dropdown-btn" aria-haspopup="true" aria-expanded="false" title="{% trans 'Time period' %}">
+        <button type="button" class="tmr-toolbar-btn tmr-time-btn" id="tmr-time-dropdown-btn" aria-haspopup="true" aria-expanded="false" title="{% if applied_state.cycle_active and applied_state.cycle_range %}{% trans 'Salary cycle' %}: {{ applied_state.cycle_range }}{% else %}{% trans 'Time period' %}{% endif %}">
           <i class="bi bi-calendar3 tmr-btn-icon"></i>
           <span class="tmr-time-label">
             {% if applied_state.time_period == 'last_month' %}{% trans "Last month" %}
@@ -50,7 +50,7 @@
               {% else %}
                 {% trans "Custom range" %}
               {% endif %}
-            {% else %}{% trans "This month" %}
+            {% else %}{% trans "This month" %}{% if applied_state.cycle_active and applied_state.cycle_range %} <span class="opacity-75">({{ applied_state.cycle_range }})</span>{% endif %}
             {% endif %}
           </span>
           <i class="bi bi-chevron-down tmr-chevron-icon"></i>

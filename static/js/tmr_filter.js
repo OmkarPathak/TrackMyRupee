@@ -94,6 +94,8 @@ class TMRFilterSystem {
       start_date: rawState.start_date || '',
       end_date: rawState.end_date || '',
       sort: rawState.sort || this.config.default_sort || 'date_desc',
+      cycle_active: rawState.cycle_active || false,
+      cycle_range: rawState.cycle_range || '',
       filters: {},
     };
 
@@ -958,7 +960,11 @@ class TMRFilterSystem {
           const labelSpan = this.container.querySelector('.tmr-time-label');
           if (labelSpan) {
             const match = timeOptions.find(o => o.key === key);
-            labelSpan.textContent = match ? match.label : 'This month';
+            let label = match ? match.label : 'This month';
+            if (key === 'this_month' && this.state.cycle_active && this.state.cycle_range) {
+              label += ` (${this.state.cycle_range})`;
+            }
+            labelSpan.textContent = label;
           }
 
           this.closePopover();

@@ -81,56 +81,26 @@ def get_safe_redirect_url(request, next_url, fallback_url):
 def apply_date_filters(queryset, request, date_field='date'):
     """
     Applies time_period, start_date, or end_date filtering to a queryset.
+    Delegates to the unified resolve_period resolver.
     time_period can be: 'this_month', 'last_month', 'last_3_months', 'this_year', 'all', 'custom'
     """
-    import calendar
-    from datetime import datetime, timedelta
-
-    from django.utils import timezone
+    from ..periods import resolve_period
 
     time_period = request.GET.get('time_period')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
 
-    if not time_period:
-        if start_date or end_date:
-            time_period = 'custom'
-        else:
-            time_period = 'this_month'
+    user = getattr(request, 'user', None)
+    period = resolve_period(
+        user=user,
+        time_period=time_period,
+        start_date=start_date_str,
+        end_date=end_date_str,
+    )
 
-    today = timezone.localtime().date()
-
-    if time_period == 'this_month':
-        start_date = today.replace(day=1)
-        _, last_day = calendar.monthrange(today.year, today.month)
-        end_date = today.replace(day=last_day)
-    elif time_period == 'last_month':
-        first_day_this_month = today.replace(day=1)
-        last_day_last_month = first_day_this_month - timedelta(days=1)
-        start_date = last_day_last_month.replace(day=1)
-        end_date = last_day_last_month
-    elif time_period == 'last_3_months':
-        start_date = today - timedelta(days=90)
-        end_date = today
-    elif time_period == 'this_year':
-        start_date = today.replace(month=1, day=1)
-        end_date = today.replace(month=12, day=31)
-    elif time_period == 'custom' or not time_period:
-        # Fallback to explicit start_date / end_date if provided
-        if isinstance(start_date, str) and start_date:
-            try:
-                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-            except ValueError:
-                start_date = None
-        if isinstance(end_date, str) and end_date:
-            try:
-                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-            except ValueError:
-                end_date = None
-
-    if start_date:
-        queryset = queryset.filter(**{f"{date_field}__gte": start_date})
-    if end_date:
-        queryset = queryset.filter(**{f"{date_field}__lte": end_date})
+    if period.start:
+        queryset = queryset.filter(**{f"{date_field}__gte": period.start})
+    if period.end:
+        queryset = queryset.filter(**{f"{date_field}__lte": period.end})
 
     return queryset

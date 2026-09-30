@@ -182,6 +182,8 @@ def home_view(request):
     display_year = None
     display_month = None
 
+    from ..periods import resolve_period
+
     if not time_period:
         if start_date_obj or end_date_obj:
             time_period = 'custom'
@@ -190,97 +192,98 @@ def home_view(request):
         else:
             time_period = 'this_month'
 
-    if time_period == 'this_month':
+    if time_period == 'custom' and not (start_date_obj or end_date_obj) and len(selected_months) == 1 and len(selected_years) == 1:
+        # Keep existing convention for an explicit single year plus single month selection:
+        # "the cycle that starts in the named month", built from that month's last day.
         try:
-            target_date = date(now.year, now.month, calendar.monthrange(now.year, now.month)[1])
+            sel_month = int(selected_months[0])
+            sel_year = int(selected_years[0])
+            target_date = date(sel_year, sel_month, calendar.monthrange(sel_year, sel_month)[1])
             salary_cycle_start, salary_cycle_end = SalaryAnalysisService.get_salary_cycle_dates(request.user, target_date)
-            salary_cycle_active = True
+            user_profile = getattr(request.user, 'profile', None)
+            salary_cycle_active = bool(user_profile and user_profile.salary_date and user_profile.salary_date != 1)
             effective_start_date = salary_cycle_start
             effective_end_date = salary_cycle_end
         except (ValueError, IndexError):
             salary_cycle_active = False
-            effective_start_date = today.replace(day=1)
-            last_day = calendar.monthrange(today.year, today.month)[1]
-            effective_end_date = today.replace(day=last_day)
-
-        trend_title = _("Daily Expenses for Salary Cycle") if salary_cycle_active else _("Daily Expenses for This Month")
+            effective_start_date = date(sel_year, sel_month, 1)
+            effective_end_date = date(sel_year, sel_month, calendar.monthrange(sel_year, sel_month)[1])
+        trend_title = _("Daily Expenses for Salary Cycle") if salary_cycle_active else (_("Daily Expenses for %(month)s/%(year)s") % {'month': selected_months[0], 'year': selected_years[0]})
         trend_is_daily = True
-        selected_years = [str(now.year)]
-        selected_months = [str(now.month)]
-        display_year = str(now.year)
-        display_month = _(calendar.month_name[now.month])
+        display_year = str(sel_year)
+        display_month = _(calendar.month_name[sel_month])
+    else:
+        resolved_period = resolve_period(
+            user=request.user,
+            time_period=time_period,
+            start_date=start_date_str,
+            end_date=end_date_str,
+            today=today,
+        )
+        time_period = resolved_period.key
+        effective_start_date = resolved_period.start
+        effective_end_date = resolved_period.end
 
-    elif time_period == 'last_month':
-        first_day_this_month = today.replace(day=1)
-        last_day_last_month = first_day_this_month - timedelta(days=1)
-        effective_start_date = last_day_last_month.replace(day=1)
-        effective_end_date = last_day_last_month
-        trend_title = _("Daily Expenses for %(month)s/%(year)s") % {'month': last_day_last_month.month, 'year': last_day_last_month.year}
-        trend_is_daily = True
-        selected_years = [str(last_day_last_month.year)]
-        selected_months = [str(last_day_last_month.month)]
-        display_year = str(last_day_last_month.year)
-        display_month = _(calendar.month_name[last_day_last_month.month])
+        if resolved_period.key == 'this_month':
+            salary_cycle_active = resolved_period.is_cycle
+            if salary_cycle_active:
+                salary_cycle_start = resolved_period.start
+                salary_cycle_end = resolved_period.end
+            trend_title = _("Daily Expenses for Salary Cycle") if salary_cycle_active else _("Daily Expenses for This Month")
+            trend_is_daily = True
+            selected_years = [str(now.year)]
+            selected_months = [str(now.month)]
+            display_year = str(now.year)
+            display_month = _(calendar.month_name[now.month])
 
-    elif time_period == 'last_3_months':
-        effective_start_date = today - timedelta(days=90)
-        effective_end_date = today
-        trend_title = _("Expenses Trend (Last 3 Months)")
-        trend_is_daily = False
-        display_year = str(today.year)
-        display_month = None
+        elif resolved_period.key == 'last_month':
+            salary_cycle_active = resolved_period.is_cycle
+            if salary_cycle_active:
+                salary_cycle_start = resolved_period.start
+                salary_cycle_end = resolved_period.end
+            first_day_this_month = today.replace(day=1)
+            last_day_last_month = first_day_this_month - timedelta(days=1)
+            trend_title = _("Daily Expenses for Salary Cycle") if salary_cycle_active else (_("Daily Expenses for %(month)s/%(year)s") % {'month': last_day_last_month.month, 'year': last_day_last_month.year})
+            trend_is_daily = True
+            selected_years = [str(last_day_last_month.year)]
+            selected_months = [str(last_day_last_month.month)]
+            display_year = str(last_day_last_month.year)
+            display_month = _(calendar.month_name[last_day_last_month.month])
 
-    elif time_period == 'this_year':
-        effective_start_date = today.replace(month=1, day=1)
-        effective_end_date = today.replace(month=12, day=31)
-        trend_title = _("Expenses Trend (This Year)")
-        trend_is_daily = False
-        display_year = str(today.year)
-        display_month = None
+        elif resolved_period.key == 'last_3_months':
+            trend_title = _("Expenses Trend (Last 3 Months)")
+            trend_is_daily = False
+            display_year = str(today.year)
+            display_month = None
 
-    elif time_period == 'all':
-        effective_start_date = None
-        effective_end_date = None
-        trend_title = _("All-Time Expenses Trend")
-        trend_is_daily = False
-        display_year = None
-        display_month = None
+        elif resolved_period.key == 'this_year':
+            trend_title = _("Expenses Trend (This Year)")
+            trend_is_daily = False
+            display_year = str(today.year)
+            display_month = None
 
-    elif time_period == 'custom':
-        if start_date_obj or end_date_obj:
-            effective_start_date = start_date_obj
-            effective_end_date = end_date_obj
-            trend_title = _("Expenses Trend (Custom Range)")
-            if start_date_obj and end_date_obj:
-                trend_is_daily = (end_date_obj - start_date_obj).days <= 60
-            else:
-                trend_is_daily = True
+        elif resolved_period.key == 'all':
+            trend_title = _("All-Time Expenses Trend")
+            trend_is_daily = False
             display_year = None
             display_month = None
-        elif len(selected_months) == 1 and len(selected_years) == 1:
-            try:
-                sel_month = int(selected_months[0])
-                sel_year = int(selected_years[0])
-                target_date = date(sel_year, sel_month, calendar.monthrange(sel_year, sel_month)[1])
-                salary_cycle_start, salary_cycle_end = SalaryAnalysisService.get_salary_cycle_dates(request.user, target_date)
-                salary_cycle_active = True
-                effective_start_date = salary_cycle_start
-                effective_end_date = salary_cycle_end
-            except (ValueError, IndexError):
-                salary_cycle_active = False
-                effective_start_date = date(sel_year, sel_month, 1)
-                effective_end_date = date(sel_year, sel_month, calendar.monthrange(sel_year, sel_month)[1])
-            trend_title = _("Daily Expenses for Salary Cycle") if salary_cycle_active else (_("Daily Expenses for %(month)s/%(year)s") % {'month': selected_months[0], 'year': selected_years[0]})
-            trend_is_daily = True
-            display_year = str(sel_year)
-            display_month = _(calendar.month_name[sel_month])
-        else:
-            effective_start_date = None
-            effective_end_date = None
-            trend_title = _("Monthly Expenses Trend")
-            trend_is_daily = False
-            display_year = selected_years[0] if len(selected_years) == 1 else None
-            display_month = _(calendar.month_name[int(selected_months[0])]) if len(selected_months) == 1 else None
+
+        elif resolved_period.key == 'custom':
+            if start_date_obj or end_date_obj:
+                trend_title = _("Expenses Trend (Custom Range)")
+                if start_date_obj and end_date_obj:
+                    trend_is_daily = (end_date_obj - start_date_obj).days <= 60
+                else:
+                    trend_is_daily = True
+                display_year = None
+                display_month = None
+            else:
+                effective_start_date = None
+                effective_end_date = None
+                trend_title = _("Monthly Expenses Trend")
+                trend_is_daily = False
+                display_year = selected_years[0] if len(selected_years) == 1 else None
+                display_month = _(calendar.month_name[int(selected_months[0])]) if len(selected_months) == 1 else None
 
     if effective_start_date:
         expenses = expenses.filter(date__gte=effective_start_date)

@@ -29,11 +29,27 @@ def apply_filter_config(
         'filters': {},
     }
 
+    from ..periods import resolve_period
     from ..views.utils import apply_date_filters
 
     # 1. Date / Time Period Filter
     if config.supports_time_period:
         queryset = apply_date_filters(queryset, request)
+        period = resolve_period(
+            user=getattr(request, 'user', None),
+            time_period=applied_state['time_period'],
+            start_date=applied_state['start_date'],
+            end_date=applied_state['end_date'],
+        )
+        applied_state['cycle_active'] = period.is_cycle
+        applied_state['cycle_range'] = (
+            f"{period.start.strftime('%d %b')} – {period.end.strftime('%d %b')}"
+            if (period.is_cycle and period.start and period.end)
+            else ''
+        )
+    else:
+        applied_state['cycle_active'] = False
+        applied_state['cycle_range'] = ''
 
 
     # 2. Search Query Filter

@@ -111,8 +111,10 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         
         if time_period == 'this_month':
             is_current_month = True
-            last_day = calendar.monthrange(now.year, now.month)[1]
-            days_left = last_day - now.day
+            from ..periods import resolve_period
+            period = resolve_period(user=self.request.user, time_period='this_month', today=now.date())
+            if period.end:
+                days_left = max((period.end - now.date()).days, 0)
                 
         context['is_current_month'] = is_current_month
         context['days_left'] = days_left
