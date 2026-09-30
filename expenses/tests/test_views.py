@@ -101,8 +101,8 @@ class DashboardViewTest(BaseViewTest):
         
         response = demo_client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
-        self.assertGreater(response.context['net_worth'], 0)
-        self.assertGreater(response.context['net_worth_before_liabilities'], response.context['total_liabilities'])
+        self.assertGreater(response.context['net_worth_before_liabilities'], 0)
+        self.assertNotIn('total_liabilities', response.context)
 
 class ExpenseCRUDTest(BaseViewTest):
     def test_create_expense(self):

@@ -1052,7 +1052,7 @@ class DashboardNetWorthTest(_BaseTestCase):
 
     def test_investment_accounts_balance(self):
         response = self.client.get(reverse("home"))
-        self.assertEqual(response.context["investment_accounts_balance"], self.investment.balance)
+        self.assertNotIn("investment_accounts_balance", response.context)
 
     def test_net_worth_after_income(self):
         Income.objects.create(
@@ -1095,8 +1095,10 @@ class DashboardNetWorthTest(_BaseTestCase):
             Decimal("-500.00")    # cc
         )
         self.assertEqual(response.context["net_worth"], expected)
-        # Investment balance should have increased
-        self.assertEqual(response.context["investment_accounts_balance"], Decimal("3000.00"))
+        # Investment balance should have increased in DB; context key was removed as dead code
+        self.investment.refresh_from_db()
+        self.assertEqual(self.investment.balance, Decimal("3000.00"))
+        self.assertNotIn("investment_accounts_balance", response.context)
 
     def test_net_worth_no_accounts(self):
         """User with no accounts → net_worth = 0."""
@@ -1223,11 +1225,11 @@ class DashboardTransferAggregationTest(_BaseTestCase):
 
     def test_total_transfers_for_current_month(self):
         response = self.client.get(reverse("home"))
-        self.assertEqual(float(response.context["total_transfers"]), 1500.00)
+        self.assertNotIn("total_transfers", response.context)
 
     def test_transfer_count_for_current_month(self):
         response = self.client.get(reverse("home"))
-        self.assertEqual(response.context["transfer_count"], 2)
+        self.assertNotIn("transfer_count", response.context)
 
 
 class DashboardDataIsolationTest(_BaseTestCase):
@@ -1493,12 +1495,10 @@ class CombinedScenarioTest(_BaseTestCase):
         # Savings = 50000 - 17000 = 33000
         self.assertEqual(float(response.context["savings"]), 33000.00)
 
-        # Investment balance
-        self.assertEqual(response.context["investment_accounts_balance"], Decimal("12000.00"))
-
-        # Transfer total = 10000 + 2500 = 12500  (both in current month)
-        self.assertEqual(float(response.context["total_transfers"]), 12500.00)
-        self.assertEqual(response.context["transfer_count"], 2)
+        # Investment balance, total transfers, transfer count removed as dead context keys
+        self.assertNotIn("investment_accounts_balance", response.context)
+        self.assertNotIn("total_transfers", response.context)
+        self.assertNotIn("transfer_count", response.context)
 
     def test_expense_delete_restores_dashboard_totals(self):
         today = date.today()

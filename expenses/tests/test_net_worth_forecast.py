@@ -48,17 +48,14 @@ class NetWorthForecastTest(TestCase):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         
-        forecasts = response.context['net_worth_forecasts']
-        self.assertEqual(len(forecasts), 3)
+        self.assertNotIn('net_worth_forecasts', response.context)
+        self.assertNotIn('projected_3m_growth', response.context)
         
+        trend = response.context['net_worth_trend']
         # Current NW is 100,000. Avg savings is 10,000.
-        # Month 1 projection should be 110,000
-        self.assertEqual(forecasts[0]['value'], 110000.0)
-        self.assertEqual(forecasts[0]['change'], 10000.0)
-        self.assertTrue(forecasts[0]['is_positive'])
-        
-        # Month 3 projection should be 130,000
-        self.assertEqual(forecasts[2]['value'], 130000.0)
+        # Month 1 projection should be 110,000; Month 3 should be 130,000
+        self.assertEqual(trend[-3], 110000.0)
+        self.assertEqual(trend[-1], 130000.0)
 
     def test_forecast_negative_trend(self):
         """Test forecast with negative savings (Expense > Income)."""
@@ -66,33 +63,31 @@ class NetWorthForecastTest(TestCase):
         self._create_history(Decimal('30000.00'), Decimal('35000.00'), months=3)
         
         response = self.client.get(reverse('home'))
+        self.assertNotIn('net_worth_forecasts', response.context)
+        self.assertNotIn('projected_3m_growth', response.context)
         
-        forecasts = response.context['net_worth_forecasts']
+        trend = response.context['net_worth_trend']
         # Current NW is 100,000. Avg savings is -5,000.
-        self.assertEqual(forecasts[0]['value'], 95000.0)
-        self.assertEqual(forecasts[0]['change'], -5000.0)
-        self.assertFalse(forecasts[0]['is_positive'])
+        self.assertEqual(trend[-3], 95000.0)
 
     def test_forecast_no_history(self):
         """Test forecast for new user with no history."""
         response = self.client.get(reverse('home'))
+        self.assertNotIn('net_worth_forecasts', response.context)
+        self.assertNotIn('projected_3m_growth', response.context)
         
-        forecasts = response.context['net_worth_forecasts']
+        trend = response.context['net_worth_trend']
         # Should show 3 months of current net worth (100,000) with 0 change
-        self.assertEqual(len(forecasts), 3)
-        self.assertEqual(forecasts[0]['value'], 100000.0)
-        self.assertEqual(forecasts[0]['change'], 0.0)
-        self.assertTrue(forecasts[0]['is_positive']) # 0 is treated as positive in my logic (>= 0)
+        self.assertEqual(trend[-3], 100000.0)
+        self.assertEqual(trend[-1], 100000.0)
 
     def test_forecast_context_keys(self):
-        """Ensure all required template keys are present in forecast objects."""
+        """Ensure dead forecast context keys are removed and sparkline arrays are present."""
         self._create_history(Decimal('1000.00'), Decimal('500.00'), months=1)
         
         response = self.client.get(reverse('home'))
-        forecast = response.context['net_worth_forecasts'][0]
-        
-        self.assertIn('label', forecast)     # e.g. 'May'
-        self.assertIn('month_name', forecast) # e.g. 'May 2026'
-        self.assertIn('value', forecast)
-        self.assertIn('change', forecast)
-        self.assertIn('is_positive', forecast)
+        self.assertNotIn('net_worth_forecasts', response.context)
+        self.assertNotIn('projected_3m_growth', response.context)
+        self.assertIn('net_worth_trend', response.context)
+        self.assertIn('net_worth_labels', response.context)
+        self.assertEqual(len(response.context['net_worth_trend']), len(response.context['net_worth_labels']))

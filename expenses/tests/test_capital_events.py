@@ -1240,9 +1240,6 @@ class CapitalEventAnalyticsFlagsTest(TestCase):
         # total_expenses should only include regular expense + included capital event = 500 + 300 = 800
         self.assertEqual(response.context['total_expenses'], Decimal('800.00'))
         
-        # mobile_spent should include all capital events = 500 + 300 + 1000 = 1800
-        self.assertEqual(response.context['mobile_spent'], Decimal('1800.00'))
-        
-        # mobile_remaining should be total_income - mobile_spent - total_investments
-        expected_remaining = Decimal('0.00') - Decimal('1800.00') - Decimal('0.00')
-        self.assertEqual(response.context['mobile_remaining'], expected_remaining)
+        # mobile_spent and mobile_remaining have been removed as dead context keys
+        self.assertNotIn('mobile_spent', response.context)
+        self.assertNotIn('mobile_remaining', response.context)
