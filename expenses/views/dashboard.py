@@ -182,7 +182,7 @@ def home_view(request):
     display_year = None
     display_month = None
 
-    from ..periods import resolve_period
+    from ..periods import calculate_budget_period_factor, resolve_period
 
     if not time_period:
         if start_date_obj or end_date_obj:
@@ -483,6 +483,38 @@ def home_view(request):
     ]
     category_data.sort(key=lambda x: x['total'], reverse=True)
 
+    # Determine the budget scaling factor for the filtered period
+    if time_period in ('this_month', 'last_month'):
+        period_budget_factor = 1.0
+    elif effective_start_date and effective_end_date:
+        period_budget_factor = calculate_budget_period_factor(effective_start_date, effective_end_date)
+    elif time_period == 'all':
+        earliest_expense_date = expenses.order_by('date').values_list('date', flat=True).first()
+        period_start = earliest_expense_date or today
+        period_budget_factor = calculate_budget_period_factor(period_start, today)
+        if period_budget_factor < 1.0:
+            period_budget_factor = 1.0
+    elif time_period == 'custom' and not (effective_start_date or effective_end_date):
+        if selected_years and selected_months:
+            period_budget_factor = float(len(selected_years) * len(selected_months))
+        elif selected_years:
+            period_budget_factor = float(len(selected_years) * 12.0)
+        elif selected_months:
+            period_budget_factor = float(len(selected_months))
+        else:
+            period_budget_factor = 1.0
+    elif effective_start_date and not effective_end_date:
+        period_budget_factor = calculate_budget_period_factor(effective_start_date, today)
+    elif effective_end_date and not effective_start_date:
+        earliest_expense_date = expenses.order_by('date').values_list('date', flat=True).first()
+        period_start = earliest_expense_date or effective_end_date
+        period_budget_factor = calculate_budget_period_factor(period_start, effective_end_date)
+    else:
+        period_budget_factor = 1.0
+
+    if period_budget_factor <= 0:
+        period_budget_factor = 1.0
+
     # Compute limits and usage per category for chart display
     category_limits = []
 
@@ -492,7 +524,8 @@ def home_view(request):
         cat_name = item['category']
         cat_obj = user_categories.get(cat_name)
         
-        limit = float(cat_obj.limit) if (cat_obj and cat_obj.limit) else None
+        raw_limit = float(cat_obj.limit) if (cat_obj and cat_obj.limit) else None
+        limit = round(raw_limit * period_budget_factor, 2) if raw_limit is not None else None
         
         used_percent = round((item['total'] / limit * 100), 1) if limit else None
         
@@ -507,12 +540,14 @@ def home_view(request):
             'name': cat_name,
             'total': item['total'],
             'limit': limit,
+            'monthly_limit': raw_limit,
             'used_percent': used_percent,
             'projected_total': projected_total,
             'projected_percent': projected_percent,
         })
     
     total_monthly_budget = sum([float(c.limit) for c in user_categories.values() if c.limit])
+    total_period_budget = round(total_monthly_budget * period_budget_factor, 2)
     
     # Sort category data by total descending (already done at line 148, but reinforcing logic)
     category_data.sort(key=lambda x: x['total'], reverse=True)
@@ -1184,17 +1219,28 @@ def home_view(request):
                     }
         
         # 4. Daily Burn Rate
-        num_days = calendar.monthrange(now.year, now.month)[1]
-        if selected_months and len(selected_months) == 1:
-            try:
-                m = int(selected_months[0])
-                y = int(selected_years[0]) if selected_years else now.year
-                num_days = calendar.monthrange(y, m)[1]
-            except:
-                pass
-        
-        # If it's the current month, we might want to use days elapsed for a "live" feel
-        days_elapsed = now.day if (not selected_months or (len(selected_months) == 1 and int(selected_months[0]) == now.month)) else num_days
+        if effective_start_date and effective_end_date:
+            num_days = max((effective_end_date - effective_start_date).days + 1, 1)
+            if today < effective_start_date:
+                days_elapsed = 0
+            elif today > effective_end_date:
+                days_elapsed = num_days
+            else:
+                days_elapsed = (today - effective_start_date).days + 1
+        elif effective_start_date:
+            days_elapsed = max((today - effective_start_date).days + 1, 1)
+            num_days = days_elapsed
+        else:
+            num_days = calendar.monthrange(now.year, now.month)[1]
+            if selected_months and len(selected_months) == 1:
+                try:
+                    m = int(selected_months[0])
+                    y = int(selected_years[0]) if selected_years else now.year
+                    num_days = calendar.monthrange(y, m)[1]
+                except:
+                    pass
+            days_elapsed = now.day if (not selected_months or (len(selected_months) == 1 and int(selected_months[0]) == now.month)) else num_days
+
         daily_burn = float(total_expenses) / days_elapsed if days_elapsed > 0 else 0
 
         # 5. Relatable Metric (Fun/Viral)
@@ -1225,14 +1271,15 @@ def home_view(request):
                 }
 
         # Ideal spending pace: how much should have been spent by now
-        ideal_spent_so_far = (total_monthly_budget / num_days * days_elapsed) if (total_monthly_budget > 0 and num_days > 0) else 0
+        pace_budget = total_period_budget
+        ideal_spent_so_far = (pace_budget / num_days * days_elapsed) if (pace_budget > 0 and num_days > 0) else 0
         budget_diff = round(ideal_spent_so_far - float(total_expenses), 0)  # positive = under budget
-        spent_percent = round(float(total_expenses) / total_monthly_budget * 100, 1) if total_monthly_budget > 0 else 0
+        spent_percent = round(float(total_expenses) / pace_budget * 100, 1) if pace_budget > 0 else 0
         ideal_percent = round(days_elapsed / num_days * 100, 1) if num_days > 0 else 0
         daily_spending_pace_value = round(daily_burn, 0)
         remaining_days = max(num_days - days_elapsed, 0)
         projected_month_spend = round(float(total_expenses) + (daily_spending_pace_value * remaining_days), 0)
-        projected_budget_diff = round(total_monthly_budget - projected_month_spend, 0) if total_monthly_budget > 0 else 0
+        projected_budget_diff = round(pace_budget - projected_month_spend, 0) if pace_budget > 0 else 0
 
         # Daily burn comparison with last month
         burn_diff_pct = None
@@ -1243,8 +1290,8 @@ def home_view(request):
             'daily_spending_pace': daily_spending_pace_value,
             'projected_month_spend': projected_month_spend,
             'status': 'on_track',
-            'diff_amount': max(0, round(projected_month_spend - total_monthly_budget, 0)),
-            'budget_multiplier': round(projected_month_spend / total_monthly_budget, 1) if total_monthly_budget > 0 else 0,
+            'diff_amount': max(0, round(projected_month_spend - pace_budget, 0)),
+            'budget_multiplier': round(projected_month_spend / pace_budget, 1) if pace_budget > 0 else 0,
             'budget_diff': budget_diff,
             'projected_budget_diff': projected_budget_diff,
             'spent_percent': min(spent_percent, 150),  # cap at 150% for display
@@ -1267,10 +1314,10 @@ def home_view(request):
 
         hero_metrics['short_insight'] = short_insight
 
-        if total_monthly_budget > 0:
-            if spending_pace['projected_month_spend'] > total_monthly_budget:
+        if pace_budget > 0:
+            if spending_pace['projected_month_spend'] > pace_budget:
                 spending_pace['status'] = 'over_budget'
-            elif spending_pace['projected_month_spend'] >= total_monthly_budget * 0.9:
+            elif spending_pace['projected_month_spend'] >= pace_budget * 0.9:
                 spending_pace['status'] = 'near_limit'
 
         # --- Impulse vs Planned Ratio ---
@@ -1368,7 +1415,7 @@ def home_view(request):
             'month_name': display_month if display_month else (calendar.month_name[now.month] if (selected_months and len(selected_months) == 1) else ""),
             'year': display_year if display_year else (now.year if (selected_years and len(selected_years) == 1) else ""),
             'spending_pace': spending_pace,
-            'total_monthly_budget': total_monthly_budget,
+            'total_monthly_budget': total_period_budget,
             'impulse_ratio': impulse_ratio,
         }
 
@@ -2371,6 +2418,12 @@ def home_view(request):
     else:
         bento_invested_data_list = []
 
+    # Ensure salary cycle dates are always available for the dashboard header
+    header_salary_cycle_start = salary_cycle_start
+    header_salary_cycle_end = salary_cycle_end
+    if not header_salary_cycle_start or not header_salary_cycle_end:
+        header_salary_cycle_start, header_salary_cycle_end = SalaryAnalysisService.get_salary_cycle_dates(request.user, today)
+
     context = {
         'show_onboarding_checklist': show_onboarding_checklist,
         'onboarding_checklist_completed_count': completed_count,
@@ -2429,8 +2482,8 @@ def home_view(request):
         'selected_payment_methods': selected_payment_methods,
         'selected_accounts': selected_accounts,
         'salary_cycle_active': salary_cycle_active,
-        'salary_cycle_start': salary_cycle_start,
-        'salary_cycle_end': salary_cycle_end,
+        'salary_cycle_start': header_salary_cycle_start,
+        'salary_cycle_end': header_salary_cycle_end,
         'comparison_label': comparison_label,
         'months_list': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'recurring_groups': recurring_groups,

@@ -762,12 +762,10 @@
 <!-- Secondary Row: Salary cycle (left) & Mobile Action Buttons (right) -->
 <div class="mb-1 fade-in dashboard-sub-row d-flex align-items-center justify-content-between">
     <div class="salary-cycle-subtle text-muted">
-        {% if salary_cycle_active and salary_cycle_start and salary_cycle_end %}
         <span>
             {% trans "Salary cycle:" %} {{ salary_cycle_start|date:"d M" }} - {{ salary_cycle_end|date:"d M" }}
             <a href="{% url 'profile-settings' %}" class="d-inline-flex align-items-center justify-content-center p-1" style="min-width: 24px; min-height: 24px;" aria-label="{% trans 'Edit salary cycle in profile settings' %}" title="{% trans 'Edit salary cycle' %}"><i class="bi bi-pencil"></i></a>
         </span>
-        {% endif %}
     </div>
 
     <!-- Mobile Action Buttons (Spark and Info on same row as salary day) -->

@@ -151,3 +151,54 @@ def resolve_period(
             time_period='this_month',
             today=today,
         )
+
+
+def calculate_budget_period_factor(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+) -> float:
+    """
+    Calculate the cumulative budget scaling factor across the period [start_date, end_date].
+    Each day in a given month contributes (1.0 / days_in_month) to the total monthly factor.
+    A full month evaluates to exactly 1.0. A full year evaluates to exactly 12.0.
+    Partial months contribute proportionally based on days elapsed in that month.
+
+    If start_date or end_date is None, or if start_date > end_date, returns 1.0.
+    """
+    if not start_date or not end_date or start_date > end_date:
+        return 1.0
+
+    if start_date.year == end_date.year and start_date.month == end_date.month:
+        days_in_month = calendar.monthrange(start_date.year, start_date.month)[1]
+        days = (end_date - start_date).days + 1
+        if days >= days_in_month:
+            return 1.0
+        return round(days / days_in_month, 4)
+
+    total_factor = 0.0
+
+    # First month (partial or full)
+    days_in_first = calendar.monthrange(start_date.year, start_date.month)[1]
+    days_first = days_in_first - start_date.day + 1
+    total_factor += days_first / days_in_first
+
+    # Intermediate months (always full months = 1.0 each)
+    curr_year = start_date.year
+    curr_month = start_date.month + 1
+    if curr_month > 12:
+        curr_month = 1
+        curr_year += 1
+
+    while (curr_year < end_date.year) or (curr_year == end_date.year and curr_month < end_date.month):
+        total_factor += 1.0
+        curr_month += 1
+        if curr_month > 12:
+            curr_month = 1
+            curr_year += 1
+
+    # Last month (partial or full)
+    days_in_last = calendar.monthrange(end_date.year, end_date.month)[1]
+    days_last = end_date.day
+    total_factor += days_last / days_in_last
+
+    return round(total_factor, 4)
