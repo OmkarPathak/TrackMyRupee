@@ -15,11 +15,13 @@ from .models import (
     CapitalEvent,
     Category,
     Expense,
+    GoalContribution,
     Income,
     Loan,
     LoanRepayment,
     PhysicalAsset,
     RecurringTransaction,
+    SavingsGoal,
     Transfer,
     UserProfile,
 )
@@ -202,8 +204,16 @@ def handle_capital_event_loan_active_status(sender, instance, **kwargs):
 def _dashboard_cache_user_id(instance):
     """Resolve the owning user id for cache-invalidation, regardless of model shape."""
     if isinstance(instance, LoanRepayment):
-        return instance.loan.user_id
-    return instance.user_id
+        try:
+            return instance.loan.user_id
+        except Exception:
+            return None
+    if isinstance(instance, GoalContribution):
+        try:
+            return instance.goal.user_id
+        except Exception:
+            return None
+    return getattr(instance, 'user_id', None)
 
 
 def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwargs):
@@ -237,7 +247,19 @@ def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwarg
         pass
 
 
-_DASHBOARD_CACHE_MODELS = (Expense, Income, Transfer, LoanRepayment, CapitalEvent, Account, RecurringTransaction)
+_DASHBOARD_CACHE_MODELS = (
+    Expense,
+    Income,
+    Transfer,
+    LoanRepayment,
+    CapitalEvent,
+    Account,
+    RecurringTransaction,
+    Category,
+    SavingsGoal,
+    GoalContribution,
+    Loan,
+)
 for _model in _DASHBOARD_CACHE_MODELS:
     post_save.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_save_{_model.__name__}')
     post_delete.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_delete_{_model.__name__}')
