@@ -1,7 +1,7 @@
 import calendar
 import sys
 from datetime import date, datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
 from django.contrib import messages
@@ -38,7 +38,6 @@ from ..models import (
 )
 from ..recurring_utils import (
     calculate_recurring_equivalents,
-    get_recurring_month_occurrence_amount,
 )
 from ..services import FinancialService, LoanService, SalaryAnalysisService
 from ..templatetags.digit_filters import compact_amount
@@ -48,6 +47,7 @@ from ..utils import (
     get_exchange_rate,
 )
 from .mixins import HtmxPartialTemplateMixin, process_user_recurring_transactions
+from .utils import parse_month_year
 
 
 @login_required
@@ -2713,9 +2713,8 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
 
         # Capital Events toggle (off by default — capital events are excluded from averages)
         include_capital_events = self.request.GET.get('include_capital_events') == '1'
-        context['include_capital_events'] = include_capital_events
 
-        # Fetch capital events for the selected year in one query (used for both toggle and annotations)
+        # Fetch capital events for the selected year in one query (used for toggle)
         capital_events_year = list(
             CapitalEvent.objects.filter(
                 user=user,
@@ -2729,18 +2728,6 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             ev_date = ev['date'] if isinstance(ev['date'], date) else ev['date'].date()
             key = date(ev_date.year, ev_date.month, 1)
             capital_event_monthly_map[key] = capital_event_monthly_map.get(key, 0.0) + float(ev['base_amount'])
-
-        # Chart annotations: one marker per capital event (always shown regardless of toggle)
-        analytics_capital_annotations = [
-            {
-                'date': (ev['date'].strftime('%Y-%m-%d') if hasattr(ev['date'], 'strftime') else str(ev['date'])),
-                'amount': float(ev['base_amount']),
-                'subtype': ev['subtype'],
-                'note': ev['note'] or '',
-            }
-            for ev in capital_events_year
-        ]
-        context['analytics_capital_annotations'] = analytics_capital_annotations
         
         # 1. Monthly Trends (Selected Year)
         labels = []
@@ -2883,7 +2870,6 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         context['total_income_ytd'] = ytd_income_agg
         context['total_expense_ytd'] = ytd_expense_agg
         context['total_invested_ytd'] = ytd_invest_agg
-        context['total_balance_ytd'] = ytd_income_agg - ytd_expense_agg
         
         # Exclude Cashback/Refunds from YTD avg balance rate denominator
         ytd_cb_rf = Income.objects.filter(
@@ -3274,68 +3260,68 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         
         context['recurring_split_labels'] = [_('Recurring'), _('One-time')]
         context['recurring_split_data'] = [rec_val, max(0, one_time_val)]
-        # ---------------------------------------------------------
-        # 5. Cashflow Forecasting (Next 6 Months)
-        # ---------------------------------------------------------
-        
-        # A. Calculate Historical Average (Last 3 completed months)
-        # (Using already calculated values from above to avoid redundancy)
-
-        # B. Future Monthly Projection (incorporating recurring rules)
-        forecast_income = []
-        forecast_expenses = []
-        forecast_labels = []
-        
-        active_recurring = RecurringTransaction.objects.filter(user=user, is_active=True)
-        
-        # Calculate isolated monthly recurring to subtract from baseline
-        monthly_rec_income_baseline = 0
-        monthly_rec_expense_baseline = 0
-        for r in active_recurring:
-            if r.frequency == 'MONTHLY':
-                amt = float(r.base_amount or r.amount)
-                if r.transaction_type == 'INCOME':
-                    monthly_rec_income_baseline += amt
-                elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
-                    monthly_rec_expense_baseline += amt
-        
-        for i in range(1, 7):
-            forecast_year = today.year
-            forecast_month = today.month + i
-            while forecast_month > 12:
-                forecast_month -= 12
-                forecast_year += 1
-            
-            month_date = date(forecast_year, forecast_month, 1)
-            forecast_labels.append(date_format(month_date, 'M Y'))
-            
-            rec_income_for_month = 0
-            rec_expense_for_month = 0
-            
-            for r in active_recurring:
-                month_amt = get_recurring_month_occurrence_amount(r, forecast_year, forecast_month)
-                if r.transaction_type == 'INCOME':
-                    rec_income_for_month += float(month_amt)
-                elif r.transaction_type in ('EXPENSE', 'LOAN', 'CAPITAL'):
-                    rec_expense_for_month += float(month_amt)
-            
-            # Combine Historical Avg (minus recurring) + Specific Month's Recurring
-            # We assume historical avg includes average recurring, so we substitute
-            projected_inc = max(float(avg_income), monthly_rec_income_baseline) + (rec_income_for_month - monthly_rec_income_baseline)
-            projected_exp = max(float(avg_expense), monthly_rec_expense_baseline) + (rec_expense_for_month - monthly_rec_expense_baseline)
-            
-            forecast_income.append(round(projected_inc, 0))
-            forecast_expenses.append(round(projected_exp, 0))
-            
-        context['forecast_income'] = forecast_income
-        context['forecast_expenses'] = forecast_expenses
-        context['forecast_labels'] = forecast_labels
 
         if analytics_cache_key:
             cache_context = {k: v for k, v in context.items() if k != 'view'}
             cache.set(analytics_cache_key, cache_context, 300)
 
         return context
+
+
+BUDGET_PACE_BAND_PERCENT = Decimal('0.05')
+
+
+def calculate_budget_pacing(total_budget, budgeted_spent, year, month, today=None):
+    if today is None:
+        today = date.today()
+    days_in_month = calendar.monthrange(year, month)[1]
+    view_date = date(year, month, 1)
+    current_month_date = date(today.year, today.month, 1)
+
+    total_budget_dec = Decimal(str(total_budget or 0))
+    budgeted_spent_dec = Decimal(str(budgeted_spent or 0))
+
+    if view_date > current_month_date:
+        days_elapsed = 0
+        pace_state = None
+    elif view_date < current_month_date:
+        days_elapsed = days_in_month
+        pace_state = 'completed'
+    else:
+        days_elapsed = min(today.day, days_in_month)
+        pace_state = 'on_track'
+
+    expected_spent_to_date = (
+        (total_budget_dec * Decimal(days_elapsed) / Decimal(days_in_month)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        if total_budget_dec > 0 else Decimal('0.00')
+    )
+    pace_delta = budgeted_spent_dec - expected_spent_to_date
+    projected_month_end = (
+        ((budgeted_spent_dec / Decimal(days_elapsed)) * Decimal(days_in_month)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        if days_elapsed > 0 else Decimal('0.00')
+    )
+
+    if total_budget_dec == 0 or pace_state in (None, 'completed'):
+        if total_budget_dec == 0:
+            pace_state = None
+    else:
+        pace_band = total_budget_dec * BUDGET_PACE_BAND_PERCENT
+        if pace_delta > pace_band:
+            pace_state = 'ahead'
+        elif pace_delta < -pace_band:
+            pace_state = 'under'
+        else:
+            pace_state = 'on_track'
+
+    return {
+        'days_elapsed': days_elapsed,
+        'days_in_month': days_in_month,
+        'expected_spent_to_date': expected_spent_to_date,
+        'pace_delta': pace_delta,
+        'pace_delta_abs': abs(pace_delta),
+        'projected_month_end': projected_month_end,
+        'pace_state': pace_state,
+    }
 
 
 class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
@@ -3351,8 +3337,7 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         year_param = self.request.GET.get('year')
         sort_param = self.request.GET.get('sort', 'urgent')
         
-        month = int(month_param) if month_param else today.month
-        year = int(year_param) if year_param else today.year
+        month, year = parse_month_year(self.request, today=today)
         
         # Ensure context variables for filters are correct
         context['current_month'] = month
@@ -3370,15 +3355,16 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         budget_data = []
         categories = Category.objects.filter(user=user)
         
-        total_budget = 0
-        categorized_spent = 0
+        total_budget = Decimal('0')
+        budgeted_spent = Decimal('0')
         
         # Calculate total spending across ALL expenses for the month
         grand_total_spent = Expense.objects.filter(
             user=user,
             date__year=year,
             date__month=month
-        ).aggregate(Total=Sum('base_amount'))['Total'] or 0
+        ).aggregate(Total=Sum('base_amount'))['Total'] or Decimal('0')
+        grand_total_spent = Decimal(str(grand_total_spent))
 
         # Optimized: Fetch all categorical spending in one query
         cat_spend_qs = FinancialService.get_categorical_spending(user, year, month)
@@ -3390,7 +3376,7 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         no_limit_count = 0
 
         for category in categories:
-            spent = cat_spend_map.get(category.name, 0)
+            spent = Decimal(str(cat_spend_map.get(category.name, 0)))
             
             percentage = (float(spent) / float(category.limit) * 100) if category.limit and category.limit > 0 else 0
             
@@ -3408,7 +3394,7 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             else:
                 no_limit_count += 1
 
-            remaining = (category.limit - spent) if category.limit and spent <= category.limit else 0
+            remaining = (category.limit - spent) if category.limit and spent <= category.limit else Decimal('0')
             left_percentage = max(0.0, 100.0 - percentage) if category.limit and category.limit > 0 else 0
 
             budget_data.append({
@@ -3418,20 +3404,22 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
                 'percentage': min(percentage, 100),
                 'actual_percentage': percentage,
                 'remaining': remaining,
-                'over_budget': (spent - category.limit) if category.limit and spent > category.limit else 0,
+                'over_budget': (spent - category.limit) if category.limit and spent > category.limit else Decimal('0'),
                 'left_percentage': left_percentage,
                 'status': status
             })
             
-            if category.limit:
+            if category.limit and category.limit > 0:
                 total_budget += category.limit
-            categorized_spent += spent
+                budgeted_spent += spent
+
+        unbudgeted_spent = max(grand_total_spent - budgeted_spent, Decimal('0'))
 
         # Sorting logic
         if sort_param == 'name':
             budget_data.sort(key=lambda x: x['category'].name.lower())
         elif sort_param == 'limit':
-            budget_data.sort(key=lambda x: (x['limit'] or 0), reverse=True)
+            budget_data.sort(key=lambda x: (x['limit'] or Decimal('0')), reverse=True)
         elif sort_param == 'spent':
             budget_data.sort(key=lambda x: float(x['spent']), reverse=True)
         else:  # 'urgent' default
@@ -3454,15 +3442,23 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             user=user,
             date__year=prev_year,
             date__month=prev_month
-        ).aggregate(Total=Sum('base_amount'))['Total'] or 0
+        ).aggregate(Total=Sum('base_amount'))['Total'] or Decimal('0')
+        prev_spent = Decimal(str(prev_spent))
 
         spent_mom_pct = None
         spent_mom_pct_abs = None
         if prev_spent > 0:
-            spent_mom_pct = ((grand_total_spent - prev_spent) / prev_spent) * 100
+            spent_mom_pct = float((grand_total_spent - prev_spent) / prev_spent * 100)
             spent_mom_pct_abs = abs(spent_mom_pct)
 
         currency_symbol = user.profile.currency if hasattr(user, 'profile') and user.profile.currency else '₹'
+
+        pacing_data = calculate_budget_pacing(total_budget, budgeted_spent, year, month, today=today)
+
+        total_remaining = (total_budget - budgeted_spent) if total_budget > budgeted_spent else Decimal('0')
+        over_budget_amount = (budgeted_spent - total_budget) if budgeted_spent > total_budget else Decimal('0')
+        total_percentage = min((float(budgeted_spent) / float(total_budget) * 100), 100.0) if total_budget > 0 else 0.0
+        actual_total_percentage = (float(budgeted_spent) / float(total_budget) * 100) if total_budget > 0 else 0.0
 
         res_dict = {
             'budget_data': budget_data,
@@ -3475,12 +3471,21 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             'no_limit_count': no_limit_count,
             'total_budget': total_budget,
             'total_spent': grand_total_spent,
-            'total_remaining': (total_budget - grand_total_spent) if total_budget > grand_total_spent else 0,
-            'over_budget_amount': (grand_total_spent - total_budget) if grand_total_spent > total_budget else 0,
-            'total_percentage': min((grand_total_spent / total_budget * 100), 100) if total_budget else 0,
-            'actual_total_percentage': (grand_total_spent / total_budget * 100) if total_budget else 0,
+            'budgeted_spent': budgeted_spent,
+            'unbudgeted_spent': unbudgeted_spent,
+            'total_remaining': total_remaining,
+            'over_budget_amount': over_budget_amount,
+            'total_percentage': total_percentage,
+            'actual_total_percentage': actual_total_percentage,
             'spent_mom_pct': spent_mom_pct,
             'spent_mom_pct_abs': spent_mom_pct_abs,
+            'days_elapsed': pacing_data['days_elapsed'],
+            'days_in_month': pacing_data['days_in_month'],
+            'expected_spent_to_date': pacing_data['expected_spent_to_date'],
+            'pace_delta': pacing_data['pace_delta'],
+            'pace_delta_abs': pacing_data['pace_delta_abs'],
+            'projected_month_end': pacing_data['projected_month_end'],
+            'pace_state': pacing_data['pace_state'],
             'month_name': date(year, month, 1).strftime('%B'),
             'short_month_name': date(year, month, 1).strftime('%b'),
             'currency_symbol': currency_symbol,
@@ -3495,11 +3500,12 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         context.update(res_dict)
         return context
 
+
 class YearInReviewView(LoginRequiredMixin, TemplateView):
     template_name = 'expenses/year_in_review.html'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        year = int(self.request.GET.get('year', date.today().year))
+        _, year = parse_month_year(self.request)
         context['review_data'] = generate_year_in_review_data(self.request.user, year)
         return context
 
@@ -3509,6 +3515,6 @@ class YearInReviewView(LoginRequiredMixin, TemplateView):
             return super().dispatch(request, *args, **kwargs)
             
         if not request.user.profile.is_plus:
-            messages.info(request, "Year in Review is a Premium feature. Upgrade to Plus or Pro to unlock your personalized financial story!")
+            messages.info(request, _("Year in Review is a Premium feature. Upgrade to Plus or Pro to unlock your personalized financial story!"))
             return redirect('pricing')
         return super().dispatch(request, *args, **kwargs)

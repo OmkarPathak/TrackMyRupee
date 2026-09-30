@@ -101,18 +101,16 @@ class CacheInvalidationTest(TestCase):
         loan = Loan.objects.create(
             user=self.user,
             name='Car Loan',
-            loan_type='AUTO',
-            principal_amount=Decimal('100000.00'),
-            current_balance=Decimal('80000.00'),
-            interest_rate=Decimal('8.5'),
-            tenure_months=36,
+            loan_type='CAR',
+            initial_principal=Decimal('100000.00'),
+            duration_months=36,
             start_date=date.today()
         )
         self._assert_cache_invalidated()
 
         # 2. Update
         self._warm_cache()
-        loan.current_balance = Decimal('75000.00')
+        loan.name = 'Updated Car Loan'
         loan.save()
         self._assert_cache_invalidated()
 
