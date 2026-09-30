@@ -375,7 +375,6 @@ def home_view(request):
 
     all_dates = Expense.objects.filter(user=request.user).dates('date', 'year', order='DESC')
     years = sorted(list(set([d.year for d in all_dates] + [now.year])), reverse=True)
-    all_categories = Expense.objects.filter(user=request.user).values_list('category', flat=True).distinct().order_by('category')
 
     # Optimization: Pre-fetch all categories for the user to avoid N+1 queries in the loop
     user_categories = {c.name: c for c in Category.objects.filter(user=request.user)}
@@ -844,9 +843,8 @@ def home_view(request):
             for p in periods:
                 prev_trend_data.append(daily_map.get(p.day, 0.0))
     top_category = category_data[0]['category'] if category_data else None
-    
 
-    # 4a. Internal Transfers (excluded from income/expense, just movement)
+    # Internal Transfers queryset (used by recent_activity feed)
     transfers_qs = Transfer.objects.filter(user=request.user).select_related('from_account', 'to_account')
     if selected_accounts:
         transfers_qs = transfers_qs.filter(Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts))
@@ -860,8 +858,6 @@ def home_view(request):
             transfers_qs = transfers_qs.filter(date__year__in=selected_years)
         if selected_months:
             transfers_qs = transfers_qs.filter(date__month__in=selected_months)
-    total_transfers = sum_transfers_base(transfers_qs)
-    transfer_count = transfers_qs.count()
 
     # --- NEW: Savings Projection (Linear Extrapolation) ---
     current_date = date.today()
@@ -1732,10 +1728,6 @@ def home_view(request):
 
     capital_events_list = list(capital_events_qs)
 
-    # Aggregate totals for excluded-from-averages events (the vast majority)
-    capital_event_total = sum(float(e.base_amount) for e in capital_events_list if e.exclude_from_averages)
-    capital_event_count = len([e for e in capital_events_list if e.exclude_from_averages])
-
     # Build chart annotation data: one marker per event, sorted by date
     capital_event_annotations = [
         {
@@ -2027,9 +2019,6 @@ def home_view(request):
         'CAPITAL': {'items': [], 'total': Decimal('0.00'), 'icon': '💼', 'label': _('Capital Events')},
         'INSURANCE_PREMIUM': {'items': [], 'total': Decimal('0.00'), 'icon': '🛡️', 'label': _('Insurance Premiums')},
     }
-    
-    total_recurring_commitment = Decimal('0.00')
-    
     active_recurring = RecurringTransaction.objects.filter(user=request.user, is_active=True).select_related('account', 'from_account', 'to_account')
     for rt in active_recurring:
         # Find if it occurs in the viewed month
@@ -2062,12 +2051,6 @@ def home_view(request):
             
             recurring_groups[rtype]['items'].append(item)
             recurring_groups[rtype]['total'] += rt.base_amount
-            
-            # Transfers are neutral - they move money between accounts, not income/expense
-            if rtype == 'INCOME':
-                total_recurring_commitment -= rt.base_amount
-            elif rtype != 'TRANSFER':
-                total_recurring_commitment += rt.base_amount
 
     # Sorting items within groups by date
     for group in recurring_groups.values():
@@ -2148,10 +2131,6 @@ def home_view(request):
     # Convert balances to base currency from adapter (feature-flagged with fallback).
     # Reuse the result already fetched for the milestone section above (avoids duplicate bulk queries).
     net_worth, account_base_balances = _ledger_net_worth_result
-    investment_accounts_balance = Decimal('0.00')
-    for acc in accounts:
-        if acc.account_type in investment_codes():
-            investment_accounts_balance += account_base_balances.get(acc.pk, Decimal('0.00'))
 
     # Net Worth Change Calculation (Growth this month)
     # We estimate start-of-month net worth as current net worth minus this month's net cashflow (income - expense)
@@ -2210,21 +2189,6 @@ def home_view(request):
     net_worth_history_formatted = FinancialService.get_monthly_history(request.user, 6)
     net_worth_labels = [date_format(m['month'], 'M Y') for m in net_worth_history_formatted]
     net_worth_data = net_worth_trend # Use the cumulative values for the trend
-
-    # Calculate Sparkline points (normalize to 100x40 SVG)
-    sparkline_points = ""
-    if len(net_worth_trend) > 1:
-        min_val = min(net_worth_trend)
-        max_val = max(net_worth_trend)
-        range_val = max_val - min_val if max_val != min_val else 1
-        
-        points = []
-        for i, val in enumerate(net_worth_trend):
-            x = (i / (len(net_worth_trend) - 1)) * 100
-            # Flip Y (higher value = smaller Y in SVG)
-            y = 35 - ((val - min_val) / range_val) * 30 
-            points.append(f"{x},{y}")
-        sparkline_points = " ".join(points)
 
     # Group by account type group for Asset Allocation chart (using converted balances)
     code_to_group = {}
@@ -2305,8 +2269,6 @@ def home_view(request):
     )
     avg_monthly_savings = Decimal(str((_hist_income_sum - _hist_expense_sum) / 3))
     
-    net_worth_forecasts = []
-    
     # 0.5 Integrated Sparkline Logic
     # History is 6 months. We append 3 forecast months.
     forecast_index_start = len(net_worth_trend) # Usually 6
@@ -2324,21 +2286,6 @@ def home_view(request):
         # Add to the integrated sparkline arrays
         net_worth_labels.append(date_format(month_date, 'M Y'))
         net_worth_trend.append(float(projected_val))
-        
-        net_worth_forecasts.append({
-            'label': date_format(month_date, 'M'),
-            'month_name': date_format(month_date, 'F Y'),
-            'value': float(projected_val),
-            'change': float(avg_monthly_savings),
-            'is_positive': avg_monthly_savings >= 0
-        })
-
-    # Summary 3M Growth for the badge
-    projected_3m_growth = float(avg_monthly_savings * 3)
-
-    # Calculate Spent and Remaining values specifically for the mobile Net Worth card
-    # including all capital events.
-    excluded_capital_events_total = sum(e.base_amount for e in capital_events_list if e.exclude_from_averages)
     # Onboarding Checklist State
     profile = request.user.profile
     # Once fully complete (or dismissed) this can't practically go back to "incomplete" for a
@@ -2399,9 +2346,6 @@ def home_view(request):
         },
     ]
 
-    mobile_spent = Decimal(str(total_expenses)) + excluded_capital_events_total
-    mobile_remaining = Decimal(str(total_income)) - mobile_spent - Decimal(str(total_investments))
-
     # Optimization: Calculate bento invested data in a single query instead of N+1
     if net_worth_history:
         bento_start_date = net_worth_history[0]['month'].replace(day=1)
@@ -2435,20 +2379,14 @@ def home_view(request):
         'net_worth_change': net_worth_change,
         'net_worth_percent': net_worth_percent,
         'net_worth_trend': net_worth_trend,
-        'net_worth_forecasts': net_worth_forecasts,
         'forecast_index_start': forecast_index_start,
-        'projected_3m_growth': projected_3m_growth,
         'net_worth_labels': net_worth_labels,
         'is_net_worth_locked': not request.user.profile.has_net_worth_access,
         'is_ai_locked': not request.user.profile.has_ai_access,
-        'sparkline_points': sparkline_points,
         'accounts': list(accounts),
-        'account_base_balances': account_base_balances,
-        'total_liabilities': total_liabilities,
         'net_worth_before_liabilities': net_worth_before_liabilities,
         'asset_allocation': asset_allocation,
         'recent_activity': recent_activity,
-        'investment_accounts_balance': investment_accounts_balance,
         'has_projection': has_projection,
         'is_new_user': not has_any_data,
         'actionable_alerts': actionable_alerts,
@@ -2456,13 +2394,8 @@ def home_view(request):
         'monthly_story': monthly_story,
         'total_income': total_income,
         'total_expenses': total_expenses,
-        'mobile_spent': mobile_spent,
-        'mobile_remaining': mobile_remaining,
-        'total_expenses_base': total_expenses_base,
-        'total_loan_interest': total_loan_interest,
         'savings': savings,
         'remaining_savings': savings - total_investments,
-        'recent_activity': recent_activity,
         'categories': categories,
         'category_amounts': category_amounts,
         'category_data': category_data, # Passing full queryset for the summary table
@@ -2488,7 +2421,6 @@ def home_view(request):
         'payment_labels': payment_labels,
         'payment_data': payment_data,
         'years': years,
-        'all_categories': all_categories,
         'selected_years': selected_years,
         'selected_months': selected_months,
         'selected_year': display_year,    # NEW: For template display labels
@@ -2503,16 +2435,10 @@ def home_view(request):
         'months_list': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'recurring_groups': recurring_groups,
         'recurring_net_balance': recurring_net_balance,
-        'total_recurring_commitment': total_recurring_commitment,
-        'top_category': top_category,
-        'projected_savings': projected_savings, # NEW
-        'avg_monthly_savings': avg_monthly_savings,
         'filter_config': DASHBOARD_FILTERS,
         'applied_state': applied_state,
         'start_date': start_date_str or (start_date_obj.strftime('%Y-%m-%d') if start_date_obj else ''),
         'end_date': end_date_str or (end_date_obj.strftime('%Y-%m-%d') if end_date_obj else ''),
-        'start_date_obj': start_date_obj,
-        'end_date_obj': end_date_obj,
         'prev_month_data': prev_month_data,
         'prev_month_url': prev_month_url,
         'next_month_url': next_month_url,
@@ -2524,20 +2450,12 @@ def home_view(request):
         'hero_metrics': hero_metrics,
         'smart_bullet_insights': smart_bullet_insights,
         'total_investments': total_investments,
-        'total_transfers': total_transfers,
-        'transfer_count': transfer_count,
-        'trend_labels': trend_labels,
         'trend_iso_dates': trend_iso_dates,
-        'selected_categories': selected_categories,
         'proj_labels': proj_labels,
         'proj_historical': proj_historical,
         'proj_forecast': proj_forecast,
         # Capital Events
-        'capital_events': capital_events_list,
-        'capital_event_total': capital_event_total,
-        'capital_event_count': capital_event_count,
         'capital_event_annotations': capital_event_annotations,
-        'capital_event_callout': capital_event_callout,
     }
 
     if home_cache_key:

@@ -104,3 +104,36 @@ def apply_date_filters(queryset, request, date_field='date'):
         queryset = queryset.filter(**{f"{date_field}__lte": period.end})
 
     return queryset
+
+
+def parse_month_year(request, today=None):
+    """
+    Safely parse month and year from request.GET.
+    Clamps month to 1..12 and year to sensible bounds (2000..today.year + 5).
+    Falls back to current month and year if values are missing or invalid.
+    """
+    from datetime import date
+    if today is None:
+        today = date.today()
+
+    month_val = request.GET.get('month')
+    year_val = request.GET.get('year')
+
+    try:
+        month = int(month_val) if month_val is not None else today.month
+        if month < 1 or month > 12:
+            month = today.month
+    except (ValueError, TypeError):
+        month = today.month
+
+    min_year = 2000
+    max_year = today.year + 5
+    try:
+        year = int(year_val) if year_val is not None else today.year
+        if year < min_year or year > max_year:
+            year = today.year
+    except (ValueError, TypeError):
+        year = today.year
+
+    return month, year
+

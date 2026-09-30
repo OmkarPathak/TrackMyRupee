@@ -199,17 +199,12 @@ class IncomeAndRecurringFindingsTestCase(TestCase):
         self.assertEqual(rt.monthly_equivalent, Decimal('4000.00'))
         self.assertEqual(rt.yearly_equivalent, Decimal('52000.00'))
 
-        # (c) Dashboard 6-month forecast context
+        # (c) Analytics 6-month forecast context removed
         self.profile.tier = 'PRO'
         self.profile.save()
         resp_dash = self.client.get(reverse('analytics'))
         self.assertEqual(resp_dash.status_code, 200)
-        forecast_expenses = resp_dash.context.get('forecast_expenses')
-        self.assertIsNotNone(forecast_expenses)
-        self.assertEqual(len(forecast_expenses), 6)
-        # Verify that forecast expenses reflect the weekly recurring commitment across the 6 months (> 0)
-        for val in forecast_expenses:
-            self.assertGreater(val, 0)
+        self.assertNotIn('forecast_expenses', resp_dash.context)
 
     # -------------------------------------------------------------------------
     # 3. Centralize Earned/Passive/One-off Income Grouping

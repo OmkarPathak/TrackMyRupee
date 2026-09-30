@@ -140,7 +140,7 @@
                 <!-- Main Amount Display -->
                 <div class="d-flex align-items-center mb-3 flex-wrap gap-2">
                     <span class="text-body-emphasis" style="font-size: clamp(2.2rem, 8vw, 3rem); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 800;">
-                        {{ currency_symbol }}{{ total_spent|compact_amount:currency_symbol|translate_digits }}
+                        {{ currency_symbol }}{{ budgeted_spent|compact_amount:currency_symbol|translate_digits }}
                     </span>
                     <span class="fs-5 text-muted fw-normal">
                         / {{ currency_symbol }}{{ total_budget|compact_amount:currency_symbol|translate_digits }}
@@ -157,26 +157,51 @@
                 <!-- Hero Progress Bar -->
                 <div class="progress mb-2" style="height: 10px; border-radius: 6px; background-color: var(--bs-secondary-bg);">
                     <div class="progress-bar {% if actual_total_percentage > 100 %}bg-danger{% elif actual_total_percentage >= 85 %}bg-warning{% else %}bg-success{% endif %}" 
-                         role="progressbar" 
-                         aria-label="{% trans 'Total budget used' %}"
-                         style="width: {{ total_percentage }}%; border-radius: 6px;" 
-                         aria-valuenow="{{ total_percentage }}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
+                          role="progressbar" 
+                          aria-label="{% trans 'Total budget used' %}"
+                          style="width: {{ total_percentage }}%; border-radius: 6px;" 
+                          aria-valuenow="{{ total_percentage }}" 
+                          aria-valuemin="0" 
+                          aria-valuemax="100">
                     </div>
                 </div>
 
                 <!-- Sub-bar text info: % used on left, remaining/over on right (Properly padded!) -->
-                <div class="d-flex justify-content-between align-items-center mb-3 small">
+                <div class="d-flex justify-content-between align-items-center mb-2 small">
                     <span class="text-muted me-2">{% blocktrans with percent=actual_total_percentage|floatformat:1|translate_digits %}{{ percent }}% used{% endblocktrans %}</span>
                     <span class="fw-bold text-body">
-                        {% if total_spent > total_budget %}
+                        {% if budgeted_spent > total_budget %}
                             {% blocktrans with amount=over_budget_amount|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}Over by {{ currency }}{{ amount }}{% endblocktrans %}
                         {% else %}
                             {% blocktrans with amount=total_remaining|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}{{ currency }}{{ amount }} remaining{% endblocktrans %}
                         {% endif %}
                     </span>
                 </div>
+
+                {% if unbudgeted_spent > 0 %}
+                <div class="text-muted small mb-2" style="font-size: 0.8rem;">
+                    {% blocktrans with amount=unbudgeted_spent|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}Not in budget: {{ currency }}{{ amount }}{% endblocktrans %}
+                </div>
+                {% endif %}
+
+                {% if pace_state and total_budget > 0 and pace_state != 'completed' %}
+                <div class="d-flex align-items-center gap-1 small mb-3 text-secondary" style="font-size: 0.8rem;">
+                    <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>
+                    {% if pace_state == 'ahead' %}
+                        <span class="text-warning-emphasis">
+                            {% blocktrans with amount=pace_delta_abs|compact_amount:currency_symbol|translate_digits currency=currency_symbol day=days_elapsed|translate_digits %}Pacing: {{ currency }}{{ amount }} over expected pace for day {{ day }}{% endblocktrans %}
+                        </span>
+                    {% elif pace_state == 'under' %}
+                        <span class="text-success">
+                            {% blocktrans with amount=pace_delta_abs|compact_amount:currency_symbol|translate_digits currency=currency_symbol day=days_elapsed|translate_digits %}Pacing: {{ currency }}{{ amount }} under expected pace for day {{ day }}{% endblocktrans %}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">
+                            {% blocktrans with day=days_elapsed|translate_digits %}Pacing: On track for day {{ day }}{% endblocktrans %}
+                        </span>
+                    {% endif %}
+                </div>
+                {% endif %}
 
                 <!-- Status Badges Pills -->
                 <div class="d-flex align-items-center gap-2 flex-wrap">
