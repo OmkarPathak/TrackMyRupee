@@ -82,26 +82,27 @@ class Command(BaseCommand):
                     'currency_symbol': user.profile.currency if hasattr(user, 'profile') else '₹'
                 })
 
-                month_name = end_date.strftime('%B %Y')
-                subject = f"Your Monthly Financial Report - {month_name}"
-
                 send_mail(
                     subject=subject,
-                    message="",
+                    message=subject,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
                     html_message=html_message,
                     fail_silently=False
                 )
 
-                EmailLog.objects.create(
-                    user=user,
-                    to_email=user.email,
-                    subject=subject,
-                    body=subject,
-                    html_body=html_message,
-                    status='SENT'
-                )
+                # If the active email backend did not already log the email to EmailLog
+                # (e.g. locmem backend during tests), log it here so subsequent runs
+                # know this report was already sent.
+                if not EmailLog.objects.filter(user=user, subject=subject, status='SENT').exists():
+                    EmailLog.objects.create(
+                        user=user,
+                        to_email=user.email,
+                        subject=subject,
+                        body=subject,
+                        html_body=html_message,
+                        status='SENT'
+                    )
                 sent_count += 1
                 if sent_count % 10 == 0:
                     self.stdout.write(f"Sent {sent_count} reports...")

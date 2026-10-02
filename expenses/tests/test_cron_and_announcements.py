@@ -107,16 +107,45 @@ class MonthlyReportDeduplicationTest(TestCase):
 
     def test_monthly_report_does_not_double_send(self):
         from expenses.management.commands.send_monthly_report import Command
+        from expenses.models import EmailLog
         cmd = Command()
 
+        EmailLog.objects.filter(user=self.user).delete()
         mail.outbox.clear()
         cmd.handle(user_id=self.user.id)
         self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(EmailLog.objects.filter(user=self.user, status='SENT').count(), 1)
 
         # Run command second time for same user and month
         mail.outbox.clear()
         cmd.handle(user_id=self.user.id)
         self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(EmailLog.objects.filter(user=self.user, status='SENT').count(), 1)
+
+    def test_monthly_report_creates_single_emaillog_with_logged_backend(self):
+        """
+        Verify that when LoggedEmailBackend is active, exactly ONE EmailLog entry
+        is created (preventing the bug where LoggedEmailBackend + command both logged it).
+        """
+        from unittest.mock import patch
+        from expenses.management.commands.send_monthly_report import Command
+        from expenses.models import EmailLog
+
+        cmd = Command()
+        EmailLog.objects.filter(user=self.user).delete()
+
+        with patch('expenses.email_backends.LoggedEmailBackend._get_real_backend') as mock_get_backend, \
+             self.settings(EMAIL_BACKEND='expenses.email_backends.LoggedEmailBackend'):
+            mock_real = mock_get_backend.return_value
+            mock_real.send_messages.return_value = 1
+
+            cmd.handle(user_id=self.user.id)
+
+        # Assert exactly one EmailLog entry was created
+        logs = EmailLog.objects.filter(user=self.user, status='SENT')
+        self.assertEqual(logs.count(), 1)
+        self.assertTrue(logs.first().subject.startswith('Your Monthly Financial Report'))
+
 
 
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
