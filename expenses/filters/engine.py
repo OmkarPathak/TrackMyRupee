@@ -29,7 +29,7 @@ def apply_filter_config(
         'filters': {},
     }
 
-    from ..periods import resolve_period
+    from ..periods import get_cycle_context, resolve_period
     from ..views.utils import apply_date_filters
 
     # 1. Date / Time Period Filter
@@ -41,15 +41,30 @@ def apply_filter_config(
             start_date=applied_state['start_date'],
             end_date=applied_state['end_date'],
         )
-        applied_state['cycle_active'] = period.is_cycle
-        applied_state['cycle_range'] = (
-            f"{period.start.strftime('%d %b')} – {period.end.strftime('%d %b')}"
-            if (period.is_cycle and period.start and period.end)
-            else ''
-        )
+        cycle_ctx = get_cycle_context(user=getattr(request, 'user', None))
+        applied_state['cycle_active'] = cycle_ctx['cycle_active']
+        applied_state['salary_date'] = cycle_ctx['salary_date']
+        applied_state['cycle_range'] = cycle_ctx['cycle_range']
+        applied_state['prev_cycle_range'] = cycle_ctx['prev_cycle_range']
+        applied_state['calendar_month_range'] = cycle_ctx['calendar_month_range']
+        applied_state['last_3_months_range'] = cycle_ctx['last_3_months_range']
+        applied_state['this_year_range'] = cycle_ctx['this_year_range']
+        applied_state['cycle_day'] = cycle_ctx['cycle_day']
+        applied_state['cycle_total_days'] = cycle_ctx['cycle_total_days']
+        applied_state['cycle_pct'] = cycle_ctx['cycle_pct']
+        applied_state['is_current_period_cycle'] = period.is_cycle
     else:
         applied_state['cycle_active'] = False
+        applied_state['salary_date'] = 1
         applied_state['cycle_range'] = ''
+        applied_state['prev_cycle_range'] = ''
+        applied_state['calendar_month_range'] = ''
+        applied_state['last_3_months_range'] = ''
+        applied_state['this_year_range'] = ''
+        applied_state['cycle_day'] = 0
+        applied_state['cycle_total_days'] = 0
+        applied_state['cycle_pct'] = 0
+        applied_state['is_current_period_cycle'] = False
 
 
     # 2. Search Query Filter

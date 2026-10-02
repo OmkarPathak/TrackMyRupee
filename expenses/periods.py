@@ -139,6 +139,19 @@ def resolve_period(
     elif clean_key == 'all':
         return ResolvedPeriod(start=None, end=None, key='all', is_cycle=False)
 
+    elif clean_key == 'calendar_month':
+        start = today.replace(day=1)
+        last_day = calendar.monthrange(today.year, today.month)[1]
+        end = today.replace(day=last_day)
+        return ResolvedPeriod(start=start, end=end, key='calendar_month', is_cycle=False)
+
+    elif clean_key == 'calendar_last_month':
+        first_day_this_month = today.replace(day=1)
+        last_day_last_month = first_day_this_month - timedelta(days=1)
+        start = last_day_last_month.replace(day=1)
+        end = last_day_last_month
+        return ResolvedPeriod(start=start, end=end, key='calendar_last_month', is_cycle=False)
+
     elif clean_key == 'custom':
         start = _parse_safe_date(start_date)
         end = _parse_safe_date(end_date)
@@ -151,6 +164,75 @@ def resolve_period(
             time_period='this_month',
             today=today,
         )
+
+
+def get_cycle_context(user: Any = None, today: Optional[date] = None) -> dict:
+    """
+    Returns cycle context for UI templates, filter toolbars, and state:
+    - cycle_active: True if salary_date is set to 2..31
+    - salary_date: int (day of month, defaults to 1)
+    - cycle_range: Formatted current cycle range, e.g. '07 Sep – 06 Oct'
+    - prev_cycle_range: Formatted previous cycle range, e.g. '07 Aug – 06 Sep'
+    - calendar_month_range: Formatted calendar month, e.g. '01 Oct – 31 Oct'
+    - cycle_start / cycle_end: date objects
+    - prev_cycle_start / prev_cycle_end: date objects
+    """
+    if today is None:
+        today = timezone.localtime().date()
+
+    profile = getattr(user, 'profile', None) if user and getattr(user, 'is_authenticated', True) else None
+    salary_date = getattr(profile, 'salary_date', 1) or 1
+    has_custom_cycle = isinstance(salary_date, int) and 2 <= salary_date <= 31
+
+    last_day_curr = calendar.monthrange(today.year, today.month)[1]
+    cal_start = today.replace(day=1)
+    cal_end = today.replace(day=last_day_curr)
+    calendar_month_range = f"{cal_start.strftime('%d %b')} – {cal_end.strftime('%d %b')}"
+    last_90_start = today - timedelta(days=90)
+    last_3_months_range = f"{last_90_start.strftime('%d %b')} – {today.strftime('%d %b')}"
+    this_year_range = "01 Jan – 31 Dec"
+
+    if has_custom_cycle:
+        c_start, c_end = SalaryAnalysisService.get_salary_cycle_dates(user, today)
+        prev_target = c_start - timedelta(days=1)
+        p_start, p_end = SalaryAnalysisService.get_salary_cycle_dates(user, prev_target)
+        total_days = (c_end - c_start).days + 1
+        elapsed_days = min(max((today - c_start).days + 1, 1), total_days)
+        cycle_pct = round((elapsed_days / total_days) * 100)
+
+        return {
+            'cycle_active': True,
+            'salary_date': salary_date,
+            'cycle_start': c_start,
+            'cycle_end': c_end,
+            'cycle_range': f"{c_start.strftime('%d %b')} – {c_end.strftime('%d %b')}",
+            'prev_cycle_start': p_start,
+            'prev_cycle_end': p_end,
+            'prev_cycle_range': f"{p_start.strftime('%d %b')} – {p_end.strftime('%d %b')}",
+            'calendar_month_range': calendar_month_range,
+            'last_3_months_range': last_3_months_range,
+            'this_year_range': this_year_range,
+            'cycle_day': elapsed_days,
+            'cycle_total_days': total_days,
+            'cycle_pct': cycle_pct,
+        }
+
+    return {
+        'cycle_active': False,
+        'salary_date': salary_date,
+        'cycle_start': cal_start,
+        'cycle_end': cal_end,
+        'cycle_range': '',
+        'prev_cycle_start': None,
+        'prev_cycle_end': None,
+        'prev_cycle_range': '',
+        'calendar_month_range': calendar_month_range,
+        'last_3_months_range': last_3_months_range,
+        'this_year_range': this_year_range,
+        'cycle_day': 0,
+        'cycle_total_days': 0,
+        'cycle_pct': 0,
+    }
 
 
 def calculate_budget_period_factor(

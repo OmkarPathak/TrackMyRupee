@@ -82,12 +82,12 @@
             </div>
             {% endif %}
 
-            <div class="d-flex justify-content-end">
-                <a href="{% url 'account_change_password' %}" class="btn btn-outline-secondary me-auto {% if is_social_user %}disabled{% endif %}">
-                    <i class="bi bi-shield-lock me-1"></i> {% trans "Change Password" %}
+            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-stretch align-items-sm-center gap-3 mt-4 mb-4">
+                <a href="{% url 'account_change_password' %}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center text-nowrap py-2 px-3 {% if is_social_user %}disabled{% endif %}">
+                    <i class="bi bi-shield-lock me-2"></i> {% trans "Change Password" %}
                 </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> {% trans "Save Changes" %}
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center text-nowrap py-2 px-4 shadow-sm">
+                    <i class="bi bi-save me-2"></i> {% trans "Save Changes" %}
                 </button>
             </div>
         </form>

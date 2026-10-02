@@ -308,6 +308,7 @@ class SalaryDateFormTest(TestCase):
     
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.profile = self.user.profile
         
     def test_profile_update_form_salary_date(self):
         """Test that ProfileUpdateForm includes salary_date field."""
@@ -358,3 +359,68 @@ class SalaryDateFormTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Managed by social login. Email address cannot be changed.")
         self.assertNotContains(response, '<button type="submit" class="btn btn-primary" disabled>')
+
+    def test_get_cycle_context_inactive_default(self):
+        """Test get_cycle_context for a user with default salary_date=1."""
+        from expenses.periods import get_cycle_context
+
+        ctx = get_cycle_context(self.user, today=date(2026, 10, 2))
+        self.assertFalse(ctx['cycle_active'])
+        self.assertEqual(ctx['salary_date'], 1)
+        self.assertEqual(ctx['cycle_range'], '')
+
+    def test_get_cycle_context_active_custom_salary_date(self):
+        """Test get_cycle_context for a user with salary_date=7."""
+        from expenses.periods import get_cycle_context
+
+        self.profile.salary_date = 7
+        self.profile.save()
+        self.user.refresh_from_db()
+
+        ctx = get_cycle_context(self.user, today=date(2026, 10, 2))
+        self.assertTrue(ctx['cycle_active'])
+        self.assertEqual(ctx['salary_date'], 7)
+        self.assertEqual(ctx['cycle_range'], '07 Sep – 06 Oct')
+        self.assertEqual(ctx['prev_cycle_range'], '07 Aug – 06 Sep')
+        self.assertEqual(ctx['calendar_month_range'], '01 Oct – 31 Oct')
+
+    def test_resolve_period_calendar_month(self):
+        """Test resolve_period for calendar_month and calendar_last_month."""
+        from expenses.periods import resolve_period
+
+        self.profile.salary_date = 7
+        self.profile.save()
+        self.user.refresh_from_db()
+
+        today = date(2026, 10, 2)
+        # Normal this_month resolves to salary cycle
+        cycle_period = resolve_period(self.user, 'this_month', today=today)
+        self.assertTrue(cycle_period.is_cycle)
+        self.assertEqual(cycle_period.start, date(2026, 9, 7))
+        self.assertEqual(cycle_period.end, date(2026, 10, 6))
+
+        # calendar_month resolves to standard calendar boundaries
+        cal_period = resolve_period(self.user, 'calendar_month', today=today)
+        self.assertFalse(cal_period.is_cycle)
+        self.assertEqual(cal_period.start, date(2026, 10, 1))
+        self.assertEqual(cal_period.end, date(2026, 10, 31))
+
+        # calendar_last_month resolves to prior month calendar boundaries
+        cal_last_period = resolve_period(self.user, 'calendar_last_month', today=today)
+        self.assertFalse(cal_last_period.is_cycle)
+        self.assertEqual(cal_last_period.start, date(2026, 9, 1))
+        self.assertEqual(cal_last_period.end, date(2026, 9, 30))
+
+    def test_dashboard_renders_salary_cycle_toolbar(self):
+        """Test that the dashboard page renders salary cycle in filter toolbar when salary_date != 1."""
+        self.profile.salary_date = 7
+        self.profile.has_seen_tutorial = True
+        self.profile.save()
+        self.client.force_login(self.user)
+
+        response = self.client.get('/dashboard/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Salary Cycle')
+        self.assertContains(response, 'Salary cycle:')
+
+

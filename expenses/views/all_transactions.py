@@ -21,6 +21,7 @@ from ..ledger_read_service import LedgerReadService
 from ..models import Account, CapitalEvent, Expense, Income, LoanRepayment, Transfer
 from ..utils import get_exchange_rate
 from ..filters.definitions import ALL_TRANSACTIONS_FILTERS
+from ..periods import get_cycle_context, resolve_period
 from .mixins import HtmxPartialTemplateMixin
 from .utils import apply_date_filters
 
@@ -240,6 +241,14 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         if selected_amounts:
             applied_filters['amount_range'] = selected_amounts
 
+        period = resolve_period(
+            user=user,
+            time_period=time_period,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        cycle_ctx = get_cycle_context(user=user)
+
         context['applied_state'] = {
             'search': search_query,
             'time_period': time_period,
@@ -247,7 +256,21 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             'end_date': end_date,
             'sort': self.request.GET.get('sort', 'date_desc'),
             'filters': applied_filters,
+            'cycle_active': cycle_ctx['cycle_active'],
+            'salary_date': cycle_ctx['salary_date'],
+            'cycle_range': cycle_ctx['cycle_range'],
+            'prev_cycle_range': cycle_ctx['prev_cycle_range'],
+            'calendar_month_range': cycle_ctx['calendar_month_range'],
+            'last_3_months_range': cycle_ctx['last_3_months_range'],
+            'this_year_range': cycle_ctx['this_year_range'],
+            'cycle_day': cycle_ctx['cycle_day'],
+            'cycle_total_days': cycle_ctx['cycle_total_days'],
+            'cycle_pct': cycle_ctx['cycle_pct'],
+            'is_current_period_cycle': period.is_cycle,
         }
+        context['salary_cycle_active'] = cycle_ctx['cycle_active']
+        context['salary_cycle_range'] = cycle_ctx['cycle_range']
+        context['salary_date'] = cycle_ctx['salary_date']
 
 
         filtered_qs = self._get_filtered_querysets()

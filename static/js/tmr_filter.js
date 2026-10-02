@@ -94,8 +94,16 @@ class TMRFilterSystem {
       start_date: rawState.start_date || '',
       end_date: rawState.end_date || '',
       sort: rawState.sort || this.config.default_sort || 'date_desc',
-      cycle_active: rawState.cycle_active || false,
-      cycle_range: rawState.cycle_range || '',
+      cycle_active: rawState.cycle_active !== undefined ? rawState.cycle_active : ((this.state && this.state.cycle_active) || false),
+      cycle_range: rawState.cycle_range || (this.state && this.state.cycle_range) || '',
+      prev_cycle_range: rawState.prev_cycle_range || (this.state && this.state.prev_cycle_range) || '',
+      calendar_month_range: rawState.calendar_month_range || (this.state && this.state.calendar_month_range) || '',
+      last_3_months_range: rawState.last_3_months_range || (this.state && this.state.last_3_months_range) || '',
+      this_year_range: rawState.this_year_range || (this.state && this.state.this_year_range) || '',
+      cycle_day: rawState.cycle_day !== undefined ? rawState.cycle_day : ((this.state && this.state.cycle_day) || 0),
+      cycle_total_days: rawState.cycle_total_days !== undefined ? rawState.cycle_total_days : ((this.state && this.state.cycle_total_days) || 0),
+      cycle_pct: rawState.cycle_pct !== undefined ? rawState.cycle_pct : ((this.state && this.state.cycle_pct) || 0),
+      salary_date: rawState.salary_date || (this.state && this.state.salary_date) || 1,
       filters: {},
     };
 
@@ -313,8 +321,23 @@ class TMRFilterSystem {
     const timeBtn = this.container.querySelector('#tmr-time-dropdown-btn');
     if (timeBtn) {
       const labelSpan = timeBtn.querySelector('.tmr-time-label');
-      if (labelSpan && this.state.time_period === 'custom') {
-        labelSpan.textContent = this.formatDateRange(this.state.start_date, this.state.end_date);
+      const timeIcon = timeBtn.querySelector('.tmr-btn-icon');
+      if (labelSpan) {
+        if (this.state.time_period === 'custom') {
+          labelSpan.textContent = this.formatDateRange(this.state.start_date, this.state.end_date);
+          if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
+        } else if (this.state.cycle_active) {
+          if (this.state.time_period === 'this_month' && this.state.cycle_range) {
+            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Salary Cycle •&nbsp;</span>${this.state.cycle_range}`;
+            if (timeIcon) timeIcon.className = 'bi bi-arrow-repeat text-success tmr-btn-icon';
+          } else if (this.state.time_period === 'last_month' && this.state.prev_cycle_range) {
+            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Previous Cycle •&nbsp;</span>${this.state.prev_cycle_range}`;
+            if (timeIcon) timeIcon.className = 'bi bi-arrow-repeat text-success tmr-btn-icon';
+          } else if (this.state.time_period === 'calendar_month' && this.state.calendar_month_range) {
+            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month •&nbsp;</span>${this.state.calendar_month_range}`;
+            if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
+          }
+        }
       }
       timeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -873,30 +896,261 @@ class TMRFilterSystem {
     return `${startDateStr} – ${endDateStr}`;
   }
 
+  getDayOrdinal(d) {
+    const n = parseInt(d, 10);
+    if (isNaN(n)) return '';
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return s[(v - 20) % 10] || s[v] || s[0];
+  }
+
   // --- Popover 3: Time Period Menu ---
   toggleTimePopover(anchorEl) {
-    const timeOptions = [
-      { key: 'this_month', label: 'This month' },
-      { key: 'last_month', label: 'Last month' },
-      { key: 'last_3_months', label: 'Last 3 months' },
-      { key: 'this_year', label: 'This year' },
-      { key: 'all', label: 'All time' },
-    ];
-
+    const salaryDate = this.state.salary_date || 1;
+    const ordinal = this.getDayOrdinal(salaryDate);
     const currentKey = this.state.time_period || 'this_month';
     const isCustom = currentKey === 'custom';
 
-    const html = `
-      <ul class="tmr-popover-list">
-        ${timeOptions.map(opt => `
-          <li class="tmr-popover-item ${opt.key === currentKey ? 'selected' : ''}" data-time-key="${opt.key}">
-            <span>${opt.key === currentKey ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${opt.label}</span>
-          </li>
-        `).join('')}
-        <li class="tmr-popover-divider"></li>
-        <li class="tmr-popover-item ${isCustom ? 'selected' : ''}" data-time-key="custom">
-          <span>${isCustom ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} Custom range</span>
+    // Calculate dates & fallbacks for ranges
+    const now = new Date();
+    const formatShort = (d) => {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = d.toLocaleString('en-US', { month: 'short' });
+      return `${day} ${month}`;
+    };
+    const calStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const calEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const defaultCalMonthRange = `${formatShort(calStart)} – ${formatShort(calEnd)}`;
+    const last3Start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    const defaultLast3Range = `${formatShort(last3Start)} – ${formatShort(now)}`;
+    const defaultThisYearRange = '01 Jan – 31 Dec';
+
+    const calMonthRange = this.state.calendar_month_range || defaultCalMonthRange;
+    const last3MonthsRange = this.state.last_3_months_range || defaultLast3Range;
+    const thisYearRange = this.state.this_year_range || defaultThisYearRange;
+
+    let listHtml = '';
+    let headerHtml = '';
+
+    if (this.state.cycle_active) {
+      headerHtml = `
+        <div class="tmr-popover-header-row">
+          <div class="tmr-section-label">
+            <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+            <span>SALARY CYCLE</span>
+          </div>
+          <a href="/settings/profile/" class="tmr-payday-badge" title="Edit salary date in settings">
+            <span>Payday ${salaryDate}${ordinal}</span>
+            <i class="bi bi-pencil" aria-hidden="true"></i>
+          </a>
+        </div>
+      `;
+
+      const isCurrentSelected = currentKey === 'this_month';
+      const isPrevSelected = currentKey === 'last_month';
+
+      listHtml = `
+        <!-- Current cycle option -->
+        <li class="tmr-popover-item ${isCurrentSelected ? 'selected' : ''}" data-time-key="this_month">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${isCurrentSelected 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">Current cycle</span>
+            </div>
+            <span class="tmr-item-range">${this.state.cycle_range || ''}</span>
+          </div>
         </li>
+
+        <!-- Previous cycle option -->
+        <li class="tmr-popover-item ${isPrevSelected ? 'selected' : ''}" data-time-key="last_month">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${isPrevSelected 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">Previous cycle</span>
+            </div>
+            <span class="tmr-item-range">${this.state.prev_cycle_range || ''}</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-divider"></li>
+
+        <!-- Calendar Section Header -->
+        <div class="tmr-popover-header-row pt-2 pb-1">
+          <div class="tmr-section-label">
+            <i class="bi bi-calendar" aria-hidden="true"></i>
+            <span>CALENDAR</span>
+          </div>
+        </div>
+
+        <!-- Calendar options -->
+        <li class="tmr-popover-item ${currentKey === 'calendar_month' ? 'selected' : ''}" data-time-key="calendar_month">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'calendar_month' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">This month</span>
+            </div>
+            <span class="tmr-item-range">${calMonthRange}</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-item ${currentKey === 'last_3_months' ? 'selected' : ''}" data-time-key="last_3_months">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'last_3_months' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">Last 3 months</span>
+            </div>
+            <span class="tmr-item-range">${last3MonthsRange}</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-item ${currentKey === 'this_year' ? 'selected' : ''}" data-time-key="this_year">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'this_year' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">This year</span>
+            </div>
+            <span class="tmr-item-range">${thisYearRange}</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-item ${currentKey === 'all' ? 'selected' : ''}" data-time-key="all">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'all' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">All time</span>
+            </div>
+            <span class="tmr-item-range">Every transaction</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-divider"></li>
+
+        <!-- Custom range row -->
+        <li class="tmr-popover-item tmr-custom-range-row ${isCustom ? 'selected' : ''}" data-time-key="custom">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              <span class="tmr-custom-icon"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+              <span class="tmr-item-label">Custom range</span>
+            </div>
+            <span class="tmr-custom-chevron"><i class="bi bi-chevron-right" aria-hidden="true"></i></span>
+          </div>
+        </li>
+      `;
+    } else {
+      headerHtml = `
+        <div class="tmr-popover-header-row">
+          <div class="tmr-section-label">
+            <i class="bi bi-calendar" aria-hidden="true"></i>
+            <span>TIME PERIOD</span>
+          </div>
+          <a href="/settings/profile/" class="tmr-payday-badge" title="Set salary payday in settings">
+            <span>Set Payday</span>
+            <i class="bi bi-pencil" aria-hidden="true"></i>
+          </a>
+        </div>
+      `;
+
+      listHtml = `
+        <li class="tmr-popover-item ${currentKey === 'this_month' ? 'selected' : ''}" data-time-key="this_month">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'this_month' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">This month</span>
+            </div>
+            <span class="tmr-item-range">${calMonthRange}</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-item ${currentKey === 'last_month' ? 'selected' : ''}" data-time-key="last_month">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'last_month' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">Last month</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="tmr-popover-item ${currentKey === 'last_3_months' ? 'selected' : ''}" data-time-key="last_3_months">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'last_3_months' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">Last 3 months</span>
+            </div>
+            <span class="tmr-item-range">${last3MonthsRange}</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-item ${currentKey === 'this_year' ? 'selected' : ''}" data-time-key="this_year">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'this_year' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">This year</span>
+            </div>
+            <span class="tmr-item-range">${thisYearRange}</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-item ${currentKey === 'all' ? 'selected' : ''}" data-time-key="all">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'all' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">All time</span>
+            </div>
+            <span class="tmr-item-range">Every transaction</span>
+          </div>
+        </li>
+
+        <li class="tmr-popover-divider"></li>
+
+        <li class="tmr-popover-item tmr-custom-range-row ${isCustom ? 'selected' : ''}" data-time-key="custom">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              <span class="tmr-custom-icon"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+              <span class="tmr-item-label">Custom range</span>
+            </div>
+            <span class="tmr-custom-chevron"><i class="bi bi-chevron-right" aria-hidden="true"></i></span>
+          </div>
+        </li>
+      `;
+    }
+
+    const html = `
+      ${headerHtml}
+      <ul class="tmr-popover-list">
+        ${listHtml}
       </ul>
       <div class="tmr-custom-date-container" id="tmr-custom-date-drawer" style="display: ${isCustom ? 'block' : 'none'};">
         <div class="tmr-custom-date-row">
@@ -922,6 +1176,12 @@ class TMRFilterSystem {
       const endInput = popover.querySelector('.tmr-custom-end');
       const customItem = popover.querySelector('[data-time-key="custom"]');
 
+      if (isCustom && customDrawer) {
+        setTimeout(() => {
+          customDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 60);
+      }
+
       popover.querySelectorAll('.tmr-popover-item').forEach(item => {
         item.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -931,22 +1191,23 @@ class TMRFilterSystem {
             const isHidden = customDrawer.style.display === 'none';
             if (isHidden) {
               customDrawer.style.display = 'block';
-              popover.querySelectorAll('.tmr-popover-item').forEach(i => {
-                i.classList.remove('selected');
-                const check = i.querySelector('.tmr-check-icon');
-                if (check) check.remove();
-              });
               customItem.classList.add('selected');
-              if (!customItem.querySelector('.tmr-check-icon')) {
-                const span = customItem.querySelector('span');
-                if (span) span.insertAdjacentHTML('afterbegin', '<i class="bi bi-check-lg tmr-check-icon"></i> ');
-              }
+              customItem.classList.add('drawer-open');
               if (!this.isMobileViewport()) {
                 this.positionPopover(anchorEl, popover);
               }
-              startInput.focus();
+              setTimeout(() => {
+                customDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                startInput.focus();
+              }, 60);
             } else {
-              startInput.focus();
+              if (this.state.time_period !== 'custom') {
+                customDrawer.style.display = 'none';
+                customItem.classList.remove('selected');
+                customItem.classList.remove('drawer-open');
+              } else {
+                startInput.focus();
+              }
             }
             return;
           }
@@ -958,13 +1219,52 @@ class TMRFilterSystem {
           this.state.end_date = '';
 
           const labelSpan = this.container.querySelector('.tmr-time-label');
+          const timeIcon = this.container.querySelector('.tmr-time-btn .tmr-btn-icon');
           if (labelSpan) {
-            const match = timeOptions.find(o => o.key === key);
-            let label = match ? match.label : 'This month';
-            if (key === 'this_month' && this.state.cycle_active && this.state.cycle_range) {
-              label += ` (${this.state.cycle_range})`;
+            let isCycle = false;
+            if (this.state.cycle_active) {
+              if (key === 'this_month') {
+                labelSpan.innerHTML = this.state.cycle_range 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Salary Cycle ·&nbsp;</span>${this.state.cycle_range}` 
+                  : 'Salary Cycle';
+                isCycle = true;
+              } else if (key === 'last_month') {
+                labelSpan.innerHTML = this.state.prev_cycle_range 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Previous Cycle ·&nbsp;</span>${this.state.prev_cycle_range}` 
+                  : 'Previous Cycle';
+                isCycle = true;
+              } else if (key === 'calendar_month') {
+                labelSpan.innerHTML = this.state.calendar_month_range 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month ·&nbsp;</span>${this.state.calendar_month_range}` 
+                  : 'Calendar Month';
+              } else if (key === 'last_3_months') {
+                labelSpan.textContent = 'Last 3 months';
+              } else if (key === 'this_year') {
+                labelSpan.textContent = 'This year';
+              } else if (key === 'all') {
+                labelSpan.textContent = 'All time';
+              }
+            } else {
+              if (key === 'this_month') {
+                labelSpan.textContent = 'This month';
+              } else if (key === 'last_month') {
+                labelSpan.textContent = 'Last month';
+              } else if (key === 'last_3_months') {
+                labelSpan.textContent = 'Last 3 months';
+              } else if (key === 'this_year') {
+                labelSpan.textContent = 'This year';
+              } else if (key === 'all') {
+                labelSpan.textContent = 'All time';
+              }
             }
-            labelSpan.textContent = label;
+
+            if (timeIcon) {
+              if (isCycle) {
+                timeIcon.className = 'bi bi-arrow-repeat text-success tmr-btn-icon';
+              } else {
+                timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
+              }
+            }
           }
 
           this.closePopover();
@@ -980,8 +1280,7 @@ class TMRFilterSystem {
           if (this.state.time_period !== 'custom') {
             customDrawer.style.display = 'none';
             customItem.classList.remove('selected');
-            const check = customItem.querySelector('.tmr-check-icon');
-            if (check) check.remove();
+            customItem.classList.remove('drawer-open');
           } else {
             this.closePopover();
           }
@@ -1022,6 +1321,10 @@ class TMRFilterSystem {
           if (labelSpan) {
             labelSpan.textContent = this.formatDateRange(sVal, eVal);
           }
+          const timeIcon = this.container.querySelector('.tmr-time-btn .tmr-btn-icon');
+          if (timeIcon) {
+            timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
+          }
 
           this.closePopover();
           this.onStateChanged();
@@ -1053,7 +1356,7 @@ class TMRFilterSystem {
       <ul class="tmr-popover-list">
         ${sortOptions.map(opt => `
           <li class="tmr-popover-item ${opt.key === currentKey ? 'selected' : ''}" data-sort-key="${opt.key}">
-            <span>${opt.key === currentKey ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${opt.label}</span>
+            <span>${opt.label}</span>
           </li>
         `).join('')}
       </ul>

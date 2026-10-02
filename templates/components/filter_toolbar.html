@@ -33,11 +33,25 @@
       <!-- Zone 2: Time Period Dropdown -->
       {% if filter_config.supports_time_period is not False %}
       <div class="tmr-toolbar-zone">
-        <button type="button" class="tmr-toolbar-btn tmr-time-btn" id="tmr-time-dropdown-btn" aria-haspopup="true" aria-expanded="false" title="{% if applied_state.cycle_active and applied_state.cycle_range %}{% trans 'Salary cycle' %}: {{ applied_state.cycle_range }}{% else %}{% trans 'Time period' %}{% endif %}">
-          <i class="bi bi-calendar3 tmr-btn-icon"></i>
+        <button type="button" class="tmr-toolbar-btn tmr-time-btn" id="tmr-time-dropdown-btn" aria-haspopup="true" aria-expanded="false" title="{% if applied_state.cycle_active and applied_state.cycle_range %}{% trans 'Salary cycle active (Day ' %}{{ applied_state.salary_date|default:'1' }}): {{ applied_state.cycle_range }}{% else %}{% trans 'Time period' %}{% endif %}">
+          <i class="bi {% if applied_state.cycle_active and applied_state.time_period != 'calendar_month' and applied_state.time_period != 'calendar_last_month' and applied_state.time_period != 'last_3_months' and applied_state.time_period != 'last_6_months' and applied_state.time_period != 'this_year' and applied_state.time_period != 'all' and applied_state.time_period != 'custom' %}bi-arrow-repeat text-success{% else %}bi-calendar3{% endif %} tmr-btn-icon"></i>
           <span class="tmr-time-label">
-            {% if applied_state.time_period == 'last_month' %}{% trans "Last month" %}
+            {% if applied_state.time_period == 'last_month' %}
+              {% if applied_state.cycle_active and applied_state.prev_cycle_range %}
+                <span class="tmr-cycle-prefix d-none d-md-inline">{% trans "Previous Cycle" %} &middot;&nbsp;</span>{{ applied_state.prev_cycle_range }}
+              {% else %}
+                {% trans "Last month" %}
+              {% endif %}
+            {% elif applied_state.time_period == 'calendar_month' %}
+              {% if applied_state.calendar_month_range %}
+                <span class="tmr-cycle-prefix d-none d-md-inline">{% trans "Calendar Month" %} &middot;&nbsp;</span>{{ applied_state.calendar_month_range }}
+              {% else %}
+                {% trans "Calendar Month" %}
+              {% endif %}
+            {% elif applied_state.time_period == 'calendar_last_month' %}
+              {% trans "Last Calendar Month" %}
             {% elif applied_state.time_period == 'last_3_months' %}{% trans "Last 3 months" %}
+            {% elif applied_state.time_period == 'last_6_months' %}{% trans "Last 6 months" %}
             {% elif applied_state.time_period == 'this_year' %}{% trans "This year" %}
             {% elif applied_state.time_period == 'all' %}{% trans "All time" %}
             {% elif applied_state.time_period == 'custom' %}
@@ -50,7 +64,12 @@
               {% else %}
                 {% trans "Custom range" %}
               {% endif %}
-            {% else %}{% trans "This month" %}{% if applied_state.cycle_active and applied_state.cycle_range %} <span class="opacity-75">({{ applied_state.cycle_range }})</span>{% endif %}
+            {% else %}
+              {% if applied_state.cycle_active and applied_state.cycle_range %}
+                <span class="tmr-cycle-prefix d-none d-md-inline">{% trans "Salary Cycle" %} &middot;&nbsp;</span>{{ applied_state.cycle_range }}
+              {% else %}
+                {% trans "This month" %}
+              {% endif %}
             {% endif %}
           </span>
           <i class="bi bi-chevron-down tmr-chevron-icon"></i>

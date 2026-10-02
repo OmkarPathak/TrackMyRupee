@@ -182,7 +182,7 @@ def home_view(request):
     display_year = None
     display_month = None
 
-    from ..periods import calculate_budget_period_factor, resolve_period
+    from ..periods import calculate_budget_period_factor, get_cycle_context, resolve_period
 
     if not time_period:
         if start_date_obj or end_date_obj:
@@ -310,6 +310,7 @@ def home_view(request):
     if selected_accounts:
         applied_filters['account'] = selected_accounts
 
+    cycle_ctx = get_cycle_context(user=request.user, today=today)
     applied_state = {
         'search': '',
         'time_period': time_period,
@@ -317,6 +318,16 @@ def home_view(request):
         'end_date': end_date_str if time_period == 'custom' else (effective_end_date.strftime('%Y-%m-%d') if time_period == 'custom' and effective_end_date else ''),
         'sort': '',
         'filters': applied_filters,
+        'cycle_active': cycle_ctx['cycle_active'],
+        'salary_date': cycle_ctx['salary_date'],
+        'cycle_range': cycle_ctx['cycle_range'],
+        'prev_cycle_range': cycle_ctx['prev_cycle_range'],
+        'calendar_month_range': cycle_ctx['calendar_month_range'],
+        'last_3_months_range': cycle_ctx['last_3_months_range'],
+        'this_year_range': cycle_ctx['this_year_range'],
+        'cycle_day': cycle_ctx['cycle_day'],
+        'cycle_total_days': cycle_ctx['cycle_total_days'],
+        'cycle_pct': cycle_ctx['cycle_pct'],
     }
         
     # Income Logic (Mirroring Expense Filters)
@@ -2484,6 +2495,8 @@ def home_view(request):
         'salary_cycle_active': salary_cycle_active,
         'salary_cycle_start': header_salary_cycle_start,
         'salary_cycle_end': header_salary_cycle_end,
+        'salary_cycle_range': cycle_ctx['cycle_range'],
+        'salary_date': cycle_ctx['salary_date'],
         'comparison_label': comparison_label,
         'months_list': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'recurring_groups': recurring_groups,

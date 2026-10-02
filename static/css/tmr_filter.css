@@ -399,14 +399,14 @@
   color: var(--bs-body-color);
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.1s ease;
+  transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .tmr-popover-item > span:first-child {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
 .tmr-popover-item:hover {
@@ -416,25 +416,36 @@
 .tmr-popover-item.selected {
   font-weight: 700;
   color: var(--tmr-filter-primary);
-}
-
-.tmr-popover-item .tmr-check-icon {
-  color: var(--tmr-filter-primary);
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  margin-right: 0;
+  background-color: var(--tmr-filter-bg-active);
 }
 
 .tmr-popover-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
+  padding: 10px 14px;
   border-top: 1px solid var(--bs-border-color-translucent);
   background-color: var(--bs-tertiary-bg);
+  min-height: 42px;
+}
+
+.tmr-popover-footer .tmr-footer-item,
+.tmr-popover-footer .tmr-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.tmr-popover-footer .tmr-footer-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  line-height: 1;
+  margin: 0;
+  vertical-align: middle;
 }
 
 .tmr-popover-footer-btn {
@@ -487,6 +498,165 @@
 .tmr-popover-menu.tmr-time-popover {
   min-width: 320px;
   max-width: 360px;
+  padding: 8px 10px 12px;
+  border-radius: 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(90vh - 80px);
+}
+
+.tmr-popover-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 6px;
+}
+
+.tmr-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bs-secondary-color);
+  user-select: none;
+}
+
+.tmr-section-label i {
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--bs-secondary-color);
+}
+
+.tmr-payday-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-decoration: none;
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--tmr-filter-primary);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
+  transition: all 0.15s ease-in-out;
+}
+
+.tmr-payday-badge:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.18);
+  color: var(--tmr-filter-primary);
+  border-color: var(--tmr-filter-primary);
+}
+
+.tmr-time-popover .tmr-popover-list {
+  padding: 2px 0;
+  max-height: none;
+  overflow: visible;
+}
+
+.tmr-time-popover .tmr-popover-item {
+  display: block;
+  padding: 8px 10px;
+  margin: 2px 0;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  color: var(--bs-body-color);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s ease;
+  background-color: transparent;
+}
+
+.tmr-time-popover .tmr-popover-item:hover {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.tmr-time-popover .tmr-popover-item.selected {
+  background-color: rgba(var(--bs-primary-rgb), 0.08);
+}
+
+.tmr-time-popover .tmr-item-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.tmr-time-popover .tmr-item-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tmr-time-popover .tmr-check-icon {
+  color: var(--tmr-filter-primary);
+  font-size: 0.95rem;
+  font-weight: 800;
+  width: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tmr-time-popover .tmr-check-spacer {
+  display: inline-block;
+  width: 16px;
+}
+
+.tmr-time-popover .tmr-item-label {
+  font-weight: 600;
+  color: var(--bs-body-color);
+}
+
+.tmr-time-popover .selected .tmr-item-label {
+  font-weight: 600;
+  color: var(--tmr-filter-primary);
+}
+
+.tmr-time-popover .tmr-item-range {
+  font-size: 0.78rem;
+  color: var(--bs-secondary-color);
+  white-space: nowrap;
+}
+
+
+/* Custom range row styling */
+.tmr-custom-range-row .tmr-custom-icon {
+  font-size: 0.9rem;
+  width: 16px;
+  color: var(--bs-secondary-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tmr-custom-range-row .tmr-custom-chevron {
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+  transition: transform 0.15s ease;
+}
+
+.tmr-custom-range-row.selected .tmr-custom-chevron,
+.tmr-custom-range-row.drawer-open .tmr-custom-chevron {
+  transform: rotate(90deg);
+}
+
+.tmr-time-popover .tmr-popover-divider {
+  height: 1px;
+  background-color: var(--bs-border-color-translucent);
+  margin: 8px 4px;
+}
+
+.tmr-time-popover .tmr-custom-date-container {
+  border-top: none;
+  background-color: var(--bs-tertiary-bg);
+  border-radius: 12px;
+  margin-top: 6px;
+  padding: 10px 12px 10px;
 }
 
 .tmr-custom-date-container {
@@ -553,9 +723,40 @@
 
 .tmr-custom-date-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  padding-top: 2px;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.tmr-time-popover .tmr-custom-apply {
+  background-color: var(--tmr-filter-primary);
+  color: #ffffff !important;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.tmr-time-popover .tmr-custom-apply:hover {
+  opacity: 0.92;
+}
+
+.tmr-time-popover .tmr-custom-apply:active {
+  transform: scale(0.98);
+}
+
+.tmr-time-popover .tmr-custom-cancel {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--bs-secondary-color);
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 @media (max-width: 340px) {
@@ -613,7 +814,7 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     margin: 0 -2px;
-    padding: 0 2px 2px;
+    padding: 0 16px 2px 2px;
   }
 
   .tmr-toolbar-zones::-webkit-scrollbar {
@@ -632,11 +833,12 @@
   .tmr-toolbar-btn {
     height: 31px;
     min-height: 31px;
-    padding: 0 10px;
+    padding: 0 8px;
     border-radius: 8px;
     font-size: 0.8125rem;
     gap: 4px;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .tmr-toolbar-btn i {
@@ -691,9 +893,12 @@
     width: auto !important;
     max-width: 440px !important;
     min-width: 0 !important;
-    bottom: calc(76px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) !important;
+    bottom: calc(82px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) !important;
     top: auto !important;
-    max-height: calc(75vh - (76px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
+    max-height: calc(85vh - (82px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     border-radius: 20px !important;
     box-shadow: 0 16px 45px rgba(0, 0, 0, 0.22), 0 4px 15px rgba(0, 0, 0, 0.12) !important;
     animation: tmrSlideUp 0.18s ease-out;
@@ -701,10 +906,14 @@
     z-index: 1200 !important;
   }
 
+  .tmr-popover-menu.tmr-time-popover {
+    padding-bottom: 16px !important;
+  }
+
   /* Extra bottom clearance in mobile app / PWA standalone mode */
   .is-mobile-app .tmr-popover-menu {
-    bottom: calc(84px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) !important;
-    max-height: calc(75vh - (84px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
+    bottom: calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) !important;
+    max-height: calc(85vh - (90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))) !important;
   }
 
   .tmr-popover-list {
