@@ -91,6 +91,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
     {% if POSTHOG_API_KEY %}
     <link rel="preconnect" href="https://us-assets.i.posthog.com" crossorigin>
     <link rel="preconnect" href="https://us.i.posthog.com" crossorigin>
@@ -576,8 +577,6 @@
     <link rel="preload" href="{% static 'style.css' %}?v=1.9" as="style">
     <link rel="stylesheet" href="{% static 'style.css' %}?v=1.9">
     <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.5">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/css/bootstrap-multiselect.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/css/bootstrap-multiselect.min.css"></noscript>
     <style>
         /* Bootstrap Multiselect Premium Customization */
 
@@ -1489,8 +1488,9 @@
     <!-- Searchable Single-Select Component -->
     <script>
     (function() {
-        function initSearchableSelects() {
-            document.querySelectorAll('select.searchable-select, select.form-select:not(.django-multi-select):not([multiple])').forEach(function(sel) {
+        function initSearchableSelects(root) {
+            const container = root || document;
+            container.querySelectorAll('select.searchable-select, select.form-select:not([multiple]), select.django-multi-select:not([multiple])').forEach(function(sel) {
                 if (sel.dataset.searchableInit) return;
                 sel.dataset.searchableInit = '1';
 
@@ -1504,9 +1504,11 @@
                 wrapper.appendChild(sel);
 
                 // Trigger button (looks like form-select)
+                const isSmall = sel.classList.contains('form-select-sm') || sel.classList.contains('form-control-sm');
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'form-select text-start searchable-select-btn';
+                btn.className = 'form-select text-start searchable-select-btn' + (isSmall ? ' form-select-sm' : '');
+                if (sel.disabled) btn.disabled = true;
                 btn.textContent = sel.options[sel.selectedIndex]?.text || '{% trans "Select..." %}';
                 wrapper.appendChild(btn);
 
@@ -1549,11 +1551,12 @@
                                 hasVisible = true;
 
                                 const item = document.createElement('div');
-                                item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '');
+                                item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '') + (opt.disabled ? ' disabled' : '');
                                 item.style.paddingLeft = '1.5rem';
                                 item.textContent = text;
                                 item.dataset.value = opt.value;
                                 item.addEventListener('click', function() {
+                                    if (opt.disabled) return;
                                     sel.value = opt.value;
                                     sel.dispatchEvent(new Event('change', { bubbles: true }));
                                     btn.textContent = text;
@@ -1579,10 +1582,11 @@
 
                             hasVisible = true;
                             const item = document.createElement('div');
-                            item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '');
+                            item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '') + (opt.disabled ? ' disabled' : '');
                             item.textContent = text;
                             item.dataset.value = opt.value;
                             item.addEventListener('click', function() {
+                                if (opt.disabled) return;
                                 sel.value = opt.value;
                                 sel.dispatchEvent(new Event('change', { bubbles: true }));
                                 btn.textContent = text;
@@ -1622,11 +1626,11 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Close any other open searchable selects
-                    document.querySelectorAll('.searchable-select-dropdown.show').forEach(function(d) {
+                    // Close any other open searchable selects or multi selects
+                    document.querySelectorAll('.searchable-select-dropdown.show, .multi-select-dropdown.show').forEach(function(d) {
                         if (d !== dropdown) {
                             d.classList.remove('show');
-                            d.closest('.searchable-select-wrapper')?.classList.remove('open');
+                            d.closest('.searchable-select-wrapper, .multi-select-wrapper')?.classList.remove('open');
                         }
                     });
                     toggle();
@@ -1640,7 +1644,7 @@
                     if (e.key === 'Escape') close();
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        const first = list.querySelector('.searchable-select-item');
+                        const first = list.querySelector('.searchable-select-item:not(.disabled)');
                         if (first) first.click();
                     }
                 });
@@ -1655,34 +1659,317 @@
                     const opt = sel.options[sel.selectedIndex];
                     if (opt) btn.textContent = opt.text;
                 });
+
+                // Public refresh API
+                sel.searchableSelectRefresh = function() {
+                    const opt = sel.options[sel.selectedIndex];
+                    if (opt) btn.textContent = opt.text;
+                    buildOptions(search.value);
+                };
+                sel.multiSelectRefresh = sel.searchableSelectRefresh;
             });
         }
 
         // Run on DOM ready and expose for dynamic forms
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initSearchableSelects);
+            document.addEventListener('DOMContentLoaded', function() { initSearchableSelects(); });
         } else {
             initSearchableSelects();
         }
+        document.addEventListener('htmx:afterSwap', function(e) {
+            initSearchableSelects(e.target);
+        });
         window.initSearchableSelects = initSearchableSelects;
     })();
     </script>
 
+    <!-- Vanilla Multi-Select Component -->
+    <script>
+    (function() {
+        function initMultiSelects(root) {
+            const container = root || document;
+            container.querySelectorAll('select[multiple].django-multi-select, select[multiple].multi-select').forEach(function(sel) {
+                if (sel.dataset.multiSelectInit) return;
+                sel.dataset.multiSelectInit = '1';
+
+                // Hide original select
+                sel.style.display = 'none';
+
+                // Build wrapper
+                const wrapper = document.createElement('div');
+                wrapper.className = 'multi-select-wrapper';
+                sel.parentNode.insertBefore(wrapper, sel);
+                wrapper.appendChild(sel);
+
+                // Trigger button
+                const isSmall = sel.classList.contains('form-select-sm') || sel.classList.contains('form-control-sm');
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'form-select text-start multi-select-btn' + (isSmall ? ' form-select-sm' : '');
+                if (sel.disabled) btn.disabled = true;
+                const ariaLabel = sel.getAttribute('aria-label') || sel.getAttribute('placeholder');
+                if (ariaLabel) btn.setAttribute('aria-label', ariaLabel);
+                wrapper.appendChild(btn);
+
+                // Dropdown panel
+                const dropdown = document.createElement('div');
+                dropdown.className = 'multi-select-dropdown';
+                wrapper.appendChild(dropdown);
+
+                // Search input
+                const search = document.createElement('input');
+                search.type = 'text';
+                search.className = 'form-control form-control-sm multi-select-search';
+                search.placeholder = '{% trans "Search..." %}';
+                search.autocomplete = 'off';
+                dropdown.appendChild(search);
+
+                // Action bar: Select all / Clear all
+                const actions = document.createElement('div');
+                actions.className = 'multi-select-actions';
+                actions.innerHTML = `
+                    <button type="button" class="btn btn-link btn-sm p-0 multi-select-select-all">{% trans "Select all" %}</button>
+                    <button type="button" class="btn btn-link btn-sm p-0 multi-select-clear-all text-secondary">{% trans "Clear all" %}</button>
+                `;
+                dropdown.appendChild(actions);
+
+                // Options list
+                const list = document.createElement('div');
+                list.className = 'multi-select-list';
+                dropdown.appendChild(list);
+
+                const selectAllBtn = actions.querySelector('.multi-select-select-all');
+                const clearAllBtn = actions.querySelector('.multi-select-clear-all');
+
+                function updateButtonText() {
+                    const selected = Array.from(sel.selectedOptions).filter(opt => opt.value !== '' && opt.text.trim() !== '---------');
+                    const placeholder = sel.getAttribute('placeholder') || sel.getAttribute('aria-label') || '{% trans "Select..." %}';
+                    if (selected.length === 0) {
+                        btn.textContent = placeholder;
+                    } else if (selected.length === 1) {
+                        btn.textContent = selected[0].text;
+                    } else {
+                        btn.textContent = `${selected[0].text} +${selected.length - 1}`;
+                    }
+                }
+
+                function buildOptions(filter) {
+                    list.innerHTML = '';
+                    const term = (filter || '').toLowerCase();
+                    let hasVisible = false;
+
+                    Array.from(sel.children).forEach(function(child) {
+                        if (child.tagName === 'OPTGROUP') {
+                            const groupLabel = child.label;
+                            let groupHasVisible = false;
+                            const groupContainer = document.createDocumentFragment();
+
+                            Array.from(child.children).forEach(function(opt) {
+                                if (opt.tagName !== 'OPTION') return;
+                                if (!opt.value && opt.text.trim() === '---------') return;
+                                const text = opt.text;
+                                if (term && text.toLowerCase().indexOf(term) === -1) return;
+
+                                groupHasVisible = true;
+                                hasVisible = true;
+
+                                const item = createOptionItem(opt, text, true);
+                                groupContainer.appendChild(item);
+                            });
+
+                            if (groupHasVisible) {
+                                const header = document.createElement('div');
+                                header.className = 'multi-select-header fw-bold small text-uppercase';
+                                header.style.padding = '0.375rem 0.75rem';
+                                header.style.pointerEvents = 'none';
+                                header.textContent = groupLabel;
+                                list.appendChild(header);
+                                list.appendChild(groupContainer);
+                            }
+                        } else if (child.tagName === 'OPTION') {
+                            const opt = child;
+                            if (!opt.value && opt.text.trim() === '---------') return;
+                            const text = opt.text;
+                            if (term && text.toLowerCase().indexOf(term) === -1) return;
+
+                            hasVisible = true;
+                            const item = createOptionItem(opt, text, false);
+                            list.appendChild(item);
+                        }
+                    });
+
+                    if (!hasVisible) {
+                        const empty = document.createElement('div');
+                        empty.className = 'multi-select-empty';
+                        empty.textContent = '{% trans "No matches" %}';
+                        list.appendChild(empty);
+                    }
+                }
+
+                function createOptionItem(opt, text, inGroup) {
+                    const item = document.createElement('div');
+                    item.className = 'multi-select-item' + (opt.selected ? ' active' : '') + (opt.disabled ? ' disabled' : '');
+                    if (inGroup) item.style.paddingLeft = '1.5rem';
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className = 'form-check-input';
+                    cb.checked = opt.selected;
+                    if (opt.disabled) cb.disabled = true;
+
+                    const label = document.createElement('span');
+                    label.className = 'multi-select-item-text';
+                    label.textContent = text;
+
+                    item.appendChild(cb);
+                    item.appendChild(label);
+
+                    item.addEventListener('click', function(e) {
+                        if (opt.disabled) return;
+                        if (e.target !== cb) {
+                            cb.checked = !cb.checked;
+                        }
+                        opt.selected = cb.checked;
+                        item.classList.toggle('active', opt.selected);
+                        updateButtonText();
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
+                    return item;
+                }
+
+                selectAllBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const term = (search.value || '').toLowerCase();
+                    Array.from(sel.options).forEach(function(opt) {
+                        if (!opt.value && opt.text.trim() === '---------') return;
+                        if (opt.disabled) return;
+                        if (term && opt.text.toLowerCase().indexOf(term) === -1) return;
+                        opt.selected = true;
+                    });
+                    buildOptions(search.value);
+                    updateButtonText();
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                clearAllBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const term = (search.value || '').toLowerCase();
+                    Array.from(sel.options).forEach(function(opt) {
+                        if (!opt.value && opt.text.trim() === '---------') return;
+                        if (opt.disabled) return;
+                        if (term && opt.text.toLowerCase().indexOf(term) === -1) return;
+                        opt.selected = false;
+                    });
+                    buildOptions(search.value);
+                    updateButtonText();
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                function open() {
+                    dropdown.classList.add('show');
+                    wrapper.classList.add('open');
+                    search.value = '';
+                    buildOptions('');
+                    if (window.innerWidth >= 768 && !('ontouchstart' in window)) {
+                        setTimeout(function() { search.focus(); }, 50);
+                    }
+                }
+
+                function close() {
+                    dropdown.classList.remove('show');
+                    wrapper.classList.remove('open');
+                }
+
+                function toggle() {
+                    dropdown.classList.contains('show') ? close() : open();
+                }
+
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Close any other open dropdowns (searchable-select or multi-select)
+                    document.querySelectorAll('.multi-select-dropdown.show, .searchable-select-dropdown.show').forEach(function(d) {
+                        if (d !== dropdown) {
+                            d.classList.remove('show');
+                            d.closest('.multi-select-wrapper, .searchable-select-wrapper')?.classList.remove('open');
+                        }
+                    });
+                    toggle();
+                });
+
+                search.addEventListener('input', function() {
+                    buildOptions(search.value);
+                });
+
+                search.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') close();
+                });
+
+                // Close on outside click
+                document.addEventListener('click', function(e) {
+                    if (!wrapper.contains(e.target)) close();
+                });
+
+                // Close on Escape globally
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && dropdown.classList.contains('show')) close();
+                });
+
+                // Sync if selected options change programmatically
+                sel.addEventListener('change', function() {
+                    updateButtonText();
+                    if (dropdown.classList.contains('show')) {
+                        buildOptions(search.value);
+                    }
+                });
+
+                // Initial text setup
+                updateButtonText();
+
+                // Public refresh API
+                sel.multiSelectRefresh = function() {
+                    updateButtonText();
+                    buildOptions(search.value);
+                };
+                sel.searchableSelectRefresh = sel.multiSelectRefresh;
+            });
+        }
+
+        // Run on DOM ready, expose globally, and bind to HTMX
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { initMultiSelects(); });
+        } else {
+            initMultiSelects();
+        }
+        document.addEventListener('htmx:afterSwap', function(e) {
+            initMultiSelects(e.target);
+        });
+        window.initMultiSelects = initMultiSelects;
+    })();
+    </script>
+
     <style>
-    .searchable-select-wrapper {
+    .searchable-select-wrapper,
+    .multi-select-wrapper {
         position: relative;
     }
-    .searchable-select-btn {
+    .searchable-select-btn,
+    .multi-select-btn {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         cursor: pointer;
     }
-    .searchable-select-btn:focus {
+    .searchable-select-btn:focus,
+    .multi-select-btn:focus {
         border-color: var(--bs-primary);
         box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.15);
     }
-    .searchable-select-dropdown {
+    .searchable-select-dropdown,
+    .multi-select-dropdown {
         display: none;
         position: absolute;
         top: 100%;
@@ -1695,21 +1982,39 @@
         box-shadow: 0 0.5rem 1rem rgba(0,0,0,.12);
         margin-top: 4px;
         padding: 0.5rem;
-        max-height: 280px;
+        max-height: 290px;
         overflow: hidden;
-        display: none;
     }
-    .searchable-select-dropdown.show {
+    .searchable-select-dropdown.show,
+    .multi-select-dropdown.show {
         display: block;
     }
-    .searchable-select-search {
+    .searchable-select-search,
+    .multi-select-search {
         margin-bottom: 0.4rem;
         border-radius: 0.375rem;
         font-size: 16px !important;
         height: 36px;
     }
-    .searchable-select-list {
-        max-height: 200px;
+    .multi-select-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.2rem 0.5rem 0.4rem 0.5rem;
+        margin-bottom: 0.35rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    .multi-select-actions .btn-link {
+        font-size: 0.8rem;
+        text-decoration: none;
+        color: var(--bs-primary);
+    }
+    .multi-select-actions .btn-link:hover {
+        text-decoration: underline;
+    }
+    .searchable-select-list,
+    .multi-select-list {
+        max-height: 180px;
         overflow-y: auto;
         scrollbar-width: thin;
     }
@@ -1720,27 +2025,60 @@
         font-size: 1rem;
         transition: background 0.12s;
     }
-    .searchable-select-item:hover {
+    .searchable-select-item:hover,
+    .multi-select-item:hover {
         background: var(--bs-primary-bg-subtle);
     }
-    .searchable-select-item.active {
+    .searchable-select-item.active,
+    .multi-select-item.active {
         background: var(--bs-primary-bg-subtle);
         color: var(--bs-primary);
         font-weight: 600;
     }
-    .searchable-select-empty {
+    .searchable-select-item.disabled,
+    .multi-select-item.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    .multi-select-item {
+        padding: 0.4rem 0.65rem;
+        cursor: pointer;
+        border-radius: 0.375rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background 0.12s;
+        user-select: none;
+    }
+    .multi-select-item .form-check-input {
+        cursor: pointer;
+        margin: 0;
+        flex-shrink: 0;
+    }
+    .multi-select-item-text {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .searchable-select-empty,
+    .multi-select-empty {
         padding: 0.75rem;
         text-align: center;
         color: var(--bs-secondary-color);
         font-size: 0.85rem;
     }
-    .searchable-select-header {
+    .searchable-select-header,
+    .multi-select-header {
         background-color: var(--bs-tertiary-bg, #f8f9fa);
         color: var(--bs-secondary-color, #6c757d);
         font-size: 0.75rem;
         letter-spacing: 0.5px;
     }
-    [data-bs-theme="dark"] .searchable-select-header {
+    [data-bs-theme="dark"] .searchable-select-header,
+    [data-bs-theme="dark"] .multi-select-header {
         background-color: rgba(255, 255, 255, 0.06) !important;
         color: #9ca3af !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -2021,7 +2359,7 @@
                 touchStartY = e.touches[0].clientY;
                 touchStartScrollTop = drawerBody ? drawerBody.scrollTop : 0;
                 isHandleOrHeaderTouch = !!e.target.closest('.mobile-filter-drawer__handle, .mobile-filter-drawer__header');
-                isDropdownOrInputTouch = !!e.target.closest('.dropdown-menu, .multiselect-container, select, input, option, label');
+                isDropdownOrInputTouch = !!e.target.closest('.dropdown-menu, .multiselect-container, .multi-select-dropdown, .searchable-select-dropdown, select, input, option, label');
             }, { passive: true });
 
             drawer.addEventListener('touchend', function (e) {

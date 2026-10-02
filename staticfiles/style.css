@@ -2051,34 +2051,46 @@ a:hover {
 }
 
 /* Ensure the body and main content respect safe areas */
-.is-mobile-app body {
+.is-mobile-app body,
+html.is-mobile-app body {
   padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px) + 1rem) !important;
 }
 
-.is-mobile-app main {
+.is-mobile-app main,
+html.is-mobile-app main {
   padding-top: calc(env(safe-area-inset-top, 44px) + 0.5rem) !important; /* The navbar already has safe-area-inset-top */
 }
 
 /* Specific fix for authenticated users where the top navbar is hidden on mobile */
-.is-mobile-app.is-authenticated main {
-    padding-top: calc(env(safe-area-inset-top, 20px) + 0.75rem) !important;
+.is-mobile-app.is-authenticated main,
+.is-mobile-app .is-authenticated main,
+html.is-mobile-app body.is-authenticated main,
+body.has-sidebar.is-mobile-app main,
+html.is-mobile-app body.has-sidebar main {
+    padding-top: calc(env(safe-area-inset-top, 44px) + 0.75rem) !important;
 }
 
 /* Adjust sticky top position if needed and remove notch blur in PWA / mobile app mode */
-.is-mobile-app .navbar.sticky-top {
+.is-mobile-app .navbar.sticky-top,
+html.is-mobile-app .navbar.sticky-top {
   top: 0;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
-@media (display-mode: standalone), (max-width: 991.98px) {
-  *, *::before, *::after {
+@media (display-mode: standalone) {
+  .navbar,
+  .navbar.sticky-top,
+  .mobile-bottom-nav {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
 }
 
-html.is-mobile-app *,
-.is-mobile-app *,
-body.is-mobile-app * {
+html.is-mobile-app .navbar,
+html.is-mobile-app .navbar.sticky-top,
+.is-mobile-app .navbar,
+.is-mobile-app .navbar.sticky-top {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }

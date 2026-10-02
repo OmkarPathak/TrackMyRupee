@@ -1,10 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n expense_extras static %}
 
-{% block extra_head %}
-    {% include 'components/multiselect_assets.html' %}
-{% endblock %}
-
 {% block content %}
 <style>
     .border-teal { border-color: #0F7657 !important; }
@@ -634,46 +630,12 @@
                     initVisualSelectors(newForm);
                 }
 
-                // Re-init multiselect for the new row
-                if (categoryWrapper) {
-                    const newSelect = categoryWrapper.querySelector('select');
-                    if (newSelect && $(newSelect).hasClass('django-multi-select')) {
-                         // Check size
-                         const isSmall = $(newSelect).hasClass('form-select-sm') || $(newSelect).hasClass('form-control-sm');
-                         const sizeClass = isSmall ? 'form-select-sm' : '';
-
-                         $(newSelect).multiselect({
-                            buttonWidth: '100%',
-                            nonSelectedText: "{% trans 'Select...' %}",
-                            nSelectedText: " {% trans '- Selected' %}",
-                            allSelectedText: "{% trans 'All Selected' %}",
-                            numberDisplayed: 1,
-                            includeSelectAllOption: true,
-                            enableFiltering: true,
-                            enableCaseInsensitiveFiltering: true,
-                            filterPlaceholder: "{% trans 'Search...' %}",
-                            buttonClass: `form-select multiselect-btn ${sizeClass} text-start`,
-                            inheritClass: false,
-                            templates: {
-                                button: '<button type="button" class="multiselect dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport"><span class="multiselect-selected-text"></span></button>',
-                                option: '<div class="multiselect-option" style="padding: 0.25rem 0.25rem 0.25rem 0.75rem; cursor: pointer;"></div>'
-                            },
-                             onInitialized: function(select, container) {
-                                const button = container.find('button');
-                                button.removeClass('btn btn-default btn-outline-secondary');
-                                button.addClass('form-select multiselect-btn');
-                                if (isSmall) button.addClass('form-select-sm');
-                                
-                                // Fix for options having icons
-                                container.find('input').removeClass('form-select');
-                            }
-                        });
-                    }
+                // Re-init multiselect and searchable selects for the new row
+                if (typeof window.initMultiSelects === 'function') {
+                    window.initMultiSelects(newForm);
                 }
-
-                // Re-init searchable selects for the new row (account dropdown)
                 if (typeof window.initSearchableSelects === 'function') {
-                    window.initSearchableSelects();
+                    window.initSearchableSelects(newForm);
                 }
             });
         }
@@ -826,29 +788,23 @@
                             select.innerHTML = '';
                             options.forEach(opt => select.add(opt));
 
-                            // Rebuild bootstrap-multiselect to reflect the new option
-                            if ($(select).hasClass('django-multi-select')) {
-                                $(select).multiselect('rebuild');
+                            // Refresh component to reflect the new option
+                            if (typeof select.searchableSelectRefresh === 'function') {
+                                select.searchableSelectRefresh();
+                            } else if (typeof select.multiSelectRefresh === 'function') {
+                                select.multiSelectRefresh();
                             }
                         });
 
                         // Auto-select the new category in the active/last row
-                        if (activeSelectId) {
-                            const activeEl = document.getElementById(activeSelectId);
-                            if (activeEl) {
-                                activeEl.value = data.name;
-                                if ($(activeEl).hasClass('django-multi-select')) {
-                                    $(activeEl).multiselect('select', data.name);
-                                }
-                            }
-                        } else {
-                            // If no specific row targeted, select in first row's dropdown
-                            const firstSelect = document.querySelector('select[name*="category"]');
-                            if (firstSelect) {
-                                firstSelect.value = data.name;
-                                if ($(firstSelect).hasClass('django-multi-select')) {
-                                    $(firstSelect).multiselect('select', data.name);
-                                }
+                        const targetSelect = activeSelectId ? document.getElementById(activeSelectId) : document.querySelector('select[name*="category"]');
+                        if (targetSelect) {
+                            targetSelect.value = data.name;
+                            targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            if (typeof targetSelect.searchableSelectRefresh === 'function') {
+                                targetSelect.searchableSelectRefresh();
+                            } else if (typeof targetSelect.multiSelectRefresh === 'function') {
+                                targetSelect.multiSelectRefresh();
                             }
                         }
 
@@ -935,13 +891,11 @@
                                             opt.value.toLowerCase() === data.category.toLowerCase()) {
                                             categorySelect.selectedIndex = i;
                                             
-                                            // Synchronize bootstrap-multiselect UI
-                                            if ($(categorySelect).hasClass('django-multi-select')) {
-                                                $(categorySelect).multiselect('select', opt.value);
-                                            }
-                                            
-                                            // Sync frequent category tiles
+                                            // Sync searchable select and frequent category tiles
                                             categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                            if (typeof categorySelect.searchableSelectRefresh === 'function') {
+                                                categorySelect.searchableSelectRefresh();
+                                            }
                                             
                                             found = true;
                                             
@@ -1040,11 +994,8 @@
                 // Initial update
                 updateActive();
                 
-                // Listen for changes on the underlying select (native + jQuery for multiselect)
+                // Listen for changes on the underlying select
                 targetSelect.addEventListener('change', updateActive);
-                if (typeof $ !== 'undefined') {
-                    $(targetSelect).on('change', updateActive);
-                }
 
                 items.forEach(item => {
                     item.addEventListener('click', function(e) {
@@ -1053,10 +1004,8 @@
                         targetSelect.value = val;
                         // Trigger change event manually to update UI
                         targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                        
-                        // Handle bootstrap-multiselect if present
-                        if ($(targetSelect).hasClass('django-multi-select')) {
-                            $(targetSelect).multiselect('select', val);
+                        if (typeof targetSelect.searchableSelectRefresh === 'function') {
+                            targetSelect.searchableSelectRefresh();
                         }
                     });
                 });
@@ -1156,9 +1105,8 @@
                                 categorySelect.classList.add('parse-highlight');
                                 setTimeout(() => categorySelect.classList.remove('parse-highlight'), 1500);
 
-                                // Sync multiselect if present
-                                if (typeof $ !== 'undefined' && $(categorySelect).hasClass('django-multi-select')) {
-                                    $(categorySelect).multiselect('select', categorySelect.options[i].value);
+                                if (typeof categorySelect.searchableSelectRefresh === 'function') {
+                                    categorySelect.searchableSelectRefresh();
                                 }
                                 break;
                             }
