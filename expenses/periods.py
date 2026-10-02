@@ -188,6 +188,12 @@ def get_cycle_context(user: Any = None, today: Optional[date] = None) -> dict:
     cal_start = today.replace(day=1)
     cal_end = today.replace(day=last_day_curr)
     calendar_month_range = f"{cal_start.strftime('%d %b')} – {cal_end.strftime('%d %b')}"
+
+    first_day_this_month = today.replace(day=1)
+    last_day_last_month = first_day_this_month - timedelta(days=1)
+    last_month_start = last_day_last_month.replace(day=1)
+    last_month_range = f"{last_month_start.strftime('%d %b')} – {last_day_last_month.strftime('%d %b')}"
+
     last_90_start = today - timedelta(days=90)
     last_3_months_range = f"{last_90_start.strftime('%d %b')} – {today.strftime('%d %b')}"
     this_year_range = "01 Jan – 31 Dec"
@@ -210,6 +216,7 @@ def get_cycle_context(user: Any = None, today: Optional[date] = None) -> dict:
             'prev_cycle_end': p_end,
             'prev_cycle_range': f"{p_start.strftime('%d %b')} – {p_end.strftime('%d %b')}",
             'calendar_month_range': calendar_month_range,
+            'last_month_range': last_month_range,
             'last_3_months_range': last_3_months_range,
             'this_year_range': this_year_range,
             'cycle_day': elapsed_days,
@@ -223,10 +230,11 @@ def get_cycle_context(user: Any = None, today: Optional[date] = None) -> dict:
         'cycle_start': cal_start,
         'cycle_end': cal_end,
         'cycle_range': '',
-        'prev_cycle_start': None,
-        'prev_cycle_end': None,
-        'prev_cycle_range': '',
+        'prev_cycle_start': last_month_start,
+        'prev_cycle_end': last_day_last_month,
+        'prev_cycle_range': last_month_range,
         'calendar_month_range': calendar_month_range,
+        'last_month_range': last_month_range,
         'last_3_months_range': last_3_months_range,
         'this_year_range': this_year_range,
         'cycle_day': 0,

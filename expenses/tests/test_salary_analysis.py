@@ -368,6 +368,8 @@ class SalaryDateFormTest(TestCase):
         self.assertFalse(ctx['cycle_active'])
         self.assertEqual(ctx['salary_date'], 1)
         self.assertEqual(ctx['cycle_range'], '')
+        self.assertEqual(ctx['last_month_range'], '01 Sep – 30 Sep')
+        self.assertEqual(ctx['prev_cycle_range'], '01 Sep – 30 Sep')
 
     def test_get_cycle_context_active_custom_salary_date(self):
         """Test get_cycle_context for a user with salary_date=7."""
@@ -383,6 +385,7 @@ class SalaryDateFormTest(TestCase):
         self.assertEqual(ctx['cycle_range'], '07 Sep – 06 Oct')
         self.assertEqual(ctx['prev_cycle_range'], '07 Aug – 06 Sep')
         self.assertEqual(ctx['calendar_month_range'], '01 Oct – 31 Oct')
+        self.assertEqual(ctx['last_month_range'], '01 Sep – 30 Sep')
 
     def test_resolve_period_calendar_month(self):
         """Test resolve_period for calendar_month and calendar_last_month."""

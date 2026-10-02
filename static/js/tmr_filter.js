@@ -98,6 +98,7 @@ class TMRFilterSystem {
       cycle_range: rawState.cycle_range || (this.state && this.state.cycle_range) || '',
       prev_cycle_range: rawState.prev_cycle_range || (this.state && this.state.prev_cycle_range) || '',
       calendar_month_range: rawState.calendar_month_range || (this.state && this.state.calendar_month_range) || '',
+      last_month_range: rawState.last_month_range || (this.state && this.state.last_month_range) || '',
       last_3_months_range: rawState.last_3_months_range || (this.state && this.state.last_3_months_range) || '',
       this_year_range: rawState.this_year_range || (this.state && this.state.this_year_range) || '',
       cycle_day: rawState.cycle_day !== undefined ? rawState.cycle_day : ((this.state && this.state.cycle_day) || 0),
@@ -921,11 +922,15 @@ class TMRFilterSystem {
     const calStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const calEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const defaultCalMonthRange = `${formatShort(calStart)} – ${formatShort(calEnd)}`;
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const defaultLastMonthRange = `${formatShort(lastMonthStart)} – ${formatShort(lastMonthEnd)}`;
     const last3Start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     const defaultLast3Range = `${formatShort(last3Start)} – ${formatShort(now)}`;
     const defaultThisYearRange = '01 Jan – 31 Dec';
 
     const calMonthRange = this.state.calendar_month_range || defaultCalMonthRange;
+    const lastMonthRange = this.state.last_month_range || defaultLastMonthRange;
     const last3MonthsRange = this.state.last_3_months_range || defaultLast3Range;
     const thisYearRange = this.state.this_year_range || defaultThisYearRange;
 
@@ -1091,6 +1096,7 @@ class TMRFilterSystem {
               }
               <span class="tmr-item-label">Last month</span>
             </div>
+            <span class="tmr-item-range">${lastMonthRange}</span>
           </div>
         </li>
 
@@ -1225,17 +1231,17 @@ class TMRFilterSystem {
             if (this.state.cycle_active) {
               if (key === 'this_month') {
                 labelSpan.innerHTML = this.state.cycle_range 
-                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Salary Cycle ·&nbsp;</span>${this.state.cycle_range}` 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Salary Cycle •&nbsp;</span>${this.state.cycle_range}` 
                   : 'Salary Cycle';
                 isCycle = true;
               } else if (key === 'last_month') {
                 labelSpan.innerHTML = this.state.prev_cycle_range 
-                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Previous Cycle ·&nbsp;</span>${this.state.prev_cycle_range}` 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Previous Cycle •&nbsp;</span>${this.state.prev_cycle_range}` 
                   : 'Previous Cycle';
                 isCycle = true;
               } else if (key === 'calendar_month') {
                 labelSpan.innerHTML = this.state.calendar_month_range 
-                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month ·&nbsp;</span>${this.state.calendar_month_range}` 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month •&nbsp;</span>${this.state.calendar_month_range}` 
                   : 'Calendar Month';
               } else if (key === 'last_3_months') {
                 labelSpan.textContent = 'Last 3 months';
