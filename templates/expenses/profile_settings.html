@@ -93,5 +93,21 @@
         </form>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            try {
+                Object.keys(sessionStorage).forEach(function(k) {
+                    if (k && k.indexOf('tmr_filters:') === 0) {
+                        sessionStorage.removeItem(k);
+                    }
+                });
+            } catch (e) {}
+        });
+    }
+});
+</script>
 {% endblock %}
 

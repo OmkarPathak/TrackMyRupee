@@ -14,7 +14,8 @@ class TMRFilterSystem {
     this.chipRow = document.getElementById(`tmr-chip-row-${pageKey}`);
 
     this.config = this.configScript ? JSON.parse(this.configScript.textContent) : {};
-    this.state = this.stateScript ? JSON.parse(this.stateScript.textContent) : {};
+    this.serverState = this.stateScript ? JSON.parse(this.stateScript.textContent) : {};
+    this.state = this.sanitizeState(this.serverState);
 
     this.activePopover = null;
     this.dynamicOptionsCache = {};
@@ -88,23 +89,25 @@ class TMRFilterSystem {
   }
 
   sanitizeState(rawState) {
+    const s = this.serverState || {};
     const clean = {
       search: rawState.search || '',
       time_period: rawState.time_period || this.config.default_time_range || 'this_month',
       start_date: rawState.start_date || '',
       end_date: rawState.end_date || '',
       sort: rawState.sort || this.config.default_sort || 'date_desc',
-      cycle_active: rawState.cycle_active !== undefined ? rawState.cycle_active : ((this.state && this.state.cycle_active) || false),
-      cycle_range: rawState.cycle_range || (this.state && this.state.cycle_range) || '',
-      prev_cycle_range: rawState.prev_cycle_range || (this.state && this.state.prev_cycle_range) || '',
-      calendar_month_range: rawState.calendar_month_range || (this.state && this.state.calendar_month_range) || '',
-      last_month_range: rawState.last_month_range || (this.state && this.state.last_month_range) || '',
-      last_3_months_range: rawState.last_3_months_range || (this.state && this.state.last_3_months_range) || '',
-      this_year_range: rawState.this_year_range || (this.state && this.state.this_year_range) || '',
-      cycle_day: rawState.cycle_day !== undefined ? rawState.cycle_day : ((this.state && this.state.cycle_day) || 0),
-      cycle_total_days: rawState.cycle_total_days !== undefined ? rawState.cycle_total_days : ((this.state && this.state.cycle_total_days) || 0),
-      cycle_pct: rawState.cycle_pct !== undefined ? rawState.cycle_pct : ((this.state && this.state.cycle_pct) || 0),
-      salary_date: rawState.salary_date || (this.state && this.state.salary_date) || 1,
+      cycle_active: s.cycle_active !== undefined ? s.cycle_active : (rawState.cycle_active || false),
+      cycle_range: s.cycle_range !== undefined ? s.cycle_range : (rawState.cycle_range || ''),
+      prev_cycle_range: s.prev_cycle_range !== undefined ? s.prev_cycle_range : (rawState.prev_cycle_range || ''),
+      calendar_month_range: s.calendar_month_range !== undefined ? s.calendar_month_range : (rawState.calendar_month_range || ''),
+      last_month_range: s.last_month_range !== undefined ? s.last_month_range : (rawState.last_month_range || ''),
+      last_3_months_range: s.last_3_months_range !== undefined ? s.last_3_months_range : (rawState.last_3_months_range || ''),
+      this_year_range: s.this_year_range !== undefined ? s.this_year_range : (rawState.this_year_range || ''),
+      cycle_day: s.cycle_day !== undefined ? s.cycle_day : (rawState.cycle_day || 0),
+      cycle_total_days: s.cycle_total_days !== undefined ? s.cycle_total_days : (rawState.cycle_total_days || 0),
+      cycle_pct: s.cycle_pct !== undefined ? s.cycle_pct : (rawState.cycle_pct || 0),
+      salary_date: s.salary_date !== undefined ? s.salary_date : (rawState.salary_date || 1),
+      is_current_period_cycle: s.is_current_period_cycle !== undefined ? s.is_current_period_cycle : (rawState.is_current_period_cycle || false),
       filters: {},
     };
 
@@ -137,7 +140,15 @@ class TMRFilterSystem {
   }
 
   saveStateToStorage() {
-    sessionStorage.setItem(this.storageKey, JSON.stringify(this.state));
+    const toStore = {
+      search: this.state.search,
+      time_period: this.state.time_period,
+      start_date: this.state.start_date,
+      end_date: this.state.end_date,
+      sort: this.state.sort,
+      filters: this.state.filters,
+    };
+    sessionStorage.setItem(this.storageKey, JSON.stringify(toStore));
   }
 
   hasActiveFilters(state) {
@@ -338,7 +349,25 @@ class TMRFilterSystem {
             labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month •&nbsp;</span>${this.state.calendar_month_range}`;
             if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
           }
+        } else {
+          if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
+          if (this.state.time_period === 'this_month') {
+            labelSpan.textContent = 'This month';
+          } else if (this.state.time_period === 'last_month') {
+            labelSpan.textContent = 'Last month';
+          } else if (this.state.time_period === 'last_3_months') {
+            labelSpan.textContent = 'Last 3 months';
+          } else if (this.state.time_period === 'this_year') {
+            labelSpan.textContent = 'This year';
+          } else if (this.state.time_period === 'all') {
+            labelSpan.textContent = 'All time';
+          }
         }
+      }
+      if (this.state.cycle_active && this.state.cycle_range) {
+        timeBtn.title = `Salary cycle active (Day ${this.state.salary_date || 1}): ${this.state.cycle_range}`;
+      } else {
+        timeBtn.title = 'Time period';
       }
       timeBtn.addEventListener('click', (e) => {
         e.stopPropagation();

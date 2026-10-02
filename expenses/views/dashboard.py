@@ -91,6 +91,11 @@ def home_view(request):
     if home_cache_key:
         cached_context = cache.get(home_cache_key)
         if cached_context is not None:
+            user_salary_date = getattr(getattr(request.user, 'profile', None), 'salary_date', 1) or 1
+            if cached_context.get('salary_date', 1) != user_salary_date:
+                cached_context = None
+                cache.delete(home_cache_key)
+        if cached_context is not None:
             context = dict(cached_context)
             # Refresh the handful of fields that are request/profile-specific and must never be stale.
             context['is_net_worth_locked'] = not request.user.profile.has_net_worth_access
