@@ -1,15 +1,19 @@
 from datetime import date
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.core.cache import cache
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from expenses.forms import CustomSignupForm
 from expenses.models import Expense, UserProfile
+from expenses.views.settings import dispatch_account_deletion
 
 
 class DPDPAComplianceTestCase(TestCase):
     def setUp(self):
+        cache.clear()
         self.user = User.objects.create_user(username='consentuser', email='consent@example.com', password='password123')
         self.client = Client()
         # By default, a newly created user profile starts with consent_granted = False
@@ -105,9 +109,11 @@ class DPDPAComplianceTestCase(TestCase):
         self.profile.refresh_from_db()
         self.assertFalse(self.profile.consent_granted)
 
+    @override_settings(ACCOUNT_DELETION_ASYNC=False)
     def test_withdraw_consent_deletes_account(self):
         """Test that withdrawing consent deletes the user account, logs audit record, sends confirmation email, and redirects."""
         from django.core import mail
+        from django.contrib.messages import get_messages
 
         from expenses.models import DeletionRequestAuditLog
 
@@ -128,6 +134,10 @@ class DPDPAComplianceTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.endswith(reverse('landing')))
 
+        # Verify message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('initiated' in m.message.lower() for m in messages))
+
         # Check that user and all data is deleted
         self.assertFalse(User.objects.filter(username='consentuser').exists())
         self.assertEqual(Expense.objects.count(), 0)
@@ -144,9 +154,11 @@ class DPDPAComplianceTestCase(TestCase):
         self.assertIn('retained for 5 years', email.body)
         self.assertIn('cannot be deleted on request', email.body)
 
+    @override_settings(ACCOUNT_DELETION_ASYNC=False)
     def test_account_delete_logs_audit_and_sends_email(self):
         """Test that deleting account logs audit record, sends confirmation email, and redirects."""
         from django.core import mail
+        from django.contrib.messages import get_messages
 
         from expenses.models import DeletionRequestAuditLog
 
@@ -158,6 +170,10 @@ class DPDPAComplianceTestCase(TestCase):
         response = self.client.post(reverse('user-delete'))
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.endswith(reverse('landing')))
+
+        # Verify message indicates deletion has been initiated
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('initiated' in m.message.lower() for m in messages))
 
         # Check that user is deleted
         self.assertFalse(User.objects.filter(username='consentuser').exists())
@@ -171,6 +187,67 @@ class DPDPAComplianceTestCase(TestCase):
         self.assertEqual(email.to, ['consent@example.com'])
         self.assertEqual(email.subject, 'Account Deleted - TrackMyRupee')
         self.assertIn('Your account has been deleted. All personal data will be permanently removed within 7 days.', email.body)
+
+    @override_settings(ACCOUNT_DELETION_ASYNC=False)
+    @patch.object(User, 'delete', side_effect=Exception("Simulated database failure during deletion"))
+    def test_account_delete_failure_does_not_log_or_send_email(self, mock_delete):
+        """If user.delete() raises an exception, no audit log is created and no email is sent."""
+        from django.core import mail
+
+        from expenses.models import DeletionRequestAuditLog
+
+        self.client.login(username='consentuser', password='password123')
+        mail.outbox = []
+
+        response = self.client.post(reverse('user-delete'))
+        self.assertEqual(response.status_code, 302)
+
+        # DeletionRequestAuditLog must NOT be created
+        self.assertFalse(DeletionRequestAuditLog.objects.filter(username='consentuser').exists())
+
+        # Email must NOT be sent
+        self.assertEqual(len(mail.outbox), 0)
+
+        # User record should still exist
+        self.assertTrue(User.objects.filter(username='consentuser').exists())
+
+    @override_settings(ACCOUNT_DELETION_ASYNC=False)
+    @patch.object(User, 'delete', side_effect=Exception("Simulated database failure during withdraw consent"))
+    def test_withdraw_consent_failure_does_not_log_or_send_email(self, mock_delete):
+        """If user.delete() raises during consent withdrawal, no audit log or email is created."""
+        from django.core import mail
+
+        from expenses.models import DeletionRequestAuditLog
+
+        self.client.login(username='consentuser', password='password123')
+        mail.outbox = []
+
+        response = self.client.post(reverse('withdraw-consent'))
+        self.assertEqual(response.status_code, 302)
+
+        # DeletionRequestAuditLog must NOT be created
+        self.assertFalse(DeletionRequestAuditLog.objects.filter(username='consentuser').exists())
+
+        # Email must NOT be sent
+        self.assertEqual(len(mail.outbox), 0)
+
+        # User record should still exist
+        self.assertTrue(User.objects.filter(username='consentuser').exists())
+
+    def test_concurrency_lock_prevents_duplicate_deletion(self):
+        """dispatch_account_deletion rejects duplicate requests if a lock already exists."""
+        lock_key = f'account_deletion_lock_{self.user.id}'
+        cache.set(lock_key, 1, timeout=600)
+
+        # Dispatch should reject running
+        dispatched = dispatch_account_deletion(self.user.id)
+        self.assertFalse(dispatched)
+
+        # Form submission should warn about account deletion in progress
+        self.client.login(username='consentuser', password='password123')
+        response = self.client.post(reverse('user-delete'), follow=True)
+        messages = list(response.context['messages'])
+        self.assertTrue(any('already in progress' in m.message.lower() for m in messages))
 
     def test_settings_home_shows_dpdpa_summary(self):
         """Test that the settings home view includes DPDPA user data summary in its context and template."""

@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from expenses.models import (
@@ -47,6 +47,7 @@ class SettingsViewTest(BaseFeatureTest):
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.currency, '$')
 
+    @override_settings(ACCOUNT_DELETION_ASYNC=False)
     def test_user_delete(self):
         url = reverse('user-delete')
         response = self.client.get(url)

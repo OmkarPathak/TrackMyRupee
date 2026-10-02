@@ -30,9 +30,13 @@ from ..signals import invalidate_dashboard_cache
 logger = logging.getLogger(__name__)
 
 
-def log_and_notify_deletion(user):
-    username = user.username
-    email = user.email
+def log_and_notify_deletion(user=None, username=None, email=None):
+    if user is not None and hasattr(user, 'username'):
+        username = user.username
+        email = user.email
+    elif isinstance(user, str):
+        email = username
+        username = user
 
     # 1. Log the deletion request
     DeletionRequestAuditLog.objects.create(email=email, username=username)
@@ -61,6 +65,65 @@ def log_and_notify_deletion(user):
             logger.info(f"Account deletion confirmation email sent to {email}")
         except Exception as e:
             logger.error(f"Failed to send account deletion email to {email}: {e}")
+
+
+def delete_user_account(user_id):
+    """
+    Deletes the user and all associated data inside an atomic transaction.
+    Upon successful deletion, records an audit log entry and sends a confirmation email.
+    If deletion fails, logs the exception and does not create an audit entry or send an email.
+    """
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        logger.error(f"User {user_id} does not exist for account deletion")
+        return False
+
+    username = user.username
+    email = user.email
+
+    try:
+        with transaction.atomic():
+            user.delete()
+        log_and_notify_deletion(username=username, email=email)
+        logger.info(f"Successfully deleted account for user {user_id} ({username})")
+        return True
+    except Exception as e:
+        logger.exception(f"Account deletion failed for user {user_id} ({username}): {e}")
+        return False
+    finally:
+        cache.delete(f'account_deletion_lock_{user_id}')
+
+
+def dispatch_account_deletion(user_id, run_async=None):
+    """
+    Guarded by a user-scoped cache lock to prevent overlapping runs.
+    Dispatches delete_user_account in a background thread by default.
+    """
+    lock_key = f'account_deletion_lock_{user_id}'
+    if not cache.add(lock_key, 1, timeout=600):
+        logger.warning(f"Account deletion already in progress for user {user_id}")
+        return False
+
+    if run_async is None:
+        run_async = getattr(django_settings, 'ACCOUNT_DELETION_ASYNC', True)
+
+    def _run():
+        try:
+            delete_user_account(user_id)
+        finally:
+            cache.delete(lock_key)
+
+    if not run_async:
+        _run()
+        return True
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+    return True
 
 
 class SettingsHomeView(LoginRequiredMixin, TemplateView):
@@ -96,11 +159,14 @@ class UserDeleteView(LoginRequiredMixin, DeleteView):
 
     def form_valid(self, form):
         user = self.get_object()
-        log_and_notify_deletion(user)
-        ph_capture(user, 'account_deleted', {})
+        user_id = user.id
+        dispatched = dispatch_account_deletion(user_id)
         logout(self.request)
-        user.delete()
-        messages.success(self.request, _("Your account has been deleted successfully."))
+        if dispatched:
+            ph_capture(user, 'account_deleted', {})
+            messages.success(self.request, _("Your account deletion has been initiated. You will no longer be able to log in."))
+        else:
+            messages.warning(self.request, _("Account deletion is already in progress."))
         return redirect(self.success_url)
 
 class WithdrawConsentView(LoginRequiredMixin, DeleteView):
@@ -113,10 +179,13 @@ class WithdrawConsentView(LoginRequiredMixin, DeleteView):
 
     def form_valid(self, form):
         user = self.get_object()
-        log_and_notify_deletion(user)
+        user_id = user.id
+        dispatched = dispatch_account_deletion(user_id)
         logout(self.request)
-        user.delete()
-        messages.success(self.request, _("Your consent has been withdrawn and your account and data have been permanently deleted as per DPDPA requirements."))
+        if dispatched:
+            messages.success(self.request, _("Your consent has been withdrawn and your account deletion has been initiated as per DPDPA requirements. You will no longer be able to log in."))
+        else:
+            messages.warning(self.request, _("Account deletion is already in progress."))
         return redirect(self.success_url)
 
 
