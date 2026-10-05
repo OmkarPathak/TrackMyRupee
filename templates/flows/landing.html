@@ -97,7 +97,10 @@
                         </div>
                         <div class="gfoot">
                             <span class="time">{{ flow.estimated_time }}</span>
-                            <a href="{{ flow.edit_url }}" class="gbtn secondary">{% trans "Edit existing" %}</a>
+                            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                                <a href="{{ flow.setup_url }}" class="gbtn">{% trans "New setup" %}</a>
+                                <a href="{{ flow.edit_url }}" class="gbtn secondary">{% trans "Edit existing" %}</a>
+                            </div>
                         </div>
                     </div>
                     {% endif %}

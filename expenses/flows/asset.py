@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django.urls import reverse
 
-from ..models import Account, CapitalEvent, Holding, Loan, PhysicalAsset, RecurringTransaction
+from ..models import Account, AssetValuation, CapitalEvent, Holding, Loan, PhysicalAsset, RecurringTransaction
 from .base import CreateStep, Flow, FlowWizardStep
 from .loan import NewLoanFlow
 from .registry import register_flow
@@ -67,11 +67,12 @@ class CarFlow(Flow):
     tags = [_('Vehicle'), _('Optional loan')]
     estimated_time = _('About 2 min')
     creates = [
-        _('Vehicle asset record'),
+        _('Vehicle asset record & account'),
         _('Loan + EMI, if financed'),
         _('One-time purchase entry'),
     ]
     limit_map = {
+        'accounts': Account,
         'loans': Loan,
         'recurring_transactions': RecurringTransaction,
     }
@@ -82,7 +83,10 @@ class CarFlow(Flow):
     ]
 
     def is_configured(self, user) -> bool:
-        return PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='VEHICLE').exists()
+        return (
+            PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='VEHICLE').exists()
+            or Account.objects.filter(user=user, is_active=True, account_type='VEHICLE').exists()
+        )
 
     def get_edit_url(self, user) -> str:
         return reverse('account-list')
@@ -104,6 +108,21 @@ class CarFlow(Flow):
                 'mid_tenure': False,
             }
             steps.extend(NewLoanFlow().plan(loan_data))
+            steps.append(
+                CreateStep(
+                    Account,
+                    {
+                        'user': data['user'],
+                        'name': loan_data['name'],
+                        'account_type': 'VEHICLE_LOAN',
+                        'balance': Decimal('0.00'),
+                        'currency': data['currency'],
+                        'linked_loan': '$loan',
+                        'is_active': True,
+                    },
+                    key='loan_account',
+                )
+            )
 
         steps.append(
             CreateStep(
@@ -117,6 +136,33 @@ class CarFlow(Flow):
                     'currency': data['currency'],
                 },
                 key='asset',
+            )
+        )
+        steps.append(
+            CreateStep(
+                AssetValuation,
+                {
+                    'asset': '$asset',
+                    'value': data['purchase_price'],
+                    'as_of_date': data['acquisition_date'],
+                    'source': 'Purchase',
+                },
+                key='valuation',
+            )
+        )
+        steps.append(
+            CreateStep(
+                Account,
+                {
+                    'user': data['user'],
+                    'name': data['name'],
+                    'account_type': 'VEHICLE',
+                    'balance': data['purchase_price'],
+                    'currency': data['currency'],
+                    'linked_physical_asset': '$asset',
+                    'is_active': True,
+                },
+                key='vehicle_account',
             )
         )
         steps.append(
@@ -161,7 +207,7 @@ class GoldFlow(Flow):
     tags = [_('Physical or digital'), _('Net worth')]
     estimated_time = _('Under 1 min')
     creates = [
-        _('Gold holding, valued at cost'),
+        _('Gold holding & investment account'),
     ]
     limit_map = {'accounts': Account}
     form_class = GoldFlowForm
@@ -172,11 +218,11 @@ class GoldFlow(Flow):
     def is_configured(self, user) -> bool:
         return (
             PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='GOLD').exists()
-            or Account.objects.filter(user=user, is_active=True, account_type='SGB').exists()
+            or Account.objects.filter(user=user, is_active=True, account_type__in=['GOLD', 'SGB']).exists()
         )
 
     def get_edit_url(self, user) -> str:
-        return reverse('holding-list')
+        return reverse('account-list')
 
     def plan(self, data) -> list[CreateStep]:
         if data['route'] == 'physical':
@@ -192,7 +238,42 @@ class GoldFlow(Flow):
                         'currency': data['currency'],
                     },
                     key='asset',
-                )
+                ),
+                CreateStep(
+                    AssetValuation,
+                    {
+                        'asset': '$asset',
+                        'value': data['amount'],
+                        'as_of_date': data['acquisition_date'],
+                        'source': 'Purchase',
+                    },
+                    key='valuation',
+                ),
+                CreateStep(
+                    Account,
+                    {
+                        'user': data['user'],
+                        'name': data['name'],
+                        'account_type': 'GOLD',
+                        'balance': data['amount'],
+                        'currency': data['currency'],
+                        'linked_physical_asset': '$asset',
+                        'is_active': True,
+                    },
+                    key='account',
+                ),
+                CreateStep(
+                    Holding,
+                    {
+                        'account': '$account',
+                        'instrument_name': data['name'],
+                        'instrument_type': 'OTHER',
+                        'units': Decimal('1.000000'),
+                        'avg_cost': data['amount'],
+                        'currency': data['currency'],
+                    },
+                    key='holding',
+                ),
             ]
 
         return [
@@ -213,6 +294,7 @@ class GoldFlow(Flow):
                     'account': '$account',
                     'instrument_name': data['name'],
                     'instrument_type': 'OTHER',
+                    'units': Decimal('1.000000'),
                     'avg_cost': data['amount'],
                     'currency': data['currency'],
                 },

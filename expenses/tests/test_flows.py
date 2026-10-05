@@ -350,8 +350,13 @@ class TestFlowEndpointCoverage(TestCase):
                     'acquisition_date': '2026-10-01',
                     'from_account': str(self.cash.id),
                 },
-                lambda: self.assertTrue(
-                    PhysicalAsset.objects.filter(user=self.user, name='Audit Car', asset_class='VEHICLE').exists()
+                lambda: (
+                    self.assertTrue(
+                        PhysicalAsset.objects.filter(user=self.user, name='Audit Car', asset_class='VEHICLE').exists()
+                    ),
+                    self.assertTrue(
+                        Account.objects.filter(user=self.user, name='Audit Car', account_type='VEHICLE').exists()
+                    ),
                 ),
             ),
             (
@@ -362,8 +367,13 @@ class TestFlowEndpointCoverage(TestCase):
                     'amount': '120000',
                     'acquisition_date': '2026-10-01',
                 },
-                lambda: self.assertTrue(
-                    PhysicalAsset.objects.filter(user=self.user, name='Audit Gold', asset_class='GOLD').exists()
+                lambda: (
+                    self.assertTrue(
+                        PhysicalAsset.objects.filter(user=self.user, name='Audit Gold', asset_class='GOLD').exists()
+                    ),
+                    self.assertTrue(
+                        Account.objects.filter(user=self.user, name='Audit Gold', account_type='GOLD').exists()
+                    ),
                 ),
             ),
             (
