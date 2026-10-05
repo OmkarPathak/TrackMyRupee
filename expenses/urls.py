@@ -91,6 +91,8 @@ urlpatterns = [
 
     # TMR Flows
     path('flows/', views.FlowLandingView.as_view(), name='tmr-flows'),
+    path('flows/landing/', views.FlowLandingView.as_view(), name='flow-landing'),
+
     path('flows/<str:key>/', views.FlowDetailView.as_view(), name='flow-detail'),
     path('flows/<str:key>/preview/', views.FlowPreviewView.as_view(), name='flow-preview'),
     path('flows/<str:key>/commit/', views.FlowCommitView.as_view(), name='flow-commit'),

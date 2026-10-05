@@ -1279,3 +1279,166 @@ class TestFlowLimitEnforcementAndHardening(TestCase):
         self.assertEqual(Decimal(str(preview['headline'])), round(principal + expected_interest, 2))
 
 
+class TestFlowLandingPageAndConfiguredStatus(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='landing-user', password='pass')
+        self.profile, _ = UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
+        self.cash = Account.objects.create(
+            user=self.user, name='Cash', account_type='CASH_WALLET', balance=Decimal('100000.00'), currency='₹'
+        )
+
+    def test_is_configured_detects_legacy_and_preexisting_records(self):
+        all_flows = FlowRegistry.all()
+        # Initial state: only a cash wallet exists, none of the 11 flows should be configured
+        for key, flow in all_flows.items():
+            self.assertFalse(flow.is_configured(self.user), f"Flow '{key}' should not be configured initially")
+
+        # 1. CreditCardFlow
+        Account.objects.create(user=self.user, name='Visa', account_type='CREDIT_CARD', is_active=True)
+        self.assertTrue(all_flows['creditcard'].is_configured(self.user))
+
+        # 2. SalaryFlow
+        RecurringTransaction.objects.create(
+            user=self.user, transaction_type='INCOME', source='Salary', amount=Decimal('50000.00'),
+            account=self.cash, start_date=date.today()
+        )
+        self.assertTrue(all_flows['salary'].is_configured(self.user))
+
+        # 3. NewLoanFlow
+        Loan.objects.create(
+            user=self.user, name='Home Loan', loan_type='HOME', initial_principal=Decimal('1000000.00'),
+            duration_months=120, is_active=True
+        )
+        self.assertTrue(all_flows['loan'].is_configured(self.user))
+
+
+        # 4. RentBillFlow
+        RecurringTransaction.objects.create(
+            user=self.user, transaction_type='EXPENSE', category='Rent', amount=Decimal('20000.00'),
+            account=self.cash, start_date=date.today()
+        )
+        self.assertTrue(all_flows['rentbill'].is_configured(self.user))
+
+        # 5. InsuranceFlow
+        PhysicalAsset.objects.create(
+            user=self.user, name='Term Plan', asset_class='INSURANCE', acquisition_cost=Decimal('10000.00'),
+            acquisition_date=date.today(), is_active=True
+        )
+        self.assertTrue(all_flows['insurance'].is_configured(self.user))
+
+        # 6. SipRdFlow
+        Account.objects.create(user=self.user, name='Index Fund', account_type='MUTUAL_FUND', is_active=True)
+        self.assertTrue(all_flows['sip'].is_configured(self.user))
+
+        # 7. FdFlow
+        Account.objects.create(user=self.user, name='Bank FD', account_type='FD', is_active=True)
+        self.assertTrue(all_flows['fd'].is_configured(self.user))
+
+        # 8. PpfEpfNpsFlow
+        Account.objects.create(user=self.user, name='PPF Account', account_type='PPF', is_active=True)
+        self.assertTrue(all_flows['ppfepfnps'].is_configured(self.user))
+
+        # 9. SavingsGoalFlow
+        SavingsGoal.objects.create(user=self.user, name='Vacation', target_amount=Decimal('50000.00'))
+        self.assertTrue(all_flows['savingsgoal'].is_configured(self.user))
+
+        # 10. CarFlow
+        PhysicalAsset.objects.create(
+            user=self.user, name='Sedan', asset_class='VEHICLE', acquisition_cost=Decimal('600000.00'),
+            acquisition_date=date.today(), is_active=True
+        )
+        self.assertTrue(all_flows['car'].is_configured(self.user))
+
+        # 11. GoldFlow
+        PhysicalAsset.objects.create(
+            user=self.user, name='Gold Coins', asset_class='GOLD', acquisition_cost=Decimal('50000.00'),
+            acquisition_date=date.today(), is_active=True
+        )
+        self.assertTrue(all_flows['gold'].is_configured(self.user))
+
+        # All 11 flows configured now
+        for key, flow in all_flows.items():
+            self.assertTrue(flow.is_configured(self.user), f"Flow '{key}' should now be configured")
+
+    def test_landing_page_zero_configured(self):
+        clean_user = User.objects.create_user(username='clean-user', password='pass')
+        UserProfile.objects.get_or_create(user=clean_user, defaults={'currency': '₹'})
+        self.client.force_login(clean_user)
+
+        response = self.client.get(reverse('flow-landing'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['configured_count'], 0)
+        self.assertEqual(response.context['pct_configured'], 0)
+        self.assertEqual(response.context['total_count'], 11)
+
+        # Section 1 rendered, Section 2 omitted
+        self.assertContains(response, 'Set up a new flow')
+        self.assertContains(response, "Don't see your situation?")
+        self.assertContains(response, "What one form creates")
+        self.assertNotContains(response, "Already set up")
+
+    def test_landing_page_all_configured(self):
+        # Configure all 11 flows for self.user
+        Account.objects.create(user=self.user, name='Visa', account_type='CREDIT_CARD', is_active=True)
+        RecurringTransaction.objects.create(
+            user=self.user, transaction_type='INCOME', source='Salary', amount=Decimal('50000.00'),
+            account=self.cash, start_date=date.today()
+        )
+        Loan.objects.create(
+            user=self.user, name='Home Loan', loan_type='HOME', initial_principal=Decimal('1000000.00'),
+            duration_months=120, is_active=True
+        )
+
+        RecurringTransaction.objects.create(
+            user=self.user, transaction_type='EXPENSE', category='Rent', amount=Decimal('20000.00'),
+            account=self.cash, start_date=date.today()
+        )
+        PhysicalAsset.objects.create(
+            user=self.user, name='Term Plan', asset_class='INSURANCE', acquisition_cost=Decimal('10000.00'),
+            acquisition_date=date.today(), is_active=True
+        )
+        Account.objects.create(user=self.user, name='Index Fund', account_type='MUTUAL_FUND', is_active=True)
+        Account.objects.create(user=self.user, name='Bank FD', account_type='FD', is_active=True)
+        Account.objects.create(user=self.user, name='PPF Account', account_type='PPF', is_active=True)
+        SavingsGoal.objects.create(user=self.user, name='Vacation', target_amount=Decimal('50000.00'))
+        PhysicalAsset.objects.create(
+            user=self.user, name='Sedan', asset_class='VEHICLE', acquisition_cost=Decimal('600000.00'),
+            acquisition_date=date.today(), is_active=True
+        )
+        PhysicalAsset.objects.create(
+            user=self.user, name='Gold Coins', asset_class='GOLD', acquisition_cost=Decimal('50000.00'),
+            acquisition_date=date.today(), is_active=True
+        )
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('flow-landing'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['configured_count'], 11)
+        self.assertEqual(response.context['pct_configured'], 100)
+
+        # Section 2 rendered
+        self.assertContains(response, 'Already set up')
+        self.assertContains(response, 'Edit existing')
+        # Request a flow card is still present in Section 1
+        self.assertContains(response, "Don't see your situation?")
+
+    def test_landing_page_categories_and_metadata(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('flow-landing'))
+        self.assertEqual(response.status_code, 200)
+
+        cat_keys = [c['key'] for c in response.context['categories']]
+        self.assertEqual(cat_keys, ['all', 'debt', 'income', 'bills', 'savings', 'assets'])
+
+        flows = response.context['flows']
+        self.assertEqual(len(flows), 11)
+        for flow in flows:
+            self.assertTrue(flow['title'])
+            self.assertTrue(flow['description'])
+            self.assertTrue(flow['setup_url'])
+            self.assertTrue(flow['edit_url'])
+            self.assertTrue(len(flow['creates']) > 0)
+            self.assertIn('is_configured', flow)
+
+
+

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import uuid
 
 from django.contrib import messages
@@ -8,10 +9,12 @@ from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, View
 
 from ..flows import *  # noqa: F403
 from ..flows.registry import FlowRegistry
+
 
 
 class FlowBaseView(LoginRequiredMixin):
@@ -79,17 +82,64 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        categories = FlowRegistry.by_category()
-        first_category = next(iter(categories.keys())) if categories else None
-        first_pill = categories[first_category]['flows'][0].key if first_category and categories[first_category]['flows'] else None
-        context.update(
-            {
-                'categories': categories,
-                'initial_category': first_category,
-                'initial_pill': first_pill,
-            }
-        )
+        all_flows = FlowRegistry.all()
+
+        categories = [
+            {'key': 'all', 'label': _('All')},
+            {'key': 'debt', 'label': _('Debt')},
+            {'key': 'income', 'label': _('Income')},
+            {'key': 'bills', 'label': _('Bills')},
+            {'key': 'savings', 'label': _('Savings & investments')},
+            {'key': 'assets', 'label': _('Assets')},
+        ]
+
+        curated_keys = {'salary', 'rentbill', 'creditcard', 'loan', 'sip'}
+
+        flow_items = []
+        for key, flow in all_flows.items():
+            is_configured = flow.is_configured(self.request.user)
+            flow_items.append({
+                'key': flow.key,
+                'category': flow.category,
+                'icon': flow.icon,
+                'label': str(flow.label),
+                'title': str(flow.title),
+                'short_title': str(flow.label),
+                'description': str(flow.description),
+                'tags': [str(t) for t in flow.tags],
+                'estimated_time': str(flow.estimated_time),
+                'creates': [str(c) for c in flow.creates],
+                'is_configured': is_configured,
+                'is_curated': flow.key in curated_keys,
+                'setup_url': reverse('flow-detail', kwargs={'key': flow.key}),
+                'edit_url': flow.get_edit_url(self.request.user),
+            })
+
+        configured_count = sum(1 for f in flow_items if f['is_configured'])
+        total_count = len(flow_items)
+        pct_configured = round((configured_count / total_count) * 100) if total_count > 0 else 0
+
+        todo_flows = [f for f in flow_items if not f['is_configured']]
+        configured_flows = [f for f in flow_items if f['is_configured']]
+
+        flows_json = json.dumps(flow_items)
+        legacy_categories = FlowRegistry.by_category()
+
+        context.update({
+            'categories': categories,
+            'legacy_categories': legacy_categories,
+            'flows': flow_items,
+            'todo_flows': todo_flows,
+            'configured_flows': configured_flows,
+            'configured_count': configured_count,
+            'total_count': total_count,
+            'pct_configured': pct_configured,
+            'flows_json': flows_json,
+            'initial_category': 'all',
+            'initial_flow_key': flow_items[0]['key'] if flow_items else 'loan',
+        })
         return context
+
 
 
 class FlowDetailView(FlowBaseView, View):

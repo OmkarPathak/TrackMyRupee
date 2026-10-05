@@ -1,12 +1,47 @@
-function tmrFlows(initialCategory, initialPill) {
+function tmrFlows(initialCategory = 'all', initialFlowKey = 'loan', flowsData = null) {
+  let flows = flowsData;
+  if (!Array.isArray(flows) || !flows.length) {
+    const el = document.getElementById('tmr-flows-data');
+    if (el && el.textContent) {
+      try {
+        flows = JSON.parse(el.textContent);
+      } catch (e) {
+        flows = [];
+      }
+    } else {
+      flows = [];
+    }
+  }
+
   return {
     activeCategory: initialCategory,
-    activePill: initialPill,
+    selectedFlowKey: initialFlowKey,
+    showAllChecklist: false,
+    flows: flows,
     addonStates: {},
 
-    switchCategory(cat, firstPill) {
+    switchCategory(cat) {
       this.activeCategory = cat;
-      this.activePill = firstPill;
+    },
+
+    selectFlow(key) {
+      this.selectedFlowKey = key;
+    },
+
+    selectedFlow() {
+      return this.flows.find(f => f.key === this.selectedFlowKey) || this.flows[0] || {};
+    },
+
+    matchesCategory(flowCat) {
+      return this.activeCategory === 'all' || this.activeCategory === flowCat;
+    },
+
+    configuredCountInActiveCategory() {
+      return this.flows.filter(f => f.is_configured && this.matchesCategory(f.category)).length;
+    },
+
+    hasConfiguredInActiveCategory() {
+      return this.configuredCountInActiveCategory() > 0;
     },
 
     toggleAddon(key) {
@@ -14,6 +49,9 @@ function tmrFlows(initialCategory, initialPill) {
     },
   };
 }
+window.tmrFlows = tmrFlows;
+
+
 
 function tmrFlowWizard(totalSteps, initialStep = 1) {
   return {

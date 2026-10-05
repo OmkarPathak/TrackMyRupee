@@ -8,55 +8,168 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-4" x-data="tmrFlows('{{ initial_category }}', '{{ initial_pill }}')">
-    <div class="mb-4">
-        <h1 class="h2 fw-bold mb-1">TMR Flows</h1>
-        <p class="text-muted mb-0">Set up finances in one step.</p>
-    </div>
+{{ flows|json_script:"tmr-flows-data" }}
+<div class="container py-4 tmr-flow-wrap" x-data="tmrFlows('{{ initial_category }}', '{{ initial_flow_key }}')">
+    <p class="tmr-flow-greet mb-1">{{ personalized_greeting }}, <strong>{{ greeting_user_name }}</strong></p>
+    <h1 class="h2 fw-bold mb-1">{% trans "TMR Flows" %}</h1>
+    <p class="tmr-flow-sub">{% trans "Tell us what happened in your life. We'll set up everything linked behind it, in one form." %}</p>
 
-    <div class="tmr-cat-row mb-3">
-        {% for category, bucket in categories.items %}
+
+    <!-- Category filter buttons -->
+    <div class="tmr-flow-cats">
+        {% for cat in categories %}
         <button type="button"
-                class="tmr-cat"
-                :class="activeCategory === '{{ category|escapejs }}' ? 'active' : ''"
-                @click="switchCategory('{{ category|escapejs }}', '{{ bucket.flows.0.key|escapejs }}')">
-            {{ bucket.label }}
+                class="tmr-flow-cat"
+                :class="activeCategory === '{{ cat.key }}' ? 'active' : ''"
+                @click="switchCategory('{{ cat.key }}')">
+            {{ cat.label }}
         </button>
         {% endfor %}
     </div>
 
-    <div class="mb-4">
-        {% for category, bucket in categories.items %}
-        <div class="tmr-pill-row" x-show="activeCategory === '{{ category|escapejs }}'" x-cloak>
-            {% for flow in bucket.flows %}
-            <button type="button"
-                    class="tmr-pill"
-                    :class="activePill === '{{ flow.key|escapejs }}' ? 'active' : ''"
-                    @click="activePill = '{{ flow.key|escapejs }}'">
-                <i class="bi {{ flow.icon }}"></i> {{ flow.label }}
-            </button>
-            {% endfor %}
-        </div>
-        {% endfor %}
-    </div>
-
-    {% for category, bucket in categories.items %}
-        {% for flow in bucket.flows %}
-        <div x-show="activePill === '{{ flow.key|escapejs }}'" x-transition class="mb-4">
-            <div class="card border-0 shadow-sm tmr-stage">
-                <div class="card-body">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <i class="bi {{ flow.icon }} text-success fs-4"></i>
-                        <div>
-                            <div class="fw-bold">{{ flow.label }}</div>
-                            <div class="text-muted small">Create this setup in one pass.</div>
-                        </div>
+    <!-- Main Layout -->
+    <div class="tmr-flow-layout">
+        <!-- Left: Two-section Flow Grid -->
+        <div class="tmr-flow-main">
+            <!-- Section 1: Set up a new flow -->
+            <div class="sectionhead">{% trans "Set up a new flow" %}</div>
+            <div class="tmr-flow-grid">
+                {% for flow in flows %}
+                {% if not flow.is_configured %}
+                <div class="gcard"
+                     :class="selectedFlowKey === '{{ flow.key }}' ? 'selected' : ''"
+                     x-show="matchesCategory('{{ flow.category }}')"
+                     @click="selectFlow('{{ flow.key }}')"
+                     tabindex="0"
+                     @focus="selectFlow('{{ flow.key }}')"
+                     x-transition>
+                    <div class="gicon"><i class="bi {{ flow.icon }}"></i></div>
+                    <h3>{{ flow.title }}</h3>
+                    <p>{{ flow.description }}</p>
+                    <div class="tags">
+                        {% for tag in flow.tags %}
+                        <span class="tag">{{ tag }}</span>
+                        {% endfor %}
                     </div>
-                    <a href="{% url 'flow-detail' key=flow.key %}" class="btn btn-success rounded-pill">Open setup</a>
+                    <div class="gfoot">
+                        <span class="time">{{ flow.estimated_time }}</span>
+                        <a href="{{ flow.setup_url }}" class="gbtn">{% trans "Open setup" %}</a>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+
+                <!-- Request a flow card -->
+                <div class="reqcard">
+                    <h3>{% trans "Don't see your situation?" %}</h3>
+                    <p>{% trans "Tell us what you're trying to set up and we'll build the flow." %}</p>
+                    <a href="mailto:support@trackmyrupee.com?subject=Flow%20Request" class="gbtn secondary" style="align-self: flex-start;">{% trans "Request a flow" %}</a>
                 </div>
             </div>
+
+            {# Section 2: Already set up (N) #}
+            {% if configured_count > 0 %}
+
+            <div x-show="hasConfiguredInActiveCategory()" x-cloak>
+                <div class="sectionhead second">
+                    <span x-text="'{% trans "Already set up" %} (' + configuredCountInActiveCategory() + ')'">
+                        {% trans "Already set up" %} ({{ configured_count }})
+                    </span>
+                </div>
+                <div class="tmr-flow-grid">
+                    {% for flow in flows %}
+                    {% if flow.is_configured %}
+                    <div class="gcard"
+                         :class="selectedFlowKey === '{{ flow.key }}' ? 'selected' : ''"
+                         x-show="matchesCategory('{{ flow.category }}')"
+                         @click="selectFlow('{{ flow.key }}')"
+                         tabindex="0"
+                         @focus="selectFlow('{{ flow.key }}')"
+                         x-transition>
+                        <div class="gicon"><i class="bi {{ flow.icon }}"></i></div>
+                        <h3>{{ flow.title }}</h3>
+                        <p>{{ flow.description }}</p>
+                        <div class="tags">
+                            {% for tag in flow.tags %}
+                            <span class="tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="gfoot">
+                            <span class="time">{{ flow.estimated_time }}</span>
+                            <a href="{{ flow.edit_url }}" class="gbtn secondary">{% trans "Edit existing" %}</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endfor %}
-    {% endfor %}
+
+        <!-- Right: Sidebar Panels -->
+        <div class="tmr-flow-side side">
+            <!-- Panel 1: Your setup with Conic-Gradient Ring & Checklist -->
+            <div class="panel">
+                <div class="ring" style="--pct: {{ pct_configured }}%;">
+                    <span id="pctLabel">{{ configured_count }}/{{ total_count }}</span>
+                </div>
+                <h4>{% trans "Your setup" %}</h4>
+                <p class="hint">{% trans "The more you add, the sharper your insights." %}</p>
+
+                <div class="checklist">
+                    {% for flow in flows %}
+                    <div class="prow"
+                         x-show="showAllChecklist || {{ flow.is_curated|yesno:'true,false' }}"
+                         @click="selectFlow('{{ flow.key }}')"
+                         style="cursor: pointer;">
+                        <div class="d-flex align-items-center gap-2">
+                            {% if flow.is_configured %}
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 0.9rem;"></i>
+                            <span class="text-muted text-decoration-line-through">{{ flow.short_title }}</span>
+                            {% else %}
+                            <i class="bi bi-circle text-muted" style="font-size: 0.9rem;"></i>
+                            <span>{{ flow.short_title }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if flow.is_configured %}
+                            <span class="pdone">{% trans "Done" %}</span>
+                            {% else %}
+                            <a href="{{ flow.setup_url }}" class="psetup">{% trans "Set up" %} &rarr;</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if total_count > 5 %}
+                <div class="mt-2 text-start">
+                    <button type="button"
+                            class="btn btn-sm btn-link text-decoration-none p-0 fw-bold small text-muted"
+                            @click="showAllChecklist = !showAllChecklist"
+                            x-text="showAllChecklist ? '{% trans "Show less" %}' : '{% trans "Show all" %} ({{ total_count }})'">
+                        {% trans "Show all" %} ({{ total_count }})
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Panel 2: What one form creates (Dark Panel) -->
+            <div class="dark-panel" id="whatCreates">
+                <div class="eyebrow">{% trans "What one form creates" %}</div>
+                <h4 x-text="selectedFlow().title || '{{ flows.0.title }}'">{{ flows.0.title }}</h4>
+                <ul>
+                    <template x-for="(item, idx) in (selectedFlow().creates || [])" :key="idx">
+                        <li x-text="item"></li>
+                    </template>
+                    {% for item in flows.0.creates %}
+                    <li x-show="!selectedFlow().creates">{{ item }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="note">{% trans "Always shown on Review before anything is saved." %}</div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
+
