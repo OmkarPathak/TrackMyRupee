@@ -235,6 +235,66 @@
             background-color: rgba(29, 158, 117, 0.12);
             border-color: rgba(29, 158, 117, 0.5);
         }
+        /* Back Button & Icon Alignment */
+        .onboarding-step .btn-outline-secondary {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.35rem !important;
+            white-space: nowrap !important;
+            line-height: 1 !important;
+        }
+        .onboarding-step .btn-outline-secondary i {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+            vertical-align: 0 !important;
+            margin: 0 !important;
+            font-size: 1rem;
+        }
+
+        /* Step 3: Account items underline input focus */
+        .onboarding-step .account-item .form-control.border-0,
+        .onboarding-step .account-item .form-control.border-0:focus,
+        .onboarding-step .account-item .form-control.border-0:focus-visible,
+        .onboarding-step .account-item input:focus,
+        .onboarding-step .account-item input:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            background-color: transparent !important;
+        }
+        .onboarding-step .account-field-underline {
+            border-bottom: 1.5px solid var(--border-color, rgba(26,26,24,0.15)) !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .onboarding-step .account-field-underline:focus-within {
+            border-bottom-color: var(--color-primary, #1D9E75) !important;
+            box-shadow: 0 1.5px 0 var(--color-primary, #1D9E75) !important;
+        }
+        [data-bs-theme="dark"] .onboarding-step .account-field-underline {
+            border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        [data-bs-theme="dark"] .onboarding-step .account-field-underline:focus-within {
+            border-bottom-color: var(--color-primary, #1D9E75) !important;
+            box-shadow: 0 1.5px 0 var(--color-primary, #1D9E75) !important;
+        }
+        .account-item .btn-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 0.65rem;
+            padding: 4px;
+            opacity: 0.55;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 2;
+        }
+        .account-item .btn-close:hover {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
@@ -359,7 +419,7 @@
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 w-100">
-                        <button onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap">
+                        <button onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
                             <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                         </button>
                         <button onclick="showSkipWarning('persona')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
@@ -418,14 +478,14 @@
 
                     <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
                         <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
-                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold">
-                                <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
+                                <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                             </button>
                             <button type="button" onclick="showSkipWarning('salary_setup')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
                                 {% trans "I'll set this later" %}
                             </button>
                         </div>
-                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-none d-sm-inline-block">
+                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-none d-sm-inline-flex align-items-center justify-content-center gap-1">
                             <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                         </button>
                         <button type="button" onclick="showSkipWarning('salary_setup')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
@@ -451,16 +511,16 @@
                     </div>
 
                     <div id="onboarding-accounts-list" class="mb-3">
-                        <div class="account-item p-3 bg-light rounded-4 mb-3 border">
-                            <div class="d-flex justify-content-between mb-1">
+                        <div class="account-item p-3 bg-light rounded-4 mb-3 border position-relative">
+                            <div class="d-flex justify-content-between mb-1 pe-3 pe-sm-4">
                                 <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Account Name" %}</label>
                                 <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Initial Balance" %}</label>
                             </div>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="flex-grow-1 border-bottom" style="border-color: var(--border-color, rgba(0,0,0,0.1)) !important;">
+                            <div class="d-flex align-items-center gap-3 pe-3 pe-sm-4">
+                                <div class="flex-grow-1 account-field-underline">
                                     <input type="text" class="form-control border-0 fw-bold fs-5 p-0 shadow-none bg-transparent account-name" value="SBI Savings Account" style="height: 40px;">
                                 </div>
-                                <div class="d-flex align-items-center gap-2 border-bottom" style="border-color: var(--border-color, rgba(0,0,0,0.1)) !important; width: 140px;">
+                                <div class="d-flex align-items-center gap-2 account-field-underline" style="width: 140px;">
                                     <span class="fs-5 text-muted currency-label">{{ user.profile.currency }}</span>
                                     <input type="number" class="form-control border-0 fw-bold text-end fs-5 p-0 pe-2 shadow-none bg-transparent account-balance" style="height: 40px;" value="35000">
                                 </div>
@@ -480,14 +540,14 @@
 
                     <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
                         <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
-                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold">
-                                <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
+                                <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                             </button>
                             <button type="button" onclick="showSkipWarning('accounts')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
                                 {% trans "Skip for now" %}
                             </button>
                         </div>
-                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-none d-sm-inline-block">
+                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-none d-sm-inline-flex align-items-center justify-content-center gap-1">
                             <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                         </button>
                         <button type="button" onclick="showSkipWarning('accounts')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
@@ -534,14 +594,14 @@
 
                     <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
                         <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
-                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold">
-                                <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
+                                <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                             </button>
                             <button type="button" onclick="showSkipWarning('income')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
                                 {% trans "Skip for now" %}
                             </button>
                         </div>
-                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-none d-sm-inline-block">
+                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-none d-sm-inline-flex align-items-center justify-content-center gap-1">
                             <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                         </button>
                         <button type="button" onclick="showSkipWarning('income')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
@@ -592,7 +652,7 @@
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 w-100 mt-5">
-                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap">
+                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
                             <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
                         </button>
                         <button type="button" onclick="showSkipWarning('expense')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
@@ -857,16 +917,16 @@
         const newItem = document.createElement('div');
         newItem.className = 'account-item p-3 bg-light rounded-4 mb-3 border position-relative';
         newItem.innerHTML = `
-            <button onclick="this.parentElement.remove()" class="btn-close position-absolute top-0 end-0 m-2" style="font-size: 0.7rem;" aria-label="{% trans 'Close' %}"></button>
-            <div class="d-flex justify-content-between mb-1">
+            <button type="button" onclick="this.parentElement.remove()" class="btn-close" aria-label="{% trans 'Close' %}"></button>
+            <div class="d-flex justify-content-between mb-1 pe-3 pe-sm-4">
                 <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Account Name" %}</label>
                 <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Initial Balance" %}</label>
             </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="flex-grow-1 border-bottom" style="border-color: var(--border-color, rgba(0,0,0,0.1)) !important;">
+            <div class="d-flex align-items-center gap-3 pe-3 pe-sm-4">
+                <div class="flex-grow-1 account-field-underline">
                     <input type="text" class="form-control border-0 fw-bold fs-5 p-0 shadow-none bg-transparent account-name" value="${placeholder}" style="height: 40px;">
                 </div>
-                <div class="d-flex align-items-center gap-2 border-bottom" style="border-color: var(--border-color, rgba(0,0,0,0.1)) !important; width: 140px;">
+                <div class="d-flex align-items-center gap-2 account-field-underline" style="width: 140px;">
                     <span class="fs-5 text-muted currency-label">${document.querySelector('.currency-label').innerText}</span>
                     <input type="number" class="form-control border-0 fw-bold text-end fs-5 p-0 pe-2 shadow-none bg-transparent account-balance" style="height: 40px;" value="0">
                 </div>

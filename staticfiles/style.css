@@ -3422,12 +3422,12 @@ label.time-period-pill.active {
 /* High-contrast focus indicators for interactive elements */
 a:focus-visible,
 button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
+input:not(.border-0):focus-visible,
+select:not(.border-0):focus-visible,
+textarea:not(.border-0):focus-visible,
 .btn:focus-visible,
-.form-control:focus-visible,
-.form-select:focus-visible,
+.form-control:not(.border-0):focus-visible,
+.form-select:not(.border-0):focus-visible,
 .form-check-input:focus-visible {
   outline: 2px solid var(--color-secondary, #0F7657) !important;
   outline-offset: 2px !important;
@@ -3435,15 +3435,24 @@ textarea:focus-visible,
 
 [data-bs-theme="dark"] a:focus-visible,
 [data-bs-theme="dark"] button:focus-visible,
-[data-bs-theme="dark"] input:focus-visible,
-[data-bs-theme="dark"] select:focus-visible,
-[data-bs-theme="dark"] textarea:focus-visible,
+[data-bs-theme="dark"] input:not(.border-0):focus-visible,
+[data-bs-theme="dark"] select:not(.border-0):focus-visible,
+[data-bs-theme="dark"] textarea:not(.border-0):focus-visible,
 [data-bs-theme="dark"] .btn:focus-visible,
-[data-bs-theme="dark"] .form-control:focus-visible,
-[data-bs-theme="dark"] .form-select:focus-visible,
+[data-bs-theme="dark"] .form-control:not(.border-0):focus-visible,
+[data-bs-theme="dark"] .form-select:not(.border-0):focus-visible,
 [data-bs-theme="dark"] .form-check-input:focus-visible {
   outline: 2px solid var(--color-success, #5DCAA5) !important;
   outline-offset: 2px !important;
+}
+
+/* Borderless inputs should not show an awkward boxed outline */
+.border-0:focus,
+.border-0:focus-visible,
+.form-control.border-0:focus,
+.form-control.border-0:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Ensure links within running text/prose have visible underline decoration */

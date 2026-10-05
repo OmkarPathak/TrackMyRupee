@@ -33,10 +33,31 @@
     {% endif %}
 
     {% if preview.warnings %}
-    <div class="alert alert-warning tmr-limit-warning mb-0">
-        {% for warning in preview.warnings %}
-            <div>{{ warning }}</div>
-        {% endfor %}
+    <div class="alert alert-warning tmr-limit-warning border-start border-warning border-4 shadow-sm mb-3" role="alert">
+        <div class="d-flex align-items-start gap-3">
+            <div class="text-warning fs-4 lh-1 mt-1">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-bold fs-6 mb-1 text-warning-emphasis">{% trans "Plan Limit Reached" %}</div>
+                <div class="small text-body-secondary mb-3">
+                    {% for warning in preview.warnings %}
+                        <div class="{% if not forloop.last %}mb-2{% endif %}">{{ warning }}</div>
+                    {% endfor %}
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 pt-2 border-top border-warning-subtle">
+                    <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary fw-semibold rounded-pill px-3 shadow-sm">
+                        <i class="bi bi-stars me-1"></i> {% trans "Upgrade Plan" %}
+                    </a>
+                    <a href="{% url 'account-list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        <i class="bi bi-wallet2 me-1"></i> {% trans "Manage Accounts" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-danger small fw-semibold text-center mb-1">
+        <i class="bi bi-lock-fill me-1"></i> {% trans "Creation is disabled because plan limits have been reached." %}
     </div>
     {% endif %}
 </div>

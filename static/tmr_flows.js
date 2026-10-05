@@ -53,10 +53,23 @@ window.tmrFlows = tmrFlows;
 
 
 
-function tmrFlowWizard(totalSteps, initialStep = 1) {
+function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) {
   return {
     currentStep: initialStep,
     totalSteps,
+    hasWarnings: Boolean(initialHasWarnings),
+
+    init() {
+      this.checkWarnings();
+      document.addEventListener('htmx:afterSwap', () => {
+        this.checkWarnings();
+      });
+    },
+
+    checkWarnings() {
+      const reviewEl = document.querySelector('[id^="tmr-review-"]');
+      this.hasWarnings = !!(reviewEl && reviewEl.querySelector('.tmr-limit-warning'));
+    },
 
     totalPhases() {
       return this.totalSteps + 1;
@@ -93,9 +106,10 @@ function tmrFlowWizard(totalSteps, initialStep = 1) {
       }
       this.currentStep = targetStep;
       if (this.isReviewStep()) {
+        this.checkWarnings();
         const form = document.querySelector('form[hx-post]');
         if (form && window.htmx) {
-          window.htmx.trigger(form, 'input');
+          window.htmx.trigger(form, 'tmr-preview');
         }
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -149,6 +163,11 @@ document.addEventListener('htmx:beforeRequest', (event) => {
     ? event.target
     : event.target.querySelector?.('[data-confirm-btn]');
   if (!btn) {
+    return;
+  }
+
+  if (btn.disabled || btn.classList.contains('disabled')) {
+    event.preventDefault();
     return;
   }
 

@@ -1451,4 +1451,90 @@ class TestFlowLandingPageAndConfiguredStatus(TestCase):
             self.assertIn('is_configured', flow)
 
 
+class TestFlowLimitMessagingAndUI(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='limit-msg-tester', password='pass')
+        self.profile, _ = UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
+        self.profile.tier = 'FREE'
+        self.profile.save()
+
+    def test_format_limit_warning_zero_limit(self):
+        flow = NewLoanFlow()
+        warning = flow._format_limit_warning(
+            tier='FREE',
+            tier_display='Free',
+            limit_key='loans',
+            limit=0,
+            current_count=0,
+            steps_creating=1,
+        )
+        self.assertIn('Free plan does not allow loans', warning)
+        self.assertIn('limit: 0', warning)
+        self.assertIn('Upgrade to Plus or Pro', warning)
+
+    def test_format_limit_warning_limit_reached(self):
+        flow = NewLoanFlow()
+        warning = flow._format_limit_warning(
+            tier='FREE',
+            tier_display='Free',
+            limit_key='accounts',
+            limit=2,
+            current_count=2,
+            steps_creating=1,
+        )
+        self.assertIn('Free plan limit of 2 accounts', warning)
+        self.assertIn('currently using 2 of 2', warning)
+        self.assertIn('Upgrade to Plus or Pro', warning)
+        self.assertIn('remove unused accounts', warning)
+
+    def test_format_limit_warning_plus_tier_recommends_pro(self):
+        flow = NewLoanFlow()
+        warning = flow._format_limit_warning(
+            tier='PLUS',
+            tier_display='Plus',
+            limit_key='loans',
+            limit=1,
+            current_count=1,
+            steps_creating=1,
+        )
+        self.assertIn('Plus plan limit of 1 loan', warning)
+        self.assertIn('Upgrade to Pro', warning)
+
+    def test_preview_contains_informative_warning(self):
+        flow = NewLoanFlow()
+        preview = flow.preview(self.user, {
+            'principal': Decimal('50000.00'),
+            'annual_rate': Decimal('10.00'),
+            'tenure_months': 12,
+        })
+        self.assertTrue(len(preview['warnings']) > 0)
+        self.assertIn('Free plan does not allow loans', preview['warnings'][0])
+        self.assertIn('Upgrade to Plus or Pro', preview['warnings'][0])
+
+    def test_review_partial_renders_warning_card_and_upgrade_link(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('flow-preview', kwargs={'key': 'loan'}), {
+            'name': 'Car Loan',
+            'loan_type': 'PERSONAL',
+            'principal': '500000',
+            'annual_rate': '9.5',
+            'tenure_months': '36',
+            'start_date': date.today().isoformat(),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'tmr-limit-warning')
+        self.assertContains(response, 'Plan Limit Reached')
+        self.assertContains(response, reverse('pricing'))
+        self.assertContains(response, 'Upgrade Plan')
+        self.assertContains(response, 'Creation is disabled because plan limits have been reached.')
+
+    def test_detail_page_includes_disabled_binding_on_confirm_button(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('flow-detail', kwargs={'key': 'loan'}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, ':disabled="hasWarnings"')
+        self.assertContains(response, 'tmrFlowWizard(')
+
+
+
 

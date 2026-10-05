@@ -117,21 +117,85 @@ class Flow:
             qs = qs.filter(is_active=True)
         return qs.count()
 
+    @classmethod
+    def _format_limit_warning(
+        cls,
+        tier: str,
+        tier_display: str,
+        limit_key: str,
+        limit: int,
+        current_count: int,
+        steps_creating: int,
+    ) -> str:
+        resource_names = {
+            'accounts': {'plural': _('accounts'), 'singular': _('account')},
+            'recurring_transactions': {'plural': _('recurring transactions'), 'singular': _('recurring transaction')},
+            'loans': {'plural': _('loans'), 'singular': _('loan')},
+            'savings_goals': {'plural': _('savings goals'), 'singular': _('savings goal')},
+        }
+        res = resource_names.get(limit_key, {
+            'plural': limit_key.replace('_', ' '),
+            'singular': limit_key.replace('_', ' '),
+        })
+        res_label = res['singular'] if limit == 1 else res['plural']
+        upgrade_target = 'Plus or Pro' if tier == 'FREE' else ('Pro' if tier == 'PLUS' else None)
+
+        if limit == 0:
+            if upgrade_target:
+                return str(_('Your %(tier)s plan does not allow %(resource)s (limit: 0, currently %(current)s). Upgrade to %(target)s to track %(resource)s.') % {
+                    'tier': tier_display,
+                    'resource': res['plural'],
+                    'current': current_count,
+                    'target': upgrade_target,
+                })
+            return str(_('Your %(tier)s plan does not allow %(resource)s (limit: 0).') % {
+                'tier': tier_display,
+                'resource': res['plural'],
+            })
+
+        if current_count >= limit:
+            if upgrade_target:
+                return str(_('You have reached your %(tier)s plan limit of %(limit)s %(resource)s (currently using %(current)s of %(limit)s). Upgrade to %(target)s for higher limits, or remove unused %(resource)s.') % {
+                    'tier': tier_display,
+                    'limit': limit,
+                    'resource': res_label,
+                    'current': current_count,
+                    'target': upgrade_target,
+                })
+            return str(_('You have reached your %(tier)s plan limit of %(limit)s %(resource)s (currently using %(current)s of %(limit)s).') % {
+                'tier': tier_display,
+                'limit': limit,
+                'resource': res_label,
+                'current': current_count,
+            })
+
+        # current_count < limit, but current_count + steps_creating > limit
+        if upgrade_target:
+            return str(_('Adding %(creating)s %(resource)s would exceed your %(tier)s plan limit of %(limit)s (currently using %(current)s of %(limit)s). Upgrade to %(target)s for higher limits, or remove unused %(resource)s.') % {
+                'creating': steps_creating,
+                'resource': res['plural'],
+                'tier': tier_display,
+                'limit': limit,
+                'current': current_count,
+                'target': upgrade_target,
+            })
+        return str(_('Adding %(creating)s %(resource)s would exceed your %(tier)s plan limit of %(limit)s (currently using %(current)s of %(limit)s).') % {
+            'creating': steps_creating,
+            'resource': res['plural'],
+            'tier': tier_display,
+            'limit': limit,
+            'current': current_count,
+        })
+
     def check_limits(self, user, steps: list[CreateStep]) -> list[str]:
         if not self.limit_map:
             return []
 
         profile = getattr(user, 'profile', None)
         tier = getattr(profile, 'active_tier', 'FREE') if profile else 'FREE'
+        tier_display = getattr(profile, 'active_tier_display', tier.title()) if profile else 'Free'
         step_counts = self.count_steps_by_model(steps)
         warnings: list[str] = []
-
-        limit_labels = {
-            'accounts': _('You have reached your current account limit for this plan.'),
-            'recurring_transactions': _('You have reached your current recurring transaction limit for this plan.'),
-            'loans': _('You have reached your current loan limit for this plan.'),
-            'savings_goals': _('You have reached your current savings goal limit for this plan.'),
-        }
 
         for limit_key, model_cls in self.limit_map.items():
             steps_creating = step_counts.get(model_cls, 0)
@@ -144,9 +208,13 @@ class Flow:
 
             current_count = self._get_current_model_count(user, model_cls, limit_key)
             if current_count + steps_creating > limit:
-                msg = limit_labels.get(
-                    limit_key,
-                    _('You have reached your current %(limit_key)s limit for this plan.') % {'limit_key': limit_key.replace('_', ' ')}
+                msg = self._format_limit_warning(
+                    tier=tier,
+                    tier_display=tier_display,
+                    limit_key=limit_key,
+                    limit=limit,
+                    current_count=current_count,
+                    steps_creating=steps_creating,
                 )
                 warnings.append(str(msg))
 

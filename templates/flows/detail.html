@@ -4,7 +4,7 @@
 {% block title %}{{ flow.label }} | TMR Flows{% endblock %}
 
 {% block extra_js %}
-<script defer src="{% static 'tmr_flows.js' %}?v=20261002"></script>
+<script defer src="{% static 'tmr_flows.js' %}?v=20261005"></script>
 {% endblock %}
 
 {% block content %}
@@ -68,7 +68,7 @@
     }
 </style>
 
-<div class="container py-4" x-data="tmrFlowWizard({{ flow.get_wizard_steps|length }}, {% if preview %}{{ flow.get_wizard_steps|length|add:1 }}{% else %}1{% endif %})">
+<div class="container py-4" x-data="tmrFlowWizard({{ flow.get_wizard_steps|length }}, {% if preview %}{{ flow.get_wizard_steps|length|add:1 }}{% else %}1{% endif %}, {% if preview and preview.warnings %}true{% else %}false{% endif %})">
     <div class="row justify-content-center fade-in">
         <div class="col-md-9 col-lg-8">
             <div class="card shadow-lg border-0 fade-in">
@@ -101,7 +101,7 @@
                           action="{% url 'flow-detail' key=flow.key %}"
                           hx-post="{% url 'flow-preview' key=flow.key %}"
                           hx-target="#tmr-review-{{ flow.key }}"
-                          hx-trigger="input changed delay:300ms"
+                          hx-trigger="input changed delay:300ms, tmr-preview"
                           hx-swap="innerHTML">
                         {% csrf_token %}
                         <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
@@ -158,12 +158,14 @@
                                     class="btn btn-action-primary"
                                     x-cloak
                                     x-show="isReviewStep()"
-                                    :class="{ 'd-none': !isReviewStep() }"
+                                    :class="{ 'd-none': !isReviewStep(), 'disabled opacity-50': hasWarnings }"
+                                    :disabled="hasWarnings"
+                                    :title="hasWarnings ? '{% trans "Plan limit reached. Please upgrade to create." %}' : ''"
                                     data-confirm-btn
                                     hx-post="{% url 'flow-commit' key=flow.key %}"
                                     hx-include="#tmr-flow-form-{{ flow.key }}"
                                     hx-swap="none">
-                                    <i class="bi bi-check2-circle me-1"></i> {% trans "Confirm and create" %}
+                                    <i class="bi" :class="hasWarnings ? 'bi-lock-fill me-1' : 'bi-check2-circle me-1'"></i> {% trans "Confirm and create" %}
                                 </button>
                             </div>
                         </div>
