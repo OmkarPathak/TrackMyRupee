@@ -9,10 +9,11 @@
 
 {% block content %}
 {{ flows|json_script:"tmr-flows-data" }}
-<div class="container py-4 tmr-flow-wrap" x-data="tmrFlows('{{ initial_category }}', '{{ initial_flow_key }}')">
-    <p class="tmr-flow-greet mb-1">{{ personalized_greeting }}, <strong>{{ greeting_user_name }}</strong></p>
-    <h1 class="h2 fw-bold mb-1">{% trans "TMR Flows" %}</h1>
-    <p class="tmr-flow-sub">{% trans "Tell us what happened in your life. We'll set up everything linked behind it, in one form." %}</p>
+<div class="tmr-flow-wrap pb-4" x-data="tmrFlows('{{ initial_category }}', '{{ initial_flow_key }}')">
+    <div class="mb-4">
+        <h1 class="h2 fw-bold mb-1">{% trans "TMR Flows" %}</h1>
+        <p class="tmr-flow-sub mb-0">{% trans "Tell us what happened in your life. We'll set up everything linked behind it, in one form." %}</p>
+    </div>
 
 
     <!-- Category filter buttons -->

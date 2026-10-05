@@ -68,40 +68,33 @@
     }
 </style>
 
-<div class="container py-4" x-data="tmrFlowWizard({{ flow.wizard_steps|length|default:0 }}, {% if preview %}{{ flow.wizard_steps|length|add:1 }}{% else %}1{% endif %})">
+<div class="container py-4" x-data="tmrFlowWizard({{ flow.get_wizard_steps|length }}, {% if preview %}{{ flow.get_wizard_steps|length|add:1 }}{% else %}1{% endif %})">
     <div class="row justify-content-center fade-in">
-        <div class="col-md-10 col-lg-9">
+        <div class="col-md-9 col-lg-8">
             <div class="card shadow-lg border-0 fade-in">
                 <div class="card-header bg-transparent py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h1 class="h3 fw-bold mb-1">{{ flow.label }}</h1>
-                            <p class="text-muted mb-0">Create this setup in one pass.</p>
-                        </div>
-                        {% if flow.wizard_steps %}
-                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2" id="stepCounterBadge" x-text="stepCounterLabel()"></span>
-                        {% endif %}
+                        <h1 class="h4 mb-0 fw-bold">{{ flow.title }}</h1>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 fw-semibold" id="stepCounterBadge" x-text="stepCounterLabel()"></span>
                     </div>
                 </div>
 
                 <div class="card-body p-4">
-                    {% if flow.wizard_steps %}
                     <div class="wizard-steps-header mb-3">
                         <div class="wizard-steps-tabs-row g-0 text-center mb-2">
-                            {% for step in flow.wizard_steps %}
+                            {% for step in flow.get_wizard_steps %}
                             <div class="col wizard-step-tab" :class="stepTabClass({{ forloop.counter }})" @click="goToStep({{ forloop.counter }})">
-                                <span class="wizard-step-title text-truncate d-block px-1">{{ forloop.counter }}. {{ step.title }}</span>
+                                <span class="wizard-step-title text-truncate d-block px-1">{{ step.title }}</span>
                             </div>
                             {% endfor %}
-                            <div class="col wizard-step-tab" :class="stepTabClass({{ flow.wizard_steps|length|add:1 }})" @click="goToStep({{ flow.wizard_steps|length|add:1 }})">
-                                <span class="wizard-step-title text-truncate d-block px-1">{{ flow.wizard_steps|length|add:1 }}. Review</span>
+                            <div class="col wizard-step-tab" :class="stepTabClass({{ flow.get_wizard_steps|length|add:1 }})" @click="goToStep({{ flow.get_wizard_steps|length|add:1 }})">
+                                <span class="wizard-step-title text-truncate d-block px-1">{% trans "Review" %}</span>
                             </div>
                         </div>
                         <div class="progress" style="height: 3px;">
                             <div class="progress-bar bg-primary" id="wizardProgressBar" :style="`width: ${progressWidth()};`"></div>
                         </div>
                     </div>
-                    {% endif %}
 
                     <form id="tmr-flow-form-{{ flow.key }}"
                           method="post"
@@ -113,64 +106,59 @@
                         {% csrf_token %}
                         <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
-                        {% if flow.wizard_steps %}
-                            {% for step in flow.wizard_steps %}
-                            <div class="wizard-step-content" x-cloak x-show="currentStep === {{ forloop.counter }}" x-transition>
-                                <div class="mb-3">
-                                    <div class="text-uppercase text-muted small fw-semibold">Step {{ forloop.counter }}</div>
-                                    <h2 class="h5 fw-bold mb-1">{{ step.title }}</h2>
-                                    {% if step.help_text %}<p class="text-muted mb-0">{{ step.help_text }}</p>{% endif %}
-                                </div>
-                                {% include 'flows/partials/_form_fields.html' with step=step %}
-                            </div>
-                            {% endfor %}
+                        {% for step in flow.get_wizard_steps %}
+                        <div class="wizard-step-content" data-step="{{ forloop.counter }}" x-cloak x-show="currentStep === {{ forloop.counter }}" x-transition>
+                            {% if step.help_text %}
+                            <p class="text-muted small mb-3">{{ step.help_text }}</p>
+                            {% endif %}
+                            {% include 'flows/partials/_form_fields.html' with step=step %}
+                        </div>
+                        {% endfor %}
 
-                            <div class="wizard-step-content" x-cloak x-show="currentStep === {{ flow.wizard_steps|length|add:1 }}" x-transition>
-                                <div id="tmr-review-{{ flow.key }}">
-                                    {% if preview %}
-                                        {% include 'flows/partials/_review.html' %}
-                                    {% else %}
-                                        <div class="card border-0 shadow-sm">
-                                            <div class="card-body text-muted">Fill the form to preview what will be created.</div>
-                                        </div>
-                                    {% endif %}
-                                </div>
+                        <!-- Final Review Step -->
+                        <div class="wizard-step-content" data-step="{{ flow.get_wizard_steps|length|add:1 }}" x-cloak x-show="currentStep === {{ flow.get_wizard_steps|length|add:1 }}" x-transition>
+                            <div id="tmr-review-{{ flow.key }}">
+                                {% if preview %}
+                                    {% include 'flows/partials/_review.html' %}
+                                {% else %}
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body text-muted">{% trans "Fill the form to preview what will be created." %}</div>
+                                    </div>
+                                {% endif %}
                             </div>
-                        {% else %}
-                            {% include 'flows/partials/_form_fields.html' %}
-                        {% endif %}
+                        </div>
 
-                        <div class="mt-4 d-flex align-items-center gap-2">
-                            {% if flow.wizard_steps %}
+                        <!-- WIZARD NAVIGATION FOOTER -->
+                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center gap-2">
                             <button
                                 type="button"
-                                class="btn btn-outline-secondary rounded-pill px-4"
+                                class="btn btn-action-cancel"
                                 x-cloak
                                 x-show="currentStep > 1"
                                 @click="goToStep(currentStep - 1)">
-                                Back
+                                <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
                             </button>
 
-                            <button
-                                type="button"
-                                class="btn btn-success rounded-pill px-4"
-                                x-cloak
-                                x-show="currentStep <= {{ flow.wizard_steps|length }}"
-                                @click="goToStep(currentStep + 1)">
-                                Next
-                            </button>
+                            <div class="ms-auto d-flex align-items-center gap-2">
+                                <a href="{% url 'flow-landing' %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
 
-                            {# Fallback confirm — shown on Review step if the HTMX-swapped button is unavailable #}
-                            <button
-                                type="submit"
-                                class="btn btn-success rounded-pill px-4"
-                                x-cloak
-                                x-show="isReviewStep()">
-                                Confirm and create
-                            </button>
-                            {% else %}
-                            <button type="submit" class="btn btn-success rounded-pill">Preview setup</button>
-                            {% endif %}
+                                <button
+                                    type="button"
+                                    class="btn btn-action-primary"
+                                    x-cloak
+                                    x-show="currentStep <= {{ flow.get_wizard_steps|length }}"
+                                    @click="goToStep(currentStep + 1)">
+                                    {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-action-primary"
+                                    x-cloak
+                                    x-show="isReviewStep()">
+                                    <i class="bi bi-check2-circle me-1"></i> {% trans "Confirm and create" %}
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>

@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
 from ..models import Account, CapitalEvent, Holding, Loan, PhysicalAsset, RecurringTransaction
-from .base import CreateStep, Flow
+from .base import CreateStep, Flow, FlowWizardStep
 from .loan import NewLoanFlow
 from .registry import register_flow
 
@@ -76,6 +76,10 @@ class CarFlow(Flow):
         'recurring_transactions': RecurringTransaction,
     }
     form_class = CarFlowForm
+    wizard_steps = [
+        FlowWizardStep('car_basics', _('Car Details'), ['name', 'purchase_price', 'acquisition_date', 'from_account'], _('Basic vehicle information and purchase account.')),
+        FlowWizardStep('car_financing', _('Financing'), ['financed', 'loan_name', 'annual_rate', 'tenure_months', 'loan_start_date'], _('Loan details if the car was financed.')),
+    ]
 
     def is_configured(self, user) -> bool:
         return PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='VEHICLE').exists()
@@ -161,6 +165,9 @@ class GoldFlow(Flow):
     ]
     limit_map = {'accounts': Account}
     form_class = GoldFlowForm
+    wizard_steps = [
+        FlowWizardStep('gold_basics', _('Gold Details'), ['route', 'name', 'amount', 'acquisition_date', 'from_account'], _('Route, cost, and payment account for your gold purchase.')),
+    ]
 
     def is_configured(self, user) -> bool:
         return (

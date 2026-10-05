@@ -66,10 +66,39 @@ function tmrFlowWizard(totalSteps, initialStep = 1) {
       return this.currentStep === this.totalPhases();
     },
 
-    goToStep(targetStep) {
-      if (targetStep >= 1 && targetStep <= this.totalPhases()) {
-        this.currentStep = targetStep;
+    validateCurrentStep() {
+      const stepEl = document.querySelector(`.wizard-step-content[data-step="${this.currentStep}"]`);
+      if (!stepEl) return true;
+      const inputs = stepEl.querySelectorAll('input:not([type="hidden"]), select, textarea');
+      let isValid = true;
+      for (const input of inputs) {
+        if (input.offsetWidth > 0 || input.offsetHeight > 0 || input.getClientRects().length > 0) {
+          if (!input.checkValidity()) {
+            isValid = false;
+            input.classList.add('is-invalid');
+            input.reportValidity();
+            break;
+          } else {
+            input.classList.remove('is-invalid');
+          }
+        }
       }
+      return isValid;
+    },
+
+    goToStep(targetStep) {
+      if (targetStep < 1 || targetStep > this.totalPhases()) return;
+      if (targetStep > this.currentStep) {
+        if (!this.validateCurrentStep()) return;
+      }
+      this.currentStep = targetStep;
+      if (this.isReviewStep()) {
+        const form = document.querySelector('form[hx-post]');
+        if (form && window.htmx) {
+          window.htmx.trigger(form, 'input');
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
     stepTabClass(stepNumber) {
