@@ -2374,19 +2374,19 @@ def home_view(request):
     checklist_items = [
         {
             'key': 'accounts',
-            'label': _('Account added'),
+            'label': _('Add account'),
             'done': checklist_status['accounts'],
-            'url': reverse('account-create'),
+            'url': reverse('tmr-flows'),
         },
         {
             'key': 'income',
-            'label': _('Salary logged'),
+            'label': _('Add income'),
             'done': checklist_status['income'],
-            'url': reverse('income-create'),
+            'url': reverse('flow-detail', kwargs={'key': 'salary'}),
         },
         {
             'key': 'expense',
-            'label': _('First expense logged'),
+            'label': _('Add expense'),
             'done': checklist_status['expense'],
             'url': reverse('expense-create'),
         },
@@ -2398,15 +2398,15 @@ def home_view(request):
         },
         {
             'key': 'goal',
-            'label': _('Create your first goal'),
+            'label': _('Set a savings goal'),
             'done': checklist_status['goal'],
-            'url': reverse('goal-list'),
+            'url': reverse('flow-detail', kwargs={'key': 'savingsgoal'}),
         },
         {
             'key': 'recurring',
-            'label': _('Add a recurring subscription'),
+            'label': _('Add recurring bill'),
             'done': checklist_status['recurring'],
-            'url': reverse('recurring-list'),
+            'url': reverse('flow-detail', kwargs={'key': 'rentbill'}),
         },
     ]
 

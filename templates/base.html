@@ -1178,6 +1178,8 @@
     <!-- Block for Modals -->
     {% block modals %}{% endblock %}
 
+    {% block extra_js %}{% endblock %}
+
     <!-- Skeleton Loader JS — deferred so it doesn't block first paint -->
     <script defer src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>

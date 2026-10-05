@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{{ flow.label }} | TMR Flows{% endblock %}
+
+{% block extra_js %}
+<script defer src="{% static 'tmr_flows.js' %}?v=20261002"></script>
+{% endblock %}
+
+{% block content %}
+<style>
+    .wizard-steps-header {
+        position: relative;
+        padding-bottom: 0.25rem;
+    }
+    .wizard-step-tab {
+        cursor: pointer;
+        padding-bottom: 0.35rem;
+        transition: all 0.2s ease;
+    }
+
+    .wizard-steps-tabs-row {
+        display: flex;
+        flex-wrap: nowrap;
+        width: 100%;
+    }
+
+    .wizard-steps-tabs-row .wizard-step-tab {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .wizard-step-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color, #6c757d);
+        transition: color 0.2s ease;
+    }
+    .wizard-step-tab.active .wizard-step-title {
+        color: var(--color-secondary, #0F7657);
+        font-weight: 700;
+    }
+    .wizard-step-tab.completed .wizard-step-title {
+        color: var(--color-secondary, #0F7657);
+    }
+    [data-bs-theme="dark"] .wizard-step-title {
+        color: #9ca3af !important;
+    }
+    [data-bs-theme="dark"] .wizard-step-tab.active .wizard-step-title,
+    [data-bs-theme="dark"] .wizard-step-tab.completed .wizard-step-title {
+        color: #34d399 !important;
+    }
+
+    @media (max-width: 576px) {
+        .wizard-steps-tabs-row {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .wizard-steps-tabs-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .wizard-step-title {
+            font-size: 0.74rem;
+            white-space: nowrap;
+        }
+    }
+</style>
+
+<div class="container py-4" x-data="tmrFlowWizard({{ flow.wizard_steps|length|default:0 }}, {% if preview %}{{ flow.wizard_steps|length|add:1 }}{% else %}1{% endif %})">
+    <div class="row justify-content-center fade-in">
+        <div class="col-md-10 col-lg-9">
+            <div class="card shadow-lg border-0 fade-in">
+                <div class="card-header bg-transparent py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 fw-bold mb-1">{{ flow.label }}</h1>
+                            <p class="text-muted mb-0">Create this setup in one pass.</p>
+                        </div>
+                        {% if flow.wizard_steps %}
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2" id="stepCounterBadge" x-text="stepCounterLabel()"></span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    {% if flow.wizard_steps %}
+                    <div class="wizard-steps-header mb-3">
+                        <div class="wizard-steps-tabs-row g-0 text-center mb-2">
+                            {% for step in flow.wizard_steps %}
+                            <div class="col wizard-step-tab" :class="stepTabClass({{ forloop.counter }})" @click="goToStep({{ forloop.counter }})">
+                                <span class="wizard-step-title text-truncate d-block px-1">{{ forloop.counter }}. {{ step.title }}</span>
+                            </div>
+                            {% endfor %}
+                            <div class="col wizard-step-tab" :class="stepTabClass({{ flow.wizard_steps|length|add:1 }})" @click="goToStep({{ flow.wizard_steps|length|add:1 }})">
+                                <span class="wizard-step-title text-truncate d-block px-1">{{ flow.wizard_steps|length|add:1 }}. Review</span>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 3px;">
+                            <div class="progress-bar bg-primary" id="wizardProgressBar" :style="`width: ${progressWidth()};`"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form id="tmr-flow-form-{{ flow.key }}"
+                          method="post"
+                          action="{% url 'flow-detail' key=flow.key %}"
+                          hx-post="{% url 'flow-preview' key=flow.key %}"
+                          hx-target="#tmr-review-{{ flow.key }}"
+                          hx-trigger="change delay:300ms, input delay:300ms"
+                          hx-swap="innerHTML">
+                        {% csrf_token %}
+                        <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+                        {% if flow.wizard_steps %}
+                            {% for step in flow.wizard_steps %}
+                            <div class="wizard-step-content" x-cloak x-show="currentStep === {{ forloop.counter }}" x-transition>
+                                <div class="mb-3">
+                                    <div class="text-uppercase text-muted small fw-semibold">Step {{ forloop.counter }}</div>
+                                    <h2 class="h5 fw-bold mb-1">{{ step.title }}</h2>
+                                    {% if step.help_text %}<p class="text-muted mb-0">{{ step.help_text }}</p>{% endif %}
+                                </div>
+                                {% include 'flows/partials/_form_fields.html' with step=step %}
+                            </div>
+                            {% endfor %}
+
+                            <div class="wizard-step-content" x-cloak x-show="currentStep === {{ flow.wizard_steps|length|add:1 }}" x-transition>
+                                <div id="tmr-review-{{ flow.key }}">
+                                    {% if preview %}
+                                        {% include 'flows/partials/_review.html' %}
+                                    {% else %}
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-body text-muted">Fill the form to preview what will be created.</div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            {% include 'flows/partials/_form_fields.html' %}
+                        {% endif %}
+
+                        <div class="mt-4 d-flex align-items-center gap-2">
+                            {% if flow.wizard_steps %}
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary rounded-pill px-4"
+                                x-cloak
+                                x-show="currentStep > 1"
+                                @click="goToStep(currentStep - 1)">
+                                Back
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-success rounded-pill px-4"
+                                x-cloak
+                                x-show="currentStep <= {{ flow.wizard_steps|length }}"
+                                @click="goToStep(currentStep + 1)">
+                                Next
+                            </button>
+
+                            {# Fallback confirm — shown on Review step if the HTMX-swapped button is unavailable #}
+                            <button
+                                type="submit"
+                                class="btn btn-success rounded-pill px-4"
+                                x-cloak
+                                x-show="isReviewStep()">
+                                Confirm and create
+                            </button>
+                            {% else %}
+                            <button type="submit" class="btn btn-success rounded-pill">Preview setup</button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

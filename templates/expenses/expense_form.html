@@ -554,34 +554,21 @@
                     if (trigger) trigger.setAttribute('href', `#${newId}`);
                 }
                 
-                // Cleanup cloned Searchable Select wrappers (account field)
+                // Cleanup cloned Searchable Select wrappers (covers category, account, currency, etc.)
+                // The original cleanup used 'select.searchable-select' but Django renders plain 'form-select'
+                // selects that also get wrapped by initSearchableSelects — so we match any select inside the wrapper.
                 newForm.querySelectorAll('.searchable-select-wrapper').forEach(wrapper => {
-                    const sel = wrapper.querySelector('select.searchable-select');
+                    const sel = wrapper.querySelector('select');
                     if (sel) {
-                        sel.style.display = 'none';
+                        // Clear init flag so the select gets re-initialized cleanly
                         delete sel.dataset.searchableInit;
-                        // Remove old wrapper UI (keep the select)
+                        // Remove the generated btn and dropdown (keep the hidden select)
                         wrapper.querySelectorAll('.searchable-select-btn, .searchable-select-dropdown').forEach(el => el.remove());
-                        // Unwrap: move select out of wrapper, replace wrapper
+                        // Unwrap: move select out of wrapper to its original parent, then remove wrapper
                         wrapper.parentNode.insertBefore(sel, wrapper);
                         wrapper.remove();
                     }
                 });
-                
-                // Cleanup cloned Multiselect UI from the new row
-                // The clone includes the generated button-group and hidden select. We need to revert to a clean select.
-                const categoryWrapper = newForm.querySelector('select[name$="category"]')?.closest('.mb-3');
-                if (categoryWrapper) {
-                    // Remove the generated btn-group
-                    const btnGroup = categoryWrapper.querySelector('.btn-group');
-                    if (btnGroup) btnGroup.remove();
-                    
-                    // Reset the select element
-                    const select = categoryWrapper.querySelector('select');
-                    if (select) {
-                        select.style.display = ''; // Unhide
-                    }
-                }
 
                 const userCurrency = clickContainer.dataset ? clickContainer.dataset.userCurrency : '';
                 const inputs = newForm.querySelectorAll('input, select');

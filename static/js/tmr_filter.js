@@ -75,7 +75,7 @@ class TMRFilterSystem {
           this.state = this.sanitizeState(parsed);
           // If stored state is non-default, trigger URL update and data reload if needed
           if (this.hasActiveFilters(this.state)) {
-            this.applyStateToURLAndFetch(false);
+            this.applyStateToURLAndFetch(true);
           }
         } catch (e) {
           console.warn('Failed to parse stored filter state:', e);

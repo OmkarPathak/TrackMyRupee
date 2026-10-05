@@ -37,6 +37,11 @@
                 <span class="nav-text">{% trans "Dashboard" %}</span>
             </a>
 
+            <a href="{% url 'tmr-flows' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}" title="{% trans 'TMR Flows' %}">
+                <i class="bi bi-diagram-3 fs-5"></i>
+                <span class="nav-text">{% trans "TMR Flows" %}</span>
+            </a>
+
             <!-- Analytics -->
             <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" title="{% trans 'Analytics' %}">
                 <i class="bi bi-pie-chart fs-5"></i>
@@ -275,6 +280,14 @@
                         <div>
                             <div class="fw-semibold text-body">{% trans "Dashboard" %}</div>
                             <small class="text-muted" style="font-size: 0.75rem;">{% trans "Overview of your monthly summary and stats" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'tmr-flows' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-diagram-3 fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "TMR Flows" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Set up finances in one step" %}</small>
                         </div>
                         <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
                     </a>

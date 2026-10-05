@@ -33,6 +33,7 @@ from .models import (
     Transfer,
     UserProfile,
 )
+from .services_recurring import RecurringService
 from .utils import BOOTSTRAP_ICONS
 
 
@@ -1352,7 +1353,9 @@ class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
         remaining_months = max(1, loan.duration_months - months_passed)
 
         suggested_amount = LoanService.calculate_emi(summary['remaining_principal'], annual_rate, remaining_months)
-        estimated_interest = summary['remaining_principal'] * (annual_rate / 12.0 / 100.0)
+        estimated_interest = float(
+            RecurringService.calculate_period_interest(summary['remaining_principal'], annual_rate, 'MONTHLY')
+        )
 
         if use_initial_preview:
             return {

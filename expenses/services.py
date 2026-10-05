@@ -289,8 +289,14 @@ class LoanService:
         # Cache on loan object to avoid subqueries inside remaining_principal
         loan.paid_principal = principal_paid
         loan.capital_prepaid = capital_prepaid
+        loan.opening_paid_principal = getattr(loan, 'opening_paid_principal', Decimal('0.00'))
 
-        rem = Decimal(str(loan.initial_principal)) - Decimal(str(principal_paid)) - Decimal(str(capital_prepaid))
+        rem = (
+            Decimal(str(loan.initial_principal))
+            - Decimal(str(principal_paid))
+            - Decimal(str(capital_prepaid))
+            - Decimal(str(getattr(loan, 'opening_paid_principal', Decimal('0.00')) or 0))
+        )
         remaining_principal = max(rem, Decimal('0.00'))
 
         summary = {

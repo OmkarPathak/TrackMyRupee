@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}TMR Flows{% endblock %}
+
+{% block extra_js %}
+<script defer src="{% static 'tmr_flows.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" x-data="tmrFlows('{{ initial_category }}', '{{ initial_pill }}')">
+    <div class="mb-4">
+        <h1 class="h2 fw-bold mb-1">TMR Flows</h1>
+        <p class="text-muted mb-0">Set up finances in one step.</p>
+    </div>
+
+    <div class="tmr-cat-row mb-3">
+        {% for category, bucket in categories.items %}
+        <button type="button"
+                class="tmr-cat"
+                :class="activeCategory === '{{ category|escapejs }}' ? 'active' : ''"
+                @click="switchCategory('{{ category|escapejs }}', '{{ bucket.flows.0.key|escapejs }}')">
+            {{ bucket.label }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <div class="mb-4">
+        {% for category, bucket in categories.items %}
+        <div class="tmr-pill-row" x-show="activeCategory === '{{ category|escapejs }}'" x-cloak>
+            {% for flow in bucket.flows %}
+            <button type="button"
+                    class="tmr-pill"
+                    :class="activePill === '{{ flow.key|escapejs }}' ? 'active' : ''"
+                    @click="activePill = '{{ flow.key|escapejs }}'">
+                <i class="bi {{ flow.icon }}"></i> {{ flow.label }}
+            </button>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% for category, bucket in categories.items %}
+        {% for flow in bucket.flows %}
+        <div x-show="activePill === '{{ flow.key|escapejs }}'" x-transition class="mb-4">
+            <div class="card border-0 shadow-sm tmr-stage">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi {{ flow.icon }} text-success fs-4"></i>
+                        <div>
+                            <div class="fw-bold">{{ flow.label }}</div>
+                            <div class="text-muted small">Create this setup in one pass.</div>
+                        </div>
+                    </div>
+                    <a href="{% url 'flow-detail' key=flow.key %}" class="btn btn-success rounded-pill">Open setup</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+{% endblock %}

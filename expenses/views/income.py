@@ -18,6 +18,7 @@ from expenses.views.utils import get_safe_redirect_url
 from ..forms import IncomeForm
 from ..models import INCOME_GROUP_TYPES, Income, RecurringTransaction
 from ..posthog_utils import ph_capture
+from ..services_recurring import RecurringService
 from .mixins import (
     HtmxPartialTemplateMixin,
     RecurringTransactionMixin,
@@ -185,32 +186,50 @@ def _create_recurring_from_income(request, form):
     if not form.cleaned_data.get('add_to_recurring'):
         return None
 
-    existing_rt = RecurringTransaction.objects.filter(
+    # Keep one active recurring INCOME schedule per source and refresh its details.
+    existing = RecurringTransaction.objects.filter(
         user=request.user,
         transaction_type='INCOME',
         source=form.instance.source,
-        is_active=True
-    ).exists()
-
-    if not existing_rt:
-        rt = RecurringTransaction.objects.create(
-            user=request.user,
-            transaction_type='INCOME',
-            amount=form.instance.amount,
-            currency=form.instance.currency,
-            account=form.instance.account,
-            source=form.instance.source,
-            frequency=form.cleaned_data.get('frequency'),
-            start_date=form.instance.date,
-            last_processed_date=form.instance.date,
-            description=form.instance.description,
-            is_active=True
+        is_active=True,
+    ).first()
+    if existing:
+        existing.amount = form.instance.amount
+        existing.currency = form.instance.currency
+        existing.account = form.instance.account
+        existing.description = form.instance.description
+        existing.frequency = form.cleaned_data.get('frequency')
+        existing.start_date = form.instance.date
+        existing.last_processed_date = RecurringService.last_due_before_today(
+            form.instance.date,
+            form.cleaned_data.get('frequency'),
         )
-        messages.info(request, _("A recurring income subscription has also been created."))
-        return rt
-    else:
-        messages.info(request, _("A recurring subscription for this source already exists."))
-        return None
+        existing.save(update_fields=[
+            'amount',
+            'currency',
+            'account',
+            'description',
+            'frequency',
+            'start_date',
+            'last_processed_date',
+            'updated_at',
+        ])
+        messages.info(request, _("Recurring income schedule updated."))
+        return existing
+
+    rt = RecurringService.make_recurring(
+        request.user,
+        'INCOME',
+        form.instance.amount,
+        form.instance.currency,
+        form.instance.account,
+        form.instance.description,
+        form.cleaned_data.get('frequency'),
+        form.instance.date,
+        source=form.instance.source,
+    )
+    messages.info(request, _("A recurring income subscription has also been created."))
+    return rt
 
 
 class IncomeCreateView(LoginRequiredMixin, CreateView):

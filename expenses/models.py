@@ -8,6 +8,8 @@ from decimal import Decimal
 
 import sentry_sdk
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
@@ -2042,6 +2044,12 @@ class Loan(models.Model):
         verbose_name=_('Repayment Type'),
     )
     initial_principal = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Initial Principal Amount'))
+    opening_paid_principal = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_('Principal already paid before tracking started (mid-tenure entry).'),
+    )
     duration_months = models.IntegerField(verbose_name=_('Duration (Months)'))
     start_date = models.DateField(default=timezone.now, verbose_name=_('Start Date'))
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
@@ -2059,7 +2067,7 @@ class Loan(models.Model):
     def remaining_principal(self) -> Decimal:
         """
         Calculates remaining outstanding principal:
-        initial_principal - sum(repayments.principal_portion) - sum(capital_prepaid)
+        initial_principal - sum(repayments.principal_portion) - sum(capital_prepaid) - opening_paid_principal
         """
         
         principal_paid = getattr(self, 'paid_principal', None)
@@ -2074,7 +2082,12 @@ class Loan(models.Model):
                 subtype__in=['loan_down_payment', 'loan_prepayment']
             ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
 
-        rem = Decimal(str(self.initial_principal)) - Decimal(str(principal_paid)) - Decimal(str(capital_prepaid))
+        rem = (
+            Decimal(str(self.initial_principal))
+            - Decimal(str(principal_paid))
+            - Decimal(str(capital_prepaid))
+            - Decimal(str(self.opening_paid_principal or 0))
+        )
         return max(rem, Decimal('0.00'))
 
     def __str__(self):
@@ -2524,6 +2537,42 @@ class CapitalEvent(models.Model):
                 )
             else:
                 super().delete(*args, **kwargs)
+
+
+class FinancialFlow(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='financial_flows')
+    flow_key = models.CharField(max_length=64)
+    spec = models.JSONField(default=dict)
+    idempotency_key = models.UUIDField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'idempotency_key'],
+                name='unique_flow_idempotency',
+            )
+        ]
+        indexes = [
+            models.Index(fields=['user', 'idempotency_key']),
+        ]
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            for created in self.created_objects.select_related('content_type').order_by('created_at', 'id'):
+                content_object = created.content_object
+                if content_object is not None:
+                    content_object.delete()
+            super().delete(*args, **kwargs)
+
+
+class FlowCreatedObject(models.Model):
+    flow = models.ForeignKey(FinancialFlow, on_delete=models.CASCADE, related_name='created_objects')
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveBigIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    step_key = models.CharField(max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Holding(models.Model):

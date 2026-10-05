@@ -1,0 +1,61 @@
+{% load expense_extras %}
+<div class="row g-3">
+{% if step %}
+    {% for field_name in step.fields %}
+        {% with field=form|bound_field:field_name %}
+        {% if field %}
+        <div class="col-12 col-md-6">
+            <div class="mb-0">
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    <div class="form-check pt-3">
+                        {{ field }}
+                        <label class="form-check-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    </div>
+                {% else %}
+                    <label class="form-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                {% endif %}
+                {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                <div id="field-errors-{{ field.name }}">
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+    {% endfor %}
+{% else %}
+    {% for field in form.visible_fields %}
+        <div class="col-12 col-md-6">
+            <div class="mb-0">
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    <div class="form-check pt-3">
+                        {{ field }}
+                        <label class="form-check-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    </div>
+                {% else %}
+                    <label class="form-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                {% endif %}
+                {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                <div id="field-errors-{{ field.name }}">
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+</div>
+<div id="form-non-field-errors">
+    {% for error in form.non_field_errors %}
+    <div class="alert alert-danger small mb-3">{{ error }}</div>
+    {% endfor %}
+</div>

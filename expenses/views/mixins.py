@@ -17,6 +17,7 @@ from ..models import (
     Transfer,
     UserProfile,
 )
+from ..services_recurring import RecurringService
 from ..utils import get_exchange_rate
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
@@ -215,7 +216,11 @@ def process_user_recurring_transactions(user, force=False):
                         break
 
                     principal_paid = loan_principal_paid_map.get(rt.loan_id, Decimal('0.00'))
-                    remaining_principal = (Decimal(str(rt.loan.initial_principal)) - principal_paid).quantize(Decimal('0.01'))
+                    remaining_principal = (
+                        Decimal(str(rt.loan.initial_principal))
+                        - principal_paid
+                        - Decimal(str(getattr(rt.loan, 'opening_paid_principal', 0) or 0))
+                    ).quantize(Decimal('0.01'))
                     if remaining_principal <= 0:
                         logger.info("Loan %s principal fully paid off; auto-deactivating recurring schedule %s.", rt.loan_id, rt.id)
                         rt.is_active = False
@@ -224,18 +229,10 @@ def process_user_recurring_transactions(user, force=False):
                     latest_rate_obj = rt.loan.interest_rates.order_by('-effective_date').first()
                     annual_rate = Decimal(str(latest_rate_obj.interest_rate)) if latest_rate_obj else Decimal('0.00')
 
-                    period_days_map = {
-                        'DAILY': Decimal('1'),
-                        'WEEKLY': Decimal('7'),
-                        'BIWEEKLY': Decimal('14'),
-                        'MONTHLY': Decimal('30'),
-                        'QUARTERLY': Decimal('90'),
-                        'SEMIANNUALLY': Decimal('180'),
-                        'YEARLY': Decimal('365'),
-                    }
-                    period_days = period_days_map.get(rt.frequency, Decimal('30'))
-                    interest_payment = (
-                        remaining_principal * annual_rate * period_days / Decimal('36500')
+                    interest_payment = RecurringService.calculate_period_interest(
+                        remaining_principal,
+                        annual_rate,
+                        rt.frequency,
                     ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
                     repayment_amount = Decimal(str(rt.amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)

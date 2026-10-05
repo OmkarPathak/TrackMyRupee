@@ -106,6 +106,15 @@ def get_dict_item(dictionary, key):
     return None
 
 
+@register.filter(name='bound_field')
+def bound_field(form, field_name):
+    """Return a bound form field by name."""
+    try:
+        return form[field_name]
+    except Exception:
+        return None
+
+
 @register.filter(name='split_string')
 def split_string(value, key):
     """

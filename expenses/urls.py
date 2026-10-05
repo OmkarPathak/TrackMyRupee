@@ -88,6 +88,12 @@ urlpatterns = [
     path('consent/', views.dpdp_consent_view, name='dpdp_consent'),
     path('settings/consent/withdraw/', views.WithdrawConsentView.as_view(), name='withdraw-consent'),
     path('tutorial/complete/', views.complete_tutorial, name='complete-tutorial'),
+
+    # TMR Flows
+    path('flows/', views.FlowLandingView.as_view(), name='tmr-flows'),
+    path('flows/<str:key>/', views.FlowDetailView.as_view(), name='flow-detail'),
+    path('flows/<str:key>/preview/', views.FlowPreviewView.as_view(), name='flow-preview'),
+    path('flows/<str:key>/commit/', views.FlowCommitView.as_view(), name='flow-commit'),
     
     # Savings Goals
     path('goals/', views.SavingsGoalListView.as_view(), name='goal-list'),

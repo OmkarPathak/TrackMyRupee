@@ -1,0 +1,64 @@
+<div>
+    <div class="tmr-review-header d-flex align-items-center justify-content-between gap-2 mb-3">
+        <div>
+            <div class="text-uppercase text-muted small fw-semibold">Review</div>
+            <div class="tmr-review-headline" data-count-up data-value="{{ preview.headline|default:0 }}">{{ preview.headline|default:0 }}</div>
+            {% if review.user_display %}
+            <div class="text-muted small mt-1">Prepared for {{ review.user_display }}</div>
+            {% endif %}
+        </div>
+        <button type="button" class="btn btn-success rounded-pill d-inline-flex align-items-center justify-content-center tmr-review-confirm-btn" data-confirm-btn
+            hx-post="{% url 'flow-commit' key=flow.key %}"
+            hx-include="#tmr-flow-form-{{ flow.key }}"
+            hx-swap="none">
+            <i class="bi bi-check2-circle me-1"></i>
+            Confirm and create
+        </button>
+    </div>
+
+    <ul class="mb-3 ps-3">
+        {% for bullet in preview.bullets %}
+        <li class="tmr-review-bullet">{{ bullet }}</li>
+        {% endfor %}
+    </ul>
+
+    {% if review.sections %}
+    <div class="row g-3 mb-3">
+        {% for section in review.sections %}
+        <div class="col-12 col-lg-6">
+            <div class="border rounded-3 p-3 h-100 bg-body-tertiary">
+                <div class="fw-semibold mb-2">{{ section.title }}</div>
+                <dl class="row mb-0 small">
+                    {% for item in section.items %}
+                    <dt class="col-5 text-muted">{{ item.label }}</dt>
+                    <dd class="col-7 mb-2">{{ item.value }}</dd>
+                    {% endfor %}
+                </dl>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if preview.warnings %}
+    <div class="alert alert-warning tmr-limit-warning mb-0">
+        {% for warning in preview.warnings %}
+            <div>{{ warning }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% for field in form.visible_fields %}
+<div id="field-errors-{{ field.name }}" hx-swap-oob="true">
+    {% for error in field.errors %}
+        <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+<div id="form-non-field-errors" hx-swap-oob="true">
+    {% for error in form.non_field_errors %}
+    <div class="alert alert-danger small mb-3">{{ error }}</div>
+    {% endfor %}
+</div>

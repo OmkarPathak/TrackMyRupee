@@ -1,0 +1,79 @@
+from __future__ import annotations
+
+import math
+from decimal import Decimal
+
+from django import forms
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+from ..models import Account, CURRENCY_CHOICES
+from .base import CreateStep, Flow, FlowWizardStep
+from .registry import register_flow
+
+
+class CreditCardFlowForm(forms.Form):
+    existing_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Choose an existing card to update, or leave blank to create a new one.'))
+    name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('The card label shown in the app.'))
+    balance = forms.DecimalField(min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Current amount owed on the card.'))
+    currency = forms.ChoiceField(choices=CURRENCY_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Currency used for the card balance and limit.'))
+    credit_limit = forms.DecimalField(min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Maximum available credit line.'))
+    billing_day = forms.IntegerField(min_value=1, max_value=31, widget=forms.NumberInput(attrs={'class': 'form-control'}), help_text=_('Day of month the statement is generated.'))
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
+            self.fields['existing_account'].queryset = accounts.filter(account_type='CREDIT_CARD')
+            self.fields['currency'].initial = user.profile.currency
+
+
+@register_flow
+class CreditCardFlow(Flow):
+    key = 'creditcard'
+    label = _('Credit Card')
+    category = 'debt'
+    icon = 'bi-credit-card'
+    form_class = CreditCardFlowForm
+    wizard_steps = [
+        FlowWizardStep('card_basics', _('Card Basics'), ['existing_account', 'name', 'balance', 'currency'], _('Use this step to choose whether you are updating an existing card or creating a new one.')),
+        FlowWizardStep('card_limits', _('Card Limits'), ['credit_limit', 'billing_day'], _('Limit and billing-day settings that drive reminders and balance tracking.')),
+    ]
+
+    def plan(self, data) -> list[CreateStep]:
+        account_payload = {
+            'user': data['user'],
+            'name': data.get('name') or data['existing_account'].name,
+            'account_type': 'CREDIT_CARD',
+            'balance': -data['balance'],
+            'currency': data['currency'],
+            'credit_limit': data['credit_limit'],
+            'credit_card_billing_day': data['billing_day'],
+        }
+        if data.get('existing_account'):
+            account_payload['pk'] = data['existing_account'].pk
+
+        return [CreateStep(Account, account_payload, key='card')]
+
+    def derive(self, cleaned_data) -> dict:
+        data = dict(cleaned_data)
+        data['balance'] = Decimal(str(data.get('balance') or 0))
+        data['credit_limit'] = Decimal(str(data.get('credit_limit') or 0))
+        data['currency'] = data.get('currency') or data['user'].profile.currency
+        return data
+
+    def preview(self, user, cleaned_data) -> dict:
+        data = self.derive(cleaned_data)
+        balance = float(data['balance'])
+        available_credit = float(data['credit_limit']) - balance
+        utilization_pct = (balance / float(data['credit_limit']) * 100) if data['credit_limit'] else 0
+        return {
+            'headline': utilization_pct,
+            'bullets': [
+                _('Creates or updates a revolving credit account'),
+                _('Stores credit limit and billing day for reminders'),
+                _('Available credit: %(credit)s') % {'credit': available_credit},
+            ],
+            'warnings': [],
+        }
+

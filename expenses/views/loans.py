@@ -20,6 +20,7 @@ from ..models import (
 )
 from ..posthog_utils import ph_capture
 from ..services import LoanService
+from ..services_recurring import RecurringService
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
 
@@ -458,33 +459,18 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                     repayment.save()
 
                     if form.cleaned_data.get('add_to_recurring'):
-                        recurring_defaults = {
-                            'amount': repayment.amount,
-                            'currency': loan.currency,
-                            'account': repayment.from_account,
-                            'loan': loan,
-                            'frequency': form.cleaned_data.get('recurring_frequency') or 'MONTHLY',
-                            'start_date': repayment.date,
-                            'last_processed_date': repayment.date,
-                            'description': _("Loan EMI: %(name)s") % {'name': loan.name},
-                            'is_active': True,
-                        }
-
-                        rt, created = RecurringTransaction.objects.get_or_create(
-                            user=request.user,
-                            transaction_type='LOAN',
+                        RecurringService.make_recurring(
+                            request.user,
+                            'LOAN',
+                            repayment.amount,
+                            loan.currency,
+                            repayment.from_account,
+                            _("Loan EMI: %(name)s") % {'name': loan.name},
+                            form.cleaned_data.get('recurring_frequency') or 'MONTHLY',
+                            repayment.date,
                             loan=loan,
-                            is_active=True,
-                            defaults=recurring_defaults,
                         )
-
-                        if not created:
-                            for key, value in recurring_defaults.items():
-                                setattr(rt, key, value)
-                            rt.save()
-                            messages.info(request, _("Recurring loan repayment updated."))
-                        else:
-                            messages.info(request, _("Recurring loan repayment created."))
+                        messages.info(request, _("Recurring loan repayment created."))
 
                 messages.success(request, _("Repayment recorded successfully!"))
                 ph_capture(request.user, 'loan_repayment_added', {'amount': str(repayment.amount)})
