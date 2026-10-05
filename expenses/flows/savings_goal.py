@@ -27,17 +27,35 @@ class SavingsGoalFlowForm(forms.Form):
         super().__init__(*args, **kwargs)
 
 
+from django.urls import reverse
+
+
 @register_flow
 class SavingsGoalFlow(Flow):
     key = 'savingsgoal'
     label = _('Savings Goal')
+    title = _("I'm saving for something")
+    description = _('Emergency fund, a trip, a big purchase — set the target.')
     category = 'savings'
-    icon = 'bi-bullseye'
+    icon = 'bi-flag'
+    tags = [_('Goal'), _('Target date')]
+    estimated_time = _('Under 1 min')
+    creates = [
+        _('Savings goal with target'),
+        _('Suggested monthly set-aside'),
+    ]
+    limit_map = {'savings_goals': SavingsGoal}
     form_class = SavingsGoalFlowForm
     wizard_steps = [
         FlowWizardStep('goal_details', _('Goal Details'), ['name', 'target_amount', 'target_months'], _('Set the goal name and target horizon.')),
         FlowWizardStep('goal_style', _('Goal Style'), ['icon', 'color'], _('Optional styling to make the goal easier to recognise.')),
     ]
+
+    def is_configured(self, user) -> bool:
+        return user.savings_goals.exists()
+
+    def get_edit_url(self, user) -> str:
+        return reverse('goal-list')
 
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
@@ -67,12 +85,6 @@ class SavingsGoalFlow(Flow):
 
     def preview(self, user, cleaned_data) -> dict:
         data = self.derive({**cleaned_data, 'user': user})
-        return {'headline': data['monthly_suggestion'], 'bullets': [_('Creates a savings goal')], 'warnings': self.check_limits(user, [])}
-
-    def check_limits(self, user, steps) -> list[str]:
-        limit = get_limit(user.profile.active_tier, 'savings_goals')
-        if limit == -1:
-            return []
-        if user.savings_goals.count() >= limit:
-            return [_('You have reached your current savings goal limit for this plan.')]
-        return []
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
+        return {'headline': data['monthly_suggestion'], 'bullets': [_('Creates a savings goal')], 'warnings': warnings}

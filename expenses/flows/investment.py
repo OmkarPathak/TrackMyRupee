@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from datetime import date, timedelta
 from decimal import Decimal
 import math
+
 
 from django import forms
 from django.utils import timezone
@@ -255,17 +257,40 @@ class PpfEpfNpsFlowForm(forms.Form):
             self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
 
 
+from django.urls import reverse
+
+
 @register_flow
 class SipRdFlow(Flow):
     key = 'sip'
     label = _('SIP / RD')
+    title = _('I started a SIP')
+    description = _('Link it to a fund and a monthly debit date.')
     category = 'savings'
-    icon = 'bi-arrow-repeat'
+    icon = 'bi-graph-up'
+    tags = [_('Investment'), _('Monthly SIP')]
+    estimated_time = _('About 1 min')
+    creates = [
+        _('Investment account'),
+        _('Recurring monthly transfer'),
+    ]
+    limit_map = {
+        'accounts': Account,
+        'recurring_transactions': RecurringTransaction,
+    }
     form_class = SipRdFlowForm
     wizard_steps = [
         FlowWizardStep('investment_basics', _('Investment Basics'), ['instrument_type', 'name', 'amount', 'frequency', 'from_account'], _('Tell us what you are investing in and how often it should repeat.')),
         FlowWizardStep('deposit_rd_details', _('Deposit / RD Details'), ['deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding', 'deposit_maturity_date', 'rd_installment_day', 'show_accrued_balance', 'record_maturity_income'], _('Only some fields apply depending on whether you select SIP or RD.')),
     ]
+
+    def is_configured(self, user) -> bool:
+        return Account.objects.filter(
+            user=user, is_active=True, account_type__in=['MUTUAL_FUND', 'RD']
+        ).exists()
+
+    def get_edit_url(self, user) -> str:
+        return reverse('account-list')
 
     def plan(self, data) -> list[CreateStep]:
         account_type = 'MUTUAL_FUND' if data['instrument_type'] == 'SIP' else 'RD'
@@ -332,16 +357,28 @@ class SipRdFlow(Flow):
         return data
 
     def preview(self, user, cleaned_data) -> dict:
-        data = self.derive(cleaned_data)
-        return {'headline': float(data['amount']), 'bullets': [_('Creates an investment account and contribution schedule')], 'warnings': []}
+        data = self.derive({**cleaned_data, 'user': user})
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
+        return {'headline': float(data['amount']), 'bullets': [_('Creates an investment account and contribution schedule')], 'warnings': warnings}
 
 
 @register_flow
 class FdFlow(Flow):
     key = 'fd'
     label = _('Fixed Deposit')
+    title = _('I booked an FD')
+    description = _('Principal, rate and maturity, tracked till it matures.')
     category = 'savings'
     icon = 'bi-bank'
+    tags = [_('Deposit'), _('Maturity date')]
+    estimated_time = _('About 1 min')
+    creates = [
+        _('Fixed deposit account'),
+        _('One-time funding transfer'),
+        _('Maturity tracking'),
+    ]
+    limit_map = {'accounts': Account}
     form_class = FdFlowForm
     wizard_steps = [
         FlowWizardStep('fd_basics', _('Deposit Basics'), ['name', 'principal', 'annual_rate', 'from_account'], _('Core deposit details and funding account.')),
@@ -349,6 +386,12 @@ class FdFlow(Flow):
         FlowWizardStep('fd_reporting', _('Reporting'), ['show_accrued_balance', 'record_maturity_income'], _('Controls whether users see accruals and whether maturity interest is auto-recorded.')),
     ]
 
+    def is_configured(self, user) -> bool:
+        return Account.objects.filter(user=user, is_active=True, account_type='FD').exists()
+
+    def get_edit_url(self, user) -> str:
+        return reverse('account-list')
+
     def plan(self, data) -> list[CreateStep]:
         account = CreateStep(
             Account,
@@ -388,210 +431,58 @@ class FdFlow(Flow):
         data = dict(cleaned_data)
         data['principal'] = Decimal(str(data.get('principal') or 0))
         data['annual_rate'] = Decimal(str(data.get('annual_rate') or 0))
-        data['currency'] = data['from_account'].currency
+        data['name'] = data.get('name') or str(_('Fixed Deposit'))
+        data['deposit_start_date'] = data.get('deposit_start_date') or date.today()
+        data['maturity_date'] = data.get('maturity_date') or (data['deposit_start_date'] + timedelta(days=365))
+        data['deposit_compounding'] = data.get('deposit_compounding') or 'QUARTERLY'
+        data['show_accrued_balance'] = bool(data.get('show_accrued_balance', True))
+        data['record_maturity_income'] = bool(data.get('record_maturity_income', False))
+        user = data.get('user')
+        data['currency'] = data.get('currency') or (data['from_account'].currency if data.get('from_account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         return data
 
+
     def preview(self, user, cleaned_data) -> dict:
-        data = self.derive(cleaned_data)
+        data = self.derive({**cleaned_data, 'user': user})
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
         days = max((data['maturity_date'] - data['deposit_start_date']).days, 1)
-        headline = float(data['principal'] + (data['principal'] * data['annual_rate'] * Decimal(days) / Decimal('36500')))
-        return {'headline': headline, 'bullets': [_('Creates a lump-sum fixed deposit')], 'warnings': []}
+        interest = RecurringService.calculate_interest_for_days(data['principal'], data['annual_rate'], days)
+        headline = float(data['principal'] + interest)
+        return {'headline': headline, 'bullets': [_('Creates a lump-sum fixed deposit')], 'warnings': warnings}
 
 
 @register_flow
 class PpfEpfNpsFlow(Flow):
     key = 'ppfepfnps'
     label = _('PPF / EPF / NPS')
+    title = _('I contribute to PPF / EPF / NPS')
+    description = _('Yearly or monthly contributions to your retirement scheme.')
     category = 'savings'
     icon = 'bi-piggy-bank'
+    tags = [_('Retirement'), _('Yearly contribution')]
+    estimated_time = _('About 1 min')
+    creates = [
+        _('Scheme account'),
+        _('Recurring contribution transfer'),
+    ]
+    limit_map = {
+        'accounts': Account,
+        'recurring_transactions': RecurringTransaction,
+    }
     form_class = PpfEpfNpsFlowForm
     wizard_steps = [
         FlowWizardStep('scheme_basics', _('Scheme Basics'), ['scheme_type', 'name', 'annual_amount', 'from_account'], _('Choose the scheme and the yearly contribution account.')),
         FlowWizardStep('scheme_terms', _('Scheme Terms'), ['deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding', 'deposit_maturity_date', 'deposit_closed_date', 'show_accrued_balance', 'record_maturity_income'], _('Settings used for balance tracking and maturity handling.')),
     ]
 
-    def plan(self, data) -> list[CreateStep]:
-        account = CreateStep(
-            Account,
-            {
-                'user': data['user'],
-                'name': data['name'],
-                'account_type': data['scheme_type'],
-                'balance': Decimal('0.00'),
-                'currency': data['currency'],
-                'deposit_principal': data['deposit_principal'],
-                'deposit_rate': data.get('deposit_rate'),
-                'deposit_start_date': data['deposit_start_date'],
-                'deposit_compounding': data['deposit_compounding'],
-                'deposit_maturity_date': data.get('deposit_maturity_date'),
-                'deposit_closed_date': data.get('deposit_closed_date'),
-                'show_accrued_balance': data['show_accrued_balance'],
-                'record_maturity_income': data['record_maturity_income'],
-            },
-            key='account',
-        )
-        recurring = CreateStep(
-            RecurringTransaction,
-            {
-                'user': data['user'],
-                'transaction_type': 'TRANSFER',
-                'amount': data['annual_amount'],
-                'currency': data['currency'],
-                'from_account': data['from_account'],
-                'to_account': '$account',
-                'frequency': 'YEARLY',
-                'start_date': data['deposit_start_date'],
-                'last_processed_date': RecurringService.last_due_before_today(data['deposit_start_date'], 'YEARLY'),
-                'description': _('Annual investment contribution: %(name)s') % {'name': data['name']},
-                'is_active': True,
-            },
-            key='transfer',
-        )
-        return [account, recurring]
+    def is_configured(self, user) -> bool:
+        return Account.objects.filter(
+            user=user, is_active=True, account_type__in=['PPF', 'EPF', 'NPS']
+        ).exists()
 
-    def derive(self, cleaned_data) -> dict:
-        data = dict(cleaned_data)
-        data['annual_amount'] = Decimal(str(data.get('annual_amount') or 0))
-        data['currency'] = data['from_account'].currency
-        data['deposit_start_date'] = data.get('deposit_start_date') or timezone.localdate()
-        return data
-
-    def preview(self, user, cleaned_data) -> dict:
-        data = self.derive(cleaned_data)
-        return {'headline': float(data['annual_amount']), 'bullets': [_('Creates a retirement contribution schedule')], 'warnings': []}
-
-        account_type = 'MUTUAL_FUND' if data['instrument_type'] == 'SIP' else 'RD'
-        if data['instrument_type'] == 'RD':
-            investment_account = CreateStep(
-                Account,
-                {
-                    'user': data['user'],
-                    'name': data['name'],
-                    'account_type': account_type,
-                    'balance': Decimal('0.00'),
-                    'currency': data['currency'],
-                    'deposit_principal': data['deposit_principal'],
-                    'deposit_rate': data['deposit_rate'],
-                    'deposit_start_date': data['deposit_start_date'],
-                    'deposit_compounding': data['deposit_compounding'],
-                    'deposit_maturity_date': data.get('deposit_maturity_date'),
-                    'show_accrued_balance': data['show_accrued_balance'],
-                    'record_maturity_income': data['record_maturity_income'],
-                    'rd_installment_amount': data['amount'],
-                    'rd_installment_day': data['rd_installment_day'],
-                },
-                key='account',
-            )
-            recurring_start = data['deposit_start_date']
-        else:
-            investment_account = CreateStep(
-                Account,
-                {
-                    'user': data['user'],
-                    'name': data['name'],
-                    'account_type': account_type,
-                    'balance': Decimal('0.00'),
-                    'currency': data['currency'],
-                },
-                key='account',
-            )
-            recurring_start = data.get('deposit_start_date') or data['from_account'].created_at.date()
-
-        recurring = CreateStep(
-            RecurringTransaction,
-            {
-                'user': data['user'],
-                'transaction_type': 'TRANSFER',
-                'amount': data['amount'],
-                'currency': data['currency'],
-                'from_account': data['from_account'],
-                'to_account': '$account',
-                'frequency': data['frequency'],
-                'start_date': recurring_start,
-                'last_processed_date': RecurringService.last_due_before_today(recurring_start, data['frequency']),
-                'description': _('Investment contribution: %(name)s') % {'name': data['name']},
-                'is_active': True,
-            },
-            key='transfer',
-        )
-        return [investment_account, recurring]
-
-    def derive(self, cleaned_data) -> dict:
-        data = dict(cleaned_data)
-        data['amount'] = Decimal(str(data.get('amount') or 0))
-        data['currency'] = data.get('currency') or data['from_account'].currency
-        data['deposit_start_date'] = data.get('deposit_start_date') or data['from_account'].created_at.date()
-        return data
-
-    def preview(self, user, cleaned_data) -> dict:
-        data = self.derive(cleaned_data)
-        return {'headline': float(data['amount']), 'bullets': [_('Creates an investment account and contribution schedule')], 'warnings': []}
-
-
-@register_flow
-class FdFlow(Flow):
-    key = 'fd'
-    label = _('Fixed Deposit')
-    category = 'savings'
-    icon = 'bi-bank'
-    form_class = FdFlowForm
-
-    def plan(self, data) -> list[CreateStep]:
-        account = CreateStep(
-            Account,
-            {
-                'user': data['user'],
-                'name': data['name'],
-                'account_type': 'FD',
-                'balance': Decimal('0.00'),
-                'currency': data['currency'],
-                'deposit_principal': data['principal'],
-                'deposit_rate': data['annual_rate'],
-                'deposit_start_date': data['deposit_start_date'],
-                'deposit_compounding': data['deposit_compounding'],
-                'deposit_maturity_date': data['maturity_date'],
-                'deposit_closed_date': data.get('deposit_closed_date'),
-                'show_accrued_balance': data['show_accrued_balance'],
-                'record_maturity_income': data['record_maturity_income'],
-            },
-            key='account',
-        )
-        capital = CreateStep(
-            CapitalEvent,
-            {
-                'user': data['user'],
-                'amount': data['principal'],
-                'date': data['maturity_date'],
-                'subtype': 'investment_lump_sum',
-                'note': _('FD investment'),
-                'account': data['from_account'],
-                'currency': data['currency'],
-            },
-            key='capital',
-        )
-        return [account, capital]
-
-    def derive(self, cleaned_data) -> dict:
-        data = dict(cleaned_data)
-        data['principal'] = Decimal(str(data.get('principal') or 0))
-        data['annual_rate'] = Decimal(str(data.get('annual_rate') or 0))
-        data['currency'] = data['from_account'].currency
-        return data
-
-    def preview(self, user, cleaned_data) -> dict:
-        data = self.derive(cleaned_data)
-        days = max((data['maturity_date'] - data['deposit_start_date']).days, 1)
-        headline = float(data['principal'] + (data['principal'] * data['annual_rate'] * Decimal(days) / Decimal('36500')))
-        return {'headline': headline, 'bullets': [_('Creates a lump-sum fixed deposit')], 'warnings': []}
-
-
-@register_flow
-class PpfEpfNpsFlow(Flow):
-    key = 'ppfepfnps'
-    label = _('PPF / EPF / NPS')
-    category = 'savings'
-    icon = 'bi-piggy-bank'
-    form_class = PpfEpfNpsFlowForm
+    def get_edit_url(self, user) -> str:
+        return reverse('account-list')
 
     def plan(self, data) -> list[CreateStep]:
         account = CreateStep(
@@ -635,11 +526,24 @@ class PpfEpfNpsFlow(Flow):
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         data['annual_amount'] = Decimal(str(data.get('annual_amount') or 0))
-        data['currency'] = data['from_account'].currency
+        data['name'] = data.get('name') or str(_('Government Scheme'))
+        data['scheme_type'] = data.get('scheme_type') or 'PPF'
+        data['deposit_principal'] = Decimal(str(data.get('deposit_principal') or data['annual_amount']))
+        data['deposit_rate'] = Decimal(str(data.get('deposit_rate') or '7.1'))
         data['deposit_start_date'] = data.get('deposit_start_date') or timezone.localdate()
+        data['deposit_compounding'] = data.get('deposit_compounding') or 'QUARTERLY'
+        data['deposit_maturity_date'] = data.get('deposit_maturity_date') or (data['deposit_start_date'] + timedelta(days=5475))
+        data['deposit_closed_date'] = data.get('deposit_closed_date')
+        data['show_accrued_balance'] = bool(data.get('show_accrued_balance', True))
+        data['record_maturity_income'] = bool(data.get('record_maturity_income', True))
+        user = data.get('user')
+        data['currency'] = data.get('currency') or (data['from_account'].currency if data.get('from_account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         return data
 
+
     def preview(self, user, cleaned_data) -> dict:
-        data = self.derive(cleaned_data)
-        return {'headline': float(data['annual_amount']), 'bullets': [_('Creates a retirement contribution schedule')], 'warnings': []}
+        data = self.derive({**cleaned_data, 'user': user})
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
+        return {'headline': float(data['annual_amount']), 'bullets': [_('Creates a retirement contribution schedule')], 'warnings': warnings}
 

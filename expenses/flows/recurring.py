@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
+
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
@@ -29,23 +31,48 @@ class RentBillFlowForm(forms.Form):
             self.fields['currency'].initial = user.profile.currency
 
 
+from django.urls import reverse
+
+
 @register_flow
 class RentBillFlow(Flow):
     key = 'rentbill'
     label = _('Rent / Bill')
+    title = _('I pay rent')
+    description = _('A recurring bill with a due date and reminder.')
     category = 'bills'
-    icon = 'bi-house'
+    icon = 'bi-file-text'
+    tags = [_('Bill'), _('Monthly rent')]
+    estimated_time = _('About 1 min')
+    creates = [
+        _('Recurring expense entry'),
+        _('Due-date reminder'),
+    ]
+    limit_map = {'recurring_transactions': RecurringTransaction}
     form_class = RentBillFlowForm
     wizard_steps = [
         FlowWizardStep('bill_basics', _('Bill Details'), ['description', 'amount', 'currency', 'account'], _('Basic bill information and the payment account.')),
         FlowWizardStep('bill_schedule', _('Schedule'), ['frequency', 'start_date'], _('How often it should repeat and when it starts.')),
     ]
 
+    def is_configured(self, user) -> bool:
+        return RecurringTransaction.objects.filter(
+            user=user, is_active=True, transaction_type='EXPENSE', category='Rent'
+        ).exists()
+
+    def get_edit_url(self, user) -> str:
+        return reverse('recurring-list')
+
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         data['amount'] = Decimal(str(data.get('amount') or 0))
-        data['currency'] = data.get('currency') or data['account'].currency
+        data['frequency'] = data.get('frequency') or 'MONTHLY'
+        data['description'] = data.get('description') or str(_('Rent bill'))
+        data['start_date'] = data.get('start_date') or date.today()
+        user = data.get('user')
+        data['currency'] = data.get('currency') or (data['account'].currency if data.get('account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         return data
+
 
     def plan(self, data) -> list[CreateStep]:
         return [
@@ -69,8 +96,11 @@ class RentBillFlow(Flow):
         ]
 
     def preview(self, user, cleaned_data) -> dict:
-        amount = Decimal(str(cleaned_data.get('amount') or 0))
-        frequency = cleaned_data.get('frequency') or 'MONTHLY'
+        data = self.derive({**cleaned_data, 'user': user})
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
+        amount = Decimal(str(data.get('amount') or 0))
+        frequency = data.get('frequency') or 'MONTHLY'
         multipliers = {'DAILY': 365, 'WEEKLY': 52, 'BIWEEKLY': 26, 'MONTHLY': 12, 'QUARTERLY': 4, 'SEMIANNUALLY': 2, 'YEARLY': 1}
         annual = float(amount) * multipliers.get(frequency, 12)
-        return {'headline': annual, 'bullets': [_('Creates a recurring bill schedule')], 'warnings': []}
+        return {'headline': annual, 'bullets': [_('Creates a recurring bill schedule')], 'warnings': warnings}

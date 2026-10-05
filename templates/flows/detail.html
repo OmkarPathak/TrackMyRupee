@@ -108,7 +108,7 @@
                           action="{% url 'flow-detail' key=flow.key %}"
                           hx-post="{% url 'flow-preview' key=flow.key %}"
                           hx-target="#tmr-review-{{ flow.key }}"
-                          hx-trigger="change delay:300ms, input delay:300ms"
+                          hx-trigger="input changed delay:300ms"
                           hx-swap="innerHTML">
                         {% csrf_token %}
                         <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">

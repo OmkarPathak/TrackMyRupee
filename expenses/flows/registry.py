@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import OrderedDict
 
 
+from django.core.exceptions import ImproperlyConfigured
+
 CATEGORY_ORDER = ["debt", "income", "bills", "savings", "assets"]
 CATEGORY_LABELS = {
     "debt": "Debt",
@@ -17,6 +19,10 @@ _FLOW_REGISTRY = {}
 
 def register_flow(cls):
     """Decorator that registers a Flow subclass globally."""
+    if cls.key in _FLOW_REGISTRY:
+        raise ImproperlyConfigured(
+            f"Flow with key '{cls.key}' is already registered by {_FLOW_REGISTRY[cls.key].__class__.__name__}."
+        )
     _FLOW_REGISTRY[cls.key] = cls()
     return cls
 

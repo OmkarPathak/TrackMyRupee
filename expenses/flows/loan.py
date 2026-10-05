@@ -65,12 +65,28 @@ class NewLoanFlowForm(forms.Form):
         return cleaned
 
 
+from django.urls import reverse
+
+
 @register_flow
 class NewLoanFlow(Flow):
     key = 'loan'
     label = _('Loan')
+    title = _('I took a loan')
+    description = _('Home, car or personal. Add it once and EMIs track themselves.')
     category = 'debt'
-    icon = 'bi-shield-lock'
+    icon = 'bi-house'
+    tags = [_('Loan'), _('Repayment plan'), _('Monthly EMI')]
+    estimated_time = _('About 2 min')
+    creates = [
+        _('Loan account with balance and rate'),
+        _('Repayment schedule'),
+        _('Recurring EMI transaction'),
+    ]
+    limit_map = {
+        'loans': Loan,
+        'recurring_transactions': RecurringTransaction,
+    }
     form_class = NewLoanFlowForm
     addons = {
         'mid_tenure': FlowAddon('mid_tenure', _('Mid-Tenure Entry'), ['opening_paid_principal', 'first_emi_date']),
@@ -82,15 +98,29 @@ class NewLoanFlow(Flow):
         FlowWizardStep('loan_adjustments', _('Adjustments'), ['mid_tenure', 'opening_paid_principal', 'first_emi_date', 'include_down_payment', 'down_payment_amount', 'down_payment_account'], _('Optional fields for already-started loans or upfront payments.')),
     ]
 
+    def is_configured(self, user) -> bool:
+        return Loan.objects.filter(user=user, is_active=True).exists()
+
+    def get_edit_url(self, user) -> str:
+        return reverse('loan-list')
+
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         data['annual_rate'] = Decimal(str(data.get('annual_rate') or 0))
         data['principal'] = Decimal(str(data.get('principal') or 0))
         data['tenure_months'] = int(data.get('tenure_months') or 0)
+        data['start_date'] = data.get('start_date') or timezone.localdate()
+        data['name'] = data.get('name') or _('Loan')
+        data['payment_account'] = data.get('payment_account')
         data['create_repayment_schedule'] = data.get('create_repayment_schedule', True)
         if data.get('repayment_amount') is not None:
             data['repayment_amount'] = Decimal(str(data.get('repayment_amount') or 0))
-        data['currency'] = data['payment_account'].currency if data.get('payment_account') else data['user'].profile.currency
+        user = data.get('user')
+        data['currency'] = (
+            data['payment_account'].currency
+            if data.get('payment_account')
+            else (getattr(getattr(user, 'profile', None), 'currency', '₹') if user else '₹')
+        )
         return data
 
     def plan(self, data) -> list[CreateStep]:
@@ -164,9 +194,12 @@ class NewLoanFlow(Flow):
         return steps
 
     def preview(self, user, cleaned_data) -> dict:
-        principal = Decimal(str(cleaned_data.get('principal') or 0))
-        annual_rate = Decimal(str(cleaned_data.get('annual_rate') or 0))
-        tenure = int(cleaned_data.get('tenure_months') or 1)
+        data = self.derive({**cleaned_data, 'user': user})
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
+        principal = Decimal(str(data.get('principal') or 0))
+        annual_rate = Decimal(str(data.get('annual_rate') or 0))
+        tenure = int(data.get('tenure_months') or 1)
         headline = LoanService.calculate_emi(principal, annual_rate, tenure)
         schedule_enabled = cleaned_data.get('create_repayment_schedule', True)
         return {
@@ -175,15 +208,6 @@ class NewLoanFlow(Flow):
                 _('Creates a loan account and interest rate'),
                 _('Creates a recurring EMI schedule') if schedule_enabled else _('Skips recurring schedule creation'),
             ],
-            'warnings': self.check_limits(user, []),
+            'warnings': warnings,
         }
-
-    def check_limits(self, user, steps) -> list[str]:
-        limit = get_limit(user.profile.active_tier, 'loans')
-        if limit == -1:
-            return []
-        current = Loan.objects.filter(user=user).count()
-        if current >= limit:
-            return [_('You have reached your current loan limit for this plan.')]
-        return []
 

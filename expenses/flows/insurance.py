@@ -29,17 +29,41 @@ class InsuranceFlowForm(forms.Form):
             self.fields['premium_payment_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
 
 
+from django.urls import reverse
+
+
 @register_flow
 class InsuranceFlow(Flow):
     key = 'insurance'
     label = _('Insurance')
+    title = _('I bought insurance')
+    description = _('Policy details and the premium that renews on its own.')
     category = 'bills'
     icon = 'bi-shield-check'
+    tags = [_('Policy'), _('Premium reminder')]
+    estimated_time = _('About 1 min')
+    creates = [
+        _('Policy asset record'),
+        _('Recurring premium payment'),
+    ]
+    limit_map = {
+        'accounts': Account,
+        'recurring_transactions': RecurringTransaction,
+    }
     form_class = InsuranceFlowForm
     wizard_steps = [
         FlowWizardStep('policy_details', _('Policy Details'), ['name', 'policy_number', 'sum_assured'], _('Basic policy information for your records.')),
         FlowWizardStep('premium_schedule', _('Premium Schedule'), ['premium_amount', 'premium_frequency', 'premium_payment_account', 'start_date'], _('How and when premiums should be tracked.')),
     ]
+
+    def is_configured(self, user) -> bool:
+        return (
+            PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='INSURANCE').exists()
+            or Account.objects.filter(user=user, is_active=True, account_type='LIFE_INSURANCE').exists()
+        )
+
+    def get_edit_url(self, user) -> str:
+        return reverse('account-list')
 
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
@@ -96,7 +120,9 @@ class InsuranceFlow(Flow):
         return [asset, account, recurring]
 
     def preview(self, user, cleaned_data) -> dict:
-        data = self.derive(cleaned_data)
+        data = self.derive({**cleaned_data, 'user': user})
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
         annual_factor = {
             'ANNUAL': 1,
             'SEMI_ANNUAL': 2,
@@ -108,7 +134,7 @@ class InsuranceFlow(Flow):
             'bullets': [
                 _('Creates an insurance policy, linked account, and premium schedule'),
             ],
-            'warnings': [],
+            'warnings': warnings,
         }
 
 

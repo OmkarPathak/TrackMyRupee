@@ -28,17 +28,36 @@ class CreditCardFlowForm(forms.Form):
             self.fields['currency'].initial = user.profile.currency
 
 
+from django.urls import reverse
+
+
 @register_flow
 class CreditCardFlow(Flow):
     key = 'creditcard'
     label = _('Credit Card')
+    title = _('I got a credit card')
+    description = _('Balance, limit and the billing cycle in one pass.')
     category = 'debt'
     icon = 'bi-credit-card'
+    tags = [_('Card'), _('Limit'), _('Due-date reminder')]
+    estimated_time = _('About 1 min')
+    creates = [
+        _('Revolving credit account'),
+        _('Billing cycle and due date'),
+        _('Recurring payment reminder'),
+    ]
+    limit_map = {'accounts': Account}
     form_class = CreditCardFlowForm
     wizard_steps = [
         FlowWizardStep('card_basics', _('Card Basics'), ['existing_account', 'name', 'balance', 'currency'], _('Use this step to choose whether you are updating an existing card or creating a new one.')),
         FlowWizardStep('card_limits', _('Card Limits'), ['credit_limit', 'billing_day'], _('Limit and billing-day settings that drive reminders and balance tracking.')),
     ]
+
+    def is_configured(self, user) -> bool:
+        return Account.objects.filter(user=user, is_active=True, account_type='CREDIT_CARD').exists()
+
+    def get_edit_url(self, user) -> str:
+        return reverse('account-list')
 
     def plan(self, data) -> list[CreateStep]:
         account_payload = {
@@ -63,7 +82,9 @@ class CreditCardFlow(Flow):
         return data
 
     def preview(self, user, cleaned_data) -> dict:
-        data = self.derive(cleaned_data)
+        data = self.derive({**cleaned_data, 'user': user})
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
         balance = float(data['balance'])
         available_credit = float(data['credit_limit']) - balance
         utilization_pct = (balance / float(data['credit_limit']) * 100) if data['credit_limit'] else 0
@@ -74,6 +95,6 @@ class CreditCardFlow(Flow):
                 _('Stores credit limit and billing day for reminders'),
                 _('Available credit: %(credit)s') % {'credit': available_credit},
             ],
-            'warnings': [],
+            'warnings': warnings,
         }
 

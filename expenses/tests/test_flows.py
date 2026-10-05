@@ -2,20 +2,53 @@ from decimal import Decimal
 from datetime import date, timedelta
 import re
 import uuid
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from expenses.flows.investment import FdFlow, PpfEpfNpsFlow, SipRdFlow
+from expenses.flows.asset import CarFlow, GoldFlow
 from expenses.flows.credit_card import CreditCardFlow
 from expenses.flows.income import SalaryFlow
+from expenses.flows.insurance import InsuranceFlow
+from expenses.flows.investment import FdFlow, PpfEpfNpsFlow, SipRdFlow
 from expenses.flows.loan import NewLoanFlow
+from expenses.flows.recurring import RentBillFlow
 from expenses.flows.registry import FlowRegistry
-from expenses.models import Account, CapitalEvent, Income, Loan, LoanInterestRate, PhysicalAsset, RecurringTransaction, SavingsGoal, UserProfile
+from expenses.flows.savings_goal import SavingsGoalFlow
+from expenses.models import (
+    Account,
+    CapitalEvent,
+    FinancialFlow,
+    Income,
+    Loan,
+    LoanInterestRate,
+    PhysicalAsset,
+    RecurringTransaction,
+    SavingsGoal,
+    UserProfile,
+)
+from expenses.services_recurring import RecurringService
 
 
 class TestFlowRegistry(TestCase):
+    EXPECTED_KEYS = {
+        'loan',
+        'creditcard',
+        'salary',
+        'rentbill',
+        'insurance',
+        'sip',
+        'fd',
+        'ppfepfnps',
+        'savingsgoal',
+        'car',
+        'gold',
+    }
+
     def test_registry_exposes_core_flows(self):
         self.assertEqual(FlowRegistry.get('loan').key, 'loan')
         self.assertEqual(FlowRegistry.get('salary').key, 'salary')
@@ -28,6 +61,47 @@ class TestFlowRegistry(TestCase):
         self.assertIn('bills', grouped)
         self.assertIn('savings', grouped)
         self.assertIn('assets', grouped)
+
+    def test_registry_contains_exactly_11_flows(self):
+        flows = FlowRegistry.all()
+        self.assertEqual(len(flows), 11)
+        self.assertEqual(set(flows.keys()), self.EXPECTED_KEYS)
+
+    def test_flow_classes_defined_exactly_once_per_file(self):
+        import ast
+        from pathlib import Path
+
+        flows_dir = Path(__file__).resolve().parent.parent / 'flows'
+        class_definitions = {}
+        for py_file in flows_dir.glob('*.py'):
+            if py_file.name in ('__init__.py', 'base.py', 'registry.py'):
+                continue
+            tree = ast.parse(py_file.read_text(encoding='utf-8'))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef):
+                    is_flow = any(
+                        (isinstance(base, ast.Name) and base.id == 'Flow')
+                        or (isinstance(base, ast.Attribute) and base.attr == 'Flow')
+                        for base in node.bases
+                    )
+                    if is_flow:
+                        class_definitions.setdefault(node.name, []).append(py_file.name)
+
+        self.assertEqual(len(class_definitions), 11)
+        for class_name, files in class_definitions.items():
+            self.assertEqual(len(files), 1, f"Flow class {class_name} defined {len(files)} times: {files}")
+
+    def test_register_flow_safeguard_raises_on_duplicate(self):
+        from django.core.exceptions import ImproperlyConfigured
+        from expenses.flows.base import Flow
+        from expenses.flows.registry import register_flow
+
+        class DummyDuplicateFlow(Flow):
+            key = 'salary'
+
+        with self.assertRaises(ImproperlyConfigured) as ctx:
+            register_flow(DummyDuplicateFlow)
+        self.assertIn("Flow with key 'salary' is already registered", str(ctx.exception))
 
 
 class TestFlowViews(TestCase):
@@ -853,3 +927,355 @@ class TestCreditCardFlow(TestCase):
         self.assertEqual(existing.balance, Decimal('-2500.00'))
         self.assertEqual(existing.credit_limit, Decimal('150000.00'))
         self.assertEqual(existing.credit_card_billing_day, 18)
+
+
+class TestFlowLimitEnforcementAndHardening(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='limit-tester', password='pass')
+        self.profile, _ = UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
+        self.profile.tier = 'FREE'
+        self.profile.save()
+
+        # Free tier limits: accounts=2, recurring_transactions=2, loans=0, savings_goals=1
+        self.acc1 = Account.objects.create(
+            user=self.user, name='Wallet', account_type='CASH_WALLET', balance=Decimal('50000.00'), currency='₹'
+        )
+        self.acc2 = Account.objects.create(
+            user=self.user, name='Savings', account_type='SAVINGS_ACCOUNT', balance=Decimal('100000.00'), currency='₹'
+        )
+        self.rec1 = RecurringTransaction.objects.create(
+            user=self.user, transaction_type='EXPENSE', category='Utilities', amount=Decimal('1000.00'),
+            account=self.acc1, start_date=date.today()
+        )
+        self.rec2 = RecurringTransaction.objects.create(
+            user=self.user, transaction_type='EXPENSE', category='Broadband', amount=Decimal('800.00'),
+            account=self.acc1, start_date=date.today()
+        )
+        self.goal = SavingsGoal.objects.create(
+            user=self.user, name='Emergency Fund', target_amount=Decimal('50000.00')
+        )
+
+    def test_all_11_flows_enforce_free_tier_limits_in_preview_and_commit(self):
+        flow_cases = [
+            (
+                'loan',
+                NewLoanFlow(),
+                {
+                    'name': 'Limit Loan',
+                    'loan_type': 'PERSONAL',
+                    'principal': Decimal('100000.00'),
+                    'annual_rate': Decimal('10.00'),
+                    'tenure_months': 12,
+                    'start_date': date.today(),
+                    'payment_account': self.acc1,
+                    'create_repayment_schedule': False,
+                },
+                {
+                    'principal': Decimal('100000.00'),
+                    'annual_rate': Decimal('10.00'),
+                    'tenure_months': 12,
+                    'payment_account': self.acc1,
+                },
+            ),
+            (
+                'creditcard',
+                CreditCardFlow(),
+                {
+                    'name': 'Limit CC',
+                    'balance': Decimal('5000.00'),
+                    'currency': '₹',
+                    'credit_limit': Decimal('50000.00'),
+                    'billing_day': 1,
+                    'existing_account': None,
+                },
+                {
+                    'name': 'Limit CC',
+                    'balance': Decimal('5000.00'),
+                    'credit_limit': Decimal('50000.00'),
+                    'billing_day': 1,
+                },
+            ),
+            (
+                'salary',
+                SalaryFlow(),
+                {
+                    'amount': Decimal('50000.00'),
+                    'currency': '₹',
+                    'account': self.acc1,
+                    'salary_date': 1,
+                    'start_date': date.today(),
+                    'create_historical_entries': False,
+                },
+                {
+                    'amount': Decimal('50000.00'),
+                    'account': self.acc1,
+                    'salary_date': 1,
+                },
+            ),
+            (
+                'rentbill',
+                RentBillFlow(),
+                {
+                    'description': 'Limit Rent',
+                    'amount': Decimal('15000.00'),
+                    'currency': '₹',
+                    'frequency': 'MONTHLY',
+                    'account': self.acc1,
+                    'start_date': date.today(),
+                },
+                {
+                    'description': 'Limit Rent',
+                    'amount': Decimal('15000.00'),
+                    'account': self.acc1,
+                },
+            ),
+            (
+                'insurance',
+                InsuranceFlow(),
+                {
+                    'name': 'Limit Insurance',
+                    'policy_number': 'POL-LIMIT',
+                    'sum_assured': Decimal('1000000.00'),
+                    'premium_amount': Decimal('12000.00'),
+                    'premium_frequency': 'ANNUAL',
+                    'start_date': date.today(),
+                    'premium_payment_account': self.acc1,
+                },
+                {
+                    'name': 'Limit Insurance',
+                    'policy_number': 'POL-LIMIT',
+                    'sum_assured': Decimal('1000000.00'),
+                    'premium_amount': Decimal('12000.00'),
+                    'premium_frequency': 'ANNUAL',
+                    'start_date': date.today(),
+                    'premium_payment_account': self.acc1,
+                },
+            ),
+            (
+                'sip',
+                SipRdFlow(),
+                {
+                    'instrument_type': 'SIP',
+                    'name': 'Limit SIP',
+                    'amount': Decimal('5000.00'),
+                    'frequency': 'MONTHLY',
+                    'from_account': self.acc1,
+                },
+                {
+                    'instrument_type': 'SIP',
+                    'name': 'Limit SIP',
+                    'amount': Decimal('5000.00'),
+                    'frequency': 'MONTHLY',
+                    'from_account': self.acc1,
+                },
+            ),
+            (
+                'fd',
+                FdFlow(),
+                {
+                    'name': 'Limit FD',
+                    'principal': Decimal('50000.00'),
+                    'annual_rate': Decimal('7.00'),
+                    'deposit_start_date': date.today(),
+                    'maturity_date': date.today() + timedelta(days=365),
+                    'deposit_compounding': 'QUARTERLY',
+                    'show_accrued_balance': True,
+                    'record_maturity_income': False,
+                    'deposit_closed_date': None,
+                    'from_account': self.acc1,
+                },
+                {
+                    'name': 'Limit FD',
+                    'principal': Decimal('50000.00'),
+                    'annual_rate': Decimal('7.00'),
+                    'deposit_start_date': date.today(),
+                    'maturity_date': date.today() + timedelta(days=365),
+                    'from_account': self.acc1,
+                },
+            ),
+            (
+                'ppfepfnps',
+                PpfEpfNpsFlow(),
+                {
+                    'scheme_type': 'PPF',
+                    'name': 'Limit PPF',
+                    'annual_amount': Decimal('50000.00'),
+                    'deposit_principal': Decimal('50000.00'),
+                    'deposit_rate': Decimal('7.10'),
+                    'deposit_start_date': date.today(),
+                    'deposit_compounding': 'QUARTERLY',
+                    'deposit_maturity_date': date.today() + timedelta(days=5475),
+                    'deposit_closed_date': None,
+                    'show_accrued_balance': True,
+                    'record_maturity_income': False,
+                    'from_account': self.acc1,
+                },
+                {
+                    'scheme_type': 'PPF',
+                    'name': 'Limit PPF',
+                    'annual_amount': Decimal('50000.00'),
+                    'deposit_principal': Decimal('50000.00'),
+                    'deposit_rate': Decimal('7.10'),
+                    'deposit_start_date': date.today(),
+                    'from_account': self.acc1,
+                },
+            ),
+            (
+                'savingsgoal',
+                SavingsGoalFlow(),
+                {
+                    'name': 'Limit Goal',
+                    'target_amount': Decimal('100000.00'),
+                    'target_months': 12,
+                    'icon': 'GOAL',
+                    'color': 'success',
+                },
+                {
+                    'name': 'Limit Goal',
+                    'target_amount': Decimal('100000.00'),
+                    'target_months': 12,
+                    'icon': 'GOAL',
+                    'color': 'success',
+                },
+            ),
+            (
+                'car',
+                CarFlow(),
+                {
+                    'name': 'Limit Car',
+                    'purchase_price': Decimal('600000.00'),
+                    'financed': True,
+                    'loan_name': 'Limit Car Loan',
+                    'annual_rate': Decimal('9.00'),
+                    'tenure_months': 36,
+                    'acquisition_date': date.today(),
+                    'from_account': self.acc1,
+                },
+                {
+                    'name': 'Limit Car',
+                    'purchase_price': Decimal('600000.00'),
+                    'financed': True,
+                    'loan_name': 'Limit Car Loan',
+                    'annual_rate': Decimal('9.00'),
+                    'tenure_months': 36,
+                    'acquisition_date': date.today(),
+                    'from_account': self.acc1,
+                },
+            ),
+            (
+                'gold',
+                GoldFlow(),
+                {
+                    'route': 'digital',
+                    'name': 'Limit Gold',
+                    'amount': Decimal('20000.00'),
+                    'acquisition_date': date.today(),
+                    'from_account': self.acc1,
+                },
+                {
+                    'route': 'digital',
+                    'name': 'Limit Gold',
+                    'amount': Decimal('20000.00'),
+                    'acquisition_date': date.today(),
+                    'from_account': self.acc1,
+                },
+            ),
+        ]
+
+        self.assertEqual(len(flow_cases), 11)
+
+        for key, flow, commit_payload, preview_payload in flow_cases:
+            with self.subTest(flow=key):
+                preview_data = flow.preview(self.user, preview_payload)
+                self.assertIn('warnings', preview_data, f"Preview for flow '{key}' should contain 'warnings'")
+                self.assertTrue(len(preview_data['warnings']) > 0, f"Preview for flow '{key}' should have at least 1 limit warning")
+
+                with self.assertRaises(ValidationError, msg=f"Commit for flow '{key}' should raise ValidationError on limit exceed"):
+                    flow.commit(self.user, commit_payload, idempotency_key=uuid.uuid4())
+
+    def test_idempotency_race_handling(self):
+        flow = FdFlow()
+        idem_key = uuid.uuid4()
+        cleaned_data = {
+            'name': 'Race FD',
+            'principal': Decimal('50000.00'),
+            'annual_rate': Decimal('10.00'),
+            'deposit_start_date': date(2026, 10, 1),
+            'maturity_date': date(2027, 10, 1),
+            'deposit_compounding': 'QUARTERLY',
+            'show_accrued_balance': True,
+            'record_maturity_income': False,
+            'deposit_closed_date': None,
+            'from_account': self.acc1,
+        }
+        self.profile.tier = 'PRO'
+        self.profile.save()
+        self.user.refresh_from_db()
+
+        # Pre-create the FinancialFlow record representing what the concurrent commit created
+        existing_flow = FinancialFlow.objects.create(
+            user=self.user,
+            flow_key=flow.key,
+            spec={'name': 'Race FD'},
+            idempotency_key=idem_key,
+        )
+
+        original_filter = FinancialFlow.objects.filter
+        call_count = 0
+
+        def fake_filter(*args, **kwargs):
+            nonlocal call_count
+            qs = original_filter(*args, **kwargs)
+            if kwargs.get('idempotency_key') == idem_key:
+                call_count += 1
+                if call_count == 1:
+                    # First check returns empty queryset, simulating line 208 race window
+                    return qs.none()
+            return qs
+
+        with patch('expenses.models.FinancialFlow.objects.filter', side_effect=fake_filter):
+            result = flow.commit(self.user, cleaned_data, idempotency_key=idem_key)
+            self.assertEqual(result.idempotency_key, idem_key)
+            self.assertEqual(result.flow_id, existing_flow.id)
+
+
+    def test_commit_calls_full_clean_before_saving(self):
+        flow = CreditCardFlow()
+        self.profile.tier = 'PRO'
+        self.profile.save()
+        self.user.refresh_from_db()
+
+        # Account.credit_card_billing_day has MaxValueValidator(31); 99 fails full_clean()
+        with self.assertRaises(ValidationError):
+            flow.commit(
+                self.user,
+                {
+                    'name': 'Valid Name',
+                    'balance': Decimal('1000.00'),
+                    'currency': '₹',
+                    'credit_limit': Decimal('50000.00'),
+                    'billing_day': 99,
+                    'existing_account': None,
+                },
+                idempotency_key=uuid.uuid4(),
+            )
+
+    def test_fd_preview_calculates_interest_via_recurring_service(self):
+        flow = FdFlow()
+        start = date(2026, 1, 1)
+        end = date(2026, 7, 1)
+        principal = Decimal('100000.00')
+        rate = Decimal('8.00')
+        days = (end - start).days
+        expected_interest = RecurringService.calculate_interest_for_days(principal, rate, days)
+
+        preview = flow.preview(self.user, {
+            'principal': principal,
+            'annual_rate': rate,
+            'deposit_start_date': start,
+            'maturity_date': end,
+            'from_account': self.acc1,
+        })
+        self.assertEqual(Decimal(str(preview['headline'])), round(principal + expected_interest, 2))
+
+

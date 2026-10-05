@@ -5,7 +5,9 @@ from decimal import Decimal
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from ..models import Account, CapitalEvent, Holding, PhysicalAsset
+from django.urls import reverse
+
+from ..models import Account, CapitalEvent, Holding, Loan, PhysicalAsset, RecurringTransaction
 from .base import CreateStep, Flow
 from .loan import NewLoanFlow
 from .registry import register_flow
@@ -58,9 +60,28 @@ class GoldFlowForm(forms.Form):
 class CarFlow(Flow):
     key = 'car'
     label = _('Car')
+    title = _('I bought a car')
+    description = _('Cash or financed — either way it lands in your net worth.')
     category = 'assets'
     icon = 'bi-car-front'
+    tags = [_('Vehicle'), _('Optional loan')]
+    estimated_time = _('About 2 min')
+    creates = [
+        _('Vehicle asset record'),
+        _('Loan + EMI, if financed'),
+        _('One-time purchase entry'),
+    ]
+    limit_map = {
+        'loans': Loan,
+        'recurring_transactions': RecurringTransaction,
+    }
     form_class = CarFlowForm
+
+    def is_configured(self, user) -> bool:
+        return PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='VEHICLE').exists()
+
+    def get_edit_url(self, user) -> str:
+        return reverse('account-list')
 
     def plan(self, data) -> list[CreateStep]:
         steps = []
@@ -119,17 +140,36 @@ class CarFlow(Flow):
 
     def preview(self, user, cleaned_data) -> dict:
         data = self.derive({**cleaned_data, 'user': user})
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
         headline = float(data['purchase_price'])
-        return {'headline': headline, 'bullets': [_('Creates a vehicle asset')], 'warnings': []}
+        return {'headline': headline, 'bullets': [_('Creates a vehicle asset')], 'warnings': warnings}
 
 
 @register_flow
 class GoldFlow(Flow):
     key = 'gold'
     label = _('Gold')
+    title = _('I bought gold')
+    description = _('Physical jewelry or digital/SGB — tracked either way.')
     category = 'assets'
     icon = 'bi-gem'
+    tags = [_('Physical or digital'), _('Net worth')]
+    estimated_time = _('Under 1 min')
+    creates = [
+        _('Gold holding, valued at cost'),
+    ]
+    limit_map = {'accounts': Account}
     form_class = GoldFlowForm
+
+    def is_configured(self, user) -> bool:
+        return (
+            PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='GOLD').exists()
+            or Account.objects.filter(user=user, is_active=True, account_type='SGB').exists()
+        )
+
+    def get_edit_url(self, user) -> str:
+        return reverse('holding-list')
 
     def plan(self, data) -> list[CreateStep]:
         if data['route'] == 'physical':
@@ -181,5 +221,7 @@ class GoldFlow(Flow):
 
     def preview(self, user, cleaned_data) -> dict:
         data = self.derive({**cleaned_data, 'user': user})
-        return {'headline': float(data['amount']), 'bullets': [_('Creates a gold asset or SGB holding')], 'warnings': []}
+        steps = self.plan(data)
+        warnings = self.check_limits(user, steps)
+        return {'headline': float(data['amount']), 'bullets': [_('Creates a gold asset or SGB holding')], 'warnings': warnings}
 
