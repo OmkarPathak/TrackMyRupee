@@ -1,20 +1,11 @@
 {% load i18n %}
 <div>
-    <div class="tmr-review-header d-flex align-items-center justify-content-between gap-2 mb-3">
-        <div>
-            <div class="text-uppercase text-muted small fw-semibold">Review</div>
-            <div class="tmr-review-headline" data-count-up data-value="{{ preview.headline|default:0 }}">{{ preview.headline|default:0 }}</div>
-            {% if review.user_display %}
-            <div class="text-muted small mt-1">Prepared for {{ review.user_display }}</div>
-            {% endif %}
-        </div>
-        <button type="button" class="btn-action-primary tmr-review-confirm-btn" data-confirm-btn
-            hx-post="{% url 'flow-commit' key=flow.key %}"
-            hx-include="#tmr-flow-form-{{ flow.key }}"
-            hx-swap="none">
-            <i class="bi bi-check2-circle me-1"></i>
-            {% trans "Confirm and create" %}
-        </button>
+    <div class="tmr-review-header mb-3">
+        <div class="text-uppercase text-muted small fw-semibold">{% trans "Review" %}</div>
+        <div class="tmr-review-headline" data-count-up data-value="{{ preview.headline|default:0 }}">{{ preview.headline|default:0 }}</div>
+        {% if review.user_display %}
+        <div class="text-muted small mt-1">{% trans "Prepared for" %} {{ review.user_display }}</div>
+        {% endif %}
     </div>
 
     <ul class="mb-3 ps-3">

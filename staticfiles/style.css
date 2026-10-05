@@ -3467,6 +3467,7 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
 .tmr-cat-row::-webkit-scrollbar { display: none; }
 .tmr-pill-row { display: flex; gap: 0.4rem; overflow-x: auto; flex-wrap: nowrap; }
 [x-cloak] { display: none !important; }
+[style*="display: none"] { display: none !important; }
 .tmr-cat,
 .tmr-pill,
 .tmr-chip {

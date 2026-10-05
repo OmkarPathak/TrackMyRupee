@@ -194,6 +194,10 @@
             padding-top: calc(1rem + env(safe-area-inset-top, 0px)) !important;
         }
 
+        /* Alpine cloak and inline display helper */
+        [x-cloak] { display: none !important; }
+        [style*="display: none"] { display: none !important; }
+
         /* Global Standardized Action Button Styling (Cancel, Add, Edit, Delete) */
         .btn-action-cancel {
             border-radius: 50rem !important;
@@ -205,7 +209,7 @@
             border: none !important;
             transition: all 0.2s ease-in-out !important;
             text-decoration: none !important;
-            display: inline-flex !important;
+            display: inline-flex;
             align-items: center !important;
             justify-content: center !important;
         }
@@ -231,7 +235,7 @@
             color: #ffffff !important;
             border: none !important;
             transition: all 0.2s ease-in-out !important;
-            display: inline-flex !important;
+            display: inline-flex;
             align-items: center !important;
             justify-content: center !important;
             box-shadow: 0 2px 6px rgba(15, 118, 87, 0.25) !important;
@@ -251,7 +255,7 @@
             color: #ffffff !important;
             border: none !important;
             transition: all 0.2s ease-in-out !important;
-            display: inline-flex !important;
+            display: inline-flex;
             align-items: center !important;
             justify-content: center !important;
             box-shadow: 0 2px 6px rgba(220, 53, 69, 0.25) !important;
@@ -271,7 +275,7 @@
             color: var(--color-secondary, #0F7657) !important;
             border: 1px solid var(--color-secondary, #0F7657) !important;
             transition: all 0.2s ease-in-out !important;
-            display: inline-flex !important;
+            display: inline-flex;
             align-items: center !important;
             justify-content: center !important;
             text-decoration: none !important;

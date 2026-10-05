@@ -117,6 +117,7 @@ function tmrFlowWizard(totalSteps, initialStep = 1) {
     },
   };
 }
+window.tmrFlowWizard = tmrFlowWizard;
 
 function tmrCountUp(el, toValue, duration = 450) {
   const from = parseFloat(el.dataset.countFrom || '0');
