@@ -6,11 +6,13 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import connection, IntegrityError
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from expenses.flows.asset import CarFlow, GoldFlow
+from expenses.flows.base import FlowSnapshot
 from expenses.flows.credit_card import CreditCardFlow
 from expenses.flows.income import SalaryFlow
 from expenses.flows.insurance import InsuranceFlow
@@ -330,11 +332,14 @@ class TestFlowEndpointCoverage(TestCase):
     def _commit_flow(self, key, payload):
         payload = dict(payload)
         payload['idempotency_key'] = self._flow_idempotency_key(key)
-        return self.client.post(
-            reverse('flow-commit', kwargs={'key': key}),
-            payload,
-            HTTP_HX_REQUEST='true',
-        )
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.post(
+                reverse('flow-commit', kwargs={'key': key}),
+                payload,
+                HTTP_HX_REQUEST='true',
+            )
+        response.captured_queries = ctx.captured_queries
+        return response
 
     def test_registry_keys_match_flow_endpoint_coverage(self):
         registry_keys = set(FlowRegistry.all().keys())
@@ -508,14 +513,211 @@ class TestFlowEndpointCoverage(TestCase):
             ),
         ]
 
+        # Documented baseline query ceilings per flow POST commit:
+        # Measured counts: car=56, gold=29, creditcard=15, salary=20, insurance=29,
+        # sip=24, fd=41, ppfepfnps=24, loan=28, rentbill=18, savingsgoal=15.
+        flow_query_ceilings = {
+            'car': 60,
+            'gold': 33,
+            'creditcard': 19,
+            'salary': 24,
+            'insurance': 33,
+            'sip': 28,
+            'fd': 45,
+            'ppfepfnps': 28,
+            'loan': 32,
+            'rentbill': 22,
+            'savingsgoal': 19,
+        }
+
         for key, payload, assertion in flow_cases:
             with self.subTest(flow=key):
                 response = self._commit_flow(key, payload)
                 self.assertEqual(response.status_code, 204)
+                query_count = len(response.captured_queries)
+                ceiling = flow_query_ceilings[key]
+                self.assertLessEqual(
+                    query_count,
+                    ceiling,
+                    f"Flow '{key}' POST exceeded query ceiling: {query_count} > {ceiling}",
+                )
+                if key == 'salary':
+                    # Priority 3.2 regression guard: userprofile lookup should occur at most once
+                    profile_queries = [
+                        q['sql'] for q in response.captured_queries
+                        if 'userprofile' in q['sql'].lower() and 'select' in q['sql'].lower()
+                    ]
+                    self.assertLessEqual(
+                        len(profile_queries),
+                        1,
+                        f"Expected at most 1 SELECT on userprofile during salary commit, saw {len(profile_queries)}",
+                    )
                 assertion()
 
         self.assertTrue(
             LoanInterestRate.objects.filter(loan__user=self.user, loan__name='Audit Loan').exists()
+        )
+
+    def test_flow_landing_view_query_budget(self):
+        """Priority 2: FlowLandingView renders within a fixed budget (<= 10 queries)
+
+        Precomputes a FlowSnapshot (5 bulk queries) + SalaryFlow query + auth/session,
+        avoiding the prior N+1 issue (11-18 queries).
+        """
+        # Create a representative mix of configured items:
+        # 1. Car configured
+        PhysicalAsset.objects.create(
+            user=self.user, name='Existing Car', asset_class='VEHICLE',
+            acquisition_cost=Decimal('500000.00'), acquisition_date=date(2026, 1, 1), is_active=True
+        )
+        # 2. Credit card configured
+        Account.objects.create(
+            user=self.user, name='Existing Card', account_type='CREDIT_CARD',
+            balance=Decimal('5000.00'), currency='₹', is_active=True
+        )
+        # 3. Loan configured
+        Loan.objects.create(
+            user=self.user, name='Existing Loan', loan_type='PERSONAL',
+            initial_principal=Decimal('100000.00'), duration_months=12, is_active=True
+        )
+
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(reverse('flow-landing'))
+        self.assertEqual(response.status_code, 200)
+        query_count = len(ctx.captured_queries)
+        # Baseline query budget: <= 10 queries total for the page load
+        self.assertLessEqual(
+            query_count,
+            10,
+            f"FlowLandingView GET exceeded query budget: {query_count} queries (budget is <= 10)",
+        )
+        self.assertGreaterEqual(response.context['configured_count'], 3)
+
+    def test_car_flow_financed_does_not_create_capital_event(self):
+        """Priority 1 (Option A): Financed CarFlow purchase does NOT debit cash CapitalEvent.
+
+        The Loan and VEHICLE / VEHICLE_LOAN accounts fully represent the car value.
+        """
+        payload = {
+            'name': 'Financed Sedan',
+            'purchase_price': '1200000',
+            'acquisition_date': '2026-10-01',
+            'from_account': str(self.cash.id),
+            'financed': 'on',
+            'loan_name': 'Sedan Auto Loan',
+            'annual_rate': '8.75',
+            'tenure_months': '60',
+            'loan_start_date': '2026-10-01',
+        }
+        response = self._commit_flow('car', payload)
+        self.assertEqual(response.status_code, 204)
+
+        # Asset and loan records exist
+        self.assertTrue(
+            PhysicalAsset.objects.filter(user=self.user, name='Financed Sedan', asset_class='VEHICLE').exists()
+        )
+        self.assertTrue(
+            Loan.objects.filter(user=self.user, name='Sedan Auto Loan', loan_type='CAR').exists()
+        )
+        self.assertTrue(
+            Account.objects.filter(user=self.user, name='Sedan Auto Loan', account_type='VEHICLE_LOAN').exists()
+        )
+        # Crucial check: NO CapitalEvent created for this purchase
+        self.assertFalse(
+            CapitalEvent.objects.filter(user=self.user, note='Car purchase').exists(),
+            "Financed car purchase must not debit a cash CapitalEvent",
+        )
+
+    def test_car_flow_unfinanced_creates_capital_event_for_full_price(self):
+        """Priority 1: Unfinanced CarFlow purchase still debits cash CapitalEvent for full purchase price."""
+        payload = {
+            'name': 'Cash Hatchback',
+            'purchase_price': '650000',
+            'acquisition_date': '2026-10-01',
+            'from_account': str(self.cash.id),
+        }
+        response = self._commit_flow('car', payload)
+        self.assertEqual(response.status_code, 204)
+
+        self.assertTrue(
+            PhysicalAsset.objects.filter(user=self.user, name='Cash Hatchback', asset_class='VEHICLE').exists()
+        )
+        purchase_event = CapitalEvent.objects.filter(user=self.user, note='Car purchase').first()
+        self.assertIsNotNone(purchase_event, "Unfinanced car purchase must create a CapitalEvent")
+        self.assertEqual(purchase_event.amount, Decimal('650000.00'))
+        self.assertEqual(purchase_event.account, self.cash)
+
+    def test_new_loan_flow_form_cash_lookup_deduplicated(self):
+        """Priority 3.1: NewLoanFlowForm performs at most one Cash lookup query."""
+        from expenses.flows.loan import NewLoanFlowForm
+
+        with CaptureQueriesContext(connection) as ctx:
+            form = NewLoanFlowForm(user=self.user)
+        self.assertIsNotNone(form)
+
+        cash_queries = [
+            q['sql'] for q in ctx.captured_queries
+            if "'Cash'" in q['sql'] or '"Cash"' in q['sql']
+        ]
+        self.assertLessEqual(
+            len(cash_queries),
+            1,
+            f"Expected at most 1 Cash account lookup in NewLoanFlowForm.__init__, saw {len(cash_queries)}",
+        )
+
+    def test_new_loan_flow_down_payment_cache_invalidation_and_query_budget(self):
+        """Priority 3.3: NewLoanFlow commit with down payment triggers exactly one cache invalidation
+
+        Before fix:
+        - NewLoanFlowForm.__init__ issued 2 duplicate Cash account queries.
+        - Flow.commit() triggered post_save on Loan, RecurringTransaction, CapitalEvent,
+          and CapitalEvent.save() triggered Account.save() balance update, plus
+          handle_capital_event_loan_active_status triggered sync_loan_active_status
+          which did a second save on Loan.
+        - invalidate_dashboard_cache fired multiple times across model saves.
+        - Total query count before fix: 62 queries.
+        After fix:
+        - Cash account query deduplicated in form (saves 1 query).
+        - Cache invalidation temporarily disconnected during commit atomic block and
+          reconnected in finally; invalidate_dashboard_cache called once after commit.
+        - Total query count after fix: 61 queries (lower than pre-fix count of 62).
+        - cache.delete_many is called exactly once.
+        """
+        payload = {
+            'loan_type': 'PERSONAL',
+            'name': 'Down Payment Loan',
+            'principal': '150000',
+            'annual_rate': '10.5',
+            'tenure_months': '24',
+            'start_date': '2026-10-01',
+            'create_repayment_schedule': 'on',
+            'payment_account': str(self.cash.id),
+            'include_down_payment': 'on',
+            'down_payment_amount': '25000',
+            'down_payment_account': str(self.cash.id),
+        }
+
+        with patch('django.core.cache.cache.delete_many') as mock_delete_many:
+            response = self._commit_flow('loan', payload)
+
+        self.assertEqual(response.status_code, 204)
+        # Exactly one cache invalidation call across the whole commit
+        self.assertEqual(
+            mock_delete_many.call_count,
+            1,
+            f"Expected exactly 1 cache.delete_many call for NewLoanFlow commit, saw {mock_delete_many.call_count}",
+        )
+        query_count = len(response.captured_queries)
+        # Pre-fix count was 62 queries; post-fix count is 61 queries.
+        self.assertLess(
+            query_count,
+            62,
+            f"NewLoanFlow with down payment total queries ({query_count}) should be lower than pre-fix count (62)",
+        )
+        self.assertLessEqual(
+            query_count,
+            61,
+            f"NewLoanFlow with down payment exceeded post-fix query ceiling: {query_count} > 61",
         )
 
 
@@ -1300,75 +1502,77 @@ class TestFlowLandingPageAndConfiguredStatus(TestCase):
     def test_is_configured_detects_legacy_and_preexisting_records(self):
         all_flows = FlowRegistry.all()
         # Initial state: only a cash wallet exists, none of the 11 flows should be configured
+        snapshot = FlowSnapshot.for_user(self.user)
         for key, flow in all_flows.items():
-            self.assertFalse(flow.is_configured(self.user), f"Flow '{key}' should not be configured initially")
+            self.assertFalse(flow.is_configured(self.user, snapshot), f"Flow '{key}' should not be configured initially")
+            self.assertFalse(flow.is_configured(self.user), f"Flow '{key}' should not be configured initially (without snapshot)")
 
         # 1. CreditCardFlow
         Account.objects.create(user=self.user, name='Visa', account_type='CREDIT_CARD', is_active=True)
-        self.assertTrue(all_flows['creditcard'].is_configured(self.user))
+        self.assertTrue(all_flows['creditcard'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 2. SalaryFlow
         RecurringTransaction.objects.create(
             user=self.user, transaction_type='INCOME', source='Salary', amount=Decimal('50000.00'),
             account=self.cash, start_date=date.today()
         )
-        self.assertTrue(all_flows['salary'].is_configured(self.user))
+        self.assertTrue(all_flows['salary'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 3. NewLoanFlow
         Loan.objects.create(
             user=self.user, name='Home Loan', loan_type='HOME', initial_principal=Decimal('1000000.00'),
             duration_months=120, is_active=True
         )
-        self.assertTrue(all_flows['loan'].is_configured(self.user))
-
+        self.assertTrue(all_flows['loan'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 4. RentBillFlow
         RecurringTransaction.objects.create(
             user=self.user, transaction_type='EXPENSE', category='Rent', amount=Decimal('20000.00'),
             account=self.cash, start_date=date.today()
         )
-        self.assertTrue(all_flows['rentbill'].is_configured(self.user))
+        self.assertTrue(all_flows['rentbill'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 5. InsuranceFlow
         PhysicalAsset.objects.create(
             user=self.user, name='Term Plan', asset_class='INSURANCE', acquisition_cost=Decimal('10000.00'),
             acquisition_date=date.today(), is_active=True
         )
-        self.assertTrue(all_flows['insurance'].is_configured(self.user))
+        self.assertTrue(all_flows['insurance'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 6. SipRdFlow
         Account.objects.create(user=self.user, name='Index Fund', account_type='MUTUAL_FUND', is_active=True)
-        self.assertTrue(all_flows['sip'].is_configured(self.user))
+        self.assertTrue(all_flows['sip'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 7. FdFlow
         Account.objects.create(user=self.user, name='Bank FD', account_type='FD', is_active=True)
-        self.assertTrue(all_flows['fd'].is_configured(self.user))
+        self.assertTrue(all_flows['fd'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 8. PpfEpfNpsFlow
         Account.objects.create(user=self.user, name='PPF Account', account_type='PPF', is_active=True)
-        self.assertTrue(all_flows['ppfepfnps'].is_configured(self.user))
+        self.assertTrue(all_flows['ppfepfnps'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 9. SavingsGoalFlow
         SavingsGoal.objects.create(user=self.user, name='Vacation', target_amount=Decimal('50000.00'))
-        self.assertTrue(all_flows['savingsgoal'].is_configured(self.user))
+        self.assertTrue(all_flows['savingsgoal'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 10. CarFlow
         PhysicalAsset.objects.create(
             user=self.user, name='Sedan', asset_class='VEHICLE', acquisition_cost=Decimal('600000.00'),
             acquisition_date=date.today(), is_active=True
         )
-        self.assertTrue(all_flows['car'].is_configured(self.user))
+        self.assertTrue(all_flows['car'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # 11. GoldFlow
         PhysicalAsset.objects.create(
             user=self.user, name='Gold Coins', asset_class='GOLD', acquisition_cost=Decimal('50000.00'),
             acquisition_date=date.today(), is_active=True
         )
-        self.assertTrue(all_flows['gold'].is_configured(self.user))
+        self.assertTrue(all_flows['gold'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
         # All 11 flows configured now
+        final_snapshot = FlowSnapshot.for_user(self.user)
         for key, flow in all_flows.items():
-            self.assertTrue(flow.is_configured(self.user), f"Flow '{key}' should now be configured")
+            self.assertTrue(flow.is_configured(self.user, final_snapshot), f"Flow '{key}' should now be configured")
 
     def test_landing_page_zero_configured(self):
         clean_user = User.objects.create_user(username='clean-user', password='pass')

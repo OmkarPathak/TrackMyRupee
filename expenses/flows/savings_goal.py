@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from finance_tracker.plans import get_limit
 
 from ..models import SavingsGoal
-from .base import CreateStep, Flow, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
@@ -51,8 +51,10 @@ class SavingsGoalFlow(Flow):
         FlowWizardStep('goal_style', _('Goal Style'), ['icon', 'color'], _('Optional styling to make the goal easier to recognise.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return user.savings_goals.exists()
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return snapshot.has_savings_goal
 
     def get_edit_url(self, user) -> str:
         return reverse('goal-list')

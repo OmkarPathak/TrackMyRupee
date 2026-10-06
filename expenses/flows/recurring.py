@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, CURRENCY_CHOICES, RecurringTransaction
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
@@ -55,10 +55,10 @@ class RentBillFlow(Flow):
         FlowWizardStep('bill_schedule', _('Schedule'), ['frequency', 'start_date'], _('How often it should repeat and when it starts.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return RecurringTransaction.objects.filter(
-            user=user, is_active=True, transaction_type='EXPENSE', category='Rent'
-        ).exists()
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return ('EXPENSE', 'Rent') in snapshot.recurring_signatures
 
     def get_edit_url(self, user) -> str:
         return reverse('recurring-list')

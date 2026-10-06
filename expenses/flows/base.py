@@ -22,10 +22,56 @@ from typing import Any, ClassVar
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models.signals import post_save
 from django.utils.translation import gettext_lazy as _
 
 from finance_tracker.plans import get_limit
-from ..models import FinancialFlow, FlowCreatedObject
+from ..models import (
+    Account,
+    CapitalEvent,
+    FinancialFlow,
+    FlowCreatedObject,
+    Loan,
+    PhysicalAsset,
+    RecurringTransaction,
+)
+from ..signals import _DASHBOARD_CACHE_MODELS, invalidate_dashboard_cache
+
+
+@dataclass(frozen=True)
+class FlowSnapshot:
+    account_types: set[str]
+    asset_classes: set[str]
+    recurring_signatures: set[tuple[str, str | None]]
+    has_active_loan: bool
+    has_savings_goal: bool
+
+    @classmethod
+    def for_user(cls, user) -> FlowSnapshot:
+        account_types = set(
+            Account.objects.filter(user=user, is_active=True)
+            .values_list('account_type', flat=True)
+            .distinct()
+        )
+        asset_classes = set(
+            PhysicalAsset.objects.filter(user=user, is_active=True)
+            .values_list('asset_class', flat=True)
+            .distinct()
+        )
+        recurring_signatures = set(
+            RecurringTransaction.objects.filter(user=user, is_active=True)
+            .values_list('transaction_type', 'category')
+            .distinct()
+        )
+        has_active_loan = Loan.objects.filter(user=user, is_active=True).exists()
+        has_savings_goal = user.savings_goals.exists()
+        return cls(
+            account_types=account_types,
+            asset_classes=asset_classes,
+            recurring_signatures=recurring_signatures,
+            has_active_loan=has_active_loan,
+            has_savings_goal=has_savings_goal,
+        )
 
 
 @dataclass
@@ -220,7 +266,7 @@ class Flow:
 
         return warnings
 
-    def is_configured(self, user) -> bool:
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
         return False
 
     def get_edit_url(self, user) -> str:
@@ -554,6 +600,16 @@ class Flow:
 
         spec = self._serialize_value(data)
 
+        models_to_disconnect = _DASHBOARD_CACHE_MODELS
+
+        for model in models_to_disconnect:
+            post_save.disconnect(
+                invalidate_dashboard_cache,
+                sender=model,
+                dispatch_uid=f'dashboard_cache_invalidate_save_{model.__name__}',
+            )
+
+        committed = False
         created_objects: list[Any] = []
         try:
             with transaction.atomic():
@@ -601,11 +657,22 @@ class Flow:
                         content_object=instance,
                         step_key=step_key,
                     )
+            committed = True
         except IntegrityError:
             existing = FinancialFlow.objects.filter(user=user, idempotency_key=idempotency_key).first()
             if existing:
                 return self._existing_flow_result(existing, idempotency_key)
             raise
+        finally:
+            for model in models_to_disconnect:
+                post_save.connect(
+                    invalidate_dashboard_cache,
+                    sender=model,
+                    dispatch_uid=f'dashboard_cache_invalidate_save_{model.__name__}',
+                )
+
+        if committed:
+            invalidate_dashboard_cache(user_id=user.id)
 
         return FlowResult(flow_id=flow.id, idempotency_key=idempotency_key, created=created_objects)
 

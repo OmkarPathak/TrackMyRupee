@@ -13,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, View
 
 from ..flows import *  # noqa: F403
+from ..flows.base import FlowSnapshot
 from ..flows.registry import FlowRegistry
 
 
@@ -94,10 +95,11 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
         ]
 
         curated_keys = {'salary', 'rentbill', 'creditcard', 'loan', 'sip'}
+        snapshot = FlowSnapshot.for_user(self.request.user)
 
         flow_items = []
         for key, flow in all_flows.items():
-            is_configured = flow.is_configured(self.request.user)
+            is_configured = flow.is_configured(self.request.user, snapshot)
             flow_items.append({
                 'key': flow.key,
                 'category': flow.category,

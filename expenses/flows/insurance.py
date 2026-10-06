@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, PhysicalAsset, RecurringTransaction
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
@@ -56,11 +56,10 @@ class InsuranceFlow(Flow):
         FlowWizardStep('premium_schedule', _('Premium Schedule'), ['premium_amount', 'premium_frequency', 'premium_payment_account', 'start_date'], _('How and when premiums should be tracked.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return (
-            PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='INSURANCE').exists()
-            or Account.objects.filter(user=user, is_active=True, account_type='LIFE_INSURANCE').exists()
-        )
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return 'INSURANCE' in snapshot.asset_classes or 'LIFE_INSURANCE' in snapshot.account_types
 
     def get_edit_url(self, user) -> str:
         return reverse('account-list')

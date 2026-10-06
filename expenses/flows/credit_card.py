@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, CURRENCY_CHOICES
-from .base import CreateStep, Flow, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
@@ -53,8 +53,10 @@ class CreditCardFlow(Flow):
         FlowWizardStep('card_limits', _('Card Limits'), ['credit_limit', 'billing_day'], _('Limit and billing-day settings that drive reminders and balance tracking.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return Account.objects.filter(user=user, is_active=True, account_type='CREDIT_CARD').exists()
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return 'CREDIT_CARD' in snapshot.account_types
 
     def get_edit_url(self, user) -> str:
         return reverse('account-list')

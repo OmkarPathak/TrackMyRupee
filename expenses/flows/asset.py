@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
 from ..models import Account, AssetValuation, CapitalEvent, Holding, Loan, PhysicalAsset, RecurringTransaction
-from .base import CreateStep, Flow, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .loan import NewLoanFlow
 from .registry import register_flow
 
@@ -82,11 +82,10 @@ class CarFlow(Flow):
         FlowWizardStep('car_financing', _('Financing'), ['financed', 'loan_name', 'annual_rate', 'tenure_months', 'loan_start_date'], _('Loan details if the car was financed.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return (
-            PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='VEHICLE').exists()
-            or Account.objects.filter(user=user, is_active=True, account_type='VEHICLE').exists()
-        )
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return 'VEHICLE' in snapshot.asset_classes or 'VEHICLE' in snapshot.account_types
 
     def get_edit_url(self, user) -> str:
         return reverse('account-list')
@@ -165,21 +164,22 @@ class CarFlow(Flow):
                 key='vehicle_account',
             )
         )
-        steps.append(
-            CreateStep(
-                CapitalEvent,
-                {
-                    'user': data['user'],
-                    'amount': data['purchase_price'],
-                    'date': data['acquisition_date'],
-                    'subtype': 'large_purchase',
-                    'note': _('Car purchase'),
-                    'account': data['from_account'],
-                    'currency': data['currency'],
-                },
-                key='purchase',
+        if not data.get('financed'):
+            steps.append(
+                CreateStep(
+                    CapitalEvent,
+                    {
+                        'user': data['user'],
+                        'amount': data['purchase_price'],
+                        'date': data['acquisition_date'],
+                        'subtype': 'large_purchase',
+                        'note': _('Car purchase'),
+                        'account': data['from_account'],
+                        'currency': data['currency'],
+                    },
+                    key='purchase',
+                )
             )
-        )
         return steps
 
     def derive(self, cleaned_data) -> dict:
@@ -215,11 +215,10 @@ class GoldFlow(Flow):
         FlowWizardStep('gold_basics', _('Gold Details'), ['route', 'name', 'amount', 'acquisition_date', 'from_account'], _('Route, cost, and payment account for your gold purchase.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return (
-            PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='GOLD').exists()
-            or Account.objects.filter(user=user, is_active=True, account_type__in=['GOLD', 'SGB']).exists()
-        )
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return 'GOLD' in snapshot.asset_classes or bool(snapshot.account_types & {'GOLD', 'SGB'})
 
     def get_edit_url(self, user) -> str:
         return reverse('account-list')

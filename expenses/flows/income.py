@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from ..models import Account, CURRENCY_CHOICES, Income, RecurringTransaction, UserProfile
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
@@ -56,7 +56,7 @@ class SalaryFlow(Flow):
         FlowWizardStep('salary_schedule', _('Salary Schedule'), ['salary_date', 'start_date', 'create_historical_entries'], _('When salary is received, when to begin tracking, and whether to backfill missed entries.')),
     ]
 
-    def is_configured(self, user) -> bool:
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
         return RecurringTransaction.objects.filter(
             user=user, is_active=True, transaction_type='INCOME'
         ).filter(Q(source='Salary') | Q(description__icontains='salary')).exists()
@@ -106,7 +106,7 @@ class SalaryFlow(Flow):
 
     def commit(self, user, cleaned_data, idempotency_key):
         result = super().commit(user, cleaned_data, idempotency_key)
-        profile = UserProfile.objects.get(user=user)
+        profile = user.profile
         profile.salary_date = int(cleaned_data.get('salary_date') or profile.salary_date)
         profile.save(update_fields=['salary_date'])
 

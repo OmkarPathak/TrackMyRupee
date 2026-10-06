@@ -14,7 +14,7 @@ from finance_tracker.plans import get_limit
 from ..models import Account, CapitalEvent, Loan, LoanInterestRate, RecurringTransaction
 from ..services import LoanService
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowAddon, FlowWizardStep
+from .base import CreateStep, Flow, FlowAddon, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
@@ -47,8 +47,9 @@ class NewLoanFlowForm(forms.Form):
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['payment_account'].queryset = accounts
             self.fields['down_payment_account'].queryset = accounts
-            self.fields['payment_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
-            self.fields['down_payment_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            cash_default = accounts.filter(name='Cash').first() or accounts.first()
+            self.fields['payment_account'].initial = cash_default
+            self.fields['down_payment_account'].initial = cash_default
         else:
             self.fields['payment_account'].queryset = Account.objects.none()
             self.fields['down_payment_account'].queryset = Account.objects.none()
@@ -98,8 +99,10 @@ class NewLoanFlow(Flow):
         FlowWizardStep('loan_adjustments', _('Adjustments'), ['mid_tenure', 'opening_paid_principal', 'first_emi_date', 'include_down_payment', 'down_payment_amount', 'down_payment_account'], _('Optional fields for already-started loans or upfront payments.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return Loan.objects.filter(user=user, is_active=True).exists()
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return snapshot.has_active_loan
 
     def get_edit_url(self, user) -> str:
         return reverse('loan-list')

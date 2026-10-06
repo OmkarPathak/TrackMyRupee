@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, CapitalEvent, Holding, RecurringTransaction
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
@@ -284,10 +284,10 @@ class SipRdFlow(Flow):
         FlowWizardStep('deposit_rd_details', _('Deposit / RD Details'), ['deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding', 'deposit_maturity_date', 'rd_installment_day', 'show_accrued_balance', 'record_maturity_income'], _('Only some fields apply depending on whether you select SIP or RD.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return Account.objects.filter(
-            user=user, is_active=True, account_type__in=['MUTUAL_FUND', 'RD']
-        ).exists()
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return bool(snapshot.account_types & {'MUTUAL_FUND', 'RD'})
 
     def get_edit_url(self, user) -> str:
         return reverse('account-list')
@@ -405,8 +405,10 @@ class FdFlow(Flow):
         FlowWizardStep('fd_reporting', _('Reporting'), ['show_accrued_balance', 'record_maturity_income'], _('Controls whether users see accruals and whether maturity interest is auto-recorded.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return Account.objects.filter(user=user, is_active=True, account_type='FD').exists()
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return 'FD' in snapshot.account_types
 
     def get_edit_url(self, user) -> str:
         return reverse('account-list')
@@ -495,10 +497,10 @@ class PpfEpfNpsFlow(Flow):
         FlowWizardStep('scheme_terms', _('Scheme Terms'), ['deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding', 'deposit_maturity_date', 'deposit_closed_date', 'show_accrued_balance', 'record_maturity_income'], _('Settings used for balance tracking and maturity handling.')),
     ]
 
-    def is_configured(self, user) -> bool:
-        return Account.objects.filter(
-            user=user, is_active=True, account_type__in=['PPF', 'EPF', 'NPS']
-        ).exists()
+    def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
+        if snapshot is None:
+            snapshot = FlowSnapshot.for_user(user)
+        return bool(snapshot.account_types & {'PPF', 'EPF', 'NPS'})
 
     def get_edit_url(self, user) -> str:
         return reverse('account-list')
