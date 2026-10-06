@@ -234,3 +234,57 @@ class RazorpaySubscriptionTest(TestCase):
         
         # Verify Razorpay cancel called with correct arguments
         mock_client_instance.subscription.cancel.assert_called_with('sub_cancel_123', {'cancel_at_cycle_end': 1})
+
+    @patch('expenses.views_payment.razorpay.Client')
+    def test_cancel_subscription_already_cancelled_in_razorpay(self, MockRazorpayClient):
+        """When Razorpay reports the subscription is already in cancelled state, handle gracefully with 200."""
+        import razorpay.errors
+        self.profile.razorpay_subscription_id = 'sub_cancel_already'
+        self.profile.cancel_at_cycle_end = False
+        self.profile.save()
+
+        mock_client_instance = MockRazorpayClient.return_value
+        mock_client_instance.subscription.cancel.side_effect = razorpay.errors.BadRequestError(
+            "Subscription is in 'cancelled' state"
+        )
+
+        url = reverse('cancel-subscription')
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+        self.profile.refresh_from_db()
+        self.assertTrue(self.profile.cancel_at_cycle_end)
+
+    @patch('expenses.views_payment.razorpay.Client')
+    def test_cancel_subscription_already_scheduled_locally(self, MockRazorpayClient):
+        """If cancel_at_cycle_end is already True, do not call Razorpay again."""
+        self.profile.razorpay_subscription_id = 'sub_cancel_scheduled'
+        self.profile.cancel_at_cycle_end = True
+        self.profile.save()
+
+        mock_client_instance = MockRazorpayClient.return_value
+
+        url = reverse('cancel-subscription')
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+        mock_client_instance.subscription.cancel.assert_not_called()
+
+    @patch('expenses.views_payment.razorpay.Client')
+    def test_cancel_subscription_gateway_error(self, MockRazorpayClient):
+        """When Razorpay has a gateway error, return 502 rather than 500."""
+        import razorpay.errors
+        self.profile.razorpay_subscription_id = 'sub_gateway_err'
+        self.profile.cancel_at_cycle_end = False
+        self.profile.save()
+
+        mock_client_instance = MockRazorpayClient.return_value
+        mock_client_instance.subscription.cancel.side_effect = razorpay.errors.GatewayError("Gateway timeout")
+
+        url = reverse('cancel-subscription')
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 502)
+        self.assertIn('error', response.json())

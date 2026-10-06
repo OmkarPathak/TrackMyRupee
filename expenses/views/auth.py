@@ -1,7 +1,23 @@
 import json
 import logging
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+
+
+def _parse_decimal(val, default=Decimal('0.00')):
+    """Safely parse decimal inputs, handling empty strings, formatted currency, and invalid syntax."""
+    if val in (None, '', []):
+        return default
+    try:
+        if isinstance(val, str):
+            cleaned = val.replace('₹', '').replace('$', '').replace('€', '').replace(',', '').strip()
+            if not cleaned:
+                return default
+            return Decimal(cleaned)
+        return Decimal(str(val))
+    except (InvalidOperation, TypeError, ValueError):
+        return default
+
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -99,7 +115,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                 )
                 if income_qs.exists():
                     income = income_qs.first()
-                    income.amount = Decimal(data.get('amount', 0))
+                    income.amount = _parse_decimal(data.get('amount'), default=Decimal('0.00'))
                     income.currency = request.user.profile.currency
                     if data.get('account_id'):
                         income.account = get_object_or_404(Account, id=data.get('account_id'), user=request.user)
@@ -112,7 +128,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                         user=request.user,
                         date=date.today(),
                         source=data.get('source', 'Initial Income'),
-                        amount=Decimal(data.get('amount', 0)),
+                        amount=_parse_decimal(data.get('amount'), default=Decimal('0.00')),
                         currency=request.user.profile.currency,
                         account=account
                     )
@@ -129,7 +145,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                     parsed_accounts.append({
                         'name': name,
                         'account_type': acc_data.get('type', 'SAVINGS_ACCOUNT'),
-                        'balance': Decimal(acc_data.get('balance', 0)),
+                        'balance': _parse_decimal(acc_data.get('balance'), default=Decimal('0.00')),
                     })
 
                 account_names = list(dict.fromkeys(acc['name'] for acc in parsed_accounts))
@@ -183,7 +199,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                         Category.objects.update_or_create(
                             user=request.user,
                             name=name,
-                            defaults={'limit': Decimal(limit) if limit else None}
+                            defaults={'limit': _parse_decimal(limit, default=None) if limit else None}
                         )
                 return JsonResponse({'success': True})
             
@@ -196,7 +212,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                 )
                 if expense_qs.exists():
                     expense = expense_qs.first()
-                    expense.amount = Decimal(data.get('amount', 0))
+                    expense.amount = _parse_decimal(data.get('amount'), default=Decimal('0.00'))
                     expense.currency = request.user.profile.currency
                     if data.get('account_id'):
                         expense.account = get_object_or_404(Account, id=data.get('account_id'), user=request.user)
@@ -210,7 +226,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                         date=date.today(),
                         description=data.get('description', 'Initial Expense'),
                         category=data.get('category', 'Miscellaneous'),
-                        amount=Decimal(data.get('amount', 0)),
+                        amount=_parse_decimal(data.get('amount'), default=Decimal('0.00')),
                         currency=request.user.profile.currency,
                         account=account
                     )
@@ -228,7 +244,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                         description=rec_data.get('description'),
                         transaction_type=rec_data.get('type', 'EXPENSE'),
                         defaults={
-                            'amount': Decimal(rec_data.get('amount', 0)),
+                            'amount': _parse_decimal(rec_data.get('amount'), default=Decimal('0.00')),
                             'frequency': rec_data.get('frequency', 'MONTHLY'),
                             'start_date': rec_data.get('start_date', date.today()),
                             'category': rec_data.get('category'),
@@ -249,8 +265,8 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                 profile.save()
                 return JsonResponse({'success': True})
                 
-        except (RuntimeError, ValidationError) as e:
-            logger.warning("Onboarding step validation/currency error: %s", e, exc_info=True)
+        except (RuntimeError, ValidationError, InvalidOperation, ValueError) as e:
+            logger.warning("Onboarding step validation/currency error: %s", e)
             return JsonResponse({
                 'success': False,
                 'error': _('Unable to save onboarding data because currency conversion failed or data is invalid.')

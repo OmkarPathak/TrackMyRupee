@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -168,3 +169,36 @@ class OnboardingViewTest(TestCase):
         self.assertEqual(res_data['error'], "Something went wrong, please try again.")
         self.assertNotIn("psycopg2", res_data['error'])
         self.assertNotIn("postgres", res_data['error'])
+
+    def test_onboarding_empty_amount_does_not_raise_conversion_syntax_error(self):
+        """Empty string or formatted currency input does not crash with Decimal ConversionSyntax."""
+        # Test income with empty string
+        data = {'step': 'income', 'amount': '', 'source': 'Freelance'}
+        response = self.client.post(self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        income = Income.objects.filter(user=self.user, source='Freelance').first()
+        self.assertIsNotNone(income)
+        self.assertEqual(income.amount, Decimal('0.00'))
+
+        # Test accounts with formatted strings containing commas and currency symbols
+        data_acc = {
+            'step': 'accounts',
+            'accounts': [
+                {'name': 'Checking', 'type': 'CHECKING_ACCOUNT', 'balance': '₹ 15,000.50'},
+                {'name': 'EmptyBal', 'type': 'SAVINGS_ACCOUNT', 'balance': ''},
+            ]
+        }
+        res_acc = self.client.post(self.url, json.dumps(data_acc), content_type='application/json')
+        self.assertEqual(res_acc.status_code, 200)
+        acc = Account.objects.get(user=self.user, name='Checking')
+        self.assertEqual(acc.balance, Decimal('15000.50'))
+        acc_empty = Account.objects.get(user=self.user, name='EmptyBal')
+        self.assertEqual(acc_empty.balance, Decimal('0.00'))
+
+        # Test expense with empty string
+        data_exp = {'step': 'expense', 'amount': '', 'description': 'Snack'}
+        res_exp = self.client.post(self.url, json.dumps(data_exp), content_type='application/json')
+        self.assertEqual(res_exp.status_code, 200)
+        exp = Expense.objects.filter(user=self.user, description='Snack').first()
+        self.assertIsNotNone(exp)
+        self.assertEqual(exp.amount, Decimal('0.00'))

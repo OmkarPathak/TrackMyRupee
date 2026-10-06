@@ -384,21 +384,49 @@ def cancel_subscription(request):
             if not sub_id:
                 return JsonResponse({'error': 'No active subscription found'}, status=400)
             
+            if profile.cancel_at_cycle_end:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Subscription is already scheduled to be cancelled at the end of your current cycle.'
+                })
+            
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
             
             # Cancel at the end of the billing cycle
             # This ensures the user gets what they paid for until the expiry date
-            client.subscription.cancel(sub_id, {'cancel_at_cycle_end': 1})
+            try:
+                client.subscription.cancel(sub_id, {'cancel_at_cycle_end': 1})
+            except razorpay.errors.BadRequestError as e:
+                err_msg = str(e).strip()
+                err_msg_lower = err_msg.lower()
+                # Handle cases where the subscription is already cancelled, completed, expired, or non-cancellable
+                if any(term in err_msg_lower for term in ['cancel', 'completed', 'expired', 'not cancellable', 'halted']):
+                    logger.info(
+                        f"Subscription {sub_id} for user {request.user.id} was already inactive/cancelled in Razorpay: {err_msg}"
+                    )
+                    profile.cancel_at_cycle_end = True
+                    profile.save(update_fields=['cancel_at_cycle_end'])
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Subscription is already cancelled or scheduled to end at the end of your current cycle.'
+                    })
+                # Other BadRequestErrors (e.g. invalid parameter)
+                logger.warning(f"Razorpay BadRequestError cancelling subscription {sub_id} for user {request.user.id}: {err_msg}")
+                return JsonResponse({'error': err_msg}, status=400)
+            except (razorpay.errors.GatewayError, razorpay.errors.ServerError) as e:
+                logger.warning(f"Razorpay gateway error cancelling subscription {sub_id} for user {request.user.id}: {e}")
+                return JsonResponse({'error': 'Payment gateway error. Please try again later.'}, status=502)
             
             # Update local state immediately for UI feedback
             profile.cancel_at_cycle_end = True
-            profile.save()
+            profile.save(update_fields=['cancel_at_cycle_end'])
             
-            return JsonResponse({'success': True, 
+            return JsonResponse({
+                'success': True,
                 'message': 'Subscription cancelled successfully. You will have access until the end of your current cycle.'
             })
         except Exception as e:
-            logger.error(f"Error cancelling subscription: {e}")
+            logger.error(f"Error cancelling subscription: {e}", exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 

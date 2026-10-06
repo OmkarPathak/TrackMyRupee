@@ -24,7 +24,9 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-if os.environ.get('SENTRY_DSN'):
+IS_TESTING = 'test' in sys.argv or 'pytest' in sys.modules or os.environ.get('TESTING') == '1'
+
+if os.environ.get('SENTRY_DSN') and not IS_TESTING:
     sentry_sdk.init(
         dsn=os.environ.get('SENTRY_DSN'),
         # Sample 5% of transactions — sufficient for production debugging
@@ -57,7 +59,10 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in {'1', 'true', 'yes', 'on'}
 # Option to disable the admin panel url
 ENABLE_ADMIN_URL = os.getenv('ENABLE_ADMIN_URL', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
+    'ALLOWED_HOSTS',
+    'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'
+).split(',') if host.strip()]
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com,https://django-finance-tracker-fr1u.onrender.com').split(',')
 
