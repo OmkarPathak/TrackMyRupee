@@ -59,7 +59,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         from .mixins import process_user_recurring_transactions
-        process_user_recurring_transactions(self.request.user)
+        process_user_recurring_transactions(self.request.user, max_catchup=2)
         status = self.request.GET.get('status', 'active')
         is_active = status != 'inactive'
         
@@ -816,7 +816,7 @@ class AccountDetailView(LoginRequiredMixin, View):
     def get(self, request, pk):
         from .mixins import process_user_recurring_transactions
         if request.user.is_authenticated:
-            process_user_recurring_transactions(request.user)
+            process_user_recurring_transactions(request.user, max_catchup=2)
             
         account = get_object_by_uuid_or_pk(
             Account.objects.prefetch_related('holdings'),

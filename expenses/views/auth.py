@@ -15,8 +15,11 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import TemplateView
+
+from ..cache_utils import anonymous_cache_page
 
 logger = logging.getLogger(__name__)
 
@@ -581,6 +584,7 @@ def demo_signup(request):
     logout(request)
     return redirect('account_signup')
 
+@method_decorator(anonymous_cache_page(3600), name='dispatch')
 class PricingView(TemplateView):
     template_name = 'expenses/pricing.html'
 
@@ -588,9 +592,9 @@ class PricingView(TemplateView):
         from django.conf import settings
         context = super().get_context_data(**kwargs)
         context['RAZORPAY_KEY_ID'] = settings.RAZORPAY_KEY_ID
-        plans = SubscriptionPlan.objects.filter(is_active=True)
-        context['plans_monthly'] = {p.tier: p for p in plans.filter(duration='MONTHLY')}
-        context['plans_yearly'] = {p.tier: p for p in plans.filter(duration='YEARLY')}
+        all_plans = list(SubscriptionPlan.objects.filter(is_active=True))
+        context['plans_monthly'] = {p.tier: p for p in all_plans if p.duration == 'MONTHLY'}
+        context['plans_yearly'] = {p.tier: p for p in all_plans if p.duration == 'YEARLY'}
         context['plans'] = context['plans_yearly']
         return context
 

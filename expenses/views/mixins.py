@@ -12,6 +12,7 @@ from ..models import (
     CapitalEvent,
     Expense,
     Income,
+    LoanInterestRate,
     LoanRepayment,
     RecurringTransaction,
     Transfer,
@@ -45,10 +46,10 @@ class HtmxPartialTemplateMixin:
 class RecurringTransactionMixin:
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            process_user_recurring_transactions(request.user)
+            process_user_recurring_transactions(request.user, max_catchup=2)
         return super().dispatch(request, *args, **kwargs)
 
-def process_user_recurring_transactions(user, force=False):
+def process_user_recurring_transactions(user, force=False, max_catchup=None):
     if not user.is_authenticated:
         return
     today = timezone.localdate()
@@ -81,6 +82,7 @@ def process_user_recurring_transactions(user, force=False):
         recurring_txs = recurring_txs[:limit]
 
     loan_principal_paid_map = {}
+    latest_rate_map = {}
     
     try:
         base_currency = user.profile.currency
@@ -112,7 +114,16 @@ def process_user_recurring_transactions(user, force=False):
                 + Decimal(str(row['total_prepaid'] or 0))
             )
 
-    MAX_CATCHUP_PER_RUN = 100
+        rates = (
+            LoanInterestRate.objects.filter(loan_id__in=loan_ids)
+            .order_by('loan_id', '-effective_date', '-id')
+        )
+        for r in rates:
+            if r.loan_id not in latest_rate_map:
+                latest_rate_map[r.loan_id] = r.interest_rate
+
+    MAX_CATCHUP_PER_RUN = max_catchup if max_catchup is not None else 100
+    backlog_remaining = False
 
     for rt in recurring_txs:
         with transaction.atomic():
@@ -226,8 +237,7 @@ def process_user_recurring_transactions(user, force=False):
                         rt.is_active = False
                         break
 
-                    latest_rate_obj = rt.loan.interest_rates.order_by('-effective_date').first()
-                    annual_rate = Decimal(str(latest_rate_obj.interest_rate)) if latest_rate_obj else Decimal('0.00')
+                    annual_rate = Decimal(str(latest_rate_map.get(rt.loan_id, Decimal('0.00'))))
 
                     interest_payment = RecurringService.calculate_period_interest(
                         remaining_principal,
@@ -320,7 +330,18 @@ def process_user_recurring_transactions(user, force=False):
                     rt.is_last_day_of_month, rt.is_last_working_day
                 )
 
+            if rt.is_active and current_date <= today and iterations >= MAX_CATCHUP_PER_RUN:
+                backlog_remaining = True
+
             rt.save(update_fields=['last_processed_date', 'is_active'])
+
+    if backlog_remaining:
+        logger.info(
+            "Recurring transactions backlog remaining for user %s (capped at %d iterations). Will resume next run.",
+            user.id, MAX_CATCHUP_PER_RUN,
+        )
+    elif not is_testing:
+        cache.set(cooldown_key, True, 86400)
 
 
 class UUIDOrIntLookupMixin:

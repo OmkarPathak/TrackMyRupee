@@ -46,6 +46,7 @@ from ..utils import (
     generate_year_in_review_data,
     get_exchange_rate,
 )
+from ..cache_utils import suppress_dashboard_cache_invalidation
 from .mixins import HtmxPartialTemplateMixin, process_user_recurring_transactions
 from .utils import parse_month_year
 
@@ -73,7 +74,7 @@ def home_view(request):
 
     # --- ZERO-QUERY WARM LOAD ---
     # 95%+ of dashboard opens (login/PWA) hit this view with no filter params. Cache the
-    # fully-built context for 5 minutes so repeat loads skip every query below entirely.
+    # fully-built context for 4 hours so repeat loads skip every query below entirely.
     # Cache is invalidated immediately on transaction mutations via signals (see signals.py).
     is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
     time_period_param = request.GET.get('time_period')
@@ -115,7 +116,8 @@ def home_view(request):
             return render(request, 'home.html', context)
 
     # Process recurring transactions on cache miss / custom filter
-    process_user_recurring_transactions(request.user)
+    with suppress_dashboard_cache_invalidation(invalidate_on_exit=False):
+        process_user_recurring_transactions(request.user, max_catchup=2)
 
     # --- NET WORTH TREND (Last 6 Months) ---
     net_worth_history = FinancialService.get_monthly_history(request.user, 6)
@@ -2531,7 +2533,7 @@ def home_view(request):
     }
 
     if home_cache_key:
-        cache.set(home_cache_key, context, 300)
+        cache.set(home_cache_key, context, 14400)  # 4 hours (was 300s)
 
     # --- SMART CONTEXTUAL NUDGES ---
     # Instead of showing on the dashboard, we add them to the notification system.

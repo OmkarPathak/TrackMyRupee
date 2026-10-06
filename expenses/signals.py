@@ -18,6 +18,7 @@ from .models import (
     GoalContribution,
     Income,
     Loan,
+    LoanInterestRate,
     LoanRepayment,
     PhysicalAsset,
     RecurringTransaction,
@@ -203,7 +204,7 @@ def handle_capital_event_loan_active_status(sender, instance, **kwargs):
 
 def _dashboard_cache_user_id(instance):
     """Resolve the owning user id for cache-invalidation, regardless of model shape."""
-    if isinstance(instance, LoanRepayment):
+    if isinstance(instance, (LoanRepayment, LoanInterestRate)):
         try:
             return instance.loan.user_id
         except Exception:
@@ -263,6 +264,7 @@ _DASHBOARD_CACHE_MODELS = (
     SavingsGoal,
     GoalContribution,
     Loan,
+    LoanInterestRate,
     UserProfile,
 )
 for _model in _DASHBOARD_CACHE_MODELS:

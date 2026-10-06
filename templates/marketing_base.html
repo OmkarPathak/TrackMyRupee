@@ -1,0 +1,134 @@
+{% load static i18n digit_filters %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+
+<head>
+    {% if GOOGLE_ANALYTICS_ID %}
+    <!-- Google Consent Mode v2 -->
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        const grantState = localStorage.getItem('cookieConsent') === 'accepted' ? 'granted' : 'denied';
+        gtag('consent', 'default', {
+            'ad_storage': grantState,
+            'ad_user_data': grantState,
+            'ad_personalization': grantState,
+            'analytics_storage': grantState
+        });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', '{{ GOOGLE_ANALYTICS_ID }}');
+    </script>
+    {% endif %}
+
+    {% if POSTHOG_API_KEY %}
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        posthog.init('{{ POSTHOG_API_KEY }}', {
+            api_host: '{{ POSTHOG_HOST }}',
+            person_profiles: 'identified_only',
+            capture_pageview: false,
+            capture_pageleave: false,
+            opt_out_capturing_by_default: true,
+        });
+        const _phConsent = localStorage.getItem('cookieConsent') === 'accepted';
+        if (_phConsent) {
+            posthog.opt_in_capturing();
+            posthog.capture('$pageview');
+            {% if request.user.is_authenticated %}
+            posthog.identify('{{ request.user.id }}', {
+                email: '{{ request.user.email|escapejs }}',
+                username: '{{ request.user.username|escapejs }}',
+                date_joined: '{{ request.user.date_joined|date:"c" }}',
+                {% if request.user.profile %}
+                tier: '{{ request.user.profile.active_tier }}',
+                {% endif %}
+            });
+            {% endif %}
+        }
+    </script>
+    {% endif %}
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- Preconnect to CDNs for speedier connection establishment -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Preload critical stylesheets -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <link rel="icon" type="image/svg+xml" href="{% static 'icon.svg' %}">
+    <link rel="icon" type="image/png" href="{% static 'icon.png' %}">
+
+    <script>
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        document.cookie = "django_timezone=" + tz + "; path=/; SameSite=Lax";
+
+        // Immediate Theme Detection (Prevents Flickering)
+        (function() {
+            const getStoredTheme = () => localStorage.getItem('theme');
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme();
+                if (storedTheme) return storedTheme;
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            };
+            const theme = getPreferredTheme();
+            if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            }
+        })();
+    </script>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Application Styles -->
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=1.9">
+
+    <!-- Google Fonts (Non-blocking FCP optimization) -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"></noscript>
+
+    <title>{% block title %}TrackMyRupee | Pricing{% endblock %}</title>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated has-sidebar{% endif %}">
+    {% if user.is_authenticated %}
+        {% include 'components/sidebar.html' %}
+    {% endif %}
+    {% include "components/navbar.html" with is_landing=False %}
+
+    <main class="container pt-2 pt-lg-4 pb-4 flex-grow-1">
+        <div class="main-content-container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {% if not user.is_authenticated %}
+        {% include "components/public_footer.html" with is_landing=False %}
+    {% endif %}
+
+    <!-- Bootstrap 5 Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- Razorpay Checkout -->
+    <script defer src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

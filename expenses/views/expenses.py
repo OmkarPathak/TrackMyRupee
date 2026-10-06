@@ -41,7 +41,7 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
     paginate_by = 20
 
     def dispatch(self, request, *args, **kwargs):
-        process_user_recurring_transactions(request.user)
+        process_user_recurring_transactions(request.user, max_catchup=2)
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):

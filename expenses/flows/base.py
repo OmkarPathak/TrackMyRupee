@@ -35,6 +35,7 @@ from ..models import (
     PhysicalAsset,
     RecurringTransaction,
 )
+from ..cache_utils import suppress_dashboard_cache_invalidation
 from ..signals import _DASHBOARD_CACHE_MODELS, invalidate_dashboard_cache
 
 
@@ -600,79 +601,59 @@ class Flow:
 
         spec = self._serialize_value(data)
 
-        models_to_disconnect = _DASHBOARD_CACHE_MODELS
-
-        for model in models_to_disconnect:
-            post_save.disconnect(
-                invalidate_dashboard_cache,
-                sender=model,
-                dispatch_uid=f'dashboard_cache_invalidate_save_{model.__name__}',
-            )
-
-        committed = False
         created_objects: list[Any] = []
         try:
-            with transaction.atomic():
-                flow = FinancialFlow.objects.create(
-                    user=user,
-                    flow_key=self.key,
-                    spec=spec,
-                    idempotency_key=idempotency_key,
-                )
-
-                created_by_key: dict[str, Any] = {}
-                for index, step in enumerate(steps):
-                    if not step.condition:
-                        continue
-
-                    resolved_fields = {
-                        field_name: self._resolve_value(field_value, created_by_key)
-                        for field_name, field_value in step.fields.items()
-                    }
-                    instance = None
-                    step_pk = resolved_fields.pop('pk', None) or resolved_fields.pop('id', None)
-                    if step_pk is not None:
-                        try:
-                            instance = step.model.objects.get(pk=step_pk)
-                        except step.model.DoesNotExist:
-                            instance = None
-
-                    if instance is None:
-                        instance = step.model(**resolved_fields)
-                    else:
-                        for field_name, field_value in resolved_fields.items():
-                            setattr(instance, field_name, field_value)
-
-                    if getattr(instance, 'user_id', None) is None and hasattr(instance, 'user'):
-                        instance.user = user
-
-                    instance.full_clean()
-                    instance.save()
-                    created_objects.append(instance)
-
-                    step_key = step.key or f'step_{index}'
-                    created_by_key[step_key] = instance
-                    FlowCreatedObject.objects.create(
-                        flow=flow,
-                        content_object=instance,
-                        step_key=step_key,
+            with suppress_dashboard_cache_invalidation(user_id=user.id, invalidate_on_exit=True):
+                with transaction.atomic():
+                    flow = FinancialFlow.objects.create(
+                        user=user,
+                        flow_key=self.key,
+                        spec=spec,
+                        idempotency_key=idempotency_key,
                     )
-            committed = True
+
+                    created_by_key: dict[str, Any] = {}
+                    for index, step in enumerate(steps):
+                        if not step.condition:
+                            continue
+
+                        resolved_fields = {
+                            field_name: self._resolve_value(field_value, created_by_key)
+                            for field_name, field_value in step.fields.items()
+                        }
+                        instance = None
+                        step_pk = resolved_fields.pop('pk', None) or resolved_fields.pop('id', None)
+                        if step_pk is not None:
+                            try:
+                                instance = step.model.objects.get(pk=step_pk)
+                            except step.model.DoesNotExist:
+                                instance = None
+
+                        if instance is None:
+                            instance = step.model(**resolved_fields)
+                        else:
+                            for field_name, field_value in resolved_fields.items():
+                                setattr(instance, field_name, field_value)
+
+                        if getattr(instance, 'user_id', None) is None and hasattr(instance, 'user'):
+                            instance.user = user
+
+                        instance.full_clean()
+                        instance.save()
+                        created_objects.append(instance)
+
+                        step_key = step.key or f'step_{index}'
+                        created_by_key[step_key] = instance
+                        FlowCreatedObject.objects.create(
+                            flow=flow,
+                            content_object=instance,
+                            step_key=step_key,
+                        )
         except IntegrityError:
             existing = FinancialFlow.objects.filter(user=user, idempotency_key=idempotency_key).first()
             if existing:
                 return self._existing_flow_result(existing, idempotency_key)
             raise
-        finally:
-            for model in models_to_disconnect:
-                post_save.connect(
-                    invalidate_dashboard_cache,
-                    sender=model,
-                    dispatch_uid=f'dashboard_cache_invalidate_save_{model.__name__}',
-                )
-
-        if committed:
-            invalidate_dashboard_cache(user_id=user.id)
 
         return FlowResult(flow_id=flow.id, idempotency_key=idempotency_key, created=created_objects)
 

@@ -24,7 +24,7 @@ class Command(BaseCommand):
         count = 0
         for user in users:
             try:
-                process_user_recurring_transactions(user)
+                process_user_recurring_transactions(user, max_catchup=100)
                 count += 1
             except Exception as exc:
                 logger.error("Failed to process recurring transactions for user %s: %s", user.id, exc, exc_info=True)
