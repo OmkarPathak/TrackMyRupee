@@ -17,7 +17,7 @@ class RentBillFlowForm(forms.Form):
     description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Short description that appears on the recurring transaction.'))
     amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('The amount that repeats on each occurrence.'))
     currency = forms.ChoiceField(choices=CURRENCY_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Currency used for the recurring entry.'))
-    frequency = forms.ChoiceField(choices=RecurringTransaction.FREQUENCY_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('How often the bill or rent should repeat.'))
+    frequency = forms.ChoiceField(choices=RecurringTransaction.FREQUENCY_CHOICES, initial='MONTHLY', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('How often the bill or rent should repeat.'))
     account = forms.ModelChoiceField(queryset=Account.objects.none(), widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Account used to pay the recurring bill.'))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), help_text=_('Date the recurring schedule should start.'))
 
@@ -103,4 +103,11 @@ class RentBillFlow(Flow):
         frequency = data.get('frequency') or 'MONTHLY'
         multipliers = {'DAILY': 365, 'WEEKLY': 52, 'BIWEEKLY': 26, 'MONTHLY': 12, 'QUARTERLY': 4, 'SEMIANNUALLY': 2, 'YEARLY': 1}
         annual = float(amount) * multipliers.get(frequency, 12)
-        return {'headline': annual, 'bullets': [_('Creates a recurring bill schedule')], 'warnings': warnings}
+        return {
+            'headline': float(amount),
+            'bullets': [
+                _('Creates a recurring bill schedule'),
+                _('Estimated annual total: %(total)s') % {'total': f"₹{annual:,.2f}"},
+            ],
+            'warnings': warnings,
+        }

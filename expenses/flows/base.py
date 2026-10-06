@@ -291,11 +291,12 @@ class Flow:
 
         if self.key == 'sip':
             name = cleaned_data.get('name') or _('Investment')
-            inv_type = cleaned_data.get('investment_type') or 'SIP'
+            inv_type = cleaned_data.get('instrument_type') or 'SIP'
             amount = cleaned_data.get('amount') or 0
             freq = str(cleaned_data.get('frequency') or 'monthly').lower()
             start_date = cleaned_data.get('deposit_start_date')
             date_str = start_date.strftime('%d %b %Y') if hasattr(start_date, 'strftime') else str(start_date or '')
+            desc_start = f" starting {date_str}" if date_str else ""
             cards.append({
                 'icon': 'bi-graph-up-arrow',
                 'title': _('Investment account'),
@@ -304,7 +305,7 @@ class Flow:
             cards.append({
                 'icon': 'bi-calendar-check',
                 'title': _('Contribution schedule'),
-                'description': f"{currency}{format_indian_number(amount)} {freq} from {date_str}".strip(),
+                'description': f"{currency}{format_indian_number(amount)} {freq}{desc_start}".strip(),
             })
         elif self.key == 'loan':
             name = cleaned_data.get('name') or _('Loan')
@@ -414,7 +415,7 @@ class Flow:
         elif self.key == 'insurance':
             name = cleaned_data.get('name') or _('Insurance')
             premium = cleaned_data.get('premium_amount') or 0
-            freq = str(cleaned_data.get('frequency') or 'annually').lower()
+            freq = str(cleaned_data.get('premium_frequency') or 'ANNUAL').lower()
             cards.append({
                 'icon': 'bi-shield-shaded',
                 'title': _('Insurance policy'),
@@ -433,8 +434,8 @@ class Flow:
                 'title': _('Physical asset'),
                 'description': f"{name} ({currency}{format_indian_number(cost)})",
             })
-            if cleaned_data.get('create_loan'):
-                loan_amt = cleaned_data.get('loan_amount') or 0
+            if cleaned_data.get('financed'):
+                loan_amt = cleaned_data.get('purchase_price') or 0
                 cards.append({
                     'icon': 'bi-bank',
                     'title': _('Vehicle loan'),
@@ -442,11 +443,11 @@ class Flow:
                 })
         elif self.key == 'gold':
             name = cleaned_data.get('name') or _('Gold')
-            grams = cleaned_data.get('weight_in_grams') or 0
+            route_label = _('Physical Gold') if cleaned_data.get('route') == 'physical' else _('Digital / SGB')
             cards.append({
                 'icon': 'bi-gem',
-                'title': _('Physical asset'),
-                'description': f"{name} ({grams}g)",
+                'title': _('Physical asset') if cleaned_data.get('route') == 'physical' else _('Investment holding'),
+                'description': f"{name} ({route_label})",
             })
 
         if not cards:
@@ -460,7 +461,7 @@ class Flow:
 
     def get_review_summary(self, user, cleaned_data) -> str:
         if self.key == 'sip':
-            inv_type = cleaned_data.get('investment_type', 'SIP')
+            inv_type = cleaned_data.get('instrument_type', 'SIP')
             name = cleaned_data.get('name', 'Mutual Funds')
             from_acc = cleaned_data.get('from_account')
             from_acc_name = from_acc.name if hasattr(from_acc, 'name') else str(from_acc or '')
@@ -504,6 +505,35 @@ class Flow:
                 'name': name,
                 'day': b_day,
             })
+        elif self.key == 'rentbill':
+            name = cleaned_data.get('description') or _('Bill')
+            acc = cleaned_data.get('account')
+            acc_name = acc.name if hasattr(acc, 'name') else str(acc or '')
+            return str(_('%(name)s recurring bill paid from %(acc)s.') % {'name': name, 'acc': acc_name}) if acc_name else str(name)
+        elif self.key == 'fd':
+            name = cleaned_data.get('name', 'Fixed Deposit')
+            rate = cleaned_data.get('annual_rate') or 0
+            mat_date = cleaned_data.get('maturity_date')
+            d_str = mat_date.strftime('%d %b %Y') if hasattr(mat_date, 'strftime') else str(mat_date or '')
+            return str(_('%(name)s booked at %(rate)s%% maturing on %(date)s.') % {'name': name, 'rate': rate, 'date': d_str}) if d_str else str(name)
+        elif self.key == 'insurance':
+            name = cleaned_data.get('name', 'Policy')
+            freq = str(cleaned_data.get('premium_frequency') or 'ANNUAL').lower()
+            return str(_('%(name)s insurance policy with %(freq)s premium renewal.') % {'name': name, 'freq': freq})
+        elif self.key == 'savingsgoal':
+            name = cleaned_data.get('name', 'Goal')
+            return str(_('Savings goal for %(name)s.') % {'name': name})
+        elif self.key == 'car':
+            name = cleaned_data.get('name', 'Vehicle')
+            financed_str = _(' (financed)') if cleaned_data.get('financed') else ''
+            return str(_('%(name)s vehicle recorded%(fin)s.') % {'name': name, 'fin': financed_str})
+        elif self.key == 'gold':
+            name = cleaned_data.get('name', 'Gold')
+            route_str = _('Physical Gold') if cleaned_data.get('route') == 'physical' else _('Digital / SGB')
+            return str(_('%(name)s tracked as %(route)s.') % {'name': name, 'route': route_str})
+        elif self.key == 'ppfepfnps':
+            st = cleaned_data.get('scheme_type', 'PPF')
+            return str(_('%(scheme)s retirement scheme contributions.') % {'scheme': st})
         return ""
 
     def get_headline_suffix(self, cleaned_data) -> str:
@@ -520,9 +550,20 @@ class Flow:
                 return str(_('every month'))
             return freq.lower()
         if self.key == 'creditcard':
-            return str(_('balance'))
+            return str(_('credit limit'))
         if self.key == 'savingsgoal':
             return str(_('target'))
+        if self.key == 'insurance':
+            freq = str(cleaned_data.get('premium_frequency') or 'ANNUAL').upper()
+            return str(_('annual premium')) if freq == 'ANNUAL' else f"{freq.lower()} premium"
+        if self.key == 'ppfepfnps':
+            return str(_('per year'))
+        if self.key == 'fd':
+            return str(_('at maturity'))
+        if self.key == 'car':
+            return str(_('purchase price'))
+        if self.key == 'gold':
+            return str(_('investment'))
         return ""
 
     def review_context(self, user, form, cleaned_data) -> dict:
@@ -530,6 +571,11 @@ class Flow:
         currency = getattr(profile, 'currency', '₹') or '₹'
         sections = []
         for index, step in enumerate(self.get_wizard_steps(), start=1):
+            if step.show_if:
+                if "instrument_type === 'RD'" in step.show_if and cleaned_data.get('instrument_type') != 'RD':
+                    continue
+                if "instrument_type === 'SIP'" in step.show_if and cleaned_data.get('instrument_type') != 'SIP':
+                    continue
             items = []
             for field_name in step.fields:
                 field = form.fields.get(field_name)
@@ -544,11 +590,21 @@ class Flow:
                     val_str = str(value.name)
                     acc_cur = getattr(value, 'currency', currency)
                     subvalue = f"{_('Balance')} {acc_cur}{value.formatted_balance}"
-                elif field_name in ('annual_rate', 'interest_rate'):
+                elif field_name in ('annual_rate', 'interest_rate', 'deposit_rate'):
                     val_str = f"{value}%"
-                elif field_name in ('amount', 'principal', 'balance', 'credit_limit', 'target_amount', 'acquisition_cost', 'premium', 'down_payment', 'loan_amount', 'purchase_price', 'cost'):
+                elif field_name in (
+                    'amount', 'principal', 'balance', 'credit_limit', 'target_amount',
+                    'acquisition_cost', 'premium', 'premium_amount', 'down_payment',
+                    'down_payment_amount', 'loan_amount', 'purchase_price', 'cost',
+                    'repayment_amount', 'opening_paid_principal', 'annual_amount',
+                    'deposit_principal', 'sum_assured', 'current_value',
+                ):
                     from ..utils import format_indian_number
                     val_str = f"{currency}{format_indian_number(value)}"
+                elif field_name in ('tenure_months', 'target_months'):
+                    val_str = f"{value} {_('months') if value != 1 else _('month')}"
+                elif field_name in ('salary_date', 'billing_day', 'payment_due_day', 'rd_installment_day'):
+                    val_str = str(value)
                 else:
                     val_str = self._format_review_value(field, value, currency)
 
@@ -700,9 +756,11 @@ class Flow:
             return value.strftime('%d %b %Y %H:%M')
         if hasattr(value, 'name'):
             return str(value.name)
-        if isinstance(value, (int, float, Decimal)):
+        if isinstance(value, Decimal):
             from ..utils import format_indian_number
             return f"{currency}{format_indian_number(value)}"
+        if isinstance(value, (int, float)):
+            return str(value)
         if hasattr(value, '__str__'):
             return str(value)
         return str(value)

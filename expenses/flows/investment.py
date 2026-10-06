@@ -34,8 +34,15 @@ class SipRdFlowForm(forms.Form):
     )
     frequency = forms.ChoiceField(
         choices=RecurringTransaction.FREQUENCY_CHOICES,
+        initial='MONTHLY',
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text=_('How often the contribution should repeat.'),
+    )
+    deposit_start_date = forms.DateField(
+        required=False,
+        label=_('Start date'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text=_('Date the contribution or deposit plan begins.'),
     )
     deposit_principal = forms.DecimalField(
         required=False,
@@ -52,11 +59,6 @@ class SipRdFlowForm(forms.Form):
         decimal_places=2,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         help_text=_('Annual interest rate for the deposit.'),
-    )
-    deposit_start_date = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        help_text=_('Date the deposit or recurring plan starts.'),
     )
     deposit_compounding = forms.ChoiceField(
         choices=Account.COMPOUNDING_CHOICES,
@@ -198,7 +200,7 @@ class PpfEpfNpsFlowForm(forms.Form):
         help_text=_('The recurring annual contribution amount.'),
     )
     deposit_principal = forms.DecimalField(
-        min_value=Decimal('0.01'),
+        min_value=Decimal('0.00'),
         max_digits=15,
         decimal_places=2,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -280,8 +282,8 @@ class SipRdFlow(Flow):
     }
     form_class = SipRdFlowForm
     wizard_steps = [
-        FlowWizardStep('investment_basics', _('Investment Basics'), ['instrument_type', 'name', 'amount', 'frequency', 'from_account'], _('Tell us what you are investing in and how often it should repeat.')),
-        FlowWizardStep('deposit_rd_details', _('Deposit / RD Details'), ['deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding', 'deposit_maturity_date', 'rd_installment_day', 'show_accrued_balance', 'record_maturity_income'], _('Only some fields apply depending on whether you select SIP or RD.')),
+        FlowWizardStep('investment_basics', _('Investment Basics'), ['instrument_type', 'name', 'amount', 'frequency', 'deposit_start_date', 'from_account'], _('Tell us what you are investing in and how often it should repeat.')),
+        FlowWizardStep('deposit_rd_details', _('Recurring Deposit Details'), ['deposit_principal', 'deposit_rate', 'deposit_compounding', 'deposit_maturity_date', 'rd_installment_day', 'show_accrued_balance', 'record_maturity_income'], _('Configure interest rate and maturity terms for your recurring deposit.'), show_if="instrument_type === 'RD'"),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -328,7 +330,7 @@ class SipRdFlow(Flow):
                 },
                 key='account',
             )
-            recurring_start = data.get('deposit_start_date') or data['from_account'].created_at.date()
+            recurring_start = data.get('deposit_start_date') or timezone.localdate()
 
         recurring = CreateStep(
             RecurringTransaction,
@@ -352,8 +354,8 @@ class SipRdFlow(Flow):
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         data['amount'] = Decimal(str(data.get('amount') or 0))
-        data['currency'] = data.get('currency') or data['from_account'].currency
-        data['deposit_start_date'] = data.get('deposit_start_date') or data['from_account'].created_at.date()
+        data['currency'] = data.get('currency') or (data['from_account'].currency if data.get('from_account') else '₹')
+        data['deposit_start_date'] = data.get('deposit_start_date') or timezone.localdate()
         return data
 
     def preview(self, user, cleaned_data) -> dict:
@@ -367,7 +369,7 @@ class SipRdFlow(Flow):
         from_acc = data.get('from_account')
         from_acc_name = from_acc.name if hasattr(from_acc, 'name') else str(from_acc or '')
         summary = str(_("%(type)s into %(name)s from %(acc)s, starting %(date)s.") % {
-            'type': data.get('investment_type', 'SIP'),
+            'type': data.get('instrument_type', 'SIP'),
             'name': data.get('name', 'Mutual Funds'),
             'acc': from_acc_name,
             'date': date_str,
@@ -438,7 +440,7 @@ class FdFlow(Flow):
             {
                 'user': data['user'],
                 'amount': data['principal'],
-                'date': data['maturity_date'],
+                'date': data['deposit_start_date'],
                 'subtype': 'investment_lump_sum',
                 'note': _('FD investment'),
                 'account': data['from_account'],

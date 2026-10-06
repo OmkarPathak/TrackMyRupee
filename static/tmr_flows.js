@@ -58,12 +58,48 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
     currentStep: initialStep,
     totalSteps,
     hasWarnings: Boolean(initialHasWarnings),
+    instrumentType: 'SIP',
+    isFinanced: false,
+    createRepaymentSchedule: true,
+    midTenure: false,
+    includeDownPayment: false,
 
     init() {
+      this.syncFormState();
       this.checkWarnings();
+
+      const form = document.querySelector('form[hx-post]');
+      if (form) {
+        form.addEventListener('change', () => this.syncFormState());
+        form.addEventListener('input', () => this.syncFormState());
+      }
+
       document.addEventListener('htmx:afterSwap', () => {
         this.checkWarnings();
       });
+    },
+
+    syncFormState() {
+      const instInput = document.querySelector('[name="instrument_type"]');
+      if (instInput) {
+        this.instrumentType = instInput.value || 'SIP';
+      }
+      const finInput = document.querySelector('[name="financed"]');
+      if (finInput) {
+        this.isFinanced = finInput.checked;
+      }
+      const repInput = document.querySelector('[name="create_repayment_schedule"]');
+      if (repInput) {
+        this.createRepaymentSchedule = repInput.checked;
+      }
+      const midInput = document.querySelector('[name="mid_tenure"]');
+      if (midInput) {
+        this.midTenure = midInput.checked;
+      }
+      const downInput = document.querySelector('[name="include_down_payment"]');
+      if (downInput) {
+        this.includeDownPayment = downInput.checked;
+      }
     },
 
     checkWarnings() {
@@ -71,17 +107,58 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
       this.hasWarnings = !!(reviewEl && reviewEl.querySelector('.tmr-limit-warning'));
     },
 
-    totalPhases() {
+    isStepVisible(stepKey) {
+      if (stepKey === 'deposit_rd_details') {
+        return this.instrumentType === 'RD';
+      }
+      return true;
+    },
+
+    reviewStepNumber() {
       return this.totalSteps + 1;
     },
 
     isReviewStep() {
-      return this.currentStep === this.totalPhases();
+      return this.currentStep === this.reviewStepNumber();
+    },
+
+    totalPhases() {
+      return this.totalSteps + 1;
+    },
+
+    visibleStepsCount() {
+      let count = 0;
+      for (let i = 1; i <= this.totalSteps; i++) {
+        const stepEl = document.querySelector(`.wizard-step-content[data-step="${i}"]`);
+        const stepKey = stepEl ? stepEl.dataset.stepKey : null;
+        if (!stepKey || this.isStepVisible(stepKey)) {
+          count++;
+        }
+      }
+      return count + 1; // plus Review step
+    },
+
+    currentVisibleStepNumber() {
+      if (this.isReviewStep()) {
+        return this.visibleStepsCount();
+      }
+      let num = 0;
+      for (let i = 1; i <= this.currentStep; i++) {
+        const stepEl = document.querySelector(`.wizard-step-content[data-step="${i}"]`);
+        const stepKey = stepEl ? stepEl.dataset.stepKey : null;
+        if (!stepKey || this.isStepVisible(stepKey)) {
+          num++;
+        }
+      }
+      return Math.max(num, 1);
     },
 
     validateCurrentStep() {
       const stepEl = document.querySelector(`.wizard-step-content[data-step="${this.currentStep}"]`);
       if (!stepEl) return true;
+      const stepKey = stepEl.dataset.stepKey;
+      if (stepKey && !this.isStepVisible(stepKey)) return true;
+
       const inputs = stepEl.querySelectorAll('input:not([type="hidden"]), select, textarea');
       let isValid = true;
       for (const input of inputs) {
@@ -99,8 +176,25 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
       return isValid;
     },
 
+    nextStep(direction = 1) {
+      let target = this.currentStep + direction;
+      while (target >= 1 && target <= this.reviewStepNumber()) {
+        if (target === this.reviewStepNumber()) {
+          this.goToStep(target);
+          return;
+        }
+        const stepEl = document.querySelector(`.wizard-step-content[data-step="${target}"]`);
+        const stepKey = stepEl ? stepEl.dataset.stepKey : null;
+        if (!stepKey || this.isStepVisible(stepKey)) {
+          this.goToStep(target);
+          return;
+        }
+        target += direction;
+      }
+    },
+
     goToStep(targetStep) {
-      if (targetStep < 1 || targetStep > this.totalPhases()) return;
+      if (targetStep < 1 || targetStep > this.reviewStepNumber()) return;
       if (targetStep > this.currentStep) {
         if (!this.validateCurrentStep()) return;
       }
@@ -123,11 +217,11 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
     },
 
     progressWidth() {
-      return `${Math.round((this.currentStep / this.totalPhases()) * 100)}%`;
+      return `${Math.round((this.currentVisibleStepNumber() / this.visibleStepsCount()) * 100)}%`;
     },
 
     stepCounterLabel() {
-      return `Step ${this.currentStep} of ${this.totalPhases()}`;
+      return `Step ${this.currentVisibleStepNumber()} of ${this.visibleStepsCount()}`;
     },
   };
 }

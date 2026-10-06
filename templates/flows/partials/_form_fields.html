@@ -4,7 +4,16 @@
     {% for field_name in step.fields %}
         {% with field=form|bound_field:field_name %}
         {% if field %}
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-6"
+             {% if flow.key == 'car' and field_name == 'loan_name' or flow.key == 'car' and field_name == 'annual_rate' or flow.key == 'car' and field_name == 'tenure_months' or flow.key == 'car' and field_name == 'loan_start_date' %}
+             x-cloak x-show="isFinanced" x-transition
+             {% elif flow.key == 'loan' and field_name == 'payment_account' or flow.key == 'loan' and field_name == 'repayment_amount' or flow.key == 'loan' and field_name == 'repayment_frequency' or flow.key == 'loan' and field_name == 'repayment_start_date' or flow.key == 'loan' and field_name == 'repayment_is_active' %}
+             x-cloak x-show="createRepaymentSchedule" x-transition
+             {% elif flow.key == 'loan' and field_name == 'opening_paid_principal' or flow.key == 'loan' and field_name == 'first_emi_date' %}
+             x-cloak x-show="midTenure" x-transition
+             {% elif flow.key == 'loan' and field_name == 'down_payment_amount' or flow.key == 'loan' and field_name == 'down_payment_account' %}
+             x-cloak x-show="includeDownPayment" x-transition
+             {% endif %}>
             <div class="mb-0">
                 {% if field.field.widget.input_type == 'checkbox' %}
                     <div class="form-check pt-3">

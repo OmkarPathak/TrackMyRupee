@@ -224,8 +224,9 @@ class GoldFlow(Flow):
         return reverse('account-list')
 
     def plan(self, data) -> list[CreateStep]:
+        steps = []
         if data['route'] == 'physical':
-            return [
+            steps.extend([
                 CreateStep(
                     PhysicalAsset,
                     {
@@ -273,33 +274,52 @@ class GoldFlow(Flow):
                     },
                     key='holding',
                 ),
-            ]
+            ])
+        else:
+            steps.extend([
+                CreateStep(
+                    Account,
+                    {
+                        'user': data['user'],
+                        'name': data['name'],
+                        'account_type': 'SGB',
+                        'balance': Decimal('0.00'),
+                        'currency': data['currency'],
+                    },
+                    key='account',
+                ),
+                CreateStep(
+                    Holding,
+                    {
+                        'account': '$account',
+                        'instrument_name': data['name'],
+                        'instrument_type': 'OTHER',
+                        'units': Decimal('1.000000'),
+                        'avg_cost': data['amount'],
+                        'currency': data['currency'],
+                    },
+                    key='holding',
+                ),
+            ])
 
-        return [
-            CreateStep(
-                Account,
-                {
-                    'user': data['user'],
-                    'name': data['name'],
-                    'account_type': 'SGB',
-                    'balance': Decimal('0.00'),
-                    'currency': data['currency'],
-                },
-                key='account',
-            ),
-            CreateStep(
-                Holding,
-                {
-                    'account': '$account',
-                    'instrument_name': data['name'],
-                    'instrument_type': 'OTHER',
-                    'units': Decimal('1.000000'),
-                    'avg_cost': data['amount'],
-                    'currency': data['currency'],
-                },
-                key='holding',
-            ),
-        ]
+        if data.get('from_account'):
+            steps.append(
+                CreateStep(
+                    CapitalEvent,
+                    {
+                        'user': data['user'],
+                        'amount': data['amount'],
+                        'date': data['acquisition_date'],
+                        'subtype': 'investment_lump_sum',
+                        'note': _('Gold purchase: %(name)s') % {'name': data['name']},
+                        'account': data['from_account'],
+                        'currency': data['currency'],
+                    },
+                    key='purchase',
+                )
+            )
+
+        return steps
 
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)

@@ -181,13 +181,14 @@
                     <div class="wizard-steps-header mb-4">
                         <div class="wizard-steps-tabs-row g-0 text-center mb-1">
                             {% for step in flow.get_wizard_steps %}
-                            <div class="wizard-step-tab text-start" :class="stepTabClass({{ forloop.counter }})" @click="goToStep({{ forloop.counter }})">
+                            <div class="wizard-step-tab text-start"
+                                 x-cloak
+                                 x-show="isStepVisible('{{ step.key }}')"
+                                 :class="stepTabClass({{ forloop.counter }})"
+                                 @click="goToStep({{ forloop.counter }})">
                                 <div class="wizard-step-title text-truncate d-flex align-items-center justify-content-start gap-1 pb-1">
                                     <template x-if="currentStep > {{ forloop.counter }}">
                                         <i class="bi bi-check-circle-fill text-success" style="font-size: 0.95rem;"></i>
-                                    </template>
-                                    <template x-if="currentStep <= {{ forloop.counter }}">
-                                        <span class="text-muted small me-1" x-text="'{{ forloop.counter }}.'"></span>
                                     </template>
                                     <span class="text-truncate">{{ step.title }}</span>
                                 </div>
@@ -198,9 +199,6 @@
                                 <div class="wizard-step-title text-truncate d-flex align-items-center justify-content-start gap-1 pb-1">
                                     <template x-if="currentStep > {{ flow.get_wizard_steps|length|add:1 }}">
                                         <i class="bi bi-check-circle-fill text-success" style="font-size: 0.95rem;"></i>
-                                    </template>
-                                    <template x-if="currentStep <= {{ flow.get_wizard_steps|length|add:1 }}">
-                                        <span class="text-muted small me-1" x-text="'{{ flow.get_wizard_steps|length|add:1 }}.'"></span>
                                     </template>
                                     <span class="text-truncate">{% trans "Review" %}</span>
                                 </div>
@@ -214,13 +212,18 @@
                           action="{% url 'flow-detail' key=flow.key %}"
                           hx-post="{% url 'flow-preview' key=flow.key %}"
                           hx-target="#tmr-review-{{ flow.key }}"
-                          hx-trigger="input changed delay:300ms, tmr-preview"
+                          hx-trigger="change, input delay:300ms, tmr-preview"
                           hx-swap="innerHTML">
                         {% csrf_token %}
                         <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
                         {% for step in flow.get_wizard_steps %}
-                        <div class="wizard-step-content" data-step="{{ forloop.counter }}" x-cloak x-show="currentStep === {{ forloop.counter }}" x-transition>
+                        <div class="wizard-step-content"
+                             data-step="{{ forloop.counter }}"
+                             data-step-key="{{ step.key }}"
+                             x-cloak
+                             x-show="currentStep === {{ forloop.counter }} && isStepVisible('{{ step.key }}')"
+                             x-transition>
                             {% if step.help_text %}
                             <p class="text-muted small mb-3">{{ step.help_text }}</p>
                             {% endif %}
@@ -229,7 +232,12 @@
                         {% endfor %}
 
                         <!-- Final Review Step -->
-                        <div class="wizard-step-content" data-step="{{ flow.get_wizard_steps|length|add:1 }}" x-cloak x-show="currentStep === {{ flow.get_wizard_steps|length|add:1 }}" x-transition>
+                        <div class="wizard-step-content"
+                             data-step="{{ flow.get_wizard_steps|length|add:1 }}"
+                             data-step-key="review"
+                             x-cloak
+                             x-show="isReviewStep()"
+                             x-transition>
                             <div id="tmr-review-{{ flow.key }}">
                                 {% if preview %}
                                     {% include 'flows/partials/_review.html' %}
@@ -251,7 +259,7 @@
                                     x-cloak
                                     x-show="currentStep > 1"
                                     :class="{ 'd-none': currentStep <= 1 }"
-                                    @click="goToStep(currentStep - 1)">
+                                    @click="nextStep(-1)">
                                     <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
                                 </button>
 
@@ -264,7 +272,7 @@
                                         x-cloak
                                         x-show="!isReviewStep()"
                                         :class="{ 'd-none': isReviewStep() }"
-                                        @click="goToStep(currentStep + 1)">
+                                        @click="nextStep(1)">
                                         {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
                                     </button>
 
@@ -308,7 +316,7 @@
                                     x-cloak
                                     x-show="!isReviewStep()"
                                     :class="{ 'd-none': isReviewStep() }"
-                                    @click="goToStep(currentStep + 1)">
+                                    @click="nextStep(1)">
                                     {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
                                 </button>
 
@@ -319,7 +327,7 @@
                                         x-cloak
                                         x-show="currentStep > 1"
                                         :class="{ 'invisible': currentStep <= 1 }"
-                                        @click="goToStep(currentStep - 1)">
+                                        @click="nextStep(-1)">
                                         {% trans "Back" %}
                                     </button>
                                     <a href="{% url 'flow-landing' %}" class="btn btn-action-cancel flex-fill py-2 text-center">

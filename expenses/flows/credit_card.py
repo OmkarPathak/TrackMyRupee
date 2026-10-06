@@ -27,6 +27,12 @@ class CreditCardFlowForm(forms.Form):
             self.fields['existing_account'].queryset = accounts.filter(account_type='CREDIT_CARD')
             self.fields['currency'].initial = user.profile.currency
 
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get('existing_account') and not cleaned.get('name'):
+            self.add_error('name', _('Name is required when adding a new credit card.'))
+        return cleaned
+
 
 from django.urls import reverse
 
@@ -62,9 +68,13 @@ class CreditCardFlow(Flow):
         return reverse('account-list')
 
     def plan(self, data) -> list[CreateStep]:
+        account_name = (
+            data.get('name')
+            or (data['existing_account'].name if data.get('existing_account') else _('Credit Card'))
+        )
         account_payload = {
             'user': data['user'],
-            'name': data.get('name') or data['existing_account'].name,
+            'name': account_name,
             'account_type': 'CREDIT_CARD',
             'balance': -data['balance'],
             'currency': data['currency'],
@@ -89,9 +99,8 @@ class CreditCardFlow(Flow):
         warnings = self.check_limits(user, steps)
         balance = float(data['balance'])
         available_credit = float(data['credit_limit']) - balance
-        utilization_pct = (balance / float(data['credit_limit']) * 100) if data['credit_limit'] else 0
         return {
-            'headline': utilization_pct,
+            'headline': float(data['credit_limit']),
             'bullets': [
                 _('Creates or updates a revolving credit account'),
                 _('Stores credit limit and billing day for reminders'),

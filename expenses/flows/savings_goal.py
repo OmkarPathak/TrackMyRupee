@@ -89,4 +89,12 @@ class SavingsGoalFlow(Flow):
         data = self.derive({**cleaned_data, 'user': user})
         steps = self.plan(data)
         warnings = self.check_limits(user, steps)
-        return {'headline': data['monthly_suggestion'], 'bullets': [_('Creates a savings goal')], 'warnings': warnings}
+        currency = data.get('currency', '₹')
+        return {
+            'headline': float(data['target_amount']),
+            'bullets': [
+                _('Creates a savings goal'),
+                _('Suggested monthly savings: %(cur)s%(amt)s') % {'cur': currency, 'amt': f"{data['monthly_suggestion']:,.2f}"},
+            ],
+            'warnings': warnings,
+        }

@@ -1754,10 +1754,32 @@ class TestFlowLimitMessagingAndUI(TestCase):
         self.assertContains(response, "Investment account")
         self.assertContains(response, "Contribution schedule")
         self.assertContains(response, "Investment Basics")
-        self.assertContains(response, "Deposit / RD Details")
+        self.assertNotContains(response, "Recurring Deposit Details")
+        self.assertNotContains(response, "Deposit / RD Details")
         self.assertContains(response, "Edit")
         self.assertContains(response, "SBI Savings Account")
         self.assertContains(response, "Balance ₹85,000")
+
+    def test_review_partial_renders_mockup_rd_layout(self):
+        acc = Account.objects.create(user=self.user, name='HDFC Bank', account_type='SAVINGS_ACCOUNT', balance=Decimal('50000.00'), currency='₹')
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('flow-preview', kwargs={'key': 'sip'}), {
+            'instrument_type': 'RD',
+            'name': 'Recurring Deposit',
+            'amount': '2000',
+            'frequency': 'MONTHLY',
+            'from_account': acc.id,
+            'deposit_start_date': '2026-11-01',
+            'deposit_principal': '2000',
+            'deposit_rate': '7.2',
+            'deposit_compounding': 'QUARTERLY',
+            'deposit_maturity_date': '2027-11-01',
+            'show_accrued_balance': True,
+            'record_maturity_income': True,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Recurring Deposit Details")
+        self.assertContains(response, "HDFC Bank")
 
     def test_detail_page_includes_disabled_binding_on_confirm_button(self):
         self.client.force_login(self.user)
@@ -1766,6 +1788,116 @@ class TestFlowLimitMessagingAndUI(TestCase):
         self.assertContains(response, ':disabled="hasWarnings"')
         self.assertContains(response, 'tmrFlowWizard(')
         self.assertContains(response, 'wizard-tab-line')
+
+    def test_sip_form_defaults_frequency_to_monthly(self):
+        from expenses.flows.investment import SipRdFlow
+        form = SipRdFlow().form_class(user=self.user)
+        self.assertEqual(form.fields['frequency'].initial, 'MONTHLY')
+        step1_fields = SipRdFlow().wizard_steps[0].fields
+        self.assertIn('deposit_start_date', step1_fields)
+        self.assertIn('from_account', step1_fields)
+
+    def test_credit_card_validation_requires_name_when_no_existing_account(self):
+        from expenses.flows.credit_card import CreditCardFlow
+        form = CreditCardFlow().form_class(
+            data={
+                'name': '',
+                'balance': '5000',
+                'credit_limit': '50000',
+                'billing_day': '15',
+                'payment_due_day': '5',
+            },
+            user=self.user,
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('name', form.errors)
+
+    def test_fd_plan_capital_event_date_matches_deposit_start_date(self):
+        from expenses.flows.investment import FdFlow
+        cash_acc = Account.objects.create(user=self.user, name='Savings For FD', account_type='SAVINGS_ACCOUNT', balance=Decimal('100000.00'), currency='₹')
+        flow = FdFlow()
+        data = flow.derive({
+            'user': self.user,
+            'name': 'FD Test',
+            'principal': Decimal('50000.00'),
+            'annual_rate': Decimal('7.0'),
+            'deposit_start_date': date(2026, 11, 1),
+            'maturity_date': date(2027, 11, 1),
+            'deposit_compounding': 'QUARTERLY',
+            'from_account': cash_acc,
+        })
+        steps = flow.plan(data)
+        # The funding event should have date == deposit_start_date
+        event_steps = [s for s in steps if getattr(s, 'model', None) == CapitalEvent]
+        self.assertTrue(len(event_steps) > 0)
+        self.assertEqual(event_steps[0].fields['date'], date(2026, 11, 1))
+
+    def test_rentbill_preview_headline_matches_monthly_amount(self):
+        from expenses.flows.recurring import RentBillFlow
+        cash_acc = Account.objects.create(user=self.user, name='Bank For Rent', account_type='SAVINGS_ACCOUNT', balance=Decimal('50000.00'), currency='₹')
+        preview = RentBillFlow().preview(self.user, {
+            'bill_type': 'rent',
+            'name': 'Apartment Rent',
+            'amount': Decimal('25000.00'),
+            'frequency': 'MONTHLY',
+            'account': cash_acc,
+            'start_date': date.today(),
+            'currency': '₹',
+        })
+        self.assertEqual(preview['headline'], Decimal('25000.00'))
+
+    def test_gold_plan_creates_purchase_capital_event_when_from_account_provided(self):
+        from expenses.flows.asset import GoldFlow
+        cash_acc = Account.objects.create(user=self.user, name='Savings For Gold', account_type='SAVINGS_ACCOUNT', balance=Decimal('100000.00'), currency='₹')
+        flow = GoldFlow()
+        data = flow.derive({
+            'user': self.user,
+            'name': 'Gold Sovereign',
+            'amount': Decimal('65000.00'),
+            'route': 'physical',
+            'acquisition_date': date.today(),
+            'from_account': cash_acc,
+        })
+        steps = flow.plan(data)
+        event_steps = [s for s in steps if getattr(s, 'model', None) == CapitalEvent]
+        self.assertEqual(len(event_steps), 1)
+        self.assertEqual(event_steps[0].fields['amount'], Decimal('65000.00'))
+        self.assertEqual(event_steps[0].fields['account'], cash_acc)
+
+    def test_salary_review_renders_salary_date_without_currency_symbol(self):
+        acc = Account.objects.create(user=self.user, name='SBI Savings Account', account_type='SAVINGS_ACCOUNT', balance=Decimal('85000.00'), currency='₹')
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('flow-preview', kwargs={'key': 'salary'}), {
+            'amount': '233000',
+            'currency': '₹',
+            'account': acc.id,
+            'salary_date': '2',
+            'start_date': '2026-10-01',
+            'create_historical_entries': True,
+        })
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn("Salary Schedule", content)
+        self.assertIn('<span class="fw-semibold text-dark d-block">2</span>', content)
+        self.assertNotIn("₹2<", content)
+
+    def test_loan_review_renders_tenure_months_without_currency_symbol(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('flow-preview', kwargs={'key': 'loan'}), {
+            'name': 'Home Loan',
+            'loan_type': 'HOME',
+            'principal': '5000000',
+            'annual_rate': '8.5',
+            'tenure_months': '120',
+            'start_date': '2026-10-01',
+        })
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn("120 months", content)
+        self.assertNotIn("₹120", content)
+        self.assertIn("8.5%", content)
+        self.assertNotIn("₹8.5", content)
+
 
 
 
