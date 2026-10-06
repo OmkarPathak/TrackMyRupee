@@ -1,63 +1,124 @@
 {% load i18n %}
-<div>
-    <div class="tmr-review-header mb-3">
-        <div class="text-uppercase text-muted small fw-semibold">{% trans "Review" %}</div>
-        <div class="tmr-review-headline" data-count-up data-value="{{ preview.headline|default:0 }}">{{ preview.headline|default:0 }}</div>
-        {% if review.user_display %}
-        <div class="text-muted small mt-1">{% trans "Prepared for" %} {{ review.user_display }}</div>
-        {% endif %}
-    </div>
-
-    <ul class="mb-3 ps-3">
-        {% for bullet in preview.bullets %}
-        <li class="tmr-review-bullet">{{ bullet }}</li>
-        {% endfor %}
-    </ul>
-
-    {% if review.sections %}
-    <div class="row g-3 mb-3">
-        {% for section in review.sections %}
-        <div class="col-12 col-lg-6">
-            <div class="border rounded-3 p-3 h-100 bg-body-tertiary">
-                <div class="fw-semibold mb-2">{{ section.title }}</div>
-                <dl class="row mb-0 small">
-                    {% for item in section.items %}
-                    <dt class="col-5 text-muted">{{ item.label }}</dt>
-                    <dd class="col-7 mb-2">{{ item.value }}</dd>
-                    {% endfor %}
-                </dl>
+<div class="tmr-review-container">
+    {% if preview.warnings %}
+    <!-- LIMIT WARNING BANNER -->
+    <div class="tmr-limit-warning d-flex align-items-center justify-content-between gap-3 p-3 mb-4 rounded-3 border" style="background-color: #FEF9E7; border-color: #FDE68A !important;">
+        <div class="d-flex align-items-center gap-2 flex-grow-1">
+            <i class="bi bi-exclamation-triangle flex-shrink-0" style="color: #B45309; font-size: 1.15rem;"></i>
+            <div class="small fw-medium" style="color: #78350F; line-height: 1.4;">
+                {% for warning in preview.warnings %}
+                    <div class="{% if not forloop.last %}mb-1{% endif %}">{{ warning }}</div>
+                {% endfor %}
             </div>
         </div>
-        {% endfor %}
+        <a href="{% url 'pricing' %}" class="fw-bold small text-nowrap flex-shrink-0" style="color: #78350F; text-decoration: underline;">
+            {% trans "View plans" %}
+        </a>
     </div>
     {% endif %}
 
-    {% if preview.warnings %}
-    <div class="alert alert-warning tmr-limit-warning border-start border-warning border-4 shadow-sm mb-3" role="alert">
-        <div class="d-flex align-items-start gap-3">
-            <div class="text-warning fs-4 lh-1 mt-1">
-                <i class="bi bi-exclamation-triangle-fill"></i>
+    <!-- HERO SECTION: YOU'RE SETTING UP -->
+    <div class="tmr-review-hero mb-4">
+        <div class="text-uppercase text-muted fw-bold small mb-1" style="font-size: 0.72rem; letter-spacing: 0.08em;">
+            {% trans "YOU'RE SETTING UP" %}
+        </div>
+        <div class="d-flex align-items-baseline flex-wrap gap-2">
+            <div class="tmr-review-headline fw-bold tmr-review-hero-headline" style="font-size: 2.25rem; font-weight: 800; color: #165b40; line-height: 1.1;">
+                {{ review.user_currency|default:"₹" }}<span data-count-up data-value="{{ preview.headline|default:0 }}">{{ preview.headline|default:0 }}</span>
             </div>
-            <div class="flex-grow-1">
-                <div class="fw-bold fs-6 mb-1 text-warning-emphasis">{% trans "Plan Limit Reached" %}</div>
-                <div class="small text-body-secondary mb-3">
-                    {% for warning in preview.warnings %}
-                        <div class="{% if not forloop.last %}mb-2{% endif %}">{{ warning }}</div>
-                    {% endfor %}
+            {% if preview.headline_suffix %}
+            <div class="text-muted fw-medium" style="font-size: 1.1rem;">
+                {{ preview.headline_suffix }}
+            </div>
+            {% elif review.headline_suffix %}
+            <div class="text-muted fw-medium" style="font-size: 1.1rem;">
+                {{ review.headline_suffix }}
+            </div>
+            {% endif %}
+        </div>
+        {% if preview.summary %}
+        <div class="text-secondary small mt-2" style="font-size: 0.885rem; line-height: 1.4;">
+            {{ preview.summary }}
+        </div>
+        {% elif review.summary %}
+        <div class="text-secondary small mt-2" style="font-size: 0.885rem; line-height: 1.4;">
+            {{ review.summary }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- WHAT WE'LL CREATE SECTION -->
+    {% if review.what_we_create %}
+    <div class="mb-4">
+        <div class="text-uppercase text-muted fw-bold small mb-2" style="font-size: 0.72rem; letter-spacing: 0.08em;">
+            {% trans "WHAT WE'LL CREATE" %}
+        </div>
+        <div class="row g-3">
+            {% for card in review.what_we_create %}
+            <div class="col-12 col-md-6">
+                <div class="border rounded-3 p-3 bg-white h-100 shadow-sm d-flex align-items-center gap-3 tmr-create-card">
+                    <div class="tmr-create-card-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #E8F5E9; color: #165b40; font-size: 1.25rem;">
+                        <i class="bi {{ card.icon|default:'bi-check2-circle' }}"></i>
+                    </div>
+                    <div class="min-w-0 flex-grow-1">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">{{ card.title }}</div>
+                        <div class="text-muted small text-truncate" style="font-size: 0.825rem; line-height: 1.3;">{{ card.description }}</div>
+                    </div>
                 </div>
-                <div class="d-flex flex-wrap align-items-center gap-2 pt-2 border-top border-warning-subtle">
-                    <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary fw-semibold rounded-pill px-3 shadow-sm">
-                        <i class="bi bi-stars me-1"></i> {% trans "Upgrade Plan" %}
-                    </a>
-                    <a href="{% url 'account-list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                        <i class="bi bi-wallet2 me-1"></i> {% trans "Manage Accounts" %}
-                    </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% elif preview.bullets %}
+    <div class="mb-4">
+        <div class="text-uppercase text-muted fw-bold small mb-2" style="font-size: 0.72rem; letter-spacing: 0.08em;">
+            {% trans "WHAT WE'LL CREATE" %}
+        </div>
+        <div class="row g-3">
+            {% for bullet in preview.bullets %}
+            <div class="col-12 col-md-6">
+                <div class="border rounded-3 p-3 bg-white h-100 shadow-sm d-flex align-items-center gap-3 tmr-create-card">
+                    <div class="tmr-create-card-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #E8F5E9; color: #165b40; font-size: 1.25rem;">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">{{ bullet }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- DETAILED REVIEW SECTIONS (GRID OF CARDS) -->
+    {% if review.sections %}
+    <div class="row g-3 mb-2">
+        {% for section in review.sections %}
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 bg-white h-100 shadow-sm tmr-review-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <span class="fw-bold text-dark" style="font-size: 0.95rem;">{{ section.title }}</span>
+                    <button type="button" class="btn btn-link p-0 text-decoration-none fw-semibold small tmr-step-edit-btn" style="color: #165b40; font-size: 0.85rem;" @click="goToStep({{ section.step_number|default:forloop.counter }})">
+                        {% trans "Edit" %}
+                    </button>
+                </div>
+                <div class="review-items-list">
+                    {% for item in section.items %}
+                    <div class="d-flex justify-content-between align-items-start py-2 {% if not forloop.last %}border-bottom border-light-subtle{% endif %}">
+                        <span class="text-muted small me-2">{{ item.label }}</span>
+                        <div class="text-end small">
+                            <span class="fw-semibold text-dark d-block">{{ item.value }}</span>
+                            {% if item.subvalue %}
+                            <span class="text-muted d-block" style="font-size: 0.775rem;">{{ item.subvalue }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
-    </div>
-    <div class="text-danger small fw-semibold text-center mb-1">
-        <i class="bi bi-lock-fill me-1"></i> {% trans "Creation is disabled because plan limits have been reached." %}
+        {% endfor %}
     </div>
     {% endif %}
 </div>

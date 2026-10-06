@@ -1523,10 +1523,37 @@ class TestFlowLimitMessagingAndUI(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'tmr-limit-warning')
-        self.assertContains(response, 'Plan Limit Reached')
         self.assertContains(response, reverse('pricing'))
-        self.assertContains(response, 'Upgrade Plan')
-        self.assertContains(response, 'Creation is disabled because plan limits have been reached.')
+        self.assertContains(response, 'View plans')
+        self.assertIn("YOU'RE SETTING UP", response.content.decode())
+        self.assertIn("WHAT WE'LL CREATE", response.content.decode())
+
+    def test_review_partial_renders_mockup_sip_layout(self):
+        # Create an account for SIP
+        acc = Account.objects.create(user=self.user, name='SBI Savings Account', account_type='SAVINGS_ACCOUNT', balance=Decimal('85000.00'), currency='₹')
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('flow-preview', kwargs={'key': 'sip'}), {
+            'instrument_type': 'SIP',
+            'name': 'Mutual Funds',
+            'amount': '1000',
+            'frequency': 'MONTHLY',
+            'from_account': acc.id,
+            'deposit_start_date': '2026-11-01',
+            'deposit_compounding': 'SIMPLE',
+            'show_accrued_balance': True,
+            'record_maturity_income': False,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("YOU'RE SETTING UP", response.content.decode())
+        self.assertIn("WHAT WE'LL CREATE", response.content.decode())
+        self.assertContains(response, "every month")
+        self.assertContains(response, "Investment account")
+        self.assertContains(response, "Contribution schedule")
+        self.assertContains(response, "Investment Basics")
+        self.assertContains(response, "Deposit / RD Details")
+        self.assertContains(response, "Edit")
+        self.assertContains(response, "SBI Savings Account")
+        self.assertContains(response, "Balance ₹85,000")
 
     def test_detail_page_includes_disabled_binding_on_confirm_button(self):
         self.client.force_login(self.user)
@@ -1534,6 +1561,8 @@ class TestFlowLimitMessagingAndUI(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, ':disabled="hasWarnings"')
         self.assertContains(response, 'tmrFlowWizard(')
+        self.assertContains(response, 'wizard-tab-line')
+
 
 
 

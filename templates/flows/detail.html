@@ -15,13 +15,12 @@
     }
     .wizard-step-tab {
         cursor: pointer;
-        padding-bottom: 0.35rem;
         transition: all 0.2s ease;
     }
 
     .wizard-steps-tabs-row {
         display: flex;
-        flex-wrap: nowrap;
+        gap: 0.75rem;
         width: 100%;
     }
 
@@ -30,40 +29,135 @@
         min-width: 0;
     }
     .wizard-step-title {
-        font-size: 0.85rem;
+        font-size: 0.95rem;
         font-weight: 600;
         color: var(--bs-secondary-color, #6c757d);
         transition: color 0.2s ease;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    .wizard-step-tab.active .wizard-step-title {
-        color: var(--color-secondary, #0F7657);
-        font-weight: 700;
+    .wizard-step-title .tmr-step-check {
+        font-size: 1rem;
+        line-height: 1;
+        color: #165b40;
+    }
+    .wizard-tab-line {
+        height: 3.5px;
+        background-color: #e5e7eb;
+        border-radius: 2px;
+        transition: all 0.25s ease;
+        margin-top: 0.4rem;
+    }
+    .wizard-step-tab.completed .wizard-tab-line {
+        background-color: var(--color-secondary, #0F7657);
+    }
+    .wizard-step-tab.active .wizard-tab-line {
+        background-color: var(--color-secondary, #0F7657);
     }
     .wizard-step-tab.completed .wizard-step-title {
         color: var(--color-secondary, #0F7657);
+        font-weight: 700;
+    }
+    .wizard-step-tab.active .wizard-step-title {
+        color: var(--bs-body-color);
+        font-weight: 700;
+    }
+
+    .tmr-confirm-btn {
+        background-color: #1e6047 !important;
+        border-color: #1e6047 !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border-radius: 50rem;
+        padding: 0.5rem 1.5rem;
+        transition: all 0.2s ease;
+    }
+    .tmr-confirm-btn:hover:not(:disabled) {
+        background-color: #164e39 !important;
+        border-color: #164e39 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+    }
+    .tmr-confirm-btn:disabled,
+    .tmr-confirm-btn.disabled {
+        background-color: #1e6047 !important;
+        border-color: #1e6047 !important;
+        opacity: 0.55 !important;
+        cursor: not-allowed !important;
+    }
+
+    .tmr-step-counter-badge {
+        background-color: #E8F5E9;
+        color: #165b40;
+        border: 1px solid rgba(22, 91, 64, 0.15);
+    }
+
+    [data-bs-theme="dark"] .wizard-tab-line {
+        background-color: rgba(255, 255, 255, 0.12);
+    }
+    [data-bs-theme="dark"] .wizard-step-tab.completed .wizard-tab-line {
+        background-color: var(--color-secondary, #0F7657);
+    }
+    [data-bs-theme="dark"] .wizard-step-tab.active .wizard-tab-line {
+        background-color: var(--color-secondary, #0F7657);
     }
     [data-bs-theme="dark"] .wizard-step-title {
-        color: #9ca3af !important;
+        color: var(--bs-secondary-color) !important;
     }
-    [data-bs-theme="dark"] .wizard-step-tab.active .wizard-step-title,
+    [data-bs-theme="dark"] .wizard-step-title .tmr-step-check {
+        color: var(--color-secondary, #0F7657) !important;
+    }
     [data-bs-theme="dark"] .wizard-step-tab.completed .wizard-step-title {
+        color: var(--color-secondary, #0F7657) !important;
+    }
+    [data-bs-theme="dark"] .wizard-step-tab.active .wizard-step-title {
+        color: var(--bs-body-color) !important;
+    }
+    [data-bs-theme="dark"] .tmr-review-card,
+    [data-bs-theme="dark"] .tmr-create-card {
+        background-color: var(--bs-card-bg, #1f2937) !important;
+        border-color: var(--bs-border-color, #374151) !important;
+    }
+    [data-bs-theme="dark"] .tmr-create-card-icon {
+        background-color: rgba(52, 211, 153, 0.15) !important;
         color: #34d399 !important;
+    }
+    [data-bs-theme="dark"] .tmr-review-hero-headline {
+        color: #34d399 !important;
+    }
+    [data-bs-theme="dark"] .tmr-step-edit-btn {
+        color: #34d399 !important;
+    }
+    [data-bs-theme="dark"] .tmr-confirm-btn {
+        background-color: #059669 !important;
+        border-color: #059669 !important;
+    }
+    [data-bs-theme="dark"] .tmr-confirm-btn:hover:not(:disabled) {
+        background-color: #047857 !important;
+        border-color: #047857 !important;
+    }
+    [data-bs-theme="dark"] .tmr-step-counter-badge {
+        background-color: rgba(52, 211, 153, 0.15) !important;
+        color: #34d399 !important;
+        border-color: rgba(52, 211, 153, 0.25) !important;
+    }
+    [data-bs-theme="dark"] .tmr-limit-warning {
+        background-color: rgba(245, 158, 11, 0.12) !important;
+        border-color: rgba(245, 158, 11, 0.3) !important;
+    }
+    [data-bs-theme="dark"] .tmr-limit-warning div,
+    [data-bs-theme="dark"] .tmr-limit-warning a {
+        color: #fde68a !important;
     }
 
     @media (max-width: 576px) {
         .wizard-steps-tabs-row {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
+            gap: 0.4rem;
         }
-
-        .wizard-steps-tabs-row::-webkit-scrollbar {
-            display: none;
-        }
-
         .wizard-step-title {
-            font-size: 0.74rem;
-            white-space: nowrap;
+            font-size: 0.82rem;
         }
     }
 </style>
@@ -72,27 +166,46 @@
     <div class="row justify-content-center fade-in">
         <div class="col-md-9 col-lg-8">
             <div class="card shadow-lg border-0 fade-in">
-                <div class="card-header bg-transparent py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h1 class="h4 mb-0 fw-bold">{{ flow.title }}</h1>
-                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 fw-semibold" id="stepCounterBadge" x-text="stepCounterLabel()"></span>
+                <div class="card-header bg-transparent pt-4 pb-2 border-0">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h1 class="h4 mb-1 fw-bold text-body">{{ flow.label|default:flow.title }}</h1>
+                            <p class="text-muted small mb-0" x-show="isReviewStep()">{% trans "Check everything, then confirm." %}</p>
+                            <p class="text-muted small mb-0" x-show="!isReviewStep()">{{ flow.description }}</p>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-2 fw-semibold tmr-step-counter-badge" id="stepCounterBadge" x-text="stepCounterLabel()"></span>
                     </div>
                 </div>
 
-                <div class="card-body p-4">
-                    <div class="wizard-steps-header mb-3">
-                        <div class="wizard-steps-tabs-row g-0 text-center mb-2">
+                <div class="card-body p-4 pt-2">
+                    <div class="wizard-steps-header mb-4">
+                        <div class="wizard-steps-tabs-row g-0 text-center mb-1">
                             {% for step in flow.get_wizard_steps %}
-                            <div class="col wizard-step-tab" :class="stepTabClass({{ forloop.counter }})" @click="goToStep({{ forloop.counter }})">
-                                <span class="wizard-step-title text-truncate d-block px-1">{{ step.title }}</span>
+                            <div class="wizard-step-tab text-start" :class="stepTabClass({{ forloop.counter }})" @click="goToStep({{ forloop.counter }})">
+                                <div class="wizard-step-title text-truncate d-flex align-items-center justify-content-start gap-1 pb-1">
+                                    <template x-if="currentStep > {{ forloop.counter }}">
+                                        <i class="bi bi-check-circle-fill text-success" style="font-size: 0.95rem;"></i>
+                                    </template>
+                                    <template x-if="currentStep <= {{ forloop.counter }}">
+                                        <span class="text-muted small me-1" x-text="'{{ forloop.counter }}.'"></span>
+                                    </template>
+                                    <span class="text-truncate">{{ step.title }}</span>
+                                </div>
+                                <div class="wizard-tab-line rounded-pill"></div>
                             </div>
                             {% endfor %}
-                            <div class="col wizard-step-tab" :class="stepTabClass({{ flow.get_wizard_steps|length|add:1 }})" @click="goToStep({{ flow.get_wizard_steps|length|add:1 }})">
-                                <span class="wizard-step-title text-truncate d-block px-1">{% trans "Review" %}</span>
+                            <div class="wizard-step-tab text-start" :class="stepTabClass({{ flow.get_wizard_steps|length|add:1 }})" @click="goToStep({{ flow.get_wizard_steps|length|add:1 }})">
+                                <div class="wizard-step-title text-truncate d-flex align-items-center justify-content-start gap-1 pb-1">
+                                    <template x-if="currentStep > {{ flow.get_wizard_steps|length|add:1 }}">
+                                        <i class="bi bi-check-circle-fill text-success" style="font-size: 0.95rem;"></i>
+                                    </template>
+                                    <template x-if="currentStep <= {{ flow.get_wizard_steps|length|add:1 }}">
+                                        <span class="text-muted small me-1" x-text="'{{ flow.get_wizard_steps|length|add:1 }}.'"></span>
+                                    </template>
+                                    <span class="text-truncate">{% trans "Review" %}</span>
+                                </div>
+                                <div class="wizard-tab-line rounded-pill"></div>
                             </div>
-                        </div>
-                        <div class="progress" style="height: 3px;">
-                            <div class="progress-bar bg-primary" id="wizardProgressBar" :style="`width: ${progressWidth()};`"></div>
                         </div>
                     </div>
 
@@ -129,33 +242,54 @@
                         </div>
 
                         <!-- WIZARD NAVIGATION FOOTER -->
-                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center gap-2">
-                            <button
-                                type="button"
-                                class="btn btn-action-cancel"
-                                x-cloak
-                                x-show="currentStep > 1"
-                                :class="{ 'd-none': currentStep <= 1 }"
-                                @click="goToStep(currentStep - 1)">
-                                <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
-                            </button>
-
-                            <div class="ms-auto d-flex align-items-center gap-2">
-                                <a href="{% url 'flow-landing' %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
-
+                        <div class="mt-4 pt-3 border-top wizard-footer-nav">
+                            <!-- Desktop / Tablet layout -->
+                            <div class="d-none d-sm-flex justify-content-between align-items-center gap-2">
                                 <button
                                     type="button"
-                                    class="btn btn-action-primary"
+                                    class="btn btn-action-cancel"
                                     x-cloak
-                                    x-show="!isReviewStep()"
-                                    :class="{ 'd-none': isReviewStep() }"
-                                    @click="goToStep(currentStep + 1)">
-                                    {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
+                                    x-show="currentStep > 1"
+                                    :class="{ 'd-none': currentStep <= 1 }"
+                                    @click="goToStep(currentStep - 1)">
+                                    <i class="bi bi-arrow-left me-1"></i> {% trans "Back" %}
                                 </button>
 
+                                <div class="ms-auto d-flex align-items-center gap-2">
+                                    <a href="{% url 'flow-landing' %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-action-primary"
+                                        x-cloak
+                                        x-show="!isReviewStep()"
+                                        :class="{ 'd-none': isReviewStep() }"
+                                        @click="goToStep(currentStep + 1)">
+                                        {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn tmr-confirm-btn"
+                                        x-cloak
+                                        x-show="isReviewStep()"
+                                        :class="{ 'd-none': !isReviewStep(), 'disabled opacity-50': hasWarnings }"
+                                        :disabled="hasWarnings"
+                                        :title="hasWarnings ? '{% trans "Plan limit reached. Please upgrade to create." %}' : ''"
+                                        data-confirm-btn
+                                        hx-post="{% url 'flow-commit' key=flow.key %}"
+                                        hx-include="#tmr-flow-form-{{ flow.key }}"
+                                        hx-swap="none">
+                                        <i class="bi" :class="hasWarnings ? 'bi-lock-fill me-1' : 'bi-check2 me-1'"></i> {% trans "Confirm and create" %}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Mobile layout (matching mockup Review · Mobile) -->
+                            <div class="d-flex d-sm-none flex-column gap-2">
                                 <button
                                     type="button"
-                                    class="btn btn-action-primary"
+                                    class="btn tmr-confirm-btn w-100 py-2 fw-bold"
                                     x-cloak
                                     x-show="isReviewStep()"
                                     :class="{ 'd-none': !isReviewStep(), 'disabled opacity-50': hasWarnings }"
@@ -165,8 +299,33 @@
                                     hx-post="{% url 'flow-commit' key=flow.key %}"
                                     hx-include="#tmr-flow-form-{{ flow.key }}"
                                     hx-swap="none">
-                                    <i class="bi" :class="hasWarnings ? 'bi-lock-fill me-1' : 'bi-check2-circle me-1'"></i> {% trans "Confirm and create" %}
+                                    <i class="bi" :class="hasWarnings ? 'bi-lock-fill me-1' : 'bi-check2 me-1'"></i> {% trans "Confirm and create" %}
                                 </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-action-primary w-100 py-2 fw-bold"
+                                    x-cloak
+                                    x-show="!isReviewStep()"
+                                    :class="{ 'd-none': isReviewStep() }"
+                                    @click="goToStep(currentStep + 1)">
+                                    {% trans "Next" %} <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+
+                                <div class="d-flex gap-2">
+                                    <button
+                                        type="button"
+                                        class="btn btn-action-cancel flex-fill py-2"
+                                        x-cloak
+                                        x-show="currentStep > 1"
+                                        :class="{ 'invisible': currentStep <= 1 }"
+                                        @click="goToStep(currentStep - 1)">
+                                        {% trans "Back" %}
+                                    </button>
+                                    <a href="{% url 'flow-landing' %}" class="btn btn-action-cancel flex-fill py-2 text-center">
+                                        {% trans "Cancel" %}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </form>

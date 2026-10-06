@@ -360,7 +360,26 @@ class SipRdFlow(Flow):
         data = self.derive({**cleaned_data, 'user': user})
         steps = self.plan(data)
         warnings = self.check_limits(user, steps)
-        return {'headline': float(data['amount']), 'bullets': [_('Creates an investment account and contribution schedule')], 'warnings': warnings}
+        freq = str(data.get('frequency') or 'MONTHLY').upper()
+        freq_label = _('every month') if freq == 'MONTHLY' else freq.lower()
+        start_date = data.get('deposit_start_date')
+        date_str = start_date.strftime('%d %b %Y') if hasattr(start_date, 'strftime') else str(start_date or '')
+        from_acc = data.get('from_account')
+        from_acc_name = from_acc.name if hasattr(from_acc, 'name') else str(from_acc or '')
+        summary = str(_("%(type)s into %(name)s from %(acc)s, starting %(date)s.") % {
+            'type': data.get('investment_type', 'SIP'),
+            'name': data.get('name', 'Mutual Funds'),
+            'acc': from_acc_name,
+            'date': date_str,
+        }) if from_acc_name and date_str else ''
+
+        return {
+            'headline': float(data['amount']),
+            'headline_suffix': freq_label,
+            'summary': summary,
+            'bullets': [_('Creates an investment account and contribution schedule')],
+            'warnings': warnings,
+        }
 
 
 @register_flow

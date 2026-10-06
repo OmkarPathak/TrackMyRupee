@@ -3651,8 +3651,8 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
   }
 }
 .gcard {
-  background: var(--surface-color, var(--bs-card-bg, #ffffff));
-  border: 1px solid var(--border-color, rgba(26,26,24,0.1));
+  background: var(--bs-card-bg, #ffffff);
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -3664,16 +3664,19 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
 .gcard:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  border-color: var(--color-secondary, #0F7657);
+  border-color: var(--color-secondary, #0F7657) !important;
 }
 .gcard:focus-visible,
 .gcard.selected {
-  border-color: var(--color-secondary, #0F7657);
+  border-color: var(--color-secondary, #0F7657) !important;
   box-shadow: 0 0 0 2px rgba(15, 118, 87, 0.25);
 }
 [data-bs-theme="dark"] .gcard {
-  background: #1c1c1a;
-  border-color: #333230;
+  background: var(--bs-card-bg);
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+[data-bs-theme="dark"] .gcard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 .gicon {
   width: 38px;
@@ -3691,14 +3694,14 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
   font-size: 15.5px;
   margin: 0 0 6px;
   font-weight: 700;
-  color: var(--color-text, var(--ink, #1a1a18));
+  color: var(--bs-body-color);
 }
 [data-bs-theme="dark"] .gcard h3 {
-  color: #f2f1ee;
+  color: var(--bs-body-color);
 }
 .gcard p {
   font-size: 13px;
-  color: var(--color-muted-text, #595855);
+  color: var(--bs-secondary-color, #595855);
   margin: 0 0 14px;
   line-height: 1.5;
   flex: 1;
@@ -3712,16 +3715,16 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
 .tag {
   font-size: 11px;
   font-weight: 600;
-  color: var(--color-muted-text, #595855);
-  background: var(--bg-color, #faf8f5);
-  border: 1px solid var(--border-color, rgba(26,26,24,0.1));
+  color: var(--bs-secondary-color, #595855);
+  background: var(--bs-tertiary-bg, #faf8f5);
+  border: 1px solid var(--bs-border-color, rgba(0,0,0,0.1));
   border-radius: 999px;
   padding: 3px 9px;
 }
 [data-bs-theme="dark"] .tag {
-  background: #121212;
-  border-color: #333230;
-  color: #a8a6a1;
+  background: var(--bs-tertiary-bg);
+  border-color: var(--bs-border-color);
+  color: var(--bs-secondary-color);
 }
 .gfoot {
   display: flex;
@@ -3794,8 +3797,8 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
   background-color: rgba(255, 255, 255, 0.08);
 }
 .reqcard {
-  background: var(--bg-color, #faf8f5);
-  border: 1.5px dashed var(--border-color, rgba(26,26,24,0.25));
+  background: var(--bs-tertiary-bg, #faf8f5);
+  border: 1.5px dashed var(--bs-border-color, rgba(0,0,0,0.2));
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -3804,21 +3807,21 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
   text-align: left;
 }
 [data-bs-theme="dark"] .reqcard {
-  background: #151515;
-  border-color: #333230;
+  background: var(--bs-tertiary-bg);
+  border-color: var(--bs-border-color);
 }
 .reqcard h3 {
   font-size: 15.5px;
   margin: 0 0 6px;
   font-weight: 700;
-  color: var(--color-text, var(--ink, #1a1a18));
+  color: var(--bs-body-color);
 }
 [data-bs-theme="dark"] .reqcard h3 {
-  color: #f2f1ee;
+  color: var(--bs-body-color);
 }
 .reqcard p {
   font-size: 13px;
-  color: var(--color-muted-text, #595855);
+  color: var(--bs-secondary-color, #595855);
   margin: 0 0 14px;
   line-height: 1.5;
 }
@@ -3826,14 +3829,14 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
   margin-top: 16px;
 }
 .panel {
-  background: var(--surface-color, var(--bs-card-bg, #ffffff));
-  border: 1px solid var(--border-color, rgba(26,26,24,0.1));
+  background: var(--bs-card-bg, #ffffff);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   padding: 20px;
 }
 [data-bs-theme="dark"] .panel {
-  background: #1c1c1a;
-  border-color: #333230;
+  background: var(--bs-card-bg);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 .panel h4 {
   font-size: 14.5px;
