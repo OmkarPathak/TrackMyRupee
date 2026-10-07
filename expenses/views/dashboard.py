@@ -2354,63 +2354,32 @@ def home_view(request):
         net_worth_trend.append(float(projected_val))
     # Onboarding Checklist State
     profile = request.user.profile
-    # Once fully complete (or dismissed) this can't practically go back to "incomplete" for a
-    # normal user, so cache that terminal state for 24h and skip the 6 EXISTS queries entirely.
     checklist_cache_key = f'checklist_done_{request.user.id}'
-    if cache.get(checklist_cache_key):
-        checklist_status = {k: True for k in ('accounts', 'income', 'expense', 'budget', 'goal', 'recurring')}
-    else:
-        checklist_status = {
-            'accounts': Account.objects.filter(user=request.user).exists(),
-            'income': Income.objects.filter(user=request.user).exists(),
-            'expense': Expense.objects.filter(user=request.user).exists(),
-            'budget': Category.objects.filter(user=request.user, limit__isnull=False).exists(),
-            'goal': SavingsGoal.objects.filter(user=request.user).exists(),
-            'recurring': RecurringTransaction.objects.filter(user=request.user).exists(),
-        }
-        if profile.dismissed_onboarding_checklist or all(checklist_status.values()):
-            cache.set(checklist_cache_key, True, 60 * 60 * 24)
-    completed_count = sum(1 for status in checklist_status.values() if status)
-    show_onboarding_checklist = not profile.dismissed_onboarding_checklist and completed_count < 6
+    
+    # Show checklist card only for users who completed onboarding v2 (has onboarding_completed_at)
+    # and have not dismissed it
+    show_onboarding_checklist = False
+    completed_count = 0
+    total_checklist_count = 6
+    checklist_items = []
 
-    checklist_items = [
-        {
-            'key': 'accounts',
-            'label': _('Add account'),
-            'done': checklist_status['accounts'],
-            'url': reverse('tmr-flows'),
-        },
-        {
-            'key': 'income',
-            'label': _('Add income'),
-            'done': checklist_status['income'],
-            'url': reverse('flow-detail', kwargs={'key': 'salary'}),
-        },
-        {
-            'key': 'expense',
-            'label': _('Add expense'),
-            'done': checklist_status['expense'],
-            'url': reverse('expense-create'),
-        },
-        {
-            'key': 'budget',
-            'label': _('Set a budget'),
-            'done': checklist_status['budget'],
-            'url': reverse('budget'),
-        },
-        {
-            'key': 'goal',
-            'label': _('Set a savings goal'),
-            'done': checklist_status['goal'],
-            'url': reverse('flow-detail', kwargs={'key': 'savingsgoal'}),
-        },
-        {
-            'key': 'recurring',
-            'label': _('Add recurring bill'),
-            'done': checklist_status['recurring'],
-            'url': reverse('flow-detail', kwargs={'key': 'rentbill'}),
-        },
-    ]
+    if profile.onboarding_completed_at and not profile.dismissed_onboarding_checklist:
+        from ..onboarding_v2 import get_checklist_items
+        checklist_items_raw, completed_count, total_checklist_count = get_checklist_items(request.user)
+        show_onboarding_checklist = completed_count < total_checklist_count
+        # Map to dashboard format
+        checklist_items = [
+            {
+                'key': item['id'],
+                'label': item['title'],
+                'desc': item.get('description', ''),
+                'done': item['done'],
+                'url': item.get('flow_url', ''),
+            }
+            for item in checklist_items_raw
+        ]
+        if not show_onboarding_checklist:
+            cache.set(checklist_cache_key, True, 60 * 60 * 24)
 
     # Optimization: Calculate bento invested data in a single query instead of N+1
     if net_worth_history:

@@ -591,6 +591,72 @@
         .salary-cycle-subtle {
             font-size: 0.88rem;
         }
+
+        #onboarding-checklist-card {
+            padding: 14px 14px !important;
+            border-radius: 16px !important;
+        }
+        .onboarding-checklist-items {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+        }
+        .onboarding-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 7px !important;
+            padding: 8px 10px !important;
+            border-radius: 10px !important;
+            min-height: 42px;
+            font-size: 0.8rem !important;
+            line-height: 1.25 !important;
+            white-space: normal !important;
+            text-decoration: none !important;
+            transition: all 0.15s ease;
+        }
+        .onboarding-item-done {
+            background-color: rgba(29, 158, 117, 0.05) !important;
+            border: 1px solid rgba(29, 158, 117, 0.14) !important;
+            color: #6c757d !important;
+        }
+        .onboarding-item-pending {
+            background-color: var(--color-surface, var(--bs-card-bg, #ffffff)) !important;
+            border: 1px solid rgba(29, 158, 117, 0.25) !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+        }
+        .onboarding-item-pending:active {
+            background-color: rgba(29, 158, 117, 0.08) !important;
+            transform: scale(0.98);
+        }
+        .onboarding-item .item-icon {
+            font-size: 0.95rem !important;
+            flex-shrink: 0;
+        }
+        .onboarding-item .item-text {
+            font-size: 0.8rem !important;
+            word-break: break-word;
+        }
+    }
+
+    /* Desktop checklist items default */
+    @media (min-width: 768px) {
+        .onboarding-checklist-items {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            column-gap: 20px;
+            row-gap: 8px;
+        }
+        .onboarding-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        .onboarding-item .item-icon {
+            font-size: 0.9rem;
+        }
     }
 </style>
 
@@ -600,14 +666,14 @@
 
 {% if show_onboarding_checklist %}
 <div id="onboarding-checklist-card" class="card border-0 rounded-4 shadow-sm mb-4 p-3" style="background-color: var(--color-surface, var(--bs-card-bg, #ffffff)); border: 1.5px solid var(--border-color, var(--bs-border-color, rgba(26,26,24,0.1))) !important; transition: all 0.3s ease;">
-    <!-- Checklist Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2" style="border-bottom: 1px solid var(--border-color, rgba(26,26,24,0.08));">
+    <!-- Desktop Checklist Header -->
+    <div class="d-none d-md-flex justify-content-between align-items-center gap-2 mb-3 pb-2" style="border-bottom: 1px solid var(--border-color, rgba(26,26,24,0.08));">
         <div class="d-flex align-items-center gap-2">
             <div class="fw-bold mb-0 d-flex align-items-center gap-2" style="color: var(--color-text, var(--ink, #1a1a18)); font-size: 0.9rem;">
                 <i class="bi bi-patch-check-fill text-primary"></i>
                 {% trans "Your setup is" %} {{ onboarding_checklist_completed_count }} {% trans "of 6 complete" %}
             </div>
-            <div class="d-none d-sm-block" style="height: 5px; width: 100px; background-color: rgba(0,0,0,0.1); border-radius: 999px; overflow: hidden;">
+            <div style="height: 5px; width: 100px; background-color: rgba(0,0,0,0.1); border-radius: 999px; overflow: hidden;">
                 <div style="height: 100%; width: {% widthratio onboarding_checklist_completed_count 6 100 %}%; min-width: 4px; background-color: #1D9E75; border-radius: 999px;"></div>
             </div>
         </div>
@@ -621,19 +687,44 @@
         </div>
     </div>
 
-    <!-- Compact List Items -->
-    <div class="d-flex flex-wrap align-items-center gap-x-4 gap-y-2" style="column-gap: 20px;">
-        {% for item in onboarding_checklist_items %}
-        <div class="d-flex align-items-center gap-2 small text-nowrap">
-            {% if item.done %}
-                <i class="bi bi-check-circle-fill text-success" style="font-size: 0.9rem;"></i>
-                <span class="text-muted text-decoration-line-through">{{ item.label }}</span>
-            {% else %}
-                <i class="bi bi-circle text-muted" style="font-size: 0.9rem;"></i>
-                <a href="{{ item.url }}" class="text-decoration-none text-primary fw-bold">{{ item.label }} &rarr;</a>
-            {% endif %}
+    <!-- Mobile Checklist Header -->
+    <div class="d-md-none mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="fw-bold d-flex align-items-center gap-2" style="color: var(--color-text, var(--ink, #1a1a18)); font-size: 0.92rem;">
+                <i class="bi bi-patch-check-fill text-primary" style="font-size: 1.05rem;"></i>
+                <span>{% trans "Your setup is" %} <strong class="text-primary">{{ onboarding_checklist_completed_count }}</strong> {% trans "of 6 complete" %}</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-link text-muted text-decoration-none p-0 border-0" onclick="dismissOnboardingChecklist()" style="font-size: 0.84rem;">
+                {% trans "Dismiss" %}
+            </button>
         </div>
+        <div class="mt-2" style="height: 5px; width: 100%; background-color: rgba(0,0,0,0.06); border-radius: 999px; overflow: hidden;">
+            <div style="height: 100%; width: {% widthratio onboarding_checklist_completed_count 6 100 %}%; min-width: 6px; background-color: var(--color-primary, #1D9E75); border-radius: 999px;"></div>
+        </div>
+    </div>
+
+    <!-- Checklist Items: Desktop Flex, Mobile 2-Column Grid -->
+    <div class="onboarding-checklist-items">
+        {% for item in onboarding_checklist_items %}
+            {% if item.done %}
+                <div class="onboarding-item onboarding-item-done">
+                    <i class="bi bi-check-circle-fill text-success item-icon"></i>
+                    <span class="item-text text-muted text-decoration-line-through">{{ item.label }}</span>
+                </div>
+            {% else %}
+                <a href="{{ item.url }}" class="onboarding-item onboarding-item-pending text-decoration-none">
+                    <i class="bi bi-circle text-muted item-icon"></i>
+                    <span class="item-text text-primary fw-bold">{{ item.label }} &rarr;</span>
+                </a>
+            {% endif %}
         {% endfor %}
+    </div>
+
+    <!-- Mobile Footer: Read guide -->
+    <div class="d-md-none mt-2 pt-2 text-center" style="border-top: 1px solid var(--border-color, rgba(26,26,24,0.06));">
+        <a href="https://docs.trackmyrupee.com" target="_blank" class="text-primary text-decoration-none fw-semibold" style="font-size: 0.8rem;">
+            {% trans "Read complete guide" %} &rarr;
+        </a>
     </div>
 </div>
 

@@ -1,1134 +1,1618 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block title %}{% trans "Get Started" %} - TrackMyRupee{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 80vh; padding: 20px 0;">
+<div class="onboarding-page-wrapper">
     <style>
-        /* Modern Premium Styling */
-        .onboarding-card {
-            background-color: var(--color-surface, var(--bs-card-bg, #ffffff));
-            border: 1px solid var(--border-color, var(--bs-border-color, rgba(26,26,24,0.1))) !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-        [data-bs-theme="dark"] .onboarding-card {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        .onboarding-step h1, .onboarding-step h2, .celebration-overlay h2 {
-            font-family: 'DM Sans', 'Inter', sans-serif;
-            font-size: 2.2rem;
-            color: var(--color-text, var(--ink, #1a1a18));
-            font-weight: 700;
-            letter-spacing: -0.03em;
-        }
-        .onboarding-step p, .onboarding-step label, .onboarding-step input, .onboarding-step select {
-            font-family: 'DM Sans', sans-serif;
-            color: var(--color-text, var(--ink2, #4a4a46));
-        }
-        .onboarding-step .form-control:not(.border-0), .onboarding-step .form-select:not(.border-0) {
-            background-color: var(--color-surface, var(--bs-body-bg, #ffffff));
-            border: 1.5px solid var(--border-color, var(--bs-border-color, rgba(26,26,24,0.15)));
-            color: var(--color-text, var(--ink, #1a1a18));
-            border-radius: 12px;
-            padding: 10px 14px;
-            transition: all 0.2s ease;
-        }
-        .onboarding-step .form-control:not(.border-0):focus, .onboarding-step .form-select:not(.border-0):focus {
-            border-color: var(--color-primary, var(--bs-primary, #1D9E75));
-            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.15);
-        }
-        /* Hide spin buttons in number inputs */
-        .onboarding-step input::-webkit-outer-spin-button,
-        .onboarding-step input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .onboarding-step input[type=number] {
-            -moz-appearance: textfield;
-        }
-        /* Custom Progress Bar */
-        .progress-bar-primary {
-            background: linear-gradient(90deg, var(--color-primary, #1D9E75) 0%, #3d8b6a 100%);
-        }
-        /* Slide styling for Welcome Screen */
-        .welcome-carousel {
-            position: relative;
-            overflow: hidden;
-            min-height: 280px;
-        }
-        .welcome-slide {
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
-            position: absolute;
-            width: 100%;
-            top: 0;
-            left: 0;
-        }
-        .welcome-slide.active {
-            position: relative;
-            opacity: 1;
-            transform: translateX(0);
-        }
-        .welcome-slide.next {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-        .welcome-slide.prev {
-            opacity: 0;
-            transform: translateX(-100%);
-        }
-        /* Dots indicators */
-        .carousel-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--border-color, rgba(0,0,0,0.2));
-            display: inline-block;
-            margin: 0 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .carousel-dot.active {
-            width: 24px;
-            border-radius: 4px;
-            background-color: var(--color-primary, #1D9E75);
-        }
-        /* Persona Card Styling */
-        .persona-card {
-            border: 2px solid var(--border-color, rgba(26,26,24,0.1));
-            background-color: var(--color-surface, #ffffff);
-            border-radius: 16px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: left;
-            position: relative;
-            overflow: hidden;
-        }
-        .persona-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--color-primary, #1D9E75);
-            box-shadow: 0 8px 20px rgba(29, 158, 117, 0.08);
-        }
-        .persona-card.selected {
-            border-color: var(--color-primary, #1D9E75);
-            background-color: rgba(29, 158, 117, 0.04);
-            box-shadow: 0 8px 24px rgba(29, 158, 117, 0.12);
-        }
-        /* Highlight picker styling */
-        .number-picker-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            max-width: 380px;
-            margin: 0 auto;
-        }
-        .picker-cell {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            border: 1px solid var(--border-color, rgba(26,26,24,0.1));
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            background-color: var(--color-surface, #ffffff);
-            transition: all 0.2s ease;
-        }
-        .picker-cell:hover {
-            border-color: var(--color-primary, #1D9E75);
-            background-color: rgba(29, 158, 117, 0.02);
-        }
-        .picker-cell.highlight {
-            border-color: var(--color-primary, #1D9E75);
-            background-color: rgba(29, 158, 117, 0.08);
-            color: var(--color-primary, #1D9E75);
-            box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.1) inset;
-        }
-        .picker-cell.selected {
-            background-color: var(--color-primary, #1D9E75) !important;
-            color: white !important;
-            border-color: var(--color-primary, #1D9E75) !important;
-            box-shadow: 0 4px 10px rgba(29, 158, 117, 0.3) !important;
-        }
-        /* Month picker grid */
-        .month-picker-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .month-cell {
-            padding: 12px 6px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: 600;
-            border: 1px solid var(--border-color, rgba(0,0,0,0.1));
-            cursor: pointer;
-            background-color: var(--color-surface, #ffffff);
-            transition: all 0.2s ease;
-        }
-        .month-cell:hover {
-            border-color: var(--color-primary, #1D9E75);
-            background-color: rgba(29, 158, 117, 0.02);
-        }
-        .month-cell.selected {
-            background-color: var(--color-primary, #1D9E75) !important;
-            color: white !important;
-            border-color: var(--color-primary, #1D9E75) !important;
-        }
-        /* Celebration modal overlay */
-        .celebration-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--color-surface, #ffffff);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease;
-        }
-        .celebration-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        /* Quick Add Preview */
-        .quick-add-preview {
-            background-color: rgba(29, 158, 117, 0.06);
-            border: 1px dashed var(--color-primary, #1D9E75);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 15px;
-            animation: fadeIn 0.3s ease-out;
-        }
-        [data-bs-theme="dark"] .quick-add-preview {
-            background-color: rgba(29, 158, 117, 0.12);
-            border-color: rgba(29, 158, 117, 0.5);
-        }
-        /* Onboarding inputs: boost border visibility in dark mode so fields
-           don't look like static text. Bootstrap dark default is ~15% white
-           opacity which is nearly invisible on the card surface. */
-        [data-bs-theme="dark"] .onboarding-card .form-control,
-        [data-bs-theme="dark"] .onboarding-card .form-select,
-        [data-bs-theme="dark"] .onboarding-card .input-group-text {
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-        [data-bs-theme="dark"] .onboarding-card .form-control:focus,
-        [data-bs-theme="dark"] .onboarding-card .form-select:focus {
-            border-color: var(--color-primary, #1D9E75);
-            box-shadow: 0 0 0 0.2rem rgba(29, 158, 117, 0.25);
-        }
-        /* Skip consequence warning card — same green card style as quick-add-preview */
-        .skip-consequence-card {
-            background-color: rgba(29, 158, 117, 0.06);
-            border: 1px dashed var(--color-primary, #1D9E75);
-            border-radius: 12px;
-        }
-        [data-bs-theme="dark"] .skip-consequence-card {
-            background-color: rgba(29, 158, 117, 0.12);
-            border-color: rgba(29, 158, 117, 0.5);
-        }
-        /* Back Button & Icon Alignment */
-        .onboarding-step .btn-outline-secondary {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 0.35rem !important;
-            white-space: nowrap !important;
-            line-height: 1 !important;
-        }
-        .onboarding-step .btn-outline-secondary i {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            line-height: 1 !important;
-            vertical-align: 0 !important;
-            margin: 0 !important;
-            font-size: 1rem;
+        :root {
+            --tmr-primary: var(--color-secondary, #0F7657);
+            --tmr-primary-dark: var(--color-secondary-dark, #0A5C42);
+            --tmr-primary-light: rgba(15, 118, 87, 0.08);
+            --tmr-bg-card: var(--color-surface, #ffffff);
+            --tmr-border: var(--border-color, rgba(26, 26, 24, 0.12));
+            --tmr-text-main: var(--ink, #1a1a18);
+            --tmr-text-muted: var(--ink2, #60605c);
         }
 
-        /* Step 3: Account items underline input focus */
-        .onboarding-step .account-item .form-control.border-0,
-        .onboarding-step .account-item .form-control.border-0:focus,
-        .onboarding-step .account-item .form-control.border-0:focus-visible,
-        .onboarding-step .account-item input:focus,
-        .onboarding-step .account-item input:focus-visible {
-            outline: none !important;
-            box-shadow: none !important;
-            border: none !important;
-            background-color: transparent !important;
+        [data-bs-theme="dark"] {
+            --tmr-bg-card: #181d24;
+            --tmr-border: rgba(255, 255, 255, 0.12);
+            --tmr-text-main: #f1f3f5;
+            --tmr-text-muted: #9ba3af;
+            --tmr-primary-light: rgba(15, 118, 87, 0.2);
         }
-        .onboarding-step .account-field-underline {
-            border-bottom: 1.5px solid var(--border-color, rgba(26,26,24,0.15)) !important;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+        .onboarding-page-wrapper {
+            min-height: calc(100vh - 120px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
         }
-        .onboarding-step .account-field-underline:focus-within {
-            border-bottom-color: var(--color-primary, #1D9E75) !important;
-            box-shadow: 0 1.5px 0 var(--color-primary, #1D9E75) !important;
+
+        .onboarding-card-container {
+            width: 100%;
+            max-width: 520px;
+            background: var(--tmr-bg-card);
+            border: 1px solid var(--tmr-border);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            transition: box-shadow 0.2s ease;
         }
-        [data-bs-theme="dark"] .onboarding-step .account-field-underline {
-            border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+
+        [data-bs-theme="dark"] .onboarding-card-container {
+            background-color: var(--tmr-bg-card);
+            border-color: var(--tmr-border);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
         }
-        [data-bs-theme="dark"] .onboarding-step .account-field-underline:focus-within {
-            border-bottom-color: var(--color-primary, #1D9E75) !important;
-            box-shadow: 0 1.5px 0 var(--color-primary, #1D9E75) !important;
+
+        /* Header */
+        .onboarding-header {
+            padding: 24px 28px 12px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .account-item .btn-close {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 0.65rem;
-            padding: 4px;
-            opacity: 0.55;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            z-index: 2;
+
+        .onboarding-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .account-item .btn-close:hover {
-            opacity: 1;
-            transform: scale(1.15);
+
+        .step-indicator {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--tmr-primary);
+        }
+
+        .why-we-ask-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.85rem;
+            color: var(--tmr-text-muted);
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .why-we-ask-btn:hover, .why-we-ask-btn:focus {
+            color: var(--tmr-primary);
+        }
+
+        /* Progress Bar */
+        .onboarding-progress-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        [data-bs-theme="dark"] .onboarding-progress-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .onboarding-progress-fill {
+            height: 100%;
+            background: var(--tmr-primary);
+            border-radius: 999px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Body & Steps */
+        .onboarding-body {
+            padding: 8px 28px 24px 28px;
+            flex: 1;
+        }
+
+        .step-panel {
+            display: none;
+            animation: fadeIn 0.25s ease-out;
+        }
+        .step-panel.active {
+            display: block;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--tmr-text-main);
+            margin-bottom: 6px;
+        }
+
+        .step-subtitle {
+            font-size: 0.95rem;
+            color: var(--tmr-text-muted);
+            margin-bottom: 24px;
+            line-height: 1.45;
+        }
+
+        /* Step 1: Persona Cards */
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .persona-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .persona-card {
+            border: 1.5px solid var(--tmr-border);
+            border-radius: 14px;
+            padding: 16px;
+            cursor: pointer;
+            text-align: left;
+            background: transparent;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            min-height: 96px;
+            justify-content: center;
+        }
+
+        .persona-card:hover {
+            border-color: var(--tmr-primary);
+            background: var(--tmr-primary-light);
+        }
+
+        .persona-card.selected {
+            border-color: var(--tmr-primary);
+            background: var(--tmr-primary-light);
+            box-shadow: 0 0 0 2px var(--tmr-primary);
+        }
+
+        .persona-card-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--tmr-text-main);
+        }
+
+        .persona-card-desc {
+            font-size: 0.8rem;
+            color: var(--tmr-text-muted);
+            line-height: 1.35;
+        }
+
+        .privacy-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--tmr-text-muted);
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+        .privacy-banner i {
+            font-size: 0.95rem;
+            color: var(--tmr-primary);
+        }
+
+        /* Form elements for Step 2 & 3 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label-caps {
+            display: block;
+            text-transform: uppercase;
+            font-size: 0.76rem;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            color: var(--tmr-text-muted);
+            margin-bottom: 8px;
+        }
+
+        .chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .choice-chip {
+            border: 1px solid var(--tmr-border);
+            background: transparent;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--tmr-text-main);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .choice-chip:hover {
+            border-color: var(--tmr-primary);
+            background: var(--tmr-primary-light);
+        }
+
+        .choice-chip.selected {
+            border-color: var(--tmr-primary);
+            background: var(--tmr-primary-light);
+            color: var(--tmr-primary);
+            box-shadow: 0 0 0 1.5px var(--tmr-primary);
+        }
+
+        .chip-helper-text {
+            font-size: 0.84rem;
+            color: var(--tmr-text-muted);
+            margin-top: 4px;
+        }
+
+        .input-group-currency {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid var(--tmr-border);
+            border-radius: 12px;
+            padding: 4px 14px;
+            background: var(--tmr-bg-card);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-group-currency:focus-within {
+            border-color: var(--tmr-primary);
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.15);
+        }
+
+        .currency-symbol {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--tmr-text-main);
+            margin-right: 8px;
+            user-select: none;
+        }
+
+        .clean-currency-input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--tmr-text-main);
+            width: 100%;
+            padding: 8px 0;
+            min-height: 44px;
+        }
+
+        /* 1-31 mini grid for 'Other' payday */
+        .payday-grid-popover {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+            padding: 12px;
+            background: rgba(0,0,0,0.02);
+            border: 1px solid var(--tmr-border);
+            border-radius: 12px;
+        }
+        [data-bs-theme="dark"] .payday-grid-popover {
+            background: rgba(255,255,255,0.02);
+        }
+        .day-cell-btn {
+            border: 1px solid var(--tmr-border);
+            background: var(--tmr-bg-card);
+            border-radius: 8px;
+            padding: 8px 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--tmr-text-main);
+            cursor: pointer;
+            text-align: center;
+            min-height: 36px;
+        }
+        .day-cell-btn:hover {
+            border-color: var(--tmr-primary);
+        }
+        .day-cell-btn.selected {
+            background: var(--tmr-primary) !important;
+            color: #ffffff !important;
+            border-color: var(--tmr-primary) !important;
+        }
+
+        .checkbox-label-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--tmr-text-main);
+            margin-top: 16px;
+        }
+        .checkbox-label-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--tmr-primary);
+            cursor: pointer;
+        }
+
+        /* Step 3: Quick Add */
+        .quick-add-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .quick-add-input {
+            flex: 1;
+            border: 1.5px solid var(--tmr-border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 1rem;
+            color: var(--tmr-text-main);
+            background: var(--tmr-bg-card);
+            outline: none;
+            min-height: 44px;
+        }
+        .quick-add-input:focus {
+            border-color: var(--tmr-primary);
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.15);
+        }
+
+        .btn-go {
+            background: var(--tmr-primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 0 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.15s;
+        }
+        .btn-go:hover:not(:disabled) {
+            background: var(--tmr-primary-dark);
+        }
+        .btn-go:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Step 3: Result Card */
+        .understood-card {
+            border: 1.5px solid var(--tmr-primary);
+            background: var(--tmr-primary-light);
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 16px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .understood-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: var(--tmr-primary);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .understood-main-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .understood-desc {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--tmr-text-main);
+            word-break: break-word;
+        }
+        .understood-amt {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--tmr-text-main);
+            white-space: nowrap;
+        }
+        .understood-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .understood-tag {
+            background: var(--tmr-bg-card);
+            border: 1px solid var(--tmr-border);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--tmr-text-main);
+        }
+        .understood-edit-link {
+            font-size: 0.85rem;
+            color: var(--tmr-primary);
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 600;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        /* Left this month bar */
+        .left-month-box {
+            margin-top: 16px;
+            margin-bottom: 16px;
+        }
+        .left-month-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: var(--tmr-text-muted);
+            margin-bottom: 6px;
+        }
+        .left-month-val {
+            color: var(--tmr-text-main);
+            font-weight: 700;
+        }
+        .left-month-bar-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        [data-bs-theme="dark"] .left-month-bar-track {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .left-month-bar-fill {
+            height: 100%;
+            background: var(--tmr-primary);
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+
+        /* Final Screen: Dark Card & Checklist */
+        .final-dark-card {
+            background: #18191a;
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        [data-bs-theme="light"] .final-dark-card {
+            background: #181c1b;
+        }
+        .final-dark-label {
+            font-size: 0.8rem;
+            color: #9ba3af;
+            margin-bottom: 4px;
+        }
+        .final-dark-amount {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+        .final-dark-sub {
+            font-size: 0.85rem;
+            color: #9ba3af;
+        }
+
+        .checklist-section-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--tmr-text-muted);
+            margin-bottom: 8px;
+        }
+
+        .checklist-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0,0,0,0.06);
+            border-radius: 999px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        [data-bs-theme="dark"] .checklist-progress-bar {
+            background: rgba(255,255,255,0.1);
+        }
+        .checklist-progress-fill {
+            height: 100%;
+            background: var(--tmr-primary);
+            border-radius: 999px;
+        }
+
+        .checklist-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .checklist-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--tmr-border);
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .checklist-row:hover {
+            background: var(--tmr-primary-light);
+            border-color: var(--tmr-primary);
+        }
+        .checklist-row.completed {
+            opacity: 0.6;
+        }
+
+        .checklist-row-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .checklist-circle {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--tmr-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #ffffff;
+            font-size: 0.75rem;
+        }
+        .checklist-row.completed .checklist-circle {
+            background: var(--tmr-primary);
+            border-color: var(--tmr-primary);
+        }
+
+        .checklist-row-texts {
+            display: flex;
+            flex-direction: column;
+        }
+        .checklist-item-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--tmr-text-main);
+        }
+        .checklist-item-desc {
+            font-size: 0.8rem;
+            color: var(--tmr-text-muted);
+        }
+        .checklist-item-time {
+            font-size: 0.8rem;
+            color: var(--tmr-text-muted);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Footer */
+        .onboarding-footer {
+            padding: 16px 28px 24px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--tmr-border);
+            background: var(--tmr-bg-card);
+            position: sticky;
+            bottom: 0;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            z-index: 10;
+        }
+
+        .btn-skip-link {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--tmr-text-muted);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .btn-skip-link:hover {
+            color: var(--tmr-text-main);
+        }
+
+        .btn-back {
+            background: transparent;
+            border: 1.5px solid var(--tmr-border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--tmr-text-main);
+            cursor: pointer;
+            min-height: 46px;
+        }
+        .btn-back:hover {
+            border-color: var(--tmr-text-main);
+        }
+
+        .btn-primary-action {
+            background: var(--tmr-primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            min-height: 48px;
+            transition: all 0.2s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(15, 118, 87, 0.25);
+        }
+        .btn-primary-action:hover:not(:disabled) {
+            background: var(--tmr-primary-dark);
+            box-shadow: 0 6px 16px rgba(15, 118, 87, 0.35);
+        }
+        .btn-primary-action:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .btn-primary-action:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Why we ask Sheet/Modal */
+        .why-we-ask-sheet {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 1050;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0;
+        }
+        .why-we-ask-sheet.active {
+            display: flex;
+        }
+        .why-we-ask-content {
+            background: var(--tmr-bg-card);
+            border-radius: 20px 20px 0 0;
+            padding: 24px;
+            width: 100%;
+            max-width: 520px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        @media (min-width: 640px) {
+            .why-we-ask-sheet {
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .why-we-ask-content {
+                border-radius: 20px;
+                padding: 28px;
+                max-width: 440px;
+                animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes popIn {
+            from { transform: scale(0.96); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .sheet-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--tmr-text-main);
+            letter-spacing: -0.01em;
+        }
+        .sheet-body {
+            font-size: 0.95rem;
+            line-height: 1.55;
+            color: var(--tmr-text-muted);
+            margin-bottom: 22px;
+        }
+        .sheet-close-btn {
+            width: 100%;
+            border: none;
+            background: var(--tmr-primary);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            min-height: 48px;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 12px rgba(15, 118, 87, 0.25);
+        }
+        .sheet-close-btn:hover {
+            background: var(--tmr-primary-dark);
+            box-shadow: 0 6px 16px rgba(15, 118, 87, 0.35);
         }
     </style>
 
-    <div class="col-md-8 col-lg-6">
-        <div class="card onboarding-card rounded-4 overflow-hidden position-relative">
-            <!-- Header Progress -->
-            <div id="progress-header" class="px-5 pt-4 d-flex justify-content-between align-items-center d-none">
-                <div class="d-flex align-items-center">
-                    <span id="step-text" class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 fw-bold">Step 1 of 5</span>
-                    <!-- Tutorial Icon -->
-                    <a id="tutorial-link" href="{% url 'tutorial' %}" target="_blank" class="ms-2 text-muted" data-bs-toggle="tooltip" title="{% trans 'Need help? View tutorial guide' %}">
-                        <i class="bi bi-question-circle-fill fs-5"></i>
-                    </a>
-                </div>
-                <div class="progress rounded-pill flex-grow-1 ms-3" style="height: 6px;">
-                    <div id="onboarding-progress" class="progress-bar progress-bar-primary rounded-pill" role="progressbar" style="width: 20%; transition: width 0.4s ease;" aria-label="{% trans 'Onboarding progress' %}" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
+    <div class="onboarding-card-container" id="onboardingContainer">
+        <!-- Progress Header (Steps 1-3) -->
+        <div class="onboarding-header" id="onboardingHeader">
+            <div class="onboarding-header-top">
+                <span class="step-indicator" id="stepIndicator">{% trans "Step 1 of 3" %}</span>
+                <button type="button" class="why-we-ask-btn" id="whyWeAskBtn">{% trans "Why we ask" %}</button>
             </div>
-
-            <div class="card-body p-3 p-md-5">
-                <!-- Screen 1: Welcome slides -->
-                <div id="screen-1" class="onboarding-step text-center">
-                    <div class="welcome-carousel mb-4">
-                        <!-- Slide 1 -->
-                        <div class="welcome-slide active" id="slide-1">
-                            <div class="mb-4">
-                                <div class="icon-shape bg-primary bg-opacity-10 text-primary rounded-circle mb-4 mx-auto d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
-                                    <i class="bi bi-wallet2 fs-1"></i>
-                                </div>
-                            </div>
-                            <h2 class="mb-3">{% trans "Your entire financial life in one place." %}</h2>
-                            <p class="lead text-muted px-3">
-                                {% trans "Expenses. Income. Net worth. Loans. Goals. All of it. Without giving anyone access to your bank." %}
-                            </p>
-                        </div>
-                        <!-- Slide 2 -->
-                        <div class="welcome-slide next" id="slide-2">
-                            <div class="mb-4">
-                                <div class="icon-shape bg-info bg-opacity-10 text-info rounded-circle mb-4 mx-auto d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
-                                    <i class="bi bi-lightning-charge fs-1"></i>
-                                </div>
-                            </div>
-                            <h2 class="mb-3">{% trans "Fast, Simple, and Reliable" %}</h2>
-                            <p class="lead text-muted px-3">
-                                {% trans "Type 'swiggy 450' &rarr; logged in 3 seconds. Set up your salary &rarr; month starts when it hits. Add your accounts &rarr; net worth updates itself." %}
-                            </p>
-                        </div>
-                        <!-- Slide 3 -->
-                        <div class="welcome-slide next" id="slide-3">
-                            <div class="mb-4">
-                                <div class="icon-shape bg-success bg-opacity-10 text-success rounded-circle mb-4 mx-auto d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
-                                    <i class="bi bi-shield-check fs-1"></i>
-                                </div>
-                            </div>
-                            <h2 class="mb-3">{% trans "Privacy & Open Source" %}</h2>
-                            <p class="lead text-muted px-3">
-                                {% trans "No SMS. No bank login. No data selling. Open source. Verify it yourself on GitHub." %}
-                            </p>
-                            <div class="mt-4 px-4">
-                                <button onclick="nextScreen()" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2">
-                                    <span>{% trans "Get Started" %}</span> <i class="bi bi-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Slide Controls -->
-                    <div id="slide-controls" class="d-flex justify-content-between align-items-center mt-4">
-                        <button onclick="prevSlide()" id="btn-prev-slide" class="btn btn-link text-muted text-decoration-none fw-bold d-inline-flex align-items-center gap-1" style="visibility: hidden;">
-                            <i class="bi bi-chevron-left"></i> <span>{% trans "Back" %}</span>
-                        </button>
-                        <div>
-                            <span class="carousel-dot active" onclick="goToSlide(1)"></span>
-                            <span class="carousel-dot" onclick="goToSlide(2)"></span>
-                            <span class="carousel-dot" onclick="goToSlide(3)"></span>
-                        </div>
-                        <button onclick="nextSlide()" id="btn-next-slide" class="btn btn-link text-primary text-decoration-none fw-bold d-inline-flex align-items-center gap-1">
-                            <span>{% trans "Next" %}</span> <i class="bi bi-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Screen 2: Persona Selection -->
-                <div id="screen-2" class="onboarding-step d-none">
-                    <div class="text-center mb-4">
-                        <h2>{% trans "Tell us about yourself" %}</h2>
-                        <p class="text-muted">{% trans "This single choice personalizes suggested splits, paydays, and your setup checklist." %}</p>
-                    </div>
-
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 col-sm-6">
-                            <div class="persona-card" onclick="selectPersona('SALARIED')">
-                                <span class="fs-2 mb-2 d-block">👨‍💼</span>
-                                <h5 class="fw-bold mb-1">{% trans "Salaried professional" %}</h5>
-                                <p class="small text-muted mb-0">{% trans "Fixed monthly salary, SIPs, credit cards" %}</p>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <div class="persona-card" onclick="selectPersona('FREELANCER')">
-                                <span class="fs-2 mb-2 d-block">👨‍💻</span>
-                                <h5 class="fw-bold mb-1">{% trans "Freelancer / Consultant" %}</h5>
-                                <p class="small text-muted mb-0">{% trans "Variable income, client payments, GST" %}</p>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <div class="persona-card" onclick="selectPersona('FAMILY')">
-                                <span class="fs-2 mb-2 d-block">🏡</span>
-                                <h5 class="fw-bold mb-1">{% trans "Managing family finances" %}</h5>
-                                <p class="small text-muted mb-0">{% trans "Multiple incomes, household budgets, shared goals" %}</p>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <div class="persona-card" onclick="selectPersona('STUDENT')">
-                                <span class="fs-2 mb-2 d-block">🎓</span>
-                                <h5 class="fw-bold mb-1">{% trans "Student / Just starting out" %}</h5>
-                                <p class="small text-muted mb-0">{% trans "Pocket money, part-time income, savings" %}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 w-100">
-                        <button onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
-                        </button>
-                        <button onclick="showSkipWarning('persona')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
-                            {% trans "Skip this step" %}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Screen 3: Month Cycle Setup -->
-                <div id="screen-3" class="onboarding-step d-none">
-                    <!-- Dynamic view populated via JS based on selected persona -->
-                    <div id="salary-picker-view" class="d-none">
-                        <div class="text-center mb-4">
-                            <h2>{% trans "When does your month start?" %}</h2>
-                            <p class="text-muted">
-                                {% trans "Most Indian salaries don't arrive on the 1st. Tell us when yours does and every budget calculation will follow your actual month instead of the calendar." %}
-                            </p>
-                        </div>
-                        
-                        <div class="number-picker-grid mb-4">
-                            <!-- Populated in JS: 1 to 31 -->
-                        </div>
-
-                        <div class="text-center text-muted small mb-4 d-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-info-circle"></i> <span>{% trans "You can change this anytime in Settings." %}</span>
-                        </div>
-                    </div>
-
-                    <div id="freelance-picker-view" class="d-none">
-                        <div class="text-center mb-4">
-                            <h2>{% trans "Your busiest billing month?" %}</h2>
-                            <p class="text-muted">
-                                {% trans "To help calibrate expectations, let us know which month typically brings in the most client work." %}
-                            </p>
-                        </div>
-
-                        <div class="month-picker-grid mb-4">
-                            <div class="month-cell" onclick="selectMonth('Jan')">{% trans "Jan" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Feb')">{% trans "Feb" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Mar')">{% trans "Mar" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Apr')">{% trans "Apr" %}</div>
-                            <div class="month-cell" onclick="selectMonth('May')">{% trans "May" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Jun')">{% trans "Jun" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Jul')">{% trans "Jul" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Aug')">{% trans "Aug" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Sep')">{% trans "Sep" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Oct')">{% trans "Oct" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Nov')">{% trans "Nov" %}</div>
-                            <div class="month-cell" onclick="selectMonth('Dec')">{% trans "Dec" %}</div>
-                        </div>
-
-                        <div class="text-center text-muted small mb-4 d-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-info-circle"></i> <span>{% trans "This calibrates your seasonal cash flow expectations." %}</span>
-                        </div>
-                    </div>
-
-                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
-                        <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
-                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
-                                <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
-                            </button>
-                            <button type="button" onclick="showSkipWarning('salary_setup')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
-                                {% trans "I'll set this later" %}
-                            </button>
-                        </div>
-                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-none d-sm-inline-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
-                        </button>
-                        <button type="button" onclick="showSkipWarning('salary_setup')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
-                            {% trans "I'll set this later" %}
-                        </button>
-                        <button id="btn-month-next" type="button" onclick="saveSalarySetup()" class="btn btn-primary btn-lg rounded-pill px-5 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto d-none">
-                            <span>{% trans "Next" %}</span> <i class="bi bi-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Screen 4: Accounts Setup -->
-                <div id="screen-4" class="onboarding-step d-none">
-                    <div class="text-center mb-4">
-                        <h2>{% trans "Where do you keep your money?" %}</h2>
-                        <p class="text-muted">{% trans "Add your accounts so you can track balances accurately." %}</p>
-                    </div>
-
-                    <!-- Family CFO Specific Prompt -->
-                    <div id="family-cfo-prompt" class="alert alert-primary bg-primary bg-opacity-10 border-0 rounded-3 py-2 small d-none mb-3 d-flex align-items-start gap-2">
-                        <i class="bi bi-info-circle-fill mt-1"></i>
-                        <span>{% trans "Family finances often span multiple bank accounts and cards. We suggest adding at least two accounts (e.g. primary salary and joint household account)." %}</span>
-                    </div>
-
-                    <div id="onboarding-accounts-list" class="mb-3">
-                        <div class="account-item p-3 bg-light rounded-4 mb-3 border position-relative">
-                            <div class="d-flex justify-content-between mb-1 pe-3 pe-sm-4">
-                                <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Account Name" %}</label>
-                                <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Initial Balance" %}</label>
-                            </div>
-                            <div class="d-flex align-items-center gap-3 pe-3 pe-sm-4">
-                                <div class="flex-grow-1 account-field-underline">
-                                    <input type="text" class="form-control border-0 fw-bold fs-5 p-0 shadow-none bg-transparent account-name" value="SBI Savings Account" style="height: 40px;">
-                                </div>
-                                <div class="d-flex align-items-center gap-2 account-field-underline" style="width: 140px;">
-                                    <span class="fs-5 text-muted currency-label">{{ user.profile.currency }}</span>
-                                    <input type="number" class="form-control border-0 fw-bold text-end fs-5 p-0 pe-2 shadow-none bg-transparent account-balance" style="height: 40px;" value="35000">
-                                </div>
-                            </div>
-                            <div class="mt-2 text-muted small d-flex align-items-center gap-1">
-                                <i class="bi bi-bank"></i> <span class="account-type-text">{% trans "Savings Account" %}</span>
-                                <input type="hidden" class="account-type" value="SAVINGS_ACCOUNT">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="text-center mb-3">
-                        <button onclick="addAccountRow()" class="btn btn-link text-primary text-decoration-none fw-bold small d-inline-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-plus-circle"></i> <span>{% trans "Add another account" %}</span>
-                        </button>
-                    </div>
-
-                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
-                        <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
-                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
-                                <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
-                            </button>
-                            <button type="button" onclick="showSkipWarning('accounts')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
-                                {% trans "Skip for now" %}
-                            </button>
-                        </div>
-                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-none d-sm-inline-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
-                        </button>
-                        <button type="button" onclick="showSkipWarning('accounts')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
-                            {% trans "Skip for now" %}
-                        </button>
-                        <button type="button" onclick="saveStep('accounts')" class="btn btn-primary btn-lg rounded-pill px-5 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto">
-                            <span>{% trans "Next" %}</span> <i class="bi bi-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Screen 5: Log Income -->
-                <div id="screen-5" class="onboarding-step d-none">
-                    <div class="text-center mb-4">
-                        <h2>{% trans "Tell us your salary" %}</h2>
-                        <p class="text-muted">{% trans "Log your salary so TrackMyRupee can show you how much you have left for the month in real time." %}</p>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Amount" %}</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted currency-label">{{ user.profile.currency }}</span>
-                            <input type="number" id="onboarding-income-amount" class="form-control border-start-0 ps-0 fw-bold" value="50000">
-                        </div>
-                    </div>
-
-                    <div class="row g-2 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Source" %}</label>
-                            <input type="text" id="onboarding-income-source" class="form-control" value="Salary">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Deposit To" %}</label>
-                            <select id="onboarding-income-account" class="form-select onboarding-account-select">
-                                <!-- Populated via JS -->
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Income Date" %}</label>
-                        <input type="date" id="onboarding-income-date" class="form-control">
-                    </div>
-
-                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 gap-sm-3 w-100 mt-4">
-                        <div class="d-flex align-items-center justify-content-between d-sm-none w-100 mb-1">
-                            <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
-                                <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
-                            </button>
-                            <button type="button" onclick="showSkipWarning('income')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
-                                {% trans "Skip for now" %}
-                            </button>
-                        </div>
-                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-none d-sm-inline-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
-                        </button>
-                        <button type="button" onclick="showSkipWarning('income')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold d-none d-sm-inline-block text-nowrap">
-                            {% trans "Skip for now" %}
-                        </button>
-                        <button type="button" onclick="saveStep('income')" class="btn btn-primary btn-lg rounded-pill px-5 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto">
-                            <span>{% trans "Next" %}</span> <i class="bi bi-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Screen 6: Try Quick Add -->
-                <div id="screen-6" class="onboarding-step d-none">
-                    <div class="text-center mb-4">
-                        <h2>{% trans "Try the quick add" %}</h2>
-                        <p class="text-muted">{% trans "Now try logging an expense. Type anything, like 'chai 20' or 'swiggy dinner 450', and watch it parse instantly." %}</p>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Type something here..." %}</label>
-                        <div class="input-group d-flex align-items-stretch rounded-3 overflow-hidden border" style="border-color: var(--border-color, rgba(26,26,24,0.15)) !important;">
-                            <input type="text" id="quick-add-input" class="form-control border-0 bg-transparent px-3 py-2 shadow-none" placeholder="e.g. swiggy dinner 450" style="height: 48px; font-size: 1rem; box-shadow: none;">
-                            <button class="btn btn-primary px-4 fw-bold border-0" type="button" id="btn-parse-go" onclick="triggerParse()" style="border-radius: 0; height: 48px;">{% trans "Go" %}</button>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <span class="small text-muted d-block mb-2">{% trans "Tap an example to try:" %}</span>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill p-2 px-3 style-hover cursor-pointer" style="cursor: pointer;" onclick="fillQuickAdd('chai 20')">"chai 20"</span>
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill p-2 px-3 style-hover cursor-pointer" style="cursor: pointer;" onclick="fillQuickAdd('swiggy dinner 450')">"swiggy dinner 450"</span>
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill p-2 px-3 style-hover cursor-pointer" style="cursor: pointer;" onclick="fillQuickAdd('uber 150')">"uber 150"</span>
-                        </div>
-                    </div>
-
-                    <!-- Parsed Preview -->
-                    <div id="parsed-preview" class="quick-add-preview d-none">
-                        <h6 class="fw-bold text-primary mb-2 d-flex align-items-center gap-2"><i class="bi bi-magic"></i> <span>{% trans "Parsed Result:" %}</span></h6>
-                        <div class="row g-2 small text-start">
-                            <div class="col-6"><strong>{% trans "Description:" %}</strong> <span id="preview-desc">-</span></div>
-                            <div class="col-6"><strong>{% trans "Amount:" %}</strong> <span id="preview-amount">-</span></div>
-                            <div class="col-6"><strong>{% trans "Category:" %}</strong> <span id="preview-cat">-</span></div>
-                            <div class="col-6"><strong>{% trans "Paid From:" %}</strong> <span id="preview-acc">-</span></div>
-                        </div>
-                        <div class="mt-3 text-center">
-                            <button onclick="confirmAndSaveExpense()" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">{% trans "Confirm & Save Expense" %}</button>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 w-100 mt-5">
-                        <button type="button" onclick="prevScreen()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-arrow-left"></i> <span>{% trans "Back" %}</span>
-                        </button>
-                        <button type="button" onclick="showSkipWarning('expense')" class="btn btn-link btn-sm text-muted text-decoration-none fw-semibold text-nowrap">
-                            {% trans "Skip for now" %}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Custom Skip Consequence Overlay -->
-                <div id="skip-warning-overlay" class="skip-consequence-card d-none p-4 mt-3">
-                    <p class="mb-3 fw-medium" id="skip-consequence-text"></p>
-                    <div class="d-flex gap-2 justify-content-end">
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="cancelSkip()">{% trans "Cancel" %}</button>
-                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btn-confirm-skip">{% trans "Skip anyway" %}</button>
-                    </div>
-                </div>
+            <div class="onboarding-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33" id="progressBar">
+                <div class="onboarding-progress-fill" id="progressFill" style="width: 33%;"></div>
             </div>
+        </div>
 
-            <!-- Screen 6 Celebration Overlay -->
-            <div id="celebration-overlay" class="celebration-overlay">
-                <div class="text-center p-4">
-                    <span class="fs-1 d-block mb-3">🎉</span>
-                    <h2 class="fw-bold mb-3">{% trans "That's it. That's the whole thing." %}</h2>
-                    <p class="lead text-muted px-4 mb-4">
-                        {% trans "30 seconds a day and your financial picture stays accurate." %}
-                    </p>
-                    <button onclick="finishOnboarding()" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 px-5 shadow d-inline-flex align-items-center justify-content-center gap-2">
-                        <span>{% trans "Go to Dashboard" %}</span> <i class="bi bi-arrow-right"></i>
+        <div class="onboarding-body">
+            <!-- STEP 1: How do you earn? -->
+            <div class="step-panel" id="step1Panel">
+                <h1 class="step-title">{% trans "How do you earn?" %}</h1>
+                <p class="step-subtitle">{% trans "One choice tailors your setup checklist and suggested splits. Change it anytime in Settings." %}</p>
+
+                <div class="persona-grid" role="radiogroup" aria-label="{% trans 'How do you earn?' %}">
+                    <button type="button" class="persona-card selected" data-persona="SALARIED" role="radio" aria-checked="true" tabindex="0">
+                        <span class="persona-card-title">{% trans "Salaried professional" %}</span>
+                        <span class="persona-card-desc">{% trans "Fixed salary, SIPs, credit cards" %}</span>
+                    </button>
+                    <button type="button" class="persona-card" data-persona="FREELANCER" role="radio" aria-checked="false" tabindex="-1">
+                        <span class="persona-card-title">{% trans "Freelancer / Consultant" %}</span>
+                        <span class="persona-card-desc">{% trans "Variable income, client payments, GST" %}</span>
+                    </button>
+                    <button type="button" class="persona-card" data-persona="FAMILY" role="radio" aria-checked="false" tabindex="-1">
+                        <span class="persona-card-title">{% trans "Managing family finances" %}</span>
+                        <span class="persona-card-desc">{% trans "Multiple incomes, shared goals" %}</span>
+                    </button>
+                    <button type="button" class="persona-card" data-persona="STUDENT" role="radio" aria-checked="false" tabindex="-1">
+                        <span class="persona-card-title">{% trans "Student / Just starting" %}</span>
+                        <span class="persona-card-desc">{% trans "Pocket money, part-time income" %}</span>
                     </button>
                 </div>
+
+                <div class="privacy-banner">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>{% trans "No bank login. No SMS access. You enter the numbers." %}</span>
+                </div>
+            </div>
+
+            <!-- STEP 2: Your money basics -->
+            <div class="step-panel" id="step2Panel">
+                <h1 class="step-title">{% trans "Your money basics" %}</h1>
+                <p class="step-subtitle">{% trans "Takes about 20 seconds. Everything is editable later." %}</p>
+
+                <!-- Field 1: Payday -->
+                <div class="form-group">
+                    <label class="form-label-caps" id="paydayLabel">{% trans "Salary usually arrives on" %}</label>
+                    <div class="chips-row" role="radiogroup" aria-labelledby="paydayLabel">
+                        <button type="button" class="choice-chip" data-payday="1">1st</button>
+                        <button type="button" class="choice-chip" data-payday="7">7th</button>
+                        <button type="button" class="choice-chip selected" data-payday="25">25th</button>
+                        <button type="button" class="choice-chip" data-payday="28">28th</button>
+                        <button type="button" class="choice-chip" data-payday="32">{% trans "Last day" %}</button>
+                        <button type="button" class="choice-chip" data-payday="other">{% trans "Other" %}</button>
+                    </div>
+
+                    <!-- Mini 1-31 picker (hidden unless Other selected) -->
+                    <div class="payday-grid-popover" id="otherPaydayGrid" style="display: none;">
+                        {% for d in "123456789"|make_list %}
+                        <button type="button" class="day-cell-btn" data-day="{{ forloop.counter }}">{{ forloop.counter }}</button>
+                        {% endfor %}
+                        {% for d in "0123456789012345678901"|make_list %}
+                        <button type="button" class="day-cell-btn" data-day="{{ forloop.counter|add:9 }}">{{ forloop.counter|add:9 }}</button>
+                        {% endfor %}
+                    </div>
+
+                    <div class="chip-helper-text" id="cycleRangeHelper">{% trans "Your month runs 25 Sep to 24 Oct." %}</div>
+                </div>
+
+                <!-- Field 2: Salary Amount -->
+                <div class="form-group">
+                    <label class="form-label-caps" id="salaryAmountLabel" for="salaryInput">{% trans "Monthly salary" %}</label>
+                    <div class="input-group-currency">
+                        <span class="currency-symbol">₹</span>
+                        <input type="text" inputmode="numeric" class="clean-currency-input" id="salaryInput" placeholder="50,000" autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Field 3: Credited to -->
+                <div class="form-group">
+                    <label class="form-label-caps" id="creditedToLabel">{% trans "Credited to" %}</label>
+                    <div class="chips-row" role="radiogroup" aria-labelledby="creditedToLabel">
+                        <button type="button" class="choice-chip selected" data-bank="SBI">SBI</button>
+                        <button type="button" class="choice-chip" data-bank="HDFC">HDFC</button>
+                        <button type="button" class="choice-chip" data-bank="ICICI">ICICI</button>
+                        <button type="button" class="choice-chip" data-bank="Axis">Axis</button>
+                        <button type="button" class="choice-chip" data-bank="Kotak">Kotak</button>
+                        <button type="button" class="choice-chip" data-bank="Cash">{% trans "Cash" %}</button>
+                        <button type="button" class="choice-chip" data-bank="Other">{% trans "Other" %}</button>
+                    </div>
+                    <div id="customBankInputContainer" style="display: none; margin-top: 8px;">
+                        <input type="text" class="quick-add-input" id="customBankInput" placeholder="{% trans 'e.g. Canara Bank' %}">
+                    </div>
+                </div>
+
+                <!-- Field 4: Balance now (optional) -->
+                <div class="form-group">
+                    <label class="form-label-caps" for="balanceInput">{% trans "Balance now (optional)" %}</label>
+                    <div class="input-group-currency">
+                        <span class="currency-symbol">₹</span>
+                        <input type="text" inputmode="numeric" class="clean-currency-input" id="balanceInput" placeholder="35,000" autocomplete="off">
+                    </div>
+                    <div class="chip-helper-text">{% trans "Approximate is fine." %}</div>
+                </div>
+
+                <!-- Checkbox: Auto-log salary -->
+                <label class="checkbox-label-row">
+                    <input type="checkbox" id="autoLogSalaryCheck" checked>
+                    <span>{% trans "Log this salary automatically every month" %}</span>
+                </label>
+            </div>
+
+            <!-- STEP 3: Log your first expense -->
+            <div class="step-panel" id="step3Panel">
+                <h1 class="step-title">{% trans "Log your first expense" %}</h1>
+                <p class="step-subtitle">{% trans "Type it the way you would say it. English, Hindi or Marathi." %}</p>
+
+                <div class="quick-add-input-row">
+                    <input type="text" class="quick-add-input" id="quickAddInput" placeholder="{% trans 'e.g. swiggy dinner 450' %}" autocomplete="off">
+                    <button type="button" class="btn-go" id="quickAddGoBtn">
+                        <span id="quickAddGoText">{% trans "Go" %}</span>
+                        <span class="spinner-border spinner-border-sm" id="quickAddSpinner" style="display: none;" role="status"></span>
+                    </button>
+                </div>
+
+                <div class="chips-row">
+                    <button type="button" class="choice-chip example-chip" data-example="chai 20">chai 20</button>
+                    <button type="button" class="choice-chip example-chip" data-example="uber 150">uber 150</button>
+                    <button type="button" class="choice-chip example-chip" data-example="ऑटो 80">ऑटो 80</button>
+                </div>
+
+                <div id="unparsedNotice" style="display: none; color: #dc3545; font-size: 0.88rem; margin-top: 8px;">
+                    {% trans "We couldn't find an amount. Try something like 'chai 20'." %}
+                </div>
+
+                <!-- Result Card (shown when parsed) -->
+                <div class="understood-card" id="understoodCard" style="display: none;" aria-live="polite">
+                    <div class="understood-badge">{% trans "Understood" %}</div>
+                    <div class="understood-main-row">
+                        <div class="understood-desc" id="resDescription">Swiggy dinner</div>
+                        <div class="understood-amt" id="resAmount">₹450</div>
+                    </div>
+                    <div class="understood-tags">
+                        <span class="understood-tag" id="resCategoryTag">Food & Dining</span>
+                        <span class="understood-tag" id="resAccountTag">SBI</span>
+                        <span class="understood-tag" id="resDateTag">Today</span>
+                    </div>
+                    <button type="button" class="understood-edit-link" id="editParsedLink">{% trans "Edit" %}</button>
+                    
+                    <!-- Inline edit fields (hidden by default) -->
+                    <div id="inlineEditBox" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--tmr-border);">
+                        <div class="form-group mb-2">
+                            <input type="text" class="quick-add-input mb-2" id="editDescInput" placeholder="Description">
+                            <input type="text" inputmode="numeric" class="quick-add-input mb-2" id="editAmountInput" placeholder="Amount">
+                            <select class="quick-add-input mb-2" id="editCategorySelect">
+                                {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" class="btn-go btn-sm" id="saveInlineEditBtn">{% trans "Done editing" %}</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Left this month bar -->
+                <div class="left-month-box" id="leftMonthContainer" style="display: none;">
+                    <div class="left-month-labels">
+                        <span>{% trans "Left this month" %}</span>
+                        <span class="left-month-val" id="leftMonthText">₹49,550 of ₹50,000</span>
+                    </div>
+                    <div class="left-month-bar-track">
+                        <div class="left-month-bar-fill" id="leftMonthFill" style="width: 99%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FINAL SCREEN: You are set up. -->
+            <div class="step-panel" id="finalPanel">
+                <h1 class="step-title">{% trans "You are set up." %}</h1>
+                <p class="step-subtitle">{% trans "Your dashboard is live. Here is what else TrackMyRupee can do for you." %}</p>
+
+                <div class="final-dark-card">
+                    <div class="final-dark-label">{% trans "Left this month" %}</div>
+                    <div class="final-dark-amount" id="finalLeftAmount">₹49,550</div>
+                    <div class="final-dark-sub" id="finalPaydayDays">18 days to payday</div>
+                </div>
+
+                <div class="checklist-section-title" id="checklistHeader">NEXT STEPS · 1 OF 6 DONE</div>
+                <div class="checklist-progress-bar">
+                    <div class="checklist-progress-fill" id="checklistProgressFill" style="width: 16%;"></div>
+                </div>
+
+                <div class="checklist-items-list" id="checklistRowsContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="onboarding-footer" id="onboardingFooter">
+            <div class="footer-left">
+                <button type="button" class="btn-skip-link" id="skipLink">{% trans "Skip for now" %}</button>
+                <button type="button" class="btn-back" id="backBtn" style="display: none;">{% trans "Back" %}</button>
+            </div>
+            <div class="footer-right">
+                <button type="button" class="btn-primary-action" id="primaryBtn">
+                    <span id="primaryBtnText">{% trans "Continue" %}</span>
+                    <i class="bi bi-arrow-right" id="primaryBtnIcon"></i>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- "Why we ask" Sheet / Popover -->
+<div class="why-we-ask-sheet" id="whyWeAskSheet" role="dialog" aria-modal="true" aria-labelledby="whySheetTitle">
+    <div class="why-we-ask-content">
+        <h3 class="sheet-title" id="whySheetTitle">{% trans "Why we ask" %}</h3>
+        <p class="sheet-body" id="whySheetBody"></p>
+        <button type="button" class="sheet-close-btn" id="whySheetCloseBtn">{% trans "Got it" %}</button>
+    </div>
+</div>
+
+{{ state_json|json_script:"initial-state-data" }}
+{{ checklist_json|json_script:"initial-checklist-data" }}
+
 <script>
-    let currentSlide = 1;
-    let currentScreen = 1;
-    let selectedPersona = '';
-    let selectedSalaryDay = 1;
-    let userAccounts = [];
-    let parsedResult = null;
+document.addEventListener('DOMContentLoaded', function() {
+    const initialState = JSON.parse(document.getElementById('initial-state-data').textContent || '{}');
+    const initialChecklist = JSON.parse(document.getElementById('initial-checklist-data').textContent || '{}');
 
-    // Welcome Carousel Logic
-    function goToSlide(slideNum) {
-        if (slideNum < 1 || slideNum > 3) return;
-        currentSlide = slideNum;
-        
-        // Update slides
-        document.querySelectorAll('.welcome-slide').forEach((el, index) => {
-            el.classList.remove('active', 'next', 'prev');
-            if (index + 1 === slideNum) {
-                el.classList.add('active');
-            } else if (index + 1 < slideNum) {
-                el.classList.add('prev');
-            } else {
-                el.classList.add('next');
-            }
-        });
+    // State machine
+    let currentStep = initialState.current_step || 1;
+    if (currentStep > 4) currentStep = 4;
+    let selectedPersona = initialState.persona || 'SALARIED';
+    let selectedPayday = initialState.salary_day || 25;
+    let salaryAmount = initialState.salary_amount || '50000';
+    let selectedBank = initialState.bank_chip || 'SBI';
+    let balanceNow = initialState.balance_now || '35000';
+    let autoLogSalary = initialState.auto_log_salary !== false;
+    let parsedExpense = initialState.expense || null;
+    let customBankName = '';
 
-        // Update dots
-        document.querySelectorAll('.carousel-dot').forEach((el, index) => {
-            if (index + 1 === slideNum) el.classList.add('active');
-            else el.classList.remove('active');
-        });
-
-        // Update controls visibility
-        document.getElementById('btn-prev-slide').style.visibility = slideNum > 1 ? 'visible' : 'hidden';
-
-        // On the last slide, keep "Next" visible but wire it to nextScreen()
-        // so it behaves identically to the "Get Started" button inside slide 3.
-        const nextBtn = document.getElementById('btn-next-slide');
-        nextBtn.style.display = 'inline-block';
-        if (slideNum === 3) {
-            nextBtn.onclick = nextScreen;
-        } else {
-            nextBtn.onclick = nextSlide;
-        }
-    }
-
-    function nextSlide() {
-        goToSlide(currentSlide + 1);
-    }
-
-    function prevSlide() {
-        goToSlide(currentSlide - 1);
-    }
-
-    // Onboarding Wizard Transition Logic
-    function showScreen(screenNum) {
-        document.querySelectorAll('.onboarding-step').forEach(el => el.classList.add('d-none'));
-        const screenEl = document.getElementById('screen-' + screenNum);
-        if (screenEl) screenEl.classList.remove('d-none');
-        
-        currentScreen = screenNum;
-        cancelSkip(); // close warning overlay if open
-
-        const totalInteractiveSteps = 5;
-        const interactiveStepNum = screenNum - 1; // Screen 1 is welcome splash
-        
-        const progressHeader = document.getElementById('progress-header');
-        const progressBar = document.getElementById('onboarding-progress');
-        const stepBadge = document.getElementById('step-text');
-        const tutLink = document.getElementById('tutorial-link');
-
-        if (screenNum > 1 && screenNum <= 6) {
-            progressHeader.classList.remove('d-none');
-            const progress = (interactiveStepNum / totalInteractiveSteps) * 100;
-            progressBar.style.width = progress + '%';
-            stepBadge.innerText = `Step ${interactiveStepNum} of ${totalInteractiveSteps}`;
-            
-            // Link tutorial question icon to specific tab
-            let tab = 'intro';
-            if (screenNum === 4) tab = 'accounts';
-            if (screenNum === 5) tab = 'income';
-            if (screenNum === 6) tab = 'expense';
-            if (screenNum === 3) tab = (selectedPersona === 'SALARIED' ? 'income' : 'intro');
-            tutLink.href = `{% url 'tutorial' %}?tab=${tab}`;
-        } else {
-            progressHeader.classList.add('d-none');
-        }
-    }
-
-    function nextScreen() {
-        showScreen(currentScreen + 1);
-    }
-
-    function prevScreen() {
-        showScreen(currentScreen - 1);
-    }
-
-    // Screen 2: Persona Selection
-    function selectPersona(persona) {
-        selectedPersona = persona;
-        document.querySelectorAll('.persona-card').forEach(el => el.classList.remove('selected'));
-        // Find selecting card
-        const card = document.querySelector(`.persona-card[onclick*="${persona}"]`);
-        if (card) card.classList.add('selected');
-
-        // Family CFO display prompt
-        const cfoPrompt = document.getElementById('family-cfo-prompt');
-        if (persona === 'FAMILY') {
-            cfoPrompt.classList.remove('d-none');
-        } else {
-            cfoPrompt.classList.add('d-none');
-        }
-
-        // Show cycle cycle view
-        if (persona === 'FREELANCER') {
-            document.getElementById('freelance-picker-view').classList.remove('d-none');
-            document.getElementById('salary-picker-view').classList.add('d-none');
-            document.getElementById('btn-month-next').classList.add('d-none'); // requires picking a month
-        } else {
-            document.getElementById('freelance-picker-view').classList.add('d-none');
-            document.getElementById('salary-picker-view').classList.remove('d-none');
-            document.getElementById('btn-month-next').classList.remove('d-none');
-            
-            // Set default payday highlight selection: 25 for salaried, 1 for others
-            selectedSalaryDay = (persona === 'SALARIED' ? 25 : 1);
-            highlightPayday(selectedSalaryDay);
-        }
-
-        // POST persona save
-        sendOnboardingPost({ step: 'persona', persona: persona }).then(data => {
-            if (data.success) {
-                nextScreen();
-            }
-        });
-    }
-
-    // Screen 3: Salary Picker Generation & Selection
-    function buildSalaryGrid() {
-        const grid = document.querySelector('.number-picker-grid');
-        grid.innerHTML = '';
-        const commonDays = [1, 25, 30];
-        
-        for (let i = 1; i <= 31; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'picker-cell';
-            cell.innerText = i;
-            if (commonDays.includes(i)) cell.classList.add('highlight');
-            
-            cell.onclick = () => highlightPayday(i);
-            grid.appendChild(cell);
-        }
-    }
-
-    function highlightPayday(day) {
-        selectedSalaryDay = day;
-        document.querySelectorAll('.picker-cell').forEach(el => {
-            el.classList.remove('selected');
-            if (parseInt(el.innerText) === day) {
-                el.classList.add('selected');
-            }
-        });
-        
-        // Calculate date pre-fill for step 5
-        const prefilledDate = getMostRecentSalaryDay(day);
-        document.getElementById('onboarding-income-date').value = prefilledDate;
-    }
-
-    function selectMonth(month) {
-        document.querySelectorAll('.month-cell').forEach(el => {
-            el.classList.remove('selected');
-            if (el.innerText.includes(month)) el.classList.add('selected');
-        });
-        document.getElementById('btn-month-next').classList.remove('d-none');
-    }
-
-    function saveSalarySetup() {
-        let payload = { step: 'salary_setup' };
-        if (selectedPersona !== 'FREELANCER') {
-            payload.salary_date = selectedSalaryDay;
-        }
-        sendOnboardingPost(payload).then(data => {
-            if (data.success) nextScreen();
-        });
-    }
-
-    // Date pre-fill helper
-    function getMostRecentSalaryDay(day) {
-        const today = new Date();
-        let year = today.getFullYear();
-        let month = today.getMonth();
-        
-        if (today.getDate() < day) {
-            month--;
-            if (month < 0) {
-                month = 11;
-                year--;
-            }
-        }
-        
-        const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-        const actualDay = Math.min(day, lastDayOfMonth);
-        
-        const salaryDate = new Date(year, month, actualDay);
-        const y = salaryDate.getFullYear();
-        const m = String(salaryDate.getMonth() + 1).padStart(2, '0');
-        const d = String(salaryDate.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    }
-
-    // Screen 4: Dynamic Account row
-    function addAccountRow() {
-        const list = document.getElementById('onboarding-accounts-list');
-        const count = list.querySelectorAll('.account-item').length;
-        let placeholder = "ICICI Coral Credit Card";
-        let type = "CREDIT_CARD";
-        let typeText = "Credit Card";
-        
-        if (count === 1) {
-            placeholder = "Cash Wallet";
-            type = "CASH_WALLET";
-            typeText = "Cash Wallet";
-        } else if (count >= 2) {
-            placeholder = "Fixed Deposit (HDFC)";
-            type = "FD";
-            typeText = "Fixed Deposit";
-        }
-
-        const newItem = document.createElement('div');
-        newItem.className = 'account-item p-3 bg-light rounded-4 mb-3 border position-relative';
-        newItem.innerHTML = `
-            <button type="button" onclick="this.parentElement.remove()" class="btn-close" aria-label="{% trans 'Close' %}"></button>
-            <div class="d-flex justify-content-between mb-1 pe-3 pe-sm-4">
-                <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Account Name" %}</label>
-                <label class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.5px;">{% trans "Initial Balance" %}</label>
-            </div>
-            <div class="d-flex align-items-center gap-3 pe-3 pe-sm-4">
-                <div class="flex-grow-1 account-field-underline">
-                    <input type="text" class="form-control border-0 fw-bold fs-5 p-0 shadow-none bg-transparent account-name" value="${placeholder}" style="height: 40px;">
-                </div>
-                <div class="d-flex align-items-center gap-2 account-field-underline" style="width: 140px;">
-                    <span class="fs-5 text-muted currency-label">${document.querySelector('.currency-label').innerText}</span>
-                    <input type="number" class="form-control border-0 fw-bold text-end fs-5 p-0 pe-2 shadow-none bg-transparent account-balance" style="height: 40px;" value="0">
-                </div>
-            </div>
-            <div class="mt-2 text-muted small d-flex align-items-center gap-1">
-                <i class="bi bi-wallet2"></i> <span class="account-type-text">${typeText}</span>
-                <input type="hidden" class="account-type" value="${type}">
-            </div>
-        `;
-        list.appendChild(newItem);
-    }
-
-    function populateAccountSelects() {
-        const selects = document.querySelectorAll('.onboarding-account-select');
-        selects.forEach(select => {
-            select.innerHTML = '';
-            userAccounts.forEach(acc => {
-                const opt = document.createElement('option');
-                opt.value = acc.id;
-                opt.text = acc.name;
-                select.appendChild(opt);
-            });
-        });
-    }
-
-    // Screen 6: Interactive Demo
-    function fillQuickAdd(text) {
-        const input = document.getElementById('quick-add-input');
-        input.value = text;
-        triggerParse();
-    }
-
-    function triggerParse() {
-        const text = document.getElementById('quick-add-input').value;
-        if (!text || text.trim().length < 3) return;
-
-        const btnGo = document.getElementById('btn-parse-go');
-        btnGo.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        btnGo.disabled = true;
-
-        fetch('{% url "parse-expense" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ text: text })
-        })
-        .then(res => res.json())
-        .then(data => {
-            btnGo.innerText = '{% trans "Go" %}';
-            btnGo.disabled = false;
-            
-            if (data.success && data.data) {
-                parsedResult = data.data;
-                document.getElementById('preview-desc').innerText = parsedResult.description || '-';
-                document.getElementById('preview-amount').innerText = (parsedResult.amount ? '{{ user.profile.currency }}' + parsedResult.amount : '-');
-                document.getElementById('preview-cat').innerText = parsedResult.category || '-';
-                
-                const selectAcc = document.getElementById('onboarding-income-account');
-                const selectedAccText = selectAcc.options[selectAcc.selectedIndex]?.text || 'SBI Savings Account';
-                document.getElementById('preview-acc').innerText = selectedAccText;
-                
-                document.getElementById('parsed-preview').classList.remove('d-none');
-            }
-        })
-        .catch(err => {
-            btnGo.innerText = '{% trans "Go" %}';
-            btnGo.disabled = false;
-            console.error(err);
-        });
-    }
-
-    function confirmAndSaveExpense() {
-        if (!parsedResult) return;
-        const payload = {
-            step: 'expense',
-            amount: parsedResult.amount,
-            category: parsedResult.category || 'Miscellaneous',
-            description: parsedResult.description || 'Quick Add Expense',
-            account_id: document.getElementById('onboarding-income-account').value
-        };
-        sendOnboardingPost(payload).then(data => {
-            if (data.success) {
-                // PostHog: final expense step + onboarding completed
-                if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
-                    posthog.capture('onboarding_step_completed', { step: 'expense' });
-                    posthog.capture('onboarding_completed', { skipped: false });
-                }
-                // Show celebration overlay
-                document.getElementById('celebration-overlay').classList.add('active');
-            }
-        });
-    }
-
-    // Skip warning consequence configuration
-    const skipConsequences = {
-        persona: "{% trans 'Without a persona selected, we can\'t personalize your setup checklist and budget recommendations.' %}",
-        salary_setup: "{% trans 'Without your billing cycle set up, budget calculations will default to the calendar month (1st).' %}",
-        accounts: "{% trans 'Without accounts added, you won\'t be able to track your balances.' %}",
-        income: "{% trans 'Without income logged, your savings rate and Financial Story won\'t be accurate.' %}",
-        expense: "{% trans 'Without logging your first expense, you won\'t see the quick add in action.' %}"
+    const whyAskTexts = {
+        1: "{% trans 'Your choice only changes which suggestions and checklist items we show first. It does not limit any feature.' %}",
+        2: "{% trans 'Your payday decides when each budget month starts, so \"left this month\" follows your real month instead of the calendar. Your balance only sets your starting point. We never connect to your bank.' %}",
+        3: "{% trans 'This is the fastest way to log spending. Type it like a message and we fill in the amount, category and account.' %}"
     };
 
-    function showSkipWarning(step) {
-        const overlay = document.getElementById('skip-warning-overlay');
-        const text = document.getElementById('skip-consequence-text');
-        const confirmBtn = document.getElementById('btn-confirm-skip');
+    // Indian Number Formatting
+    function formatIndianNumber(val) {
+        if (val === null || val === undefined || val === '') return '';
+        let strVal = String(val).trim();
+        // Check if there is a decimal point
+        let parts = strVal.split('.');
+        let integerPart = parts[0].replace(/[^0-9]/g, '');
+        let decimalPart = parts.length > 1 ? parts[1].replace(/[^0-9]/g, '') : null;
 
-        text.innerText = skipConsequences[step] || "{% trans 'Are you sure you want to skip?' %}";
-        
-        confirmBtn.onclick = () => confirmSkip(step);
-        overlay.classList.remove('d-none');
-        overlay.scrollIntoView({ behavior: 'smooth' });
-    }
+        if (!integerPart && !decimalPart) return '';
+        if (!integerPart) integerPart = '0';
 
-    function cancelSkip() {
-        document.getElementById('skip-warning-overlay').classList.add('d-none');
-    }
-
-    function confirmSkip(step) {
-        cancelSkip();
-        if (step === 'expense') {
-            // Skiping expense means ending onboarding wizard
-            sendOnboardingPost({ step: 'skip' }).then(() => {
-                // PostHog: onboarding skipped
-                if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
-                    posthog.capture('onboarding_completed', { skipped: true, skipped_at: step });
-                }
-                finishOnboarding();
-            });
+        let result = '';
+        if (integerPart.length <= 3) {
+            result = integerPart;
         } else {
-            nextScreen();
+            let lastThree = integerPart.substring(integerPart.length - 3);
+            let remaining = integerPart.substring(0, integerPart.length - 3);
+            result = remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + lastThree;
+        }
+
+        // Only include decimal part if non-zero or user typed dot
+        if (decimalPart !== null && decimalPart !== '' && parseInt(decimalPart, 10) > 0) {
+            result += '.' + decimalPart;
+        }
+        return result;
+    }
+
+    function cleanNumber(str) {
+        return String(str || '').replace(/,/g, '').trim();
+    }
+
+    // Set initial values on inputs
+    if (salaryAmount) {
+        document.getElementById('salaryInput').value = formatIndianNumber(salaryAmount);
+    }
+    if (balanceNow) {
+        document.getElementById('balanceInput').value = formatIndianNumber(balanceNow);
+    }
+    document.getElementById('autoLogSalaryCheck').checked = autoLogSalary;
+
+    // Attach Indian formatters
+    ['salaryInput', 'balanceInput', 'editAmountInput'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function(e) {
+                let cursor = this.selectionStart;
+                this.value = formatIndianNumber(this.value);
+            });
+        }
+    });
+
+    // Compute cycle range helper text
+    async function updateCycleHelper(payday) {
+        try {
+            const res = await fetch("{% url 'onboarding' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
+                },
+                body: JSON.stringify({ action: "cycle_range", payday: payday })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('cycleRangeHelper').textContent = 
+                    "{% trans 'Your month runs' %} " + data.start_str + " {% trans 'to' %} " + data.end_str + ".";
+                if (data.days_left !== undefined) {
+                    document.getElementById('finalPaydayDays').textContent = data.days_left + " {% trans 'days to payday' %}";
+                }
+            }
+        } catch (e) {
+            console.error("Failed to update cycle range", e);
         }
     }
 
-    // Base POST sender
-    async function sendOnboardingPost(payload) {
+    // Persona Selection
+    const personaCards = document.querySelectorAll('.persona-card');
+    personaCards.forEach(card => {
+        card.addEventListener('click', function() {
+            personaCards.forEach(c => {
+                c.classList.remove('selected');
+                c.setAttribute('aria-checked', 'false');
+            });
+            this.classList.add('selected');
+            this.setAttribute('aria-checked', 'true');
+            selectedPersona = this.getAttribute('data-persona');
+            adaptCopyForPersona(selectedPersona);
+        });
+    });
+
+    function adaptCopyForPersona(persona) {
+        const paydayLabel = document.getElementById('paydayLabel');
+        const salaryLabel = document.getElementById('salaryAmountLabel');
+        if (persona === 'FREELANCER') {
+            paydayLabel.textContent = "{% trans 'Income usually arrives on' %}";
+            salaryLabel.textContent = "{% trans 'Typical monthly income' %}";
+        } else if (persona === 'STUDENT') {
+            paydayLabel.textContent = "{% trans 'Allowance or income arrives on' %}";
+            salaryLabel.textContent = "{% trans 'Monthly allowance / income' %}";
+        } else {
+            paydayLabel.textContent = "{% trans 'Salary usually arrives on' %}";
+            salaryLabel.textContent = "{% trans 'Monthly salary' %}";
+        }
+    }
+    adaptCopyForPersona(selectedPersona);
+
+    // Payday Chips Selection
+    const paydayChips = document.querySelectorAll('#step2Panel .chips-row .choice-chip[data-payday]');
+    const otherGrid = document.getElementById('otherPaydayGrid');
+    paydayChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            paydayChips.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            const val = this.getAttribute('data-payday');
+            if (val === 'other') {
+                otherGrid.style.display = 'grid';
+            } else {
+                otherGrid.style.display = 'none';
+                selectedPayday = parseInt(val, 10);
+                updateCycleHelper(selectedPayday);
+            }
+        });
+    });
+
+    // Payday other grid cells
+    document.querySelectorAll('.day-cell-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.day-cell-btn').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedPayday = parseInt(this.getAttribute('data-day'), 10);
+            updateCycleHelper(selectedPayday);
+        });
+    });
+
+    // Bank Chips Selection
+    const bankChips = document.querySelectorAll('#step2Panel .chips-row .choice-chip[data-bank]');
+    const customBankContainer = document.getElementById('customBankInputContainer');
+    bankChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            bankChips.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedBank = this.getAttribute('data-bank');
+            if (selectedBank === 'Other') {
+                customBankContainer.style.display = 'block';
+            } else {
+                customBankContainer.style.display = 'none';
+            }
+        });
+    });
+
+    // Step 3 Example chips
+    document.querySelectorAll('.example-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            const ex = this.getAttribute('data-example');
+            document.getElementById('quickAddInput').value = ex;
+            runQuickAddParse(ex);
+        });
+    });
+
+    // Go button click & enter key
+    document.getElementById('quickAddGoBtn').addEventListener('click', function() {
+        const text = document.getElementById('quickAddInput').value.trim();
+        if (text) runQuickAddParse(text);
+    });
+    document.getElementById('quickAddInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const text = this.value.trim();
+            if (text) runQuickAddParse(text);
+        }
+    });
+
+    async function runQuickAddParse(text) {
+        const goBtn = document.getElementById('quickAddGoBtn');
+        const goText = document.getElementById('quickAddGoText');
+        const spinner = document.getElementById('quickAddSpinner');
+        const unparsedNotice = document.getElementById('unparsedNotice');
+
+        goBtn.disabled = true;
+        goText.style.display = 'none';
+        spinner.style.display = 'inline-block';
+        unparsedNotice.style.display = 'none';
+
+        try {
+            const res = await fetch("{% url 'parse-expense' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
+                },
+                body: JSON.stringify({ text: text })
+            });
+            const data = await res.json();
+            if (data.success && data.data && data.data.amount) {
+                parsedExpense = {
+                    amount: data.data.amount,
+                    description: data.data.description,
+                    category: data.data.category,
+                    account: data.data.account || (selectedBank + " Savings Account"),
+                    date: data.data.date
+                };
+                displayParsedCard(parsedExpense);
+                updateLeftThisMonthBar(parsedExpense.amount);
+                postEvent('quick_add_parsed', { success: true });
+            } else {
+                unparsedNotice.style.display = 'block';
+                document.getElementById('understoodCard').style.display = 'none';
+                postEvent('quick_add_parsed', { success: false });
+            }
+        } catch (e) {
+            unparsedNotice.style.display = 'block';
+            console.error("Parse error", e);
+        } finally {
+            goBtn.disabled = false;
+            goText.style.display = 'inline';
+            spinner.style.display = 'none';
+            renderStepUI();
+        }
+    }
+
+    function displayParsedCard(exp) {
+        document.getElementById('understoodCard').style.display = 'block';
+        document.getElementById('resDescription').textContent = exp.description || 'Expense';
+        document.getElementById('resAmount').textContent = '₹' + formatIndianNumber(exp.amount);
+        document.getElementById('resCategoryTag').textContent = exp.category || 'Other';
+        document.getElementById('resAccountTag').textContent = exp.account || 'Account';
+        document.getElementById('resDateTag').textContent = "{% trans 'Today' %}";
+    }
+
+    // Inline edit parsed expense
+    document.getElementById('editParsedLink').addEventListener('click', function() {
+        const box = document.getElementById('inlineEditBox');
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        if (parsedExpense) {
+            document.getElementById('editDescInput').value = parsedExpense.description || '';
+            document.getElementById('editAmountInput').value = formatIndianNumber(parsedExpense.amount || '');
+            document.getElementById('editCategorySelect').value = parsedExpense.category || 'Food & Dining';
+        }
+    });
+
+    document.getElementById('saveInlineEditBtn').addEventListener('click', function() {
+        if (!parsedExpense) return;
+        const newDesc = document.getElementById('editDescInput').value.trim();
+        const newAmt = cleanNumber(document.getElementById('editAmountInput').value);
+        const newCat = document.getElementById('editCategorySelect').value;
+
+        if (newAmt && parseFloat(newAmt) > 0) {
+            parsedExpense.amount = newAmt;
+            parsedExpense.description = newDesc || 'Expense';
+            parsedExpense.category = newCat;
+            displayParsedCard(parsedExpense);
+            updateLeftThisMonthBar(parsedExpense.amount);
+            document.getElementById('inlineEditBox').style.display = 'none';
+        }
+    });
+
+    function updateLeftThisMonthBar(expAmount) {
+        const sAmt = parseFloat(cleanNumber(salaryAmount)) || 0;
+        const eAmt = parseFloat(cleanNumber(expAmount)) || 0;
+        const container = document.getElementById('leftMonthContainer');
+
+        if (sAmt > 0) {
+            container.style.display = 'block';
+            const left = Math.max(0, sAmt - eAmt);
+            document.getElementById('leftMonthText').textContent = 
+                '₹' + formatIndianNumber(left) + ' {% trans "of" %} ₹' + formatIndianNumber(sAmt);
+            const pct = Math.max(0, Math.min(100, Math.round((left / sAmt) * 100)));
+            document.getElementById('leftMonthFill').style.width = pct + '%';
+            document.getElementById('finalLeftAmount').textContent = '₹' + formatIndianNumber(left);
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    // Why we ask Modal
+    const whySheet = document.getElementById('whyWeAskSheet');
+    document.getElementById('whyWeAskBtn').addEventListener('click', function() {
+        document.getElementById('whySheetBody').textContent = whyAskTexts[currentStep] || '';
+        whySheet.classList.add('active');
+        postEvent('onboarding_why_we_ask_opened', { step: currentStep });
+    });
+    document.getElementById('whySheetCloseBtn').addEventListener('click', function() {
+        whySheet.classList.remove('active');
+    });
+    whySheet.addEventListener('click', function(e) {
+        if (e.target === whySheet) {
+            whySheet.classList.remove('active');
+        }
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && whySheet.classList.contains('active')) {
+            whySheet.classList.remove('active');
+        }
+    });
+
+    // Skip Link Click
+    document.getElementById('skipLink').addEventListener('click', async function() {
+        if (currentStep === 1) {
+            await submitStep1(true);
+        } else if (currentStep === 2) {
+            await submitStep2(true);
+        } else if (currentStep === 3) {
+            await submitStep3(true);
+        }
+    });
+
+    // Back Button Click
+    document.getElementById('backBtn').addEventListener('click', function() {
+        if (currentStep > 1) {
+            currentStep--;
+            renderStepUI();
+        }
+    });
+
+    // Primary Action Button Click
+    document.getElementById('primaryBtn').addEventListener('click', async function() {
+        if (currentStep === 1) {
+            await submitStep1(false);
+        } else if (currentStep === 2) {
+            await submitStep2(false);
+        } else if (currentStep === 3) {
+            await submitStep3(false);
+        } else if (currentStep === 4) {
+            window.location.href = "{% url 'home' %}";
+        }
+    });
+
+    async function submitStep1(isSkip) {
         try {
             const res = await fetch("{% url 'onboarding' %}", {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
+                },
+                body: JSON.stringify({
+                    action: "step1",
+                    persona: selectedPersona,
+                    skip: isSkip
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentStep = 2;
+                renderStepUI();
+            }
+        } catch (e) {
+            console.error("Step 1 failed", e);
+        }
+    }
+
+    async function submitStep2(isSkip) {
+        if (!isSkip) {
+            salaryAmount = cleanNumber(document.getElementById('salaryInput').value);
+            balanceNow = cleanNumber(document.getElementById('balanceInput').value);
+            autoLogSalary = document.getElementById('autoLogSalaryCheck').checked;
+            customBankName = document.getElementById('customBankInput').value.trim();
+        }
+
+        try {
+            const res = await fetch("{% url 'onboarding' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
+                },
+                body: JSON.stringify({
+                    action: "step2",
+                    payday: selectedPayday,
+                    salary_amount: salaryAmount,
+                    balance_now: balanceNow,
+                    bank_choice: selectedBank,
+                    custom_bank_name: customBankName,
+                    auto_log_salary: autoLogSalary,
+                    skip: isSkip
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentStep = 3;
+                renderStepUI();
+            }
+        } catch (e) {
+            console.error("Step 2 failed", e);
+        }
+    }
+
+    async function submitStep3(isSkip) {
+        try {
+            const payload = { action: "step3_confirm", skip: isSkip };
+            if (!isSkip && parsedExpense) {
+                payload.amount = parsedExpense.amount;
+                payload.description = parsedExpense.description;
+                payload.category = parsedExpense.category;
+                payload.date = parsedExpense.date;
+            }
+
+            const res = await fetch("{% url 'onboarding' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
                 },
                 body: JSON.stringify(payload)
             });
-            return await res.json();
+            const data = await res.json();
+            if (data.success) {
+                // Fetch updated checklist and mark finished
+                await fetch("{% url 'onboarding' %}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+                    body: JSON.stringify({ action: "finish" })
+                });
+                await loadChecklist();
+                currentStep = 4;
+                renderStepUI();
+            }
         } catch (e) {
-            console.error(e);
-            alert("{% trans 'Error contacting server. Please retry.' %}");
-            return { success: false };
+            console.error("Step 3 failed", e);
         }
     }
 
-    // Step save dispatcher
-    function saveStep(step) {
-        let payload = { step: step };
-        
-        if (step === 'accounts') {
-            let accounts = [];
-            document.querySelectorAll('#onboarding-accounts-list .account-item').forEach(item => {
-                accounts.push({
-                    name: item.querySelector('.account-name').value,
-                    type: item.querySelector('.account-type').value,
-                    balance: item.querySelector('.account-balance').value || 0
-                });
+    async function loadChecklist() {
+        try {
+            const res = await fetch("{% url 'onboarding' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+                body: JSON.stringify({ action: "checklist" })
             });
-            payload.accounts = accounts;
-        } else if (step === 'income') {
-            payload.amount = document.getElementById('onboarding-income-amount').value;
-            payload.source = document.getElementById('onboarding-income-source').value;
-            payload.account_id = document.getElementById('onboarding-income-account').value;
-        }
-
-        sendOnboardingPost(payload).then(data => {
+            const data = await res.json();
             if (data.success) {
-                // PostHog: onboarding step completed
-                if (typeof posthog !== 'undefined' && localStorage.getItem('cookieConsent') === 'accepted') {
-                    posthog.capture('onboarding_step_completed', { step: step });
-                }
-                if (step === 'accounts') {
-                    userAccounts = data.accounts || [];
-                    populateAccountSelects();
-                }
-                nextScreen();
+                renderChecklist(data.items, data.done_count, data.total_count);
             }
+        } catch (e) {
+            console.error("Failed to load checklist", e);
+        }
+    }
+
+    function renderChecklist(items, done, total) {
+        const header = document.getElementById('checklistHeader');
+        header.textContent = `NEXT STEPS · ${done} OF ${total} DONE`;
+        const pct = Math.round((done / Math.max(1, total)) * 100);
+        document.getElementById('checklistProgressFill').style.width = pct + '%';
+
+        const listContainer = document.getElementById('checklistRowsContainer');
+        listContainer.innerHTML = '';
+
+        items.forEach(item => {
+            const a = document.createElement(item.flow_url ? 'a' : 'div');
+            if (item.flow_url) a.href = item.flow_url;
+            a.className = 'checklist-row' + (item.done ? ' completed' : '');
+
+            const leftDiv = document.createElement('div');
+            leftDiv.className = 'checklist-row-left';
+
+            const circle = document.createElement('div');
+            circle.className = 'checklist-circle';
+            if (item.done) {
+                circle.innerHTML = '<i class="bi bi-check-lg"></i>';
+            }
+            leftDiv.appendChild(circle);
+
+            const texts = document.createElement('div');
+            texts.className = 'checklist-row-texts';
+            const title = document.createElement('div');
+            title.className = 'checklist-item-title';
+            title.textContent = item.title;
+            const desc = document.createElement('div');
+            desc.className = 'checklist-item-desc';
+            desc.textContent = item.description;
+            texts.appendChild(title);
+            texts.appendChild(desc);
+            leftDiv.appendChild(texts);
+
+            a.appendChild(leftDiv);
+
+            if (item.time) {
+                const time = document.createElement('div');
+                time.className = 'checklist-item-time';
+                time.textContent = item.time;
+                a.appendChild(time);
+            }
+
+            if (item.flow_url) {
+                a.addEventListener('click', function() {
+                    postEvent('checklist_item_opened', { item_id: item.id });
+                });
+            }
+
+            listContainer.appendChild(a);
         });
     }
 
-    function finishOnboarding() {
-        window.location.href = "{% url 'home' %}";
+    function renderStepUI() {
+        // Hide all panels
+        document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+
+        const header = document.getElementById('onboardingHeader');
+        const backBtn = document.getElementById('backBtn');
+        const skipLink = document.getElementById('skipLink');
+        const primaryBtn = document.getElementById('primaryBtn');
+        const primaryText = document.getElementById('primaryBtnText');
+        const primaryIcon = document.getElementById('primaryBtnIcon');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const stepIndicator = document.getElementById('stepIndicator');
+
+        postEvent('onboarding_step_viewed', { step: currentStep });
+
+        if (currentStep === 1) {
+            header.style.display = 'flex';
+            document.getElementById('step1Panel').classList.add('active');
+            stepIndicator.textContent = "{% trans 'Step 1 of 3' %}";
+            progressFill.style.width = '33%';
+            progressBar.setAttribute('aria-valuenow', '33');
+            backBtn.style.display = 'none';
+            skipLink.style.display = 'inline-block';
+            primaryText.textContent = "{% trans 'Continue' %}";
+            primaryIcon.style.display = 'inline-block';
+            primaryBtn.disabled = false;
+        } else if (currentStep === 2) {
+            header.style.display = 'flex';
+            document.getElementById('step2Panel').classList.add('active');
+            stepIndicator.textContent = "{% trans 'Step 2 of 3' %}";
+            progressFill.style.width = '66%';
+            progressBar.setAttribute('aria-valuenow', '66');
+            backBtn.style.display = 'inline-block';
+            skipLink.style.display = 'none'; // Step 2 uses Back & Next
+            primaryText.textContent = "{% trans 'Next' %}";
+            primaryIcon.style.display = 'none';
+            primaryBtn.disabled = false;
+        } else if (currentStep === 3) {
+            header.style.display = 'flex';
+            document.getElementById('step3Panel').classList.add('active');
+            stepIndicator.textContent = "{% trans 'Step 3 of 3' %}";
+            progressFill.style.width = '100%';
+            progressBar.setAttribute('aria-valuenow', '100');
+            backBtn.style.display = 'inline-block';
+            skipLink.style.display = parsedExpense ? 'none' : 'inline-block';
+            primaryText.textContent = "{% trans 'Looks right, finish' %}";
+            primaryIcon.style.display = 'none';
+            primaryBtn.disabled = !parsedExpense;
+        } else if (currentStep === 4) {
+            header.style.display = 'none'; // Final screen has no progress header
+            document.getElementById('finalPanel').classList.add('active');
+            backBtn.style.display = 'none';
+            skipLink.style.display = 'none';
+            primaryText.textContent = "{% trans 'Go to Dashboard' %}";
+            primaryIcon.style.display = 'none';
+            primaryBtn.disabled = false;
+        }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        buildSalaryGrid();
-        
-        // Pre-fill date to today just as backup
-        const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('onboarding-income-date').value = todayStr;
-        
-        showScreen(1);
-    });
+    function postEvent(eventName, props) {
+        try {
+            fetch("{% url 'onboarding' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
+                },
+                body: JSON.stringify({
+                    action: "event",
+                    event: eventName,
+                    properties: props || {}
+                })
+            });
+        } catch (e) {}
+    }
+
+    function getCsrfToken() {
+        const match = document.cookie.match(/csrftoken=([^;]+)/);
+        return match ? match[1] : '';
+    }
+
+    // Initial load
+    if (initialChecklist && initialChecklist.items) {
+        renderChecklist(initialChecklist.items, initialChecklist.done_count, initialChecklist.total_count);
+    }
+    updateCycleHelper(selectedPayday);
+    if (parsedExpense) {
+        displayParsedCard(parsedExpense);
+        updateLeftThisMonthBar(parsedExpense.amount);
+    }
+    renderStepUI();
+});
 </script>
 {% endblock %}

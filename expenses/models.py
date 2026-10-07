@@ -1511,6 +1511,7 @@ class UserProfile(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(31)],
         help_text=_('Day of month when salary is received (1-31). Default is 1st of every month.')
     )
+    onboarding_completed_at = models.DateTimeField(null=True, blank=True)
 
     @property
     def is_pro(self):
@@ -2885,4 +2886,52 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class OnboardingState(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='onboarding_state')
+    current_step = models.IntegerField(default=1)  # 1, 2, 3, or 4 (final)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    # Step 1
+    persona = models.CharField(max_length=20, blank=True, null=True)
+    step1_skipped = models.BooleanField(default=False)
+
+    # Step 2
+    salary_day = models.IntegerField(null=True, blank=True)  # 1-31, 32=last day
+    salary_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    balance_now = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    bank_chip = models.CharField(max_length=100, blank=True, null=True)
+    auto_log_salary = models.BooleanField(default=True)
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='onboarding_states')
+    income = models.ForeignKey('Income', on_delete=models.SET_NULL, null=True, blank=True, related_name='onboarding_states')
+    recurring_transaction = models.ForeignKey(RecurringTransaction, on_delete=models.SET_NULL, null=True, blank=True, related_name='onboarding_states')
+    step2_skipped = models.BooleanField(default=False)
+
+    # Step 3
+    expense = models.ForeignKey('Expense', on_delete=models.SET_NULL, null=True, blank=True, related_name='onboarding_states')
+    step3_skipped = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"OnboardingState({self.user.username}, step={self.current_step})"
+
+
+class OnboardingEvent(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='onboarding_events')
+    event = models.CharField(max_length=80)
+    properties = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'event', 'created_at'], name='onboarding_evt_user_idx'),
+            models.Index(fields=['event', 'created_at'], name='onboarding_evt_name_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.event} ({self.created_at.strftime('%Y-%m-%d %H:%M')})"
 

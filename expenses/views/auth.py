@@ -58,227 +58,204 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
 
-        # Only redirect for GET requests to the onboarding page itself
         if request.method == 'GET' and request.user.profile.has_seen_tutorial:
             if request.GET.get('force') == 'true' or request.GET.get('preview') == 'true':
                 return super().dispatch(request, *args, **kwargs)
             return redirect('home')
-            
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
+        from ..onboarding_v2 import (
+            compute_cycle_range,
+            get_checklist_items,
+            get_or_create_onboarding_state,
+            record_onboarding_event,
+        )
+
         context = super().get_context_data(**kwargs)
-        context['currency_choices'] = CURRENCY_CHOICES
-        context['language_choices'] = UserProfile.LANGUAGE_CHOICES
-        context['current_year'] = date.today().year
-        context['current_month'] = date.today().month
+        user = self.request.user
+        state = get_or_create_onboarding_state(user)
+
+        today = timezone.localdate()
+        payday = state.salary_day or user.profile.salary_date or 1
+        cycle_start, cycle_end, days_to_payday = compute_cycle_range(payday, today)
+
+        checklist, done_count, total_count = get_checklist_items(user)
+
+        state_data = {
+            'current_step': state.current_step,
+            'persona': state.persona or getattr(user.profile, 'persona', 'SALARIED'),
+            'salary_day': payday,
+            'salary_amount': str(state.salary_amount) if state.salary_amount else '',
+            'balance_now': str(state.balance_now) if state.balance_now is not None else '',
+            'bank_chip': state.bank_chip or 'SBI',
+            'auto_log_salary': state.auto_log_salary,
+            'step1_skipped': state.step1_skipped,
+            'step2_skipped': state.step2_skipped,
+            'step3_skipped': state.step3_skipped,
+            'cycle_start_str': cycle_start.strftime('%d %b'),
+            'cycle_end_str': cycle_end.strftime('%d %b'),
+            'days_to_payday': days_to_payday,
+            'expense': {
+                'id': state.expense.id if state.expense else None,
+                'amount': str(state.expense.amount) if state.expense else '',
+                'description': state.expense.description if state.expense else '',
+                'category': state.expense.category if state.expense else 'Food & Dining',
+                'account': state.expense.account.name if (state.expense and state.expense.account) else '',
+                'date': state.expense.date.isoformat() if state.expense else today.isoformat(),
+            } if state.expense else None,
+        }
+
+        context['state_json'] = json.dumps(state_data)
+        context['checklist_json'] = json.dumps({
+            'items': checklist,
+            'done_count': done_count,
+            'total_count': total_count,
+        })
+        context['currency_symbol'] = user.profile.currency or '₹'
+        context['categories'] = list(Category.objects.filter(user=user).values_list('name', flat=True)) or [
+            'Food & Dining', 'Groceries', 'Shopping', 'Bills & Utilities', 'Entertainment', 'Travel', 'Health', 'Miscellaneous'
+        ]
+        context['accounts'] = list(Account.objects.filter(user=user, is_active=True).values('id', 'name'))
+
+        # Track event when onboarding opens
+        record_onboarding_event(user, 'onboarding_started', {'current_step': state.current_step})
+        record_onboarding_event(user, 'onboarding_step_viewed', {'step': state.current_step})
+
         return context
 
     def post(self, request, *args, **kwargs):
+        from ..onboarding_v2 import (
+            compute_cycle_range,
+            get_checklist_items,
+            get_or_create_onboarding_state,
+            handle_step1,
+            handle_step2,
+            handle_step3_confirm,
+            mark_onboarding_finished,
+            record_onboarding_event,
+        )
+
         try:
             data = json.loads(request.body)
-            step = data.get('step')
-            
-            if step == 'persona':
-                profile = request.user.profile
-                profile.persona = data.get('persona')
-                profile.save()
-                return JsonResponse({'success': True})
-            
-            elif step == 'salary_setup':
-                profile = request.user.profile
-                day = data.get('salary_date')
-                if day and profile.persona != 'FREELANCER':
-                    profile.salary_date = int(day)
-                    profile.save()
-                return JsonResponse({'success': True})
-                
-            elif step == 'dismiss_checklist':
+            action = str(data.get('step') or data.get('action') or '').strip()
+
+            if action == 'dismiss_checklist':
                 profile = request.user.profile
                 profile.dismissed_onboarding_checklist = True
-                profile.save()
+                profile.save(update_fields=['dismissed_onboarding_checklist'])
+                record_onboarding_event(request.user, 'checklist_dismissed')
                 return JsonResponse({'success': True})
-            
-            elif step == 'setup':
-                profile = request.user.profile
-                profile.currency = data.get('currency', profile.currency)
-                profile.language = data.get('language', profile.language)
-                # Don't set has_seen_tutorial here, move to final step or skip
-                profile.save()
-                return JsonResponse({'success': True})
-            
-            elif step == 'income':
-                income_qs = Income.objects.filter(
+
+            elif action == 'cycle_range':
+                payday = int(data.get('payday', 1))
+                c_start, c_end, days_left = compute_cycle_range(payday)
+                return JsonResponse({
+                    'success': True,
+                    'start_str': c_start.strftime('%d %b'),
+                    'end_str': c_end.strftime('%d %b'),
+                    'days_left': days_left,
+                })
+
+            elif action == 'step1':
+                persona = data.get('persona')
+                is_skip = bool(data.get('skip', False))
+                res = handle_step1(request.user, persona, is_skip=is_skip)
+                return JsonResponse(res)
+
+            elif action == 'step2':
+                is_skip = bool(data.get('skip', False))
+                payday = data.get('payday')
+                salary_raw = data.get('salary_amount')
+                salary_amount = _parse_decimal(salary_raw, default=None) if salary_raw not in (None, '') else None
+                balance_raw = data.get('balance_now')
+                balance_now = _parse_decimal(balance_raw, default=Decimal('0.00')) if balance_raw not in (None, '') else Decimal('0.00')
+                bank_choice = data.get('bank_choice')
+                custom_bank_name = data.get('custom_bank_name')
+                auto_log = bool(data.get('auto_log_salary', True))
+
+                res = handle_step2(
                     user=request.user,
-                    date=date.today(),
-                    source=data.get('source', 'Initial Income')
+                    payday=payday,
+                    salary_amount=salary_amount,
+                    bank_choice=bank_choice,
+                    custom_bank_name=custom_bank_name,
+                    balance_now=balance_now,
+                    auto_log_salary=auto_log,
+                    is_skip=is_skip,
                 )
-                if income_qs.exists():
-                    income = income_qs.first()
-                    income.amount = _parse_decimal(data.get('amount'), default=Decimal('0.00'))
-                    income.currency = request.user.profile.currency
-                    if data.get('account_id'):
-                        income.account = get_object_or_404(Account, id=data.get('account_id'), user=request.user)
-                    income.save()
-                else:
-                    account = None
-                    if data.get('account_id'):
-                        account = get_object_or_404(Account, id=data.get('account_id'), user=request.user)
-                    Income.objects.create(
+                return JsonResponse(res)
+
+            elif action == 'step3_confirm':
+                is_skip = bool(data.get('skip', False))
+                if is_skip:
+                    res = handle_step3_confirm(
                         user=request.user,
-                        date=date.today(),
-                        source=data.get('source', 'Initial Income'),
-                        amount=_parse_decimal(data.get('amount'), default=Decimal('0.00')),
-                        currency=request.user.profile.currency,
-                        account=account
+                        amount=Decimal('0.00'),
+                        description='',
+                        category_name='',
+                        account_id=None,
+                        is_skip=True,
                     )
-                return JsonResponse({'success': True})
-            
-            elif step == 'accounts':
-                accounts_data = data.get('accounts', [])
-                currency = request.user.profile.currency
-                parsed_accounts = []
-                for acc_data in accounts_data:
-                    name = (acc_data.get('name') or '').strip()
-                    if not name:
-                        continue
-                    parsed_accounts.append({
-                        'name': name,
-                        'account_type': acc_data.get('type', 'SAVINGS_ACCOUNT'),
-                        'balance': _parse_decimal(acc_data.get('balance'), default=Decimal('0.00')),
-                    })
+                    return JsonResponse(res)
 
-                account_names = list(dict.fromkeys(acc['name'] for acc in parsed_accounts))
-                existing_by_name = {
-                    acc.name: acc
-                    for acc in Account.objects.filter(user=request.user, name__in=account_names)
-                }
+                amount = _parse_decimal(data.get('amount'), default=Decimal('0.00'))
+                description = (data.get('description') or 'Expense').strip()
+                category = (data.get('category') or 'Miscellaneous').strip()
+                account_id = data.get('account_id')
+                date_str = data.get('date')
+                parsed_date = None
+                if date_str:
+                    try:
+                        parsed_date = date.fromisoformat(date_str)
+                    except Exception:
+                        parsed_date = timezone.localdate()
 
-                to_create = []
-                to_update = []
-                for acc_data in parsed_accounts:
-                    existing = existing_by_name.get(acc_data['name'])
-                    if existing:
-                        existing.account_type = acc_data['account_type']
-                        existing.balance = acc_data['balance']
-                        existing.currency = currency
-                        to_update.append(existing)
-                    else:
-                        to_create.append(
-                            Account(
-                                user=request.user,
-                                name=acc_data['name'],
-                                account_type=acc_data['account_type'],
-                                balance=acc_data['balance'],
-                                currency=currency,
-                            )
-                        )
-
-                if to_create:
-                    Account.objects.bulk_create(to_create)
-                if to_update:
-                    Account.objects.bulk_update(to_update, ['account_type', 'balance', 'currency'])
-
-                refreshed_by_name = {
-                    acc.name: acc
-                    for acc in Account.objects.filter(user=request.user, name__in=account_names).only('id', 'name')
-                }
-                created_accounts = [
-                    {'id': refreshed_by_name[acc_data['name']].id, 'name': acc_data['name']}
-                    for acc_data in parsed_accounts
-                    if acc_data['name'] in refreshed_by_name
-                ]
-                return JsonResponse({'success': True, 'accounts': created_accounts})
-            
-            elif step == 'budget':
-                categories = data.get('categories', [])
-                for cat_data in categories:
-                    name = cat_data.get('name')
-                    limit = cat_data.get('limit')
-                    if name:
-                        Category.objects.update_or_create(
-                            user=request.user,
-                            name=name,
-                            defaults={'limit': _parse_decimal(limit, default=None) if limit else None}
-                        )
-                return JsonResponse({'success': True})
-            
-            elif step == 'expense':
-                expense_qs = Expense.objects.filter(
+                res = handle_step3_confirm(
                     user=request.user,
-                    date=date.today(),
-                    description=data.get('description', 'Initial Expense'),
-                    category=data.get('category', 'Miscellaneous')
+                    amount=amount,
+                    description=description,
+                    category_name=category,
+                    account_id=account_id,
+                    date_val=parsed_date,
+                    is_skip=False,
                 )
-                if expense_qs.exists():
-                    expense = expense_qs.first()
-                    expense.amount = _parse_decimal(data.get('amount'), default=Decimal('0.00'))
-                    expense.currency = request.user.profile.currency
-                    if data.get('account_id'):
-                        expense.account = get_object_or_404(Account, id=data.get('account_id'), user=request.user)
-                    expense.save()
-                else:
-                    account = None
-                    if data.get('account_id'):
-                        account = get_object_or_404(Account, id=data.get('account_id'), user=request.user)
-                    Expense.objects.create(
-                        user=request.user,
-                        date=date.today(),
-                        description=data.get('description', 'Initial Expense'),
-                        category=data.get('category', 'Miscellaneous'),
-                        amount=_parse_decimal(data.get('amount'), default=Decimal('0.00')),
-                        currency=request.user.profile.currency,
-                        account=account
-                    )
-                profile = request.user.profile
-                profile.has_seen_tutorial = True
-                profile.save()
+                return JsonResponse(res)
+
+            elif action in ('finish', 'complete'):
+                res = mark_onboarding_finished(request.user)
+                return JsonResponse(res)
+
+            elif action == 'skip_all':
+                mark_onboarding_finished(request.user)
                 return JsonResponse({'success': True})
 
-            elif step == 'recurring':
-                recurring_data = data.get('recurring', [])
-                for rec_data in recurring_data:
-                    from .dashboard import RecurringTransaction
-                    RecurringTransaction.objects.update_or_create(
-                        user=request.user,
-                        description=rec_data.get('description'),
-                        transaction_type=rec_data.get('type', 'EXPENSE'),
-                        defaults={
-                            'amount': _parse_decimal(rec_data.get('amount'), default=Decimal('0.00')),
-                            'frequency': rec_data.get('frequency', 'MONTHLY'),
-                            'start_date': rec_data.get('start_date', date.today()),
-                            'category': rec_data.get('category'),
-                            'currency': request.user.profile.currency
-                        }
-                    )
+            elif action == 'event':
+                event_name = data.get('event')
+                properties = data.get('properties', {})
+                if event_name:
+                    record_onboarding_event(request.user, event_name, properties)
                 return JsonResponse({'success': True})
 
-            elif step == 'finish':
-                profile = request.user.profile
-                profile.has_seen_tutorial = True
-                profile.save()
-                return JsonResponse({'success': True})
+            elif action == 'checklist':
+                items, done, total = get_checklist_items(request.user)
+                return JsonResponse({'success': True, 'items': items, 'done_count': done, 'total_count': total})
 
-            elif step == 'skip':
-                profile = request.user.profile
-                profile.has_seen_tutorial = True
-                profile.save()
-                return JsonResponse({'success': True})
-                
+            return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)
+
         except (RuntimeError, ValidationError, InvalidOperation, ValueError) as e:
-            logger.warning("Onboarding step validation/currency error: %s", e)
+            logger.warning("Onboarding step validation error: %s", e)
             return JsonResponse({
                 'success': False,
-                'error': _('Unable to save onboarding data because currency conversion failed or data is invalid.')
+                'error': _('Unable to save onboarding data. Please check entered values.')
             }, status=400)
         except Exception as e:
-            logger.error("Unexpected error during onboarding step: %s", e, exc_info=True)
+            logger.error("Unexpected error during onboarding: %s", e, exc_info=True)
             return JsonResponse({
                 'success': False,
                 'error': _('Something went wrong, please try again.')
             }, status=400)
-        
-        return JsonResponse({'success': False, 'error': 'Invalid step'}, status=400)
 
 class LandingPageView(TemplateView):
     template_name = 'landing.html'
