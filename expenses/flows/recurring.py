@@ -16,6 +16,7 @@ from .registry import register_flow
 class RentBillFlowForm(forms.Form):
     description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Short description that appears on the recurring transaction.'))
     amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('The amount that repeats on each occurrence.'))
+    category = forms.CharField(max_length=255, required=False, initial='Rent', widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Category for this bill (e.g. Rent, Utilities).'))
     currency = forms.ChoiceField(choices=CURRENCY_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Currency used for the recurring entry.'))
     frequency = forms.ChoiceField(choices=RecurringTransaction.FREQUENCY_CHOICES, initial='MONTHLY', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('How often the bill or rent should repeat.'))
     account = forms.ModelChoiceField(queryset=Account.objects.none(), widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Account used to pay the recurring bill.'))
@@ -29,6 +30,20 @@ class RentBillFlowForm(forms.Form):
             self.fields['account'].queryset = accounts
             self.fields['account'].initial = accounts.filter(name='Cash').first() or accounts.first()
             self.fields['currency'].initial = user.profile.currency
+            from ..models import Category
+            from finance_tracker.plans import get_limit
+            categories = Category.objects.filter(user=user).order_by('id')
+            profile = getattr(user, 'profile', None)
+            if profile:
+                limit = get_limit(profile.active_tier, 'budget_categories')
+                if limit != -1:
+                    categories = categories[:limit]
+            cat_names = [c.name for c in categories]
+            if 'Rent' not in cat_names:
+                choices = [('Rent', 'Rent')] + [(c, c) for c in cat_names]
+            else:
+                choices = [(c, c) for c in cat_names]
+            self.fields['category'].widget = forms.Select(choices=choices, attrs={'class': 'form-select'})
 
 
 from django.urls import reverse
@@ -51,14 +66,14 @@ class RentBillFlow(Flow):
     limit_map = {'recurring_transactions': RecurringTransaction}
     form_class = RentBillFlowForm
     wizard_steps = [
-        FlowWizardStep('bill_basics', _('Bill Details'), ['description', 'amount', 'currency', 'account'], _('Basic bill information and the payment account.')),
+        FlowWizardStep('bill_basics', _('Bill Details'), ['description', 'amount', 'category', 'currency', 'account'], _('Basic bill information and the payment account.')),
         FlowWizardStep('bill_schedule', _('Schedule'), ['frequency', 'start_date'], _('How often it should repeat and when it starts.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
         if snapshot is None:
             snapshot = FlowSnapshot.for_user(user)
-        return ('EXPENSE', 'Rent') in snapshot.recurring_signatures
+        return any(t == 'EXPENSE' for t, _ in snapshot.recurring_signatures)
 
     def get_edit_url(self, user) -> str:
         return reverse('recurring-list')
@@ -66,6 +81,7 @@ class RentBillFlow(Flow):
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         data['amount'] = Decimal(str(data.get('amount') or 0))
+        data['category'] = data.get('category') or 'Rent'
         data['frequency'] = data.get('frequency') or 'MONTHLY'
         data['description'] = data.get('description') or str(_('Rent bill'))
         data['start_date'] = data.get('start_date') or date.today()
@@ -84,7 +100,7 @@ class RentBillFlow(Flow):
                     'amount': data['amount'],
                     'currency': data['currency'],
                     'account': data['account'],
-                    'category': 'Rent',
+                    'category': data['category'],
                     'description': data['description'],
                     'frequency': data['frequency'],
                     'start_date': data['start_date'],

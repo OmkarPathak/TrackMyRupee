@@ -19,6 +19,7 @@ class CreditCardFlowForm(forms.Form):
     currency = forms.ChoiceField(choices=CURRENCY_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Currency used for the card balance and limit.'))
     credit_limit = forms.DecimalField(min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Maximum available credit line.'))
     billing_day = forms.IntegerField(min_value=1, max_value=31, widget=forms.NumberInput(attrs={'class': 'form-control'}), help_text=_('Day of month the statement is generated.'))
+    is_pinned = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Pin this card account.'))
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -56,7 +57,7 @@ class CreditCardFlow(Flow):
     form_class = CreditCardFlowForm
     wizard_steps = [
         FlowWizardStep('card_basics', _('Card Basics'), ['existing_account', 'name', 'balance', 'currency'], _('Use this step to choose whether you are updating an existing card or creating a new one.')),
-        FlowWizardStep('card_limits', _('Card Limits'), ['credit_limit', 'billing_day'], _('Limit and billing-day settings that drive reminders and balance tracking.')),
+        FlowWizardStep('card_limits', _('Card Limits'), ['credit_limit', 'billing_day', 'is_pinned'], _('Limit and billing-day settings that drive reminders and balance tracking.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -80,6 +81,7 @@ class CreditCardFlow(Flow):
             'currency': data['currency'],
             'credit_limit': data['credit_limit'],
             'credit_card_billing_day': data['billing_day'],
+            'is_pinned': bool(data.get('is_pinned', False)),
         }
         if data.get('existing_account'):
             account_payload['pk'] = data['existing_account'].pk

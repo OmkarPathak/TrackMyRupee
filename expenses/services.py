@@ -228,6 +228,25 @@ class LoanService:
         return float(emi.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
 
     @staticmethod
+    def calculate_repayment(principal, annual_rate, months, repayment_type='EMI'):
+        """
+        Calculate repayment amount based on loan repayment type:
+        - EMI: reducing balance amortizing EMI
+        - INTEREST_ONLY / BULLET: monthly interest servicing
+        """
+        if repayment_type == 'EMI':
+            return LoanService.calculate_emi(principal, annual_rate, months)
+        elif repayment_type in ('INTEREST_ONLY', 'BULLET'):
+            principal_dec = Decimal(str(principal or 0))
+            annual_rate_dec = Decimal(str(annual_rate or 0))
+            if principal_dec <= 0:
+                return 0.0
+            monthly_rate = annual_rate_dec / Decimal('12') / Decimal('100')
+            interest = principal_dec * monthly_rate
+            return float(interest.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+        return LoanService.calculate_emi(principal, annual_rate, months)
+
+    @staticmethod
     def get_total_liabilities(user):
         """
         Returns the sum of remaining principal for all active loans.

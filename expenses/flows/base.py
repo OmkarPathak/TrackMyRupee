@@ -597,7 +597,7 @@ class Flow:
                     'acquisition_cost', 'premium', 'premium_amount', 'down_payment',
                     'down_payment_amount', 'loan_amount', 'purchase_price', 'cost',
                     'repayment_amount', 'opening_paid_principal', 'annual_amount',
-                    'deposit_principal', 'sum_assured', 'current_value',
+                    'deposit_principal', 'sum_assured', 'current_value', 'current_amount',
                 ):
                     from ..utils import format_indian_number
                     val_str = f"{currency}{format_indian_number(value)}"

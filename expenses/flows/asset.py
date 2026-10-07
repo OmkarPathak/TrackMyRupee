@@ -18,6 +18,8 @@ class CarFlowForm(forms.Form):
     purchase_price = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
     acquisition_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     from_account = forms.ModelChoiceField(queryset=Account.objects.none(), widget=forms.Select(attrs={'class': 'form-select'}))
+    is_pinned = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Pin vehicle account.'))
+    custom_note = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Optional custom note for vehicle purchase.'))
     financed = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     loan_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     annual_rate = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=7, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
@@ -47,6 +49,7 @@ class GoldFlowForm(forms.Form):
     amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
     acquisition_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     from_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, widget=forms.Select(attrs={'class': 'form-select'}))
+    is_pinned = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Pin gold account.'))
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -78,7 +81,7 @@ class CarFlow(Flow):
     }
     form_class = CarFlowForm
     wizard_steps = [
-        FlowWizardStep('car_basics', _('Car Details'), ['name', 'purchase_price', 'acquisition_date', 'from_account'], _('Basic vehicle information and purchase account.')),
+        FlowWizardStep('car_basics', _('Car Details'), ['name', 'purchase_price', 'acquisition_date', 'from_account', 'is_pinned', 'custom_note'], _('Basic vehicle information and purchase account.')),
         FlowWizardStep('car_financing', _('Financing'), ['financed', 'loan_name', 'annual_rate', 'tenure_months', 'loan_start_date'], _('Loan details if the car was financed.')),
     ]
 
@@ -160,11 +163,13 @@ class CarFlow(Flow):
                     'currency': data['currency'],
                     'linked_physical_asset': '$asset',
                     'is_active': True,
+                    'is_pinned': bool(data.get('is_pinned', False)),
                 },
                 key='vehicle_account',
             )
         )
         if not data.get('financed'):
+            note = data.get('custom_note') or _('Car purchase')
             steps.append(
                 CreateStep(
                     CapitalEvent,
@@ -173,7 +178,7 @@ class CarFlow(Flow):
                         'amount': data['purchase_price'],
                         'date': data['acquisition_date'],
                         'subtype': 'large_purchase',
-                        'note': _('Car purchase'),
+                        'note': note,
                         'account': data['from_account'],
                         'currency': data['currency'],
                     },
@@ -212,7 +217,7 @@ class GoldFlow(Flow):
     limit_map = {'accounts': Account}
     form_class = GoldFlowForm
     wizard_steps = [
-        FlowWizardStep('gold_basics', _('Gold Details'), ['route', 'name', 'amount', 'acquisition_date', 'from_account'], _('Route, cost, and payment account for your gold purchase.')),
+        FlowWizardStep('gold_basics', _('Gold Details'), ['route', 'name', 'amount', 'acquisition_date', 'from_account', 'is_pinned'], _('Route, cost, and payment account for your gold purchase.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -259,6 +264,7 @@ class GoldFlow(Flow):
                         'currency': data['currency'],
                         'linked_physical_asset': '$asset',
                         'is_active': True,
+                        'is_pinned': bool(data.get('is_pinned', False)),
                     },
                     key='account',
                 ),
@@ -285,6 +291,7 @@ class GoldFlow(Flow):
                         'account_type': 'SGB',
                         'balance': Decimal('0.00'),
                         'currency': data['currency'],
+                        'is_pinned': bool(data.get('is_pinned', False)),
                     },
                     key='account',
                 ),

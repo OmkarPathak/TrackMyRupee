@@ -17,14 +17,21 @@ from .registry import register_flow
 class SavingsGoalFlowForm(forms.Form):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Name of the savings goal.'))
     target_amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Total amount you want to save.'))
+    current_amount = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, initial=Decimal('0.00'), widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Amount already saved toward this goal.'))
     target_months = forms.IntegerField(min_value=1, widget=forms.NumberInput(attrs={'class': 'form-control'}), help_text=_('How many months you want to reach the goal in.'))
     icon = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Optional icon or emoji to personalize the goal.'))
     color = forms.ChoiceField(choices=[('primary', _('Blue')), ('success', _('Green')), ('danger', _('Red')), ('warning', _('Yellow')), ('info', _('Light Blue'))], widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Visual color used for the goal card.'))
+
     def __init__(self, *args, user=None, **kwargs):
-        # user is accepted to match the shared form instantiation interface
-        # (FlowBaseView.get_form always passes user=) but unused here
-        # because this form has no user-scoped querysets.
         super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned = super().clean()
+        target = cleaned.get('target_amount')
+        current = cleaned.get('current_amount')
+        if target is not None and current is not None and current > target:
+            self.add_error('current_amount', _('Current amount cannot exceed target amount.'))
+        return cleaned
 
 
 from django.urls import reverse
@@ -47,7 +54,7 @@ class SavingsGoalFlow(Flow):
     limit_map = {'savings_goals': SavingsGoal}
     form_class = SavingsGoalFlowForm
     wizard_steps = [
-        FlowWizardStep('goal_details', _('Goal Details'), ['name', 'target_amount', 'target_months'], _('Set the goal name and target horizon.')),
+        FlowWizardStep('goal_details', _('Goal Details'), ['name', 'target_amount', 'current_amount', 'target_months'], _('Set the goal name and target horizon.')),
         FlowWizardStep('goal_style', _('Goal Style'), ['icon', 'color'], _('Optional styling to make the goal easier to recognise.')),
     ]
 
@@ -62,8 +69,11 @@ class SavingsGoalFlow(Flow):
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         target_amount = Decimal(str(data.get('target_amount') or 0))
+        current_amount = Decimal(str(data.get('current_amount') or 0))
         target_months = int(data.get('target_months') or 1)
-        data['monthly_suggestion'] = (target_amount / Decimal(target_months)).quantize(Decimal('0.01'))
+        remaining = max(Decimal('0.00'), target_amount - current_amount)
+        data['current_amount'] = current_amount
+        data['monthly_suggestion'] = (remaining / Decimal(target_months)).quantize(Decimal('0.01'))
         data['target_date'] = timezone.localdate() + timedelta(days=30 * target_months)
         data['currency'] = data['user'].profile.currency
         return data
@@ -76,6 +86,7 @@ class SavingsGoalFlow(Flow):
                     'user': data['user'],
                     'name': data['name'],
                     'target_amount': data['target_amount'],
+                    'current_amount': data.get('current_amount') or Decimal('0.00'),
                     'target_date': data['target_date'],
                     'icon': data.get('icon') or '🎯',
                     'color': data.get('color') or 'primary',

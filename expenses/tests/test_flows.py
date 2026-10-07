@@ -472,6 +472,7 @@ class TestFlowEndpointCoverage(TestCase):
                 'loan',
                 {
                     'loan_type': 'PERSONAL',
+                    'repayment_type': 'EMI',
                     'name': 'Audit Loan',
                     'principal': '100000',
                     'annual_rate': '10.5',
@@ -685,6 +686,7 @@ class TestFlowEndpointCoverage(TestCase):
         """
         payload = {
             'loan_type': 'PERSONAL',
+            'repayment_type': 'EMI',
             'name': 'Down Payment Loan',
             'principal': '150000',
             'annual_rate': '10.5',
@@ -725,7 +727,8 @@ class TestLoanFlowPlan(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='flow-user', password='pass')
         UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
-        self.account = Account.objects.create(user=self.user, name='Cash', account_type='CASH_WALLET', balance=Decimal('100000.00'), currency='₹')
+        self.account = Account.objects.create(user=self.user, name='Cash', account_type='SAVINGS_ACCOUNT', balance=Decimal('100000.00'), currency='₹')
+        self.cash = self.account
 
     def test_loan_flow_plan_includes_loan_rate_and_emi(self):
         flow = NewLoanFlow()
@@ -818,18 +821,217 @@ class TestLoanFlowPlan(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('payment_account', form.errors)
 
+    def test_loan_flow_repayment_type_formula_branches_correctly(self):
+        from expenses.services import LoanService
+        from expenses.flows.loan import NewLoanFlow
+        # Principal 120,000 at 12% per annum over 12 months
+        # Monthly interest = 120,000 * 0.12 / 12 = 1,200.00
+        interest_only = LoanService.calculate_repayment(Decimal('120000.00'), Decimal('12.00'), 12, repayment_type='INTEREST_ONLY')
+        self.assertEqual(interest_only, 1200.00)
 
-class TestInvestmentFlows(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='invest-user', password='pass')
-        UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
-        self.cash = Account.objects.create(
-            user=self.user,
-            name='Cash',
-            account_type='CASH_WALLET',
-            balance=Decimal('250000.00'),
-            currency='₹',
-        )
+        # Amortizing EMI should be greater than interest-only (includes principal repayment)
+        emi = LoanService.calculate_repayment(Decimal('120000.00'), Decimal('12.00'), 12, repayment_type='EMI')
+        self.assertGreater(emi, interest_only)
+        self.assertEqual(emi, 10661.85)
+
+        # Test flow plan includes repayment_type on Loan step
+        flow = NewLoanFlow()
+        data = flow.derive({
+            'user': self.user,
+            'name': 'Bullet Loan',
+            'loan_type': 'PERSONAL',
+            'repayment_type': 'BULLET',
+            'principal': Decimal('120000.00'),
+            'annual_rate': Decimal('12.00'),
+            'tenure_months': 12,
+            'start_date': date(2026, 10, 1),
+            'payment_account': self.account,
+            'currency': '₹',
+        })
+        steps = flow.plan(data)
+        loan_step = next(s for s in steps if s.key == 'loan')
+        self.assertEqual(loan_step.fields['repayment_type'], 'BULLET')
+        emi_step = next(s for s in steps if s.key == 'emi')
+        self.assertEqual(emi_step.fields['amount'], Decimal('1200.00'))
+
+    def test_rentbill_flow_supports_custom_category(self):
+        from expenses.flows.recurring import RentBillFlow
+        flow = RentBillFlow()
+        data = flow.derive({
+            'user': self.user,
+            'description': 'Office Rent',
+            'amount': Decimal('15000.00'),
+            'category': 'Utilities',
+            'account': self.account,
+            'start_date': date.today(),
+        })
+        steps = flow.plan(data)
+        bill_step = next(s for s in steps if s.key == 'bill')
+        self.assertEqual(bill_step.fields['category'], 'Utilities')
+
+    def test_savings_goal_flow_current_amount_validation_and_suggestion(self):
+        from expenses.flows.savings_goal import SavingsGoalFlow
+        flow = SavingsGoalFlow()
+        # Form validation check: current_amount cannot exceed target_amount
+        form = flow.form_class(data={
+            'name': 'Trip',
+            'target_amount': '10000',
+            'current_amount': '15000',
+            'target_months': '5',
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('current_amount', form.errors)
+
+        # Derive monthly suggestion check
+        data = flow.derive({
+            'user': self.user,
+            'name': 'Trip',
+            'target_amount': Decimal('10000.00'),
+            'current_amount': Decimal('4000.00'),
+            'target_months': 6,
+        })
+        # Remaining: 6000 over 6 months = 1000/month
+        self.assertEqual(data['monthly_suggestion'], Decimal('1000.00'))
+        steps = flow.plan(data)
+        goal_step = next(s for s in steps if s.key == 'goal')
+        self.assertEqual(goal_step.fields['current_amount'], Decimal('4000.00'))
+
+    def test_is_pinned_across_flows(self):
+        from expenses.flows.credit_card import CreditCardFlow
+        from expenses.flows.investment import SipRdFlow, FdFlow, PpfEpfNpsFlow
+        from expenses.flows.asset import CarFlow, GoldFlow
+
+        # CreditCardFlow
+        cc_steps = CreditCardFlow().plan({'user': self.user, 'name': 'Card', 'balance': Decimal('100'), 'credit_limit': Decimal('5000'), 'billing_day': 1, 'currency': '₹', 'is_pinned': True})
+        self.assertTrue(cc_steps[0].fields['is_pinned'])
+
+        # SipRdFlow
+        sip_steps = SipRdFlow().plan({'user': self.user, 'name': 'SIP', 'instrument_type': 'SIP', 'amount': Decimal('1000'), 'frequency': 'MONTHLY', 'from_account': self.account, 'currency': '₹', 'is_pinned': True})
+        self.assertTrue(sip_steps[0].fields['is_pinned'])
+
+        # FdFlow
+        fd_steps = FdFlow().plan({'user': self.user, 'name': 'FD', 'principal': Decimal('10000'), 'annual_rate': Decimal('7.0'), 'deposit_start_date': date.today(), 'maturity_date': date.today(), 'deposit_compounding': 'QUARTERLY', 'show_accrued_balance': True, 'record_maturity_income': False, 'from_account': self.account, 'currency': '₹', 'is_pinned': True})
+        self.assertTrue(fd_steps[0].fields['is_pinned'])
+
+        # PpfEpfNpsFlow
+        ppf_steps = PpfEpfNpsFlow().plan({'user': self.user, 'name': 'PPF', 'scheme_type': 'PPF', 'annual_amount': Decimal('120000'), 'deposit_principal': Decimal('0'), 'deposit_rate': Decimal('7.1'), 'deposit_start_date': date.today(), 'deposit_compounding': 'YEARLY', 'show_accrued_balance': True, 'record_maturity_income': False, 'from_account': self.account, 'currency': '₹', 'is_pinned': True})
+        self.assertTrue(ppf_steps[0].fields['is_pinned'])
+
+        # CarFlow (vehicle account pinned, loan account unpinned)
+        car_steps = CarFlow().plan({'user': self.user, 'name': 'Car', 'purchase_price': Decimal('500000'), 'acquisition_date': date.today(), 'from_account': self.account, 'currency': '₹', 'is_pinned': True, 'financed': True, 'loan_name': 'Car Loan', 'annual_rate': Decimal('9.0'), 'tenure_months': 36})
+        vehicle_acc_step = next(s for s in car_steps if s.key == 'vehicle_account')
+        loan_acc_step = next(s for s in car_steps if s.key == 'loan_account')
+        self.assertTrue(vehicle_acc_step.fields['is_pinned'])
+        self.assertNotIn('is_pinned', loan_acc_step.fields)
+
+        # GoldFlow
+        gold_steps = GoldFlow().plan({'user': self.user, 'name': 'Gold', 'amount': Decimal('50000'), 'route': 'physical', 'acquisition_date': date.today(), 'from_account': self.account, 'currency': '₹', 'is_pinned': True})
+        gold_acc_step = next(s for s in gold_steps if s.key == 'account')
+        self.assertTrue(gold_acc_step.fields['is_pinned'])
+
+    def test_deposit_closed_date_and_end_date_fields(self):
+        from expenses.flows.investment import SipRdFlow, PpfEpfNpsFlow
+        close_d = date(2027, 10, 1)
+        end_d = date(2028, 10, 1)
+
+        # SipRd RD closed date and recurring end_date
+        rd_steps = SipRdFlow().plan({
+            'user': self.user,
+            'name': 'RD',
+            'instrument_type': 'RD',
+            'amount': Decimal('1000'),
+            'frequency': 'MONTHLY',
+            'deposit_principal': Decimal('1000'),
+            'deposit_rate': Decimal('6.0'),
+            'deposit_start_date': date.today(),
+            'deposit_compounding': 'QUARTERLY',
+            'rd_installment_day': 5,
+            'deposit_closed_date': close_d,
+            'end_date': end_d,
+            'show_accrued_balance': True,
+            'record_maturity_income': False,
+            'from_account': self.account,
+            'currency': '₹',
+        })
+        acc_step = next(s for s in rd_steps if s.key == 'account')
+        transfer_step = next(s for s in rd_steps if s.key == 'transfer')
+        self.assertEqual(acc_step.fields['deposit_closed_date'], close_d)
+        self.assertEqual(transfer_step.fields['end_date'], end_d)
+
+        # PpfEpfNps end_date
+        ppf_steps = PpfEpfNpsFlow().plan({
+            'user': self.user,
+            'name': 'PPF',
+            'scheme_type': 'PPF',
+            'annual_amount': Decimal('150000'),
+            'deposit_principal': Decimal('0'),
+            'deposit_start_date': date.today(),
+            'deposit_compounding': 'YEARLY',
+            'end_date': end_d,
+            'show_accrued_balance': True,
+            'record_maturity_income': False,
+            'from_account': self.account,
+            'currency': '₹',
+        })
+        ppf_transfer = next(s for s in ppf_steps if s.key == 'transfer')
+        self.assertEqual(ppf_transfer.fields['end_date'], end_d)
+
+    def test_custom_note_for_capital_events(self):
+        from expenses.flows.loan import NewLoanFlow
+        from expenses.flows.investment import FdFlow
+        from expenses.flows.asset import CarFlow
+
+        # Loan down payment custom note
+        loan_steps = NewLoanFlow().plan({
+            'user': self.user,
+            'name': 'Loan Note Test',
+            'loan_type': 'PERSONAL',
+            'repayment_type': 'EMI',
+            'principal': Decimal('100000'),
+            'annual_rate': Decimal('10'),
+            'tenure_months': 12,
+            'start_date': date.today(),
+            'payment_account': self.account,
+            'include_down_payment': True,
+            'down_payment_amount': Decimal('20000'),
+            'down_payment_account': self.account,
+            'custom_note': 'Upfront cash down payment',
+            'currency': '₹',
+        })
+        dp_step = next(s for s in loan_steps if s.key == 'down_payment')
+        self.assertEqual(dp_step.fields['note'], 'Upfront cash down payment')
+
+        # Fd custom note
+        fd_steps = FdFlow().plan({
+            'user': self.user,
+            'name': 'FD Note Test',
+            'principal': Decimal('50000'),
+            'annual_rate': Decimal('7.0'),
+            'deposit_start_date': date.today(),
+            'maturity_date': date.today(),
+            'deposit_compounding': 'QUARTERLY',
+            'show_accrued_balance': True,
+            'record_maturity_income': False,
+            'from_account': self.account,
+            'custom_note': 'Special 1-year FD booking',
+            'currency': '₹',
+        })
+        fd_cap_step = next(s for s in fd_steps if s.key == 'capital')
+        self.assertEqual(fd_cap_step.fields['note'], 'Special 1-year FD booking')
+
+        # Car custom note
+        car_steps = CarFlow().plan({
+            'user': self.user,
+            'name': 'Car Note Test',
+            'purchase_price': Decimal('300000'),
+            'acquisition_date': date.today(),
+            'from_account': self.account,
+            'financed': False,
+            'custom_note': 'Bought used car with cash',
+            'currency': '₹',
+        })
+        car_purchase_step = next(s for s in car_steps if s.key == 'purchase')
+        self.assertEqual(car_purchase_step.fields['note'], 'Bought used car with cash')
 
     def test_fd_flow_form_includes_deposit_tracking_fields(self):
         form = FdFlow().form_class(user=self.user)
@@ -1886,6 +2088,7 @@ class TestFlowLimitMessagingAndUI(TestCase):
         response = self.client.post(reverse('flow-preview', kwargs={'key': 'loan'}), {
             'name': 'Home Loan',
             'loan_type': 'HOME',
+            'repayment_type': 'EMI',
             'principal': '5000000',
             'annual_rate': '8.5',
             'tenure_months': '120',
@@ -1897,6 +2100,9 @@ class TestFlowLimitMessagingAndUI(TestCase):
         self.assertNotIn("₹120", content)
         self.assertIn("8.5%", content)
         self.assertNotIn("₹8.5", content)
+
+
+
 
 
 

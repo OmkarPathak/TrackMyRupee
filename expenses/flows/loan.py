@@ -20,6 +20,7 @@ from .registry import register_flow
 
 class NewLoanFlowForm(forms.Form):
     loan_type = forms.ChoiceField(choices=Loan.LOAN_TYPES, required=False, initial='PERSONAL', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Choose the loan category so reports and reminders stay consistent.'))
+    repayment_type = forms.ChoiceField(choices=Loan.REPAYMENT_TYPE_CHOICES, initial='EMI', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Choose how loan repayments are calculated.'))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('A clear label for this loan in dashboards and reports.'))
     principal = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('The original amount borrowed.'))
     annual_rate = forms.DecimalField(min_value=Decimal('0.00'), max_digits=7, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Nominal annual interest rate for EMI estimation.'))
@@ -37,6 +38,7 @@ class NewLoanFlowForm(forms.Form):
     include_down_payment = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Enable if you made a down payment at purchase time.'))
     down_payment_amount = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Cash paid upfront toward the purchase.'))
     down_payment_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('The account from which the down payment was made.'))
+    custom_note = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Optional custom note for the down payment event.'))
 
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
@@ -91,12 +93,12 @@ class NewLoanFlow(Flow):
     form_class = NewLoanFlowForm
     addons = {
         'mid_tenure': FlowAddon('mid_tenure', _('Mid-Tenure Entry'), ['opening_paid_principal', 'first_emi_date']),
-        'down_payment': FlowAddon('down_payment', _('Down Payment'), ['down_payment_amount', 'down_payment_account']),
+        'down_payment': FlowAddon('down_payment', _('Down Payment'), ['down_payment_amount', 'down_payment_account', 'custom_note']),
     }
     wizard_steps = [
-        FlowWizardStep('loan_basics', _('Loan Basics'), ['loan_type', 'name', 'principal', 'annual_rate', 'tenure_months', 'start_date'], _('Core loan details for principal, rate, and tenure.')),
+        FlowWizardStep('loan_basics', _('Loan Basics'), ['loan_type', 'repayment_type', 'name', 'principal', 'annual_rate', 'tenure_months', 'start_date'], _('Core loan details for principal, rate, and tenure.')),
         FlowWizardStep('loan_repayment', _('Repayment Schedule'), ['create_repayment_schedule', 'payment_account', 'repayment_amount', 'repayment_frequency', 'repayment_start_date', 'repayment_is_active'], _('Control if and how recurring loan repayments should be created.')),
-        FlowWizardStep('loan_adjustments', _('Adjustments'), ['mid_tenure', 'opening_paid_principal', 'first_emi_date', 'include_down_payment', 'down_payment_amount', 'down_payment_account'], _('Optional fields for already-started loans or upfront payments.')),
+        FlowWizardStep('loan_adjustments', _('Adjustments'), ['mid_tenure', 'opening_paid_principal', 'first_emi_date', 'include_down_payment', 'down_payment_amount', 'down_payment_account', 'custom_note'], _('Optional fields for already-started loans or upfront payments.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -109,6 +111,7 @@ class NewLoanFlow(Flow):
 
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
+        data['repayment_type'] = data.get('repayment_type') or 'EMI'
         data['annual_rate'] = Decimal(str(data.get('annual_rate') or 0))
         data['principal'] = Decimal(str(data.get('principal') or 0))
         data['tenure_months'] = int(data.get('tenure_months') or 0)
@@ -130,7 +133,8 @@ class NewLoanFlow(Flow):
         start_date = data['start_date']
         repayment_start = data.get('repayment_start_date') or data.get('first_emi_date') or start_date
         repayment_frequency = data.get('repayment_frequency') or 'MONTHLY'
-        emi = Decimal(str(LoanService.calculate_emi(data['principal'], data['annual_rate'], data['tenure_months'])))
+        repayment_type = data.get('repayment_type') or 'EMI'
+        emi = Decimal(str(LoanService.calculate_repayment(data['principal'], data['annual_rate'], data['tenure_months'], repayment_type)))
         repayment_amount = data.get('repayment_amount') or emi
         steps = [
             CreateStep(
@@ -139,6 +143,7 @@ class NewLoanFlow(Flow):
                     'user': data['user'],
                     'name': data['name'],
                     'loan_type': data.get('loan_type') or 'PERSONAL',
+                    'repayment_type': repayment_type,
                     'initial_principal': data['principal'],
                     'opening_paid_principal': data.get('opening_paid_principal') or Decimal('0.00'),
                     'duration_months': data['tenure_months'],
@@ -177,6 +182,8 @@ class NewLoanFlow(Flow):
         ]
 
         if data.get('include_down_payment') and data.get('down_payment_amount'):
+            default_note = _('Loan down payment for %(name)s') % {'name': data['name']}
+            note = data.get('custom_note') or default_note
             steps.append(
                 CreateStep(
                     CapitalEvent,
@@ -185,7 +192,7 @@ class NewLoanFlow(Flow):
                         'amount': data['down_payment_amount'],
                         'date': start_date,
                         'subtype': 'loan_down_payment',
-                        'note': _('Loan down payment for %(name)s') % {'name': data['name']},
+                        'note': note,
                         'linked_loan': '$loan',
                         'currency': data['currency'],
                         'account': data.get('down_payment_account'),
@@ -203,7 +210,8 @@ class NewLoanFlow(Flow):
         principal = Decimal(str(data.get('principal') or 0))
         annual_rate = Decimal(str(data.get('annual_rate') or 0))
         tenure = int(data.get('tenure_months') or 1)
-        headline = LoanService.calculate_emi(principal, annual_rate, tenure)
+        repayment_type = data.get('repayment_type') or 'EMI'
+        headline = LoanService.calculate_repayment(principal, annual_rate, tenure, repayment_type)
         schedule_enabled = cleaned_data.get('create_repayment_schedule', True)
         return {
             'headline': headline,
@@ -213,4 +221,5 @@ class NewLoanFlow(Flow):
             ],
             'warnings': warnings,
         }
+
 

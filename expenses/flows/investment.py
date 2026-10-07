@@ -91,6 +91,22 @@ class SipRdFlowForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         help_text=_('Create maturity income when the deposit completes.'),
     )
+    is_pinned = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_('Pin this investment account.'),
+    )
+    deposit_closed_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text=_('Optional actual close date if the deposit is closed early.'),
+    )
+    end_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text=_('Optional end date after which recurring contributions stop.'),
+    )
     from_account = forms.ModelChoiceField(
         queryset=Account.objects.none(),
         widget=forms.Select(attrs={'class': 'form-select'}),
@@ -163,10 +179,22 @@ class FdFlowForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         help_text=_('Log the earned interest as income when the deposit matures.'),
     )
+    is_pinned = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_('Pin this deposit account.'),
+    )
     deposit_closed_date = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         help_text=_('Optional actual close date if the deposit is broken early.'),
+    )
+    custom_note = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        help_text=_('Optional custom note for the deposit investment.'),
     )
     from_account = forms.ModelChoiceField(
         queryset=Account.objects.none(),
@@ -233,6 +261,11 @@ class PpfEpfNpsFlowForm(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         help_text=_('Optional actual close date if the scheme is stopped early.'),
     )
+    end_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text=_('Optional end date after which annual contributions stop.'),
+    )
     show_accrued_balance = forms.BooleanField(
         required=False,
         initial=True,
@@ -244,6 +277,12 @@ class PpfEpfNpsFlowForm(forms.Form):
         initial=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         help_text=_('Create maturity income when the scheme completes.'),
+    )
+    is_pinned = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_('Pin this scheme account.'),
     )
     from_account = forms.ModelChoiceField(
         queryset=Account.objects.none(),
@@ -282,8 +321,8 @@ class SipRdFlow(Flow):
     }
     form_class = SipRdFlowForm
     wizard_steps = [
-        FlowWizardStep('investment_basics', _('Investment Basics'), ['instrument_type', 'name', 'amount', 'frequency', 'deposit_start_date', 'from_account'], _('Tell us what you are investing in and how often it should repeat.')),
-        FlowWizardStep('deposit_rd_details', _('Recurring Deposit Details'), ['deposit_principal', 'deposit_rate', 'deposit_compounding', 'deposit_maturity_date', 'rd_installment_day', 'show_accrued_balance', 'record_maturity_income'], _('Configure interest rate and maturity terms for your recurring deposit.'), show_if="instrument_type === 'RD'"),
+        FlowWizardStep('investment_basics', _('Investment Basics'), ['instrument_type', 'name', 'amount', 'frequency', 'deposit_start_date', 'end_date', 'from_account', 'is_pinned'], _('Tell us what you are investing in and how often it should repeat.')),
+        FlowWizardStep('deposit_rd_details', _('Recurring Deposit Details'), ['deposit_principal', 'deposit_rate', 'deposit_compounding', 'deposit_maturity_date', 'deposit_closed_date', 'rd_installment_day', 'show_accrued_balance', 'record_maturity_income'], _('Configure interest rate and maturity terms for your recurring deposit.'), show_if="instrument_type === 'RD'"),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -310,10 +349,12 @@ class SipRdFlow(Flow):
                     'deposit_start_date': data['deposit_start_date'],
                     'deposit_compounding': data['deposit_compounding'],
                     'deposit_maturity_date': data.get('deposit_maturity_date'),
+                    'deposit_closed_date': data.get('deposit_closed_date'),
                     'show_accrued_balance': data['show_accrued_balance'],
                     'record_maturity_income': data['record_maturity_income'],
                     'rd_installment_amount': data['amount'],
                     'rd_installment_day': data['rd_installment_day'],
+                    'is_pinned': bool(data.get('is_pinned', False)),
                 },
                 key='account',
             )
@@ -327,6 +368,7 @@ class SipRdFlow(Flow):
                     'account_type': account_type,
                     'balance': Decimal('0.00'),
                     'currency': data['currency'],
+                    'is_pinned': bool(data.get('is_pinned', False)),
                 },
                 key='account',
             )
@@ -343,6 +385,7 @@ class SipRdFlow(Flow):
                 'to_account': '$account',
                 'frequency': data['frequency'],
                 'start_date': recurring_start,
+                'end_date': data.get('end_date'),
                 'last_processed_date': RecurringService.last_due_before_today(recurring_start, data['frequency']),
                 'description': _('Investment contribution: %(name)s') % {'name': data['name']},
                 'is_active': True,
@@ -402,9 +445,9 @@ class FdFlow(Flow):
     limit_map = {'accounts': Account}
     form_class = FdFlowForm
     wizard_steps = [
-        FlowWizardStep('fd_basics', _('Deposit Basics'), ['name', 'principal', 'annual_rate', 'from_account'], _('Core deposit details and funding account.')),
+        FlowWizardStep('fd_basics', _('Deposit Basics'), ['name', 'principal', 'annual_rate', 'from_account', 'custom_note'], _('Core deposit details and funding account.')),
         FlowWizardStep('fd_terms', _('Deposit Terms'), ['deposit_start_date', 'maturity_date', 'deposit_compounding', 'deposit_closed_date'], _('When the deposit begins, ends, and how it compounds.')),
-        FlowWizardStep('fd_reporting', _('Reporting'), ['show_accrued_balance', 'record_maturity_income'], _('Controls whether users see accruals and whether maturity interest is auto-recorded.')),
+        FlowWizardStep('fd_reporting', _('Reporting'), ['show_accrued_balance', 'record_maturity_income', 'is_pinned'], _('Controls whether users see accruals and whether maturity interest is auto-recorded.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -432,9 +475,11 @@ class FdFlow(Flow):
                 'deposit_closed_date': data.get('deposit_closed_date'),
                 'show_accrued_balance': data['show_accrued_balance'],
                 'record_maturity_income': data['record_maturity_income'],
+                'is_pinned': bool(data.get('is_pinned', False)),
             },
             key='account',
         )
+        note = data.get('custom_note') or _('FD investment')
         capital = CreateStep(
             CapitalEvent,
             {
@@ -442,7 +487,7 @@ class FdFlow(Flow):
                 'amount': data['principal'],
                 'date': data['deposit_start_date'],
                 'subtype': 'investment_lump_sum',
-                'note': _('FD investment'),
+                'note': note,
                 'account': data['from_account'],
                 'currency': data['currency'],
             },
@@ -495,8 +540,8 @@ class PpfEpfNpsFlow(Flow):
     }
     form_class = PpfEpfNpsFlowForm
     wizard_steps = [
-        FlowWizardStep('scheme_basics', _('Scheme Basics'), ['scheme_type', 'name', 'annual_amount', 'from_account'], _('Choose the scheme and the yearly contribution account.')),
-        FlowWizardStep('scheme_terms', _('Scheme Terms'), ['deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding', 'deposit_maturity_date', 'deposit_closed_date', 'show_accrued_balance', 'record_maturity_income'], _('Settings used for balance tracking and maturity handling.')),
+        FlowWizardStep('scheme_basics', _('Scheme Basics'), ['scheme_type', 'name', 'annual_amount', 'end_date', 'from_account'], _('Choose the scheme and the yearly contribution account.')),
+        FlowWizardStep('scheme_terms', _('Scheme Terms'), ['deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding', 'deposit_maturity_date', 'deposit_closed_date', 'show_accrued_balance', 'record_maturity_income', 'is_pinned'], _('Settings used for balance tracking and maturity handling.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -524,6 +569,7 @@ class PpfEpfNpsFlow(Flow):
                 'deposit_closed_date': data.get('deposit_closed_date'),
                 'show_accrued_balance': data['show_accrued_balance'],
                 'record_maturity_income': data['record_maturity_income'],
+                'is_pinned': bool(data.get('is_pinned', False)),
             },
             key='account',
         )
@@ -538,6 +584,7 @@ class PpfEpfNpsFlow(Flow):
                 'to_account': '$account',
                 'frequency': 'YEARLY',
                 'start_date': data['deposit_start_date'],
+                'end_date': data.get('end_date'),
                 'last_processed_date': RecurringService.last_due_before_today(data['deposit_start_date'], 'YEARLY'),
                 'description': _('Annual investment contribution: %(name)s') % {'name': data['name']},
                 'is_active': True,

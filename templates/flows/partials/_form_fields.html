@@ -11,7 +11,7 @@
              x-cloak x-show="createRepaymentSchedule" x-transition
              {% elif flow.key == 'loan' and field_name == 'opening_paid_principal' or flow.key == 'loan' and field_name == 'first_emi_date' %}
              x-cloak x-show="midTenure" x-transition
-             {% elif flow.key == 'loan' and field_name == 'down_payment_amount' or flow.key == 'loan' and field_name == 'down_payment_account' %}
+             {% elif flow.key == 'loan' and field_name == 'down_payment_amount' or flow.key == 'loan' and field_name == 'down_payment_account' or flow.key == 'loan' and field_name == 'custom_note' %}
              x-cloak x-show="includeDownPayment" x-transition
              {% endif %}>
             <div class="mb-0">
