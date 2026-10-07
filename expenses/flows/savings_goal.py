@@ -42,7 +42,7 @@ class SavingsGoalFlow(Flow):
     key = 'savingsgoal'
     label = _('Savings Goal')
     title = _("I'm saving for something")
-    description = _('Emergency fund, a trip, a big purchase — set the target.')
+    description = _('Emergency fund, a trip, a big purchase, set the target.')
     category = 'savings'
     icon = 'bi-flag'
     tags = [_('Goal'), _('Target date')]

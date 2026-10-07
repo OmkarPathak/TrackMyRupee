@@ -71,7 +71,7 @@ class CarFlow(Flow):
     key = 'car'
     label = _('Car')
     title = _('I bought a car')
-    description = _('Cash or financed — either way it lands in your net worth.')
+    description = _('Cash or financed, either way it lands in your net worth.')
     category = 'assets'
     icon = 'bi-car-front'
     tags = [_('Vehicle'), _('Optional loan')]
@@ -222,7 +222,7 @@ class GoldFlow(Flow):
     key = 'gold'
     label = _('Gold')
     title = _('I bought gold')
-    description = _('Physical jewelry or digital/SGB — tracked either way.')
+    description = _('Physical jewelry or digital/SGB, tracked either way.')
     category = 'assets'
     icon = 'bi-gem'
     tags = [_('Physical or digital'), _('Net worth')]

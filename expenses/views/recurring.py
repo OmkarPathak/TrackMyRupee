@@ -211,6 +211,7 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
 
         messages.success(self.request, _("Recurring transaction created successfully!"))
         response = super().form_valid(form)
+        process_user_recurring_transactions(self.request.user, force=True)
         ph_capture(self.request.user, 'recurring_created', {'transaction_type': self.object.transaction_type, 'frequency': self.object.frequency, 'amount': str(self.object.amount)})
         return response
     
@@ -247,6 +248,7 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, U
         form.instance.user = self.request.user
         messages.success(self.request, _("Recurring transaction updated successfully!"))
         response = super().form_valid(form)
+        process_user_recurring_transactions(self.request.user, force=True)
         ph_capture(self.request.user, 'recurring_updated', {'frequency': self.object.frequency})
         return response
 

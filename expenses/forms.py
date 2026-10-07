@@ -431,17 +431,16 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         create_historical = self.cleaned_data.get('create_historical_entries', False)
+        today = timezone.localdate()
         if instance.pk:
             try:
                 old_obj = RecurringTransaction.objects.get(pk=instance.pk)
-                if create_historical:
+                if old_obj.start_date != instance.start_date or old_obj.frequency != instance.frequency:
                     instance.last_processed_date = None
-                elif old_obj.start_date != instance.start_date or old_obj.frequency != instance.frequency:
-                    instance.last_processed_date = RecurringService.last_due_before_today(instance.start_date, instance.frequency)
             except RecurringTransaction.DoesNotExist:
                 pass
         else:
-            if create_historical:
+            if instance.start_date >= today or create_historical:
                 instance.last_processed_date = None
             else:
                 instance.last_processed_date = RecurringService.last_due_before_today(instance.start_date, instance.frequency)
