@@ -231,7 +231,7 @@ def home_view(request):
         effective_start_date = resolved_period.start
         effective_end_date = resolved_period.end
 
-        if resolved_period.key == 'this_month':
+        if resolved_period.key in ('this_month', 'calendar_month'):
             salary_cycle_active = resolved_period.is_cycle
             if salary_cycle_active:
                 salary_cycle_start = resolved_period.start
@@ -243,7 +243,7 @@ def home_view(request):
             display_year = str(now.year)
             display_month = _(calendar.month_name[now.month])
 
-        elif resolved_period.key == 'last_month':
+        elif resolved_period.key in ('last_month', 'calendar_last_month'):
             salary_cycle_active = resolved_period.is_cycle
             if salary_cycle_active:
                 salary_cycle_start = resolved_period.start
@@ -259,6 +259,12 @@ def home_view(request):
 
         elif resolved_period.key == 'last_3_months':
             trend_title = _("Expenses Trend (Last 3 Months)")
+            trend_is_daily = False
+            display_year = str(today.year)
+            display_month = None
+
+        elif resolved_period.key == 'last_6_months':
+            trend_title = _("Expenses Trend (Last 6 Months)")
             trend_is_daily = False
             display_year = str(today.year)
             display_month = None
@@ -291,6 +297,11 @@ def home_view(request):
                 trend_is_daily = False
                 display_year = selected_years[0] if len(selected_years) == 1 else None
                 display_month = _(calendar.month_name[int(selected_months[0])]) if len(selected_months) == 1 else None
+        else:
+            trend_title = _("Expenses Trend")
+            trend_is_daily = False
+            display_year = str(today.year)
+            display_month = None
 
     if effective_start_date:
         expenses = expenses.filter(date__gte=effective_start_date)

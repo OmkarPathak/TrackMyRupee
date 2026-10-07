@@ -58,7 +58,8 @@ class DashboardDatePickerTest(TestCase):
         self.assertNotIn('Entertainment', cat_names)
 
     def test_dashboard_time_period_presets(self):
-        for preset in ['last_month', 'last_3_months', 'this_year', 'all']:
+        for preset in ['last_month', 'last_3_months', 'last_6_months', 'this_year', 'all', 'calendar_month', 'calendar_last_month']:
             response = self.client.get(reverse('home') + f'?time_period={preset}')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.context['applied_state']['time_period'], preset)
+            self.assertTrue(bool(response.context.get('trend_title')))

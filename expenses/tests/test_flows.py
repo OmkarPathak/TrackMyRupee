@@ -821,6 +821,30 @@ class TestLoanFlowPlan(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('payment_account', form.errors)
 
+    def test_form_errors_not_injected_into_preview_warnings(self):
+        from expenses.flows.asset import CarFlowForm
+        self.client.force_login(self.user)
+        form = CarFlowForm(data={
+            'name': 'Test Car',
+            'purchase_price': '100000',
+            'acquisition_date': '2026-10-01',
+            'from_account': self.cash.id,
+            'financed': 'on',
+        }, user=self.user)
+        self.assertFalse(form.is_valid())
+        response = self.client.post(reverse('flow-preview', kwargs={'key': 'car'}), data={
+            'name': 'Test Car',
+            'purchase_price': '100000',
+            'acquisition_date': '2026-10-01',
+            'from_account': self.cash.id,
+            'financed': 'on',
+        })
+        self.assertEqual(response.status_code, 200)
+        preview = response.context['preview']
+        # Field validation errors should be in form.errors, NOT in preview['warnings']
+        for warning in preview.get('warnings', []):
+            self.assertNotIn('annual interest rate is required', warning.lower())
+
     def test_loan_flow_repayment_type_formula_branches_correctly(self):
         from expenses.services import LoanService
         from expenses.flows.loan import NewLoanFlow
@@ -2100,6 +2124,30 @@ class TestFlowLimitMessagingAndUI(TestCase):
         self.assertNotIn("₹120", content)
         self.assertIn("8.5%", content)
         self.assertNotIn("₹8.5", content)
+
+    def test_preview_renders_filled_fields_and_cards_when_form_is_invalid(self):
+        self.client.force_login(self.user)
+        # Post Car flow with missing annual_rate when financed=True (causes form validation error)
+        response = self.client.post(reverse('flow-preview', kwargs={'key': 'car'}), {
+            'name': 'Honda City',
+            'purchase_price': '1500000',
+            'acquisition_date': '2026-10-01',
+            'financed': 'on',
+            'loan_name': 'Vehicle Loan',
+            'tenure_months': '60',
+            # annual_rate missing!
+        })
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        # Verify warning banner contains error message without 'None:' prefix
+        self.assertIn("Annual interest rate is required for a financed car", content)
+        self.assertNotIn("None:", content)
+        # Verify filled fields and cards render
+        self.assertIn("Honda City", content)
+        self.assertIn("15,00,000", content)
+        self.assertIn("Car Details", content)
+        self.assertIn("WHAT WE'LL CREATE", content)
+
 
 
 

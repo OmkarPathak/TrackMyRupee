@@ -28,10 +28,13 @@ class CarFlowForm(forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['from_account'].required = False
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
             self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not accounts.exists():
+                self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
 
     def clean(self):
         cleaned = super().clean()
@@ -53,10 +56,13 @@ class GoldFlowForm(forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['from_account'].required = False
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
             self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not accounts.exists():
+                self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
 
 
 @register_flow
@@ -188,9 +194,17 @@ class CarFlow(Flow):
         return steps
 
     def derive(self, cleaned_data) -> dict:
+        from datetime import date
         data = dict(cleaned_data)
         data['purchase_price'] = Decimal(str(data.get('purchase_price') or 0))
-        data['currency'] = data['from_account'].currency if data.get('from_account') else data['user'].profile.currency
+        data['name'] = data.get('name') or str(_('Car'))
+        data['acquisition_date'] = data.get('acquisition_date') or date.today()
+        user = data.get('user')
+        data['currency'] = (
+            data['from_account'].currency
+            if data.get('from_account')
+            else (getattr(getattr(user, 'profile', None), 'currency', '₹') if user else '₹')
+        )
         return data
 
     def preview(self, user, cleaned_data) -> dict:
@@ -329,9 +343,18 @@ class GoldFlow(Flow):
         return steps
 
     def derive(self, cleaned_data) -> dict:
+        from datetime import date
         data = dict(cleaned_data)
         data['amount'] = Decimal(str(data.get('amount') or 0))
-        data['currency'] = data['from_account'].currency if data.get('from_account') else data['user'].profile.currency
+        data['route'] = data.get('route') or 'physical'
+        data['name'] = data.get('name') or str(_('Gold'))
+        data['acquisition_date'] = data.get('acquisition_date') or date.today()
+        user = data.get('user')
+        data['currency'] = (
+            data['from_account'].currency
+            if data.get('from_account')
+            else (getattr(getattr(user, 'profile', None), 'currency', '₹') if user else '₹')
+        )
         return data
 
     def preview(self, user, cleaned_data) -> dict:
@@ -339,4 +362,5 @@ class GoldFlow(Flow):
         steps = self.plan(data)
         warnings = self.check_limits(user, steps)
         return {'headline': float(data['amount']), 'bullets': [_('Creates a gold asset or SGB holding')], 'warnings': warnings}
+
 

@@ -52,6 +52,8 @@ class NewLoanFlowForm(forms.Form):
             cash_default = accounts.filter(name='Cash').first() or accounts.first()
             self.fields['payment_account'].initial = cash_default
             self.fields['down_payment_account'].initial = cash_default
+            if not accounts.exists():
+                self.fields['payment_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
         else:
             self.fields['payment_account'].queryset = Account.objects.none()
             self.fields['down_payment_account'].queryset = Account.objects.none()

@@ -48,8 +48,32 @@ class FlowBaseView(LoginRequiredMixin):
     def get_form(self, data=None):
         return self.flow.form_class(data=data, user=self.request.user)
 
+    def get_preview_data(self, form):
+        if not form:
+            return {}
+
+        data = {}
+        cleaned_data = getattr(form, 'cleaned_data', {})
+        for k, v in cleaned_data.items():
+            if v is not None:
+                data[k] = v
+
+        if form.is_bound and hasattr(form, 'data'):
+            for field_name, field in form.fields.items():
+                if field_name not in data or data[field_name] is None:
+                    raw_val = form.data.get(field_name)
+                    if raw_val is not None and raw_val != '':
+                        try:
+                            converted = field.to_python(raw_val)
+                            if converted is not None:
+                                data[field_name] = converted
+                        except Exception:
+                            data[field_name] = raw_val
+        return data
+
     def render_review(self, request, form, preview, status=200):
-        review = self.flow.review_context(request.user, form, form.cleaned_data)
+        preview_data = self.get_preview_data(form)
+        review = self.flow.review_context(request.user, form, preview_data)
         return render(
             request,
             'flows/partials/_review.html',
@@ -63,19 +87,7 @@ class FlowBaseView(LoginRequiredMixin):
             status=status,
         )
 
-    @staticmethod
-    def collect_form_warnings(form):
-        warnings = []
-        for field_name, errors in form.errors.items():
-            if field_name == '__all__':
-                for error in errors:
-                    warnings.append(str(error))
-                continue
 
-            label = form.fields.get(field_name).label if form.fields.get(field_name) else field_name
-            for error in errors:
-                warnings.append(f'{label}: {error}')
-        return warnings
 
 
 class FlowLandingView(LoginRequiredMixin, TemplateView):
@@ -143,38 +155,68 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
         return context
 
 
-
 class FlowDetailView(FlowBaseView, View):
     template_name = 'flows/detail.html'
 
     def get(self, request, key):
         form = self.get_form()
-        return render(request, self.template_name, {'flow': self.flow, 'form': form, 'idempotency_key': self.get_idempotency_key(), 'preview': None, 'review': self.flow.review_context(request.user, form, {})})
+        preview_data = self.get_preview_data(form)
+        return render(
+            request,
+            self.template_name,
+            {
+                'flow': self.flow,
+                'form': form,
+                'idempotency_key': self.get_idempotency_key(),
+                'preview': None,
+                'review': self.flow.review_context(request.user, form, preview_data),
+            },
+        )
 
     def post(self, request, key):
         form = self.get_form(data=request.POST)
-        if not form.is_valid():
-            return render(request, self.template_name, {'flow': self.flow, 'form': form, 'idempotency_key': self.get_idempotency_key(), 'preview': None, 'review': self.flow.review_context(request.user, form, form.cleaned_data if form.is_bound else {})})
+        preview_data = self.get_preview_data(form)
+        try:
+            preview = self.flow.preview(request.user, preview_data)
+        except Exception:
+            preview = {'headline': 0, 'bullets': []}
 
-        preview = self.flow.preview(request.user, form.cleaned_data)
-        return render(request, self.template_name, {'flow': self.flow, 'form': form, 'idempotency_key': self.get_idempotency_key(), 'preview': preview, 'review': self.flow.review_context(request.user, form, form.cleaned_data)})
+        review = self.flow.review_context(request.user, form, preview_data)
+        return render(
+            request,
+            self.template_name,
+            {
+                'flow': self.flow,
+                'form': form,
+                'idempotency_key': self.get_idempotency_key(),
+                'preview': preview,
+                'review': review,
+            },
+        )
 
 
 class FlowPreviewView(FlowBaseView, View):
     def post(self, request, key):
         form = self.get_form(data=request.POST)
-        if not form.is_valid():
-            return self.render_review(request, form, {'headline': 0, 'bullets': [], 'warnings': self.collect_form_warnings(form)}, status=200)
+        preview_data = self.get_preview_data(form)
+        try:
+            preview = self.flow.preview(request.user, preview_data)
+        except Exception:
+            preview = {'headline': 0, 'bullets': []}
 
-        preview = self.flow.preview(request.user, form.cleaned_data)
-        return self.render_review(request, form, preview)
+        return self.render_review(request, form, preview, status=200)
 
 
 class FlowCommitView(FlowBaseView, View):
     def post(self, request, key):
         form = self.get_form(data=request.POST)
         if not form.is_valid():
-            return self.render_review(request, form, {'headline': 0, 'bullets': [], 'warnings': self.collect_form_warnings(form)}, status=200)
+            preview_data = self.get_preview_data(form)
+            try:
+                preview = self.flow.preview(request.user, preview_data)
+            except Exception:
+                preview = {'headline': 0, 'bullets': []}
+            return self.render_review(request, form, preview, status=200)
 
         raw_key = request.POST.get('idempotency_key') or ''
         try:
@@ -197,3 +239,4 @@ class FlowCommitView(FlowBaseView, View):
             response['HX-Redirect'] = reverse('home')
             return response
         return redirect('home')
+
