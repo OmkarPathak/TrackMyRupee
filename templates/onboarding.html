@@ -248,13 +248,22 @@
         .choice-chip:hover {
             border-color: var(--tmr-primary);
             background: var(--tmr-primary-light);
+            color: var(--tmr-text-main);
         }
 
         .choice-chip.selected {
             border-color: var(--tmr-primary);
             background: var(--tmr-primary-light);
-            color: var(--tmr-primary);
+            color: var(--tmr-primary-dark);
+            font-weight: 700;
             box-shadow: 0 0 0 1.5px var(--tmr-primary);
+        }
+
+        [data-bs-theme="dark"] .choice-chip.selected {
+            background: rgba(93, 202, 165, 0.18);
+            border-color: #5DCAA5;
+            color: #5DCAA5;
+            box-shadow: 0 0 0 1.5px #5DCAA5;
         }
 
         .chip-helper-text {
@@ -688,7 +697,7 @@
             box-shadow: none;
         }
 
-        /* Why we ask Sheet/Modal */
+        /* Why we ask Sheet/Modal - Matches TrackMyRupee Filter Bottom Sheet behavior */
         .why-we-ask-sheet {
             display: none;
             position: fixed;
@@ -701,24 +710,31 @@
             background: rgba(0, 0, 0, 0.45);
             backdrop-filter: blur(2px);
             -webkit-backdrop-filter: blur(2px);
-            z-index: 1050;
+            z-index: 1200;
             align-items: flex-end;
             justify-content: center;
-            padding: 0;
+            padding: 12px;
+            box-sizing: border-box;
         }
         .why-we-ask-sheet.active {
             display: flex;
         }
         .why-we-ask-content {
             background: var(--tmr-bg-card);
-            border-radius: 20px 20px 0 0;
+            border-radius: 20px;
             padding: 24px;
             width: 100%;
-            max-width: 520px;
+            max-width: 440px;
             box-sizing: border-box;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.25), 0 4px 15px rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--tmr-border);
+            animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
+            /* Bottom clearance ensures it sits cleanly floating above the mobile bottom nav */
+            margin-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+        }
+        .is-mobile-app .why-we-ask-content {
+            margin-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
         }
         @media (min-width: 640px) {
             .why-we-ask-sheet {
@@ -730,11 +746,12 @@
                 border-radius: 20px;
                 padding: 28px;
                 max-width: 440px;
+                margin-bottom: 0;
                 animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             }
         }
         @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
+            from { transform: translateY(30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
         @keyframes popIn {
