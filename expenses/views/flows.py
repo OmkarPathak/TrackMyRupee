@@ -225,6 +225,9 @@ class FlowCommitView(FlowBaseView, View):
             idem_key = uuid.UUID(self.get_idempotency_key())
         try:
             result = self.flow.commit(request.user, form.cleaned_data, idem_key)
+            if form.cleaned_data.get('create_historical_entries'):
+                from .mixins import process_user_recurring_transactions
+                process_user_recurring_transactions(request.user, force=True)
         except ValidationError as exc:
             preview = self.flow.preview(request.user, form.cleaned_data)
             preview['warnings'] = list(exc.messages)

@@ -31,6 +31,7 @@ class NewLoanFlowForm(forms.Form):
     repayment_amount = forms.DecimalField(required=False, min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Optional override amount per repayment. Leave blank to use calculated EMI.'))
     repayment_frequency = forms.ChoiceField(choices=RecurringTransaction.FREQUENCY_CHOICES, required=False, initial='MONTHLY', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('How often the repayment should be posted.'))
     repayment_start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), help_text=_('Optional repayment start date. Defaults to first EMI date or loan start date.'))
+    create_historical_entries = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('If start date is in the past, create past due entries immediately.'))
     repayment_is_active = forms.BooleanField(required=False, initial=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Keep this schedule active for auto-posting.'))
     mid_tenure = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Enable if this loan already had principal repaid before you start tracking.'))
     opening_paid_principal = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Principal already paid before tracking begins.'))
@@ -99,7 +100,7 @@ class NewLoanFlow(Flow):
     }
     wizard_steps = [
         FlowWizardStep('loan_basics', _('Loan Basics'), ['loan_type', 'repayment_type', 'name', 'principal', 'annual_rate', 'tenure_months', 'start_date'], _('Core loan details for principal, rate, and tenure.')),
-        FlowWizardStep('loan_repayment', _('Repayment Schedule'), ['create_repayment_schedule', 'payment_account', 'repayment_amount', 'repayment_frequency', 'repayment_start_date', 'repayment_is_active'], _('Control if and how recurring loan repayments should be created.')),
+        FlowWizardStep('loan_repayment', _('Repayment Schedule'), ['create_repayment_schedule', 'payment_account', 'repayment_amount', 'repayment_frequency', 'repayment_start_date', 'create_historical_entries', 'repayment_is_active'], _('Control if and how recurring loan repayments should be created.')),
         FlowWizardStep('loan_adjustments', _('Adjustments'), ['mid_tenure', 'opening_paid_principal', 'first_emi_date', 'include_down_payment', 'down_payment_amount', 'down_payment_account', 'custom_note'], _('Optional fields for already-started loans or upfront payments.')),
     ]
 
@@ -138,6 +139,8 @@ class NewLoanFlow(Flow):
         repayment_type = data.get('repayment_type') or 'EMI'
         emi = Decimal(str(LoanService.calculate_repayment(data['principal'], data['annual_rate'], data['tenure_months'], repayment_type)))
         repayment_amount = data.get('repayment_amount') or emi
+        create_historical = data.get('create_historical_entries', False)
+        last_processed = None if create_historical else RecurringService.last_due_before_today(repayment_start, repayment_frequency)
         steps = [
             CreateStep(
                 Loan,
@@ -174,7 +177,7 @@ class NewLoanFlow(Flow):
                     'loan': '$loan',
                     'frequency': repayment_frequency,
                     'start_date': repayment_start,
-                    'last_processed_date': RecurringService.last_due_before_today(repayment_start, repayment_frequency),
+                    'last_processed_date': last_processed,
                     'description': _('Loan EMI: %(name)s') % {'name': data['name']},
                     'is_active': data.get('repayment_is_active', True),
                 },

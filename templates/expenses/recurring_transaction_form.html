@@ -256,6 +256,21 @@
                             </div>
 
                             <div class="col-12 mt-3">
+                                <div class="p-3 border rounded card-switch-wrapper mb-2">
+                                    <div class="form-check form-switch m-0 d-flex align-items-start gap-3 ps-0">
+                                        <div class="flex-grow-1">
+                                            <label class="form-check-label fw-semibold cursor-pointer mb-1 d-block" for="{{ form.create_historical_entries.id_for_label }}">
+                                                {% trans "Create Historical Records" %}
+                                            </label>
+                                            <div class="form-text mt-0">
+                                                {% trans "If start date is in the past, create past due entries immediately." %}
+                                            </div>
+                                        </div>
+                                        <div class="pt-1">
+                                            {{ form.create_historical_entries }}
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="p-3 border rounded card-switch-wrapper">
                                     <div class="form-check form-switch m-0 d-flex align-items-start gap-3 ps-0">
                                         <div class="flex-grow-1">

@@ -308,6 +308,54 @@ class SubscriptionTierTest(TestCase):
         self.assertLess(sum(float(r.interest_portion) for r in repayments), 50000.0)
         self.assertGreater(sum(float(r.principal_portion) for r in repayments), 130000.0)
 
+    def test_recurring_loan_create_stays_active_immediately(self):
+        """Creating a recurring LOAN schedule should not auto-cancel immediately."""
+        self.setup_tier('PLUS')
+
+        account = Account.objects.create(
+            user=self.user,
+            name='Loan Pay Account',
+            account_type='BANK',
+            balance=500000,
+            currency='₹',
+        )
+        loan = Loan.objects.create(
+            user=self.user,
+            name='Personal Loan',
+            loan_type='PERSONAL',
+            initial_principal=300000,
+            duration_months=60,
+            start_date=date.today() - timedelta(days=40),
+            currency='₹',
+            is_active=True,
+        )
+        LoanInterestRate.objects.create(
+            loan=loan,
+            interest_rate=11.5,
+            effective_date=loan.start_date,
+        )
+
+        response = self.client.post(reverse('recurring-create'), {
+            'transaction_type': 'LOAN',
+            'amount': '8500.00',
+            'currency': '₹',
+            'account': account.pk,
+            'loan': loan.pk,
+            'frequency': 'MONTHLY',
+            'start_date': (date.today() - timedelta(days=35)).isoformat(),
+            'description': 'Loan EMI schedule',
+            'is_active': 'on',
+            'payment_method': 'Cash',
+            'category': '',
+            'source': '',
+            'from_account': '',
+            'to_account': '',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        rt = RecurringTransaction.objects.get(user=self.user, transaction_type='LOAN', description='Loan EMI schedule')
+        self.assertTrue(rt.is_active)
+
     def test_loan_repayment_create_view_posts_successfully(self):
         """The direct loan repayment create view should save repayments without loan validation errors."""
         self.setup_tier('PLUS')

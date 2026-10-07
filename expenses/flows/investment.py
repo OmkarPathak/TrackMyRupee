@@ -112,6 +112,12 @@ class SipRdFlowForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text=_('Source account used to fund the contribution.'),
     )
+    create_historical_entries = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_('If start date is in the past, create past due entries immediately.'),
+    )
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -295,6 +301,12 @@ class PpfEpfNpsFlowForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text=_('Account used to pay each annual contribution.'),
     )
+    create_historical_entries = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_('If start date is in the past, create past due entries immediately.'),
+    )
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -330,7 +342,7 @@ class SipRdFlow(Flow):
     }
     form_class = SipRdFlowForm
     wizard_steps = [
-        FlowWizardStep('investment_basics', _('Investment Basics'), ['instrument_type', 'name', 'amount', 'frequency', 'deposit_start_date', 'end_date', 'from_account', 'is_pinned'], _('Tell us what you are investing in and how often it should repeat.')),
+        FlowWizardStep('investment_basics', _('Investment Basics'), ['instrument_type', 'name', 'amount', 'frequency', 'deposit_start_date', 'end_date', 'from_account', 'create_historical_entries', 'is_pinned'], _('Tell us what you are investing in and how often it should repeat.')),
         FlowWizardStep('deposit_rd_details', _('Recurring Deposit Details'), ['deposit_principal', 'deposit_rate', 'deposit_compounding', 'deposit_maturity_date', 'deposit_closed_date', 'rd_installment_day', 'show_accrued_balance', 'record_maturity_income'], _('Configure interest rate and maturity terms for your recurring deposit.'), show_if="instrument_type === 'RD'"),
     ]
 
@@ -383,6 +395,9 @@ class SipRdFlow(Flow):
             )
             recurring_start = data.get('deposit_start_date') or timezone.localdate()
 
+        create_historical = data.get('create_historical_entries', False)
+        last_processed = None if create_historical else RecurringService.last_due_before_today(recurring_start, data['frequency'])
+
         recurring = CreateStep(
             RecurringTransaction,
             {
@@ -395,7 +410,7 @@ class SipRdFlow(Flow):
                 'frequency': data['frequency'],
                 'start_date': recurring_start,
                 'end_date': data.get('end_date'),
-                'last_processed_date': RecurringService.last_due_before_today(recurring_start, data['frequency']),
+                'last_processed_date': last_processed,
                 'description': _('Investment contribution: %(name)s') % {'name': data['name']},
                 'is_active': True,
             },
@@ -549,7 +564,7 @@ class PpfEpfNpsFlow(Flow):
     }
     form_class = PpfEpfNpsFlowForm
     wizard_steps = [
-        FlowWizardStep('scheme_basics', _('Scheme Basics'), ['scheme_type', 'name', 'annual_amount', 'end_date', 'from_account'], _('Choose the scheme and the yearly contribution account.')),
+        FlowWizardStep('scheme_basics', _('Scheme Basics'), ['scheme_type', 'name', 'annual_amount', 'end_date', 'from_account', 'create_historical_entries'], _('Choose the scheme and the yearly contribution account.')),
         FlowWizardStep('scheme_terms', _('Scheme Terms'), ['deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_compounding', 'deposit_maturity_date', 'deposit_closed_date', 'show_accrued_balance', 'record_maturity_income', 'is_pinned'], _('Settings used for balance tracking and maturity handling.')),
     ]
 
@@ -582,6 +597,9 @@ class PpfEpfNpsFlow(Flow):
             },
             key='account',
         )
+        create_historical = data.get('create_historical_entries', False)
+        last_processed = None if create_historical else RecurringService.last_due_before_today(data['deposit_start_date'], 'YEARLY')
+
         recurring = CreateStep(
             RecurringTransaction,
             {
@@ -594,7 +612,7 @@ class PpfEpfNpsFlow(Flow):
                 'frequency': 'YEARLY',
                 'start_date': data['deposit_start_date'],
                 'end_date': data.get('end_date'),
-                'last_processed_date': RecurringService.last_due_before_today(data['deposit_start_date'], 'YEARLY'),
+                'last_processed_date': last_processed,
                 'description': _('Annual investment contribution: %(name)s') % {'name': data['name']},
                 'is_active': True,
             },

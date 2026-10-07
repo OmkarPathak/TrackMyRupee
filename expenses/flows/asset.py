@@ -25,6 +25,7 @@ class CarFlowForm(forms.Form):
     annual_rate = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=7, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
     tenure_months = forms.IntegerField(required=False, min_value=1, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     loan_start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+    create_historical_entries = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('If start date is in the past, create past due entries immediately.'))
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -88,7 +89,7 @@ class CarFlow(Flow):
     form_class = CarFlowForm
     wizard_steps = [
         FlowWizardStep('car_basics', _('Car Details'), ['name', 'purchase_price', 'acquisition_date', 'from_account', 'is_pinned', 'custom_note'], _('Basic vehicle information and purchase account.')),
-        FlowWizardStep('car_financing', _('Financing'), ['financed', 'loan_name', 'annual_rate', 'tenure_months', 'loan_start_date'], _('Loan details if the car was financed.')),
+        FlowWizardStep('car_financing', _('Financing'), ['financed', 'loan_name', 'annual_rate', 'tenure_months', 'loan_start_date', 'create_historical_entries'], _('Loan details if the car was financed.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -112,6 +113,7 @@ class CarFlow(Flow):
                 'start_date': data.get('loan_start_date') or data['acquisition_date'],
                 'currency': data['currency'],
                 'payment_account': data['from_account'],
+                'create_historical_entries': data.get('create_historical_entries', False),
                 'include_down_payment': False,
                 'mid_tenure': False,
             }

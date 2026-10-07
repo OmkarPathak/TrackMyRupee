@@ -19,6 +19,7 @@ class InsuranceFlowForm(forms.Form):
     sum_assured = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Optional coverage / sum assured amount.'))
     premium_payment_account = forms.ModelChoiceField(queryset=Account.objects.none(), widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Account used to pay premiums.'))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), help_text=_('Date the policy tracking starts.'))
+    create_historical_entries = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('If start date is in the past, create past due entries immediately.'))
 
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
@@ -56,7 +57,7 @@ class InsuranceFlow(Flow):
     form_class = InsuranceFlowForm
     wizard_steps = [
         FlowWizardStep('policy_details', _('Policy Details'), ['name', 'policy_number', 'sum_assured'], _('Basic policy information for your records.')),
-        FlowWizardStep('premium_schedule', _('Premium Schedule'), ['premium_amount', 'premium_frequency', 'premium_payment_account', 'start_date'], _('How and when premiums should be tracked.')),
+        FlowWizardStep('premium_schedule', _('Premium Schedule'), ['premium_amount', 'premium_frequency', 'premium_payment_account', 'start_date', 'create_historical_entries'], _('How and when premiums should be tracked.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -74,6 +75,9 @@ class InsuranceFlow(Flow):
         return data
 
     def plan(self, data) -> list[CreateStep]:
+        rec_freq = _premium_to_recurring_frequency(data.get('premium_frequency'))
+        create_historical = data.get('create_historical_entries', False)
+        last_processed = None if create_historical else RecurringService.last_due_before_today(data['start_date'], rec_freq)
         asset = CreateStep(
             PhysicalAsset,
             {
@@ -111,9 +115,9 @@ class InsuranceFlow(Flow):
                 'currency': data['currency'],
                 'account': data['premium_payment_account'],
                 'physical_asset': '$asset',
-                'frequency': _premium_to_recurring_frequency(data.get('premium_frequency')),
+                'frequency': rec_freq,
                 'start_date': data['start_date'],
-                'last_processed_date': RecurringService.last_due_before_today(data['start_date'], _premium_to_recurring_frequency(data.get('premium_frequency'))),
+                'last_processed_date': last_processed,
                 'description': _('%(name)s premium') % {'name': data['name']},
                 'is_active': True,
             },

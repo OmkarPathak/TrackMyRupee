@@ -21,6 +21,7 @@ class RentBillFlowForm(forms.Form):
     frequency = forms.ChoiceField(choices=RecurringTransaction.FREQUENCY_CHOICES, initial='MONTHLY', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('How often the bill or rent should repeat.'))
     account = forms.ModelChoiceField(queryset=Account.objects.none(), widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Account used to pay the recurring bill.'))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), help_text=_('Date the recurring schedule should start.'))
+    create_historical_entries = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('If start date is in the past, create past due entries immediately.'))
 
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
@@ -70,7 +71,7 @@ class RentBillFlow(Flow):
     form_class = RentBillFlowForm
     wizard_steps = [
         FlowWizardStep('bill_basics', _('Bill Details'), ['description', 'amount', 'category', 'currency', 'account'], _('Basic bill information and the payment account.')),
-        FlowWizardStep('bill_schedule', _('Schedule'), ['frequency', 'start_date'], _('How often it should repeat and when it starts.')),
+        FlowWizardStep('bill_schedule', _('Schedule'), ['frequency', 'start_date', 'create_historical_entries'], _('How often it should repeat and when it starts.')),
     ]
 
     def is_configured(self, user, snapshot: FlowSnapshot | None = None) -> bool:
@@ -94,6 +95,8 @@ class RentBillFlow(Flow):
 
 
     def plan(self, data) -> list[CreateStep]:
+        create_historical = data.get('create_historical_entries', False)
+        last_processed = None if create_historical else RecurringService.last_due_before_today(data['start_date'], data['frequency'])
         return [
             CreateStep(
                 RecurringTransaction,
@@ -107,7 +110,7 @@ class RentBillFlow(Flow):
                     'description': data['description'],
                     'frequency': data['frequency'],
                     'start_date': data['start_date'],
-                    'last_processed_date': RecurringService.last_due_before_today(data['start_date'], data['frequency']),
+                    'last_processed_date': last_processed,
                     'is_active': True,
                 },
                 key='bill',

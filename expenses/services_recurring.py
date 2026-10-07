@@ -105,8 +105,7 @@ class RecurringService:
             is_active=True,
             **kwargs,
         )
-        last_due = RecurringService.last_due_before_today(start_date, frequency)
-        if last_due:
-            recurring.last_processed_date = last_due
+        if 'last_processed_date' not in kwargs:
+            recurring.last_processed_date = None
         recurring.save()
         return recurring

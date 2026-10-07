@@ -108,11 +108,10 @@ def sidebar_badges(request):
     # 1. Goals: Active (incomplete) goals
     active_goals_count = SavingsGoal.objects.filter(user=request.user, is_completed=False).count()
 
-    # 2. Subscriptions: Due within next 7 days
+    # 2. Subscriptions: Due within next 7 days or overdue
     upcoming_subscriptions_count = RecurringTransaction.objects.filter(
         user=request.user,
         is_active=True,
-        next_due_date__gte=today,
         next_due_date__lte=next_week
     ).count()
 

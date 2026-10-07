@@ -227,6 +227,13 @@ class IncomeForm(SearchableSelectFormMixin, forms.ModelForm):
         return source or ""
 
 class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
+    create_historical_entries = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_('If start date is in the past, create past due entries immediately.')
+    )
+
     class Meta:
         model = RecurringTransaction
         fields = ['transaction_type', 'amount', 'currency', 'account', 'category', 'source',
@@ -423,16 +430,28 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        create_historical = self.cleaned_data.get('create_historical_entries', False)
         if instance.pk:
             try:
                 old_obj = RecurringTransaction.objects.get(pk=instance.pk)
-                if old_obj.start_date != instance.start_date or old_obj.frequency != instance.frequency:
+                if create_historical:
                     instance.last_processed_date = None
+                elif old_obj.start_date != instance.start_date or old_obj.frequency != instance.frequency:
+                    instance.last_processed_date = RecurringService.last_due_before_today(instance.start_date, instance.frequency)
             except RecurringTransaction.DoesNotExist:
                 pass
+        else:
+            if create_historical:
+                instance.last_processed_date = None
+            else:
+                instance.last_processed_date = RecurringService.last_due_before_today(instance.start_date, instance.frequency)
+
         if commit:
             instance.save()
             self.save_m2m()
+            if create_historical and instance.user:
+                from .views.mixins import process_user_recurring_transactions
+                process_user_recurring_transactions(instance.user, force=True)
         return instance
 
 class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):

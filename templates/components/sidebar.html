@@ -40,6 +40,9 @@
             <a href="{% url 'tmr-flows' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}" title="{% trans 'TMR Flows' %}">
                 <i class="bi bi-diagram-3 fs-5"></i>
                 <span class="nav-text">{% trans "TMR Flows" %}</span>
+                <span class="badge badge-soft-success ms-auto nav-text" style="font-size: 0.65rem;">
+                    {% trans "New" %}
+                </span>
             </a>
 
             <!-- Analytics -->
