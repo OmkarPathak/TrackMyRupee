@@ -10,6 +10,7 @@ from django.db import connection, IntegrityError
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils import timezone
 
 from expenses.flows.asset import CarFlow, GoldFlow
 from expenses.flows.base import FlowSnapshot
@@ -21,18 +22,22 @@ from expenses.flows.loan import NewLoanFlow
 from expenses.flows.recurring import RentBillFlow
 from expenses.flows.registry import FlowRegistry
 from expenses.flows.savings_goal import SavingsGoalFlow
+from expenses.management.commands.send_notifications import Command as SendNotificationsCommand
 from expenses.models import (
     Account,
     CapitalEvent,
     FinancialFlow,
+    Holding,
     Income,
     Loan,
     LoanInterestRate,
+    Notification,
     PhysicalAsset,
     RecurringTransaction,
     SavingsGoal,
     UserProfile,
 )
+from expenses.services import LoanService
 from expenses.services_recurring import RecurringService
 
 
@@ -243,6 +248,16 @@ class TestFlowViews(TestCase):
             currency='₹',
         )
 
+        preview = InsuranceFlow().preview(self.user, {
+            'name': 'Medical Insurance',
+            'policy_number': '123',
+            'sum_assured': Decimal('2500000.00'),
+            'premium_amount': Decimal('34000.00'),
+            'premium_frequency': 'ANNUAL',
+            'premium_payment_account': account,
+            'start_date': date(2026, 10, 1),
+        })
+
         detail_response = self.client.get(reverse('flow-detail', kwargs={'key': 'insurance'}))
         html = detail_response.content.decode('utf-8')
         idem_key = re.search(r'name="idempotency_key" value="([^"]+)"', html).group(1)
@@ -281,9 +296,11 @@ class TestFlowViews(TestCase):
             physical_asset=policy,
         )
         self.assertEqual(premium_schedule.amount, Decimal('34000.00'))
+        self.assertEqual(policy.premium_amount, premium_schedule.amount)
         self.assertEqual(premium_schedule.frequency, 'YEARLY')
         self.assertEqual(premium_schedule.account, account)
         self.assertTrue(premium_schedule.is_active)
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('34000.0'))
 
 
 class TestFlowEndpointCoverage(TestCase):
@@ -610,6 +627,17 @@ class TestFlowEndpointCoverage(TestCase):
             'tenure_months': '60',
             'loan_start_date': '2026-10-01',
         }
+        preview = CarFlow().preview(self.user, {
+            'name': 'Financed Sedan',
+            'purchase_price': Decimal('1200000.00'),
+            'acquisition_date': date(2026, 10, 1),
+            'from_account': self.cash,
+            'financed': True,
+            'loan_name': 'Sedan Auto Loan',
+            'annual_rate': Decimal('8.75'),
+            'tenure_months': 60,
+            'loan_start_date': date(2026, 10, 1),
+        })
         response = self._commit_flow('car', payload)
         self.assertEqual(response.status_code, 204)
 
@@ -628,6 +656,7 @@ class TestFlowEndpointCoverage(TestCase):
             CapitalEvent.objects.filter(user=self.user, note='Car purchase').exists(),
             "Financed car purchase must not debit a cash CapitalEvent",
         )
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('1200000.0'))
 
     def test_car_flow_unfinanced_creates_capital_event_for_full_price(self):
         """Priority 1: Unfinanced CarFlow purchase still debits cash CapitalEvent for full purchase price."""
@@ -637,6 +666,13 @@ class TestFlowEndpointCoverage(TestCase):
             'acquisition_date': '2026-10-01',
             'from_account': str(self.cash.id),
         }
+        preview = CarFlow().preview(self.user, {
+            'name': 'Cash Hatchback',
+            'purchase_price': Decimal('650000.00'),
+            'acquisition_date': date(2026, 10, 1),
+            'from_account': self.cash,
+            'financed': False,
+        })
         response = self._commit_flow('car', payload)
         self.assertEqual(response.status_code, 204)
 
@@ -647,6 +683,7 @@ class TestFlowEndpointCoverage(TestCase):
         self.assertIsNotNone(purchase_event, "Unfinanced car purchase must create a CapitalEvent")
         self.assertEqual(purchase_event.amount, Decimal('650000.00'))
         self.assertEqual(purchase_event.account, self.cash)
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('650000.0'))
 
     def test_new_loan_flow_form_cash_lookup_deduplicated(self):
         """Priority 3.1: NewLoanFlowForm performs at most one Cash lookup query."""
@@ -726,7 +763,10 @@ class TestFlowEndpointCoverage(TestCase):
 class TestLoanFlowPlan(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='flow-user', password='pass')
-        UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
+        profile, _ = UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
+        profile.tier = 'PRO'
+        profile.save(update_fields=['tier'])
+        self.user.refresh_from_db()
         self.account = Account.objects.create(user=self.user, name='Cash', account_type='SAVINGS_ACCOUNT', balance=Decimal('100000.00'), currency='₹')
         self.cash = self.account
 
@@ -753,6 +793,51 @@ class TestLoanFlowPlan(TestCase):
             'annual_rate': Decimal('12.00'),
             'tenure_months': 12,
         })['headline'], 0)
+
+    def test_new_loan_commit_persists_preview_and_fields(self):
+        flow = NewLoanFlow()
+        principal = Decimal('50000.00')
+        annual_rate = Decimal('12.00')
+        tenure = 12
+        expected_emi = Decimal(str(LoanService.calculate_repayment(principal, annual_rate, tenure, repayment_type='EMI')))
+
+        preview = flow.preview(self.user, {
+            'name': 'Bike Loan',
+            'loan_type': 'PERSONAL',
+            'repayment_type': 'EMI',
+            'principal': principal,
+            'annual_rate': annual_rate,
+            'tenure_months': tenure,
+            'start_date': date(2026, 10, 1),
+            'payment_account': self.account,
+            'create_repayment_schedule': True,
+        })
+
+        result = flow.commit(
+            self.user,
+            {
+                'name': 'Bike Loan',
+                'loan_type': 'PERSONAL',
+                'repayment_type': 'EMI',
+                'principal': principal,
+                'annual_rate': annual_rate,
+                'tenure_months': tenure,
+                'start_date': date(2026, 10, 1),
+                'payment_account': self.account,
+                'create_repayment_schedule': True,
+            },
+            idempotency_key=uuid.UUID('88888888-8888-4888-8888-888888888881'),
+        )
+
+        self.assertEqual(len(result.created), 3)
+        loan = Loan.objects.get(user=self.user, name='Bike Loan')
+        loan_rate = LoanInterestRate.objects.get(loan=loan)
+        emi = RecurringTransaction.objects.get(user=self.user, loan=loan, transaction_type='LOAN')
+
+        self.assertEqual(loan.initial_principal, principal)
+        self.assertEqual(loan_rate.interest_rate, annual_rate)
+        self.assertEqual(emi.amount, expected_emi)
+        self.assertEqual(Decimal(str(preview['headline'])), expected_emi)
 
     def test_loan_flow_supports_configurable_repayment_schedule(self):
         flow = NewLoanFlow()
@@ -1076,6 +1161,13 @@ class TestLoanFlowPlan(TestCase):
 
     def test_fd_commit_creates_account_and_capital_event(self):
         flow = FdFlow()
+        preview = flow.preview(self.user, {
+            'principal': Decimal('100000.00'),
+            'annual_rate': Decimal('12.00'),
+            'deposit_start_date': date(2026, 10, 1),
+            'maturity_date': date(2026, 10, 2),
+            'from_account': self.cash,
+        })
         result = flow.commit(
             self.user,
             {
@@ -1097,10 +1189,16 @@ class TestLoanFlowPlan(TestCase):
         self.assertEqual(Account.objects.filter(user=self.user, account_type='FD').count(), 1)
         self.assertEqual(CapitalEvent.objects.filter(user=self.user, subtype='investment_lump_sum').count(), 1)
         fd_account = Account.objects.get(user=self.user, account_type='FD')
+        self.assertEqual(fd_account.deposit_principal, Decimal('100000.00'))
+        self.assertEqual(fd_account.deposit_rate, Decimal('12.00'))
         self.assertEqual(fd_account.deposit_start_date, date(2026, 10, 1))
         self.assertEqual(fd_account.deposit_compounding, 'QUARTERLY')
         self.assertTrue(fd_account.show_accrued_balance)
         self.assertTrue(fd_account.record_maturity_income)
+        days = 1
+        expected_interest = RecurringService.calculate_interest_for_days(Decimal('100000.00'), Decimal('12.00'), days)
+        expected_maturity = round(Decimal('100000.00') + expected_interest, 2)
+        self.assertEqual(Decimal(str(preview['headline'])), expected_maturity)
 
     def test_fd_commit_is_idempotent(self):
         flow = FdFlow()
@@ -1143,6 +1241,13 @@ class TestLoanFlowPlan(TestCase):
 
     def test_sip_commit_creates_recurring_transfer(self):
         flow = SipRdFlow()
+        preview = flow.preview(self.user, {
+            'instrument_type': 'SIP',
+            'name': 'Equity SIP',
+            'amount': Decimal('5000.00'),
+            'frequency': 'MONTHLY',
+            'from_account': self.cash,
+        })
         result = flow.commit(
             self.user,
             {
@@ -1158,9 +1263,28 @@ class TestLoanFlowPlan(TestCase):
         self.assertEqual(len(result.created), 2)
         self.assertEqual(Account.objects.filter(user=self.user, account_type='MUTUAL_FUND').count(), 1)
         self.assertEqual(RecurringTransaction.objects.filter(user=self.user, transaction_type='TRANSFER').count(), 1)
+        sip_account = Account.objects.get(user=self.user, account_type='MUTUAL_FUND')
+        sip_transfer = RecurringTransaction.objects.get(user=self.user, transaction_type='TRANSFER', to_account=sip_account)
+        self.assertEqual(sip_transfer.amount, Decimal('5000.00'))
+        self.assertEqual(sip_transfer.from_account, self.cash)
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('5000.0'))
 
     def test_rd_commit_creates_deposit_account_and_transfer(self):
         flow = SipRdFlow()
+        preview = flow.preview(self.user, {
+            'instrument_type': 'RD',
+            'name': 'Monthly RD',
+            'amount': Decimal('5000.00'),
+            'frequency': 'MONTHLY',
+            'deposit_principal': Decimal('5000.00'),
+            'deposit_rate': Decimal('7.50'),
+            'deposit_start_date': date(2026, 10, 1),
+            'deposit_compounding': 'QUARTERLY',
+            'rd_installment_day': 1,
+            'show_accrued_balance': True,
+            'record_maturity_income': False,
+            'from_account': self.cash,
+        })
         result = flow.commit(
             self.user,
             {
@@ -1189,6 +1313,10 @@ class TestLoanFlowPlan(TestCase):
         self.assertEqual(rd_account.deposit_compounding, 'QUARTERLY')
         self.assertEqual(rd_account.rd_installment_amount, Decimal('5000.00'))
         self.assertEqual(rd_account.rd_installment_day, 1)
+        rd_transfer = RecurringTransaction.objects.get(user=self.user, transaction_type='TRANSFER', to_account=rd_account)
+        self.assertEqual(rd_transfer.amount, Decimal('5000.00'))
+        self.assertEqual(rd_transfer.from_account, self.cash)
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('5000.0'))
 
     def test_ppf_flow_commit_carries_deposit_metadata(self):
         flow = PpfEpfNpsFlow()
@@ -1222,6 +1350,16 @@ class TestLoanFlowPlan(TestCase):
 
     def test_ppf_commit_creates_account_and_transfer(self):
         flow = PpfEpfNpsFlow()
+        preview = flow.preview(self.user, {
+            'scheme_type': 'PPF',
+            'name': 'Public Provident Fund',
+            'annual_amount': Decimal('150000.00'),
+            'deposit_principal': Decimal('150000.00'),
+            'deposit_rate': Decimal('7.10'),
+            'deposit_start_date': date(2026, 10, 1),
+            'deposit_compounding': 'QUARTERLY',
+            'from_account': self.cash,
+        })
         result = flow.commit(
             self.user,
             {
@@ -1242,8 +1380,104 @@ class TestLoanFlowPlan(TestCase):
         )
 
         self.assertEqual(len(result.created), 2)
-        self.assertEqual(Account.objects.filter(user=self.user, account_type='PPF').count(), 1)
-        self.assertEqual(RecurringTransaction.objects.filter(user=self.user, transaction_type='TRANSFER').count(), 1)
+        ppf_account = Account.objects.get(user=self.user, account_type='PPF')
+        ppf_transfer = RecurringTransaction.objects.get(user=self.user, transaction_type='TRANSFER', to_account=ppf_account)
+        self.assertEqual(ppf_account.deposit_principal, Decimal('150000.00'))
+        self.assertEqual(ppf_account.deposit_rate, Decimal('7.10'))
+        self.assertEqual(ppf_transfer.amount, Decimal('150000.00'))
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('150000.0'))
+
+    def test_rentbill_commit_persists_preview_and_fields(self):
+        flow = RentBillFlow()
+        preview = flow.preview(self.user, {
+            'description': 'Office Rent',
+            'amount': Decimal('25000.00'),
+            'category': 'Utilities',
+            'frequency': 'MONTHLY',
+            'account': self.account,
+            'start_date': date(2026, 10, 1),
+        })
+
+        result = flow.commit(
+            self.user,
+            {
+                'description': 'Office Rent',
+                'amount': Decimal('25000.00'),
+                'category': 'Utilities',
+                'frequency': 'MONTHLY',
+                'account': self.account,
+                'start_date': date(2026, 10, 1),
+            },
+            idempotency_key=uuid.UUID('88888888-8888-4888-8888-888888888882'),
+        )
+
+        self.assertEqual(len(result.created), 1)
+        rent = RecurringTransaction.objects.get(user=self.user, transaction_type='EXPENSE', description='Office Rent')
+        self.assertEqual(rent.amount, Decimal('25000.00'))
+        self.assertEqual(rent.category, 'Utilities')
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('25000.0'))
+
+    def test_savings_goal_commit_persists_preview_and_fields(self):
+        flow = SavingsGoalFlow()
+        preview = flow.preview(self.user, {
+            'name': 'Trip',
+            'target_amount': Decimal('10000.00'),
+            'current_amount': Decimal('4000.00'),
+            'target_months': 6,
+            'icon': 'GOAL',
+            'color': 'success',
+        })
+
+        result = flow.commit(
+            self.user,
+            {
+                'name': 'Trip',
+                'target_amount': Decimal('10000.00'),
+                'current_amount': Decimal('4000.00'),
+                'target_months': 6,
+                'icon': 'GOAL',
+                'color': 'success',
+            },
+            idempotency_key=uuid.UUID('88888888-8888-4888-8888-888888888883'),
+        )
+
+        self.assertEqual(len(result.created), 1)
+        goal = SavingsGoal.objects.get(user=self.user, name='Trip')
+        self.assertEqual(goal.target_amount, Decimal('10000.00'))
+        self.assertEqual(goal.current_amount, Decimal('4000.00'))
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('10000.0'))
+        self.assertTrue(any('1,000.00' in bullet for bullet in preview['bullets']))
+
+    def test_gold_commit_persists_preview_and_fields(self):
+        flow = GoldFlow()
+        preview = flow.preview(self.user, {
+            'route': 'physical',
+            'name': 'Gold Sovereign',
+            'amount': Decimal('65000.00'),
+            'acquisition_date': date(2026, 10, 1),
+            'from_account': self.account,
+        })
+
+        result = flow.commit(
+            self.user,
+            {
+                'route': 'physical',
+                'name': 'Gold Sovereign',
+                'amount': Decimal('65000.00'),
+                'acquisition_date': date(2026, 10, 1),
+                'from_account': self.account,
+            },
+            idempotency_key=uuid.UUID('88888888-8888-4888-8888-888888888884'),
+        )
+
+        self.assertEqual(len(result.created), 5)
+        gold_account = Account.objects.get(user=self.user, name='Gold Sovereign', account_type='GOLD')
+        gold_holding = Holding.objects.get(account=gold_account)
+        purchase_event = CapitalEvent.objects.get(user=self.user, note='Gold purchase: Gold Sovereign')
+        self.assertEqual(gold_account.balance, Decimal('65000.00'))
+        self.assertEqual(gold_holding.avg_cost, Decimal('65000.00'))
+        self.assertEqual(purchase_event.amount, Decimal('65000.00'))
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('65000.0'))
 
 
 class TestSalaryFlowHistoricalCatchup(TestCase):
@@ -1278,6 +1512,37 @@ class TestSalaryFlowHistoricalCatchup(TestCase):
         self.assertTrue(
             Income.objects.filter(user=self.user, source='Salary', description__contains='Recurring').exists()
         )
+
+    def test_salary_flow_commit_persists_preview_and_fields(self):
+        flow = SalaryFlow()
+        preview = flow.preview(self.user, {
+            'amount': Decimal('30000.00'),
+            'currency': '₹',
+            'account': self.cash,
+            'salary_date': 2,
+            'start_date': date(2026, 10, 1),
+            'create_historical_entries': False,
+        })
+
+        result = flow.commit(
+            self.user,
+            {
+                'amount': Decimal('30000.00'),
+                'currency': '₹',
+                'account': self.cash,
+                'salary_date': 2,
+                'start_date': date(2026, 10, 1),
+                'create_historical_entries': False,
+            },
+            idempotency_key=uuid.UUID('77777777-7777-4777-8777-777777777773'),
+        )
+
+        self.assertEqual(len(result.created), 1)
+        salary = RecurringTransaction.objects.get(user=self.user, transaction_type='INCOME', source='Salary')
+        self.assertEqual(salary.amount, Decimal('30000.00'))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.profile.salary_date, 2)
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('30000.00'))
 
     def test_salary_flow_does_not_backfill_when_disabled(self):
         flow = SalaryFlow()
@@ -1317,6 +1582,14 @@ class TestCreditCardFlow(TestCase):
 
     def test_credit_card_commit_creates_revolving_credit_account(self):
         flow = CreditCardFlow()
+        preview = flow.preview(self.user, {
+            'name': 'Omkar CC',
+            'balance': Decimal('15000.00'),
+            'currency': '₹',
+            'credit_limit': Decimal('120000.00'),
+            'billing_day': 2,
+            'existing_account': None,
+        })
         result = flow.commit(
             self.user,
             {
@@ -1335,6 +1608,8 @@ class TestCreditCardFlow(TestCase):
         self.assertEqual(card.balance, Decimal('-15000.00'))
         self.assertEqual(card.credit_limit, Decimal('120000.00'))
         self.assertEqual(card.credit_card_billing_day, 2)
+        self.assertTrue(card.is_active)
+        self.assertEqual(Decimal(str(preview['headline'])), Decimal('120000.0'))
 
     def test_credit_card_commit_updates_existing_account(self):
         existing = Account.objects.create(
@@ -1365,6 +1640,43 @@ class TestCreditCardFlow(TestCase):
         self.assertEqual(existing.balance, Decimal('-2500.00'))
         self.assertEqual(existing.credit_limit, Decimal('150000.00'))
         self.assertEqual(existing.credit_card_billing_day, 18)
+
+    def test_credit_card_flow_commit_enables_billing_reminder_notifications(self):
+        flow = CreditCardFlow()
+        today = timezone.now().date()
+        due_date = today + timedelta(days=3)
+
+        flow.commit(
+            self.user,
+            {
+                'name': 'Reminder Card',
+                'balance': Decimal('9000.00'),
+                'currency': '₹',
+                'credit_limit': Decimal('100000.00'),
+                'billing_day': due_date.day,
+                'existing_account': None,
+            },
+            idempotency_key=uuid.UUID('66666666-6666-4666-8666-666666666667'),
+        )
+
+        card = Account.objects.get(user=self.user, name='Reminder Card', account_type='CREDIT_CARD')
+        self.assertTrue(card.is_active)
+        self.assertEqual(card.credit_card_billing_day, due_date.day)
+        self.assertEqual(card.next_billing_date, due_date)
+
+        cmd = SendNotificationsCommand()
+        cmd.today = today
+        cmd.current_user_notifications = []
+        cmd.users_with_push = set()
+        cmd.sent_notifications_by_user = {}
+        cmd.active_cc_accounts_by_user = {self.user.id: [card]}
+
+        cmd._process_credit_card_reminders(self.user)
+
+        slug = f"billing-{card.id}-{due_date.year}-{due_date.month}"
+        notification = Notification.objects.get(user=self.user, slug=slug)
+        self.assertEqual(notification.notification_type, 'RECURRING')
+        self.assertIn('in 3 days', notification.message)
 
 
 class TestFlowLimitEnforcementAndHardening(TestCase):

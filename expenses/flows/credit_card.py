@@ -51,7 +51,8 @@ class CreditCardFlow(Flow):
     creates = [
         _('Revolving credit account'),
         _('Billing cycle and due date'),
-        _('Recurring payment reminder'),
+        # Keep this copy aligned with send_notifications.Command._process_credit_card_reminders().
+        _('Billing-date reminder, 3 days before each statement'),
     ]
     limit_map = {'accounts': Account}
     form_class = CreditCardFlowForm
