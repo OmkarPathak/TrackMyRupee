@@ -382,8 +382,9 @@ class UploadViewTest(TestCase):
         self.client.get(reverse('upload'))
 
         # Without batching and prefetching, 50 rows with no category column required 200+ queries.
-        # With pre-fetching and bulk_create, it executes in only 12 queries.
-        with self.assertNumQueries(12):
+        # With pre-fetching and bulk_create, it executes in only 12 queries, plus 6 to rebuild
+        # global_badge_data (the upload saves the Account, which invalidates that cache).
+        with self.assertNumQueries(18):
             response = self.client.post(reverse('upload'), {
                 'account': self.account.id,
                 'currency': '₹',
