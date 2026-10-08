@@ -25,7 +25,7 @@
                     {% endif %}
                 </h1>
 
-                <div class="text-muted small mb-0 fw-medium d-none d-md-block">
+                <div class="text-muted mb-0 fw-medium d-none d-md-block" style="font-size: 0.875rem;">
                     <div class="d-flex align-items-center flex-wrap gap-2">
                         <span class="text-nowrap">
                             <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "transactions" %}
@@ -230,7 +230,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="text-truncate" style="max-width: 250px;" title="{{ tx.tx_description|default:'' }}">{{ tx.tx_description|default:"-"|truncatechars:40 }}</div>
+                                        <div class="text-truncate tx-description" title="{{ tx.tx_description|default:'' }}">{{ tx.tx_description|default:"-"|truncatechars:80 }}</div>
                                         {% if tx.cc_balance_after_payment is not None %}
                                             <div class="text-muted small mt-1 text-truncate" style="font-size: 0.75rem; max-width: 250px;">
                                                 {{ tx.to_account_name }} · {% trans "Balance after payment" %}: {{ tx.to_account_currency }}{{ tx.cc_balance_after_payment|compact_amount:tx.to_account_currency|translate_digits }}
@@ -251,7 +251,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="small text-muted">
-                                        <div class="text-truncate" style="max-width: 170px;" title="{{ tx.acc }}">{{ tx.acc }}</div>
+                                        <div class="text-truncate tx-account" title="{{ tx.acc }}">{{ tx.acc }}</div>
                                     </td>
                                     <td class="text-end fw-bold amount-{{ tx.type|lower }} signed-amount">
                                         {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
@@ -439,3 +439,5 @@
     </div>
     {% endif %}
 </div>
+
+{% include 'expenses/partials/_oob_messages.html' %}

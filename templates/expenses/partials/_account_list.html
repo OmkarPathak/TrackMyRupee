@@ -482,25 +482,4 @@
 })();
 </script>
 
-{% if messages and request.META.HTTP_HX_REQUEST or messages and request.headers.hx_request %}
-<div id="django-messages-toast-container" hx-swap-oob="beforeend">
-    {% for message in messages %}
-    <div class="toast align-items-center text-bg-{% if message.tags == 'error' %}danger{% elif message.tags == 'info' %}info{% else %}{{ message.tags }}{% endif %} border-0 shadow-lg mb-2"
-        role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">
-                {% if message.tags == 'error' %}
-                <i class="bi bi-exclamation-circle-fill me-2"></i>
-                {% elif message.tags == 'success' %}
-                <i class="bi bi-check-circle-fill me-2"></i>
-                {% else %}
-                <i class="bi bi-info-circle-fill me-2"></i>
-                {% endif %}
-                {{ message }}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+{% include 'expenses/partials/_oob_messages.html' %}
