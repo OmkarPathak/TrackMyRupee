@@ -110,6 +110,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
+    'finance_tracker.server_timing.ServerTimingMiddleware',  # must stay first; no-op unless ENABLE_SERVER_TIMING
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.gzip.GZipMiddleware', # Compress responses (~230KB HTML -> ~25KB); must stay high in the stack
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -453,6 +454,9 @@ def _env_int_set(name):
 
 
 # Ledger rollout flags (all off by default for safe rollout)
+# Emit a `Server-Timing` header (total / db / query count) on every response. Numbers only.
+ENABLE_SERVER_TIMING = _env_bool('ENABLE_SERVER_TIMING', False)
+
 LEDGER_WRITE_ENABLED = _env_bool('LEDGER_WRITE_ENABLED', True)
 LEDGER_RECONCILE_ENABLED = _env_bool('LEDGER_RECONCILE_ENABLED', True)
 LEDGER_READ_ENABLED = _env_bool('LEDGER_READ_ENABLED', True)
