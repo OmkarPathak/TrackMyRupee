@@ -364,17 +364,14 @@ body.has-sidebar .card:has(> .table-responsive) {
   --bs-success-rgb: 29, 158, 117;
 
   /* Toast Notification Standardized Colors */
+  /* Success toasts use the primary green (same as the primary buttons) in light and dark themes. */
   .toast.text-bg-success,
-  .toast.bg-success {
-    background-color: var(--bs-success) !important;
-    color: #ffffff !important;
-  }
-
+  .toast.bg-success,
   [data-bs-theme="dark"] .toast.text-bg-success,
   [data-bs-theme="dark"] .toast.bg-success {
-    background-color: rgba(var(--bs-success-rgb), 0.15) !important;
-    color: var(--color-success-text) !important;
-    border: 1px solid rgba(var(--bs-success-rgb), 0.3) !important;
+    background-color: var(--color-secondary, #0F7657) !important;
+    color: #ffffff !important;
+    border: 0 !important;
   }
 
   /* Override Bootstrap warning */
@@ -2127,6 +2124,52 @@ html.is-mobile-app .navbar.sticky-top,
   backdrop-filter: none !important;
 }
 
+/* --- iOS PWA / mobile app: nothing may show (or blur) under the notch ---------------------------
+   The status bar is "black-translucent", so page content extends underneath it. A solid strip the
+   height of the safe area, painted with the page background, sits above everything that scrolls, so
+   the notch area is always clean regardless of which element is behind it. Elements pinned to the top
+   also lose backdrop blur, which is what rendered as a blur below the notch. */
+html.is-mobile-app::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background-color: var(--bg-color, #faf8f5);
+  z-index: 1060;
+  pointer-events: none;
+}
+@media (display-mode: standalone) {
+  html::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background-color: var(--bg-color, #faf8f5);
+    z-index: 1060;
+    pointer-events: none;
+  }
+  .sticky-top,
+  .fixed-top,
+  [class*="sticky-"],
+  .navbar,
+  .mobile-bottom-nav,
+  .sticky-action-bar .action-bar-content {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+html.is-mobile-app .sticky-top,
+html.is-mobile-app .fixed-top,
+html.is-mobile-app [class*="sticky-"],
+html.is-mobile-app .sticky-action-bar .action-bar-content {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
 /* --- Visual Payment Method Selector --- */
 .payment-method-selector {
   display: flex;
@@ -2182,7 +2225,7 @@ html.is-mobile-app .navbar.sticky-top,
 }
 
 .payment-method-item.active .icon-wrapper {
-  background-color: #1D9E75;
+  background-color: var(--color-secondary, #0F7657); /* same green as the primary buttons */
   color: white;
   transform: scale(1.1);
 }
@@ -2362,7 +2405,7 @@ html.is-mobile-app .navbar.sticky-top,
 
 [data-bs-theme="dark"] .form-card .form-control,
 [data-bs-theme="dark"] .form-card .form-select {
-  background: rgba(255,255,255,0.05);
+  background-color: rgba(255,255,255,0.05); /* not the shorthand: it wiped the select's dropdown arrow */
   border-color: rgba(255,255,255,0.1);
 }
 
