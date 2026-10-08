@@ -346,7 +346,7 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
         {% block extra_head %}{% endblock %}
-        {% if user.is_authenticated %}<link rel="stylesheet" href="{% static 'css/expense_composer.css' %}?v=1.2">{% endif %}
+        {% if user.is_authenticated %}<link rel="stylesheet" href="{% static 'css/expense_toast.css' %}?v=1.0">{% endif %}
 
     <!-- Google Fonts (Non-blocking FCP optimization) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -579,8 +579,8 @@
 
     {% load static %}
     <!-- Preload critical local stylesheet so the browser fetches it in parallel -->
-    <link rel="preload" href="{% static 'style.css' %}?v=1.9" as="style">
-    <link rel="stylesheet" href="{% static 'style.css' %}?v=1.9">
+    <link rel="preload" href="{% static 'style.css' %}?v=2.3" as="style">
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=2.3">
     <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.5">
     <style>
         /* Bootstrap Multiselect Premium Customization */
@@ -1188,7 +1188,7 @@
 
     <!-- Skeleton Loader JS — deferred so it doesn't block first paint -->
     <script defer src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
-    {% if user.is_authenticated %}<script defer src="{% static 'js/expense_composer.js' %}?v=1.1"></script>{% endif %}
+    {% if user.is_authenticated %}<script defer src="{% static 'js/expense_toast.js' %}?v=1.0"></script>{% endif %}
     <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 

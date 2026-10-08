@@ -1,16 +1,15 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/expense_composer.css' %}?v=4.5">{% endblock %}
 
 {% block title %}{% trans "New expense" %} | TrackMyRupee{% endblock %}
 
-{% comment %}
-  Deep link to the New Expense composer (bookmarks, PWA shortcut, old /expenses/add/ links).
-  The composer is mounted by base.html; this marker tells it to open immediately and where to
-  send the user afterwards.
-{% endcomment %}
 {% block content %}
-<div data-composer-autoopen data-next="{{ next_url }}" data-entry="{{ request.GET.source }}"></div>
+{% include 'components/expense_composer_card.html' %}
 <noscript>
   <p class="text-center my-5">{% trans "JavaScript is needed to add an expense." %}</p>
 </noscript>
 {% endblock %}
+
+{% block scripts %}<script defer src="{% static 'js/expense_composer.js' %}?v=3.0"></script>{% endblock %}

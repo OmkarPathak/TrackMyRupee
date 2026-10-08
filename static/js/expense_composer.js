@@ -1,23 +1,20 @@
-/* New Expense composer: type one line, review six fields, add.
- * Markup: templates/components/expense_composer.html   Styles: static/css/expense_composer.css
+/* New Expense form: type one line, review six fields, add.
+ * Markup: templates/components/expense_composer_card.html   Styles: static/css/expense_composer.css
+ * Loaded only on /expenses/add/ (the toast and the N shortcut are expense_toast.js, loaded everywhere).
  * Endpoints: parse-expense (dry run), expense-composer-{data,save,event}, expense-composer-undo.
  */
 (function () {
   'use strict';
 
+  var T = window.TMRToast;
   var root = document.getElementById('tmr-composer');
-  var meta = document.getElementById('tmr-c-i18n');
-  if (!root || !meta) return;
+  var meta = document.getElementById('tmr-c-i18n-page');
+  if (!T || !root || !meta) return;
 
   var $ = function (id) { return document.getElementById(id); };
-  var I = {};
-  meta.querySelectorAll('[data-k]').forEach(function (el) { I[el.dataset.k] = el.textContent; });
-  function t(key, vars) {
-    var s = I[key] != null ? I[key] : key;
-    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
-    return s;
-  }
-
+  meta.querySelectorAll('[data-k]').forEach(function (el) { T.I[el.dataset.k] = el.textContent; });
+  var t = T.t, CSRF = T.CSRF, showToast = T.showToast, hooks = T.hooks;
+  var TOAST_MS = T.TOAST_MS, TOAST_KEY = T.TOAST_KEY;
   var URLS = {
     parse: meta.dataset.parseUrl,
     data: meta.dataset.dataUrl,
@@ -25,14 +22,12 @@
     event: meta.dataset.eventUrl,
     category: meta.dataset.categoryUrl,
     capital: meta.dataset.capitalUrl,
-    addPath: meta.dataset.addPath,
+    addPath: T.URLS.addPath,
     pricing: meta.dataset.pricingUrl
   };
-  var CSRF = meta.dataset.csrf;
   var LANG = (document.documentElement.lang || 'en').slice(0, 2).toLowerCase();
   var LOCALE = { hi: 'hi-IN', mr: 'mr-IN' }[LANG] || 'en-IN';
-  var TOAST_KEY = 'tmr_composer_toast';
-  var TOAST_MS = 8000;
+
 
   // Field -> analytics/server name; also the Enter-to-next order (currency is Tab-only).
   var FIELDS = ['amount', 'date', 'description', 'category', 'account', 'payment'];
@@ -63,11 +58,11 @@
     discardKeep: $('tmr-discard-keep'), discardGo: $('tmr-discard-go'),
     cLarge: $('tmr-confirm-large'), largeText: $('tmr-large-text'), largeYes: $('tmr-large-yes'),
     largeEdit: $('tmr-large-edit'), largeCapital: $('tmr-large-capital'),
-    live: $('tmr-live'), toasts: $('tmr-toasts'), card: root.querySelector('.tmr-c__card')
+    live: $('tmr-live')
   };
   var fieldEl = {};
   root.querySelectorAll('[data-field]').forEach(function (n) { fieldEl[n.dataset.field] = n; });
-  var addLabel = el.add.textContent;
+  var addHtml = el.add.innerHTML;
   var pickLabel = el.pickFace.textContent;
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -75,7 +70,7 @@
     open: false, view: 'A', data: null, loading: null,
     v: { amount: '', currency: '₹', date: '', description: '', category: '', accountId: '', payment: 'Cash' },
     origin: {}, tag: {}, check: {}, edited: {}, usedParse: false,
-    key: '', openedAt: 0, entry: 'other', stickyDate: null, saving: false, dirtyPage: false,
+    key: '', openedAt: 0, entry: 'other', stickyDate: null, saving: false,
     opener: null, parseSeq: 0, largeOk: false, pushed: false, lastAnother: false,
     deepLink: false, nextUrl: '', prevCategory: ''
   };
@@ -171,11 +166,20 @@
     node.appendChild(document.createTextNode(t(TAG_TEXT[tag])));
   }
 
+  // The app's .tmr-pill / .payment-method-item styles key off .active, so mirror the checked radio.
+  function syncActive() {
+    root.querySelectorAll('label.tmr-sel').forEach(function (l) {
+      var r = l.querySelector('input[type=radio]');
+      l.classList.toggle('active', !!(r && r.checked));
+    });
+  }
+
   function paintDate() {
     var iso = S.v.date, kind = dateKind(iso);
     el.dateGroup.querySelectorAll('input[type=radio]').forEach(function (r) { r.checked = r.value === kind; });
     el.pickFace.textContent = kind === 'custom' ? fmtDate(iso) : pickLabel;
     el.dateInput.value = iso;
+    syncActive();
     var future = iso > todayISO();
     el.dateMsg.hidden = !future;
     el.dateMsg.textContent = future ? t('futureDate') : '';
@@ -187,10 +191,53 @@
     el.description.value = S.v.description;
     el.category.value = S.v.category && optionExists(el.category, S.v.category) ? S.v.category : '';
     el.account.value = S.v.accountId && optionExists(el.account, String(S.v.accountId)) ? String(S.v.accountId) : '';
+    [el.currency, el.category, el.account].forEach(refreshSelect);
     el.payGroup.querySelectorAll('input').forEach(function (r) { r.checked = r.value === S.v.payment; });
+    syncActive();
     paintDate();
     FIELDS.forEach(paintTag);
     updateDateNote();
+  }
+  // The app's searchable-select component hides the real <select> and shows its own button; it must
+  // be told when options or the value change from script, and focus goes to its button.
+  // When a search in the category dropdown finds nothing, offer to create that category right there.
+  var catWatched = false;
+  function watchCategorySearch() {
+    var wrap = el.category.closest('.searchable-select-wrapper');
+    var list = wrap && wrap.querySelector('.searchable-select-list');
+    if (!list || catWatched) return;
+    catWatched = true;
+    new MutationObserver(function () {
+      var term = (wrap.querySelector('.searchable-select-search') || {}).value || '';
+      term = term.trim();
+      if (!term || !list.querySelector('.searchable-select-empty') || list.querySelector('.tmr-create-item')) return;
+      var item = document.createElement('div');
+      item.className = 'searchable-select-item tmr-create-item';
+      item.textContent = t('createNamed', { name: term });
+      item.addEventListener('click', function () {
+        var dd = wrap.querySelector('.searchable-select-dropdown');
+        if (dd) dd.classList.remove('show');
+        wrap.classList.remove('open');
+        el.catMsg.hidden = true; el.catName.value = term;
+        show(el.catInline, true); el.catName.focus();
+      });
+      list.appendChild(item);
+    }).observe(list, { childList: true });
+  }
+
+  function refreshSelect(sel) {
+    if (sel === el.category) watchCategorySearch();
+    if (typeof sel.searchableSelectRefresh === 'function') sel.searchableSelectRefresh();
+    if (sel === el.category) {
+      // "Select category" is only a placeholder on the button, never an option in the list.
+      var btn = ctl(sel), empty = sel.selectedIndex < 0;
+      if (empty) btn.textContent = t('selectCategory');
+      btn.classList.toggle('tmr-placeholder', empty);
+    }
+  }
+  function ctl(sel) {
+    var w = sel.closest('.searchable-select-wrapper');
+    return (w && w.querySelector('.searchable-select-btn')) || sel;
   }
   function optionExists(sel, value) {
     for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === value) return true;
@@ -209,12 +256,13 @@
     fillCategories();
     el.account.textContent = '';
     d.accounts.forEach(function (a) { el.account.add(new Option(a.label, String(a.id))); });
+    refreshSelect(el.currency); refreshSelect(el.account);
   }
   function fillCategories() {
     el.category.textContent = '';
-    el.category.add(new Option(t('selectCategory'), ''));
     (S.data ? S.data.categories : []).forEach(function (c) { el.category.add(new Option(c, c)); });
     el.category.add(new Option(t('createCategory'), '__create__'));
+    refreshSelect(el.category);
   }
 
   // ── Defaults & reset ──────────────────────────────────────────────────────
@@ -308,7 +356,7 @@
     });
     chips.slice(0, 4).forEach(function (c) {
       var b = document.createElement('button');
-      b.type = 'button'; b.className = 'tmr-suggest'; b.textContent = c.label;
+      b.type = 'button'; b.className = 'tmr-flow-cat'; b.textContent = c.label;
       b.addEventListener('click', function () {
         if (c.usual) fillFromUsual(c); else { el.quick.value = c.label; parse(); }
       });
@@ -486,7 +534,7 @@
   el.account.addEventListener('change', function () { S.v.accountId = el.account.value ? +el.account.value : ''; userEdit('account'); });
   el.payGroup.addEventListener('change', function (e) {
     if (e.target.name !== 'tmr-pay') return;
-    S.v.payment = e.target.value; userEdit('payment'); el.payMsg.hidden = true;
+    S.v.payment = e.target.value; userEdit('payment'); el.payMsg.hidden = true; syncActive();
   });
   el.dateGroup.addEventListener('change', function (e) {
     if (e.target.name !== 'tmr-date') return;
@@ -514,14 +562,15 @@
   // Category select, including "+ Create category"
   el.category.addEventListener('change', function () {
     if (el.category.value === '__create__') {
-      el.category.value = S.v.category || '';
+      // The dropdown component writes its label after this handler, so reset the value just after it.
+      setTimeout(function () { el.category.value = S.v.category || ''; refreshSelect(el.category); }, 0);
       el.catMsg.hidden = true; el.catName.value = '';
       show(el.catInline, true); el.catName.focus();
       return;
     }
     S.v.category = el.category.value; userEdit('category'); el.categoryMsg.hidden = true;
   });
-  function closeCatInline() { show(el.catInline, false); el.category.focus(); }
+  function closeCatInline() { show(el.catInline, false); ctl(el.category).focus(); }
   el.catCancel.addEventListener('click', closeCatInline);
   el.catName.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); el.catSave.click(); }
@@ -545,7 +594,7 @@
         fillCategories();
         S.v.category = res.j.name; userEdit('category'); paint();
         show(el.catInline, false);
-        el.category.focus();
+        ctl(el.category).focus();
       })
       .catch(function (err) { el.catMsg.textContent = err.message || t('categoryFailed'); el.catMsg.hidden = false; })
       .then(function () { el.catSave.disabled = false; });
@@ -562,14 +611,14 @@
     [el.amountMsg, el.categoryMsg, el.payMsg].forEach(function (n) { n.hidden = true; });
     if (!(amountNumber() > 0)) { fieldMsg('amount', el.amountMsg, t('errAmount')); first = first || el.amount; }
     if (!validISO(S.v.date)) { fieldMsg('date', el.dateMsg, t('errDate')); first = first || el.dateGroup.querySelector('input'); }
-    if (!S.v.category) { fieldMsg('category', el.categoryMsg, t('errCategory')); first = first || el.category; }
+    if (!S.v.category) { fieldMsg('category', el.categoryMsg, t('errCategory')); first = first || ctl(el.category); }
     if (!S.v.payment) { fieldMsg('payment', el.payMsg, t('errPayment')); first = first || el.payGroup.querySelector('input'); }
     return first;
   }
   function setBusy(on) {
     S.saving = on;
     [el.add, el.addAnother, el.cancel].forEach(function (b) { b.disabled = on; });
-    el.add.textContent = on ? t('adding') : addLabel;
+    if (on) el.add.textContent = t('adding'); else el.add.innerHTML = addHtml;
   }
 
   function attemptAdd(another) {
@@ -649,7 +698,6 @@
   }
 
   function onSaved(j, another) {
-    S.dirtyPage = true;
     if (S.data && j.account_id && j.account_label) {
       S.data.accounts.forEach(function (a) { if (a.id === j.account_id) a.label = j.account_label; });
       populateSelects();
@@ -670,148 +718,30 @@
     }
   }
 
-  // Leave the card and make the page behind it show the new expense.
+  // Done: remember the toast for the next page and go back to where the user came from.
   function finish(toast) {
     try { sessionStorage.setItem(TOAST_KEY, JSON.stringify({ toast: toast, until: Date.now() + TOAST_MS })); } catch (e) { /* private mode */ }
-    teardown();
-    if (S.deepLink) { window.location.assign(S.nextUrl); return; }
-    leaveHistory(function () { window.location.reload(); });
+    leave();
   }
 
-  function leaveHistory(done) {
-    if (!S.pushed) { done(); return; }
-    S.pushed = false;
-    var called = false;
-    function once() { if (called) return; called = true; window.removeEventListener('popstate', once); done(); }
-    window.addEventListener('popstate', once);
-    history.back();
-    setTimeout(once, 400);
-  }
-
-  // ── Toasts ────────────────────────────────────────────────────────────────
-  function showToast(opts, ms) {
-    var box = document.createElement('div');
-    box.className = 'tmr-toast';
-    var msg = document.createElement('span');
-    msg.className = 'tmr-toast__msg';
-    msg.textContent = opts.plain || t('addedToast', { summary: opts.summary });
-    box.appendChild(msg);
-    var timer;
-    function dismiss() { clearTimeout(timer); if (box.parentNode) box.parentNode.removeChild(box); }
-    function arm(left) { clearTimeout(timer); timer = setTimeout(dismiss, left); }
-    if (opts.undoUrl) {
-      var u = document.createElement('button');
-      u.type = 'button'; u.className = 'tmr-toast__btn'; u.textContent = t('undo');
-      u.addEventListener('click', function () { undo(opts, box, dismiss); });
-      box.appendChild(u);
-    }
-    if (opts.editUrl) {
-      var e = document.createElement('a');
-      e.className = 'tmr-toast__btn'; e.textContent = t('edit');
-      var next = S.deepLink ? S.nextUrl : (location.pathname + location.search);
-      e.href = opts.editUrl + (opts.editUrl.indexOf('?') < 0 ? '?' : '&') + 'next=' + encodeURIComponent(next);
-      box.appendChild(e);
-    }
-    box.addEventListener('mouseenter', function () { clearTimeout(timer); });
-    box.addEventListener('mouseleave', function () { arm(2500); });
-    box.addEventListener('focusin', function () { clearTimeout(timer); });
-    box.addEventListener('focusout', function () { arm(2500); });
-    el.toasts.appendChild(box);
-    arm(ms || TOAST_MS);
-  }
-
-  function undo(opts, box, dismiss) {
-    var btn = box.querySelector('button');
-    if (btn) btn.disabled = true;
-    fetch(opts.undoUrl, { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRFToken': CSRF } })
-      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
-      .then(function (res) {
-        dismiss();
-        if (!res.ok || !res.j.success) { showToast({ plain: (res.j && res.j.error) || t('undoFailed') }, 5000); return; }
-        if (S.data && res.j.account_id && res.j.account_label) {
-          S.data.accounts.forEach(function (a) { if (a.id === res.j.account_id) a.label = res.j.account_label; });
-          populateSelects(); paint();
-        }
-        showToast({ plain: t('undone') }, 3000);
-        if (S.open) S.dirtyPage = true; else setTimeout(function () { window.location.reload(); }, 600);
-      })
-      .catch(function () { if (btn) btn.disabled = false; showToast({ plain: t('undoFailed') }, 5000); });
-  }
-
-  // Toast that survives the post-add page refresh.
-  try {
-    var saved = JSON.parse(sessionStorage.getItem(TOAST_KEY) || 'null');
-    sessionStorage.removeItem(TOAST_KEY);
-    if (saved && saved.until - Date.now() > 800) showToast(saved.toast, saved.until - Date.now());
-  } catch (e) { /* ignore */ }
-
-  // ── Open / close ──────────────────────────────────────────────────────────
-  function syncViewport() {
-    var vv = window.visualViewport;
-    if (!vv) return;
-    root.style.setProperty('--tmr-vv-h', vv.height + 'px');
-    root.style.setProperty('--tmr-vv-top', vv.offsetTop + 'px');
-  }
-
-  function open(entry, opts) {
-    opts = opts || {};
-    if (S.open) { el.quick.focus(); return; }
-    S.open = true; S.entry = entry || 'other'; S.openedAt = Date.now();
-    S.opener = opts.opener || document.activeElement;
-    root.hidden = false;
-    document.documentElement.classList.add('tmr-c-open');
-    resetCard(false);
-    syncViewport();
-    if (window.visualViewport) {
-      visualViewport.addEventListener('resize', syncViewport);
-      visualViewport.addEventListener('scroll', syncViewport);
-    }
-    el.quick.focus();                       // synchronous so iOS shows the keyboard
-    if (!opts.noHistory) { history.pushState({ tmrComposer: 1 }, ''); S.pushed = true; }
-    ensureData().catch(function () { showLoadError(); });
-    sendEvent('expense_form_opened', { entry: S.entry });
-    if (opts.text) { el.quick.value = opts.text; parse(); }
-  }
-
-  function teardown() {
-    S.open = false;
-    S.stickyDate = null;
-    root.hidden = true;
-    document.documentElement.classList.remove('tmr-c-open');
-    if (window.visualViewport) {
-      visualViewport.removeEventListener('resize', syncViewport);
-      visualViewport.removeEventListener('scroll', syncViewport);
-    }
-    stopListening();
-  }
-
-  function close() {
-    teardown();
-    var back = function () {
-      if (S.deepLink) { window.location.assign(S.nextUrl); return; }
-      if (S.dirtyPage) { window.location.reload(); return; }
-      if (S.opener && S.opener.focus && document.contains(S.opener)) S.opener.focus();
-    };
-    leaveHistory(back);
-  }
+  // ── Page lifecycle ────────────────────────────────────────────────────────
+  // New Expense is an ordinary page: Cancel / Close / a finished add go back to where the user came from.
+  function leave() { window.location.assign(S.nextUrl); }
 
   function hasUnsaved() {
     return !!(el.quick.value.trim() || S.v.amount || S.v.description || Object.keys(S.edited).length);
   }
   function requestClose() {
     if (S.saving) return;
-    if (!hasUnsaved()) { close(); return; }
+    if (!hasUnsaved()) { leave(); return; }
     el.discardText.textContent = t('discardAsk');
     el.discardKeep.textContent = t('keepEditing'); el.discardGo.textContent = t('discard');
     el.discardKeep.onclick = function () { show(el.cDiscard, false); (S.view === 'A' ? el.quick : el.amount).focus(); };
-    el.discardGo.onclick = function () { show(el.cDiscard, false); close(); };
+    el.discardGo.onclick = function () { show(el.cDiscard, false); leave(); };
     show(el.cDiscard, true); el.discardKeep.focus();
   }
 
-  root.addEventListener('click', function (e) {
-    if (e.target.closest('[data-composer-close]')) requestClose();
-  });
-  el.cancel.addEventListener('click', function () { if (!S.saving) close(); });
+  el.cancel.addEventListener('click', function () { if (!S.saving) leave(); });
   el.go.addEventListener('click', parse);
   el.manual.addEventListener('click', enterManual);
   el.add.addEventListener('click', function () { attemptAdd(false); });
@@ -820,20 +750,12 @@
     S.stickyDate = null; applyDefaults(true); paint(); el.quick.focus();
   });
 
-  window.addEventListener('popstate', function () {
-    if (!S.open || !S.pushed) return;
-    // Browser/phone Back: keep the card if there is something to lose.
-    if (hasUnsaved()) { history.pushState({ tmrComposer: 1 }, ''); requestClose(); return; }
-    S.pushed = false; teardown();
-    if (S.dirtyPage) window.location.reload();
-  });
-
   // ── Keyboard ──────────────────────────────────────────────────────────────
   function focusTargets() {
     return [
       el.amount,
       el.dateGroup.querySelector('input:checked') || el.dateGroup.querySelector('input'),
-      el.description, el.category, el.account,
+      el.description, ctl(el.category), ctl(el.account),
       el.payGroup.querySelector('input:checked') || el.payGroup.querySelector('input')
     ];
   }
@@ -841,8 +763,8 @@
     if (target === el.amount) return 0;
     if (el.dateGroup.contains(target) && target.type === 'radio') return 1;
     if (target === el.description) return 2;
-    if (target === el.category) return 3;
-    if (target === el.account) return 4;
+    if (target === ctl(el.category)) return 3;
+    if (target === ctl(el.account)) return 4;
     if (el.payGroup.contains(target) && target.type === 'radio') return 5;
     return -1;
   }
@@ -858,61 +780,33 @@
     else focusTargets()[i + 1].focus();
   });
 
-  root.addEventListener('keydown', function (e) {
-    if (!S.open) return;
+  document.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); attemptAdd(false); return; }
     if (e.key === 'Escape') {
-      e.preventDefault();
       if (!el.cDiscard.hidden) { show(el.cDiscard, false); return; }
       if (!el.cLarge.hidden) { show(el.cLarge, false); return; }
+      if (!el.catInline.hidden) return;      // the category field handles its own Escape
+      if (document.querySelector('.modal.show, .offcanvas.show')) return;
       requestClose();
-      return;
     }
-    if (e.key === 'Tab') {                  // keep focus inside the dialog
-      var items = Array.prototype.filter.call(
-        el.card.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'),
-        function (n) {
-          return !n.disabled && n.tabIndex >= 0 && n.getClientRects().length > 0 &&
-            !(n.type === 'radio' && !n.checked && n.name && el.card.querySelector('input[name="' + n.name + '"]:checked'));
-        });
-      if (!items.length) return;
-      var first = items[0], last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    }
-  });
-
-  // Modal behaviour: if something outside the card grabs focus (e.g. Bootstrap returning it to a
-  // trigger after its offcanvas closes), hand it back to the last control used inside the card.
-  var lastInside = null;
-  root.addEventListener('focusin', function (e) { lastInside = e.target; });
-  document.addEventListener('focusin', function (e) {
-    if (!S.open || root.contains(e.target)) return;
-    (lastInside && document.contains(lastInside) ? lastInside : el.quick).focus();
-  });
-
-  // Global "N" shortcut (desktop), never while typing or when another dialog is up.
-  document.addEventListener('keydown', function (e) {
-    if (S.open || e.defaultPrevented) return;
-    if (e.key !== 'n' && e.key !== 'N') return;
-    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-    var a = document.activeElement, tag = a && a.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (a && a.isContentEditable)) return;
-    if (document.querySelector('.modal.show, .offcanvas.show')) return;
-    e.preventDefault();
-    open('shortcut_key');
   });
 
   // ── Voice ─────────────────────────────────────────────────────────────────
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   var rec = null;
-  if (SR && window.isSecureContext !== false) el.mic.hidden = false;
+  // Looked up at tap time (as the old form did): iOS web apps don't always expose it at page load.
+  function speechCtor() { return window.SpeechRecognition || window.webkitSpeechRecognition; }
 
   function stopListening() {
     el.mic.classList.remove('is-listening'); el.mic.setAttribute('aria-pressed', 'false');
     if (rec) { try { rec.onresult = rec.onerror = rec.onend = null; rec.abort(); } catch (e) { /* noop */ } rec = null; }
   }
   el.mic.addEventListener('click', function () {
+    var SR = speechCtor();
+    if (!SR) {
+      // No Web Speech API in this view: the keyboard's own dictation still works.
+      el.voiceMsg.textContent = t('micUnsupported'); show(el.voiceMsg, true); el.quick.focus();
+      return;
+    }
     if (rec) { stopListening(); return; }
     show(el.voiceMsg, false);
     try {
@@ -951,58 +845,19 @@
     } catch (e) { /* noop */ }
   }
 
-  // ── Entry points ──────────────────────────────────────────────────────────
-  function guessEntry(a) {
-    if (a.dataset.composerEntry) return a.dataset.composerEntry;
-    if (a.closest('#addActionsSheet')) return 'mobile_sheet';
-    if (a.closest('.sidebar, #sidebar, [class*="sidebar"]')) return 'sidebar';
-    if (a.closest('nav, header')) return 'navbar';
-    return 'empty_state';
-  }
-  document.addEventListener('click', function (e) {
-    if (e.defaultPrevented) return;
-    var trigger = e.target.closest('[data-open-composer]');
-    var a = trigger ? null : e.target.closest('a[href]');
-    if (trigger) {
-      e.preventDefault();
-      open(trigger.dataset.openComposer || 'other', { opener: trigger });
-      return;
+  // ── Start ─────────────────────────────────────────────────────────────────
+  S.nextUrl = root.dataset.next || '/expenses/';
+  hooks.nextUrl = function () { return S.nextUrl; };
+  hooks.afterUndo = function (j) {
+    if (S.data && j.account_id && j.account_label) {
+      S.data.accounts.forEach(function (a) { if (a.id === j.account_id) a.label = j.account_label; });
+      populateSelects(); paint();
     }
-    if (!a || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-    if (a.target && a.target !== '_self') return;
-    var url;
-    try { url = new URL(a.href, window.location.href); } catch (err) { return; }
-    if (url.origin !== window.location.origin || url.pathname !== URLS.addPath) return;
-    e.preventDefault();
-    var sheet = a.closest('.offcanvas.show');
-    if (sheet && window.bootstrap) { var inst = bootstrap.Offcanvas.getInstance(sheet); if (inst) inst.hide(); }
-    open(guessEntry(a), { opener: a });
-  });
-
-  // Dashboard quick-add bar: type there, Enter opens the composer already parsed.
-  document.addEventListener('keydown', function (e) {
-    var input = e.target.closest && e.target.closest('[data-composer-bar-input]');
-    if (!input || e.key !== 'Enter' || e.isComposing) return;
-    e.preventDefault();
-    var text = input.value.trim(); input.value = '';
-    open('dashboard_bar', { opener: input, text: text });
-  });
-  document.addEventListener('click', function (e) {
-    var go = e.target.closest('[data-composer-bar-go]');
-    if (!go) return;
-    var input = document.querySelector('[data-composer-bar-input]');
-    var text = input ? input.value.trim() : '';
-    if (input) input.value = '';
-    open('dashboard_bar', { opener: go, text: text });
-  });
-
-  // Deep link (/expenses/add/, PWA shortcut, old bookmarks): open straight away.
-  var auto = document.querySelector('[data-composer-autoopen]');
-  if (auto) {
-    S.deepLink = true;
-    S.nextUrl = auto.dataset.next || '/expenses/';
-    open(auto.dataset.entry === 'pwa' ? 'pwa_shortcut' : 'deep_link', { noHistory: true });
-  }
-
-  window.TMRComposer = { open: open };
+  };
+  S.entry = { pwa: 'pwa_shortcut' }[root.dataset.entry] || 'deep_link';
+  S.openedAt = Date.now();
+  resetCard(false);
+  el.quick.focus();
+  ensureData().catch(function () { showLoadError(); });
+  sendEvent('expense_form_opened', { entry: S.entry });
 })();

@@ -13068,6 +13068,19 @@ msgstr "खर्च जोडण्यासाठी JavaScript आवश्�
 msgid "Log an expense in one line"
 msgstr "एका ओळीत खर्च नोंदवा"
 
+
+msgid "Voice input isn't available in this app view. Use the microphone on your keyboard to dictate."
+msgstr "या अॅप व्ह्यूमध्ये व्हॉइस इनपुट उपलब्ध नाही. बोलण्यासाठी कीबोर्डवरील मायक्रोफोन वापरा."
+
+msgid "Add a new expense"
+msgstr "नवीन खर्च जोडा"
+
+msgid "Save and add another"
+msgstr "जतन करा आणि आणखी एक जोडा"
+
+msgid "Create category \"{name}\""
+msgstr "श्रेणी तयार करा \"{name}\""
+
 #~ msgid ""
 #~ "Turn financial chaos into clarity. TrackMyRupee gives you a precision "
 #~ "dashboard to visualize your spending, spot trends, and master your "

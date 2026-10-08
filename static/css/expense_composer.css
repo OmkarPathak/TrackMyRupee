@@ -6,16 +6,10 @@
   --tmr-radius: 10px;
   --tmr-tint-success: rgba(29, 158, 117, 0.08);
   --tmr-tint-warning: rgba(212, 131, 26, 0.16);
-  --tmr-control-h: 48px;
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: var(--tmr-vv-top, 0px);
-  height: var(--tmr-vv-h, 100dvh);
-  z-index: 10000;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  --tmr-control-h: 38px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto 2rem;
   font-size: 1rem;
 }
 @supports (color: color-mix(in srgb, red 10%, blue)) {
@@ -24,42 +18,15 @@
     --tmr-tint-warning: color-mix(in srgb, var(--color-warning, #D4831A) 18%, var(--bs-body-bg));
   }
 }
-.tmr-c[hidden] { display: none; }
-html.tmr-c-open { overflow: hidden; }
-
-.tmr-c__scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(10, 14, 12, 0.5);
-  animation: tmr-fade 0.18s ease-out;
+@media (max-width: 991.98px) {
+  .tmr-c { padding-bottom: 7rem; }   /* clear the mobile bottom navigation */
 }
 
 .tmr-c__card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-height: calc(100% - 8px);
-  background: var(--bs-body-bg);
   color: var(--bs-body-color);
-  border: 0;
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.14);
-  animation: tmr-rise 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding: 1rem;
 }
 
-@media (min-width: 768px) {
-  .tmr-c { align-items: center; padding: 24px; }
-  .tmr-c__card {
-    max-width: 640px;
-    max-height: min(100%, 780px);
-    border-radius: 8px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
-  }
-}
-
-@keyframes tmr-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes tmr-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 .tmr-c :focus-visible {
   outline: 2px solid var(--color-success, #1D9E75);
@@ -67,53 +34,18 @@ html.tmr-c-open { overflow: hidden; }
 }
 
 /* ── Header ───────────────────────────────────────────────────────────────── */
-.tmr-c__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 28px 28px 4px;
-}
-.tmr-c__title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.2;
-}
-.tmr-c__close {
-  flex: none;
-  width: 44px;
-  height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 50%;
-  background: var(--bs-tertiary-bg);
-  color: var(--bs-body-color);
-  font-size: 1rem;
-  cursor: pointer;
-}
-.tmr-c__close:hover { background: var(--bs-secondary-bg); }
-
-.tmr-c__body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 16px 28px 20px;
-}
+.tmr-c__body { padding: 0; }
 
 /* ── Quick-add input ──────────────────────────────────────────────────────── */
 .tmr-quick {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 4px 4px 16px;
-  min-height: 56px;
+  gap: 4px;
+  height: 2.56rem;                 /* same as a .form-card .form-control (41px) */
+  padding: 0 3px 0 0.8rem;
   border: 1.5px solid color-mix(in srgb, var(--color-success, #1D9E75) 40%, var(--bs-border-color));
-  border-radius: 18px;
-  background: var(--bs-body-bg);
+  border-radius: 10px;
+  background: #fcfdfe;
 }
 .tmr-quick:focus-within {
   border-color: var(--color-success, #1D9E75);
@@ -122,7 +54,7 @@ html.tmr-c-open { overflow: hidden; }
 .tmr-quick input {
   flex: 1 1 auto;
   min-width: 0;
-  height: 46px;
+  height: 100%;
   border: 0;
   outline: 0 !important;
   background: transparent;
@@ -132,8 +64,8 @@ html.tmr-c-open { overflow: hidden; }
 .tmr-quick input::placeholder { color: var(--bs-secondary-color); opacity: 1; }
 .tmr-mic {
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -157,11 +89,11 @@ html.tmr-c-open { overflow: hidden; }
 }
 .tmr-go {
   flex: none;
-  min-width: 60px;
-  height: 44px;
-  padding: 0 18px;
+  min-width: 52px;
+  height: 30px;
+  padding: 0 14px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 50rem;
   background: var(--color-secondary, #0F7657);
   color: #fff;
   font-weight: 700;
@@ -211,22 +143,7 @@ html.tmr-c-open { overflow: hidden; }
   color: var(--color-muted-text, var(--bs-secondary-color));
 }
 .tmr-usual__chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.tmr-suggest {
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--bs-border-color);
-  border-radius: 999px;
-  background: var(--bs-tertiary-bg);
-  color: var(--bs-body-color);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tmr-suggest:hover { border-color: var(--color-success, #1D9E75); }
+.tmr-usual__chips .tmr-flow-cat { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .tmr-sep { margin: 14px 0 4px; border: 0; border-top: 1px solid var(--bs-border-color); opacity: 1; }
 
 /* ── State B: the six fields ──────────────────────────────────────────────── */
@@ -267,11 +184,6 @@ html.tmr-c-open { overflow: hidden; }
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 8px;
-  margin: 0 0 6px;
-  padding: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--bs-body-color);
 }
 
 .tmr-tag {
@@ -302,51 +214,16 @@ html.tmr-c-open { overflow: hidden; }
   letter-spacing: 0.03em;
 }
 
-.tmr-input,
-.tmr-select {
-  display: block;
-  width: 100%;
-  height: var(--tmr-control-h);
-  padding: 0 14px;
-  border: 1px solid var(--bs-border-color);
-  border-radius: var(--tmr-radius);
-  background-color: var(--bs-body-bg);
-  color: var(--bs-body-color);
-  font-size: 1rem;
-  box-shadow: none;
-  transition: background-color 0.15s, border-color 0.15s;
-}
-.tmr-select {
-  padding-right: 34px;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%238a8a84' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  text-overflow: ellipsis;
-}
-.tmr-input::placeholder { color: var(--bs-secondary-color); opacity: 1; }
-.tmr-input:focus,
-.tmr-select:focus {
-  outline: 0;
-  border-color: var(--color-success, #1D9E75);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #1D9E75) 22%, transparent);
-}
-.tmr-field[data-origin="parser"] .tmr-input,
-.tmr-field[data-origin="parser"] .tmr-select,
-.tmr-field[data-origin="usual"] .tmr-input,
-.tmr-field[data-origin="usual"] .tmr-select {
-  background-color: var(--tmr-tint-success);
-  border-color: color-mix(in srgb, var(--color-success, #1D9E75) 35%, var(--bs-border-color));
-}
+/* Inputs are Bootstrap's .form-control. Selects copy .form-select's metrics exactly but use their
+   own class: the app's global select enhancer takes over anything with .form-select. */
 .tmr-field.is-check .tmr-input,
-.tmr-field.is-check .tmr-select,
-.tmr-field.is-check .tmr-opt__face {
+.tmr-field.is-check .searchable-select-btn,
+.tmr-field.is-check .tmr-sel {
   border-color: var(--color-warning, #D4831A);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-warning, #D4831A) 22%, transparent);
 }
 .tmr-field.is-invalid .tmr-input,
-.tmr-field.is-invalid .tmr-select {
+.tmr-field.is-invalid .searchable-select-btn {
   border-color: var(--color-danger, #E05C45);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger, #E05C45) 22%, transparent);
 }
@@ -360,240 +237,134 @@ html.tmr-c-open { overflow: hidden; }
 
 /* Amount + compact currency selector */
 .tmr-amount { display: flex; gap: 8px; }
-.tmr-amount .tmr-select--currency {
+.tmr-amount .searchable-select-wrapper:first-child {
   flex: none;
-  width: 104px;
-  padding-left: 10px;
-  padding-right: 28px;
-  font-weight: 600;
-  font-size: 0.95rem;
+  width: 112px;
 }
 .tmr-amount .tmr-input--amount {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 1.35rem;
-  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-/* Chips: native radios styled as chips */
-.tmr-chips {
+/* Radio groups reuse the app's .tmr-flow-cat (dates, "Your usual") and .payment-method-item (payment) looks.
+   The native radio stays in the label (invisible) so keyboard and screen readers keep working. */
+.tmr-sels { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; border: 0; min-width: 0; }
+.tmr-sel { position: relative; margin: 0; }
+.tmr-sel input {
+  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1;
+}
+.tmr-sel input[type="date"] { z-index: 2; }
+.tmr-sel:focus-within { outline: 2px solid var(--color-success, #1D9E75); outline-offset: 2px; }
+.tmr-field.is-check .tmr-sel.tmr-flow-cat,
+.tmr-field.is-check .payment-method-item .icon-wrapper {
+  border-color: var(--color-warning, #D4831A);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-warning, #D4831A) 22%, transparent);
+}
+
+/* Inline create-category field: a normal full-width row under Category / Account */
+#tmr-cat-inline { grid-column: 1 / -1; }
+.tmr-inline__actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.75rem; }
+
+/* ── Footer: sits under the card, right-aligned, like the Edit Expense form ───────── */
+.tmr-c__foot {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  min-width: 0;
-}
-.tmr-opt { position: relative; display: inline-flex; margin: 0; }
-.tmr-opt input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 1;
-}
-.tmr-opt__face {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--bs-border-color);
-  border-radius: var(--tmr-radius);
-  background: var(--bs-body-bg);
-  color: var(--bs-body-color);
-  font-size: 0.92rem;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background-color 0.15s, border-color 0.15s;
-}
-.tmr-opt:hover .tmr-opt__face { border-color: var(--color-success, #1D9E75); }
-.tmr-opt input:checked + .tmr-opt__face {
-  background: var(--tmr-tint-success);
-  border: 1.5px solid var(--color-success, #1D9E75);
-  color: var(--color-success-text, #0F7657);
-}
-.tmr-opt input:focus-visible + .tmr-opt__face {
-  outline: 2px solid var(--color-success, #1D9E75);
-  outline-offset: 2px;
-}
-.tmr-opt input[type="date"] {
-  /* The "Pick date" chip: a transparent date input sits over the chip so taps open the picker */
-  z-index: 2;
-}
-.tmr-opt__face i { font-size: 1rem; }
-
-/* Inline create-category panel */
-.tmr-inline {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  border: 1px dashed var(--color-success, #1D9E75);
-  border-radius: var(--tmr-radius);
-  background: var(--tmr-tint-success);
-}
-.tmr-inline[hidden] { display: none; }
-.tmr-inline__row { display: flex; gap: 8px; }
-.tmr-inline__row .tmr-input { flex: 1 1 auto; min-width: 0; }
-
-/* ── Footer ───────────────────────────────────────────────────────────────── */
-.tmr-c__foot {
-  flex: none;
-  display: grid;
-  grid-template-areas: "add add" "another cancel";
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 4px 12px;
-  padding: 12px 28px max(20px, env(safe-area-inset-bottom));
-  background: var(--bs-body-bg);
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
 }
 .tmr-c__foot[hidden] { display: none; }
-.tmr-c__foot .tmr-btn { min-height: 44px; }
-.tmr-c__foot .tmr-btn--add { grid-area: add; min-height: 52px !important; font-size: 1rem !important; width: 100%; }
-.tmr-c__foot .tmr-btn--another {
-  grid-area: another;
-  justify-self: start;
-  background: transparent !important;
-  border: 0 !important;
-  padding-left: 0 !important;
-  color: var(--color-success-text, #0F7657) !important;
+.tmr-c__foot .tmr-c__hint {
+  margin-right: auto;
+  font-size: 0.78rem;
+  color: var(--color-muted-text, var(--bs-secondary-color));
 }
-.tmr-c__foot .tmr-btn--cancel {
-  grid-area: cancel;
-  justify-self: end;
-  background: transparent !important;
-  color: var(--color-muted-text, var(--bs-secondary-color)) !important;
-}
-.tmr-c__hint { display: none; }
-.tmr-btn:disabled { opacity: 0.6; cursor: progress; }
-
-@media (min-width: 768px) {
-  .tmr-c__foot {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .tmr-c__foot .tmr-btn--add { width: auto; min-height: 44px !important; font-size: 0.9rem !important; }
-  .tmr-c__foot .tmr-btn--another {
-    background: transparent !important;
-    border: 1px solid var(--color-secondary, #0F7657) !important;
-    padding-left: 1.1rem !important;
-  }
-  [data-bs-theme="dark"] .tmr-c__foot .tmr-btn--another { border-color: #34d399 !important; color: #34d399 !important; }
-  .tmr-c__foot .tmr-btn--cancel {
-    background-color: rgba(0, 0, 0, 0.06) !important;
-    color: var(--bs-body-color) !important;
-    order: 1;
-  }
-  [data-bs-theme="dark"] .tmr-c__foot .tmr-btn--cancel { background-color: rgba(255, 255, 255, 0.1) !important; }
-  .tmr-c__hint {
-    display: block;
-    order: 2;
-    margin-left: auto;
-    font-size: 0.78rem;
-    color: var(--color-muted-text, var(--bs-secondary-color));
-  }
-  .tmr-c__foot .tmr-btn--another { order: 3; }
-  .tmr-c__foot .tmr-btn--add { order: 4; }
-}
-@media (hover: none) { .tmr-c__hint { display: none !important; } }
+@media (hover: none), (max-width: 767.98px) { .tmr-c__hint { display: none; } }
 
 /* Discard / large-amount confirmation bars (above the footer) */
 .tmr-confirm {
-  flex: none;
-  padding: 12px 28px;
+  padding: 12px;
+  border-radius: 10px;
   background: var(--tmr-tint-warning);
   font-size: 0.92rem;
 }
 .tmr-confirm[hidden] { display: none; }
 .tmr-confirm__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
-/* ── Toast ────────────────────────────────────────────────────────────────── */
-.tmr-toast-region {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-  z-index: 10001;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 0 16px;
-  pointer-events: none;
-}
-@media (min-width: 992px) { .tmr-toast-region { bottom: 24px; } }
-.tmr-toast {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  max-width: min(560px, 100%);
-  padding: 8px 8px 8px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  background: var(--color-dark-panel, #15241d);
-  color: var(--color-dark-panel-text, #d6efe3);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  font-size: 0.92rem;
-  pointer-events: auto;
-  animation: tmr-rise 0.2s ease-out;
-}
-.tmr-toast__msg { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
-.tmr-toast__btn {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: #8ce2c2;
-  font-weight: 700;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.tmr-toast__btn:hover { background: rgba(255, 255, 255, 0.1); color: #b4f0d8; }
-.tmr-toast__btn:focus-visible { outline: 2px solid #8ce2c2; outline-offset: 1px; }
-
-/* ── Dashboard quick-add bar ──────────────────────────────────────────────── */
-.tmr-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding: 4px 4px 4px 16px;
-  min-height: 56px;
-  border: 1.5px solid color-mix(in srgb, var(--color-success, #1D9E75) 40%, var(--bs-border-color));
-  border-radius: 18px;
-  background: var(--bs-body-bg);
-}
-.tmr-bar:focus-within {
-  border-color: var(--color-success, #1D9E75);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #1D9E75) 22%, transparent);
-}
-.tmr-bar input {
-  flex: 1 1 auto;
-  min-width: 0;
-  height: 46px;
-  border: 0;
-  outline: 0 !important;
-  background: transparent;
-  color: var(--bs-body-color);
-  font-size: 1rem;
-}
-.tmr-bar input::placeholder { color: var(--bs-secondary-color); opacity: 1; }
-
 @media (prefers-reduced-motion: reduce) {
-  .tmr-c__scrim, .tmr-c__card, .tmr-toast, .tmr-mic.is-listening { animation: none !important; }
-  .tmr-input, .tmr-select, .tmr-opt__face { transition: none; }
+  .tmr-mic.is-listening { animation: none !important; }
+  .tmr-input { transition: none; }
 }
+
+/* Phones: the quick-add row matches the 43px fields of the edit form. */
+@media (max-width: 576px) {
+  .tmr-quick { height: 43px; border-radius: 10px; }
+  .tmr-mic, .tmr-go { height: 34px; }
+  .tmr-mic { width: 34px; }
+}
+
+/* The quick-add wrapper draws the one focus ring; the bare input inside must not add its own. */
+.tmr-quick input.border-0,
+.tmr-quick input.border-0:focus,
+.tmr-quick input.border-0:focus-visible {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+@media (max-width: 576px) {
+}
+
+/* Footer labels: full text on wider screens, short text so all three buttons share one row on phones. */
+.tmr-short { display: none; }
+@media (max-width: 575.98px) {
+  .tmr-long { display: none; }
+  .tmr-short { display: inline; }
+  .tmr-c__foot { flex-wrap: nowrap; gap: 0.4rem; }
+  .tmr-c__foot .tmr-btn { padding-left: 1rem !important; padding-right: 1rem !important; white-space: nowrap; }
+}
+
+/* ── Phones: fit the whole form (title to buttons) on one screen ─────────────── */
+@media (max-width: 575.98px) {
+  .tmr-c > h1 { font-size: 1.4rem; margin-bottom: 0.75rem !important; }
+  .tmr-c__card { padding: 1rem; }
+  .tmr-c #tmr-b-help { display: none; }          /* the "Auto / Check" tags already say it */
+  .tmr-grid { grid-template-columns: 1fr 1fr; gap: 0.9rem 0.75rem; margin-top: 0.9rem; }
+  .tmr-field[data-field="amount"],
+  .tmr-field[data-field="date"],
+  .tmr-field[data-field="description"],
+  .tmr-field[data-field="payment"] { grid-column: 1 / -1; }   /* Category + Account share a row */
+  .tmr-c .form-card .form-label, .tmr-c .tmr-field__label { margin-bottom: 0.3rem; }
+  .tmr-c__foot { margin-top: 1rem; }
+  .tmr-c { padding-bottom: 5.5rem; }              /* still clear the bottom navigation */
+}
+
+/* Footer buttons all share the primary/cancel button size (the app's outline button is smaller by default). */
+.tmr-c__foot .btn-action-outline {
+  padding: 0.5rem 1.4rem !important;
+  font-size: 0.9rem !important;
+}
+@media (max-width: 575.98px) {
+  .tmr-c__foot .btn-action-outline { padding-left: 1rem !important; padding-right: 1rem !important; }
+}
+
+.tmr-c__title { font-size: 1.65rem; line-height: 1.25; }
+@media (max-width: 575.98px) {
+  .tmr-c__foot .tmr-btn { font-size: 0.85rem !important; }
+}
+
+/* Dark theme: same surface as the app's other fields (.form-card .form-control). */
+[data-bs-theme="dark"] .tmr-quick {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: color-mix(in srgb, var(--color-success, #5DCAA5) 45%, rgba(255, 255, 255, 0.1));
+}
+[data-bs-theme="dark"] .tmr-quick input,
+[data-bs-theme="dark"] .tmr-quick input.border-0 { color: var(--bs-body-color); }
+[data-bs-theme="dark"] .tmr-quick input::placeholder { color: var(--bs-secondary-color); }
+[data-bs-theme="dark"] .tmr-mic { background: rgba(93, 202, 165, 0.14); color: var(--color-success-text, #5DCAA5); }
+
+/* Category with nothing chosen: the placeholder reads as hint text, not as a value. */
+.searchable-select-btn.tmr-placeholder { color: var(--bs-secondary-color); }

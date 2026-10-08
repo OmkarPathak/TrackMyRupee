@@ -32,7 +32,7 @@ MAX_PARSE_CHARS = 300
 
 COMPOSER_FIELDS = {'amount', 'currency', 'date', 'description', 'category', 'account', 'payment_method'}
 COMPOSER_ENTRIES = {
-    'dashboard_bar', 'fab', 'shortcut_key', 'sidebar', 'navbar', 'mobile_sheet',
+    'fab', 'shortcut_key', 'sidebar', 'navbar', 'mobile_sheet',
     'deep_link', 'pwa_shortcut', 'empty_state', 'other',
 }
 COMPOSER_LANGS = {'en', 'hi', 'mr'}

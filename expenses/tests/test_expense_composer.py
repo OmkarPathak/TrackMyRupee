@@ -569,10 +569,12 @@ class EventEndpointTests(ComposerBase):
 
 
 class DeepLinkAndEntryPointTests(ComposerBase):
-    def test_add_url_still_works_and_opens_the_composer(self):
+    def test_add_url_is_a_normal_page_with_the_form(self):
         response = self.client.get(reverse('expense-create'))
-        self.assertContains(response, 'data-composer-autoopen')
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="tmr-composer"')
+        self.assertNotContains(response, 'tmr-c__scrim')
+        self.assertNotContains(response, 'role="dialog" aria-modal="true" aria-labelledby="tmr-c-title"')
 
     def test_next_must_be_local(self):
         response = self.client.get(reverse('expense-create'), {'next': 'https://evil.example/x'})
@@ -585,18 +587,27 @@ class DeepLinkAndEntryPointTests(ComposerBase):
         self.assertEqual(response.status_code, 405)
         self.assertEqual(Expense.objects.count(), 0)
 
-    def test_composer_is_mounted_for_signed_in_users_only(self):
-        self.assertContains(self.client.get(reverse('expense-list')), 'id="tmr-composer"')
+    def test_form_only_on_add_page_toasts_everywhere_for_signed_in_users(self):
+        other = self.client.get(reverse('expense-list'))
+        self.assertNotContains(other, 'id="tmr-composer"')
+        self.assertContains(other, 'id="tmr-toasts"')
+        self.assertContains(other, 'js/expense_toast.js')
+        # the form's script and styles are only sent with the add page
+        self.assertNotContains(other, 'js/expense_composer.js')
+        self.assertNotContains(other, 'css/expense_composer.css')
+        add = self.client.get(reverse('expense-create'))
+        self.assertContains(add, 'js/expense_composer.js')
+        self.assertContains(add, 'css/expense_composer.css')
         self.client.logout()
-        self.assertNotContains(self.client.get(reverse('about')), 'id="tmr-composer"')
+        self.assertNotContains(self.client.get(reverse('about')), 'id="tmr-toasts"')
 
     def test_manifest_has_add_expense_shortcut(self):
         manifest = json.loads(self.client.get(reverse('manifest')).content)
         shortcut = manifest['shortcuts'][0]
         self.assertEqual(shortcut['url'], reverse('expense-create') + '?source=pwa')
 
-    def test_dashboard_has_quick_add_bar(self):
-        self.assertContains(self.client.get(reverse('home')), 'data-composer-bar-input')
+    def test_dashboard_has_no_inline_quick_add_bar(self):
+        self.assertNotContains(self.client.get(reverse('home')), 'data-composer-bar-input')
 
     def test_edit_page_is_edit_only(self):
         e = Expense.objects.create(user=self.user, date=date.today(), amount=10, description='x',

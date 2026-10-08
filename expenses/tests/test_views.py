@@ -125,7 +125,7 @@ class ExpenseCRUDTest(BaseViewTest):
     def test_add_expense_url_renders_composer_deep_link(self):
         response = self.client.get(reverse('expense-create'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'data-composer-autoopen')
+        self.assertContains(response, 'id="tmr-composer"')
 
     def test_update_expense(self):
         # ... existing code ...

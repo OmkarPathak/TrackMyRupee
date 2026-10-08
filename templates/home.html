@@ -664,14 +664,6 @@
 <!-- Full Report View (Main Dashboard) -->
 <div id="full-report-view">
 
-<!-- Quick add: type one line, Enter opens the New Expense card already filled in -->
-<div class="tmr-bar" role="search" aria-label="{% trans 'Quick add expense' %}">
-    <label class="visually-hidden" for="dashboard-quick-add">{% trans "What did you spend on?" %}</label>
-    <input id="dashboard-quick-add" type="text" data-composer-bar-input autocomplete="off" enterkeyhint="go" maxlength="300"
-           placeholder="{% trans 'What did you spend on? e.g. swiggy 320' %}">
-    <button type="button" class="tmr-go" data-composer-bar-go>{% trans "Add" %}</button>
-</div>
-
 {% if show_onboarding_checklist %}
 <div id="onboarding-checklist-card" class="card border-0 rounded-4 shadow-sm mb-4 p-3" style="background-color: var(--color-surface, var(--bs-card-bg, #ffffff)); border: 1.5px solid var(--border-color, var(--bs-border-color, rgba(26,26,24,0.1))) !important; transition: all 0.3s ease;">
     <!-- Desktop Checklist Header -->
