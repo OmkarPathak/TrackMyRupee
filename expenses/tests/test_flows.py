@@ -599,6 +599,11 @@ class TestFlowEndpointCoverage(TestCase):
             initial_principal=Decimal('100000.00'), duration_months=12, is_active=True
         )
 
+        # Creating the account/loan above invalidates the cached navbar badge data
+        # (context_processors.global_badge_data). Its rebuild is global-layout cost, not this
+        # page's, so warm it first and measure the page itself.
+        self.client.get(reverse('flow-landing'))
+
         with CaptureQueriesContext(connection) as ctx:
             response = self.client.get(reverse('flow-landing'))
         self.assertEqual(response.status_code, 200)
