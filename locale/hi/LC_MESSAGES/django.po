@@ -12890,6 +12890,174 @@ msgstr "अपलोड और प्रोसेस करें"
 msgid "Supported formats: .xlsx, .xls, .csv"
 msgstr "समर्थित फॉर्मेट: .xlsx, .xls"
 
+
+# --- New Expense composer (added for review) ---
+
+msgid "Added {summary}"
+msgstr "जोड़ा गया {summary}"
+
+msgid "Undo"
+msgstr "पूर्ववत करें"
+
+msgid "Expense removed."
+msgstr "खर्च हटा दिया गया।"
+
+msgid "Couldn't undo that. Delete it from the expense list instead."
+msgstr "इसे पूर्ववत नहीं कर सके। कृपया खर्च सूची से हटाएँ।"
+
+msgid "Filled {n} details from what you typed."
+msgstr "आपके लिखे से {n} विवरण भरे गए।"
+
+msgid "Please check: {fields}."
+msgstr "कृपया जाँचें: {fields}।"
+
+msgid "We couldn't find an amount. Add it below."
+msgstr "हमें राशि नहीं मिली। नीचे जोड़ें।"
+
+msgid "We couldn't read that. Fill in the details below."
+msgstr "हम इसे समझ नहीं पाए। नीचे विवरण भरें।"
+
+msgid "We couldn't load your accounts and categories."
+msgstr "आपके खाते और श्रेणियाँ लोड नहीं हो सकीं।"
+
+msgid "Try again"
+msgstr "फिर कोशिश करें"
+
+msgid "Enter an amount greater than 0."
+msgstr "0 से अधिक राशि दर्ज करें।"
+
+msgid "Choose a payment method."
+msgstr "भुगतान का तरीका चुनें।"
+
+msgid "Choose a valid date."
+msgstr "सही तारीख चुनें।"
+
+msgid "Choose a category."
+msgstr "श्रेणी चुनें।"
+
+msgid "This date is in the future."
+msgstr "यह तारीख भविष्य की है।"
+
+msgid "Date: {date}"
+msgstr "तारीख: {date}"
+
+msgid "{amount} is a large amount. Is that right?"
+msgstr "{amount} एक बड़ी राशि है। क्या यह सही है?"
+
+msgid "Yes, add it"
+msgstr "हाँ, जोड़ें"
+
+msgid "Edit amount"
+msgstr "राशि बदलें"
+
+msgid "Log as Capital Event instead"
+msgstr "इसके बजाय कैपिटल इवेंट के रूप में दर्ज करें"
+
+msgid "Discard this expense?"
+msgstr "यह खर्च छोड़ दें?"
+
+msgid "Keep editing"
+msgstr "संपादन जारी रखें"
+
+msgid "Discard"
+msgstr "छोड़ें"
+
+msgid "We couldn't reach the server. Your details are kept, so you can try again."
+msgstr "सर्वर तक नहीं पहुँच सके। आपका विवरण सुरक्षित है, फिर कोशिश करें।"
+
+msgid "Adding…"
+msgstr "जोड़ा जा रहा है…"
+
+msgid "Microphone access is blocked. Allow it in your browser settings to use voice."
+msgstr "माइक्रोफ़ोन की अनुमति बंद है। आवाज़ के लिए ब्राउज़र सेटिंग में अनुमति दें।"
+
+msgid "Listening… speak now"
+msgstr "सुन रहे हैं… अब बोलें"
+
+msgid "+ Create category"
+msgstr "+ श्रेणी बनाएँ"
+
+msgid "Select category"
+msgstr "श्रेणी चुनें"
+
+msgid "Save category"
+msgstr "श्रेणी सहेजें"
+
+msgid "We couldn't create that category."
+msgstr "वह श्रेणी नहीं बन सकी।"
+
+msgid "Auto"
+msgstr "ऑटो"
+
+msgid "Last used"
+msgstr "पिछला उपयोग"
+
+msgid "Check"
+msgstr "जाँचें"
+
+msgid "Payment method"
+msgstr "भुगतान का तरीका"
+
+msgid "chai 20"
+msgstr "चाय 20"
+
+msgid "auto 80"
+msgstr "ऑटो 80"
+
+msgid "swiggy 320"
+msgstr "स्विगी 320"
+
+msgid "uber 150"
+msgstr "उबर 150"
+
+msgid "New expense"
+msgstr "नया खर्च"
+
+msgid "What did you spend on? e.g. swiggy 320"
+msgstr "आपने किस पर खर्च किया? जैसे स्विगी 320"
+
+msgid "Speak expense"
+msgstr "बोलकर खर्च जोड़ें"
+
+msgid "Your usual"
+msgstr "आपके आम खर्च"
+
+msgid "Press Enter to fill the details. You can edit everything before adding."
+msgstr "विवरण भरने के लिए Enter दबाएँ। जोड़ने से पहले सब कुछ बदल सकते हैं।"
+
+msgid "Enter details manually"
+msgstr "विवरण खुद भरें"
+
+msgid "Filled from what you typed. Check each detail, then add."
+msgstr "आपके लिखे से भरा गया। हर विवरण जाँचें, फिर जोड़ें।"
+
+msgid "Pick date"
+msgstr "तारीख चुनें"
+
+msgid "Category name"
+msgstr "श्रेणी का नाम"
+
+msgid "e.g. Subscriptions"
+msgstr "जैसे सब्सक्रिप्शन"
+
+msgid "Enter to add"
+msgstr "जोड़ने के लिए Enter"
+
+msgid "Add & add another"
+msgstr "जोड़ें और एक और जोड़ें"
+
+msgid "Add expense"
+msgstr "खर्च जोड़ें"
+
+msgid "Quick add expense"
+msgstr "त्वरित खर्च जोड़ें"
+
+msgid "JavaScript is needed to add an expense."
+msgstr "खर्च जोड़ने के लिए JavaScript आवश्यक है।"
+
+msgid "Log an expense in one line"
+msgstr "एक पंक्ति में खर्च दर्ज करें"
+
 #~ msgid ""
 #~ "Turn financial chaos into clarity. TrackMyRupee gives you a precision "
 #~ "dashboard to visualize your spending, spot trends, and master your "
