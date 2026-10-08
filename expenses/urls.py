@@ -134,6 +134,10 @@ urlpatterns = [
     path('api/resend-verification/', views.resend_verification_email, name='resend-verification'),
     path('api/predict-category/', views.predict_category_view, name='predict-category'),
     path('api/parse-expense/', views.parse_expense_view, name='parse-expense'),
+    path('api/expense-composer/', views.expense_composer_data, name='expense-composer-data'),
+    path('api/expense-composer/save/', views.expense_composer_save, name='expense-composer-save'),
+    path('api/expense-composer/event/', views.expense_composer_event, name='expense-composer-event'),
+    path('expenses/<uuid:pk>/undo/', views.expense_composer_undo, name='expense-composer-undo'),
     path('api/start-trial/', views_payment.start_trial, name='start-trial'),
     path('api/update-pwa-login/', views.UpdatePWALoginView.as_view(), name='update-pwa-login'),
     

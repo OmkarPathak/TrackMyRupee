@@ -782,6 +782,35 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
+class ExpenseKeywordHint(models.Model):
+    """What a user usually picks for a merchant/keyword ("swiggy" -> Food, SBI, UPI).
+
+    Written by the New Expense composer on every add, so a correction simply replaces the
+    previous suggestion.  Read by the quick-add parser to fill fields the text did not name.
+    """
+    MAX_PER_USER = 300
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expense_keyword_hints')
+    keyword = models.CharField(max_length=60)
+    category = models.CharField(max_length=255, blank=True, default='')
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    payment_method = models.CharField(max_length=50, blank=True, default='')
+    use_count = models.PositiveIntegerField(default=1)
+    last_used = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'keyword'], name='unique_expense_keyword_hint'),
+        ]
+        indexes = [
+            models.Index(fields=['user', '-last_used'], name='kwhint_user_recent_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.keyword} -> {self.category}"
+
+
 class Income(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     SOURCE_TYPE_CHOICES = [

@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 {
   "name": "TrackMyRupee",
   "short_name": "TrackMyRupee",
@@ -8,6 +8,21 @@
   "background_color": "#111315",
   "theme_color": "#2d6a4f",
   "orientation": "portrait-primary",
+  "shortcuts": [
+    {
+      "name": "{% trans 'Add expense' %}",
+      "short_name": "{% trans 'Add expense' %}",
+      "description": "{% trans 'Log an expense in one line' %}",
+      "url": "{% url 'expense-create' %}?source=pwa",
+      "icons": [
+        {
+          "src": "{% static 'img/pwa-icon-512.png' %}",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
   "icons": [
     {
       "src": "{% static 'img/pwa-icon-512.png' %}",

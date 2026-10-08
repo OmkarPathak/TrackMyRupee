@@ -4,9 +4,9 @@ import re
 
 # Simple Rule-Based Keyword Mapping
 KEYWORD_MAPPING = {
-    'Groceries': ['groceries', 'vegetables', 'fruits'],
-    'Dining Out': ['food', 'dinner', 'lunch', 'breakfast', 'snack', 'coffee', 'tea', 'cafe', 'restaurant', 'burger', 'pizza', 'zomato', 'swiggy', 'dining'],
-    'Transport': ['taxi', 'uber', 'ola', 'auto', 'bus', 'train', 'metro', 'flight', 'ticket', 'fuel', 'petrol', 'diesel', 'parking', 'toll', 'travel'],
+    'Groceries': ['groceries', 'vegetables', 'fruits', 'milk', 'kirana', 'sabzi', 'किराना', 'सब्जी', 'भाजी', 'दूध'],
+    'Dining Out': ['food', 'dinner', 'lunch', 'breakfast', 'snack', 'coffee', 'tea', 'cafe', 'restaurant', 'burger', 'pizza', 'zomato', 'swiggy', 'dining', 'chai', 'khana', 'चाय', 'खाना', 'जेवण', 'नाश्ता'],
+    'Transport': ['taxi', 'uber', 'ola', 'auto', 'bus', 'train', 'metro', 'flight', 'ticket', 'fuel', 'petrol', 'diesel', 'parking', 'toll', 'travel', 'rickshaw', 'रिक्शा', 'ऑटो'],
     'Shopping': ['amazon', 'flipkart', 'myntra', 'clothes', 'shoes', 'mall', 'store', 'shop', 'electronics', 'gadget'],
     'Utilities': ['electricity', 'water', 'gas', 'bill', 'recharge', 'wifi', 'internet', 'broadband', 'phone', 'mobile', 'subscription', 'netflix', 'spotify', 'prime', 'utility', 'utilities'],
     'Health': ['doctor', 'hospital', 'medicine', 'pharmacy', 'clinic', 'gym', 'fitness', 'workout', 'yoga'],

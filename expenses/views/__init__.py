@@ -7,6 +7,7 @@ from .alternatives import *
 from .auth import *
 from .capital_events import *
 from .categories import *
+from .composer import *
 from .dashboard import *
 from .expenses import *
 from .export import *

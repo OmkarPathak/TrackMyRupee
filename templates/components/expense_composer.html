@@ -1,0 +1,229 @@
+{% load i18n %}
+{% comment %}
+  New Expense composer (one card: quick-add line + six reviewable fields).
+  Mounted once from base.html for signed-in users; driven by static/js/expense_composer.js.
+  Open it with any <a href="{% url 'expense-create' %}"> link, [data-open-composer], or the N key.
+{% endcomment %}
+
+<div id="tmr-c-i18n" hidden
+     data-parse-url="{% url 'parse-expense' %}"
+     data-data-url="{% url 'expense-composer-data' %}"
+     data-save-url="{% url 'expense-composer-save' %}"
+     data-event-url="{% url 'expense-composer-event' %}"
+     data-category-url="{% url 'category-create-ajax' %}"
+     data-capital-url="{% url 'capital-event-create' %}"
+     data-add-path="{% url 'expense-create' %}"
+     data-pricing-url="{% url 'pricing' %}"
+     data-csrf="{{ csrf_token }}">
+  <span data-k="addedToast">{% trans "Added {summary}" %}</span>
+  <span data-k="undo">{% trans "Undo" %}</span>
+  <span data-k="edit">{% trans "Edit" %}</span>
+  <span data-k="undone">{% trans "Expense removed." %}</span>
+  <span data-k="undoFailed">{% trans "Couldn't undo that. Delete it from the expense list instead." %}</span>
+  <span data-k="filled">{% trans "Filled {n} details from what you typed." %}</span>
+  <span data-k="checkThese">{% trans "Please check: {fields}." %}</span>
+  <span data-k="noAmount">{% trans "We couldn't find an amount. Add it below." %}</span>
+  <span data-k="parseFailed">{% trans "We couldn't read that. Fill in the details below." %}</span>
+  <span data-k="loadFailed">{% trans "We couldn't load your accounts and categories." %}</span>
+  <span data-k="retry">{% trans "Try again" %}</span>
+  <span data-k="errAmount">{% trans "Enter an amount greater than 0." %}</span>
+  <span data-k="errCategory">{% trans "Choose a category." %}</span>
+  <span data-k="errPayment">{% trans "Choose a payment method." %}</span>
+  <span data-k="errDate">{% trans "Choose a valid date." %}</span>
+  <span data-k="futureDate">{% trans "This date is in the future." %}</span>
+  <span data-k="dateNote">{% trans "Date: {date}" %}</span>
+  <span data-k="today">{% trans "Today" %}</span>
+  <span data-k="yesterday">{% trans "Yesterday" %}</span>
+  <span data-k="largeAmount">{% trans "{amount} is a large amount. Is that right?" %}</span>
+  <span data-k="yesAdd">{% trans "Yes, add it" %}</span>
+  <span data-k="editAmount">{% trans "Edit amount" %}</span>
+  <span data-k="asCapital">{% trans "Log as Capital Event instead" %}</span>
+  <span data-k="discardAsk">{% trans "Discard this expense?" %}</span>
+  <span data-k="keepEditing">{% trans "Keep editing" %}</span>
+  <span data-k="discard">{% trans "Discard" %}</span>
+  <span data-k="saveFailed">{% trans "We couldn't reach the server. Your details are kept, so you can try again." %}</span>
+  <span data-k="upgrade">{% trans "Upgrade" %}</span>
+  <span data-k="adding">{% trans "Adding…" %}</span>
+  <span data-k="micBlocked">{% trans "Microphone access is blocked. Allow it in your browser settings to use voice." %}</span>
+  <span data-k="listening">{% trans "Listening… speak now" %}</span>
+  <span data-k="createCategory">{% trans "+ Create category" %}</span>
+  <span data-k="selectCategory">{% trans "Select category" %}</span>
+  <span data-k="saveCategory">{% trans "Save category" %}</span>
+  <span data-k="categoryEmpty">{% trans "Category name cannot be empty." %}</span>
+  <span data-k="categoryFailed">{% trans "We couldn't create that category." %}</span>
+  <span data-k="tagAuto">{% trans "Auto" %}</span>
+  <span data-k="tagLastUsed">{% trans "Last used" %}</span>
+  <span data-k="tagToday">{% trans "Today" %}</span>
+  <span data-k="tagCheck">{% trans "Check" %}</span>
+  <span data-k="fAmount">{% trans "Amount" %}</span>
+  <span data-k="fDate">{% trans "Date" %}</span>
+  <span data-k="fDescription">{% trans "Description" %}</span>
+  <span data-k="fCategory">{% trans "Category" %}</span>
+  <span data-k="fAccount">{% trans "Account" %}</span>
+  <span data-k="fPayment">{% trans "Payment method" %}</span>
+  <span data-k="ex1">{% trans "chai 20" %}</span>
+  <span data-k="ex2">{% trans "auto 80" %}</span>
+  <span data-k="ex3">{% trans "swiggy 320" %}</span>
+  <span data-k="ex4">{% trans "uber 150" %}</span>
+</div>
+
+<div id="tmr-composer" class="tmr-c" hidden>
+  <div class="tmr-c__scrim" data-composer-close></div>
+  <div class="tmr-c__card" role="dialog" aria-modal="true" aria-labelledby="tmr-c-title">
+    <div class="tmr-c__head">
+      <h2 class="tmr-c__title" id="tmr-c-title">{% trans "New expense" %}</h2>
+      <button type="button" class="tmr-c__close" data-composer-close aria-label="{% trans 'Close' %}">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="tmr-c__body">
+      <div class="tmr-quick">
+        <label class="visually-hidden" for="tmr-quick-input">{% trans "What did you spend on?" %}</label>
+        <input id="tmr-quick-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false"
+               enterkeyhint="go" maxlength="300"
+               placeholder="{% trans 'What did you spend on? e.g. swiggy 320' %}">
+        <button type="button" class="tmr-mic" id="tmr-mic" hidden aria-label="{% trans 'Speak expense' %}">
+          <i class="bi bi-mic-fill" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="tmr-go" id="tmr-go">{% trans "Go" %}</button>
+      </div>
+      <p class="tmr-datenote" id="tmr-datenote" hidden>
+        <span id="tmr-datenote-text"></span>
+        <button type="button" class="tmr-linkbtn tmr-linkbtn--small" id="tmr-datenote-reset">{% trans "Reset" %}</button>
+      </p>
+      <div class="tmr-notice" id="tmr-voice-msg" role="status" hidden></div>
+
+      <!-- State A: empty -->
+      <section id="tmr-state-a">
+        <div class="tmr-usual">
+          <span class="tmr-usual__label" id="tmr-usual-label">{% trans "Your usual" %}</span>
+          <div class="tmr-usual__chips" id="tmr-usual" role="group" aria-labelledby="tmr-usual-label"></div>
+        </div>
+        <p class="tmr-help">{% trans "Press Enter to fill the details. You can edit everything before adding." %}</p>
+        <hr class="tmr-sep">
+        <button type="button" class="tmr-linkbtn" id="tmr-manual">
+          {% trans "Enter details manually" %} <i class="bi bi-caret-down-fill" aria-hidden="true" style="font-size:.7rem"></i>
+        </button>
+      </section>
+
+      <!-- State B: review -->
+      <section id="tmr-state-b" hidden>
+        <p class="tmr-help" id="tmr-b-help">{% trans "Filled from what you typed. Check each detail, then add." %}</p>
+        <div class="tmr-notice" id="tmr-b-notice" role="alert" hidden></div>
+        <div class="tmr-notice tmr-notice--error" id="tmr-b-error" role="alert" hidden>
+          <div>
+            <div id="tmr-b-error-text"></div>
+            <div class="tmr-notice__actions" id="tmr-b-error-actions"></div>
+          </div>
+        </div>
+
+        <div class="tmr-grid">
+          <div class="tmr-field" data-field="amount">
+            <label class="tmr-field__label" for="tmr-amount">
+              <span>{% trans "Amount" %}</span><span class="tmr-tag" data-tag hidden></span>
+            </label>
+            <div class="tmr-amount">
+              <select id="tmr-currency" class="tmr-select tmr-select--currency" aria-label="{% trans 'Currency' %}"></select>
+              <input id="tmr-amount" class="tmr-input tmr-input--amount" type="text" inputmode="decimal"
+                     autocomplete="off" placeholder="0" aria-describedby="tmr-amount-msg" required>
+            </div>
+            <p class="tmr-field__msg" id="tmr-amount-msg" hidden></p>
+          </div>
+
+          <div class="tmr-field" data-field="date">
+            <span class="tmr-field__label" id="tmr-date-label">
+              <span>{% trans "Date" %}</span><span class="tmr-tag" data-tag hidden></span>
+            </span>
+            <div class="tmr-chips" role="radiogroup" aria-labelledby="tmr-date-label" id="tmr-date-group">
+              <label class="tmr-chip"><input type="radio" name="tmr-date" value="today"><span class="tmr-chip__face">{% trans "Today" %}</span></label>
+              <label class="tmr-chip"><input type="radio" name="tmr-date" value="yesterday"><span class="tmr-chip__face">{% trans "Yesterday" %}</span></label>
+              <label class="tmr-chip" id="tmr-pick-chip">
+                <input type="radio" name="tmr-date" value="custom" id="tmr-date-custom">
+                <span class="tmr-chip__face" id="tmr-pick-face">{% trans "Pick date" %}</span>
+                <input type="date" id="tmr-date-input" tabindex="-1" aria-label="{% trans 'Pick date' %}">
+              </label>
+            </div>
+            <p class="tmr-field__msg tmr-field__msg--info" id="tmr-date-msg" hidden></p>
+          </div>
+
+          <div class="tmr-field tmr-field--wide" data-field="description">
+            <label class="tmr-field__label" for="tmr-description">
+              <span>{% trans "Description" %}</span><span class="tmr-tag" data-tag hidden></span>
+            </label>
+            <input id="tmr-description" class="tmr-input" type="text" autocomplete="off" maxlength="500"
+                   placeholder="{% trans 'What did you spend on?' %}">
+          </div>
+
+          <div class="tmr-field" data-field="category">
+            <label class="tmr-field__label" for="tmr-category">
+              <span>{% trans "Category" %}</span><span class="tmr-tag" data-tag hidden></span>
+            </label>
+            <select id="tmr-category" class="tmr-select" aria-describedby="tmr-category-msg"></select>
+            <div class="tmr-inline" id="tmr-cat-inline" hidden>
+              <label class="visually-hidden" for="tmr-cat-name">{% trans "Category name" %}</label>
+              <div class="tmr-inline__row">
+                <input id="tmr-cat-name" class="tmr-input" type="text" maxlength="100" autocomplete="off"
+                       placeholder="{% trans 'e.g. Subscriptions' %}">
+                <button type="button" class="btn-action-primary tmr-btn" id="tmr-cat-save">{% trans "Save category" %}</button>
+              </div>
+              <div class="tmr-inline__row">
+                <button type="button" class="tmr-linkbtn tmr-linkbtn--small" id="tmr-cat-cancel">{% trans "Cancel" %}</button>
+              </div>
+              <p class="tmr-field__msg" id="tmr-cat-msg" hidden></p>
+            </div>
+            <p class="tmr-field__msg" id="tmr-category-msg" hidden></p>
+          </div>
+
+          <div class="tmr-field" data-field="account">
+            <label class="tmr-field__label" for="tmr-account">
+              <span>{% trans "Account" %}</span><span class="tmr-tag" data-tag hidden></span>
+            </label>
+            <select id="tmr-account" class="tmr-select"></select>
+          </div>
+
+          <div class="tmr-field tmr-field--wide" data-field="payment">
+            <span class="tmr-field__label" id="tmr-pay-label">
+              <span>{% trans "Payment method" %}</span><span class="tmr-tag" data-tag hidden></span>
+            </span>
+            <div class="tmr-chips" role="radiogroup" aria-labelledby="tmr-pay-label" id="tmr-pay-group">
+              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="Cash"><span class="tmr-chip__face"><i class="bi bi-cash-stack" aria-hidden="true"></i>{% trans "Cash" %}</span></label>
+              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="Credit Card"><span class="tmr-chip__face"><i class="bi bi-credit-card" aria-hidden="true"></i>{% trans "Credit Card" %}</span></label>
+              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="Debit Card"><span class="tmr-chip__face"><i class="bi bi-card-checklist" aria-hidden="true"></i>{% trans "Debit Card" %}</span></label>
+              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="UPI"><span class="tmr-chip__face"><i class="bi bi-qr-code-scan" aria-hidden="true"></i>{% trans "UPI" %}</span></label>
+              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="NetBanking"><span class="tmr-chip__face"><i class="bi bi-bank" aria-hidden="true"></i>{% trans "NetBanking" %}</span></label>
+            </div>
+            <p class="tmr-field__msg" id="tmr-pay-msg" hidden></p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tmr-confirm" id="tmr-confirm-discard" role="alertdialog" aria-labelledby="tmr-discard-text" hidden>
+      <div id="tmr-discard-text"></div>
+      <div class="tmr-confirm__actions">
+        <button type="button" class="btn-action-outline tmr-btn" id="tmr-discard-keep"></button>
+        <button type="button" class="btn-action-danger tmr-btn" id="tmr-discard-go"></button>
+      </div>
+    </div>
+    <div class="tmr-confirm" id="tmr-confirm-large" role="alertdialog" aria-labelledby="tmr-large-text" hidden>
+      <div id="tmr-large-text"></div>
+      <div class="tmr-confirm__actions">
+        <button type="button" class="btn-action-primary tmr-btn" id="tmr-large-yes"></button>
+        <button type="button" class="btn-action-outline tmr-btn" id="tmr-large-edit"></button>
+        <a class="tmr-linkbtn tmr-linkbtn--small" id="tmr-large-capital" href="#"></a>
+      </div>
+    </div>
+
+    <div class="tmr-c__foot" id="tmr-foot" hidden>
+      <button type="button" class="btn-action-cancel tmr-btn tmr-btn--cancel" id="tmr-cancel">{% trans "Cancel" %}</button>
+      <span class="tmr-c__hint">{% trans "Enter to add" %}</span>
+      <button type="button" class="btn-action-outline tmr-btn tmr-btn--another" id="tmr-add-another">{% trans "Add & add another" %}</button>
+      <button type="button" class="btn-action-primary tmr-btn tmr-btn--add" id="tmr-add">{% trans "Add expense" %}</button>
+    </div>
+
+    <div class="visually-hidden" id="tmr-live" aria-live="polite" aria-atomic="true"></div>
+  </div>
+</div>
+
+<div class="tmr-toast-region" id="tmr-toasts" role="region" aria-label="{% trans 'Notifications' %}" aria-live="polite"></div>

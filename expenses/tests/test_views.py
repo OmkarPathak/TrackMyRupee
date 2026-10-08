@@ -106,24 +106,26 @@ class DashboardViewTest(BaseViewTest):
 
 class ExpenseCRUDTest(BaseViewTest):
     def test_create_expense(self):
-        url = reverse('expense-create')
+        url = reverse('expense-composer-save')
         data = {
-            'form-TOTAL_FORMS': '1',
-            'form-INITIAL_FORMS': '0',
-            'form-MIN_NUM_FORMS': '0',
-            'form-MAX_NUM_FORMS': '1000',
-            'form-0-date': date.today(),
-            'form-0-amount': 250,
-            'form-0-category': 'Food',
-            'form-0-description': 'Lunch',
-            'form-0-payment_method': 'Cash',
-            'form-0-currency': '₹'
+            'key': 'k-create-1',
+            'date': date.today().isoformat(),
+            'amount': '250',
+            'category': 'Food',
+            'description': 'Lunch',
+            'payment_method': 'Cash',
+            'currency': '₹',
         }
-        response = self.client.post(url, data)
-        # Should redirect to expense list
-        self.assertEqual(response.status_code, 302) 
+        response = self.client.post(url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
         self.assertEqual(Expense.objects.count(), 1)
         self.assertEqual(Expense.objects.first().amount, 250)
+
+    def test_add_expense_url_renders_composer_deep_link(self):
+        response = self.client.get(reverse('expense-create'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-composer-autoopen')
 
     def test_update_expense(self):
         # ... existing code ...

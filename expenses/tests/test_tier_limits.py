@@ -1,3 +1,4 @@
+import json
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -161,14 +162,14 @@ class TierLimitTest(TestCase):
             )
         
         data = {
-            'form-TOTAL_FORMS': '1', 'form-INITIAL_FORMS': '0', 'form-MIN_NUM_FORMS': '0',
-            'form-MAX_NUM_FORMS': '1000', 'form-0-date': today.strftime('%Y-%m-%d'),
-            'form-0-amount': '20.00', 'form-0-description': 'Limit Exceeded Expense',
-            'form-0-category': 'Food', 'form-0-currency': '₹', 'form-0-payment_method': 'Cash'
+            'key': 'limit-1', 'date': today.strftime('%Y-%m-%d'), 'amount': '20.00',
+            'description': 'Limit Exceeded Expense', 'category': 'Food', 'currency': '₹',
+            'payment_method': 'Cash',
         }
-        response = self.client.post(reverse('expense-create'), data)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse('pricing'), response.url)
+        response = self.client.post(reverse('expense-composer-save'), json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['code'], 'limit')
+        self.assertEqual(response.json()['upgrade_url'], reverse('pricing'))
         self.assertEqual(Expense.objects.filter(user=self.user, date__year=today.year, date__month=today.month).count(), limit)
 
     def test_net_worth_locked_status(self):

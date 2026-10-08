@@ -346,6 +346,7 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
         {% block extra_head %}{% endblock %}
+        {% if user.is_authenticated %}<link rel="stylesheet" href="{% static 'css/expense_composer.css' %}?v=1.0">{% endif %}
 
     <!-- Google Fonts (Non-blocking FCP optimization) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1181,11 +1182,13 @@
 
     <!-- Block for Modals -->
     {% block modals %}{% endblock %}
+    {% if user.is_authenticated %}{% include 'components/expense_composer.html' %}{% endif %}
 
     {% block extra_js %}{% endblock %}
 
     <!-- Skeleton Loader JS — deferred so it doesn't block first paint -->
     <script defer src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
+    {% if user.is_authenticated %}<script defer src="{% static 'js/expense_composer.js' %}?v=1.0"></script>{% endif %}
     <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 
@@ -1368,10 +1371,10 @@
             if (bar) {
                 bar.classList.remove('active');
             }
-            // Prevent mobile/PWA soft keyboard auto-opening on HTMX swaps/settles (except #nl-input on expense_form)
+            // Prevent mobile/PWA soft keyboard auto-opening on HTMX swaps/settles (except inside the New Expense composer)
             if (document.activeElement && 
                 (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') && 
-                document.activeElement.id !== 'nl-input') {
+                !document.activeElement.closest('#tmr-composer')) {
                 document.activeElement.blur();
             }
         };
