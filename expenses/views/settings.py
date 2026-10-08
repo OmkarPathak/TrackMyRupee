@@ -130,7 +130,6 @@ class SettingsHomeView(LoginRequiredMixin, TemplateView):
     template_name = 'expenses/settings_home.html'
 
     def get_context_data(self, **kwargs):
-        from django.core.cache import cache
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
@@ -362,27 +361,33 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = _('Profile Settings')
-        context['is_social_user'] = SocialAccount.objects.filter(user=self.request.user).exists()
-        
-        now = timezone.now()
-        has_any_data = Expense.objects.filter(user=self.request.user).exists() or Income.objects.filter(user=self.request.user).exists()
-        show_year_in_review = False
-        year_in_review_year = None
-        
-        if has_any_data:
-            # Logic: 
-            # 1. From Nov 1st to Dec 31st, show CURRENT year's review (as it's coming to an end)
-            # 2. From Jan 1st to Oct 31st, show PREVIOUS year's review
-            if now.month >= 11:
-                year_in_review_year = now.year
-            else:
-                year_in_review_year = now.year - 1
-                
-            if year_in_review_year:
-                show_year_in_review = Expense.objects.filter(user=self.request.user, date__year=year_in_review_year).exists()
-                
-        context['show_year_in_review'] = show_year_in_review
-        context['year_in_review_year'] = year_in_review_year
+        user = self.request.user
+
+        # Rarely-changing flags, cached like SettingsHomeView's counts (5 min)
+        cache_key = f'profile_settings_flags_{user.id}'
+        flags = cache.get(cache_key)
+        if flags is None:
+            now = timezone.now()
+            has_any_data = Expense.objects.filter(user=user).exists() or Income.objects.filter(user=user).exists()
+            show_year_in_review = False
+            year_in_review_year = None
+
+            if has_any_data:
+                # 1. From Nov 1st to Dec 31st, show CURRENT year's review (as it's coming to an end)
+                # 2. From Jan 1st to Oct 31st, show PREVIOUS year's review
+                year_in_review_year = now.year if now.month >= 11 else now.year - 1
+                show_year_in_review = Expense.objects.filter(user=user, date__year=year_in_review_year).exists()
+
+            flags = {
+                'is_social_user': SocialAccount.objects.filter(user=user).exists(),
+                'show_year_in_review': show_year_in_review,
+                'year_in_review_year': year_in_review_year,
+            }
+            cache.set(cache_key, flags, 300)
+
+        context['is_social_user'] = flags['is_social_user']
+        context['show_year_in_review'] = flags['show_year_in_review']
+        context['year_in_review_year'] = flags['year_in_review_year']
         
         return context
 

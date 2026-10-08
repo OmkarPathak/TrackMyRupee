@@ -11,7 +11,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 
-from expenses.context_processors import active_announcement
+from expenses.context_processors import global_badge_data
 from expenses.models import Announcement
 from expenses.views.notifications import (
     _dispatch_cron_command,
@@ -236,14 +236,14 @@ class FeatureAnnouncementTests(TestCase):
         req = rf.get('/')
         req.user = self.free_user
 
-        ctx = active_announcement(req)
+        ctx = global_badge_data(req)
         self.assertEqual(ctx['active_announcement'], ann)
 
         # Expired announcement should not return
         ann.expires_at = timezone.now() - timedelta(days=1)
         ann.save()
 
-        ctx_expired = active_announcement(req)
+        ctx_expired = global_badge_data(req)
         self.assertIsNone(ctx_expired['active_announcement'])
 
     def test_markdown_to_plain_text_stripping(self):

@@ -15,7 +15,7 @@ from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from expenses.context_processors import sidebar_badges
+from expenses.context_processors import global_badge_data
 from expenses.models import (
     Account,
     FinancialAuditLog,
@@ -104,7 +104,7 @@ class TestRecurringTransactionNextDueDateField(TestCase):
                 self.user = user
 
         request = MockRequest(self.user)
-        badges = sidebar_badges(request)
+        badges = global_badge_data(request)
         self.assertEqual(badges['upcoming_subscriptions_count'], 1)
 
 

@@ -20,6 +20,7 @@ from .models import (
     Loan,
     LoanInterestRate,
     LoanRepayment,
+    Notification,
     PhysicalAsset,
     RecurringTransaction,
     SavingsGoal,
@@ -270,3 +271,28 @@ _DASHBOARD_CACHE_MODELS = (
 for _model in _DASHBOARD_CACHE_MODELS:
     post_save.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_save_{_model.__name__}')
     post_delete.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_delete_{_model.__name__}')
+
+
+# --- global_badge_data cache invalidation (see context_processors.global_badge_data) ---
+def invalidate_global_badge_data(sender=None, instance=None, **kwargs):
+    """Drop the combined navbar/sidebar badge cache when any model it reads changes."""
+    if kwargs.get('raw', False):
+        return
+    try:
+        user_id = _dashboard_cache_user_id(instance)
+        if user_id:
+            from .context_processors import global_badge_data_cache_key
+            cache.delete(global_badge_data_cache_key(user_id))
+    except Exception:
+        pass
+
+
+def _connect_global_badge_invalidation():
+    from webpush.models import PushInformation
+
+    for _model in (Notification, SavingsGoal, RecurringTransaction, Loan, Account, PushInformation):
+        post_save.connect(invalidate_global_badge_data, sender=_model, dispatch_uid=f'global_badge_data_save_{_model.__name__}')
+        post_delete.connect(invalidate_global_badge_data, sender=_model, dispatch_uid=f'global_badge_data_delete_{_model.__name__}')
+
+
+_connect_global_badge_invalidation()

@@ -18,43 +18,91 @@ from .models import (
 from .utils import translate_digits as ud
 
 
-def webpush_vapid_key(request):
-    """Provides the VAPID public key and subscription status to all templates."""
-    webpush_settings = getattr(settings, 'WEBPUSH_SETTINGS', {})
-    is_subscribed = False
-    
-    if request.user.is_authenticated:
-        cache_key = f'webpush_sub_{request.user.id}'
-        is_subscribed = cache.get(cache_key)
-        if is_subscribed is None:
-            from webpush.models import PushInformation
-            is_subscribed = PushInformation.objects.filter(user=request.user).exists()
-            cache.set(cache_key, is_subscribed, 3600)
-        
+GLOBAL_BADGE_CACHE_TTL = 120  # seconds; signal invalidation covers the common write paths
+
+
+def global_badge_data_cache_key(user_id):
+    return f'global_badge_data_{user_id}'
+
+
+def _build_global_badge_data(user):
+    """Run the per-user queries behind the navbar/sidebar/base template. Query logic is
+    unchanged from the five processors this replaced."""
+    from webpush.models import PushInformation
+
+    from .models import Account
+
+    today = timezone.now().date()
+    next_week = today + timedelta(days=7)
+
+    unread_notifications = list(
+        Notification.objects.filter(user=user, is_read=False).order_by('-created_at')[:9]
+    )
+    all_accounts = list(Account.objects.filter(user=user, is_active=True).order_by('name'))
+    # Subscriptions: due within next 7 days or overdue
+    upcoming_subscriptions_count = RecurringTransaction.objects.filter(
+        user=user, is_active=True, next_due_date__lte=next_week
+    ).count()
+
     return {
-        'vapid_public_key': webpush_settings.get('VAPID_PUBLIC_KEY', ''),
-        'is_webpush_subscribed': is_subscribed
+        'notifications': unread_notifications,
+        'has_unread_notifications': bool(unread_notifications),
+        'unread_notifications_count': len(unread_notifications),
+        'active_goals_count': SavingsGoal.objects.filter(user=user, is_completed=False).count(),
+        'upcoming_subscriptions_count': upcoming_subscriptions_count,
+        'calendar_this_week_count': upcoming_subscriptions_count,
+        'active_loans_count': Loan.objects.filter(user=user, is_active=True).count(),
+        'sidebar_accounts': all_accounts[:5],
+        'sidebar_accounts_count': len(all_accounts),
+        'has_more_accounts': len(all_accounts) > 5,
+        'is_webpush_subscribed': PushInformation.objects.filter(user=user).exists(),
     }
 
-def notifications(request):
-    """Provides unread notifications to all templates."""
-    if not request.user.is_authenticated:
-        return {'notifications': [], 'has_unread_notifications': False}
 
-    cache_key = f'notifications_{request.user.id}'
-    result = cache.get(cache_key)
-    if result is None:
-        # Evaluate once to avoid 3 separate queries (filter + exists + count)
-        unread_notifications = list(
-            Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:9]
-        )
-        result = {
-            'notifications': unread_notifications,
-            'has_unread_notifications': bool(unread_notifications),
-            'unread_notifications_count': len(unread_notifications),
+def global_badge_data(request):
+    """Single cache entry for notifications, sidebar badges, sidebar accounts and webpush
+    subscription status (replaces the notifications / sidebar_badges / user_accounts /
+    webpush_vapid_key processors, which each had their own TTL).
+
+    Deliberately NOT part of the per-user blob:
+    - VAPID public key: comes from settings, no DB or cache cost.
+    - Active announcement: cached per *tier* (shared by all users) and invalidated by
+      Announcement.save() via invalidate_announcement_cache(); folding it into a per-user
+      key would make that invalidation impossible. It's a cache hit, not a query.
+    - Matured-deposit processing: a write side effect, not a read, so it keeps its own
+      1-hour cooldown and runs *before* the cache lookup so any Account changes it makes
+      are visible (and signal-invalidate the blob) on the same request.
+    """
+    vapid = {'vapid_public_key': getattr(settings, 'WEBPUSH_SETTINGS', {}).get('VAPID_PUBLIC_KEY', '')}
+    user = request.user
+    if not user.is_authenticated:
+        return {
+            **vapid,
+            'notifications': [],
+            'has_unread_notifications': False,
+            'sidebar_accounts': [],
+            'sidebar_accounts_count': 0,
+            'has_more_accounts': False,
+            'is_webpush_subscribed': False,
+            **_active_announcement(request),
         }
-        cache.set(cache_key, result, 60)  # 60-second TTL
-    return result
+
+    cooldown_key = f'deposit_matured_processed_{user.id}'
+    if not cache.get(cooldown_key):
+        try:
+            from .account_valuation import process_matured_deposit_incomes
+            process_matured_deposit_incomes(user)
+            cache.set(cooldown_key, True, 3600)
+        except Exception:
+            pass
+
+    cache_key = global_badge_data_cache_key(user.id)
+    data = cache.get(cache_key)
+    if data is None:
+        data = _build_global_badge_data(user)
+        cache.set(cache_key, data, GLOBAL_BADGE_CACHE_TTL)
+    return {**data, **vapid, **_active_announcement(request)}
+
 
 def currency_symbol(request):
     """Provides the user's preferred currency symbol to all templates."""
@@ -65,70 +113,6 @@ def currency_symbol(request):
         except UserProfile.DoesNotExist:
             return {'currency_symbol': '₹'}
     return {'currency_symbol': '₹'}
-
-def user_accounts(request):
-    """Provides user accounts to all templates for the sidebar."""
-    if request.user.is_authenticated:
-        cooldown_key = f'deposit_matured_processed_{request.user.id}'
-        if not cache.get(cooldown_key):
-            try:
-                from .account_valuation import process_matured_deposit_incomes
-                process_matured_deposit_incomes(request.user)
-                cache.set(cooldown_key, True, 3600)
-            except Exception:
-                pass
-        cache_key = f'sidebar_accounts_{request.user.id}'
-        result = cache.get(cache_key)
-        if result is None:
-            from .models import Account
-            all_accounts = list(Account.objects.filter(user=request.user, is_active=True).order_by('name'))
-            count = len(all_accounts)
-            result = {
-                'sidebar_accounts': all_accounts[:5],
-                'sidebar_accounts_count': count,
-                'has_more_accounts': count > 5,
-            }
-            cache.set(cache_key, result, 300)  # 5 minutes
-        return result
-    return {'sidebar_accounts': [], 'sidebar_accounts_count': 0, 'has_more_accounts': False}
-
-def sidebar_badges(request):
-    """Provides badge counts for the sidebar navigation."""
-    if not request.user.is_authenticated:
-        return {}
-
-    cache_key = f'sidebar_badges_{request.user.id}'
-    cached = cache.get(cache_key)
-    if cached is not None:
-        return cached
-
-    today = timezone.now().date()
-    next_week = today + timedelta(days=7)
-
-    # 1. Goals: Active (incomplete) goals
-    active_goals_count = SavingsGoal.objects.filter(user=request.user, is_completed=False).count()
-
-    # 2. Subscriptions: Due within next 7 days or overdue
-    upcoming_subscriptions_count = RecurringTransaction.objects.filter(
-        user=request.user,
-        is_active=True,
-        next_due_date__lte=next_week
-    ).count()
-
-    # 3. Calendar: Events this week
-    calendar_this_week_count = upcoming_subscriptions_count
-
-    # 4. Loans: Active loans count
-    active_loans_count = Loan.objects.filter(user=request.user, is_active=True).count()
-
-    result = {
-        'active_goals_count': active_goals_count,
-        'upcoming_subscriptions_count': upcoming_subscriptions_count,
-        'calendar_this_week_count': calendar_this_week_count,
-        'active_loans_count': active_loans_count,
-    }
-    cache.set(cache_key, result, 120)  # 2 minutes
-    return result
 
 def personalization(request):
     """Provides time-based greetings and month progress encouragement to all templates."""
@@ -191,7 +175,7 @@ def personalization(request):
     }
 
 
-def active_announcement(request):
+def _active_announcement(request):
     """Provides the active modal feature announcement to all templates."""
     tier = 'ANONYMOUS'
     if request.user.is_authenticated and hasattr(request.user, 'profile'):

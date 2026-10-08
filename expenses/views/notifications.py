@@ -105,6 +105,10 @@ class NotificationListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListVie
 def mark_notifications_read(request):
     if request.method == 'POST':
         Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        # queryset.update() bypasses post_save, so drop the navbar badge cache explicitly
+        from django.core.cache import cache
+        from ..context_processors import global_badge_data_cache_key
+        cache.delete(global_badge_data_cache_key(request.user.id))
         messages.success(request, "All notifications marked as read.")
         return redirect('notification-list')
     return redirect('notification-list')
