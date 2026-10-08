@@ -136,11 +136,11 @@
               <span>{% trans "Date" %}</span><span class="tmr-tag" data-tag hidden></span>
             </span>
             <div class="tmr-chips" role="radiogroup" aria-labelledby="tmr-date-label" id="tmr-date-group">
-              <label class="tmr-chip"><input type="radio" name="tmr-date" value="today"><span class="tmr-chip__face">{% trans "Today" %}</span></label>
-              <label class="tmr-chip"><input type="radio" name="tmr-date" value="yesterday"><span class="tmr-chip__face">{% trans "Yesterday" %}</span></label>
-              <label class="tmr-chip" id="tmr-pick-chip">
+              <label class="tmr-opt"><input type="radio" name="tmr-date" value="today"><span class="tmr-opt__face">{% trans "Today" %}</span></label>
+              <label class="tmr-opt"><input type="radio" name="tmr-date" value="yesterday"><span class="tmr-opt__face">{% trans "Yesterday" %}</span></label>
+              <label class="tmr-opt" id="tmr-pick-chip">
                 <input type="radio" name="tmr-date" value="custom" id="tmr-date-custom">
-                <span class="tmr-chip__face" id="tmr-pick-face">{% trans "Pick date" %}</span>
+                <span class="tmr-opt__face" id="tmr-pick-face">{% trans "Pick date" %}</span>
                 <input type="date" id="tmr-date-input" tabindex="-1" aria-label="{% trans 'Pick date' %}">
               </label>
             </div>
@@ -187,11 +187,11 @@
               <span>{% trans "Payment method" %}</span><span class="tmr-tag" data-tag hidden></span>
             </span>
             <div class="tmr-chips" role="radiogroup" aria-labelledby="tmr-pay-label" id="tmr-pay-group">
-              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="Cash"><span class="tmr-chip__face"><i class="bi bi-cash-stack" aria-hidden="true"></i>{% trans "Cash" %}</span></label>
-              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="Credit Card"><span class="tmr-chip__face"><i class="bi bi-credit-card" aria-hidden="true"></i>{% trans "Credit Card" %}</span></label>
-              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="Debit Card"><span class="tmr-chip__face"><i class="bi bi-card-checklist" aria-hidden="true"></i>{% trans "Debit Card" %}</span></label>
-              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="UPI"><span class="tmr-chip__face"><i class="bi bi-qr-code-scan" aria-hidden="true"></i>{% trans "UPI" %}</span></label>
-              <label class="tmr-chip"><input type="radio" name="tmr-pay" value="NetBanking"><span class="tmr-chip__face"><i class="bi bi-bank" aria-hidden="true"></i>{% trans "NetBanking" %}</span></label>
+              <label class="tmr-opt"><input type="radio" name="tmr-pay" value="Cash"><span class="tmr-opt__face">{% trans "Cash" %}</span></label>
+              <label class="tmr-opt"><input type="radio" name="tmr-pay" value="Credit Card"><span class="tmr-opt__face">{% trans "Credit Card" %}</span></label>
+              <label class="tmr-opt"><input type="radio" name="tmr-pay" value="Debit Card"><span class="tmr-opt__face">{% trans "Debit Card" %}</span></label>
+              <label class="tmr-opt"><input type="radio" name="tmr-pay" value="UPI"><span class="tmr-opt__face">{% trans "UPI" %}</span></label>
+              <label class="tmr-opt"><input type="radio" name="tmr-pay" value="NetBanking"><span class="tmr-opt__face">{% trans "NetBanking" %}</span></label>
             </div>
             <p class="tmr-field__msg" id="tmr-pay-msg" hidden></p>
           </div>

@@ -308,7 +308,7 @@
     });
     chips.slice(0, 4).forEach(function (c) {
       var b = document.createElement('button');
-      b.type = 'button'; b.className = 'tmr-pill'; b.textContent = c.label;
+      b.type = 'button'; b.className = 'tmr-suggest'; b.textContent = c.label;
       b.addEventListener('click', function () {
         if (c.usual) fillFromUsual(c); else { el.quick.value = c.label; parse(); }
       });
