@@ -3,10 +3,13 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=1.9">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
     <script src="{% static 'js/tmr_filter.js' %}?v=1.9" defer></script>
+    {% if show_tutorial %}
+    {# Product tour assets only ship when the tour will actually start (new users / ?tour=true). #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <script defer src="{% static 'js/tutorial.js' %}"></script>
+    {% endif %}
     <script>
         window.tutorialCompleteUrl = "{% url 'complete-tutorial' %}";
         window.homeUrl = "{% url 'home' %}";
@@ -202,13 +205,17 @@
     .anim-speedometer { animation: speedometer-wiggle 4s ease-in-out infinite; transform-origin: 12px 12px; }
 
     /* Net Worth "Wow" factor styles */
+    /* Transform-only (never opacity:0) so hero KPIs are LCP-eligible on first paint. */
     .nw-animate-in {
-        animation: nw-slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        opacity: 0;
-        transform: translateY(20px);
+        animation: nw-slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        animation-delay: 0s !important;
     }
     @keyframes nw-slide-up {
-        to { opacity: 1; transform: translateY(0); }
+        from { transform: translateY(10px); }
+        to { transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .nw-animate-in { animation: none; }
     }
     .nw-sparkline-container {
         height: 100px;
@@ -3310,7 +3317,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Calculate x position using Chart.js scale
                 const xScale = charts.trend.scales.x;
-                const x = xScale.getPixelForIndex(idx);
+                const x = xScale.getPixelForValue(idx);
 
                 // Create marker line
                 const marker = document.createElement('div');

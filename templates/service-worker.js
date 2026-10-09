@@ -1,5 +1,5 @@
-// Updated: 2026-09-24 (iOS PWA Notch Blur Fix & Cache Update)
-const CACHE_NAME = 'finance-tracker-v34';
+{% load static %}// Updated: 2026-10-09 (self-hosted vendor assets; cache-first for content-hashed /static/ files)
+const CACHE_NAME = 'finance-tracker-v35';
 const OFFLINE_URL = '/offline/';
 
 const ASSETS_TO_CACHE = [
@@ -11,10 +11,12 @@ const ASSETS_TO_CACHE = [
   '/static/js/tmr_filter.js',
   '/static/js/tmr_filter.js?v=1.5',
   '/static/icon.svg',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
-  'https://cdn.jsdelivr.net/npm/chart.js'
+  '{% static "vendor/bootstrap/bootstrap.min.css" %}',
+  '{% static "vendor/fonts.css" %}',
+  '{% static "vendor/bootstrap-icons/bootstrap-icons.min.css" %}',
+  '{% static "vendor/bootstrap-icons/fonts/bootstrap-icons.woff2" %}',
+  '{% static "vendor/chartjs/chart-4.4.7.umd.js" %}',
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js'
 ];
 
 // Listen for message from client (SKIP_WAITING)
@@ -81,23 +83,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets on same origin (/static/): Network first, fallback to cache
+  // Static assets on same origin (/static/).
+  // Content-hashed files (WhiteNoise manifest: name.<12 hex>.ext) can never change under the same URL,
+  // so serve them cache-first and skip the network round trip entirely on repeat visits.
+  // Anything else (dev server, un-hashed URLs) stays network-first so edits show up immediately.
   if (isSameOrigin && url.pathname.startsWith('/static/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request);
-        })
-    );
+    const isHashed = /\.[0-9a-f]{12}\.[a-z0-9]+$/i.test(url.pathname);
+    const fetchAndStore = () => fetch(event.request).then((response) => {
+      if (response && response.status === 200 && response.type === 'basic') {
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
+      }
+      return response;
+    });
+    if (isHashed) {
+      event.respondWith(
+        caches.match(event.request).then((cached) => cached || fetchAndStore())
+      );
+    } else {
+      event.respondWith(fetchAndStore().catch(() => caches.match(event.request)));
+    }
     return;
   }
 

@@ -37,4 +37,5 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 EXPOSE 8000
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "finance_tracker.wsgi:application"]
+# Worker/thread/bind defaults come from /app/gunicorn.conf.py
+CMD ["gunicorn", "finance_tracker.wsgi:application"]
