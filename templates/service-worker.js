@@ -1,5 +1,5 @@
 {% load static %}// Updated: 2026-10-09 (self-hosted vendor assets; cache-first for content-hashed /static/ files)
-const CACHE_NAME = 'finance-tracker-v35';
+const CACHE_NAME = 'finance-tracker-v36';
 const OFFLINE_URL = '/offline/';
 
 const ASSETS_TO_CACHE = [
@@ -16,7 +16,9 @@ const ASSETS_TO_CACHE = [
   '{% static "vendor/bootstrap-icons/bootstrap-icons.min.css" %}',
   '{% static "vendor/bootstrap-icons/fonts/bootstrap-icons.woff2" %}',
   '{% static "vendor/chartjs/chart-4.4.7.umd.js" %}',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js'
+  '{% static "vendor/bootstrap/bootstrap.bundle.min.js" %}',
+  '{% static "vendor/htmx/htmx-2.0.4.min.js" %}',
+  '{% static "vendor/alpine/alpine-3.14.9.min.js" %}'
 ];
 
 // Listen for message from client (SKIP_WAITING)

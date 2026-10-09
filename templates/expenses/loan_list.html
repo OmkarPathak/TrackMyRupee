@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters humanize %}
+{% load static i18n digit_filters humanize %}
 
 {% block content %}
 {% include 'expenses/partials/_loan_list_partial.html' %}
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'vendor/chartjs/chart-4.4.7.umd.js' %}"></script>
 <script>
 function renderLoanListCharts() {
     if (typeof Chart === 'undefined') return;

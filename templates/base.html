@@ -86,9 +86,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
-    <!-- Preconnect only to origins still used (htmx/alpine/bootstrap.js on jsDelivr, analytics).
-         Bootstrap CSS, Bootstrap Icons, Chart.js and the web fonts are self-hosted under /static/vendor/. -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <!-- Bootstrap (CSS + JS), Bootstrap Icons, htmx, Alpine, Chart.js and the web fonts are self-hosted
+         under /static/vendor/, so only analytics origins need a preconnect. -->
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
     {% if POSTHOG_API_KEY %}
     <link rel="preconnect" href="https://us-assets.i.posthog.com" crossorigin>
@@ -1179,8 +1178,8 @@
     <!-- Skeleton Loader JS — deferred so it doesn't block first paint -->
     <script defer src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
     {% if user.is_authenticated %}<script defer src="{% static 'js/expense_toast.js' %}?v=1.0"></script>{% endif %}
-    <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+    <script defer src="{% static 'vendor/htmx/htmx-2.0.4.min.js' %}"></script>
+    <script defer src="{% static 'vendor/alpine/alpine-3.14.9.min.js' %}"></script>
 
     <script>
         // Start 7-Day Pro Trial
@@ -1375,9 +1374,7 @@
     </script>
 
     <!-- Bootstrap JS -->
-    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+    <script defer src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
 
     <script>
         (() => {

@@ -23,11 +23,11 @@ class BaseHtmlRenderTest(TestCase):
 
         # Verify Bootstrap CSS link presence (self-hosted; the JS bundle still comes from the CDN)
         self.assertIn('vendor/bootstrap/bootstrap.min', content)
-        self.assertIn('bootstrap@5.3.3', content)
+        self.assertIn('vendor/bootstrap/bootstrap.bundle.min', content)
 
         # Verify defer on the pinned, self-hosted chart.js and on htmx.org
         self.assertRegex(content, r'<script defer src="/static/vendor/chartjs/chart-4\.4\.7\.umd[^"]*\.js"></script>')
-        self.assertIn('<script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>', content)
+        self.assertRegex(content, r'<script defer src="/static/vendor/htmx/htmx-2\.0\.4\.min[^"]*\.js"></script>')
 
         # Verify htmx.config wrapped in DOMContentLoaded listener
         self.assertIn("document.addEventListener('DOMContentLoaded', function ()", content)
@@ -48,6 +48,7 @@ class BaseHtmlRenderTest(TestCase):
         content = self.client.get(reverse('home')).content.decode('utf-8')
         self.assertNotIn('fonts.googleapis.com', content)
         self.assertNotIn('fonts.gstatic.com', content)
+        self.assertNotIn('cdn.jsdelivr.net', content)
         self.assertNotIn('bootstrap@5.3.3/dist/css', content)
         self.assertNotIn('bootstrap-icons@1.11.3/font/bootstrap-icons.min.css', content)
         self.assertIn('vendor/fonts', content)

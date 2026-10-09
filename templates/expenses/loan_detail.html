@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters humanize %}
+{% load static i18n digit_filters humanize %}
 
 {% block content %}
 <div class="fade-in">
@@ -506,7 +506,7 @@
         });
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'vendor/chartjs/chart-4.4.7.umd.js' %}"></script>
     {{ breakdown_chart_data|json_script:"breakdown-chart-data" }}
     {{ trend_chart_data|json_script:"trend-chart-data" }}
 
