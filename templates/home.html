@@ -2898,6 +2898,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     dataPoints.forEach(function(dataPoint) {
                         const val = dataPoint.parsed.y;
                         if (val === null || val === undefined || isNaN(val)) return;
+                        if (dataPoint.dataset.isCapitalEvent) return; // listed separately below with names/amounts
                         
                         // Format the value
                         const formattedValue = formatCurrencyCompact(val);
@@ -2926,6 +2927,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="tooltip-label">${label}</span>
                                 </div>
                                 <span class="tooltip-value">${formattedValue}</span>
+                            </div>
+                        `;
+                    });
+                    // Capital events on this day (trend chart only): name and amount, amber diamond as the dot
+                    const dayEvents = (context.chart.$capitalEvents || {})[dataPoints.length ? dataPoints[0].dataIndex : -1] || [];
+                    dayEvents.forEach(function(ev) {
+                        innerHtml += `
+                            <div class="tooltip-row">
+                                <div class="tooltip-row-left">
+                                    <span class="tooltip-dot" style="background-color: #D4831A; border-radius: 2px; transform: rotate(45deg)"></span>
+                                    <span class="tooltip-label">${ev.subtype}</span>
+                                </div>
+                                <span class="tooltip-value">${formatCurrencyCompact(ev.amount)}</span>
                             </div>
                         `;
                     });
@@ -3122,6 +3136,48 @@ document.addEventListener('DOMContentLoaded', function() {
             const trendIsDaily = {{ trend_is_daily|yesno:"true,false" }};
             const trend7dAvg = {{ trend_7d_avg|safe }};
 
+            // Capital events: amber diamonds sitting on the x-axis at each event date (native Chart.js points,
+            // so they resize with the chart). Details appear in the tooltip and the legend explains the symbol.
+            const capitalEventsByIndex = {};
+            const capitalEventPoints = trendLabels.map(() => null);
+            try {
+                const annEl = document.getElementById('capital-event-annotations');
+                const anns = annEl ? JSON.parse(annEl.textContent) : [];
+                anns.forEach(ann => {
+                    // monthly view: labels are month starts, so match an event to its month
+                    const key = trendIsDaily ? ann.date : ann.date.slice(0, 7) + '-01';
+                    const idx = trendIsoDates.indexOf(key);
+                    if (idx === -1) return;
+                    (capitalEventsByIndex[idx] = capitalEventsByIndex[idx] || []).push(ann);
+                    capitalEventPoints[idx] = 0;
+                });
+            } catch (e) { /* malformed annotations: just skip the markers */ }
+            const hasCapitalEvents = Object.keys(capitalEventsByIndex).length > 0;
+            const capitalEventDataset = {
+                type: 'line',
+                label: '{% trans "Capital event" %}',
+                isCapitalEvent: true,
+                data: capitalEventPoints,
+                showLine: false,
+                borderColor: '#D4831A',
+                backgroundColor: '#D4831A',
+                pointStyle: 'rectRot',
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 1.5,
+                clip: false,      // the markers sit exactly on the axis line: don't crop them
+                order: -1
+            };
+            // keep the legend's symbol for this entry a diamond while the other entries stay lines
+            const trendLegendLabels = (chart) => Chart.defaults.plugins.legend.labels.generateLabels(chart).map(item => {
+                if (chart.data.datasets[item.datasetIndex] && chart.data.datasets[item.datasetIndex].isCapitalEvent) {
+                    item.pointStyle = 'rectRot';
+                    item.lineWidth = 0;   // no white outline in the legend: keep the swatch as light as the line swatches
+                }
+                return item;
+            });
+
             if (trendIsDaily && trendLabels.length > 1) {
             // --- Daily view: Area line + 7-day moving average ---
             const areaGradient = 'rgba(29, 158, 117, 0.12)';
@@ -3175,13 +3231,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             charts.trend = new Chart(ctxTrend, {
                 type: 'line',
-                data: { labels: trendLabels, datasets: dailyDatasets },
+                data: { labels: trendLabels, datasets: hasCapitalEvents ? [...dailyDatasets, capitalEventDataset] : dailyDatasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14, usePointStyle: true, pointStyle: 'line', font: { size: 11 } } },
+                        legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 6, padding: 14, usePointStyle: true, pointStyle: 'line', font: { size: 11 }, generateLabels: trendLegendLabels } },
                         tooltip: {
                             enabled: false,
                             external: createCustomTooltip('trend-tooltip')
@@ -3222,6 +3278,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+            charts.trend.$capitalEvents = capitalEventsByIndex;
         } else {
             // --- Monthly view: Keep as bar chart ---
             trendDatasets.forEach((ds, i) => {
@@ -3231,11 +3288,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
             charts.trend = new Chart(ctxTrend, {
                 type: 'bar',
-                data: { labels: trendLabels, datasets: trendDatasets },
+                data: { labels: trendLabels, datasets: hasCapitalEvents ? [...trendDatasets, capitalEventDataset] : trendDatasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } } },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 6, padding: 14, font: { size: 11 }, generateLabels: trendLegendLabels } },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => c.dataset.isCapitalEvent
+                                    ? (capitalEventsByIndex[c.dataIndex] || []).map(ev => `${ev.subtype}: ${formatCurrencyCompact(ev.amount)}`)
+                                    : `${c.dataset.label}: ${formatCurrencyCompact(c.parsed.y)}`
+                            }
+                        }
+                    },
                     onHover: (event, chartElement, chart) => {
                         const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, true);
                         event.native.target.style.cursor = points[0] ? 'pointer' : 'default';
@@ -3279,97 +3345,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-
-    // --- Capital Event Annotations on trend chart ---
-    (function renderCapitalEventMarkers() {
-        const annotationsRaw = document.getElementById('capital-event-annotations');
-        if (!annotationsRaw) return;
-        let annotations;
-        try { annotations = JSON.parse(annotationsRaw.textContent); } catch(e) { return; }
-        if (!annotations || annotations.length === 0) return;
-
-        const trendCanvas = document.getElementById('trendChart');
-        if (!trendCanvas) return;
-
-        const container = trendCanvas.parentElement;
-        // Build a date->xPct map from trendLabels vs trendIsoDates
-        const trendIsoDates = JSON.parse(document.getElementById('trend-iso-dates').textContent || '[]');
-        if (!trendIsoDates.length) return;
-
-        // Overlay a transparent absolutely-positioned div for markers
-        if (!container.style.position || container.style.position === 'static') {
-            container.style.position = 'relative';
-        }
-
-        function drawMarkers() {
-            // Remove old markers
-            container.querySelectorAll('.capital-event-marker').forEach(el => el.remove());
-            if (!charts.trend) return;
-
-            const chartArea = charts.trend.chartArea;
-            if (!chartArea) return;
-            const canvasRect = trendCanvas.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-
-            annotations.forEach(ann => {
-                const idx = trendIsoDates.indexOf(ann.date);
-                if (idx === -1) return;
-
-                // Calculate x position using Chart.js scale
-                const xScale = charts.trend.scales.x;
-                const x = xScale.getPixelForValue(idx);
-
-                // Create marker line
-                const marker = document.createElement('div');
-                marker.className = 'capital-event-marker';
-                marker.style.cssText = `
-                    position:absolute;
-                    left:${x}px;
-                    top:${chartArea.top}px;
-                    height:${chartArea.bottom - chartArea.top}px;
-                    width:2px;
-                    background: repeating-linear-gradient(to bottom, #f59e0b 0px, #f59e0b 6px, transparent 6px, transparent 10px);
-                    pointer-events: none;
-                    transform: translateX(-1px);
-                `;
-
-                // Flag icon at top
-                const flag = document.createElement('div');
-                flag.title = ann.subtype + (ann.note ? ': ' + ann.note : '') + ' (' + ann.currency + ann.amount.toLocaleString('en-IN') + ')';
-                flag.style.cssText = `
-                    position:absolute;
-                    top:-18px;
-                    left:-9px;
-                    width:18px;
-                    height:18px;
-                    background:#f59e0b;
-                    border-radius:50%;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:9px;
-                    color:#fff;
-                    pointer-events:auto;
-                    cursor:pointer;
-                    box-shadow:0 1px 4px rgba(0,0,0,.2);
-                `;
-                flag.innerHTML = '⚑';
-                flag.setAttribute('data-bs-toggle','tooltip');
-                flag.setAttribute('data-bs-placement','top');
-                flag.setAttribute('title', flag.title);
-                marker.appendChild(flag);
-                container.appendChild(marker);
-                // Re-init tooltip for the new element safely
-                if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-                    new bootstrap.Tooltip(flag);
-                }
-            });
-        }
-
-        // Draw after chart renders
-        setTimeout(drawMarkers, 300);
-        window.addEventListener('resize', () => setTimeout(drawMarkers, 300));
-    })();
 
     // --- 2. Money Flow Chart (Layer 2) ---
         const moneyFlowCanvas = document.getElementById('moneyFlowChart');

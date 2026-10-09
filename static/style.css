@@ -686,6 +686,13 @@ body.demo-mode .sidebar {
   background-color: rgba(16, 185, 129, 0.15) !important;
 }
 
+/* Dark sidebar: the light-mode dark-green text above is unreadable on the dark active row */
+[data-bs-theme="dark"] .sidebar .nav-link.active .badge-soft-success {
+  color: var(--color-success-text, #5DCAA5) !important;
+  background-color: rgba(93, 202, 165, 0.18) !important;
+  border-color: rgba(93, 202, 165, 0.35) !important;
+}
+
 /* Collapsed Sidebar Item Styles */
 .sidebar.collapsed .nav-link {
   justify-content: center;

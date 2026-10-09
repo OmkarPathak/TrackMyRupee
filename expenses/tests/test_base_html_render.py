@@ -71,3 +71,12 @@ class BaseHtmlRenderTest(TestCase):
         content = self.client.get(reverse('home'), {'tour': 'true'}).content.decode('utf-8')
         self.assertIn('driver.js', content)
         self.assertIn('tutorial.js', content)
+
+    def test_capital_events_are_native_chart_markers_not_a_dom_overlay(self):
+        """Events render as diamonds on the trend chart's x-axis (a Chart.js dataset), not as an absolutely
+        positioned dotted line + flag drawn over the canvas."""
+        content = self.client.get(reverse('home')).content.decode('utf-8')
+        self.assertIn('isCapitalEvent', content)
+        self.assertIn("pointStyle: 'rectRot'", content)
+        self.assertNotIn('capital-event-marker', content)
+        self.assertNotIn('getPixelForIndex', content)
