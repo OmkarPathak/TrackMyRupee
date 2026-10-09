@@ -19,7 +19,7 @@ from expenses.models import Account, Expense, Income
 
 # Measured on a small dataset: cold ~80 queries, warm 5. Ceilings leave modest headroom.
 COLD_QUERY_CEILING = 110
-WARM_QUERY_CEILING = 8
+WARM_QUERY_CEILING = 4  # session, user, profile (+1 headroom); was 5 before the has_any_data/category caching
 
 
 class DashboardQueryBudgetTests(TestCase):
@@ -91,3 +91,49 @@ class ServerTimingMiddlewareTests(TestCase):
 
     def test_header_absent_when_disabled_end_to_end(self):
         self.assertNotIn('Server-Timing', self.client.get('/').headers)
+
+
+class SlowQueryLogTests(TestCase):
+    def _run(self, env):
+        import logging  # noqa: F401
+        from django.http import HttpResponse
+        from django.test import RequestFactory
+
+        from finance_tracker.server_timing import ServerTimingMiddleware
+
+        def view(request):
+            User.objects.filter(username='secret-value-123').count()
+            return HttpResponse('ok')
+
+        with override_settings(ENABLE_SERVER_TIMING=True), mock.patch.dict('os.environ', env):
+            with self.assertLogs('finance_tracker.slow_query', level='WARNING') as cm:
+                ServerTimingMiddleware(view)(RequestFactory().get('/some/path/'))
+        return cm.output
+
+    def test_logs_call_site_and_sql_template_but_never_parameters(self):
+        # threshold 0.0001ms => every query counts as slow
+        out = self._run({'SLOW_QUERY_LOG_MS': '0.0001'})
+        self.assertEqual(len(out), 1)
+        line = out[0]
+        self.assertIn('slow_query ms=', line)
+        self.assertIn('path=/some/path/', line)
+        self.assertIn('test_dashboard_query_budget.py:', line)  # first project frame = the view above
+        self.assertIn('SELECT COUNT', line)
+        self.assertNotIn('secret-value-123', line)
+
+    def test_silent_when_unset(self):
+        from django.http import HttpResponse
+        from django.test import RequestFactory
+
+        from finance_tracker.server_timing import ServerTimingMiddleware
+
+        def view(request):
+            User.objects.count()
+            return HttpResponse('ok')
+
+        from finance_tracker import server_timing
+
+        with override_settings(ENABLE_SERVER_TIMING=True), mock.patch.dict('os.environ', {'SLOW_QUERY_LOG_MS': ''}):
+            with mock.patch.object(server_timing.slow_query_logger, 'warning') as warn:
+                ServerTimingMiddleware(view)(RequestFactory().get('/'))
+        warn.assert_not_called()
