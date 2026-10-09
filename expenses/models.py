@@ -2135,6 +2135,43 @@ class LoanInterestRate(models.Model):
     def __str__(self):
         return f"{self.loan.name} - {self.interest_rate}% from {self.effective_date}"
 
+def annotate_loan_principal_totals(queryset):
+    """Annotate a Loan queryset with `paid_principal` and `capital_prepaid`.
+
+    `Loan.remaining_principal` runs two aggregate queries per loan unless those attributes
+    are already present. Looping over loans without this costs 2 DB round trips per loan;
+    with it the totals arrive in the same query as the loans. The values are the same
+    aggregates remaining_principal would compute (Decimal 0.00 when there are no rows).
+    Subqueries (not joins) are used so the two sums cannot multiply each other.
+    """
+    from django.db.models import DecimalField, OuterRef, Subquery, Value
+    from django.db.models.functions import Coalesce
+
+    zero = Value(Decimal('0.00'))
+    paid = (
+        LoanRepayment.objects.filter(loan=OuterRef('pk'))
+        .order_by().values('loan')
+        .annotate(total=Sum('principal_portion')).values('total')
+    )
+    prepaid = (
+        CapitalEvent.objects.filter(
+            linked_loan=OuterRef('pk'), subtype__in=['loan_down_payment', 'loan_prepayment']
+        )
+        .order_by().values('linked_loan')
+        .annotate(total=Sum('amount')).values('total')
+    )
+    return queryset.annotate(
+        paid_principal=Coalesce(
+            Subquery(paid, output_field=LoanRepayment._meta.get_field('principal_portion')),
+            zero, output_field=LoanRepayment._meta.get_field('principal_portion'),
+        ),
+        capital_prepaid=Coalesce(
+            Subquery(prepaid, output_field=CapitalEvent._meta.get_field('amount')),
+            zero, output_field=CapitalEvent._meta.get_field('amount'),
+        ),
+    )
+
+
 class LoanRepayment(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='repayments')

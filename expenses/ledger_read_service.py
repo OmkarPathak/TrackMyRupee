@@ -50,6 +50,7 @@ from .models import (
     LoanScheduleInstallment,
     PhysicalAsset,
     SavingsGoal,
+    annotate_loan_principal_totals,
 )
 from .utils import get_exchange_rate
 
@@ -773,7 +774,9 @@ class LedgerReadService:
             if strategy_for(a.account_type) == STRATEGY.LOAN_OUTSTANDING
             and a.linked_loan_id is not None
         }
-        unlinked_loans = Loan.objects.filter(user=user, is_active=True).exclude(id__in=linked_loan_ids)
+        unlinked_loans = annotate_loan_principal_totals(
+            Loan.objects.filter(user=user, is_active=True).exclude(id__in=linked_loan_ids)
+        )
         for loan in unlinked_loans:
             remaining_principal = loan.remaining_principal.quantize(Decimal("0.01"))
             if remaining_principal <= Decimal("0.00"):

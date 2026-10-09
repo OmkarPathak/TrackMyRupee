@@ -10,7 +10,14 @@ from django.db.models import F, Sum
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
-from .models import CapitalEvent, Expense, Income, Loan, LoanRepayment
+from .models import (
+    CapitalEvent,
+    Expense,
+    Income,
+    Loan,
+    LoanRepayment,
+    annotate_loan_principal_totals,
+)
 from .utils import get_safe_date
 
 logger = logging.getLogger(__name__)
@@ -254,7 +261,7 @@ class LoanService:
         repayments AND any lump-sum capital-event prepayments (down payments,
         prepayments) so that net worth / total debt display is always consistent.
         """
-        active_loans = Loan.objects.filter(user=user, is_active=True)
+        active_loans = annotate_loan_principal_totals(Loan.objects.filter(user=user, is_active=True))
         total = sum(loan.remaining_principal for loan in active_loans)
         return float(total)
 
