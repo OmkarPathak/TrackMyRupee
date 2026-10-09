@@ -136,7 +136,16 @@
                 <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mb-4">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0 text-start align-middle">
+                            <table class="table table-hover table-striped mb-0 text-start align-middle tmr-table" style="min-width: 860px;">
+                                <colgroup>
+                                    <col style="width: 140px">
+                                    <col>
+                                    <col style="width: 150px">
+                                    <col style="width: 104px">
+                                    <col style="width: 15%">
+                                    <col style="width: 124px">
+                                    <col style="width: 92px">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th class="ps-4">{% trans "Next Renewal" %}</th>
@@ -167,7 +176,7 @@
                                         </td>
                                         <td>
                                             <div>
-                                                <span class="{% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
+                                                <span class="tmr-truncate {% if sub.is_locked %}text-muted{% endif %}" title="{{ sub.description }}">{{ sub.description }}</span>
                                                 {% if sub.end_date %}
                                                     <div class="text-danger small" style="font-size: 0.72rem;">
                                                         {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
@@ -183,19 +192,19 @@
                                             {% elif sub.transaction_type == 'CAPITAL' %}
                                                 <span class="badge-soft badge-soft-warning fw-semibold">{% trans "Capital Event" %}</span>
                                             {% else %}
-                                                <span class="badge-soft badge-soft-secondary fw-semibold">{{ sub.category }}</span>
+                                                <span class="badge-soft badge-soft-secondary fw-semibold" title="{{ sub.category }}">{{ sub.category }}</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-capitalize">{{ sub.get_frequency_display }}</td>
+                                        <td class="text-capitalize" title="{{ sub.get_frequency_display }}">{{ sub.get_frequency_display }}</td>
                                         <td>
                                             {% if sub.account %}
-                                                <span class="text-body small fw-medium">{{ sub.account.name }}</span>
+                                                <span class="text-body small fw-medium" title="{{ sub.account.name }}">{{ sub.account.name }}</span>
                                             {% else %}
                                                 <span class="text-muted">—</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-end fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
-                                            {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
+                                        <td class="text-end fw-bold tmr-amount {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                            {% if sub.transaction_type == 'INCOME' %}+{% else %}&minus;{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                             {% if sub.currency != user.profile.currency %}
                                                 <div class="text-muted small fw-normal" style="font-size: 0.72rem;">
                                                     ({{ sub.currency }}{{ sub.amount|compact_amount:sub.currency|translate_digits }})
@@ -271,7 +280,7 @@
                                 </div>
                                 <div class="text-end d-flex align-items-center gap-2">
                                     <div class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
-                                        {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
+                                        {% if sub.transaction_type == 'INCOME' %}+{% else %}&minus;{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                     </div>
                                     <div class="dropdown">
                                         <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Subscription actions' %}" title="{% trans 'Subscription actions' %}">
@@ -335,7 +344,16 @@
                 <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mb-4">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0 text-start align-middle">
+                            <table class="table table-hover table-striped mb-0 text-start align-middle tmr-table" style="min-width: 860px;">
+                                <colgroup>
+                                    <col style="width: 140px">
+                                    <col>
+                                    <col style="width: 150px">
+                                    <col style="width: 104px">
+                                    <col style="width: 15%">
+                                    <col style="width: 124px">
+                                    <col style="width: 92px">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th class="ps-4">{% trans "Next Renewal" %}</th>
@@ -366,7 +384,7 @@
                                         </td>
                                         <td>
                                             <div>
-                                                <span class="{% if sub.is_locked %}text-muted{% endif %}">{{ sub.description }}</span>
+                                                <span class="tmr-truncate {% if sub.is_locked %}text-muted{% endif %}" title="{{ sub.description }}">{{ sub.description }}</span>
                                                 {% if sub.end_date %}
                                                     <div class="text-danger small" style="font-size: 0.72rem;">
                                                         {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
@@ -382,19 +400,19 @@
                                             {% elif sub.transaction_type == 'CAPITAL' %}
                                                 <span class="badge-soft badge-soft-warning fw-semibold">{% trans "Capital Event" %}</span>
                                             {% else %}
-                                                <span class="badge-soft badge-soft-secondary fw-semibold">{{ sub.category }}</span>
+                                                <span class="badge-soft badge-soft-secondary fw-semibold" title="{{ sub.category }}">{{ sub.category }}</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-capitalize">{{ sub.get_frequency_display }}</td>
+                                        <td class="text-capitalize" title="{{ sub.get_frequency_display }}">{{ sub.get_frequency_display }}</td>
                                         <td>
                                             {% if sub.account %}
-                                                <span class="text-body small fw-medium">{{ sub.account.name }}</span>
+                                                <span class="text-body small fw-medium" title="{{ sub.account.name }}">{{ sub.account.name }}</span>
                                             {% else %}
                                                 <span class="text-muted">—</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-end fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
-                                            {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
+                                        <td class="text-end fw-bold tmr-amount {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                            {% if sub.transaction_type == 'INCOME' %}+{% else %}&minus;{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                             {% if sub.currency != user.profile.currency %}
                                                 <div class="text-muted small fw-normal" style="font-size: 0.72rem;">
                                                     ({{ sub.currency }}{{ sub.amount|compact_amount:sub.currency|translate_digits }})
@@ -470,7 +488,7 @@
                                 </div>
                                 <div class="text-end d-flex align-items-center gap-2">
                                     <div class="fw-bold {% if sub.is_locked %}text-muted{% elif sub.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
-                                        {% if sub.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
+                                        {% if sub.transaction_type == 'INCOME' %}+{% else %}&minus;{% endif %}{{ currency_symbol }}{{ sub.base_amount|compact_amount:currency_symbol|translate_digits }}
                                     </div>
                                     <div class="dropdown">
                                         <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Subscription actions' %}" title="{% trans 'Subscription actions' %}">
@@ -522,7 +540,15 @@
                 <div class="card border-0 shadow-sm rounded-4 d-none d-md-block mb-4 opacity-75">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0 text-start align-middle">
+                            <table class="table table-hover table-striped mb-0 text-start align-middle tmr-table" style="min-width: 640px;">
+                                <colgroup>
+                                    <col>
+                                    <col style="width: 150px">
+                                    <col style="width: 110px">
+                                    <col style="width: 110px">
+                                    <col style="width: 124px">
+                                    <col style="width: 92px">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th class="ps-4">{% trans "Description" %}</th>
@@ -538,7 +564,7 @@
                                     <tr>
                                         <td class="ps-4">
                                             <div>
-                                                <span class="fw-bold text-decoration-line-through text-muted">{{ sub.description }}</span>
+                                                <span class="tmr-truncate fw-bold text-decoration-line-through text-muted" title="{{ sub.description }}">{{ sub.description }}</span>
                                                 {% if sub.end_date %}
                                                     <div class="text-danger small" style="font-size: 0.72rem;">
                                                         {% trans "Ends" %}: {{ sub.end_date|date:"M d, Y" }}
@@ -557,11 +583,11 @@
                                                 <span class="badge-soft badge-soft-secondary fw-semibold">{% trans "Expense" %}</span>
                                             {% endif %}
                                         </td>
-                                        <td>{{ sub.get_frequency_display }}</td>
+                                        <td title="{{ sub.get_frequency_display }}">{{ sub.get_frequency_display }}</td>
                                         <td>
                                             <span class="badge bg-secondary">{% trans "Cancelled" %}</span>
                                         </td>
-                                        <td class="text-end fw-bold text-muted">
+                                        <td class="text-end fw-bold tmr-amount text-muted">
                                             {{ currency_symbol }}{{ sub.base_amount|floatformat:0|translate_digits }}
                                             {% if sub.currency != user.profile.currency %}
                                                 <div class="text-muted small fw-normal" style="font-size: 0.72rem;">

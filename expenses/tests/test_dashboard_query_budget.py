@@ -61,8 +61,9 @@ class ServerTimingMiddlewareTests(TestCase):
         self.client.force_login(self.user)
 
     def _build(self):
-        from finance_tracker.server_timing import ServerTimingMiddleware
         from django.http import HttpResponse
+
+        from finance_tracker.server_timing import ServerTimingMiddleware
         return ServerTimingMiddleware(lambda request: HttpResponse('ok'))
 
     @override_settings(ENABLE_SERVER_TIMING=False)
@@ -75,6 +76,7 @@ class ServerTimingMiddlewareTests(TestCase):
     def test_header_has_only_numbers_and_counts_queries(self):
         from django.http import HttpResponse
         from django.test import RequestFactory
+
         from finance_tracker.server_timing import ServerTimingMiddleware
 
         def view(request):
@@ -96,6 +98,7 @@ class ServerTimingMiddlewareTests(TestCase):
 class SlowQueryLogTests(TestCase):
     def _run(self, env):
         import logging  # noqa: F401
+
         from django.http import HttpResponse
         from django.test import RequestFactory
 

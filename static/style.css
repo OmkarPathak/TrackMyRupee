@@ -3993,3 +3993,83 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
   line-height: 1.5;
 }
 
+
+
+/* ==========================================================================
+   Data tables (All Transactions, Expenses, Income, Subscriptions): column widths + typography only.
+   Opt in with <table class="table tmr-table"> and a <colgroup>. Fixed layout means long text is
+   trimmed with an ellipsis (full text in the title attribute, shown on hover) instead of widening
+   the table and pushing the Actions column off-screen. No colours, badges or behaviour change here.
+   ========================================================================== */
+.tmr-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 680px;
+}
+
+.tmr-table td,
+.tmr-table th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The actions column holds a dropdown menu: do not clip it */
+.tmr-table td:last-child,
+.tmr-table th:last-child {
+  overflow: visible;
+}
+
+/* Headers: 14px / 700 / dark ink on a light tint / sentence case. Body: 15px / 400. Secondary text: 13px. */
+:root { --tmr-th-color: #3a3a37; --tmr-th-bg: rgba(26, 26, 24, 0.045); }
+[data-bs-theme="dark"] { --tmr-th-color: #dfe3e8; --tmr-th-bg: rgba(255, 255, 255, 0.07); }
+
+html body.has-sidebar .table-responsive .tmr-table.table > thead > tr > th {
+  font-size: 14px !important;
+  font-weight: 700;
+  color: var(--tmr-th-color) !important;
+  background-color: var(--tmr-th-bg) !important;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td {
+  font-size: 15px !important;
+  font-weight: 400;
+}
+
+html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td .small,
+html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td small {
+  font-size: 13px !important;
+}
+
+/* Amounts: tabular figures so digits line up down the column */
+html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* One truncation rule for text inside a cell (pair with a title attribute carrying the full text) */
+.tmr-truncate {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Chips/badges inside table cells never exceed their column: they end with an ellipsis (full text is in
+   the title attribute) rather than being clipped abruptly by the cell. */
+.tmr-table td .badge-soft {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.tmr-table td .badge-soft > i:not([class*="me-"]) {
+  margin-right: 0.3rem;
+}

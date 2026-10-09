@@ -2144,7 +2144,7 @@ def annotate_loan_principal_totals(queryset):
     aggregates remaining_principal would compute (Decimal 0.00 when there are no rows).
     Subqueries (not joins) are used so the two sums cannot multiply each other.
     """
-    from django.db.models import DecimalField, OuterRef, Subquery, Value
+    from django.db.models import OuterRef, Subquery, Value
     from django.db.models.functions import Coalesce
 
     zero = Value(Decimal('0.00'))

@@ -187,7 +187,16 @@
             <div class="card border-0 shadow-sm rounded-4 d-none d-md-block">
                 <div class="card-body p-0">
                     <div id="tableView" class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 align-middle">
+                        <table class="table table-hover table-striped mb-0 align-middle tmr-table" style="min-width: 900px;">
+                            <colgroup>
+                                <col style="width: 134px">
+                                <col style="width: 148px">
+                                <col>
+                                <col style="width: 184px">
+                                <col style="width: 14%">
+                                <col style="width: 124px">
+                                <col style="width: 92px">
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th class="ps-4">{% trans "Date" %}</th>
@@ -230,7 +239,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="text-truncate tx-description" title="{{ tx.tx_description|default:'' }}">{{ tx.tx_description|default:"-"|truncatechars:80 }}</div>
+                                        <div class="tmr-truncate tx-description" title="{{ tx.tx_description|default:'' }}">{{ tx.tx_description|default:"-" }}</div>
                                         {% if tx.cc_balance_after_payment is not None %}
                                             <div class="text-muted small mt-1 text-truncate" style="font-size: 0.75rem; max-width: 250px;">
                                                 {{ tx.to_account_name }} · {% trans "Balance after payment" %}: {{ tx.to_account_currency }}{{ tx.cc_balance_after_payment|compact_amount:tx.to_account_currency|translate_digits }}
@@ -253,8 +262,8 @@
                                     <td class="small text-muted">
                                         <div class="text-truncate tx-account" title="{{ tx.acc }}">{{ tx.acc }}</div>
                                     </td>
-                                    <td class="text-end fw-bold amount-{{ tx.type|lower }} signed-amount">
-                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
+                                    <td class="text-end fw-bold tmr-amount amount-{{ tx.type|lower }} signed-amount">
+                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}&minus;{% elif tx.type == 'INCOME' %}+{% endif %}
                                         {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
                                     </td>
                                     <td class="text-end pe-4">
@@ -334,7 +343,7 @@
                                 </div>
                                 <div class="text-end d-flex align-items-center gap-2">
                                     <div class="fw-bold amount-{{ tx.type|lower }} signed-amount">
-                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}-{% elif tx.type == 'INCOME' %}+{% endif %}
+                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}&minus;{% elif tx.type == 'INCOME' %}+{% endif %}
                                         {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
                                     </div>
                                     <div class="dropdown">
