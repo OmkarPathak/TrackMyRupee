@@ -402,7 +402,8 @@ def home_view(request):
     
     loan_stats = loan_repayments_selected.aggregate(
         total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-        total_emi=Sum('base_amount')
+        total_emi=Sum('base_amount'),
+        repayment_count=Count('id'),  # reused for transaction_count below (saves a COUNT query)
     )
     total_loan_interest = loan_stats['total_interest'] or 0
     total_loan_emi = loan_stats['total_emi'] or 0
@@ -729,7 +730,8 @@ def home_view(request):
 
 
     # 4. Summary Stats
-    total_expenses_base = expenses.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+    _expense_agg = expenses.aggregate(total=Sum('base_amount'), count=Count('id'))
+    total_expenses_base = _expense_agg['total'] or 0
     
     # Include capital events that are NOT excluded from averages (i.e. exclude_from_averages=False)
     included_events_qs = CapitalEvent.objects.filter(user=request.user, exclude_from_averages=False)
@@ -752,7 +754,7 @@ def home_view(request):
     _included_events_count = _cap_agg['count'] or 0
 
     total_expenses = total_expenses_base + total_loan_interest + included_capital_events_total
-    transaction_count = expenses.count() + loan_repayments_selected.count() + _included_events_count
+    transaction_count = _expense_agg['count'] + loan_stats['repayment_count'] + _included_events_count
     
     # Savings for display = Income - Operating Expenses - Interest Paid
     # (Does NOT include principal repayment, since principal is returning borrowed money, not spending)
@@ -785,17 +787,16 @@ def home_view(request):
                     date__gte=prev_cycle_start,
                     date__lte=prev_cycle_end,
                 ))
-                prev_income = Income.objects.filter(
+                _prev_income_agg = Income.objects.filter(
                     user=request.user,
                     date__gte=prev_cycle_start,
                     date__lte=prev_cycle_end,
-                ).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-                prev_cb_rf = Income.objects.filter(
-                    user=request.user,
-                    date__gte=prev_cycle_start,
-                    date__lte=prev_cycle_end,
-                    source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']
-                ).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+                ).aggregate(
+                    total=Sum('base_amount'),
+                    cb_rf=Sum('base_amount', filter=Q(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement'])),
+                )
+                prev_income = _prev_income_agg['total'] or 0
+                prev_cb_rf = _prev_income_agg['cb_rf'] or 0
                 prev_loan_stats = LoanRepayment.objects.filter(
                     loan__user=request.user,
                     date__gte=prev_cycle_start,
@@ -826,11 +827,14 @@ def home_view(request):
                     date__year=prev_year, date__month=prev_month
                 ))
 
-                prev_income = Income.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-                prev_cb_rf = Income.objects.filter(
+                _prev_income_agg = Income.objects.filter(
                     user=request.user, date__year=prev_year, date__month=prev_month,
-                    source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']
-                ).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+                ).aggregate(
+                    total=Sum('base_amount'),
+                    cb_rf=Sum('base_amount', filter=Q(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement'])),
+                )
+                prev_income = _prev_income_agg['total'] or 0
+                prev_cb_rf = _prev_income_agg['cb_rf'] or 0
                 prev_loan_stats = LoanRepayment.objects.filter(
                     loan__user=request.user,
                     date__year=prev_year,
@@ -2551,7 +2555,9 @@ def home_view(request):
             obj.save()
 
     # 1. Accounts Nudge: If only 1 account exists
-    if Account.objects.filter(user=request.user, is_active=True).count() == 1:
+    # `accounts` (same active-accounts queryset) was already evaluated for net worth above,
+    # so len() reuses its result cache instead of issuing a COUNT query.
+    if len(accounts) == 1:
         add_nudge_alt(
             _('Smart Tip: Multiple Accounts'),
             _('Add separate accounts (like cash, bank, or UPI) to track your money more accurately across all sources.'),
