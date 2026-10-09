@@ -56,22 +56,6 @@ def home_view(request):
     """
     Dashboard view with filters and multiple charts.
     """
-    # Compute once — reused both for the onboarding redirect AND the year-in-review
-    # banner near the bottom of this view, avoiding a second identical EXISTS pair.
-    has_any_data = (
-        Expense.objects.filter(user=request.user).exists()
-        or Income.objects.filter(user=request.user).exists()
-    )
-
-    # Defensive check: Redirect to onboarding if user has NO data AND hasn't finished the flow
-    try:
-        if not request.user.profile.has_seen_tutorial and not has_any_data:
-            return redirect('onboarding')
-    except UserProfile.DoesNotExist:
-        # Ensure profile exists, then redirect
-        UserProfile.objects.get_or_create(user=request.user)
-        return redirect('onboarding')
-
     # --- ZERO-QUERY WARM LOAD ---
     # 95%+ of dashboard opens (login/PWA) hit this view with no filter params. Cache the
     # fully-built context for 4 hours so repeat loads skip every query below entirely.
@@ -89,31 +73,52 @@ def home_view(request):
         and not request.GET.get('end_date')
     )
     home_cache_key = f'home_default_data_{request.user.id}' if (is_default_filter_view and not is_testing) else None
-    if home_cache_key:
-        cached_context = cache.get(home_cache_key)
-        if cached_context is not None:
-            user_salary_date = getattr(getattr(request.user, 'profile', None), 'salary_date', 1) or 1
-            if cached_context.get('salary_date', 1) != user_salary_date:
-                cached_context = None
-                cache.delete(home_cache_key)
-        if cached_context is not None:
-            context = dict(cached_context)
-            # Refresh the handful of fields that are request/profile-specific and must never be stale.
-            context['is_net_worth_locked'] = not request.user.profile.has_net_worth_access
-            context['is_ai_locked'] = not request.user.profile.has_ai_access
-            context['show_tutorial'] = not request.user.profile.has_seen_tutorial or request.GET.get('tour') == 'true'
-            context['is_new_user'] = not has_any_data
-            context['filter_config'] = DASHBOARD_FILTERS
-            if 'applied_state' not in context:
-                context['applied_state'] = {
-                    'search': '',
-                    'time_period': 'this_month',
-                    'start_date': '',
-                    'end_date': '',
-                    'sort': '',
-                    'filters': {},
-                }
-            return render(request, 'home.html', context)
+    cached_context = cache.get(home_cache_key) if home_cache_key else None
+    if cached_context is not None:
+        user_salary_date = getattr(getattr(request.user, 'profile', None), 'salary_date', 1) or 1
+        if cached_context.get('salary_date', 1) != user_salary_date:
+            cached_context = None
+            cache.delete(home_cache_key)
+
+    # Compute once — reused both for the onboarding redirect AND the year-in-review
+    # banner near the bottom of this view. On a cache hit it is derived from the cached
+    # context (any Expense/Income write invalidates that entry), saving an EXISTS pair
+    # (~2 DB round trips) on every warm dashboard load.
+    if cached_context is not None and 'is_new_user' in cached_context:
+        has_any_data = not cached_context['is_new_user']
+    else:
+        has_any_data = (
+            Expense.objects.filter(user=request.user).exists()
+            or Income.objects.filter(user=request.user).exists()
+        )
+
+    # Defensive check: Redirect to onboarding if user has NO data AND hasn't finished the flow
+    try:
+        if not request.user.profile.has_seen_tutorial and not has_any_data:
+            return redirect('onboarding')
+    except UserProfile.DoesNotExist:
+        # Ensure profile exists, then redirect
+        UserProfile.objects.get_or_create(user=request.user)
+        return redirect('onboarding')
+
+    if cached_context is not None:
+        context = dict(cached_context)
+        # Refresh the handful of fields that are request/profile-specific and must never be stale.
+        context['is_net_worth_locked'] = not request.user.profile.has_net_worth_access
+        context['is_ai_locked'] = not request.user.profile.has_ai_access
+        context['show_tutorial'] = not request.user.profile.has_seen_tutorial or request.GET.get('tour') == 'true'
+        context['is_new_user'] = not has_any_data
+        context['filter_config'] = DASHBOARD_FILTERS
+        if 'applied_state' not in context:
+            context['applied_state'] = {
+                'search': '',
+                'time_period': 'this_month',
+                'start_date': '',
+                'end_date': '',
+                'sort': '',
+                'filters': {},
+            }
+        return render(request, 'home.html', context)
 
     # Process recurring transactions on cache miss / custom filter
     with suppress_dashboard_cache_invalidation(invalidate_on_exit=False):

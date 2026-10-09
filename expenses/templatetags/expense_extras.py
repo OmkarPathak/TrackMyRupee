@@ -79,11 +79,17 @@ def category_icon(context, category_name, user=None):
         return 'bi-tag'
         
     if not hasattr(request, '_category_icon_map'):
+        from django.core.cache import cache
+
         from expenses.models import Category
-        # Fetch all category icons for this user in a single query
-        request._category_icon_map = dict(
-            Category.objects.filter(user=request.user).values_list('name', 'icon')
-        )
+        # Per-user cache (invalidated with the dashboard cache on any Category write, see
+        # signals.invalidate_dashboard_cache) so warm page loads don't pay a DB round trip.
+        cache_key = f'category_icon_map_{request.user.id}'
+        icon_map = cache.get(cache_key)
+        if icon_map is None:
+            icon_map = dict(Category.objects.filter(user=request.user).values_list('name', 'icon'))
+            cache.set(cache_key, icon_map, 3600)
+        request._category_icon_map = icon_map
     
     return request._category_icon_map.get(category_name, 'bi-tag')
 
