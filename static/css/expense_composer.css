@@ -127,8 +127,8 @@
   border: 0;
   background: transparent;
   color: var(--color-success-text, #0F7657);
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 400;
+  font-size: 0.875rem;
   cursor: pointer;
 }
 .tmr-linkbtn:hover { text-decoration: underline; }
@@ -276,12 +276,8 @@
   margin-top: 1.5rem;
 }
 .tmr-c__foot[hidden] { display: none; }
-.tmr-c__foot .tmr-c__hint {
-  margin-right: auto;
-  font-size: 0.78rem;
-  color: var(--color-muted-text, var(--bs-secondary-color));
-}
-@media (hover: none), (max-width: 767.98px) { .tmr-c__hint { display: none; } }
+/* Cancel sits at the left edge; the add buttons stay right-aligned. */
+.tmr-c__foot .tmr-btn--cancel { margin-right: auto; }
 
 /* Discard / large-amount confirmation bars (above the footer) */
 .tmr-confirm {

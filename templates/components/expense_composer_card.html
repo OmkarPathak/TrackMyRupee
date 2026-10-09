@@ -26,9 +26,6 @@
   <span data-k="yesAdd">{% trans "Yes, add it" %}</span>
   <span data-k="editAmount">{% trans "Edit amount" %}</span>
   <span data-k="asCapital">{% trans "Log as Capital Event instead" %}</span>
-  <span data-k="discardAsk">{% trans "Discard this expense?" %}</span>
-  <span data-k="keepEditing">{% trans "Keep editing" %}</span>
-  <span data-k="discard">{% trans "Discard" %}</span>
   <span data-k="saveFailed">{% trans "We couldn't reach the server. Your details are kept, so you can try again." %}</span>
   <span data-k="upgrade">{% trans "Upgrade" %}</span>
   <span data-k="adding">{% trans "Adding…" %}</span>
@@ -181,13 +178,6 @@
       </section>
     </div>
 
-    <div class="tmr-confirm" id="tmr-confirm-discard" role="alertdialog" aria-labelledby="tmr-discard-text" hidden>
-      <div id="tmr-discard-text"></div>
-      <div class="tmr-confirm__actions">
-        <button type="button" class="btn-action-outline tmr-btn" id="tmr-discard-keep"></button>
-        <button type="button" class="btn-action-danger tmr-btn" id="tmr-discard-go"></button>
-      </div>
-    </div>
     <div class="tmr-confirm" id="tmr-confirm-large" role="alertdialog" aria-labelledby="tmr-large-text" hidden>
       <div id="tmr-large-text"></div>
       <div class="tmr-confirm__actions">
@@ -201,7 +191,6 @@
     <div class="visually-hidden" id="tmr-live" aria-live="polite" aria-atomic="true"></div>
   </div>
   <div class="tmr-c__foot" id="tmr-foot" hidden>
-    <span class="tmr-c__hint">{% trans "Enter to add" %}</span>
     <button type="button" class="btn-action-cancel tmr-btn tmr-btn--cancel" id="tmr-cancel">{% trans "Cancel" %}</button>
     <button type="button" class="btn-action-outline tmr-btn tmr-btn--another" id="tmr-add-another">{% trans "Save and add another" %}</button>
     <button type="button" class="btn-action-primary tmr-btn tmr-btn--add" id="tmr-add"><span class="tmr-long">{% trans "Add expense" %}</span><span class="tmr-short">{% trans "Add" %}</span></button>

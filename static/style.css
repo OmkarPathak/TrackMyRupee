@@ -171,6 +171,14 @@ body.has-sidebar .card:has(> .table-responsive) {
   box-shadow: none !important;
 }
 
+/* One table type scale across the app (matches All Transactions) */
+body.has-sidebar .table-responsive .table th,
+body.has-sidebar .table-responsive .table td,
+body.has-sidebar table.table th,
+body.has-sidebar table.table td {
+  font-size: 0.95rem !important;
+}
+
 /* --- Filter Pills & Nav Pills Standardization --- */
 .filter-pills-container,
 .nav-pills-standard {

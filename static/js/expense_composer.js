@@ -54,8 +54,6 @@
     account: $('tmr-account'),
     payGroup: $('tmr-pay-group'), payMsg: $('tmr-pay-msg'),
     foot: $('tmr-foot'), cancel: $('tmr-cancel'), addAnother: $('tmr-add-another'), add: $('tmr-add'),
-    cDiscard: $('tmr-confirm-discard'), discardText: $('tmr-discard-text'),
-    discardKeep: $('tmr-discard-keep'), discardGo: $('tmr-discard-go'),
     cLarge: $('tmr-confirm-large'), largeText: $('tmr-large-text'), largeYes: $('tmr-large-yes'),
     largeEdit: $('tmr-large-edit'), largeCapital: $('tmr-large-capital'),
     live: $('tmr-live')
@@ -305,7 +303,7 @@
   }
 
   function hideMessages() {
-    show(el.bNotice, false); show(el.bError, false); show(el.cDiscard, false); show(el.cLarge, false);
+    show(el.bNotice, false); show(el.bError, false); show(el.cLarge, false);
     show(el.voiceMsg, false); show(el.catInline, false);
     [el.amountMsg, el.categoryMsg, el.payMsg].forEach(function (n) { if (n) { n.hidden = true; n.textContent = ''; } });
     Object.keys(fieldEl).forEach(function (f) { fieldEl[f].classList.remove('is-invalid'); });
@@ -728,18 +726,6 @@
   // New Expense is an ordinary page: Cancel / Close / a finished add go back to where the user came from.
   function leave() { window.location.assign(S.nextUrl); }
 
-  function hasUnsaved() {
-    return !!(el.quick.value.trim() || S.v.amount || S.v.description || Object.keys(S.edited).length);
-  }
-  function requestClose() {
-    if (S.saving) return;
-    if (!hasUnsaved()) { leave(); return; }
-    el.discardText.textContent = t('discardAsk');
-    el.discardKeep.textContent = t('keepEditing'); el.discardGo.textContent = t('discard');
-    el.discardKeep.onclick = function () { show(el.cDiscard, false); (S.view === 'A' ? el.quick : el.amount).focus(); };
-    el.discardGo.onclick = function () { show(el.cDiscard, false); leave(); };
-    show(el.cDiscard, true); el.discardKeep.focus();
-  }
 
   el.cancel.addEventListener('click', function () { if (!S.saving) leave(); });
   el.go.addEventListener('click', parse);
@@ -783,11 +769,7 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); attemptAdd(false); return; }
     if (e.key === 'Escape') {
-      if (!el.cDiscard.hidden) { show(el.cDiscard, false); return; }
       if (!el.cLarge.hidden) { show(el.cLarge, false); return; }
-      if (!el.catInline.hidden) return;      // the category field handles its own Escape
-      if (document.querySelector('.modal.show, .offcanvas.show')) return;
-      requestClose();
     }
   });
 

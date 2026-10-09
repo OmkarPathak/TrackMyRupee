@@ -130,7 +130,7 @@
                                     <th class="ps-4">{% trans "Date" %}</th>
                                     <th>{% trans "Source Type" %}</th>
                                     <th>{% trans "Description" %}</th>
-                                    <th>
+                                    <th class="text-end">
                                         {% if sort_by == 'amount_asc' %}
                                             <a class="text-decoration-none text-body" style="cursor: pointer;" hx-get="{% url 'income-list' %}?{% url_replace sort='amount_desc' %}" hx-target="#income-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Amount" %} <i class="bi bi-arrow-up-short"></i></a>
                                         {% elif sort_by == 'amount_desc' %}
@@ -150,7 +150,7 @@
                                         <span class="badge-soft badge-soft-success">{{ income.source_type }}</span>
                                     </td>
                                     <td>{{ income.description|default:"-"|truncatechars:30 }}</td>
-                                    <td class="fw-bold text-success">
+                                    <td class="text-end fw-bold text-success">
                                         +{{ user.profile.currency}}{{ income.base_amount|compact_amount:user.profile.currency|translate_digits }}
                                         {% if income.currency != user.profile.currency %}
                                         <div class="text-muted small fw-normal" style="font-size: 0.75rem;">
