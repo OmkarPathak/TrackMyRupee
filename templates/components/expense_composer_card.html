@@ -16,6 +16,7 @@
   <span data-k="retry">{% trans "Try again" %}</span>
   <span data-k="errAmount">{% trans "Enter an amount greater than 0." %}</span>
   <span data-k="errCategory">{% trans "Choose a category." %}</span>
+  <span data-k="errAccount">{% trans "Select the account this was paid from." %}</span>
   <span data-k="errPayment">{% trans "Choose a payment method." %}</span>
   <span data-k="errDate">{% trans "Choose a valid date." %}</span>
   <span data-k="futureDate">{% trans "This date is in the future." %}</span>
@@ -147,7 +148,8 @@
             <label class="tmr-field__label form-label" for="tmr-account">
               <span>{% trans "Account" %}</span><span class="tmr-tag" data-tag hidden></span>
             </label>
-            <select id="tmr-account" class="form-select searchable-select"></select>
+            <select id="tmr-account" class="form-select searchable-select" aria-describedby="tmr-account-msg"></select>
+            <p class="tmr-field__msg" id="tmr-account-msg" hidden></p>
           </div>
 
           <div class="tmr-field" id="tmr-cat-inline" hidden>

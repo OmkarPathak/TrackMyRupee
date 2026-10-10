@@ -186,7 +186,9 @@ class RecurringCRUDTest(BaseFeatureTest):
         Category.objects.get_or_create(user=self.user, name='Entertainment')
         
         url = reverse('recurring-create')
+        acct = Account.objects.create(user=self.user, name='Wallet', account_type='CASH_WALLET', balance=100000, currency='₹')
         data = {
+            'account': acct.pk,
             'transaction_type': 'EXPENSE',
             'amount': 500,
             'description': 'Netflix',

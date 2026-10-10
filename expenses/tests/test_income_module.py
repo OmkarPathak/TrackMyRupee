@@ -235,7 +235,7 @@ class TestIncomeForm(IncomeTestBase):
         for field in ('date', 'amount', 'source_type'):
             self.assertIn(field, form.errors)
         self.assertNotIn('description', form.errors)
-        self.assertNotIn('account', form.errors)
+        self.assertIn('account', form.errors)
 
     def test_amount_must_be_positive_and_in_range(self):
         for bad in ('0', '-1', '-0.01', 'abc', '1.234', '1' * 14):

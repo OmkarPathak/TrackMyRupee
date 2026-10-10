@@ -42,7 +42,7 @@ The **Source Type** field tells the app what kind of income this is. Choose the 
 Complete the following fields:
 
 1. **Date**: When the money arrived.
-2. **Account** (optional): Which account the money landed in. Leave it empty and the income is recorded without changing any balance.
+2. **Account** (required): Which account the money landed in. The income is added to that account's balance. If you forget to choose one, the form asks you to pick an account and nothing is saved.
 3. **Amount**: The amount received.
 4. **Currency**: Defaults to your profile currency.
 5. **Source Type**: Select from the list above.

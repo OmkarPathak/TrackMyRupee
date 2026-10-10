@@ -35,7 +35,7 @@
                             {% endif %}
                         </div>
                         <div class="col-6 mb-3">
-                            <label for="{{ form.account.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.account.label }}</label>
+                            <label for="{{ form.account.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.account.label }} <span class="text-danger">*</span></label>
                             {{ form.account }}
                             {% if form.account.errors %}
                                 <div class="text-danger small mt-1">

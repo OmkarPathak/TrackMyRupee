@@ -56,7 +56,7 @@ The form has three steps.
 ![Adjustments step](img/loan-step3-adjustments-desktop.webp){ loading=lazy width="560" }
 
 - **Mid tenure**: for a loan you took some time ago. Enter how much principal you have already repaid and the date of your first EMI. TrackMyRupee then starts from where you actually are, not from day one.
-- **Include down payment**: for loans on a purchase. Enter the down payment amount, the account it came from, and an optional note.
+- **Include down payment**: for loans on a purchase. Enter the down payment amount, the account it came from (required), and an optional note.
 
 **Review and confirm**
 

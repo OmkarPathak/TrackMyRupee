@@ -74,7 +74,34 @@ class SearchableSelectFormMixin:
                     field.widget.attrs['class'] = f"{css_class} searchable-select".strip()
 
 
-class ExpenseForm(SearchableSelectFormMixin, forms.ModelForm):
+class AccountRequiredMixin:
+    """Make the account field(s) mandatory so every rupee is traced to an account.
+
+    A row saved before this rule existed may have no account; editing such a row keeps the field
+    optional, so unrelated edits do not silently move money on a backdated balance.
+    """
+    required_account_fields = ('account',)
+    account_required_message = _('Select an account so your balances stay accurate.')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in self.required_account_fields:
+            field = self.fields.get(name)
+            if field is None:
+                continue
+            field.required = not self._is_legacy_without_account(name)
+            field.error_messages['required'] = self.account_required_message
+            # The select is swapped for a searchable widget, so the browser cannot focus the hidden
+            # native control ("invalid form control is not focusable") and would block the submit
+            # without a word. Validate on the server and show the error under the field instead.
+            field.widget.use_required_attribute = lambda initial: False
+
+    def _is_legacy_without_account(self, name):
+        instance = getattr(self, 'instance', None)
+        return bool(instance is not None and instance.pk and getattr(instance, f'{name}_id', None) is None)
+
+
+class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Expense
         fields = ['date', 'amount', 'currency', 'account', 'description', 'category', 'payment_method', 'client_dedup_key']
@@ -151,6 +178,7 @@ class ExpenseForm(SearchableSelectFormMixin, forms.ModelForm):
                 queryset=accounts_qs,
                 object_cache=account_map,
                 required=existing_field.required,
+                error_messages=existing_field.error_messages,
                 label=existing_field.label,
                 help_text=existing_field.help_text,
                 widget=existing_field.widget,
@@ -182,7 +210,7 @@ class ExpenseForm(SearchableSelectFormMixin, forms.ModelForm):
             raise forms.ValidationError(_('Expense date cannot be in the future.'))
         return value
 
-class IncomeForm(SearchableSelectFormMixin, forms.ModelForm):
+class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Income
         fields = ['date', 'amount', 'currency', 'account', 'source_type', 'description', 'client_dedup_key']
@@ -418,6 +446,13 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             account = cleaned_data.get('account')
             if not account:
                 self.add_error('account', _('Payment account is required.'))
+
+        if (
+            transaction_type in ('EXPENSE', 'INCOME', 'CAPITAL')
+            and not cleaned_data.get('account')
+            and not (self.instance.pk and self.instance.account_id is None)
+        ):
+            self.add_error('account', _('Select an account so your balances stay accurate.'))
 
         if transaction_type == 'CAPITAL':
             capital_subtype = cleaned_data.get('capital_subtype')
@@ -666,7 +701,7 @@ class SavingsGoalForm(SearchableSelectFormMixin, forms.ModelForm):
             raise forms.ValidationError(_("Target amount must be greater than zero."))
         return target_amount
 
-class GoalContributionForm(SearchableSelectFormMixin, forms.ModelForm):
+class GoalContributionForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = GoalContribution
         fields = ['account', 'amount', 'date']
@@ -1375,7 +1410,8 @@ class LoanInterestRateForm(SearchableSelectFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['effective_date'].initial = date.today
 
-class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
+class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
+    required_account_fields = ('from_account',)
     add_to_recurring = forms.BooleanField(
         required=False,
         label=_("Make this a recurring loan repayment"),
@@ -1527,7 +1563,7 @@ class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
 
         return cleaned_data
 
-class CapitalEventForm(SearchableSelectFormMixin, forms.ModelForm):
+class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = CapitalEvent
         fields = [

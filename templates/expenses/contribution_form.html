@@ -22,9 +22,9 @@
                 {% csrf_token %}
                 <div class="row g-3">
                     <div class="col-12">
-                        <label for="{{ form.account.id_for_label }}" class="form-label fw-bold">{{ form.account.label }}</label>
+                        <label for="{{ form.account.id_for_label }}" class="form-label fw-bold">{{ form.account.label }} <span class="text-danger">*</span></label>
                         {{ form.account }}
-                        {{ form.account.errors }}
+                        {% if form.account.errors %}<div class="text-danger small mt-1">{{ form.account.errors.0 }}</div>{% endif %}
                     </div>
 
                     <div class="col-md-6">

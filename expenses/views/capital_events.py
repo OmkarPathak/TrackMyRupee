@@ -238,6 +238,10 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
         event = get_object_by_uuid_or_pk(CapitalEvent, pk, user=request.user)
+        if not (event.account_id and event.include_in_net_worth):
+            # An expense must always be charged to an account; this event never moved one.
+            messages.error(request, _("Choose an account and turn on 'Include in Cash Flow / Net Worth' for this event first, so the expense is charged to an account."))
+            return redirect('capital-event-list')
         try:
             with transaction.atomic():
                 expense = Expense(
@@ -247,9 +251,7 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
                     currency=event.currency,
                     description=event.note or event.get_subtype_display(),
                     category=event.get_subtype_display(),
-                    # An event kept out of cash flow never moved the account's balance, so the
-                    # expense it becomes must not start doing so.
-                    account=event.account if event.include_in_net_worth else None,
+                    account=event.account,
                 )
                 expense.save()
                 event.delete()

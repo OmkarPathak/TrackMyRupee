@@ -976,6 +976,7 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         cache.set(cooldown_key, True, 86400)  # Simulate earlier page view today
 
         form_data = {
+            'account': self.cash.pk,
             'transaction_type': 'EXPENSE',
             'amount': '300.00',
             'currency': '₹',

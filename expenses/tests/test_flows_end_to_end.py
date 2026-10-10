@@ -495,7 +495,7 @@ class TestLoanFlowEndToEnd(FlowTestBase):
         self.assertEqual(event.note, 'Loan down payment for Home Loan')
 
     def test_down_payment_custom_note(self):
-        result = self.run_flow('loan', self.payload(include_down_payment='on', down_payment_amount='1000', custom_note='Booking amount'))
+        result = self.run_flow('loan', self.payload(include_down_payment='on', down_payment_amount='1000', custom_note='Booking amount', down_payment_account=str(self.cash.id)))
         self.assertEqual(self.one(result, CapitalEvent).note, 'Booking amount')
 
     def test_down_payment_amount_ignored_when_toggle_is_off(self):
@@ -632,11 +632,11 @@ class TestSalaryFlowEndToEnd(FlowTestBase):
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.salary_date, 27)
 
-    def test_account_is_optional_and_currency_defaults_to_profile(self):
+    def test_account_is_required_and_currency_defaults_to_the_accounts(self):
         data = self.payload()
         data.pop('account')
-        rt = self.one(self.run_flow('salary', data), RecurringTransaction)
-        self.assertIsNone(rt.account)
+        self.assertErrorOn('salary', data, 'account')
+        rt = self.one(self.run_flow('salary', self.payload()), RecurringTransaction)
         self.assertEqual(rt.currency, '₹')
 
     def test_currency_defaults_to_account_currency(self):
@@ -721,10 +721,10 @@ class TestRentBillFlowEndToEnd(FlowTestBase):
                 self.assertEqual(rt.frequency, freq)
                 self.assertSchedulePending(rt)
 
-    def test_account_is_optional(self):
+    def test_account_is_required(self):
         data = self.payload()
         data.pop('account')
-        self.assertIsNone(self.one(self.run_flow('rentbill', data), RecurringTransaction).account)
+        self.assertErrorOn('rentbill', data, 'account')
 
     def test_currency_comes_from_account_when_not_given(self):
         gbp = Account.objects.create(user=self.user, name='GBP', account_type='SAVINGS_ACCOUNT', balance=1, currency='£')
@@ -813,11 +813,11 @@ class TestInsuranceFlowEndToEnd(FlowTestBase):
             form = self.valid_form('insurance', self.payload(premium_frequency=premium, premium_amount='1000'))
             self.assertEqual(flow.preview(self.user, form.cleaned_data)['headline'], 1000.0 * factor)
 
-    def test_payment_account_optional_and_drives_currency(self):
+    def test_payment_account_is_required_and_drives_currency(self):
         data = self.payload()
         data.pop('premium_payment_account')
-        result = self.run_flow('insurance', data)
-        self.assertIsNone(self.one(result, RecurringTransaction).account)
+        self.assertErrorOn('insurance', data, 'premium_payment_account')
+        result = self.run_flow('insurance', self.payload())
         self.assertEqual(self.one(result, PhysicalAsset).currency, '₹')
 
     def test_insurance_account_name_clash_rolls_back_the_policy(self):
@@ -872,14 +872,10 @@ class TestSipRdFlowEndToEnd(FlowTestBase):
         rt = self.one(self.run_flow('sip', data), RecurringTransaction)
         self.assertEqual(rt.start_date, today())
 
-    def test_sip_without_funding_account_uses_profile_currency(self):
-        profile = self.user.profile
-        profile.currency = '€'
-        profile.save()
+    def test_sip_requires_a_funding_account(self):
         data = self.sip()
         data.pop('from_account')
-        result = self.run_flow('sip', data)
-        self.assertEqual({o.currency for o in result.created}, {'€'})
+        self.assertErrorOn('sip', data, 'from_account')
 
     def test_funding_account_must_belong_to_user(self):
         other = User.objects.create_user(username='sip-other', password='x')
@@ -970,11 +966,10 @@ class TestFdFlowEndToEnd(FlowTestBase):
     def test_default_note(self):
         self.assertEqual(self.one(self.run_flow('fd', self.payload()), CapitalEvent).note, 'FD investment')
 
-    def test_funding_account_optional(self):
+    def test_funding_account_is_required(self):
         data = self.payload()
         data.pop('from_account')
-        event = self.one(self.run_flow('fd', data), CapitalEvent)
-        self.assertIsNone(event.account)
+        self.assertErrorOn('fd', data, 'from_account')
 
     def test_validation(self):
         self.assertErrorOn('fd', self.payload(principal='0'), 'principal')
@@ -1160,12 +1155,13 @@ class TestCarFlowEndToEnd(FlowTestBase):
                          (Decimal('1200000.00'), 'large_purchase', self.cash, date(2026, 10, 1), 'Paid in cash'))
         self.assertFalse(Loan.objects.filter(user=self.user).exists())
 
-    def test_cash_purchase_default_note_and_optional_account(self):
+    def test_cash_purchase_default_note_and_required_account(self):
         data = self.payload()
         data.pop('from_account')
-        event = self.one(self.run_flow('car', data), CapitalEvent)
+        self.assertErrorOn('car', data, 'from_account')
+        event = self.one(self.run_flow('car', self.payload()), CapitalEvent)
         self.assertEqual(event.note, 'Car purchase')
-        self.assertIsNone(event.account)
+        self.assertIsNotNone(event.account)
 
     def test_financed_purchase_creates_loan_emi_and_loan_account_but_no_capital_event(self):
         result = self.run_flow('car', self.financed())
@@ -1267,6 +1263,7 @@ class TestGoldFlowEndToEnd(FlowTestBase):
         self.assertEqual(self.one(result, CapitalEvent).amount, Decimal('200000.00'))
 
     def test_no_funding_account_means_no_purchase_event(self):
+        """Gold you already own (or inherited) never left an account, so this one stays optional."""
         for route in ('physical', 'digital'):
             data = self.payload(route=route, name=f'Gold {route}')
             data.pop('from_account')
@@ -1465,12 +1462,12 @@ class TestFlowEdgeCases(FlowTestBase):
                 self.assertIn('No active accounts found', str(form.fields[field].help_text))
                 self.assertEqual(form.fields[field].queryset.count(), 0)
 
-    def test_new_user_with_no_accounts_can_still_run_account_optional_flows(self):
+    def test_new_user_with_no_accounts_is_asked_to_add_one(self):
         Account.objects.filter(user=self.user).delete()
         goal = self.run_flow('savingsgoal', valid_payloads(self)['savingsgoal'])
         self.assertEqual(len(goal.created), 1)
         data = {k: v for k, v in valid_payloads(self)['salary'].items() if k != 'account'}
-        self.assertEqual(len(self.run_flow('salary', data).created), 1)
+        self.assertErrorOn('salary', data, 'account')
 
     def test_picker_defaults_to_cash_then_first_account(self):
         form = self.form('salary', {})

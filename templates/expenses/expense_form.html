@@ -51,7 +51,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label" for="{{ form.account.id_for_label }}">{% trans "Account" %}</label>
+                            <label class="form-label" for="{{ form.account.id_for_label }}">{% trans "Account" %} <span class="text-danger">*</span></label>
                             {{ form.account }}
                             {% if form.account.errors %}<div class="text-danger small mt-1">{{ form.account.errors.0 }}</div>{% endif %}
                         </div>

@@ -335,8 +335,10 @@ class TestExpenseForm(ExpenseTestBase):
         user = User.objects.get(pk=self.user.pk)
         self.assertIn('account', ExpenseForm(self.data(account=str(self.bank.id)), user=user).errors)
 
-    def test_account_is_optional(self):
-        self.assertTrue(self.form(account='').is_valid())
+    def test_account_is_required(self):
+        form = self.form(account='')
+        self.assertFalse(form.is_valid())
+        self.assertIn('account', form.errors)
 
     def test_defaults_for_a_new_form(self):
         form = ExpenseForm(user=self.user)
@@ -746,7 +748,7 @@ class TestExpenseConvertToCapitalEvent(ExpenseTestBase):
                  'Loan Prepayment': 'loan_prepayment', 'Groceries': 'other'}
         for category, expected in cases.items():
             with self.subTest(category=category):
-                e = self.expense('10', category=category, account=None)
+                e = self.expense('10', category=category)
                 self.convert(e)
                 self.assertEqual(CapitalEvent.objects.filter(user=self.user).latest('id').subtype, expected)
 
@@ -763,9 +765,9 @@ class TestExpenseConvertToCapitalEvent(ExpenseTestBase):
         self.assertFalse(CapitalEvent.objects.exists())
 
     def test_next_redirect_only_for_same_site(self):
-        e = self.expense('10', account=None)
+        e = self.expense('10')
         self.assertEqual(self.convert(e, '?next=/expenses/').url, '/expenses/')
-        e = self.expense('10', account=None)
+        e = self.expense('10')
         self.assertEqual(self.convert(e, '?next=https://evil.example/').url, reverse('capital-event-list'))
 
 
@@ -967,13 +969,14 @@ class TestComposerSave(ComposerBase):
         other = self.make_user('other-key')
         self.client.force_login(other)
         Category.objects.get_or_create(user=other, name='Food')
-        response = self.save(key=key, account_id='')
+        theirs = Account.objects.create(user=other, name='Cash', account_type='CASH_WALLET', balance=Decimal('100'), currency='₹')
+        response = self.save(key=key, account_id=theirs.id)
         self.assertTrue(response.json()['success'])
         self.assertFalse(response.json()['duplicate'])
         self.assertEqual(Expense.objects.count(), 2)
 
     def test_missing_key_still_saves(self):
-        body = {'amount': '10', 'category': 'Food', 'date': today().isoformat()}
+        body = {'amount': '10', 'category': 'Food', 'date': today().isoformat(), 'account_id': self.cash.id}
         self.assertTrue(self.post_json('expense-composer-save', body).json()['success'])
 
     def test_amount_parsing(self):
@@ -1020,13 +1023,15 @@ class TestComposerSave(ComposerBase):
         self.assertEqual(self.bal(theirs), Decimal('100.00'))
         self.assertEqual(Expense.objects.count(), 0)
 
-    def test_account_is_optional(self):
-        self.assertTrue(self.save(account_id='').json()['success'])
-        self.assertIsNone(Expense.objects.get().account)
+    def test_account_is_required(self):
+        response = self.save(account_id='')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('account', response.json()['field_errors'])
+        self.assertFalse(Expense.objects.exists())
 
     def test_foreign_currency_is_converted(self):
         seed_fx()
-        response = self.save(currency='$', amount='10', account_id='')
+        response = self.save(currency='$', amount='10')
         self.assertTrue(response.json()['success'])
         e = Expense.objects.get()
         self.assertEqual((e.currency, e.base_amount), ('$', Decimal('800.00')))
@@ -1047,11 +1052,12 @@ class TestComposerSave(ComposerBase):
         free = self.make_user('free-cap', tier='FREE')
         self.client.force_login(free)
         Category.objects.get_or_create(user=free, name='Food')
+        acct = Account.objects.create(user=free, name='Cash', account_type='CASH_WALLET', balance=Decimal('100'), currency='₹')
         cap = get_limit('FREE', 'expenses_per_month')
         Expense.objects.bulk_create([
             Expense(user=free, date=today(), amount=1, description='x', category='Food', base_amount=1) for _ in range(cap)
         ])
-        response = self.save(account_id='')
+        response = self.save(account_id=acct.id)
         self.assertEqual(response.status_code, 403)
         body = response.json()
         self.assertEqual(body['code'], 'limit')
@@ -1063,14 +1069,15 @@ class TestComposerSave(ComposerBase):
         free = self.make_user('free-cap2', tier='FREE')
         self.client.force_login(free)
         Category.objects.get_or_create(user=free, name='Food')
+        acct = Account.objects.create(user=free, name='Cash', account_type='CASH_WALLET', balance=Decimal('100'), currency='₹')
         cap = get_limit('FREE', 'expenses_per_month')
         Expense.objects.bulk_create([
             Expense(user=free, date=today(), amount=1, description='x', category='Food', base_amount=1) for _ in range(cap - 1)
         ])
-        self.assertTrue(self.save(account_id='').json()['success'])          # the last allowed one
-        self.assertEqual(self.save(account_id='').status_code, 403)          # one over
+        self.assertTrue(self.save(account_id=acct.id).json()['success'])          # the last allowed one
+        self.assertEqual(self.save(account_id=acct.id).status_code, 403)          # one over
         last_month = (today().replace(day=1) - timedelta(days=1)).isoformat()
-        self.assertTrue(self.save(account_id='', date=last_month).json()['success'])  # other months unaffected
+        self.assertTrue(self.save(account_id=acct.id, date=last_month).json()['success'])  # other months unaffected
 
     def test_paid_plans_have_no_cap(self):
         self.assertIn(get_limit('PRO', 'expenses_per_month'), (-1, None))

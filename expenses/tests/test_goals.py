@@ -24,6 +24,8 @@ class SavingsGoalTests(TestCase):
             name='Test Goal',
             target_amount=Decimal('1000.00'),
         )
+        self.account = Account.objects.create(user=self.user, name='Wallet', account_type='CASH_WALLET',
+                                              balance=Decimal('100000.00'), currency='₹')
 
     def test_savings_goal_model_progress(self):
         self.assertEqual(self.goal.progress_percentage, 0)
@@ -188,6 +190,7 @@ class SavingsGoalTests(TestCase):
         self.client.login(username='testuser', password='testpassword')
         
         response = self.client.post(reverse('goal-detail', kwargs={'pk': self.goal.pk}), data={
+            'account': self.account.pk,
             'amount': '250.00',
             'date': '2023-10-01'
         })
@@ -407,7 +410,7 @@ class SavingsGoalTests(TestCase):
         # Unlocked goal accepts contribution
         post_unlocked_resp = self.client.post(
             reverse('goal-detail', kwargs={'pk': self.goal.pk}),
-            data={'amount': '50.00', 'date': '2026-01-01'}
+            data={'account': self.account.pk, 'amount': '50.00', 'date': '2026-01-01'}
         )
         self.assertEqual(post_unlocked_resp.status_code, 302)
         self.assertEqual(post_unlocked_resp.url, reverse('goal-detail', kwargs={'pk': self.goal.pk}))
@@ -417,7 +420,7 @@ class SavingsGoalTests(TestCase):
         # Locked goal rejects contribution and redirects to goal-list
         post_locked_resp = self.client.post(
             reverse('goal-detail', kwargs={'pk': goal2.pk}),
-            data={'amount': '50.00', 'date': '2026-01-01'}
+            data={'account': self.account.pk, 'amount': '50.00', 'date': '2026-01-01'}
         )
         self.assertEqual(post_locked_resp.status_code, 302)
         self.assertRedirects(post_locked_resp, reverse('goal-list'))

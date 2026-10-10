@@ -316,6 +316,10 @@ def handle_step3_confirm(
         target_account = Account.objects.filter(user=user, id=account_id, is_active=True).first()
     if not target_account and state.account and state.account.is_active:
         target_account = state.account
+    if not target_account:
+        target_account = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id').first()
+    if not target_account:
+        return {'success': False, 'error': _('Add an account first so this expense is recorded against it.')}
 
     with transaction.atomic():
         if state.expense and not state.expense.is_deleted:

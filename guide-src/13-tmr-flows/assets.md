@@ -29,7 +29,7 @@ Use it when you buy a vehicle, whether you paid cash or took a car loan. It take
 | **Name** | What you call the car, such as "Hyundai i20". |
 | **Purchase price** | What the car cost. |
 | **Acquisition date** | The day you bought it. |
-| **From account** | The account the money (or the EMIs) comes from. |
+| **From account** | Required. The account the money (or the EMIs) comes from. |
 | **Is pinned** | Optional. Pins the vehicle to the top of your accounts. |
 | **Custom note** | Optional. Replaces the default note on the purchase entry. |
 
@@ -118,7 +118,7 @@ Use it when you buy gold, in any form. It takes under a minute.
 | **Name** | What to call it, such as "Diwali necklace" or "SGB 2026 Series II". |
 | **Amount** | What you paid. |
 | **Acquisition date** | The day you bought it. |
-| **From account** | Optional. The account you paid from. |
+| **From account** | The account you paid from. Leave it blank only for gold you already own or inherited. |
 | **Is pinned** | Optional. Pins the account to the top of your list. |
 
 

@@ -234,7 +234,8 @@ class TestCapitalEventForm(CapBase):
         self.assertFalse(form.is_valid())
         for field in ('date', 'amount', 'subtype', 'currency'):
             self.assertIn(field, form.errors)
-        for field in ('account', 'linked_loan', 'note'):
+        self.assertIn('account', form.errors)
+        for field in ('linked_loan', 'note'):
             self.assertNotIn(field, form.errors)
 
     def test_amount_must_be_positive_and_in_range(self):
@@ -610,20 +611,25 @@ class TestConversions(CapBase):
         self.assertIn('Capital event converted to a regular expense.', self.messages(response))
 
     def test_a_blank_note_falls_back_to_the_subtype_name(self):
-        self.to_expense(self.event('5', note='', subtype='gift_given', account=None))
+        self.to_expense(self.event('5', note='', subtype='gift_given'))
         self.assertEqual(Expense.objects.get().description, 'Gift Given')
 
-    def test_an_event_kept_out_of_cash_flow_does_not_start_moving_money(self):
-        """Regression: converting used to debit the account for an event that never had."""
+    def test_an_event_kept_out_of_cash_flow_is_not_converted(self):
+        """An expense is always charged to an account, so an event that never moved money cannot become one."""
         e = self.event('5000', include_in_net_worth=False)
         self.to_expense(e)
-        x = Expense.objects.get()
-        self.assertIsNone(x.account)
+        self.assertFalse(Expense.objects.exists())
+        self.assertTrue(CapitalEvent.objects.filter(pk=e.pk).exists())
         self.assertEqual(self.bal(self.cash), D('100000.00'))
+
+    def test_an_event_without_an_account_is_not_converted(self):
+        e = self.event('5000', account=None)
+        self.to_expense(e)
+        self.assertFalse(Expense.objects.exists())
 
     def test_foreign_currency_event_converts(self):
         seed_fx()
-        self.to_expense(self.event('10', currency='$', account=None))
+        self.to_expense(self.event('10', currency='$'))
         x = Expense.objects.get()
         self.assertEqual((x.currency, x.base_amount), ('$', D('800.00')))
 

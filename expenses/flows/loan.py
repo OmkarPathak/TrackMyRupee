@@ -54,7 +54,7 @@ class NewLoanFlowForm(forms.Form):
             self.fields['payment_account'].initial = cash_default
             self.fields['down_payment_account'].initial = cash_default
             if not accounts.exists():
-                self.fields['payment_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
+                self.fields['payment_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
         else:
             self.fields['payment_account'].queryset = Account.objects.none()
             self.fields['down_payment_account'].queryset = Account.objects.none()
@@ -65,6 +65,8 @@ class NewLoanFlowForm(forms.Form):
             self.add_error('opening_paid_principal', _('Enter the principal already paid before tracking started.'))
         if cleaned.get('include_down_payment') and not cleaned.get('down_payment_amount'):
             self.add_error('down_payment_amount', _('Enter the down payment amount.'))
+        if cleaned.get('include_down_payment') and not cleaned.get('down_payment_account'):
+            self.add_error('down_payment_account', _('Select the account the down payment was paid from.'))
         principal = cleaned.get('principal')
         opening_paid = cleaned.get('opening_paid_principal')
         if cleaned.get('mid_tenure') and principal is not None and opening_paid and opening_paid >= principal:

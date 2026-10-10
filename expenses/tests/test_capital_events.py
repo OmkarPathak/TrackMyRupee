@@ -918,7 +918,7 @@ class CapitalEventConvertViewTest(TestCase):
         # GET should not delete the event
         self.assertTrue(CapitalEvent.objects.filter(id=event.id).exists())
 
-    def test_convert_with_account_none_still_works(self):
+    def test_convert_with_account_none_is_refused(self):
         event = CapitalEvent.objects.create(
             user=self.user, amount=Decimal('500.00'), date=date.today(),
             subtype='other', note='No account', account=None,
@@ -926,8 +926,9 @@ class CapitalEventConvertViewTest(TestCase):
         url = reverse('capital-event-convert', kwargs={'pk': event.pk})
         response = self.client.post(url)
         self.assertEqual(response.status_code, 302)
-        expense = Expense.objects.get(user=self.user, amount=Decimal('500.00'))
-        self.assertIsNone(expense.account)
+        # An expense must always be charged to an account, so a legacy event without one is refused.
+        self.assertTrue(CapitalEvent.objects.filter(pk=event.pk).exists())
+        self.assertFalse(Expense.objects.filter(user=self.user, amount=Decimal('500.00')).exists())
 
     @patch('expenses.fx.get_exchange_rate')
     @patch('expenses.models.get_exchange_rate')

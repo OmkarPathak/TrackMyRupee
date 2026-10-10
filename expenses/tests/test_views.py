@@ -107,7 +107,9 @@ class DashboardViewTest(BaseViewTest):
 class ExpenseCRUDTest(BaseViewTest):
     def test_create_expense(self):
         url = reverse('expense-composer-save')
+        acct = Account.objects.create(user=self.user, name='Wallet', account_type='CASH_WALLET', balance=100000, currency='₹')
         data = {
+            'account_id': acct.pk,
             'key': 'k-create-1',
             'date': date.today().isoformat(),
             'amount': '250',
@@ -233,7 +235,9 @@ class ExpenseListHtmxTest(BaseViewTest):
 class IncomeCRUDTest(BaseViewTest):
     def test_create_income(self):
         url = reverse('income-create')
+        acct = Account.objects.create(user=self.user, name='Wallet', account_type='CASH_WALLET', balance=100000, currency='₹')
         data = {
+            'account': acct.pk,
             'date': date.today(),
             'amount': 5000,
             'source_type': 'Salary',

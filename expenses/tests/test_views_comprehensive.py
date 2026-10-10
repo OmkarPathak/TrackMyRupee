@@ -791,6 +791,7 @@ class RecurringTransactionCreateViewTest(BaseComprehensiveTest):
     def test_recurring_create_expense_valid(self):
         """Test creating a recurring expense."""
         data = {
+            'account': self.account.pk,
             'transaction_type': 'EXPENSE',
             'amount': 500,
             'description': 'Monthly Subscription',
@@ -811,6 +812,7 @@ class RecurringTransactionCreateViewTest(BaseComprehensiveTest):
     def test_recurring_create_income_valid(self):
         """Test creating a recurring income."""
         data = {
+            'account': self.account.pk,
             'transaction_type': 'INCOME',
             'amount': 5000,
             'description': 'Monthly Salary',
@@ -1193,6 +1195,7 @@ class LoanRepaymentViewTest(BaseComprehensiveTest):
     def test_loan_repayment_valid(self):
         """Test making a loan repayment."""
         data = {
+            'from_account': self.account.pk,
             'amount': 10000,
             'date': date.today(),
             'interest_portion': 400,

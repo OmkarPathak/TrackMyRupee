@@ -161,7 +161,9 @@ class TierLimitTest(TestCase):
                 description=f"Expense {i}", category="Food"
             )
         
+        acct = Account.objects.create(user=self.user, name='Wallet', account_type='CASH_WALLET', balance=Decimal('100000.00'), currency='₹')
         data = {
+            'account_id': acct.pk,
             'key': 'limit-1', 'date': today.strftime('%Y-%m-%d'), 'amount': '20.00',
             'description': 'Limit Exceeded Expense', 'category': 'Food', 'currency': '₹',
             'payment_method': 'Cash',

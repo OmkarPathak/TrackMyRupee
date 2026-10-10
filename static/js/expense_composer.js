@@ -51,7 +51,7 @@
     category: $('tmr-category'), categoryMsg: $('tmr-category-msg'),
     catInline: $('tmr-cat-inline'), catName: $('tmr-cat-name'), catSave: $('tmr-cat-save'),
     catCancel: $('tmr-cat-cancel'), catMsg: $('tmr-cat-msg'),
-    account: $('tmr-account'),
+    account: $('tmr-account'), accountMsg: $('tmr-account-msg'),
     payGroup: $('tmr-pay-group'), payMsg: $('tmr-pay-msg'),
     foot: $('tmr-foot'), cancel: $('tmr-cancel'), addAnother: $('tmr-add-another'), add: $('tmr-add'),
     cLarge: $('tmr-confirm-large'), largeText: $('tmr-large-text'), largeYes: $('tmr-large-yes'),
@@ -305,7 +305,7 @@
   function hideMessages() {
     show(el.bNotice, false); show(el.bError, false); show(el.cLarge, false);
     show(el.voiceMsg, false); show(el.catInline, false);
-    [el.amountMsg, el.categoryMsg, el.payMsg].forEach(function (n) { if (n) { n.hidden = true; n.textContent = ''; } });
+    [el.amountMsg, el.categoryMsg, el.accountMsg, el.payMsg].forEach(function (n) { if (n) { n.hidden = true; n.textContent = ''; } });
     Object.keys(fieldEl).forEach(function (f) { fieldEl[f].classList.remove('is-invalid'); });
   }
 
@@ -529,7 +529,7 @@
     userEdit('currency');
   });
   el.description.addEventListener('input', function () { S.v.description = el.description.value; userEdit('description'); });
-  el.account.addEventListener('change', function () { S.v.accountId = el.account.value ? +el.account.value : ''; userEdit('account'); });
+  el.account.addEventListener('change', function () { S.v.accountId = el.account.value ? +el.account.value : ''; userEdit('account'); el.accountMsg.hidden = true; fieldEl.account.classList.remove('is-invalid'); });
   el.payGroup.addEventListener('change', function (e) {
     if (e.target.name !== 'tmr-pay') return;
     S.v.payment = e.target.value; userEdit('payment'); el.payMsg.hidden = true; syncActive();
@@ -606,10 +606,11 @@
   function validate() {
     var first = null;
     Object.keys(fieldEl).forEach(function (f) { fieldEl[f].classList.remove('is-invalid'); });
-    [el.amountMsg, el.categoryMsg, el.payMsg].forEach(function (n) { n.hidden = true; });
+    [el.amountMsg, el.categoryMsg, el.accountMsg, el.payMsg].forEach(function (n) { n.hidden = true; });
     if (!(amountNumber() > 0)) { fieldMsg('amount', el.amountMsg, t('errAmount')); first = first || el.amount; }
     if (!validISO(S.v.date)) { fieldMsg('date', el.dateMsg, t('errDate')); first = first || el.dateGroup.querySelector('input'); }
     if (!S.v.category) { fieldMsg('category', el.categoryMsg, t('errCategory')); first = first || ctl(el.category); }
+    if (!S.v.accountId) { fieldMsg('account', el.accountMsg, t('errAccount')); first = first || ctl(el.account); }
     if (!S.v.payment) { fieldMsg('payment', el.payMsg, t('errPayment')); first = first || el.payGroup.querySelector('input'); }
     return first;
   }
@@ -686,7 +687,8 @@
           if (fe.amount) fieldMsg('amount', el.amountMsg, t('errAmount'));
           if (fe.category) fieldMsg('category', el.categoryMsg, t('errCategory'));
           if (fe.date) fieldMsg('date', el.dateMsg, t('errDate'));
-          showError(j.error || t('saveFailed'), []);
+          if (fe.account) fieldMsg('account', el.accountMsg, t('errAccount'));
+          showError(fe.account ? t('errAccount') : (j.error || t('saveFailed')), []);
         }
       })
       .catch(function () {

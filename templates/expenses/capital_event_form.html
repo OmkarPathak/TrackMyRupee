@@ -88,9 +88,9 @@
                                 {% if form.subtype.errors %}<div class="text-danger small mt-1">{{ form.subtype.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="{{ form.account.id_for_label }}">{{ form.account.label }}</label>
+                                <label class="form-label fw-semibold" for="{{ form.account.id_for_label }}">{{ form.account.label }} <span class="text-danger">*</span></label>
                                 {{ form.account }}
-                                <div class="form-text">{% trans "Used to update your account balance." %}</div>
+                                {% if form.account.errors %}<div class="text-danger small mt-1">{{ form.account.errors.0 }}</div>{% else %}<div class="form-text">{% trans "The account this money was paid from. Its balance is updated." %}</div>{% endif %}
                             </div>
                         </div>
 

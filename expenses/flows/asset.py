@@ -29,13 +29,12 @@ class CarFlowForm(forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['from_account'].required = False
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
             self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
             if not accounts.exists():
-                self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
+                self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
 
     def clean(self):
         cleaned = super().clean()

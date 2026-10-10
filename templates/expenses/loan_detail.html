@@ -327,7 +327,7 @@
                     {% csrf_token %}
                     <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Funding Account" %}</label>
+                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Funding Account" %} <span class="text-danger">*</span></label>
                             {{ repayment_form.from_account }}
                         </div>
                         <div class="mb-3">

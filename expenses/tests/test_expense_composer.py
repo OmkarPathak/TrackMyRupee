@@ -350,7 +350,7 @@ class SaveEndpointTests(ComposerBase):
 
     def test_foreign_currency_converts_to_base(self):
         with patch('expenses.models.get_exchange_rate', return_value=Decimal('80')):
-            self.post_json('expense-composer-save', self.payload(currency='$', amount='10', account_id=''))
+            self.post_json('expense-composer-save', self.payload(currency='$', amount='10'))
         e = Expense.objects.get()
         self.assertEqual(e.currency, '$')
         self.assertEqual(e.base_amount, Decimal('800.00'))

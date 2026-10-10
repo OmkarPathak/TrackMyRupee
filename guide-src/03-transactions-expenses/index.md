@@ -130,7 +130,7 @@ If you prefer the classic way, use **Enter details manually**, then fill in:
 1. **Amount** (required): The amount you spent.
 2. **Category** (required): The spending category, such as Food, Transport, or Bills.
 3. **Description** (optional): A short note about what you spent on.
-4. **Account**: The account the money came from. It is pre-selected for you (the one you used last, or your first account). If you clear it, the expense is still recorded but no account balance changes.
+4. **Account**: The account the money came from. **Required.** It is pre-selected for you (the one you used last, or your first account). If you clear it, the form shows "Select the account this was paid from" under the field and nothing is saved, so every expense is always taken out of an account. If you have no account yet, add one first from **Accounts**. Expenses saved before this rule that have no account keep working; pick an account when you next edit one and its balance is charged then.
 5. **Date**: Defaults to today.
 6. **Payment Method**: Tap one of Cash, Credit Card, Debit Card, UPI, or NetBanking.
 

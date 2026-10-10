@@ -127,8 +127,8 @@ Running a Flow a second time creates a **new** set of items. For example, runnin
 !!! warning "Running the Flow again to fix a typo"
     This creates a duplicate. Use the **Edit** link on the Review screen before confirming, or **Edit existing** afterwards.
 
-!!! warning "Forgetting the payment account"
-    Some Flows let you leave the account blank. That is fine, but the recurring payment will then not reduce any account balance. If you want your balances to stay honest, pick the account the money really leaves from.
+!!! info "Every Flow needs an account"
+    The payment, funding or receiving account is required in every Flow, so your balances always move. The one exception is **I bought gold**, where **From account** can stay blank for gold you already own or inherited and never paid for.
 
 !!! warning "Turning on historical entries by habit"
     If your start date is two years ago and you tick the box, you will get 24 backdated entries at once. Great if you want complete history, noisy if you do not.

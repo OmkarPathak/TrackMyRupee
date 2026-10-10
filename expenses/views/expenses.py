@@ -278,6 +278,9 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
         expense = get_object_by_uuid_or_pk(Expense, pk, user=request.user)
+        if not expense.account_id:
+            messages.error(request, _("Edit this expense and choose an account first, so the capital event is charged to an account."))
+            return redirect('expense-list')
         with transaction.atomic():
             # Match the category to a CapitalEvent subtype if possible, otherwise use 'other'
             subtype = 'other'

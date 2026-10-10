@@ -52,7 +52,7 @@ The form is organized into three steps:
 ![Step 3 of the subscription form](img/subscription-step3-desktop.webp){ loading=lazy width="545" }
 
 
-- **Account**: The account to debit (for expenses) or credit (for income). Loan repayments and insurance premiums need one.
+- **Account**: The account to debit (for expenses) or credit (for income). Required for every type except transfers, which use From and To accounts. Schedules saved before this rule without an account keep running and can be edited as they are.
 - **From Account** and **To Account**: For transfers, the account the money leaves and the account it arrives in. They must be different.
 - **Category** (expenses) or **Source** (income): Required for those types. A recurring income whose source matches one of the income source types (for example *Rental Income*) is posted with that source type; any other source is posted as *Other*.
 - **Loan**: For loan repayments, pick the loan. The amount you enter is paid every time, and the app splits each payment into interest and principal for you. When the loan is paid off, the schedule ends by itself.

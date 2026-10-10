@@ -609,6 +609,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // After a failed submit, open the first step that holds an error so it is visible.
+        for (let i = 1; i <= totalSteps; i++) {
+            const stepEl = document.getElementById('step' + i + 'Content');
+            if (stepEl && stepEl.querySelector('.text-danger.small')) { currentStep = i; break; }
+        }
         updateWizardUI();
         toggleFields();
         toggleMonthlyOptions();

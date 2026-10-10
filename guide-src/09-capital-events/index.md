@@ -22,7 +22,7 @@ By default a Capital Event is **kept out of your everyday numbers but still move
 |---|---|---|
 | **Exclude from Averages & Trends** | The event does not count as spending in your monthly totals, your savings rate, or your trend charts. It shows as a small marker on the dashboard charts instead. | It counts as spending for that month, like a regular expense. |
 | **Exclude from Budget** | It does not count against your category budgets. | It counts towards the budget for the category with the same name as its subtype (for example *Large Purchase*), on the Budget page, in your Dashboard breakdown, and in budget alerts. |
-| **Include in Cash Flow / Net Worth** | The account you chose goes down by the amount, so your balance and net worth stay true. | The account balance is not touched. Use this when the money did not actually leave an account you track. |
+| **Include in Cash Flow / Net Worth** | The account you chose goes down by the amount, so your balance and net worth stay true. | The account balance is not touched, though the event still records which account it relates to. Use this when the payment was made on your behalf and the money never left that account. |
 
 So the usual one-off payment leaves your Dining Out, Transport, and Groceries budget bars alone, and your Analytics averages keep reflecting your real recurring spend, while your account balance still drops by the right amount.
 
@@ -56,7 +56,7 @@ Complete the following fields:
 2. **Currency**: Defaults to your profile currency.
 3. **Date** (required): The date the payment was made. It cannot be in the future.
 4. **Subtype** (required): What kind of event it is. The choices are **Loan Down Payment, Loan Prepayment, Large Purchase, Medical Lump Sum, Gift Given, Gift Received, Investment Lump Sum,** and **Other**.
-5. **Account** (optional): The account the money came from. Leave it empty and no balance changes.
+5. **Account** (required): The account the money came from. If you forget it, the form shows a message under the field and nothing is saved. This keeps every payment, such as a loan prepayment, traceable to an account.
 6. **Linked Loan** (optional): Connect a down payment or prepayment to one of your active loans.
 7. **Note** (optional): A short description, such as "Kitchen renovation advance".
 8. The three switches described above.
@@ -105,7 +105,7 @@ Open an event to edit any field. To delete one, confirm the prompt. The account 
 ### Converting Between Expenses and Capital Events
 
 - **Expense to Capital Event**: If you logged something big as an ordinary expense, choose **Convert to Capital Event** in its menu on the Expenses list. The expense is replaced by an equal Capital Event for the same date, account, and amount, so the money is charged once, not twice.
-- **Capital Event to Expense**: On the Capital Events page, choose **Convert to Expense**. The event becomes a regular expense named after its note (or its subtype), filed under the subtype's name. If the event had **Include in Cash Flow / Net Worth** turned off, the new expense is created without an account, so no balance moves that never moved before.
+- **Capital Event to Expense**: On the Capital Events page, choose **Convert to Expense**. The event becomes a regular expense named after its note (or its subtype), filed under the subtype's name. An expense always comes out of an account, so an event that never moved money (**Include in Cash Flow / Net Worth** turned off) or has no account (older events) cannot be converted. Edit it first, choose an account and turn the switch on. The same applies to converting an older expense that has no account into a Capital Event.
 
 !!! tip "Recurring Capital Events"
     A repeating one-off, such as an instalment on a purchase, can be set up as a **Capital Event** subscription. See [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md).
