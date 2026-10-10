@@ -939,7 +939,7 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         self.assertEqual(expense.amount, Decimal("100.00"))
 
     def test_form_saves_resets_last_processed_date_on_start_date_change(self):
-        """Editing start_date in RecurringTransactionForm resets last_processed_date."""
+        """Editing start_date restarts the schedule from its next upcoming date (it must not re-post history)."""
         from expenses.forms import RecurringTransactionForm
         rt = RecurringTransaction.objects.create(
             user=self.user, transaction_type="EXPENSE", amount=Decimal("100.00"),
@@ -960,7 +960,11 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         form = RecurringTransactionForm(data=form_data, instance=rt, user=self.user)
         self.assertTrue(form.is_valid(), form.errors)
         saved_rt = form.save()
-        self.assertIsNone(saved_rt.last_processed_date)
+        # Moved to a past start date without asking for historical entries: resume from the latest
+        # real occurrence so nothing in the past is back-posted.
+        from expenses.services_recurring import RecurringService
+        self.assertEqual(saved_rt.last_processed_date,
+                         RecurringService.last_due_before_today(date(2025, 2, 1), 'MONTHLY'))
 
     def test_create_view_forces_immediate_processing_despite_cooldown(self):
         """Creating a new recurring transaction processes immediately even if cache cooldown key exists."""

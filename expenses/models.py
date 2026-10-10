@@ -1331,6 +1331,43 @@ class RecurringTransaction(models.Model):
                 raise ValidationError({'source_fk': _('Another recurring transaction already uses this source.')})
 
     @staticmethod
+    def _next_last_working_day(current_date):
+        """First "last working day (Mon-Fri) of a month" strictly after ``current_date``.
+
+        Exactly one date per month: the last weekday of that month."""
+        import calendar
+
+        year, month = current_date.year, current_date.month
+        for _ in range(3):
+            day = date(year, month, calendar.monthrange(year, month)[1])
+            while day.weekday() >= 5:
+                day -= timedelta(days=1)
+            if day > current_date:
+                return day
+            month += 1
+            if month > 12:
+                year, month = year + 1, 1
+        return current_date + timedelta(days=30)
+
+    @staticmethod
+    def _next_month_step(current_date, start_date, step_months):
+        """First occurrence strictly after ``current_date`` of a schedule that repeats every
+        ``step_months`` months from ``start_date``, keeping the start's day of month (clamped to
+        short months: a 31st becomes the 30th/28th, then goes back to the 31st)."""
+        import calendar
+
+        def occurrence(n):
+            months = start_date.month - 1 + n * step_months
+            year, month = start_date.year + months // 12, months % 12 + 1
+            return date(year, month, min(start_date.day, calendar.monthrange(year, month)[1]))
+
+        months_between = (current_date.year - start_date.year) * 12 + current_date.month - start_date.month
+        n = max(0, months_between // step_months)
+        while occurrence(n) <= current_date:
+            n += 1
+        return occurrence(n)
+
+    @staticmethod
     def get_next_date(current_date, frequency, start_date=None, is_last_day_of_month=False, is_last_working_day=False):
         """
         Calculate the next occurrence date after current_date for a given frequency.
@@ -1338,17 +1375,7 @@ class RecurringTransaction(models.Model):
         """
         from datetime import datetime, time
 
-        from dateutil.rrule import (
-            DAILY,
-            FR,
-            MO,
-            MONTHLY,
-            TH,
-            TU,
-            WE,
-            WEEKLY,
-            rrule,
-        )
+        from dateutil.rrule import DAILY, MONTHLY, WEEKLY, rrule
 
         if not start_date:
             start_date = current_date
@@ -1364,44 +1391,20 @@ class RecurringTransaction(models.Model):
             rule = rrule(WEEKLY, interval=2, dtstart=dt_start)
         elif frequency == 'MONTHLY':
             if is_last_working_day:
-                rule = rrule(MONTHLY, interval=1, dtstart=dt_start, bymonthday=(-1, -2, -3), byweekday=(MO, TU, WE, TH, FR))
-                next_dt = rule.after(dt_current)
-                if next_dt:
-                    return next_dt.date()
+                return RecurringTransaction._next_last_working_day(current_date)
             elif is_last_day_of_month:
                 rule = rrule(MONTHLY, interval=1, dtstart=dt_start, bymonthday=-1)
                 next_dt = rule.after(dt_current)
                 if next_dt:
                     return next_dt.date()
             else:
-                import calendar
-                max_days_this = calendar.monthrange(current_date.year, current_date.month)[1]
-                this_month_occ = date(current_date.year, current_date.month, min(start_date.day, max_days_this))
-                if current_date < this_month_occ:
-                    return this_month_occ
-                month = current_date.month % 12 + 1
-                year = current_date.year + (current_date.month // 12)
-                max_days_next = calendar.monthrange(year, month)[1]
-                return date(year, month, min(start_date.day, max_days_next))
+                return RecurringTransaction._next_month_step(current_date, start_date, 1)
         elif frequency == 'QUARTERLY':
-            import calendar
-            max_days = calendar.monthrange(dt_start.year, dt_start.month)[1]
-            target_day = min(dt_start.day, max_days)
-            rule = rrule(MONTHLY, interval=3, dtstart=dt_start, bymonthday=target_day)
+            return RecurringTransaction._next_month_step(current_date, start_date, 3)
         elif frequency == 'SEMIANNUALLY':
-            import calendar
-            max_days = calendar.monthrange(dt_start.year, dt_start.month)[1]
-            target_day = min(dt_start.day, max_days)
-            rule = rrule(MONTHLY, interval=6, dtstart=dt_start, bymonthday=target_day)
+            return RecurringTransaction._next_month_step(current_date, start_date, 6)
         elif frequency == 'YEARLY':
-            import calendar
-            max_days_this = calendar.monthrange(current_date.year, start_date.month)[1]
-            this_year_occ = date(current_date.year, start_date.month, min(start_date.day, max_days_this))
-            if current_date < this_year_occ:
-                return this_year_occ
-            next_year = current_date.year + 1
-            max_days_next = calendar.monthrange(next_year, start_date.month)[1]
-            return date(next_year, start_date.month, min(start_date.day, max_days_next))
+            return RecurringTransaction._next_month_step(current_date, start_date, 12)
         else:
             return current_date + timedelta(days=365)
 
@@ -1410,9 +1413,19 @@ class RecurringTransaction(models.Model):
             return next_dt.date()
         return current_date + timedelta(days=30)
 
+    def first_due_date(self):
+        """The first occurrence: the start date, or for "last day / last working day of the month"
+        schedules the first such day on or after the start date (never both the start and month-end)."""
+        if self.frequency == 'MONTHLY' and (self.is_last_day_of_month or self.is_last_working_day):
+            return self.get_next_date(
+                self.start_date - timedelta(days=1), self.frequency, self.start_date,
+                self.is_last_day_of_month, self.is_last_working_day,
+            )
+        return self.start_date
+
     def _calculate_next_due_date(self):
         if not self.last_processed_date or self.last_processed_date < self.start_date:
-            due = self.start_date
+            due = self.first_due_date()
         else:
             due = self.get_next_date(
                 self.last_processed_date,
@@ -1451,7 +1464,8 @@ class RecurringTransaction(models.Model):
         update_fields = kwargs.get('update_fields')
         if update_fields is not None:
             update_fields_set = set(update_fields)
-            update_fields_set.add('next_due_date')
+            # Columns recomputed above must be written even when the caller lists only a few fields.
+            update_fields_set.update({'next_due_date', 'exchange_rate', 'base_amount'})
             kwargs['update_fields'] = list(update_fields_set)
             
         super().save(*args, **kwargs)
@@ -1629,8 +1643,11 @@ class UserProfile(models.Model):
             return False
 
         from django.db.models import Q
+        # Same rule as the list page and the posting engine: only ACTIVE schedules use up the quota,
+        # oldest first. A cancelled schedule must not lock a newer active one.
         earlier_count = self.user.recurringtransaction_set.filter(
-            Q(created_at__lt=obj.created_at) | Q(created_at=obj.created_at, id__lt=obj.id)
+            Q(created_at__lt=obj.created_at) | Q(created_at=obj.created_at, id__lt=obj.id),
+            is_active=True,
         ).count()
         return earlier_count >= limit
 

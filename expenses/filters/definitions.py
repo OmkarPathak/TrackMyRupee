@@ -555,6 +555,8 @@ RECURRING_FILTERS = FilterSetConfig(
                 {"value": "TRANSFER", "label": "Transfer"},
                 {"value": "INCOME", "label": "Income"},
                 {"value": "LOAN", "label": "Loan"},
+                {"value": "CAPITAL", "label": "Capital Event"},
+                {"value": "INSURANCE_PREMIUM", "label": "Insurance Premium"},
             ],
             field_name="transaction_type",
             lookup_expr="in",

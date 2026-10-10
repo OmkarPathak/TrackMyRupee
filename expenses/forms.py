@@ -424,6 +424,10 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             if not capital_subtype:
                 self.add_error('capital_subtype', _('Subtype is required for capital events.'))
 
+        amount = cleaned_data.get('amount')
+        if amount is not None and amount <= 0:
+            self.add_error('amount', _('Amount must be greater than zero.'))
+
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         if start_date:
@@ -449,15 +453,8 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                 description=description,
                 frequency=frequency,
                 start_date=start_date,
-                account=cleaned_data.get('account'),
-                from_account=cleaned_data.get('from_account'),
-                to_account=cleaned_data.get('to_account'),
-                category=cleaned_data.get('category'),
-                source=cleaned_data.get('source'),
-                loan=cleaned_data.get('loan'),
-                physical_asset=cleaned_data.get('physical_asset'),
                 is_active=True
-            )
+            )  # exactly the fields of the database rule 'unique_recurring_transaction'
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
@@ -472,15 +469,26 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         if instance.pk:
             try:
                 old_obj = RecurringTransaction.objects.get(pk=instance.pk)
-                if old_obj.start_date != instance.start_date or old_obj.frequency != instance.frequency:
-                    instance.last_processed_date = None
+                schedule_moved = old_obj.start_date != instance.start_date or old_obj.frequency != instance.frequency
+                resumed = instance.is_active and not old_obj.is_active
+                if schedule_moved or resumed:
+                    # The schedule moved or was paused and is now resumed: restart from its next
+                    # upcoming date, and only post the past again when the user asks for it.
+                    if create_historical or instance.start_date >= today:
+                        instance.last_processed_date = None
+                    else:
+                        instance.last_processed_date = RecurringService.last_due_before_today(
+                            instance.start_date, instance.frequency,
+                            instance.is_last_day_of_month, instance.is_last_working_day)
             except RecurringTransaction.DoesNotExist:
                 pass
         else:
             if instance.start_date >= today or create_historical:
                 instance.last_processed_date = None
             else:
-                instance.last_processed_date = RecurringService.last_due_before_today(instance.start_date, instance.frequency)
+                instance.last_processed_date = RecurringService.last_due_before_today(
+                    instance.start_date, instance.frequency,
+                    instance.is_last_day_of_month, instance.is_last_working_day)
 
         if commit:
             instance.save()

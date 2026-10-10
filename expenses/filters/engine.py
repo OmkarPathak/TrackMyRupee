@@ -139,10 +139,15 @@ def apply_filter_config(
                 queryset = queryset.order_by(f'-{amount_field}', '-id')
             else:
                 queryset = queryset.order_by(amount_field, 'id')
-        elif sort_by == 'name_asc':
-            queryset = queryset.order_by('name', 'id')
-        elif sort_by == 'name_desc':
-            queryset = queryset.order_by('-name', '-id')
+        elif sort_by in ('name_asc', 'name_desc'):
+            # Models name their label field differently (Category.name, RecurringTransaction.description)
+            name_field = 'name'
+            try:
+                queryset.model._meta.get_field('name')
+            except Exception:
+                name_field = 'description'
+            prefix = '-' if sort_by == 'name_desc' else ''
+            queryset = queryset.order_by(f'{prefix}{name_field}', f'{prefix}id')
         elif sort_by == 'limit_desc':
             queryset = queryset.order_by(F('limit').desc(nulls_last=True), 'name', 'id')
         elif sort_by == 'limit_asc':

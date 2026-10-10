@@ -2,6 +2,7 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -22,6 +23,12 @@ from .mixins import (
     UUIDOrIntLookupMixin,
     process_user_recurring_transactions,
 )
+
+
+# Everything that takes money out on a schedule gets a "renewing soon" heads-up (income does not).
+RENEWING_TYPES = ('EXPENSE', 'TRANSFER', 'CAPITAL', 'LOAN', 'INSURANCE_PREMIUM')
+# Types that count as a running cost on the list totals (and where deleting "saves" money).
+COST_TYPES_EXCLUDED = ('TRANSFER', 'INCOME')
 
 
 class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTransactionMixin, ListView):
@@ -73,7 +80,7 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
         total_yearly = 0
         
         for sub in active_subs:
-            if sub.transaction_type in ('TRANSFER', 'INCOME'):
+            if sub.transaction_type in COST_TYPES_EXCLUDED:
                 continue
             total_monthly += sub.monthly_equivalent
             total_yearly += sub.yearly_equivalent
@@ -93,7 +100,7 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
             
             # Determine urgency
             is_renewing = False
-            if sub.annotated_next_date and sub.transaction_type in ('EXPENSE', 'TRANSFER', 'CAPITAL'):
+            if sub.annotated_next_date and sub.transaction_type in RENEWING_TYPES:
                 if sub.annotated_days_until <= 30: # Show mostly anything coming up soon
                      is_renewing = True
             
@@ -209,8 +216,14 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
             messages.warning(self.request, _("A recurring transaction with the same details already exists."))
             return self.form_invalid(form)
 
+        try:
+            with transaction.atomic():
+                response = super().form_valid(form)
+        except IntegrityError:
+            # Lost a race against the database uniqueness rule
+            messages.warning(self.request, _("A recurring transaction with the same details already exists."))
+            return self.form_invalid(form)
         messages.success(self.request, _("Recurring transaction created successfully!"))
-        response = super().form_valid(form)
         process_user_recurring_transactions(self.request.user, force=True)
         ph_capture(self.request.user, 'recurring_created', {'transaction_type': self.object.transaction_type, 'frequency': self.object.frequency, 'amount': str(self.object.amount)})
         return response
@@ -246,8 +259,13 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, U
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        try:
+            with transaction.atomic():
+                response = super().form_valid(form)
+        except IntegrityError:
+            messages.warning(self.request, _("A recurring transaction with the same details already exists."))
+            return self.form_invalid(form)
         messages.success(self.request, _("Recurring transaction updated successfully!"))
-        response = super().form_valid(form)
         process_user_recurring_transactions(self.request.user, force=True)
         ph_capture(self.request.user, 'recurring_updated', {'frequency': self.object.frequency})
         return response
@@ -292,6 +310,10 @@ class RecurringTransactionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, D
         if hasattr(self.request.user, 'profile'):
             currency = self.request.user.profile.currency
             
-        messages.success(self.request, _("You just saved %(currency)s%(amount)s/year 🎉") % {'currency': currency, 'amount': f"{yearly_saving:,.0f}"})
+        if obj.transaction_type in COST_TYPES_EXCLUDED:
+            # Deleting income or a transfer does not save the user anything.
+            messages.success(self.request, _("Recurring transaction deleted."))
+        else:
+            messages.success(self.request, _("You just saved %(currency)s%(amount)s/year 🎉") % {'currency': currency, 'amount': f"{yearly_saving:,.0f}"})
         ph_capture(self.request.user, 'recurring_deleted', {})
         return super().form_valid(form)

@@ -40,7 +40,8 @@ class RecurringService:
     MONTH_STEPS = {'MONTHLY': 1, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
 
     @staticmethod
-    def last_due_before_today(start_date: date, frequency: str) -> date | None:
+    def last_due_before_today(start_date: date, frequency: str, is_last_day_of_month: bool = False,
+                              is_last_working_day: bool = False) -> date | None:
         """Return the most recent real occurrence on or before today.
 
         Occurrences follow the same calendar rules as the recurring engine
@@ -51,6 +52,18 @@ class RecurringService:
         today = timezone.localdate()
         if start_date > today:
             return None
+
+        if frequency == 'MONTHLY' and (is_last_day_of_month or is_last_working_day):
+            # Month-end schedules do not follow the start day: walk the real occurrences.
+            nxt = RecurringTransaction.get_next_date(
+                start_date - timedelta(days=1), frequency, start_date, is_last_day_of_month, is_last_working_day)
+            if nxt > today:
+                return None
+            while True:
+                after = RecurringTransaction.get_next_date(nxt, frequency, start_date, is_last_day_of_month, is_last_working_day)
+                if after > today:
+                    return nxt
+                nxt = after
 
         month_step = RecurringService.MONTH_STEPS.get(frequency)
         if month_step is None:

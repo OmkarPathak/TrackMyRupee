@@ -139,7 +139,7 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                 continue
 
             if not rt.last_processed_date:
-                current_date = rt.start_date
+                current_date = rt.first_due_date()
             else:
                 current_date = rt.get_next_date(
                     rt.last_processed_date, rt.frequency, rt.start_date,
@@ -305,12 +305,15 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
 
                 else:
                     source = rt.source or 'Other'
+                    # The source is free text on a schedule; keep the matching type, else "Other"
+                    # (it used to fall back to the model default, "Salary", for everything).
+                    source_type = source if source in dict(Income.SOURCE_TYPE_CHOICES) else 'Other'
                     exists = Income.objects.filter(user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source).exists()
                     if not exists:
                         try:
                             Income(
                                 user=user, date=current_date, amount=rt.amount,
-                                currency=rt.currency, source=source,
+                                currency=rt.currency, source=source, source_type=source_type,
                                 description=description, exchange_rate=exchange_rate,
                                 base_amount=base_amount, account=rt.account,
                             ).save()
