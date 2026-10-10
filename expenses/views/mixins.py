@@ -18,6 +18,7 @@ from ..models import (
     Transfer,
     UserProfile,
 )
+from ..services import LoanService
 from ..services_recurring import RecurringService
 from ..utils import get_exchange_rate
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
@@ -114,13 +115,10 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                 + Decimal(str(row['total_prepaid'] or 0))
             )
 
-        rates = (
-            LoanInterestRate.objects.filter(loan_id__in=loan_ids)
-            .order_by('loan_id', '-effective_date', '-id')
-        )
+        # Every rate of each loan: the one in force on each posting date is picked below
+        rates = LoanInterestRate.objects.filter(loan_id__in=loan_ids).order_by('loan_id', 'effective_date', 'id')
         for r in rates:
-            if r.loan_id not in latest_rate_map:
-                latest_rate_map[r.loan_id] = r.interest_rate
+            latest_rate_map.setdefault(r.loan_id, []).append((r.effective_date, r.interest_rate))
 
     MAX_CATCHUP_PER_RUN = max_catchup if max_catchup is not None else 100
     backlog_remaining = False
@@ -237,13 +235,11 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                         rt.is_active = False
                         break
 
-                    annual_rate = Decimal(str(latest_rate_map.get(rt.loan_id, Decimal('0.00'))))
+                    # The rate in force on THIS occurrence (catching up across a rate change must
+                    # not apply today's rate to old months, nor a future rate to today).
+                    annual_rate = LoanService.rate_on(latest_rate_map.get(rt.loan_id, []), current_date)
 
-                    interest_payment = RecurringService.calculate_period_interest(
-                        remaining_principal,
-                        annual_rate,
-                        rt.frequency,
-                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    interest_payment = LoanService.period_interest(remaining_principal, annual_rate, rt.frequency)
 
                     repayment_amount = Decimal(str(rt.amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                     principal_payment = (repayment_amount - interest_payment).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)

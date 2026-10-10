@@ -687,9 +687,10 @@ class TestLoanSchedules(SubBase):
         self.rt('LOAN', amount='5000', loan=loan, description='EMI')
         self.run_engine()
         r = LoanRepayment.objects.get()
-        # 12% a year on 100,000 for a 30-day period = 986.30
+        # 12% a year on 100,000 for one month = 1,000.00 (the same monthly rate the EMI formula and the
+        # schedule use)
         self.assertEqual((r.interest_portion, r.principal_portion, r.amount, r.from_account, r.date),
-                         (D('986.30'), D('4013.70'), D('5000.00'), self.cash, today()))
+                         (D('1000.00'), D('4000.00'), D('5000.00'), self.cash, today()))
         self.assertEqual(self.bal(self.cash), D('95000.00'))
 
     def test_interest_is_charged_on_the_reducing_balance(self):
@@ -698,7 +699,7 @@ class TestLoanSchedules(SubBase):
         self.run_engine()
         repayments = list(LoanRepayment.objects.filter(loan=loan).order_by('date'))
         self.assertGreaterEqual(len(repayments), 3)
-        self.assertEqual(repayments[0].interest_portion, D('986.30'))
+        self.assertEqual(repayments[0].interest_portion, D('1000.00'))
         self.assertLess(repayments[1].interest_portion, repayments[0].interest_portion)
         self.assertLess(repayments[2].interest_portion, repayments[1].interest_portion)
         paid = sum(r.principal_portion for r in repayments)
@@ -716,7 +717,7 @@ class TestLoanSchedules(SubBase):
 
     def test_emi_that_cannot_cover_the_interest_is_deactivated(self):
         loan = self.make_loan()
-        rt = self.rt('LOAN', amount='500', loan=loan, description='EMI')    # interest alone is 986.30
+        rt = self.rt('LOAN', amount='500', loan=loan, description='EMI')    # interest alone is 1,000.00
         self.run_engine()
         rt.refresh_from_db()
         self.assertFalse(rt.is_active)
@@ -727,7 +728,7 @@ class TestLoanSchedules(SubBase):
         Loan.objects.filter(pk=loan.pk).update(opening_paid_principal=D('50000'))
         self.rt('LOAN', amount='5000', loan=loan, description='EMI')
         self.run_engine()
-        self.assertEqual(LoanRepayment.objects.get().interest_portion, D('493.15'))     # on 50,000
+        self.assertEqual(LoanRepayment.objects.get().interest_portion, D('500.00'))     # on 50,000
 
     def test_loan_schedule_without_an_account_is_deactivated(self):
         loan = self.make_loan()

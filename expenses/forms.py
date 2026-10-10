@@ -1326,6 +1326,24 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
 
+    def clean_initial_principal(self):
+        value = self.cleaned_data.get('initial_principal')
+        if value is not None and value <= 0:
+            raise forms.ValidationError(_('Principal must be greater than zero.'))
+        return value
+
+    def clean_duration_months(self):
+        value = self.cleaned_data.get('duration_months')
+        if value is not None and not 1 <= value <= 600:
+            raise forms.ValidationError(_('Duration must be between 1 and 600 months.'))
+        return value
+
+    def clean_interest_rate(self):
+        value = self.cleaned_data.get('interest_rate')
+        if value is not None and not 0 <= value <= 100:
+            raise forms.ValidationError(_('Interest rate must be between 0 and 100 percent.'))
+        return value
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
@@ -1346,6 +1364,12 @@ class LoanInterestRateForm(SearchableSelectFormMixin, forms.ModelForm):
             'interest_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'effective_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
+
+    def clean_interest_rate(self):
+        value = self.cleaned_data.get('interest_rate')
+        if value is not None and not 0 <= value <= 100:
+            raise forms.ValidationError(_('Interest rate must be between 0 and 100 percent.'))
+        return value
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1412,22 +1436,26 @@ class LoanRepaymentForm(SearchableSelectFormMixin, forms.ModelForm):
         self.fields['principal_portion'].required = False
         self.fields['interest_portion'].required = False
 
+    def clean_date(self):
+        value = self.cleaned_data.get('date')
+        # A repayment is a payment that has happened: it debits the account right away.
+        if value and value > timezone.localdate() + timedelta(days=1):
+            raise forms.ValidationError(_('Repayment date cannot be in the future.'))
+        return value
+
     def _calculate_repayment_breakdown(self, amount, loan, use_initial_preview=False):
         from .services import LoanService
 
         summary = LoanService.get_loan_summary(loan)
-        latest_rate_obj = loan.interest_rates.order_by('-effective_date').first()
-        annual_rate = float(latest_rate_obj.interest_rate) if latest_rate_obj else 0.0
+        annual_rate = float(LoanService.current_rate(loan))
 
         # EMI suggestion is useful for the initial preview only.
         today = date.today()
-        months_passed = (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month
+        months_passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
         remaining_months = max(1, loan.duration_months - months_passed)
 
         suggested_amount = LoanService.calculate_emi(summary['remaining_principal'], annual_rate, remaining_months)
-        estimated_interest = float(
-            RecurringService.calculate_period_interest(summary['remaining_principal'], annual_rate, 'MONTHLY')
-        )
+        estimated_interest = float(LoanService.period_interest(summary['remaining_principal'], annual_rate, 'MONTHLY'))
 
         if use_initial_preview:
             return {

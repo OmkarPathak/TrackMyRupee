@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
@@ -105,6 +105,7 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
             loan.paid_principal = principal_paid
             loan.capital_prepaid = capital_prepaid
             remaining_principal = loan.remaining_principal
+            opening_paid = Decimal(str(loan.opening_paid_principal or 0))
 
             initial = loan.initial_principal
             progress = min((Decimal('1') - remaining_principal / initial) * Decimal('100'), Decimal('100')) if initial > 0 else Decimal('100')
@@ -112,6 +113,7 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
                 'loan': loan,
                 'principal_paid': float(principal_paid),
                 'capital_prepaid': float(capital_prepaid),
+                'opening_paid': float(opening_paid),
                 'interest_paid': float(interest_paid),
                 'total_paid': float(total_paid),
                 'remaining_principal': float(remaining_principal),
@@ -119,16 +121,24 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
             }
             loan_summaries.append(summary)
 
+        # Portfolio numbers add loans together, so they are converted to the user's own currency
+        # first (each loan card keeps showing its own currency).
+        fx = {}
+        def to_base(loan, value):
+            if loan.currency not in fx:
+                fx[loan.currency] = LoanService.base_rate(self.request.user, loan.currency)
+            return float(Decimal(str(value)) * fx[loan.currency])
+
         # Total remaining debt across all active loans for top summary card
         total_debt = float(sum(
-            l.remaining_principal
+            to_base(l, l.remaining_principal)
             for l in all_loans if l.is_active
         ))
 
         # Portfolio Chart Data
-        tot_principal_paid = sum(s['principal_paid'] + s['capital_prepaid'] for s in loan_summaries)
-        tot_interest_paid = sum(s['interest_paid'] for s in loan_summaries)
-        tot_remaining_debt = sum(s['remaining_principal'] for s in loan_summaries)
+        tot_principal_paid = sum(to_base(s['loan'], s['principal_paid'] + s['capital_prepaid'] + s['opening_paid']) for s in loan_summaries)
+        tot_interest_paid = sum(to_base(s['loan'], s['interest_paid']) for s in loan_summaries)
+        tot_remaining_debt = sum(to_base(s['loan'], s['remaining_principal']) for s in loan_summaries)
         tot_total_portfolio = tot_principal_paid + tot_remaining_debt
 
         paid_pct = round((tot_principal_paid / tot_total_portfolio) * 100, 1) if tot_total_portfolio > 0 else 0.0
@@ -149,7 +159,7 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
 
         loan_comparison_chart = {
             'labels': [s['loan'].name for s in loan_summaries],
-            'principal_paid': [round(s['principal_paid'] + s['capital_prepaid'], 2) for s in loan_summaries],
+            'principal_paid': [round(s['principal_paid'] + s['capital_prepaid'] + s['opening_paid'], 2) for s in loan_summaries],
             'remaining_principal': [round(s['remaining_principal'], 2) for s in loan_summaries],
         }
 
@@ -186,7 +196,7 @@ class LoanCreateView(LoginRequiredMixin, LoanFeatureGateMixin, CreateView):
                 effective_date=self.object.start_date
             )
         messages.success(self.request, _("Loan created successfully!"))
-        ph_capture(self.request.user, 'loan_created', {'loan_type': getattr(self.object, 'loan_type', ''), 'currency': self.object.currency, 'tenure_months': getattr(self.object, 'tenure_months', None)})
+        ph_capture(self.request.user, 'loan_created', {'loan_type': getattr(self.object, 'loan_type', ''), 'currency': self.object.currency, 'tenure_months': self.object.duration_months})
         return redirect(self.success_url)
 
     def get_form_kwargs(self):
@@ -211,7 +221,10 @@ class LoanUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMi
             if rates.count() == 1:
                 rate = rates.first()
                 rate.interest_rate = form.cleaned_data['interest_rate']
+                rate.effective_date = self.object.start_date   # the first rate always starts with the loan
                 rate.save()
+            # A new principal or term can reopen a closed loan or close a fully-paid one
+            LoanService.sync_loan_active_status(self.object)
         messages.success(self.request, _("Loan updated successfully!"))
         ph_capture(self.request.user, 'loan_updated', {})
         return redirect(self.success_url)
@@ -228,9 +241,14 @@ class LoanDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMi
     def get_queryset(self):
         return Loan.objects.filter(user=self.request.user)
 
-    def delete(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
+        # There is no confirmation page: deleting is a confirmed POST from the loan screens.
+        return redirect('loan-detail', pk=self.get_object().uuid)
+
+    def form_valid(self, form):
+        # Django 4+ deletes through form_valid on POST; a custom delete() is never called.
+        response = super().form_valid(form)
         messages.success(self.request, _("Loan deleted successfully."))
-        response = super().delete(request, *args, **kwargs)
         ph_capture(self.request.user, 'loan_deleted', {})
         return response
 
@@ -261,7 +279,7 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         ).select_related('account').order_by('date')
         linked_capital_total = sum(float(e.base_amount) for e in linked_capital_events)
 
-        principal_paid_total = round(summary['principal_paid'] + summary['capital_prepaid'], 2)
+        principal_paid_total = round(summary['principal_paid'] + summary['capital_prepaid'] + summary['opening_paid_principal'], 2)
         interest_paid_total = round(summary['interest_paid'], 2)
         remaining_principal_total = round(summary['remaining_principal'], 2)
 
@@ -459,18 +477,23 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                     repayment.save()
 
                     if form.cleaned_data.get('add_to_recurring'):
-                        RecurringService.make_recurring(
-                            request.user,
-                            'LOAN',
-                            repayment.amount,
-                            loan.currency,
-                            repayment.from_account,
-                            _("Loan EMI: %(name)s") % {'name': loan.name},
-                            form.cleaned_data.get('recurring_frequency') or 'MONTHLY',
-                            repayment.date,
-                            loan=loan,
-                        )
-                        messages.info(request, _("Recurring loan repayment created."))
+                        try:
+                            with transaction.atomic():
+                                RecurringService.make_recurring(
+                                    request.user,
+                                    'LOAN',
+                                    repayment.amount,
+                                    loan.currency,
+                                    repayment.from_account,
+                                    _("Loan EMI: %(name)s") % {'name': loan.name},
+                                    form.cleaned_data.get('recurring_frequency') or 'MONTHLY',
+                                    repayment.date,
+                                    loan=loan,
+                                )
+                            messages.info(request, _("Recurring loan repayment created."))
+                        except IntegrityError:
+                            # An identical active schedule exists (the DB rule ignores the account)
+                            messages.warning(request, _("The repayment was recorded, but an identical recurring repayment already exists."))
 
                 messages.success(request, _("Repayment recorded successfully!"))
                 ph_capture(request.user, 'loan_repayment_added', {'amount': str(repayment.amount)})
@@ -501,9 +524,12 @@ class LoanRepaymentDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIn
     def get_queryset(self):
         return LoanRepayment.objects.filter(loan__user=self.request.user)
 
-    def delete(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
+        return redirect('loan-detail', pk=self.get_object().loan.uuid)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
         messages.success(self.request, _("Repayment deleted successfully."))
-        response = super().delete(request, *args, **kwargs)
         ph_capture(self.request.user, 'loan_repayment_deleted', {})
         return response
 

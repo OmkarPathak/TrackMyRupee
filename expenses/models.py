@@ -1632,7 +1632,8 @@ class UserProfile(models.Model):
         limit = get_limit(self.active_tier, 'loans')
         if limit == -1:
             return True
-        return self.user.loans.count() < limit
+        # Only loans still being repaid use up the quota: closing a loan frees its slot.
+        return self.user.loans.filter(is_active=True).count() < limit
 
     def is_recurring_locked(self, obj):
         """Check if a specific recurring transaction is locked based on tier limits."""
@@ -2245,7 +2246,8 @@ class LoanRepayment(models.Model):
             .aggregate(total=models.Sum('amount'))['total']
         ) or Decimal('0.00')
         remaining_principal = max(
-            self.loan.initial_principal - prior_paid - capital_prepaid,
+            self.loan.initial_principal - prior_paid - capital_prepaid
+            - (self.loan.opening_paid_principal or Decimal('0.00')),
             Decimal('0.00'),
         )
         if self.principal_portion > remaining_principal:

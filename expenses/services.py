@@ -19,7 +19,7 @@ from .models import (
     annotate_loan_principal_totals,
 )
 from .savings import CASHBACK_REFUND_TYPES, calculate_savings, counted_capital_total, loan_interest_total
-from .utils import get_safe_date
+from .utils import get_exchange_rate, get_safe_date
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +227,7 @@ class LoanService:
         if principal_dec <= 0 or months <= 0:
             return 0.0
         if annual_rate_dec == 0:
-            return float(principal_dec / Decimal(months))
+            return float((principal_dec / Decimal(months)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
 
         monthly_rate = annual_rate_dec / Decimal('12') / Decimal('100')
         n = int(months)
@@ -254,16 +254,78 @@ class LoanService:
             return float(interest.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
         return LoanService.calculate_emi(principal, annual_rate, months)
 
+    MONTHS_PER_PERIOD = {'MONTHLY': 1, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
+
+    @staticmethod
+    def period_interest(balance, annual_rate, frequency='MONTHLY'):
+        """Interest for one repayment period on a reducing balance (Decimal, 2 places).
+
+        Month-based periods use the same monthly rate as the EMI formula and the amortization
+        schedule (annual / 12 per month), so what gets posted matches what the schedule shows.
+        Day-based periods (daily, weekly, bi-weekly) use the actual number of days over 365.
+        """
+        balance = Decimal(str(balance or 0))
+        annual_rate = Decimal(str(annual_rate or 0))
+        months = LoanService.MONTHS_PER_PERIOD.get(frequency)
+        if months is not None:
+            interest = balance * annual_rate / Decimal('100') * Decimal(months) / Decimal('12')
+        else:
+            days = Decimal(str({'DAILY': 1, 'WEEKLY': 7, 'BIWEEKLY': 14}.get(frequency, 30)))
+            interest = balance * annual_rate * days / Decimal('36500')
+        return interest.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    @staticmethod
+    def rate_on(rates, on_date):
+        """Annual rate (Decimal) in force on ``on_date``.
+
+        ``rates`` is any iterable of (effective_date, rate) pairs or LoanInterestRate rows: the
+        latest rate that has already taken effect wins; a rate that starts in the future is not
+        used yet. If every rate is in the future the earliest one applies (a loan always has one).
+        """
+        pairs = sorted(
+            ((r.effective_date, r.interest_rate) if hasattr(r, 'effective_date') else tuple(r) for r in rates),
+            key=lambda pair: pair[0],
+        )
+        if not pairs:
+            return Decimal('0.00')
+        chosen = pairs[0][1]
+        for effective, rate in pairs:
+            if effective <= on_date:
+                chosen = rate
+        return Decimal(str(chosen))
+
+    @staticmethod
+    def current_rate(loan, on_date=None):
+        on_date = on_date or timezone.localdate()
+        return LoanService.rate_on(loan.interest_rates.all(), on_date)
+
+    @staticmethod
+    def base_rate(user, currency):
+        """Multiplier that turns an amount in ``currency`` into the user's base currency."""
+        base = user.profile.currency
+        if currency == base:
+            return Decimal('1')
+        try:
+            return Decimal(str(get_exchange_rate(currency, base)))
+        except Exception:
+            logger.warning("Could not convert %s to %s for user %s; leaving the amount as is.", currency, base, user.id)
+            return Decimal('1')
+
     @staticmethod
     def get_total_liabilities(user):
         """
-        Returns the sum of remaining principal for all active loans.
+        Returns the sum of remaining principal for all active loans, in the user's base currency.
         Mirrors get_loan_summary's formula: subtracts both EMI-based principal
         repayments AND any lump-sum capital-event prepayments (down payments,
         prepayments) so that net worth / total debt display is always consistent.
         """
         active_loans = annotate_loan_principal_totals(Loan.objects.filter(user=user, is_active=True))
-        total = sum(loan.remaining_principal for loan in active_loans)
+        rates = {}
+        total = Decimal('0')
+        for loan in active_loans:
+            if loan.currency not in rates:
+                rates[loan.currency] = LoanService.base_rate(user, loan.currency)
+            total += loan.remaining_principal * rates[loan.currency]
         return float(total)
 
     @staticmethod
@@ -329,6 +391,7 @@ class LoanService:
         summary = {
             'principal_paid': float(principal_paid),
             'capital_prepaid': float(capital_prepaid),
+            'opening_paid_principal': float(Decimal(str(getattr(loan, 'opening_paid_principal', 0) or 0))),
             'interest_paid': float(interest_paid),
             'total_paid': float(total_paid),
             'remaining_principal': float(remaining_principal)
@@ -344,55 +407,56 @@ class LoanService:
         """
         summary = LoanService.get_loan_summary(loan)
         remaining_principal = Decimal(str(summary['remaining_principal']))
-        
-        # Get latest interest rate
-        latest_rate_obj = loan.interest_rates.order_by('-effective_date').first()
-        annual_rate = Decimal(str(latest_rate_obj.interest_rate)) if latest_rate_obj else Decimal('0.00')
-        
-        # Approximate remaining months based on start date and duration
-        # Or better, just calculate how many months of EMI are left based on remaining principal
+
+        today = timezone.localdate()
+        # The rate in force today (a rate change that starts later is not used yet)
+        annual_rate = LoanService.current_rate(loan, today)
 
         def _add_months(d, months):
             year = d.year + (d.month - 1 + months) // 12
             month = (d.month - 1 + months) % 12 + 1
             day = min(d.day, calendar.monthrange(year, month)[1])
             return date(year, month, day)
-        
-        today = date.today()
-        # Find how many months have passed since start
-        months_passed = (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month
+
+        # Months of the term already gone. A loan that has not started yet has none gone (it used to
+        # get a negative number, which added extra months to the schedule).
+        months_passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
         remaining_months = loan.duration_months - months_passed
-        
+
         if remaining_months <= 0 and remaining_principal > 0:
-            # If past term but still has balance, maybe they missed payments. Just use 1 month to clear it or recalculate.
-            # Let's just assume remaining balance is paid in 1 final payment for the schedule display.
+            # Past the term but still owing: show one final payment that clears the balance.
             remaining_months = 1
-            
+
         if remaining_months <= 0 or remaining_principal <= 0:
             return []
 
-        emi = Decimal(str(LoanService.calculate_emi(remaining_principal, annual_rate, remaining_months)))
-        
-        schedule = []
-        current_date = _add_months(loan.start_date, max(0, months_passed))
-        balance = remaining_principal
-        
         r = annual_rate / Decimal('12') / Decimal('100')
-        
+        interest_only = getattr(loan, 'repayment_type', 'EMI') in ('INTEREST_ONLY', 'BULLET')
+        emi = Decimal(str(LoanService.calculate_emi(remaining_principal, annual_rate, remaining_months)))
+
+        schedule = []
+        current_date = _add_months(loan.start_date, months_passed)
+        balance = remaining_principal
+
         for i in range(remaining_months):
             if balance <= 0:
                 break
-                
+
             interest_payment = Decimal(str(balance)) * r
-            principal_payment = emi - interest_payment
-            
-            # Adjust final payment
-            if principal_payment > balance:
-                principal_payment = balance
+            if interest_only:
+                # Interest every month; the whole principal is settled with the last payment.
+                principal_payment = balance if i == remaining_months - 1 else Decimal('0')
                 emi = principal_payment + interest_payment
-                
+            else:
+                principal_payment = emi - interest_payment
+                # The last payment clears whatever is left (the EMI is rounded to paise, so a few
+                # paise would otherwise linger as a phantom balance)
+                if principal_payment > balance or i == remaining_months - 1:
+                    principal_payment = balance
+                    emi = principal_payment + interest_payment
+
             balance = Decimal(str(balance)) - principal_payment
-            
+
             schedule.append({
                 'month': current_date.strftime('%b %Y'),
                 'date': current_date,
@@ -401,9 +465,9 @@ class LoanService:
                 'interest': float(interest_payment.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)),
                 'balance': float(abs(balance).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
             })
-            
+
             current_date = _add_months(current_date, 1)
-            
+
         return schedule
 
     @staticmethod
@@ -417,13 +481,12 @@ class LoanService:
 
         if remaining_principal <= 0:
             return None
+        if getattr(loan, 'repayment_type', 'EMI') != 'EMI':
+            return None   # "one extra EMI a year" only makes sense for an amortising loan
 
-        latest_rate_obj = loan.interest_rates.order_by('-effective_date').first()
-        annual_rate = Decimal(str(latest_rate_obj.interest_rate)) if latest_rate_obj else Decimal('0.00')
-
-        from datetime import date
-        today = date.today()
-        months_passed = (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month
+        today = timezone.localdate()
+        annual_rate = LoanService.current_rate(loan, today)
+        months_passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
         remaining_months = loan.duration_months - months_passed
 
         if remaining_months <= 0:
@@ -435,7 +498,7 @@ class LoanService:
         def _simulate(balance, emi, r, with_extra_emi):
             total_interest = Decimal('0')
             month = 0
-            while balance > Decimal('0.01') and month < 1200:  # cap at 100 years
+            while balance > Decimal('1.00') and month < 1200:  # cap at 100 years; under a rupee is rounding dust
                 month += 1
                 interest_payment = balance * r
                 principal_payment = emi - interest_payment

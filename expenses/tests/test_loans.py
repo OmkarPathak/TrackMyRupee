@@ -47,7 +47,8 @@ class LoanServiceTest(TestCase):
         
         # Test 0 interest
         emi_zero_interest = LoanService.calculate_emi(50000, 0, 12)
-        self.assertEqual(emi_zero_interest, 50000 / 12.0)
+        # an EMI is a money amount: rounded to paise (4166.666... used to leak out and break saving)
+        self.assertEqual(emi_zero_interest, 4166.67)
 
     def test_amortization_schedule(self):
         # Schedule with no payments made
