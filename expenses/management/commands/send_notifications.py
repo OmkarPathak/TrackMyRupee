@@ -12,6 +12,7 @@ from django.utils import timezone
 from webpush import send_user_notification
 from webpush.models import PushInformation
 
+from expenses.budgets import budget_status, bulk_monthly_spend, normalize_category, percent_used
 from expenses.models import (
     Account,
     Category,
@@ -59,14 +60,10 @@ class Command(BaseCommand):
         for cat in Category.objects.filter(limit__gt=0):
             self.categories_by_user.setdefault(cat.user_id, []).append(cat)
             
-        # 4. Pre-fetch Monthly Expenses for Budget checking
-        expenses_summary = Expense.objects.filter(
-            date__year=self.today.year,
-            date__month=self.today.month
-        ).values('user_id', 'category').annotate(total=Sum('base_amount'))
-        self.expense_sums = {}
-        for row in expenses_summary:
-            self.expense_sums[(row['user_id'], row['category'])] = row['total'] or 0
+        # 4. Pre-fetch this month's spend per user and category for budget checking
+        #    (same attribution rules as the Budget page: expenses + budget-counted capital events,
+        #    category names matched case-insensitively)
+        self.expense_sums = bulk_monthly_spend(self.today.year, self.today.month)
 
         # 5. Pre-fetch sent notifications for deduplication
         self.sent_notifications_by_user = {}
@@ -261,7 +258,7 @@ class Command(BaseCommand):
                 )
 
     def _process_budget_alerts(self, user):
-        """Notifies if user exceeds 80% or 100% of a category's budget limit."""
+        """Notifies when a category reaches its warning level or goes over its limit (see budgets.py)."""
         profile = user.profile
         limit_count = get_limit(profile.active_tier, 'budget_categories')
         
@@ -273,18 +270,19 @@ class Command(BaseCommand):
             categories_with_limits = categories_with_limits[:limit_count]
             
         for cat in categories_with_limits:
-            spent = self.expense_sums.get((user.id, cat.name), 0)
-            
-            if spent >= cat.limit:
+            spent = self.expense_sums.get((user.id, normalize_category(cat.name)), 0)
+            status = budget_status(spent, cat.limit)
+
+            if status == 'over':
                 slug = f"budget-exceeded-{cat.id}-{self.today.year}-{self.today.month}"
                 title = f"Budget Exceeded: {cat.name}"
                 message = f"You have exceeded your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{cat.limit})"
                 link = f"/expenses/?category={cat.name}"
                 self._create_notification(user, title, message, 'ANALYTICS', slug=slug, link=link)
-            elif spent >= cat.limit * Decimal('0.8'):
+            elif status == 'limit':
                 slug = f"budget-warning-{cat.id}-{self.today.year}-{self.today.month}"
                 title = f"Budget Alert: {cat.name}"
-                message = f"You have reached 80% of your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{cat.limit})"
+                message = f"You have used {percent_used(spent, cat.limit):.0f}% of your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{cat.limit})"
                 link = f"/expenses/?category={cat.name}"
                 self._create_notification(user, title, message, 'ANALYTICS', slug=slug, link=link)
 

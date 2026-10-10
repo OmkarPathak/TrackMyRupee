@@ -717,6 +717,15 @@ class CategoryForm(SearchableSelectFormMixin, forms.ModelForm):
             raise forms.ValidationError(_('A category with this name already exists.'))
         return name
 
+    def clean_limit(self):
+        limit = self.cleaned_data.get('limit')
+        if limit is None:
+            return None
+        if limit < 0:
+            raise forms.ValidationError(_('The monthly limit cannot be negative. Leave it blank for no limit.'))
+        # A limit of 0 means "no limit" everywhere else (budget page, filters, alerts)
+        return limit or None
+
 class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     # Optional: Link to a Loan record (used for LOAN_OUTSTANDING strategy)
     linked_loan = forms.ModelChoiceField(

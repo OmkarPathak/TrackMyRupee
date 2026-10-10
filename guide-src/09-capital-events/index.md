@@ -21,7 +21,7 @@ By default a Capital Event is **kept out of your everyday numbers but still move
 | Switch | When it is **on** (the default) | When you turn it **off** |
 |---|---|---|
 | **Exclude from Averages & Trends** | The event does not count as spending in your monthly totals, your savings rate, or your trend charts. It shows as a small marker on the dashboard charts instead. | It counts as spending for that month, like a regular expense. |
-| **Exclude from Budget** | It does not count against your category budgets. | It appears in your budget breakdown as its own line, named after its subtype (for example *Large Purchase*). |
+| **Exclude from Budget** | It does not count against your category budgets. | It counts towards the budget for the category with the same name as its subtype (for example *Large Purchase*), on the Budget page, in your Dashboard breakdown, and in budget alerts. |
 | **Include in Cash Flow / Net Worth** | The account you chose goes down by the amount, so your balance and net worth stay true. | The account balance is not touched. Use this when the money did not actually leave an account you track. |
 
 So the usual one-off payment leaves your Dining Out, Transport, and Groceries budget bars alone, and your Analytics averages keep reflecting your real recurring spend, while your account balance still drops by the right amount.

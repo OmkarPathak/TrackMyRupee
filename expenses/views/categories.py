@@ -196,9 +196,11 @@ class CategoryUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
             new_name = self.object.name
             
             if old_name != new_name:
-                from ..models import Expense, RecurringTransaction
+                from ..models import Expense, ExpenseKeywordHint, RecurringTransaction
                 Expense.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
                 RecurringTransaction.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
+                # Learned quick-add suggestions must follow the rename too
+                ExpenseKeywordHint.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
                 
             ph_capture(self.request.user, 'category_updated', {})
             return response
@@ -219,16 +221,17 @@ class CategoryDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
 
 class CategoryBulkDeleteView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
-        category_ids = request.POST.getlist('category_ids')
+        category_ids = [int(v) for v in request.POST.getlist('category_ids') if str(v).strip().isdigit()]
         if not category_ids:
             messages.error(request, _('No categories selected for deletion.'))
             return redirect(self.get_success_url())
 
-        categories_to_delete = Category.objects.filter(id__in=category_ids, user=request.user)
-        deleted_count = categories_to_delete.count()
+        categories_to_delete = list(Category.objects.filter(id__in=category_ids, user=request.user))
+        deleted_count = len(categories_to_delete)
 
         if deleted_count > 0:
-            categories_to_delete.delete()
+            for category in categories_to_delete:
+                category.delete()   # per object so the category caches are cleared
             messages.success(request, _('%(count)d categories deleted successfully.') % {'count': deleted_count})
             ph_capture(request.user, 'category_bulk_deleted', {'count': deleted_count})
         else:

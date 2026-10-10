@@ -39,6 +39,15 @@ from ..models import (
 from ..recurring_utils import (
     calculate_recurring_equivalents,
 )
+from finance_tracker.plans import get_limit
+
+from ..budgets import (
+    BUDGET_WARNING_PERCENT,
+    budget_status,
+    monthly_spend_by_category,
+    normalize_category,
+    percent_used,
+)
 from ..savings import (
     calculate_savings,
     income_totals,
@@ -578,6 +587,7 @@ def home_view(request):
             'limit': limit,
             'monthly_limit': raw_limit,
             'used_percent': used_percent,
+            'status': budget_status(item['total'], limit),   # same rule as the Budget page
             'projected_total': projected_total,
             'projected_percent': projected_percent,
         })
@@ -3326,22 +3336,19 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
                 context.update(cached_ctx)
                 return context
         budget_data = []
-        categories = Category.objects.filter(user=user)
-        
+        categories = Category.objects.filter(user=user).order_by('id')
+        # Plan lock: only the first N categories are usable (same rule as the expense form,
+        # the category editor and the budget alerts); the rest are not part of the budget.
+        category_limit = get_limit(user.profile.active_tier, 'budget_categories')
+        if category_limit != -1:
+            categories = categories[:category_limit]
+
         total_budget = Decimal('0')
         budgeted_spent = Decimal('0')
-        
-        # Calculate total spending across ALL expenses for the month
-        grand_total_spent = Expense.objects.filter(
-            user=user,
-            date__year=year,
-            date__month=month
-        ).aggregate(Total=Sum('base_amount'))['Total'] or Decimal('0')
-        grand_total_spent = Decimal(str(grand_total_spent))
 
-        # Optimized: Fetch all categorical spending in one query
-        cat_spend_qs = FinancialService.get_categorical_spending(user, year, month)
-        cat_spend_map = {item['category']: item['total'] for item in cat_spend_qs}
+        # Spend per category (expenses + capital events that count towards budgets) and the grand
+        # total for the month. Single definition in expenses/budgets.py.
+        cat_spend_map, grand_total_spent = monthly_spend_by_category(user, year, month)
 
         over_budget_count = 0
         at_limit_count = 0
@@ -3349,21 +3356,17 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         no_limit_count = 0
 
         for category in categories:
-            spent = Decimal(str(cat_spend_map.get(category.name, 0)))
-            
-            percentage = (float(spent) / float(category.limit) * 100) if category.limit and category.limit > 0 else 0
-            
-            status = 'nolimit'
-            if category.limit and category.limit > 0:
-                if spent > category.limit:
-                    status = 'over'
-                    over_budget_count += 1
-                elif percentage >= 85 or spent == category.limit:
-                    status = 'limit'
-                    at_limit_count += 1
-                else:
-                    status = 'ontrack'
-                    on_track_count += 1
+            spent = Decimal(str(cat_spend_map.get(normalize_category(category.name), 0)))
+
+            percentage = percent_used(spent, category.limit)
+
+            status = budget_status(spent, category.limit)
+            if status == 'over':
+                over_budget_count += 1
+            elif status == 'limit':
+                at_limit_count += 1
+            elif status == 'ontrack':
+                on_track_count += 1
             else:
                 no_limit_count += 1
 
@@ -3411,12 +3414,7 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             prev_month = month - 1
             prev_year = year
 
-        prev_spent = Expense.objects.filter(
-            user=user,
-            date__year=prev_year,
-            date__month=prev_month
-        ).aggregate(Total=Sum('base_amount'))['Total'] or Decimal('0')
-        prev_spent = Decimal(str(prev_spent))
+        _, prev_spent = monthly_spend_by_category(user, prev_year, prev_month)
 
         spent_mom_pct = None
         spent_mom_pct_abs = None
@@ -3462,6 +3460,7 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             'month_name': date(year, month, 1).strftime('%B'),
             'short_month_name': date(year, month, 1).strftime('%b'),
             'currency_symbol': currency_symbol,
+            'warning_percent': BUDGET_WARNING_PERCENT,
             'current_month': month,
             'current_year': year,
             'current_sort': sort_param,

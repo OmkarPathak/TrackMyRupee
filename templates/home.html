@@ -2330,7 +2330,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <!-- Progress Bar -->
                             {% if item.limit %}
                             <div class="progress w-100 progress-thin progress-animate">
-                                <div class="progress-bar {% if item.used_percent > 90 %}progress-gradient-danger{% elif item.used_percent > 80 %}progress-gradient-warning{% else %}progress-gradient-success{% endif %}" 
+                                <div class="progress-bar {% if item.status == 'over' %}progress-gradient-danger{% elif item.status == 'limit' %}progress-gradient-warning{% else %}progress-gradient-success{% endif %}" 
                                      role="progressbar" 
                                      style="--progress-width: {{ item.used_percent }}%; width: {{ item.used_percent }}%" 
                                      aria-valuenow="{{ item.used_percent }}" 

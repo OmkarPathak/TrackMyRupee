@@ -156,7 +156,7 @@
 
                 <!-- Hero Progress Bar -->
                 <div class="progress mb-2" style="height: 10px; border-radius: 6px; background-color: var(--bs-secondary-bg);">
-                    <div class="progress-bar {% if actual_total_percentage > 100 %}bg-danger{% elif actual_total_percentage >= 85 %}bg-warning{% else %}bg-success{% endif %}" 
+                    <div class="progress-bar {% if actual_total_percentage > 100 %}bg-danger{% elif actual_total_percentage >= warning_percent %}bg-warning{% else %}bg-success{% endif %}" 
                           role="progressbar" 
                           aria-label="{% trans 'Total budget used' %}"
                           style="width: {{ total_percentage }}%; border-radius: 6px;" 
