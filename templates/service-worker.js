@@ -1,16 +1,17 @@
-{% load static %}// Updated: 2026-10-09 (self-hosted vendor assets; cache-first for content-hashed /static/ files)
-const CACHE_NAME = 'finance-tracker-v36';
+{% load static %}// Updated: 2026-10-10 (navigation preload; precache only what pages actually request, never the dashboard HTML)
+const CACHE_NAME = 'finance-tracker-v37';
 const OFFLINE_URL = '/offline/';
 
+// Precache the offline page and the content-hashed assets every page needs. The pages reference these
+// exact (hashed) URLs, so a repeat launch is served from the cache with no network round trip.
+// Never precache '/' : it is the signed-in dashboard (one of the heaviest renders, and per-user data
+// must not sit in Cache Storage). Navigations always go to the network.
 const ASSETS_TO_CACHE = [
-  '/',
   OFFLINE_URL,
-  '/static/style.css',
-  '/static/css/tmr_filter.css',
-  '/static/css/tmr_filter.css?v=1.5',
-  '/static/js/tmr_filter.js',
-  '/static/js/tmr_filter.js?v=1.5',
-  '/static/icon.svg',
+  '{% static "style.css" %}',
+  '{% static "css/tmr_filter.css" %}',
+  '{% static "js/tmr_filter.js" %}',
+  '{% static "icon.svg" %}',
   '{% static "vendor/bootstrap/bootstrap.min.css" %}',
   '{% static "vendor/fonts.css" %}',
   '{% static "vendor/bootstrap-icons/bootstrap-icons.min.css" %}',
@@ -32,7 +33,8 @@ self.addEventListener('message', (event) => {
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      // One 404 must not abort the whole install (addAll is all-or-nothing)
+      return Promise.all(ASSETS_TO_CACHE.map((url) => cache.add(url).catch(() => null)));
     })
   );
   self.skipWaiting();
@@ -40,7 +42,10 @@ self.addEventListener('install', (event) => {
 
 // Activate Event - Purge outdated caches immediately
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
+  event.waitUntil(Promise.all([
+    // Start the page request in parallel with service worker boot (a cold PWA launch otherwise
+    // waits for the worker to start before the network request even begins).
+    self.registration.navigationPreload ? self.registration.navigationPreload.enable() : Promise.resolve(),
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
@@ -50,7 +55,7 @@ self.addEventListener('activate', (event) => {
         })
       );
     })
-  );
+  ]));
   self.clients.claim();
 });
 
@@ -74,14 +79,18 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const isSameOrigin = url.origin === self.location.origin;
 
-  // Navigation requests (HTML pages) - Network only with offline fallback
+  // Navigation requests (HTML pages) - Network only with offline fallback.
+  // Use the preloaded response when the browser already started the request.
   if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => {
-          return caches.match(OFFLINE_URL);
-        })
-    );
+    event.respondWith((async () => {
+      try {
+        const preloaded = await event.preloadResponse;
+        if (preloaded) return preloaded;
+        return await fetch(event.request);
+      } catch (err) {
+        return caches.match(OFFLINE_URL);
+      }
+    })());
     return;
   }
 
@@ -102,7 +111,7 @@ self.addEventListener('fetch', (event) => {
     });
     if (isHashed) {
       event.respondWith(
-        caches.match(event.request).then((cached) => cached || fetchAndStore())
+        caches.match(event.request, { ignoreSearch: true }).then((cached) => cached || fetchAndStore())
       );
     } else {
       event.respondWith(fetchAndStore().catch(() => caches.match(event.request)));

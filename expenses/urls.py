@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.urls import path, register_converter
 from django.views.decorators.cache import cache_page
 from django.views.generic import RedirectView, TemplateView
@@ -23,6 +24,7 @@ urlpatterns = [
     path('demo/', views.demo_login, name='demo_login'),
     path('demo-signup/', views.demo_signup, name='demo_signup'),
     path('upload/', views.upload_view, name='upload'),
+    path('partials/savings-guide/', login_required(TemplateView.as_view(template_name='partials/savings_modal.html')), name='savings-guide-partial'),
     path('export/', views.export_expenses, name='export-expenses'),
     path('transactions/', views.AllTransactionsListView.as_view(), name='all-transactions'),
     path('expenses/', views.ExpenseListView.as_view(), name='expense-list'),

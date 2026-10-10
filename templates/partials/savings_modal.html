@@ -1,7 +1,5 @@
 {% load static i18n %}
-<div class="modal fade" id="savingsMethodModal" tabindex="-1" aria-labelledby="savingsMethodModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+{# Inner content of #savingsMethodModal. Fetched on first open (see home.html) so its ~70 KB is not in every dashboard load. #}
             <div class="modal-header border-0 bg-body-tertiary">
                 <h5 class="modal-title fw-bold d-flex align-items-center" id="savingsMethodModalLabel">
                     <i class="bi bi-lightbulb-fill text-warning me-2"></i> {% trans "How It Works" %}
@@ -781,6 +779,3 @@
 
                 </div><!-- /tab-content -->
             </div>
-        </div>
-    </div>
-</div>

@@ -4070,13 +4070,34 @@ document.addEventListener('DOMContentLoaded', function() {
 </div><!-- END #full-report-view -->
 
 
-<script src="{% static 'js/insights_carousel.js' %}"></script>
+<script defer src="{% static 'js/insights_carousel.js' %}"></script>
 
 {% endblock %}
 
 {% block modals %}
     {{ block.super }}
-    {% include 'partials/savings_modal.html' %}
+    <div class="modal fade" id="savingsMethodModal" tabindex="-1" aria-labelledby="savingsMethodModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" id="savingsMethodContent" data-src="{% url 'savings-guide-partial' %}">
+                <div class="p-5 text-center text-muted">
+                    <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                    <span class="visually-hidden">{% trans "Loading" %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    // The "How it works" guide is large, so it is fetched the first time the modal opens.
+    document.getElementById('savingsMethodModal').addEventListener('show.bs.modal', function () {
+        var box = document.getElementById('savingsMethodContent');
+        if (box.dataset.loaded) return;
+        box.dataset.loaded = '1';
+        fetch(box.dataset.src, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+            .then(function (html) { box.innerHTML = html; })
+            .catch(function () { delete box.dataset.loaded; box.textContent = ''; });
+    });
+    </script>
     {% if request.user.username == 'demo' %}
         {% include "components/demo_welcome_modal.html" %}
         <script>

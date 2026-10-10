@@ -3,7 +3,7 @@
   "name": "TrackMyRupee",
   "short_name": "TrackMyRupee",
   "description": "Precision rupee tracking and budgeting dashboard.",
-  "start_url": "/",
+  "start_url": "/dashboard/",
   "display": "standalone",
   "background_color": "#111315",
   "theme_color": "#2d6a4f",

@@ -355,12 +355,30 @@
                 </div>
 
                 <div class="auth-card">
+                    {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} small mb-2" role="alert">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                     {% block auth_content %}{% endblock %}
                 </div>
             </div>
         </div>
     </div>
 
+    <script>
+        // A form that has been open a while, or that the browser restored from its back/forward cache,
+        // holds an out-of-date security token. Get a fresh page instead of letting the next submit fail.
+        (function () {
+            var loadedAt = Date.now();
+            window.addEventListener('pageshow', function (e) { if (e.persisted) { location.reload(); } });
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'visible' && Date.now() - loadedAt > 20 * 60 * 1000) { location.reload(); }
+            });
+        })();
+    </script>
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
