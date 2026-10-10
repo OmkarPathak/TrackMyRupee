@@ -100,9 +100,9 @@
     <span class="flex-grow-1">
         {% trans "Some older transactions are not linked to an account, so they never changed any balance. Open one and choose its account to include it." %}
     </span>
-    {% if unaccounted.expenses %}<a class="fw-semibold" href="{% url 'expense-list' %}?account=none">{% trans "Expenses" %} ({{ unaccounted.expenses }})</a>{% endif %}
-    {% if unaccounted.income %}<a class="fw-semibold" href="{% url 'income-list' %}?account=none">{% trans "Income" %} ({{ unaccounted.income }})</a>{% endif %}
-    {% if unaccounted.capital_events %}<a class="fw-semibold" href="{% url 'capital-event-list' %}?account=none">{% trans "Capital events" %} ({{ unaccounted.capital_events }})</a>{% endif %}
+    {% if unaccounted.expenses %}<a class="fw-semibold" href="{% url 'expense-list' %}?account=none&time_period=all">{% trans "Expenses" %} ({{ unaccounted.expenses }})</a>{% endif %}
+    {% if unaccounted.income %}<a class="fw-semibold" href="{% url 'income-list' %}?account=none&time_period=all">{% trans "Income" %} ({{ unaccounted.income }})</a>{% endif %}
+    {% if unaccounted.capital_events %}<a class="fw-semibold" href="{% url 'capital-event-list' %}?account=none&time_period=all">{% trans "Capital events" %} ({{ unaccounted.capital_events }})</a>{% endif %}
 </div>
 {% endif %}
 

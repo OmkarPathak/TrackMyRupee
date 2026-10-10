@@ -157,10 +157,26 @@ class TestExportAndUnaccounted(Base):
         both = self.client.get(reverse('expense-list'), {'account': ['none', self.cash.id]}).context['expenses']
         self.assertEqual(len(both), 2)
 
+    def test_notice_links_show_old_rows_without_an_account(self):
+        old = today().replace(day=1) - datetime.timedelta(days=75)
+        self.expense('20', account=None, date=old, description='legacy old')
+        Income.objects.create(user=self.user, date=old, amount=D('7'), source='Salary', source_type='Salary',
+                              currency='₹')
+        CapitalEvent.objects.create(user=self.user, date=old, amount=D('9'), currency='₹', subtype='other')
+        query = {'account': 'none', 'time_period': 'all'}
+        self.assertEqual([e.description for e in self.client.get(reverse('expense-list'), query).context['expenses']],
+                         ['legacy old'])
+        self.assertEqual(len(self.client.get(reverse('income-list'), query).context['incomes']), 1)
+        self.assertEqual(len(self.client.get(reverse('capital-event-list'), query).context['events']), 1)
+        # without the period it would be hidden by the default "this month"
+        self.assertEqual(len(self.client.get(reverse('expense-list'), {'account': 'none'}).context['expenses']), 0)
+
     def test_accounts_page_warns_about_rows_without_an_account(self):
         self.assertNotIn('unaccounted', self.client.get(reverse('account-list')).context or {}) if False else None
         self.expense('20', account=None)
         response = self.client.get(reverse('account-list'))
         self.assertEqual(response.context['unaccounted'], {'expenses': 1, 'income': 0, 'capital_events': 0})
         self.assertContains(response, 'not linked to an account')
-        self.assertContains(response, '?account=none')
+        # the notice counts all time, so its links must not stay on "this month"
+        self.assertContains(response, '?account=none&time_period=all')
+        self.assertNotContains(response, '?account=none"')
