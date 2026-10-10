@@ -207,6 +207,8 @@ class IncomeForm(SearchableSelectFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        # Remember the saved source type so an auto-derived `source` can follow an edit.
+        self._original_source_type = self.instance.source_type if self.instance.pk else None
 
         if not self.is_bound and not self.instance.pk:
             self.fields['client_dedup_key'].initial = str(uuid.uuid4())
@@ -233,11 +235,33 @@ class IncomeForm(SearchableSelectFormMixin, forms.ModelForm):
         else:
             self.fields['account'].queryset = Account.objects.none()
         
-    def clean_source(self):
-        source = self.cleaned_data.get('source')
-        if source:
-            return source.strip()
-        return source or ""
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is not None and amount <= 0:
+            raise forms.ValidationError(_('Amount must be greater than zero.'))
+        return amount
+
+    def clean_date(self):
+        value = self.cleaned_data.get('date')
+        # One day of slack so users ahead of the server's timezone can still log "today".
+        if value and value > timezone.localdate() + timedelta(days=1):
+            raise forms.ValidationError(_('Income date cannot be in the future.'))
+        return value
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('add_to_recurring') and not cleaned.get('frequency'):
+            self.add_error('frequency', _('Choose how often this income repeats.'))
+        return cleaned
+
+    def _post_clean(self):
+        super()._post_clean()
+        # The form has no "source" field: it mirrors the source type. When the source type is
+        # edited, keep an auto-derived source in step (custom sources, e.g. from schedules, stay).
+        original = self._original_source_type
+        new_type = self.cleaned_data.get('source_type')
+        if original and new_type and new_type != original and self.instance.source in ('', original):
+            self.instance.source = new_type
 
 class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
     create_historical_entries = forms.BooleanField(

@@ -5,7 +5,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Case, Count, DecimalField, F, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.urls import reverse_lazy
@@ -193,6 +193,10 @@ def _create_recurring_from_income(request, form):
         source=form.instance.source,
         is_active=True,
     ).first()
+    duplicate_warning = _(
+        "Your income was saved, but a recurring schedule with the same amount, description and "
+        "start date already exists, so no new schedule was created."
+    )
     if existing:
         existing.amount = form.instance.amount
         existing.currency = form.instance.currency
@@ -204,30 +208,41 @@ def _create_recurring_from_income(request, form):
             form.instance.date,
             form.cleaned_data.get('frequency'),
         )
-        existing.save(update_fields=[
-            'amount',
-            'currency',
-            'account',
-            'description',
-            'frequency',
-            'start_date',
-            'last_processed_date',
-            'updated_at',
-        ])
+        try:
+            with transaction.atomic():
+                existing.save(update_fields=[
+                    'amount',
+                    'currency',
+                    'account',
+                    'description',
+                    'frequency',
+                    'start_date',
+                    'last_processed_date',
+                    'updated_at',
+                ])
+        except IntegrityError:
+            messages.warning(request, duplicate_warning)
+            return None
         messages.info(request, _("Recurring income schedule updated."))
         return existing
 
-    rt = RecurringService.make_recurring(
-        request.user,
-        'INCOME',
-        form.instance.amount,
-        form.instance.currency,
-        form.instance.account,
-        form.instance.description,
-        form.cleaned_data.get('frequency'),
-        form.instance.date,
-        source=form.instance.source,
-    )
+    try:
+        with transaction.atomic():
+            rt = RecurringService.make_recurring(
+                request.user,
+                'INCOME',
+                form.instance.amount,
+                form.instance.currency,
+                form.instance.account,
+                form.instance.description,
+                form.cleaned_data.get('frequency'),
+                form.instance.date,
+                source=form.instance.source,
+            )
+    except IntegrityError:
+        # The schedule uniqueness rule ignores `source`, so another source can collide.
+        messages.warning(request, duplicate_warning)
+        return None
     messages.info(request, _("A recurring income subscription has also been created."))
     return rt
 
@@ -327,6 +342,4 @@ class IncomeDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
-        if next_url:
-            return next_url
-        return reverse_lazy('income-list')
+        return get_safe_redirect_url(self.request, next_url, str(reverse_lazy('income-list')))
