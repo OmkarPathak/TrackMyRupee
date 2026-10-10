@@ -210,25 +210,12 @@ def export_expenses(request):
         messages.error(request, _("Exporting is a paid feature. Please upgrade."))
         return redirect('pricing')
 
-    # Re-apply filters from the list view
-    queryset = Expense.objects.filter(user=request.user)
+    # Re-apply exactly the filters the list view applied (period, search, chips, sort).
+    from ..filters import EXPENSE_FILTERS, apply_filter_config
 
-    search_query = request.GET.get('search')
-    if search_query:
-        queryset = queryset.filter(Q(description__icontains=search_query) | Q(category__icontains=search_query))
+    queryset, _applied = apply_filter_config(Expense.objects.filter(user=request.user), request, EXPENSE_FILTERS)
 
-    start_date = request.GET.get('start_date')
-    if start_date:
-        queryset = queryset.filter(date__gte=start_date)
-
-    end_date = request.GET.get('end_date')
-    if end_date:
-        queryset = queryset.filter(date__lte=end_date)
-
-    categories = request.GET.getlist('category')
-    if categories:
-        queryset = queryset.filter(category__in=categories)
-
+    # Legacy year/month parameters from older export links.
     years = request.GET.getlist('year')
     if years:
         queryset = queryset.filter(date__year__in=years)
@@ -236,6 +223,11 @@ def export_expenses(request):
     months = request.GET.getlist('month')
     if months:
         queryset = queryset.filter(date__month__in=months)
+
+    search_query = request.GET.get('search')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    categories = request.GET.getlist('category')
 
     # Standard CSV Export
     response = HttpResponse(content_type='text/csv')
@@ -256,7 +248,7 @@ def export_expenses(request):
         _('Account Currency'),
     ])
     
-    for e in queryset.select_related('account').order_by('-date'):
+    for e in queryset.select_related('account'):
         writer.writerow([
             e.date,
             e.description,

@@ -276,6 +276,7 @@ class RecurringTransactionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, U
 
 class RecurringTransactionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     model = RecurringTransaction
+    template_name = 'expenses/recurring_transaction_confirm_delete.html'
     success_url = reverse_lazy('recurring-list')
     def get_queryset(self): 
         if not self.request.user.is_authenticated:

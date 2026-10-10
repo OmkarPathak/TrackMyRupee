@@ -13,7 +13,7 @@ from django.views.generic import DeleteView, ListView, UpdateView, View
 from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import ExpenseForm
-from ..models import Account, CapitalEvent, Expense
+from ..models import Account, CapitalEvent, Category, Expense
 from ..posthog_utils import ph_capture
 from .mixins import (
     HtmxPartialTemplateMixin,
@@ -179,20 +179,25 @@ class ExpenseDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
         return super().form_valid(form)
 
     def get_success_url(self):
+        url = reverse('expense-list')
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
         if next_url:
-            return next_url
-        url = reverse('expense-list')
+            return get_safe_redirect_url(self.request, next_url, url)
         query_params = self.request.GET.urlencode()
         if query_params:
             return f"{url}?{query_params}"
         return url
 
+def _numeric_ids(raw_ids):
+    """Keep only well-formed integer ids so tampered POSTs cannot crash the query."""
+    return [int(value) for value in raw_ids if str(value).strip().isdigit()]
+
+
 class ExpenseBulkDeleteView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
-        expense_ids = request.POST.getlist('expense_ids')
+        expense_ids = _numeric_ids(request.POST.getlist('expense_ids'))
         if not expense_ids:
-            messages.error(request, 'No expenses selected for deletion.')
+            messages.error(request, _('No expenses selected for deletion.'))
             return redirect('expense-list')
             
         # Filter by IDs and ensuring they belong to the current user for security
@@ -222,35 +227,50 @@ class ExpenseBulkDeleteView(LoginRequiredMixin, View):
 
 class ExpenseBulkUpdateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
-        expense_ids = request.POST.getlist('expense_ids')
-        category = request.POST.get('bulk_category')
+        expense_ids = _numeric_ids(request.POST.getlist('expense_ids'))
+        category = (request.POST.get('bulk_category') or '').strip()
         payment_method = request.POST.get('bulk_payment_method')
-        
+
         if not expense_ids:
             messages.error(request, _('No expenses selected for update.'))
             return redirect('expense-list')
             
         update_data = {}
         if category:
+            # Straight from the DB: the cached list used by the filters can be minutes stale.
+            known = set(Category.objects.filter(user=request.user).values_list('name', flat=True))
+            known |= set(Expense.objects.filter(user=request.user).values_list('category', flat=True).distinct())
+            if category not in known:
+                messages.error(request, _('Unknown category.'))
+                return redirect('expense-list')
             update_data['category'] = category
         if payment_method:
+            if payment_method not in dict(Expense.PAYMENT_OPTIONS):
+                messages.error(request, _('Unknown payment method.'))
+                return redirect('expense-list')
             update_data['payment_method'] = payment_method
-            
+
         if not update_data:
             messages.warning(request, _('No fields selected to update.'))
             return redirect('expense-list')
-            
-        # Filter by IDs and ensure they belong to the current user
-        expenses_to_update = Expense.objects.filter(id__in=expense_ids, user=request.user)
-        updated_count = expenses_to_update.count()
-        
+
+        # Save row by row (not QuerySet.update) so the audit log, ledger and caches stay in sync.
+        expenses_to_update = list(Expense.objects.filter(id__in=expense_ids, user=request.user))
+        updated_count = 0
+        if expenses_to_update:
+            with transaction.atomic():
+                for expense in expenses_to_update:
+                    for field, value in update_data.items():
+                        setattr(expense, field, value)
+                    expense.save()
+                    updated_count += 1
+
         if updated_count > 0:
-            expenses_to_update.update(**update_data)
             ph_capture(request.user, 'expense_bulk_updated', {'count': updated_count})
             messages.success(request, _('%(count)d expenses updated successfully.') % {'count': updated_count})
         else:
             messages.warning(request, _('No valid expenses found to update.'))
-            
+
         return redirect('expense-list')
 
 class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
@@ -282,7 +302,5 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
         messages.success(request, _("Expense converted to a capital event."))
         
         next_url = request.GET.get('next') or request.POST.get('next')
-        if next_url:
-            return redirect(next_url)
-        return redirect('capital-event-list')
+        return redirect(get_safe_redirect_url(request, next_url, reverse('capital-event-list')))
 

@@ -279,13 +279,6 @@ EXPENSE_FILTERS = FilterSetConfig(
             options=["Recurring only", "One-time only"],
             custom_filter_fn=filter_recurring,
         ),
-        FilterDef(
-            key="status",
-            label="Status",
-            type="single_select",
-            source="static",
-            options=["Cleared", "Pending", "Disputed", "Refunded"],
-        ),
     ],
     sort_options=[
         {"key": "date_desc", "label": "Date, newest"},

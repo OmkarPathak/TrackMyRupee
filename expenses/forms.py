@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from allauth.socialaccount.models import SocialAccount
@@ -168,6 +168,19 @@ class ExpenseForm(SearchableSelectFormMixin, forms.ModelForm):
         if category:
             return category.strip()
         return category
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is not None and amount <= 0:
+            raise forms.ValidationError(_('Amount must be greater than zero.'))
+        return amount
+
+    def clean_date(self):
+        value = self.cleaned_data.get('date')
+        # One day of slack so users ahead of the server's timezone can still log "today".
+        if value and value > timezone.localdate() + timedelta(days=1):
+            raise forms.ValidationError(_('Expense date cannot be in the future.'))
+        return value
 
 class IncomeForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
