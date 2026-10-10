@@ -8,11 +8,19 @@ Set per-category monthly spending limits and get alerted before you overshoot.
 
 Navigate to **Sidebar → Budgets** on desktop, or go to **More → Budgets** from the mobile bottom sheet.
 
+
+![The Budgets page](img/budgets-desktop.webp){ loading=lazy }
+
+
 The page shows a **Total Budget Goal** bar at the top, which displays how much of your overall budget envelope has been used. Below that, individual category bars show the spend versus the limit for each category. Status pill counts at the top tell you at a glance how many categories are over budget, at their limit, on track, or have no limit set.
 
 ---
 
 ## 2. Setting a Category Limit
+
+
+![Editing a category and its monthly limit](img/set-limit-desktop.webp){ loading=lazy }
+
 
 1. Find the category you want to limit in the list.
 2. Click the **pencil (edit) icon** next to the category name.

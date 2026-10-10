@@ -8,6 +8,10 @@ Understand your savings rate, spending patterns, and overall financial health wi
 
 Navigate to **Sidebar → Analytics** on desktop, or go to **More → Analytics** on mobile (URL: `/analytics/`).
 
+
+![The Analytics page](img/analytics-desktop.webp){ loading=lazy }
+
+
 ---
 
 ## 2. Reading the Financial Health Score
@@ -39,6 +43,10 @@ The Analytics page shows year-to-date totals for Income, Expenses, and Invested 
 ## 4. Reading the Trends Page
 
 Navigate to **Sidebar → Trends** on desktop, or go to **More → Analytics → Trends** on mobile (URL: `/trends/`).
+
+
+![The Trends page](img/trends-desktop.webp){ loading=lazy }
+
 
 The Trends page shows two key analyses:
 

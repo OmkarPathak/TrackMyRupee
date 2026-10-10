@@ -8,6 +8,10 @@ Get a daily, colour-coded view of all your transactions and cash flow events.
 
 Navigate to **Sidebar → Calendar** on desktop, or go to **More → Calendar** on mobile (URL: `/calendar/`).
 
+
+![The calendar view](img/calendar-desktop.webp){ loading=lazy }
+
+
 Use the left and right arrow buttons to step through months.
 
 ---

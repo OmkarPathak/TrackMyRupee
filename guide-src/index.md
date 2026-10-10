@@ -26,6 +26,14 @@ This guide walks you through every feature, step by step.
 
     [:octicons-arrow-right-24: Accounts](02-accounts/index.md)
 
+-   :material-magic-staff:{ .lg .middle } **TMR Flows**
+
+    ---
+
+    Tell the app what happened, such as a new job, a loan, or a SIP, and it sets up everything linked to it in one short form.
+
+    [:octicons-arrow-right-24: TMR Flows](13-tmr-flows/index.md)
+
 -   :material-receipt-text:{ .lg .middle } **Logging Transactions**
 
     ---
@@ -58,6 +66,14 @@ This guide walks you through every feature, step by step.
 
     [:octicons-arrow-right-24: Loans](08-loans/index.md)
 
+-   :material-filter-variant:{ .lg .middle } **Search and Filters**
+
+    ---
+
+    Find any transaction fast, slice it by date, category, or account, and see the totals update as you go.
+
+    [:octicons-arrow-right-24: Search and Filters](14-filters-and-search/index.md)
+
 </div>
 
 ---
@@ -68,8 +84,9 @@ This guide walks you through every feature, step by step.
 |---|---|
 | [Philosophy](00-philosophy.md) | Why manual entry, salary cycles, and honest insights |
 | [Getting Started](01-getting-started/index.md) | First login, salary cycle, first account |
+| [TMR Flows](13-tmr-flows/index.md) | One-form setup for loans, salary, SIPs, FDs, cars, gold and more |
 | [Accounts & Net Worth](02-accounts/index.md) | Account types, opening balances, net worth roll-up |
-| [Expenses](03-transactions-expenses/index.md) | Adding, editing, categorising expenses |
+| [Expenses](03-transactions-expenses/index.md) | The one-line composer, undo, editing expenses |
 | [Income](04-transactions-income/index.md) | Source types, recurring income |
 | [Recurring & Subscriptions](05-transactions-recurring/index.md) | Auto-posting, Renewing Soon |
 | [Transfers](06-transfers/index.md) | Moving money without double-counting |
@@ -79,6 +96,7 @@ This guide walks you through every feature, step by step.
 | [Calendar](10-calendar/index.md) | Day-by-day audit trail |
 | [Analytics & Health](11-analytics-and-health/index.md) | Health score, trends, category creep |
 | [Savings Goals](12-goals/index.md) | Progress bars, milestones |
+| [Search and Filters](14-filters-and-search/index.md) | Time periods, filter chips, sorting, quick page search |
 | [Mobile App](20-mobile-app/index.md) | iOS build with Capacitor |
 | [Self-Hosting](21-self-hosting/index.md) | Docker deployment |
 | [FAQ](22-faq/index.md) | Common questions |

@@ -12,6 +12,10 @@ Manage all your assets and liabilities in one place and track your overall net w
 
 Navigate to **Sidebar → Accounts** on desktop, or tap the **Accounts** tab in the bottom navigation on mobile. The page groups your accounts into asset categories such as Cash and Bank, Fixed-Income, and Investments.
 
+
+![The Accounts page](img/accounts-list-desktop.webp){ loading=lazy }
+
+
 The **Filtered Total Balance** card at the top shows the combined cash and ledger balance of all accounts matching your current filter.
 
 !!! info "Filtered Total Balance vs. Net Worth"
@@ -22,6 +26,10 @@ The **Filtered Total Balance** card at the top shows the combined cash and ledge
 ## 2. Adding an Account
 
 Click **+ Add** next to Accounts in the sidebar on desktop, or tap **+ Add** on the Accounts page on mobile.
+
+
+![The Add New Account form](img/add-account-desktop.webp){ loading=lazy }
+
 
 The form is a two-step wizard:
 
@@ -73,6 +81,10 @@ If an account no longer needs new transactions but has transaction history you w
 ## 5. Reading Account Transaction History
 
 Click any account row to open its detail page. The page shows a ledger of all credits and debits, with relative timestamps such as "3 days ago" and "7 days ago".
+
+
+![An account with its balance trend and history](img/account-detail-desktop.webp){ loading=lazy }
+
 
 Click the **History** button at the top right of the detail page to view the full unfiltered ledger for that account.
 

@@ -5,11 +5,18 @@ Set a savings target, contribute funds from any account, and track progress towa
 !!! note "Plan required"
     Savings Goals are available on the Pro plan. The Goals link appears in the sidebar and in the mobile More sheet under Net Worth only when your account has the Pro tier active.
 
+!!! tip "Start a goal in under a minute"
+    The [I'm saving for something](../13-tmr-flows/savings-and-investments.md#im-saving-for-something) Flow sets up a goal with a target, a deadline, and a colour from a single short form.
+
 ---
 
 ## 1. Opening the Goals Page
 
 Navigate to **Sidebar → Goals** on desktop, or go to **More → Goals** on mobile.
+
+
+![The Savings Goals page](img/goals-list-desktop.webp){ loading=lazy }
+
 
 Click **Add Goal** to open the goal creation form.
 
@@ -18,6 +25,10 @@ Click **Add Goal** to open the goal creation form.
 ## 2. Creating a Goal
 
 Fill in the following fields:
+
+
+![The New Savings Goal form](img/add-goal-desktop.webp){ loading=lazy }
+
 
 1. **Goal Name**: A short label for what you are saving toward, for example "Goa Trip Fund", "Emergency Reserve", or "MacBook".
 2. **Target Amount**: The total rupee amount you want to reach.
@@ -42,6 +53,10 @@ Enter the amount and the source account. The contribution is recorded as a goal 
 ## 4. Reading the Progress Card
 
 Each goal card shows:
+
+
+![A goal with its summary and trend](img/goal-detail-desktop.webp){ loading=lazy }
+
 
 - **Saved so far**: The total amount contributed
 - **Remaining**: How much more is needed to reach the target

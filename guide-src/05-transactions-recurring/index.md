@@ -13,11 +13,20 @@ You can also navigate to **Sidebar → Subscriptions → Add** on desktop.
 
 ---
 
+!!! tip "Setting up a common one? Use a Flow"
+    For the most common recurring items you can skip this form entirely. The [TMR Flows](../13-tmr-flows/index.md) page has ready-made shortcuts for **salary** ([I started a new job](../13-tmr-flows/income-and-bills.md#i-started-a-new-job)), **rent and bills** ([I pay rent](../13-tmr-flows/income-and-bills.md#i-pay-rent)), **insurance premiums**, **SIPs**, and **PPF / EPF / NPS contributions**. Each one asks only the questions that matter and creates the recurring entry, plus anything linked to it, in one go.
+
+---
+
 ## 2. Filling the Three-Step Wizard
 
 The form is organized into three steps:
 
 ### Step 1: Basics
+
+
+![Step 1 of the subscription form](img/subscription-step1-desktop.webp){ loading=lazy width="545" }
+
 
 - **Transaction Type**: Choose Expense for bills like streaming services or phone plans, Income for a monthly retainer, Transfer for a recurring investment or SIP, or Loan Repayment for EMI payments.
 - **Description**: The name of the subscription (for example, "Airtel Broadband" or "Netflix").
@@ -27,11 +36,20 @@ The form is organized into three steps:
 
 ### Step 2: Schedule
 
+
+![Step 2 of the subscription form](img/subscription-step2-desktop.webp){ loading=lazy width="545" }
+
+
 - **Frequency**: How often the transaction repeats (Monthly, Weekly, Quarterly, Yearly, or a custom interval).
 - **Start Date**: The date of the first occurrence.
 - **End Date** (optional): The date after which the subscription stops auto-posting.
+- **Create Historical Records** (optional): Only matters when your start date is in the past. When it is **off**, the subscription starts fresh from its next upcoming due date and leaves the past alone. When it is **on**, every missed occurrence between your start date and today is posted straight away, so your history is complete. Think of it as the difference between starting a new notebook today and copying down last quarter's entries first.
 
 ### Step 3: Account and Details
+
+
+![Step 3 of the subscription form](img/subscription-step3-desktop.webp){ loading=lazy width="545" }
+
 
 - **Account**: The account to debit (for expenses) or credit (for income).
 
@@ -48,6 +66,10 @@ On each scheduled date, the recurring engine automatically creates a new ledger 
 ## 4. The "Renewing Soon" Section
 
 The Subscriptions list at `/recurring/` shows a **Renewing Soon** section for any subscription whose next due date is within the next 30 days, sorted by days remaining. The sidebar also shows a due-soon badge when subscriptions are coming up.
+
+
+![The Subscriptions page](img/subscriptions-list-desktop.webp){ loading=lazy }
+
 
 This gives you advance notice before a charge hits your account.
 

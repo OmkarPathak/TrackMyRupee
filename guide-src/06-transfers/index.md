@@ -18,6 +18,10 @@ Common uses include:
 
 ## 2. Opening the Transfer Form
 
+
+![The Internal Transfer form](img/add-transfer-desktop.webp){ loading=lazy }
+
+
 - **Desktop**: Click **Add** in the top navbar, then select **Internal Transfer**.
 - **Mobile**: Tap the **+** button in the bottom tab bar, then tap **Internal Transfer**.
 
@@ -41,6 +45,10 @@ Click **Execute Transfer** to save.
 
 The transfer debits the **From Account** and credits the **To Account** immediately. Both account balances update the moment you click Execute Transfer.
 
+
+![The list of transfers](img/transfers-list-desktop.webp){ loading=lazy }
+
+
 The transfer appears in the **Transactions** list at `/transactions/` with a special transfer indicator. It does not appear in the Expenses or Income lists.
 
 !!! warning "Do not log a transfer as Expense and Income"
@@ -58,6 +66,9 @@ For automated monthly investments such as a Systematic Investment Plan (SIP), se
 4. Set **To Account** to your investment account (for example, Mutual Funds).
 5. Set **Frequency** to `Monthly` and enter your SIP amount.
 6. Click **Save Subscription**.
+
+!!! tip "Prefer a guided form?"
+    The [I started a SIP](../13-tmr-flows/savings-and-investments.md#i-started-a-sip) Flow does all of the above, and creates the investment account too, from one short form.
 
 Every month, money automatically moves from your bank account balance into your Mutual Fund account's cash pool. You can then update your mutual fund holdings under [Holdings and Portfolio](../02-accounts/holdings.md).
 

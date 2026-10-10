@@ -9,11 +9,18 @@ Track your active loans, watch repayment progress, and let the app calculate you
 !!! note "Plan required"
     The Loans feature is available on the Plus or Pro plan. The Loans link appears in the sidebar only when your account has Plus or Pro tier active.
 
+!!! tip "The quickest way to add a loan"
+    The [I took a loan](../13-tmr-flows/debt.md#i-took-a-loan) Flow creates the loan, its interest rate, a recurring EMI, and an optional down payment from one short form, and shows you the calculated EMI before you confirm.
+
 ---
 
 ## 1. Opening the Loans Page
 
 Navigate to **Sidebar → Loans** on desktop, or go to **More → Loans** on mobile.
+
+
+![The Loans and Liabilities page](img/loans-list-desktop.webp){ loading=lazy }
+
 
 Click **Add** to open the Add New Loan form.
 
@@ -22,6 +29,10 @@ Click **Add** to open the Add New Loan form.
 ## 2. Filling the Loan Form
 
 Complete the following required fields:
+
+
+![The Add New Loan form](img/add-loan-desktop.webp){ loading=lazy }
+
 
 1. **Loan Name**: A short label, for example "HDFC Home Loan" or "Personal Loan Oct 2024".
 2. **Loan Type**: Select from the dropdown: Home Loan, Vehicle Loan, Education Loan, Personal Loan, Business Loan, Loan Against Property, or Gold Loan.
@@ -51,6 +62,10 @@ Each time the recurring engine auto-posts a repayment, the remaining principal o
 ## 4. Reading the Paid-Off Percentage and Remaining Balance
 
 On the Loans list page, each loan card shows:
+
+
+![A loan with its overview cards](img/loan-detail-desktop.webp){ loading=lazy }
+
 
 - A paid-off percentage bar
 - The remaining principal in rupees

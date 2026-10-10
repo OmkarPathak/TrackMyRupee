@@ -33,6 +33,10 @@ This means your Dining Out, Transport, and Groceries budget bars remain unaffect
 
 ## 3. Opening the Capital Event Form
 
+
+![The Capital Events page](img/capital-events-all-desktop.webp){ loading=lazy }
+
+
 - **Desktop**: Navigate to **Sidebar → Capital Events → Add**.
 - **Mobile**: Go to **More → Capital Events → Add**.
 
@@ -43,6 +47,10 @@ The form is titled "Add Capital Event".
 ## 4. Filling the Form
 
 Complete the following fields:
+
+
+![The Add Capital Event form](img/add-capital-event-desktop.webp){ loading=lazy }
+
 
 1. **Amount** (required): The total amount of the payment.
 2. **Date** (required): The date the payment was made.
@@ -62,6 +70,26 @@ The loan detail page will then show the capital payment as part of the total cap
 
 !!! example "Real-world use case"
     Kavya pays a Rs. 4,00,000 home renovation advance in July. She logs it as a Capital Event with Subtype: Home Renovation, Account: HDFC Savings, Amount: 4,00,000, rather than as a regular expense. Her HDFC Savings account balance drops correctly and her net worth reflects the outflow. But her Dining Out, Groceries, and Transport budget bars are unaffected, and the Analytics average monthly expense chart for the rest of the year still shows her real recurring spend instead of a Rs. 4,00,000 spike warping every future month-over-month comparison.
+
+---
+
+## 6. Seeing Capital Events on Your Charts
+
+Capital Events are kept out of your spending averages on purpose, but you still want to see **when** they happened. So they appear on the spending trend charts on your Dashboard as small **amber diamonds sitting on the bottom axis**, directly under the day (or month) they happened.
+
+
+![Amber diamond markers on the dashboard chart](img/trend-markers-desktop.webp){ loading=lazy width="463" }
+
+
+- On the **Daily Expenses** chart (a single month), look for a diamond under the date of the event.
+- On the **Expenses Trend** chart (a year), a diamond sits under each month that has an event.
+- **Hover** over that day or month, and the tooltip lists the event by name and amount alongside the usual figures, for example *Investment Lump Sum, ₹1L*.
+- The chart legend has a matching **Capital event** entry, so the diamond is never a mystery.
+
+A diamond never changes the height of the spending line or bars. It is a marker, like a pin on a map, and not a spend.
+
+!!! tip "Some Flows create Capital Events for you"
+    You will not always have to add them by hand. The [TMR Flows](../13-tmr-flows/index.md) create them where it makes sense: a loan's down payment, an FD's principal, a gold purchase, and a car bought with cash.
 
 ---
 

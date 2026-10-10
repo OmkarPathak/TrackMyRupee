@@ -6,6 +6,10 @@ Log every payment you receive so your savings rate, analytics, and net worth sta
 
 ## 1. Opening the Income Form
 
+
+![The Add Income form](img/add-income-desktop.webp){ loading=lazy }
+
+
 - **Desktop**: Click **Add** in the top navbar, then select **Add Income**.
 - **Mobile**: Tap the **+** button in the bottom tab bar, then tap **Add Income**.
 
@@ -53,6 +57,10 @@ Click **Save** when done.
 ## 4. Where the Income Appears
 
 After saving, the income entry appears in:
+
+
+![The Income page](img/income-list-desktop.webp){ loading=lazy }
+
 
 - The **Income** list at `/income/list/`, grouped by source type
 - The **Dashboard** Income tile for the current period

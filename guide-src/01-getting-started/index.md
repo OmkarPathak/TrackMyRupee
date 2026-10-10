@@ -8,6 +8,10 @@ Set up your accounts, configure your salary cycle, and establish your financial 
 
 When you open TrackMyRupee for the first time, you can choose between entering demo mode or creating a real account.
 
+
+![The dashboard after your first login](img/dashboard-desktop.webp){ loading=lazy }
+
+
 If you enter demo mode, you will see a banner at the top: "You are in Demo Mode. This is a demo with sample data for illustration." The banner has links to create a free account or exit. Demo data is temporary and does not save any changes.
 
 ---
@@ -16,6 +20,10 @@ If you enter demo mode, you will see a banner at the top: "You are in Demo Mode.
 
 Find the pencil icon next to "Salary cycle: 01 Aug - 31 Aug" on the Dashboard. Click it and enter the day of the month when your salary typically arrives (for example, 28).
 
+
+![The Salary Date setting in Profile Settings](img/salary-cycle-desktop.webp){ loading=lazy }
+
+
 Do this before logging any transactions. Every budget period calculation depends on this date matching how money actually flows into your account.
 
 ---
@@ -23,6 +31,10 @@ Do this before logging any transactions. Every budget period calculation depends
 ## 3. Creating Your First Account
 
 Navigate to **Sidebar → Accounts → Add** on desktop, or **Bottom tab → Accounts → Add** on mobile.
+
+
+![The Add New Account form](../02-accounts/img/add-account-desktop.webp){ loading=lazy }
+
 
 The form works as a two-step wizard:
 
@@ -52,8 +64,31 @@ If you set an incorrect opening balance and correct it later, all historical net
 
 When you sign up, three default expense categories are created automatically: Food, Shopping, and Bills. You can edit, rename, or add more categories at any time in **Settings → Categories**.
 
+
+![The Categories list](img/categories-desktop.webp){ loading=lazy }
+
+
 !!! example "Real-world use case"
     Ananya joins TrackMyRupee for the first time. She has an HDFC Salary Account (balance: Rs. 42,000), an SBI Savings Account (balance: Rs. 1,15,000), and Rs. 3,500 cash in her wallet. She creates all three accounts before logging a single transaction, using Salary Account for HDFC, Savings Account for SBI, and Cash Wallet for physical cash. Her Day 1 net worth shows Rs. 1,60,500, which is an accurate baseline she can track against going forward.
+
+---
+
+## 6. A Faster Way to Set Everything Up
+
+Once your first account exists, the quickest way to cover the rest of your money is **TMR Flows**, found in the sidebar. Instead of filling separate forms for your salary, rent, loans, cards, and investments, you answer one short form per life event, such as "I started a new job" or "I took a loan", and everything connected to it is created for you.
+
+
+![The TMR Flows page](../13-tmr-flows/img/flows-landing-desktop.webp){ loading=lazy }
+
+
+A good first four are, in this order:
+
+1. [I started a new job](../13-tmr-flows/income-and-bills.md#i-started-a-new-job), which also sets your salary cycle from step 2 above
+2. [I pay rent](../13-tmr-flows/income-and-bills.md#i-pay-rent)
+3. [I took a loan](../13-tmr-flows/debt.md#i-took-a-loan), if you have one
+4. [I got a credit card](../13-tmr-flows/debt.md#i-got-a-credit-card), if you have one
+
+See [TMR Flows](../13-tmr-flows/index.md) for the full tour.
 
 ---
 

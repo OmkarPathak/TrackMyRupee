@@ -1,6 +1,6 @@
 site_name: TrackMyRupee Docs
 site_url: https://docs.trackmyrupee.com
-site_description: User guide and tutorials for TrackMyRupee — personal finance tracking made simple.
+site_description: "User guide and tutorials for TrackMyRupee: personal finance tracking made simple."
 site_author: TrackMyRupee
 repo_url: https://github.com/omkarpathak/trackmyrupee
 repo_name: TrackMyRupee
@@ -100,6 +100,12 @@ nav:
   - Home: index.md
   - Philosophy: 00-philosophy.md
   - Getting Started: 01-getting-started/index.md
+  - TMR Flows:
+      - How Flows Work: 13-tmr-flows/index.md
+      - Debt (Loan, Credit Card): 13-tmr-flows/debt.md
+      - Income and Bills: 13-tmr-flows/income-and-bills.md
+      - Savings and Investments: 13-tmr-flows/savings-and-investments.md
+      - Assets (Car, Gold): 13-tmr-flows/assets.md
   - Accounts & Net Worth:
       - Managing Accounts: 02-accounts/index.md
       - Holdings & Mutual Funds: 02-accounts/holdings.md
@@ -115,6 +121,7 @@ nav:
   - Calendar: 10-calendar/index.md
   - Analytics & Health: 11-analytics-and-health/index.md
   - Savings Goals: 12-goals/index.md
+  - Search and Filters: 14-filters-and-search/index.md
   - Mobile App (iOS): 20-mobile-app/index.md
   - Self-Hosting: 21-self-hosting/index.md
   - FAQ: 22-faq/index.md
@@ -127,7 +134,6 @@ extra:
 
 plugins:
   - search
-  - social
   - i18n:
       docs_structure: suffix
       fallback_to_default: true
