@@ -15,6 +15,21 @@ from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
+def _validate_deposit_dates(form, cleaned, start_key, maturity_key=None, closed_key=None, end_key=None):
+    start = cleaned.get(start_key)
+    if not start:
+        return
+    checks = (
+        (maturity_key, True, _('Maturity date must be after the start date.')),
+        (closed_key, False, _('Closed date cannot be before the start date.')),
+        (end_key, False, _('End date cannot be before the start date.')),
+    )
+    for key, strict, message in checks:
+        value = cleaned.get(key) if key else None
+        if value and (value <= start if strict else value < start):
+            form.add_error(key, message)
+
+
 class SipRdFlowForm(forms.Form):
     instrument_type = forms.ChoiceField(
         choices=[('SIP', 'SIP'), ('RD', 'RD')],
@@ -140,6 +155,7 @@ class SipRdFlowForm(forms.Form):
                 self.add_error('deposit_start_date', _('Start date is required for recurring deposits.'))
             if not cleaned_data.get('rd_installment_day'):
                 self.add_error('rd_installment_day', _('Installment day is required for recurring deposits.'))
+        _validate_deposit_dates(self, cleaned_data, 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'end_date')
         return cleaned_data
 
 
@@ -220,6 +236,12 @@ class FdFlowForm(forms.Form):
             self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        _validate_deposit_dates(self, cleaned_data, 'deposit_start_date', 'maturity_date', 'deposit_closed_date')
+        return cleaned_data
 
 
 class PpfEpfNpsFlowForm(forms.Form):
@@ -317,6 +339,12 @@ class PpfEpfNpsFlowForm(forms.Form):
             self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        _validate_deposit_dates(self, cleaned_data, 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'end_date')
+        return cleaned_data
 
 
 from django.urls import reverse
@@ -421,7 +449,8 @@ class SipRdFlow(Flow):
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         data['amount'] = Decimal(str(data.get('amount') or 0))
-        data['currency'] = data.get('currency') or (data['from_account'].currency if data.get('from_account') else '₹')
+        user = data.get('user')
+        data['currency'] = data.get('currency') or (data['from_account'].currency if data.get('from_account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         data['deposit_start_date'] = data.get('deposit_start_date') or timezone.localdate()
         return data
 
@@ -625,8 +654,10 @@ class PpfEpfNpsFlow(Flow):
         data['annual_amount'] = Decimal(str(data.get('annual_amount') or 0))
         data['name'] = data.get('name') or str(_('Government Scheme'))
         data['scheme_type'] = data.get('scheme_type') or 'PPF'
-        data['deposit_principal'] = Decimal(str(data.get('deposit_principal') or data['annual_amount']))
-        data['deposit_rate'] = Decimal(str(data.get('deposit_rate') or '7.1'))
+        principal = data.get('deposit_principal')
+        rate = data.get('deposit_rate')
+        data['deposit_principal'] = Decimal(str(data['annual_amount'] if principal is None else principal))
+        data['deposit_rate'] = Decimal(str('7.1' if rate is None else rate))
         data['deposit_start_date'] = data.get('deposit_start_date') or timezone.localdate()
         data['deposit_compounding'] = data.get('deposit_compounding') or 'QUARTERLY'
         data['deposit_maturity_date'] = data.get('deposit_maturity_date') or (data['deposit_start_date'] + timedelta(days=5475))

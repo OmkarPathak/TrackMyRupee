@@ -68,7 +68,8 @@ class FlowBaseView(LoginRequiredMixin):
                             if converted is not None:
                                 data[field_name] = converted
                         except Exception:
-                            data[field_name] = raw_val
+                            # Unparseable input stays out of the review; the form shows its error.
+                            continue
         return data
 
     def render_review(self, request, form, preview, status=200):

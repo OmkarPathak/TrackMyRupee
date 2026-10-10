@@ -65,9 +65,22 @@ class NewLoanFlowForm(forms.Form):
             self.add_error('opening_paid_principal', _('Enter the principal already paid before tracking started.'))
         if cleaned.get('include_down_payment') and not cleaned.get('down_payment_amount'):
             self.add_error('down_payment_amount', _('Enter the down payment amount.'))
+        principal = cleaned.get('principal')
+        opening_paid = cleaned.get('opening_paid_principal')
+        if cleaned.get('mid_tenure') and principal is not None and opening_paid and opening_paid >= principal:
+            self.add_error('opening_paid_principal', _('Principal already paid must be less than the loan principal.'))
         schedule_enabled = cleaned.get('create_repayment_schedule', True)
         if schedule_enabled and not cleaned.get('payment_account'):
             self.add_error('payment_account', _('Select the account used to pay the loan repayment.'))
+        if (
+            schedule_enabled
+            and not cleaned.get('repayment_amount')
+            and principal is not None
+            and cleaned.get('annual_rate') is not None
+            and cleaned.get('tenure_months')
+            and LoanService.calculate_repayment(principal, cleaned['annual_rate'], cleaned['tenure_months'], cleaned.get('repayment_type') or 'EMI') <= 0
+        ):
+            self.add_error('repayment_amount', _('The calculated repayment is zero. Enter the repayment amount to schedule.'))
         return cleaned
 
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import timedelta
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
 from django import forms
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -74,7 +74,7 @@ class SavingsGoalFlow(Flow):
         remaining = max(Decimal('0.00'), target_amount - current_amount)
         data['current_amount'] = current_amount
         data['monthly_suggestion'] = (remaining / Decimal(target_months)).quantize(Decimal('0.01'))
-        data['target_date'] = timezone.localdate() + timedelta(days=30 * target_months)
+        data['target_date'] = timezone.localdate() + relativedelta(months=target_months)
         data['currency'] = data['user'].profile.currency
         return data
 

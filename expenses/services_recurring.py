@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import calendar
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -36,23 +37,37 @@ class RecurringService:
         period_days = RecurringService.PERIOD_DAYS.get(frequency, 30)
         return RecurringService.calculate_interest_for_days(principal, annual_rate, period_days)
 
+    MONTH_STEPS = {'MONTHLY': 1, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
+
     @staticmethod
     def last_due_before_today(start_date: date, frequency: str) -> date | None:
-        """Return the most recent due date on or before today.
+        """Return the most recent real occurrence on or before today.
 
-        Note: MONTHLY and YEARLY periods use fixed-day approximations (30 and
-        365 days respectively), so results may drift slightly for long-running
-        schedules compared to a true calendar-month calculation.
+        Occurrences follow the same calendar rules as the recurring engine
+        (RecurringTransaction.get_next_date): day-based frequencies step by exact
+        days, month-based ones keep the start day of month (clamped to month length),
+        so the next due date derived from this value is always in the future.
         """
         today = timezone.localdate()
         if start_date > today:
             return None
 
-        # O(1) calculation — avoids looping for old start dates.
-        step_days = RecurringService.PERIOD_DAYS.get(frequency, 30)
-        delta_days = (today - start_date).days
-        periods = delta_days // step_days
-        return start_date + timedelta(days=periods * step_days)
+        month_step = RecurringService.MONTH_STEPS.get(frequency)
+        if month_step is None:
+            step_days = RecurringService.PERIOD_DAYS.get(frequency, 30)
+            periods = (today - start_date).days // step_days
+            return start_date + timedelta(days=periods * step_days)
+
+        def occurrence(n: int) -> date:
+            months = start_date.month - 1 + n * month_step
+            year, month = start_date.year + months // 12, months % 12 + 1
+            return date(year, month, min(start_date.day, calendar.monthrange(year, month)[1]))
+
+        months_elapsed = (today.year - start_date.year) * 12 + today.month - start_date.month
+        periods = months_elapsed // month_step
+        while periods > 0 and occurrence(periods) > today:
+            periods -= 1
+        return occurrence(periods)
 
     @staticmethod
     def make_recurring(

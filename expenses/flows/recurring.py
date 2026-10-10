@@ -129,7 +129,7 @@ class RentBillFlow(Flow):
             'headline': float(amount),
             'bullets': [
                 _('Creates a recurring bill schedule'),
-                _('Estimated annual total: %(total)s') % {'total': f"₹{annual:,.2f}"},
+                _('Estimated annual total: %(total)s') % {'total': f"{data['currency']}{annual:,.2f}"},
             ],
             'warnings': warnings,
         }

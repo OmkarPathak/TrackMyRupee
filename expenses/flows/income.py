@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import calendar
 from datetime import date
 from decimal import Decimal
 
@@ -10,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django.urls import reverse
 
-from ..models import Account, CURRENCY_CHOICES, Income, RecurringTransaction, UserProfile
+from ..models import Account, CURRENCY_CHOICES, FinancialFlow, Income, RecurringTransaction, UserProfile
 from ..services_recurring import RecurringService
 from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
@@ -35,6 +36,26 @@ class SalaryFlowForm(forms.Form):
             if not accounts.exists():
                 self.fields['account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
             self.fields['currency'].initial = user.profile.currency
+
+
+def first_pay_date(start_date: date, pay_day) -> date:
+    """First date on or after start_date that falls on the salary day.
+
+    The schedule recurs on its start date's day of month, so the start must sit on
+    the pay day. Months too short for the pay day (e.g. 31 in April) are skipped.
+    """
+    if not pay_day:
+        return start_date
+    year, month = start_date.year, start_date.month
+    for _step in range(13):
+        if pay_day <= calendar.monthrange(year, month)[1]:
+            candidate = date(year, month, pay_day)
+            if candidate >= start_date:
+                return candidate
+        month += 1
+        if month > 12:
+            year, month = year + 1, 1
+    return start_date
 
 
 @register_flow
@@ -70,7 +91,7 @@ class SalaryFlow(Flow):
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         data['amount'] = Decimal(str(data.get('amount') or 0))
-        data['start_date'] = data.get('start_date') or date.today()
+        data['start_date'] = first_pay_date(data.get('start_date') or date.today(), data.get('salary_date'))
         user = data.get('user')
         data['currency'] = data.get('currency') or (data['account'].currency if data.get('account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         data['frequency'] = 'MONTHLY'
@@ -108,7 +129,10 @@ class SalaryFlow(Flow):
         return {'headline': amount, 'bullets': [_('Creates a monthly income schedule')], 'warnings': warnings}
 
     def commit(self, user, cleaned_data, idempotency_key):
+        is_replay = FinancialFlow.objects.filter(user=user, idempotency_key=idempotency_key).exists()
         result = super().commit(user, cleaned_data, idempotency_key)
+        if is_replay:
+            return result
         profile = user.profile
         profile.salary_date = int(cleaned_data.get('salary_date') or profile.salary_date)
         profile.save(update_fields=['salary_date'])

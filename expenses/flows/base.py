@@ -644,6 +644,8 @@ class Flow:
     def commit(self, user, cleaned_data, idempotency_key) -> FlowResult:
         existing = FinancialFlow.objects.filter(user=user, idempotency_key=idempotency_key).first()
         if existing:
+            if existing.flow_key != self.key:
+                raise ValidationError(_('This submission key was already used for a different flow. Please reload the page and try again.'))
             return self._existing_flow_result(existing, idempotency_key)
 
         seed_data = dict(cleaned_data)
@@ -715,9 +717,10 @@ class Flow:
 
     @staticmethod
     def _resolve_value(value, created_by_key):
-        if isinstance(value, str) and value.startswith('$'):
-            ref_key = value[1:]
-            return created_by_key.get(ref_key)
+        # Only strings naming an already-created step are references. Anything else
+        # starting with "$" is user data (the "$" currency symbol, "$500 phone").
+        if isinstance(value, str) and value.startswith('$') and value[1:] in created_by_key:
+            return created_by_key[value[1:]]
         if isinstance(value, dict):
             return {key: Flow._resolve_value(item, created_by_key) for key, item in value.items()}
         if isinstance(value, list):
