@@ -65,6 +65,7 @@ ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
 ).split(',') if host.strip()]
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com,https://django-finance-tracker-fr1u.onrender.com').split(',')
+CSRF_FAILURE_VIEW = 'finance_tracker.csrf.csrf_failure'  # friendly recovery + reason logging for expired login forms
 
 # Absolute URL for generating links in background tasks (emails, push)
 SITE_URL = os.environ.get('SITE_URL', 'https://trackmyrupee.com').rstrip('/')
