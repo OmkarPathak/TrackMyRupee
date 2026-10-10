@@ -18,7 +18,7 @@ from .models import (
     LoanRepayment,
     annotate_loan_principal_totals,
 )
-from .savings import CASHBACK_REFUND_TYPES, calculate_savings, counted_capital_total, loan_interest_total
+from .savings import CASHBACK_REFUND_TYPES, calculate_savings, counted_capital_total, loan_interest_total, monthly_savings
 from .utils import get_exchange_rate, get_safe_date
 
 logger = logging.getLogger(__name__)
@@ -52,41 +52,21 @@ class FinancialService:
 
         today = timezone.now().date()
         history = []
-        
-        start_date = _month_start_offset(today, months - 1)
-        
-        income_qs = Income.objects.filter(
-            user=user, date__gte=start_date, date__lte=today
-        ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount'))
-        
-        expense_qs = Expense.objects.filter(
-            user=user, date__gte=start_date, date__lte=today
-        ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount'))
 
-        # Include Loan Repayment interest as expense
-        loan_repayment_qs = LoanRepayment.objects.filter(
-            loan__user=user, date__gte=start_date, date__lte=today
-        ).annotate(month=TruncMonth('date')).values('month').annotate(
-            total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-            total_emi=Sum('base_amount')
-        )
-        
-        income_map = {item['month'].date() if hasattr(item['month'], 'date') else item['month']: item['total'] for item in income_qs}
-        expense_map = {item['month'].date() if hasattr(item['month'], 'date') else item['month']: item['total'] for item in expense_qs}
-        loan_interest_map = {item['month'].date() if hasattr(item['month'], 'date') else item['month']: item['total_interest'] for item in loan_repayment_qs}
-        loan_emi_map = {item['month'].date() if hasattr(item['month'], 'date') else item['month']: item['total_emi'] for item in loan_repayment_qs}
-        
+        start_date = _month_start_offset(today, months - 1)
+
+        # Same definition as the dashboard's savings: repaying loan principal is not spending (only
+        # the interest is), and capital events count only when they are not kept out of averages.
+        by_month = monthly_savings(user, start_date, today)
+
         curr = start_date
         for _ in range(months):
-            inc = float(income_map.get(curr, 0))
-            exp = float(expense_map.get(curr, 0)) + float(loan_interest_map.get(curr, 0))
-            emi = float(loan_emi_map.get(curr, 0))
-            
+            result = by_month.get((curr.year, curr.month))
             history.append({
                 'month': curr,
-                'income': inc,
-                'expense': exp,
-                'savings': inc - exp - (emi - float(loan_interest_map.get(curr, 0)))
+                'income': float(result.income) if result else 0.0,
+                'expense': float(result.spending) if result else 0.0,
+                'savings': float(result.savings) if result else 0.0,
             })
             # Move to next month
             if curr.month == 12:

@@ -1131,7 +1131,7 @@ class DashboardAssetAllocationTest(_BaseTestCase):
         self.client.login(username="testuser", password="password")
 
     def test_asset_allocation_types_present(self):
-        # Ensure CC has a positive balance so it shows up in asset allocation context
+        # Cards (even one in credit) are liabilities and never form a slice of what you hold
         cc = Account.objects.get(user=self.user, account_type="CREDIT_CARD")
         cc.balance = Decimal("500.00")
         cc.save()
@@ -1139,9 +1139,8 @@ class DashboardAssetAllocationTest(_BaseTestCase):
         response = self.client.get(reverse("home"))
         allocation = response.context["asset_allocation"]
         type_names = [a["type"] for a in allocation]
-        # Legacy and Short-Term Credit groups should appear
         self.assertIn("Legacy", type_names)
-        self.assertIn("Short-Term Credit", type_names)
+        self.assertNotIn("Short-Term Credit", type_names)
 
     def test_asset_allocation_percentages_sum_roughly_100(self):
         response = self.client.get(reverse("home"))
@@ -1151,8 +1150,6 @@ class DashboardAssetAllocationTest(_BaseTestCase):
         self.assertAlmostEqual(total_pct, 100.0, delta=1.0)
 
     def test_asset_allocation_totals_match_balances(self):
-        # Temporarily give CC a positive balance to test presence in asset allocation
-        # (Since liabilities are skipped in the donut chart)
         cc = Account.objects.get(user=self.user, account_type="CREDIT_CARD")
         cc.balance = Decimal("500.00")
         cc.save()
@@ -1161,7 +1158,7 @@ class DashboardAssetAllocationTest(_BaseTestCase):
         allocation = response.context["asset_allocation"]
         alloc_map = {a["type"]: a["total"] for a in allocation}
         self.assertAlmostEqual(alloc_map["Legacy"], 8000.00, places=2)
-        self.assertAlmostEqual(alloc_map["Short-Term Credit"], 500.00, places=2)
+        self.assertNotIn("Short-Term Credit", alloc_map)
 
 
 class DashboardIncomeExpenseSavingsTest(_BaseTestCase):

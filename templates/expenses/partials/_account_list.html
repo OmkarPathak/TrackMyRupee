@@ -108,7 +108,7 @@
             <!-- Right: contextual note (aligned clean text without redundant icon) -->
             <div class="col-12 col-md-7 pt-md-2">
                 <p class="mb-0 text-muted" style="font-size: 0.82rem; line-height: 1.5;">
-                    {% trans "Includes cash, fixed-income and investment balances below. Short-term credit is tracked separately as a liability." %}
+                    {% trans "Your cash, fixed-income, investment and other holdings minus what you owe on credit cards and loans." %}
                 </p>
             </div>
         </div>
@@ -142,17 +142,17 @@
 
         <!-- Short-term credit exclusion note (redesigned pill container) -->
         {% for group in grouped_accounts %}
-            {% if 'CREDIT' in group.type and group.total != 0 %}
+            {% if 'CREDIT' in group.type or 'LOAN' in group.type %}{% if group.total != 0 %}
             <div class="mt-3 pt-2 px-3 py-2 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background-color: var(--bs-tertiary-bg); border: 1px solid rgba(0,0,0,0.05);">
                 <div class="d-flex align-items-center gap-1.5 text-muted" style="font-size: 0.78rem;">
-                    <span class="fw-semibold text-body me-1">{% trans "Short-term credit" %}</span>
+                    <span class="fw-semibold text-body me-1">{{ group.label }}</span>
                     <span class="opacity-60 d-none d-sm-inline"> ({% trans "excluded from allocation" %})</span>
                 </div>
                 <div class="fw-bold" style="color: var(--color-danger-text, #B93822); font-size: 0.85rem; font-variant-numeric: tabular-nums;">
-                    &minus;{{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}
+                    &minus;{{ total_balance_currency }}{{ group.owed|ind_comma:total_balance_currency|translate_digits }}
                 </div>
             </div>
-            {% endif %}
+            {% endif %}{% endif %}
         {% endfor %}
         {% endif %}
 

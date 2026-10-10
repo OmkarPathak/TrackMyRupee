@@ -16,10 +16,10 @@ Navigate to **Sidebar → Accounts** on desktop, or tap the **Accounts** tab in 
 ![The Accounts page](img/accounts-list-desktop.webp){ loading=lazy }
 
 
-The **Filtered Total Balance** card at the top shows the combined cash and ledger balance of all accounts matching your current filter.
+The total card at the top adds up the accounts that match your current filter, in your own currency. Each account is valued the way Net Worth values it (market value for funds, accrued interest for deposits, outstanding principal for loans), accounts in another currency are converted once, and what you owe on **credit cards and loans counts as negative**. Each row still shows the account's balance in its own currency, and the coloured bar splits only what you hold, so cards and loans appear as their own "owed" lines under it.
 
-!!! info "Filtered Total Balance vs. Net Worth"
-    The Filtered Total Balance shows the sum of cash and accrued deposit balances for the accounts listed. It does not include the live market value of mutual fund holdings, real estate appraisals, or the deduction of outstanding loans. The Dashboard **Net Worth** card gives you the complete picture.
+!!! info "Accounts total vs. Net Worth"
+    With no filter, the accounts total and the Dashboard **Net Worth** card agree. Net Worth adds two things the accounts list cannot show: money you have set aside in [Goals](../12-goals/index.md) (it is still yours) and any active loan you track that is not linked to a loan account.
 
 ---
 
@@ -92,14 +92,24 @@ Click the **History** button at the top right of the detail page to view the ful
 
 ## 6. How Net Worth Is Calculated
 
-The **Net Worth** tile on the Dashboard sums all your active account valuations and subtracts liabilities:
+**Net worth = what you hold - what you owe.** The **Net Worth** tile on the Dashboard sums your active accounts, each valued by its type, and subtracts liabilities. Everything is converted to your currency at the latest exchange rate.
 
 - **Cash and Bank accounts**: ledger balance
-- **Fixed Deposits**: principal plus accrued interest
-- **Mutual Funds and Demat**: live market value using NAV (units x current NAV)
-- **Physical Assets**: latest appraised valuation or acquisition cost
-- **Insurance**: latest surrender value
-- **Credit Cards and Loans**: subtracted as liabilities
+- **Fixed Deposits and other deposit accounts**: principal plus accrued interest
+- **Mutual Funds and Demat**: latest value of each holding, plus any cash in the account that is not invested
+- **Physical Assets**: latest valuation, or the purchase cost if you have not valued it yet
+- **Insurance**: latest surrender value, or zero if none is recorded (the premium you paid is never counted)
+- **Credit Cards**: the balance owed is subtracted. A card in credit (you overpaid) adds to your net worth instead
+- **Loans**: the outstanding principal, which is the amount borrowed minus the principal you repaid, minus prepayments and down payments, minus any principal you had already paid before you started tracking. A loan linked to a loan account is counted once through that account, and an active loan with no loan account is subtracted directly. A fully paid-off loan counts as zero
+- **Goals**: money moved into a goal leaves your account but is still yours, so it is added back and net worth does not drop when you save towards a goal
+
+Inactive (deleted) accounts are left out.
+
+### Change this month and the trend
+
+The change shown on the Net Worth tile is what you **saved this month**: income minus spending, using the same definition as the savings rate. Repaying loan principal is not spending (your cash goes down and your debt goes down by the same amount), only the interest is. Capital events count only when they are not excluded from averages.
+
+The sparkline walks back from today's figure by each earlier month's savings, so it is an **estimate**. It does not know about market price changes, revaluations or money moved without being recorded, so use it for direction rather than for exact past values. A snapshot of your net worth is also saved each day for the record.
 
 !!! example "Real-world use case"
     Before deciding whether to make a Rs. 60,000 laptop purchase, Rahul opens Accounts to check his real net worth across his HDFC Salary Account, SBI Savings Account, and Cash Wallet in one place rather than opening three separate banking apps. The Filtered Total Balance shows Rs. 1,92,000 across all three, confirming he can absorb the purchase without going below his Rs. 1,00,000 emergency reserve.

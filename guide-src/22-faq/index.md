@@ -28,7 +28,7 @@ Yes. Each transaction and account has its own **Currency** field. The app suppor
 
 ### What happens if I delete an account?
 
-The account record is removed, but transactions linked to that account are not deleted. They just lose their account reference (the account field becomes blank on those records). If you want to stop using an account without losing the association, mark it **inactive** instead. See [Accounts and Net Worth](../02-accounts/index.md) for details.
+The account is hidden and no longer counts in your net worth, but nothing is lost: its transactions stay linked to it and you can bring it back from the **Inactive** tab on the Accounts page (as long as your plan has room for it). Because every transaction needs an account, you cannot post new ones to a deleted account. See [Accounts and Net Worth](../02-accounts/index.md) for details.
 
 ### How do I fix my opening balance?
 

@@ -320,72 +320,44 @@ class LedgerReadService:
     @classmethod
     def _fetch_loan_outstanding(cls, loan_ids: list) -> dict:
         """
-        Fetch outstanding principal for each loan. ONE (or few) queries.
+        Outstanding principal for each loan, in the loan's own currency. At most three queries.
 
-        Strategy:
-          1. Latest paid LoanScheduleInstallment.scheduled_balance per loan
-          2. Fallback: initial_principal − Σ principal repaid − Σ prepayment capital events
+        The rule is Loan.remaining_principal (initial principal - principal repaid - prepayments
+        and down payments - principal already paid before tracking started), the same number the
+        Loans page and account_valuation.get_current_loan show. For an EMI loan that has paid
+        LoanScheduleInstallment rows (the app does not create them itself), the latest paid
+        installment's scheduled balance is used instead, unless a prepayment came after it.
 
         Returns: {loan_id: Decimal outstanding_principal}
         """
-        # Try latest paid schedule installment per loan for EMI loans
-        from .models import Loan
-        bullet_loan_ids = set(
-            Loan.objects.filter(id__in=loan_ids, repayment_type__in=['BULLET', 'INTEREST_ONLY']).values_list('id', flat=True)
-        )
-        emi_loan_ids = [lid for lid in loan_ids if lid not in bullet_loan_ids]
+        from .models import CapitalEvent, Loan, annotate_loan_principal_totals
 
-        schedule_map: dict = {}
+        loans = list(annotate_loan_principal_totals(Loan.objects.filter(id__in=loan_ids)))
+        outstanding = {
+            loan.id: loan.remaining_principal.quantize(Decimal('0.01')) for loan in loans
+        }
+
+        emi_loan_ids = [l.id for l in loans if l.repayment_type not in ('BULLET', 'INTEREST_ONLY')]
         if emi_loan_ids:
-            schedule_rows = (
+            latest: dict = {}
+            for row in (
                 LoanScheduleInstallment.objects
                 .filter(loan_id__in=emi_loan_ids, is_paid=True)
                 .order_by('loan_id', '-due_date', '-installment_no')
-                .values('loan_id', 'scheduled_balance')
-            )
-            seen_loans: set = set()
-            for row in schedule_rows:
-                lid = row['loan_id']
-                if lid in seen_loans:
-                    continue
-                seen_loans.add(lid)
-                schedule_map[lid] = max(Decimal('0.00'), row['scheduled_balance'])
-
-        # For loans without a schedule or bullet loans, aggregate repayments
-        missing_loan_ids = [lid for lid in loan_ids if lid not in schedule_map]
-
-        if missing_loan_ids:
-            from .models import CapitalEvent, LoanRepayment
-            # Fallback for loans without schedule entries
-            # Fetch initial_principal
-            loan_objs = Loan.objects.filter(id__in=missing_loan_ids).values('id', 'initial_principal')
-            init_map = {l['id']: l['initial_principal'] for l in loan_objs}
-
-            # Principal repaid from LoanRepayment
-            repaid_rows = (
-                LoanRepayment.objects
-                .filter(loan_id__in=missing_loan_ids)
-                .values('loan_id')
-                .annotate(total=Sum('principal_portion'))
-            )
-            repaid_map = {r['loan_id']: r['total'] or Decimal('0.00') for r in repaid_rows}
-
-            # Prepayments from CapitalEvent
-            prep_rows = (
-                CapitalEvent.objects
-                .filter(linked_loan_id__in=missing_loan_ids, subtype__in=['loan_down_payment', 'loan_prepayment'])
-                .values('linked_loan_id')
-                .annotate(total=Sum('amount'))
-            )
-            prep_map = {p['linked_loan_id']: p['total'] or Decimal('0.00') for p in prep_rows}
-
-            for lid in missing_loan_ids:
-                init_p = init_map.get(lid, Decimal('0.00'))
-                rep = repaid_map.get(lid, Decimal('0.00'))
-                prep = prep_map.get(lid, Decimal('0.00'))
-                schedule_map[lid] = max(Decimal('0.00'), init_p - rep - prep)
-
-        return schedule_map
+                .values('loan_id', 'due_date', 'scheduled_balance')
+            ):
+                latest.setdefault(row['loan_id'], row)
+            if latest:
+                prepaid_after = set()
+                for ev in CapitalEvent.objects.filter(
+                    linked_loan_id__in=list(latest), subtype__in=['loan_down_payment', 'loan_prepayment']
+                ).values('linked_loan_id', 'date'):
+                    if ev['date'] > latest[ev['linked_loan_id']]['due_date']:
+                        prepaid_after.add(ev['linked_loan_id'])
+                for loan_id, row in latest.items():
+                    if loan_id not in prepaid_after:
+                        outstanding[loan_id] = max(Decimal('0.00'), row['scheduled_balance'])
+        return outstanding
 
     # ──────────────────────────────────────────────────────────────────────────
     # Main net-worth computation (set-based, ≤ 8 total queries)
@@ -398,6 +370,7 @@ class LedgerReadService:
         as_of: date_type | None = None,
         include_categories: list[str] | None = None,
         exclude_categories: list[str] | None = None,
+        detail: dict | None = None,
     ):
         """
         Compute net worth for a user with optional category filtering.
@@ -411,6 +384,9 @@ class LedgerReadService:
                                 If specified, only accounts in these categories are included.
             exclude_categories: Optional list of category group names or account_type codes
                                 to exclude. Ignored if include_categories is specified.
+
+            detail: Optional dict that is filled with 'assets' and 'liabilities' (both positive,
+                    base currency) so that assets - liabilities == the returned net worth.
 
         Returns:
             (total_net_worth: Decimal, account_base_balances: dict)
@@ -430,7 +406,7 @@ class LedgerReadService:
         extended = getattr(settings, "NET_WORTH_EXTENDED_MODELS_ENABLED", False)
 
         if not accounts:
-            return cls._net_worth_no_accounts(user, as_of=as_of, extended=extended)
+            return cls._net_worth_no_accounts(user, as_of=as_of, extended=extended, detail=detail)
 
         base_currency = user.profile.currency
         account_ids = [a.id for a in accounts]
@@ -722,8 +698,16 @@ class LedgerReadService:
             if kind == KIND.ASSET:
                 total_assets += account_value
             else:
-                # LIABILITY: amount is positive when owed (convention: liabilities positive in this split)
-                total_liabilities += abs(account_value)
+                if strategy == STRATEGY.REVOLVING_CREDIT:
+                    # Cards carry a negative balance when owed; a positive one is credit in your
+                    # favour (overpaid / refund pending) and must not be counted as debt.
+                    if account_value > 0:
+                        total_assets += account_value
+                    else:
+                        total_liabilities += -account_value
+                else:
+                    # Loans: the value is the outstanding principal, positive when owed.
+                    total_liabilities += abs(account_value)
 
         # If category filtering was requested, return filtered subset net worth directly
         if _include_codes is not None or _exclude_codes is not None:
@@ -791,10 +775,13 @@ class LedgerReadService:
         total_net_worth = (total_assets - total_liabilities + goal_reserves_base).quantize(
             Decimal("0.01")
         )
+        if detail is not None:
+            detail['assets'] = (total_assets + goal_reserves_base).quantize(Decimal("0.01"))
+            detail['liabilities'] = total_liabilities.quantize(Decimal("0.01"))
         return total_net_worth, account_base_balances
 
     @classmethod
-    def _net_worth_no_accounts(cls, user, as_of, extended):
+    def _net_worth_no_accounts(cls, user, as_of, extended, detail=None):
         """Net worth computation when user has no active accounts."""
         base_currency = user.profile.currency
 
@@ -829,6 +816,9 @@ class LedgerReadService:
                         val = (val * rate).quantize(Decimal("0.01"))
                     physical_assets_base += val
 
+        if detail is not None:
+            detail['assets'] = (goal_reserves_base + physical_assets_base).quantize(Decimal("0.01"))
+            detail['liabilities'] = outstanding_loan_base.quantize(Decimal("0.01"))
         return (
             goal_reserves_base - outstanding_loan_base + physical_assets_base
         ).quantize(Decimal("0.01")), {}

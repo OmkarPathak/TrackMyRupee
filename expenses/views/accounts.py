@@ -21,7 +21,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
-from ..account_types import deposit_codes
+from ..account_types import STRATEGY, deposit_codes, strategy_for
 from ..account_valuation import get_baseline, get_current, get_interest_summary
 from ..forms import AccountForm, TransferForm
 from ..ledger_read_service import LedgerReadService, _compute_deposit_value
@@ -164,10 +164,24 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         _deposit_codes = deposit_codes()
 
         for account in accounts:
-            if current_status == 'active':
-                account.display_balance = display_balances.get(account.id, account.balance)
+            try:
+                rate = cached_rate(account.currency, user_currency)
+            except Exception:
+                rate = Decimal('1.0')
+            rate = Decimal(str(rate)) or Decimal('1.0')
+
+            # display_balance is the account's balance in ITS OWN currency (that is what the row
+            # shows next to the account's currency symbol); base_value is the same money in the
+            # user's currency, signed (what you owe is negative), and is what every total adds up.
+            if current_status == 'active' and account.id in display_balances:
+                base_value = Decimal(str(display_balances[account.id]))
+                if strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING:
+                    base_value = -abs(base_value)  # the ledger reports a loan as the positive amount owed
+                native = base_value if account.currency == user_currency else (base_value / rate).quantize(Decimal('0.01'))
             else:
-                account.display_balance = account.balance
+                native = Decimal(str(account.balance))
+                base_value = native * rate
+            account.display_balance = native
 
             # Compute accrued value for fixed-income / deposit accounts
             if account.account_type in _deposit_codes:
@@ -177,6 +191,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                     account.accrued_value = accrued
                     account.effective_principal = deposit_principal
                     account.has_accrued_value = True
+                    base_value = Decimal(str(accrued)) * rate
                 else:
                     account.has_accrued_value = False
 
@@ -193,12 +208,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             delta = now - account.updated_at
             account.days_since_update = delta.days
 
-            try:
-                rate = cached_rate(account.currency, user_currency)
-            except Exception:
-                rate = Decimal('1.0')
-            bal_val = account.accrued_value if getattr(account, 'has_accrued_value', False) else account.display_balance
-            total_balance += Decimal(str(bal_val)) * Decimal(str(rate))
+            account.base_value = base_value
+            total_balance += base_value
 
         # Group accounts using nested ACCOUNT_TYPES groups
         grouped_accounts = []
@@ -214,14 +225,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         pinned_accs = [a for a in accounts if getattr(a, 'is_pinned', False)]
         selected_type = self.request.GET.get('type', '')
         if pinned_accs and selected_type != 'PINNED':
-            pinned_total = Decimal('0.00')
-            for acc in pinned_accs:
-                try:
-                    rate = cached_rate(acc.currency, user_currency)
-                except Exception:
-                    rate = Decimal('1.0')
-                bal_val = acc.accrued_value if getattr(acc, 'has_accrued_value', False) else acc.display_balance
-                pinned_total += Decimal(str(bal_val)) * Decimal(str(rate))
+            pinned_total = sum((acc.base_value for acc in pinned_accs), Decimal('0.00'))
 
             grouped_accounts.append({
                 'type': 'PINNED',
@@ -244,14 +248,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 seen_category_account_ids.add(a.id)
 
             # Calculate group total balance in user currency
-            group_total = Decimal('0.00')
-            for acc in group_accs:
-                try:
-                    rate = cached_rate(acc.currency, user_currency)
-                except Exception:
-                    rate = Decimal('1.0')
-                bal_val = acc.accrued_value if getattr(acc, 'has_accrued_value', False) else acc.display_balance
-                group_total += Decimal(str(bal_val)) * Decimal(str(rate))
+            group_total = sum((acc.base_value for acc in group_accs), Decimal('0.00'))
 
             group_type_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
             is_cash_or_bank = ('CASH' in group_type_id or 'BANK' in group_type_id)
@@ -286,14 +283,16 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             else:
                 return f"{user_currency}{val:.0f}"
 
-        tb_float = float(total_balance)
+        # Shares of the bar are of what you hold; cards and loans (negative groups) get no segment.
+        tb_float = float(sum((g['total'] for g in grouped_accounts if g['type'] != 'PINNED' and g['total'] > 0), Decimal('0.00')))
         if len(grouped_accounts) == 1 or selected_type:
             for g in grouped_accounts:
                 g['is_open'] = True
 
         for idx, group in enumerate(grouped_accounts):
             gt_float = float(group['total'])
-            group['pct'] = round((gt_float / tb_float * 100), 1) if tb_float > 0 else 0
+            group['pct'] = round((gt_float / tb_float * 100), 1) if tb_float > 0 and gt_float > 0 else 0
+            group['owed'] = abs(group['total'])
             group['pct_int'] = int(round(group['pct']))
             group['short_total'] = _get_short_amount(group['total'])
 
@@ -322,9 +321,9 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         sort_by = self.request.GET.get('sort', 'balance_desc')
         for group in grouped_accounts:
             if sort_by == 'balance_asc':
-                group['accounts'] = sorted(group['accounts'], key=lambda a: float(a.accrued_value if getattr(a, 'has_accrued_value', False) else a.display_balance))
+                group['accounts'] = sorted(group['accounts'], key=lambda a: float(a.base_value))
             elif sort_by == 'balance_desc':
-                group['accounts'] = sorted(group['accounts'], key=lambda a: float(a.accrued_value if getattr(a, 'has_accrued_value', False) else a.display_balance), reverse=True)
+                group['accounts'] = sorted(group['accounts'], key=lambda a: float(a.base_value), reverse=True)
             elif sort_by == 'name_asc':
                 group['accounts'] = sorted(group['accounts'], key=lambda a: a.name.lower())
             elif sort_by == 'name_desc':

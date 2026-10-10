@@ -34,31 +34,16 @@ class Command(BaseCommand):
 
             for user in chunk:
                 try:
-                    # get_net_worth returns (net_worth, account_base_balances)
+                    # The engine reports the split, so assets - liabilities == net worth.
+                    split = {}
                     net_worth, account_balances = LedgerReadService.get_net_worth(
-                        user, as_of=today
+                        user, as_of=today, detail=split
                     )
-
-                    # Compute proper asset/liability split.
-                    # When NET_WORTH_EXTENDED_MODELS_ENABLED=True, get_net_worth returns the
-                    # full breakdown, but the return signature is still (net_worth, balances).
-                    # We derive assets/liabilities from per-account classification here.
-                    from django.conf import settings
-                    if getattr(settings, 'NET_WORTH_EXTENDED_MODELS_ENABLED', False):
-                        from expenses.account_types import KIND, classify
-                        acc_type_map = dict(
-                            user.accounts.filter(is_active=True).values_list('id', 'account_type')
-                        )
-                        total_assets = sum(
-                            v for pk, v in account_balances.items()
-                            if classify(acc_type_map.get(pk, 'OTHER'))[0] == KIND.ASSET
-                        )
-                        total_liabilities = sum(
-                            abs(v) for pk, v in account_balances.items()
-                            if classify(acc_type_map.get(pk, 'OTHER'))[0] == KIND.LIABILITY
-                        )
+                    if split:
+                        total_assets = split['assets']
+                        total_liabilities = split['liabilities']
                     else:
-                        # Legacy heuristic (preserved for flag-off path)
+                        # Flag-off path: the engine only knows the total.
                         total_assets = net_worth if net_worth > 0 else 0
                         total_liabilities = abs(net_worth) if net_worth < 0 else 0
 

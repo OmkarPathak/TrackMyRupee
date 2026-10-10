@@ -19,7 +19,7 @@ from django.utils.html import escape, format_html, format_html_join, mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
-from ..account_types import investment_codes
+from ..account_types import investment_codes, is_liability
 from ..filters import DASHBOARD_FILTERS
 from ..ledger_read_service import LedgerReadService
 from ..models import (
@@ -52,6 +52,7 @@ from ..savings import (
     calculate_savings,
     income_totals,
     monthly_savings,
+    savings_for_period,
     savings_from_querysets,
 )
 from ..services import FinancialService, LoanService, SalaryAnalysisService
@@ -2261,20 +2262,14 @@ def home_view(request):
         )
     )
     if _reuse_month_totals:
-        month_income_sum = Decimal(str(total_income))
-        month_expense_sum = Decimal(str(total_expenses_base))
-        month_loan_interest = Decimal(str(total_loan_interest))
-        month_cap_events = Decimal(str(period_capital_events_budget_total))
+        # The page already computed this month's savings (same definition).
+        month_savings = current_savings
     else:
-        month_income_sum = Income.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-        month_expense_sum = Expense.objects.filter(user=request.user, date__gte=curr_mon_start).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-        month_loan_interest = LoanRepayment.objects.filter(loan__user=request.user, date__gte=curr_mon_start).aggregate(
-            total_interest=Sum(F('interest_portion') * F('exchange_rate'))
-        )['total_interest'] or Decimal('0.00')
-        month_cap_events = CapitalEvent.objects.filter(user=request.user, date__gte=curr_mon_start, exclude_from_budget=False).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-    
-    # Net change (savings) is the growth in net worth
-    net_worth_change = month_income_sum - (month_expense_sum + month_loan_interest + month_cap_events)
+        month_savings = savings_for_period(request.user, curr_mon_start.date(), timezone.localdate())
+
+    # Net worth grows by what you save: income minus spending, where repaying loan principal is
+    # not spending (cash becomes less debt) and capital events count per their own switches.
+    net_worth_change = month_savings.savings
     start_net_worth = net_worth - net_worth_change
     
     if start_net_worth > 0:
@@ -2299,7 +2294,13 @@ def home_view(request):
 
     from collections import defaultdict
     group_totals = defaultdict(Decimal)
+    liability_pks = set()
     for acc in accounts:
+        if is_liability(acc.account_type):
+            # Cards and loans are what you owe, not what you hold (a loan account's value is the
+            # outstanding principal, a positive number), so they never belong in the allocation.
+            liability_pks.add(acc.pk)
+            continue
         group_name = code_to_group.get(acc.account_type, 'Other')
         group_totals[group_name] += account_base_balances[acc.pk]
 
@@ -2308,7 +2309,7 @@ def home_view(request):
     circumference = 2 * 3.14159 * 45
     
     # Use sum of positive balances for allocation donut to avoid >100% or negative segments
-    total_assets = sum(float(v) for v in account_base_balances.values() if v > 0)
+    total_assets = sum(float(v) for pk, v in account_base_balances.items() if v > 0 and pk not in liability_pks)
     
     import re
     for group_name, total in sorted(group_totals.items(), key=lambda x: x[1], reverse=True):
