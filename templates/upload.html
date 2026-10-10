@@ -54,6 +54,13 @@
                             <div class="h4 mb-0 fw-bold text-warning">{{ results.duplicate_count }}</div>
                         </div>
                     </div>
+                    {% if results.limit_skipped %}
+                    <div class="col-12">
+                        <div class="alert alert-warning mb-0 small">
+                            {% blocktrans with count=results.limit_skipped %}{{ count }} rows from this month were not imported because your plan's monthly expense limit is reached. Upgrade to import them.{% endblocktrans %}
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="col-6 col-md-3">
                         <div class="p-3 bg-danger bg-opacity-10 rounded shadow-sm text-center">
                             <div class="small text-danger">{% trans "Errors" %}</div>

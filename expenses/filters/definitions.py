@@ -35,6 +35,27 @@ def get_user_accounts(user=None, q: Optional[str] = None) -> List[Dict[str, Any]
     return active_opts + inactive_opts
 
 
+def get_user_accounts_with_none(user=None, q: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Account options plus "No account", to find rows saved before the account became mandatory."""
+    options = list(get_user_accounts(user, q))
+    if user and user.is_authenticated and (not q or not q.strip() or q.strip().lower() in 'no account'):
+        # after the active accounts, before the inactive ones
+        position = next((i for i, o in enumerate(options) if not o.get('is_active', True)), len(options))
+        options.insert(position, {'value': 'none', 'label': 'No account', 'is_active': True})
+    return options
+
+
+def filter_account_or_none(queryset: QuerySet, values: List[str]) -> QuerySet:
+    if not values:
+        return queryset
+    wants_none = 'none' in values
+    ids = [v for v in values if v != 'none']
+    q = Q(account_id__in=ids) if ids else Q()
+    if wants_none:
+        q |= Q(account__isnull=True)
+    return queryset.filter(q)
+
+
 def get_user_categories(user=None, q: Optional[str] = None) -> List[Dict[str, str]]:
     if not user or not user.is_authenticated:
         return []
@@ -138,6 +159,9 @@ def get_user_recurring_categories(user=None, q: Optional[str] = None) -> List[Di
 
 # --- Custom Filter Functions ---
 
+AMOUNT_RANGE_OPTIONS = ["Under 500", "500 to 2,000", "2,000 to 10,000", "Over 10,000"]
+
+
 def filter_amount_range(queryset: QuerySet, values: List[str]) -> QuerySet:
     if not values:
         return queryset
@@ -157,15 +181,18 @@ def filter_amount_range(queryset: QuerySet, values: List[str]) -> QuerySet:
 
     q_objects = Q()
     for val in values:
-        if val == "Under ₹500":
+        # The buckets are in the user's own currency, so the labels carry no currency symbol.
+        # Older links and bookmarks still say "₹500 to ₹2,000"; strip the symbol to accept both.
+        key = str(val).replace('₹', '')
+        if key == "Under 500":
             q_objects |= Q(**{f"{amount_field}__lt": Decimal('500')})
-        elif val == "₹500 to ₹2,000":
+        elif key == "500 to 2,000":
             q_objects |= Q(**{f"{amount_field}__gte": Decimal('500'), f"{amount_field}__lte": Decimal('2000')})
-        elif val == "₹2,000 to ₹10,000":
+        elif key == "2,000 to 10,000":
             q_objects |= Q(**{f"{amount_field}__gte": Decimal('2000'), f"{amount_field}__lte": Decimal('10000')})
-        elif val == "Over ₹10,000":
+        elif key == "Over 10,000":
             q_objects |= Q(**{f"{amount_field}__gt": Decimal('10000')})
-            
+
     return queryset.filter(q_objects)
 
 
@@ -259,16 +286,15 @@ EXPENSE_FILTERS = FilterSetConfig(
             label="Account",
             type="multi_select",
             source="dynamic",
-            options_fn=get_user_accounts,
-            field_name="account_id",
-            lookup_expr="in",
+            options_fn=get_user_accounts_with_none,
+            custom_filter_fn=filter_account_or_none,
         ),
         FilterDef(
             key="amount_range",
             label="Amount",
             type="single_select",
             source="static",
-            options=["Under ₹500", "₹500 to ₹2,000", "₹2,000 to ₹10,000", "Over ₹10,000"],
+            options=AMOUNT_RANGE_OPTIONS,
             custom_filter_fn=filter_amount_range,
         ),
         FilterDef(
@@ -331,16 +357,15 @@ INCOME_FILTERS = FilterSetConfig(
             label="Account",
             type="multi_select",
             source="dynamic",
-            options_fn=get_user_accounts,
-            field_name="account_id",
-            lookup_expr="in",
+            options_fn=get_user_accounts_with_none,
+            custom_filter_fn=filter_account_or_none,
         ),
         FilterDef(
             key="amount_range",
             label="Amount",
             type="single_select",
             source="static",
-            options=["Under ₹500", "₹500 to ₹2,000", "₹2,000 to ₹10,000", "Over ₹10,000"],
+            options=AMOUNT_RANGE_OPTIONS,
             custom_filter_fn=filter_amount_range,
         ),
     ],
@@ -387,7 +412,7 @@ ALL_TRANSACTIONS_FILTERS = FilterSetConfig(
             label="Amount",
             type="single_select",
             source="static",
-            options=["Under ₹500", "₹500 to ₹2,000", "₹2,000 to ₹10,000", "Over ₹10,000"],
+            options=AMOUNT_RANGE_OPTIONS,
         ),
     ],
     sort_options=[
@@ -478,7 +503,7 @@ ACCOUNT_DETAIL_FILTERS = FilterSetConfig(
             label="Amount",
             type="single_select",
             source="static",
-            options=["Under ₹500", "₹500 to ₹2,000", "₹2,000 to ₹10,000", "Over ₹10,000"],
+            options=AMOUNT_RANGE_OPTIONS,
             custom_filter_fn=filter_amount_range,
         ),
     ],
@@ -603,16 +628,15 @@ CAPITAL_EVENT_FILTERS = FilterSetConfig(
             label="Account",
             type="multi_select",
             source="dynamic",
-            options_fn=get_user_accounts,
-            field_name="account_id",
-            lookup_expr="in",
+            options_fn=get_user_accounts_with_none,
+            custom_filter_fn=filter_account_or_none,
         ),
         FilterDef(
             key="amount_range",
             label="Amount",
             type="single_select",
             source="static",
-            options=["Under ₹500", "₹500 to ₹2,000", "₹2,000 to ₹10,000", "Over ₹10,000"],
+            options=AMOUNT_RANGE_OPTIONS,
             custom_filter_fn=filter_amount_range,
         ),
     ],
@@ -695,7 +719,7 @@ GOAL_DETAIL_FILTERS = FilterSetConfig(
             label="Amount",
             type="single_select",
             source="static",
-            options=["Under ₹500", "₹500 to ₹2,000", "₹2,000 to ₹10,000", "Over ₹10,000"],
+            options=AMOUNT_RANGE_OPTIONS,
             custom_filter_fn=filter_amount_range,
         ),
     ],

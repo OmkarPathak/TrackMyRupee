@@ -50,6 +50,7 @@ from ..budgets import (
 )
 from ..savings import (
     calculate_savings,
+    counted_capital_total,
     income_totals,
     monthly_savings,
     savings_for_period,
@@ -651,6 +652,21 @@ def home_view(request):
     ]
     top_amounts = [float(e.base_amount) for e in top_expenses_qs]
 
+    # Include capital events that are NOT excluded from averages (i.e. exclude_from_averages=False)
+    included_events_qs = CapitalEvent.objects.filter(user=request.user, exclude_from_averages=False)
+    if selected_accounts:
+        included_events_qs = included_events_qs.filter(account_id__in=selected_accounts)
+    if effective_start_date or effective_end_date:
+        if effective_start_date:
+            included_events_qs = included_events_qs.filter(date__gte=effective_start_date)
+        if effective_end_date:
+            included_events_qs = included_events_qs.filter(date__lte=effective_end_date)
+    else:
+        if selected_years:
+            included_events_qs = included_events_qs.filter(date__year__in=selected_years)
+        if selected_months:
+            included_events_qs = included_events_qs.filter(date__month__in=selected_months)
+
     # --- NEW: Income vs Expenses Trend Data ---
     trunc_func = TruncDay if trend_is_daily else TruncMonth
         
@@ -699,15 +715,18 @@ def home_view(request):
     exp_periods_base = set(normalize_period(e['period']) for e in exp_trend_base)
     loan_periods = set(normalize_period(l['period']) for l in loan_trend)
     invest_periods = set(invest_map.keys())
-    all_periods_sorted = sorted(list(inc_periods.union(exp_periods_base).union(loan_periods).union(invest_periods)))
+    cap_map = {
+        normalize_period(c['period']): float(c['total'] or 0)
+        for c in included_events_qs.annotate(period=trunc_func('date')).values('period').annotate(total=Sum('base_amount'))
+    }
+    all_periods_sorted = sorted(list(inc_periods.union(exp_periods_base).union(loan_periods).union(invest_periods).union(cap_map.keys())))
     
     ie_labels = [p.strftime(date_fmt) for p in all_periods_sorted]
     
     # Optimization: Use dict lookup instead of filter inside loop
     inc_map = {normalize_period(i['period']): float(i['total']) for i in inc_trend}
     exp_map = {normalize_period(e['period']): float(e['total']) for e in exp_trend_base}
-    loan_map = {normalize_period(l['period']): {'interest': float(l['total_interest'] or 0), 'emi': float(l['total_emi'] or 0)} for l in loan_trend}
-    
+    loan_map = {normalize_period(l['period']): {'interest': float(l['total_interest'] or 0)} for l in loan_trend}
     # Add loan interest to exp_map and calculate savings
     ie_income_data = []
     ie_expense_data = []
@@ -716,15 +735,14 @@ def home_view(request):
     
     for p in all_periods_sorted:
         inc_val = inc_map.get(p, 0.0)
-        exp_val = exp_map.get(p, 0.0) + loan_map.get(p, {}).get('interest', 0.0)
-        emi_val = loan_map.get(p, {}).get('emi', 0.0)
+        # Same definition as the savings card (expenses/savings.py): expenses + loan interest +
+        # capital events counted in averages. Loan principal is repaying debt, not spending.
+        exp_val = exp_map.get(p, 0.0) + loan_map.get(p, {}).get('interest', 0.0) + cap_map.get(p, 0.0)
         inv_val = invest_map.get(p, 0.0)
-        
+
         ie_income_data.append(inc_val)
         ie_expense_data.append(exp_val)
-        # Savings = Income - Expenses (with interest) - Principal
-        # Principal = EMI - Interest
-        ie_savings_data.append(inc_val - exp_val - (emi_val - loan_map.get(p, {}).get('interest', 0.0)))
+        ie_savings_data.append(inc_val - exp_val)
         ie_invested_data.append(inv_val)
 
     # --- NEW: Payment Method Distribution ---
@@ -744,21 +762,6 @@ def home_view(request):
     _expense_agg = expenses.aggregate(total=Sum('base_amount'), count=Count('id'))
     total_expenses_base = _expense_agg['total'] or 0
     
-    # Include capital events that are NOT excluded from averages (i.e. exclude_from_averages=False)
-    included_events_qs = CapitalEvent.objects.filter(user=request.user, exclude_from_averages=False)
-    if selected_accounts:
-        included_events_qs = included_events_qs.filter(account_id__in=selected_accounts)
-    if effective_start_date or effective_end_date:
-        if effective_start_date:
-            included_events_qs = included_events_qs.filter(date__gte=effective_start_date)
-        if effective_end_date:
-            included_events_qs = included_events_qs.filter(date__lte=effective_end_date)
-    else:
-        if selected_years:
-            included_events_qs = included_events_qs.filter(date__year__in=selected_years)
-        if selected_months:
-            included_events_qs = included_events_qs.filter(date__month__in=selected_months)
-
     # Single aggregate replaces both the Python-loop sum and the separate .count() call
     _cap_agg = included_events_qs.aggregate(total=Sum('base_amount'), count=Count('id'))
     included_capital_events_total = _cap_agg['total'] or Decimal('0.00')
@@ -793,38 +796,7 @@ def home_view(request):
                 comparison_label = _("vs previous cycle")
                 prev_cycle_end = salary_cycle_start - timedelta(days=1)
                 prev_cycle_start, prev_cycle_end = SalaryAnalysisService.get_salary_cycle_dates(request.user, prev_cycle_end)
-
-                prev_expenses_all = Expense.objects.filter(
-                    user=request.user,
-                    date__gte=prev_cycle_start,
-                    date__lte=prev_cycle_end,
-                )
-                prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-                prev_investments = sum_transfers_base(Transfer.objects.filter(
-                    user=request.user,
-                    to_account__account_type__in=list(investment_codes()),
-                    date__gte=prev_cycle_start,
-                    date__lte=prev_cycle_end,
-                ))
-                prev_income, prev_cb_rf = income_totals(Income.objects.filter(
-                    user=request.user,
-                    date__gte=prev_cycle_start,
-                    date__lte=prev_cycle_end,
-                ))
-                prev_loan_stats = LoanRepayment.objects.filter(
-                    loan__user=request.user,
-                    date__gte=prev_cycle_start,
-                    date__lte=prev_cycle_end,
-                ).aggregate(
-                    total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-                    total_emi=Sum('base_amount')
-                )
-                prev_cap_events = CapitalEvent.objects.filter(
-                    user=request.user,
-                    date__gte=prev_cycle_start,
-                    date__lte=prev_cycle_end,
-                    exclude_from_averages=False,
-                ).aggregate(total=Sum('base_amount'))['total'] or 0
+                prev_window = {'date__gte': prev_cycle_start, 'date__lte': prev_cycle_end}
             else:
                 # Calculate previous month and year
                 if sel_month == 1:
@@ -833,32 +805,39 @@ def home_view(request):
                 else:
                     prev_month = sel_month - 1
                     prev_year = sel_year
+                prev_window = {'date__year': prev_year, 'date__month': prev_month}
 
-                prev_expenses_all = Expense.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month)
-                prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-                prev_investments = sum_transfers_base(Transfer.objects.filter(
-                    user=request.user, to_account__account_type__in=list(investment_codes()),
-                    date__year=prev_year, date__month=prev_month
-                ))
-
-                prev_income, prev_cb_rf = income_totals(Income.objects.filter(
-                    user=request.user, date__year=prev_year, date__month=prev_month,
-                ))
-                prev_loan_stats = LoanRepayment.objects.filter(
-                    loan__user=request.user,
-                    date__year=prev_year,
-                    date__month=prev_month,
-                ).aggregate(
-                    total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-                    total_emi=Sum('base_amount')
+            # The previous period is read with the same category / payment / account filters as
+            # the current one, otherwise the comparison would set a filtered figure against an
+            # unfiltered one.
+            prev_expenses_all = Expense.objects.filter(user=request.user, **prev_window)
+            if selected_categories:
+                prev_expenses_all = prev_expenses_all.filter(category__in=selected_categories)
+            if selected_payment_methods:
+                prev_expenses_all = prev_expenses_all.filter(payment_method__in=selected_payment_methods)
+            prev_incomes_qs = Income.objects.filter(user=request.user, **prev_window)
+            prev_repayments_qs = LoanRepayment.objects.filter(loan__user=request.user, **prev_window)
+            prev_capital_qs = CapitalEvent.objects.filter(user=request.user, **prev_window)
+            prev_investments_qs = Transfer.objects.filter(
+                user=request.user, to_account__account_type__in=list(investment_codes()), **prev_window
+            )
+            if selected_accounts:
+                prev_expenses_all = prev_expenses_all.filter(account_id__in=selected_accounts)
+                prev_incomes_qs = prev_incomes_qs.filter(account_id__in=selected_accounts)
+                prev_repayments_qs = prev_repayments_qs.filter(from_account_id__in=selected_accounts)
+                prev_capital_qs = prev_capital_qs.filter(account_id__in=selected_accounts)
+                prev_investments_qs = prev_investments_qs.filter(
+                    Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts)
                 )
-                prev_cap_events = CapitalEvent.objects.filter(
-                    user=request.user,
-                    date__year=prev_year,
-                    date__month=prev_month,
-                    exclude_from_averages=False,
-                ).aggregate(total=Sum('base_amount'))['total'] or 0
 
+            prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
+            prev_investments = sum_transfers_base(prev_investments_qs)
+            prev_income, prev_cb_rf = income_totals(prev_incomes_qs)
+            prev_loan_stats = prev_repayments_qs.aggregate(
+                total_interest=Sum(F('interest_portion') * F('exchange_rate')),
+                total_emi=Sum('base_amount')
+            )
+            prev_cap_events = counted_capital_total(prev_capital_qs)
             prev_loan_interest = prev_loan_stats['total_interest'] or 0
             prev_loan_emi = prev_loan_stats['total_emi'] or 0
             prev_loan_principal = prev_loan_emi - prev_loan_interest
@@ -956,10 +935,10 @@ def home_view(request):
     # 1. Calculate YTD Savings (Strictly for current year, regardless of filters)
     # Derived from monthly_summary_map (already batched above) instead of 3 extra DB queries.
     ytd_income = sum(monthly_summary_map.get((current_year, m), {}).get('income', 0.0) for m in range(1, current_month + 1))
-    ytd_expenses = sum(monthly_summary_map.get((current_year, m), {}).get('expense_base', 0.0) for m in range(1, current_month + 1))
-    ytd_loan_interest = sum(monthly_summary_map.get((current_year, m), {}).get('loan_interest', 0.0) for m in range(1, current_month + 1))
-    # Keep projection semantics aligned with displayed savings (principal excluded).
-    ytd_savings = ytd_income - (ytd_expenses + ytd_loan_interest)
+    # 'expense' is expenses + loan interest + capital events counted in averages, i.e. the same
+    # spending the savings card uses (principal excluded), so the projection matches it.
+    ytd_expenses = sum(monthly_summary_map.get((current_year, m), {}).get('expense', 0.0) for m in range(1, current_month + 1))
+    ytd_savings = ytd_income - ytd_expenses
     
     projected_savings = 0
     avg_monthly_savings = 0
@@ -2464,6 +2443,7 @@ def home_view(request):
         'asset_allocation': asset_allocation,
         'recent_activity': recent_activity,
         'has_projection': has_projection,
+        'projected_savings': projected_savings,
         'is_new_user': not has_any_data,
         'actionable_alerts': actionable_alerts,
         'smart_insights': smart_insights,

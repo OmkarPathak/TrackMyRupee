@@ -48,7 +48,7 @@ A transfer moves money between accounts you already own. It does not change your
 
 ### Can I import transactions from a spreadsheet?
 
-Yes. The app supports `.xlsx` bulk upload. Your file must have columns: `Date`, `Amount`, `Description`, `Category`. During upload you select a Target Year, which overrides the year in the file. Access this via **Sidebar → Expenses → Upload**.
+Yes. Go to **Sidebar → Expenses → Upload** and choose an `.xlsx` or `.csv` file, the **currency** of the amounts, and the **account** they were paid from (every expense is charged to an account). The app recognises the Date, Amount and Description columns from their headings, and uses a Category column if there is one, or guesses a category if not. Rows that look identical to one you already have are skipped as duplicates. On the Free plan the monthly expense limit also applies to imports: rows dated in the current month beyond the limit are skipped and the upload summary tells you how many.
 
 ### What is a Capital Event and when should I use it?
 

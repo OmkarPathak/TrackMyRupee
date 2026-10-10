@@ -119,7 +119,7 @@ If you tap **Add expense** twice, or your connection hiccups and you retry, the 
 
 ### Monthly limit on the Free plan
 
-The Free plan has a monthly cap on the number of expenses. If you reach it, the composer tells you and offers an **Upgrade** button rather than failing silently.
+The Free plan has a monthly cap on the number of expenses. If you reach it, the composer tells you and offers an **Upgrade** button rather than failing silently. The cap counts expenses dated in the current month, and it applies to every way an expense can be created: the composer, an upload, and converting a Capital Event into an expense. Expenses dated in earlier months do not count towards it.
 
 ---
 

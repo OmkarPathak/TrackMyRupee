@@ -91,8 +91,12 @@ def get_recurring_month_occurrence_amount(
     freq = (getattr(rt, 'frequency', '') or '').upper()
 
     if freq == 'DAILY':
-        # DAILY occurs every day by definition; contributes its full monthly-equivalent amount
-        return amt * 30
+        # One occurrence per calendar day the schedule is live in this month (31 in October, a
+        # partial month for the start / end month), not a flat 30.
+        first = max(month_start, start_date) if start_date else month_start
+        last = min(month_end, end_date) if end_date else month_end
+        days = (last - first).days + 1
+        return amt * max(days, 0)
     elif freq == 'MONTHLY':
         return amt
     elif freq == 'QUARTERLY':

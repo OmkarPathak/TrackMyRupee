@@ -7,6 +7,7 @@ from django.db.models import Count, Sum
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import DeleteView, ListView, View
 
@@ -241,6 +242,10 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
         if not (event.account_id and event.include_in_net_worth):
             # An expense must always be charged to an account; this event never moved one.
             messages.error(request, _("Choose an account and turn on 'Include in Cash Flow / Net Worth' for this event first, so the expense is charged to an account."))
+            return redirect('capital-event-list')
+        now = timezone.localdate()
+        if (event.date.year, event.date.month) == (now.year, now.month) and not request.user.profile.can_add_expense():
+            messages.error(request, _("You have reached the monthly expense limit for your plan, so this event cannot be converted to an expense. Upgrade to add more."))
             return redirect('capital-event-list')
         try:
             with transaction.atomic():

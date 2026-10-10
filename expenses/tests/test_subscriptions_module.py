@@ -279,7 +279,10 @@ class TestScheduleModel(SubBase):
         self.assertEqual(month(mk('WEEKLY', date(2026, 10, 1)), 2026, 10), D('500'))       # 1, 8, 15, 22, 29
         self.assertEqual(month(mk('WEEKLY', date(2026, 10, 1), date(2026, 10, 15)), 2026, 10), D('300'))
         self.assertEqual(month(mk('BIWEEKLY', date(2026, 10, 1)), 2026, 10), D('300'))     # 1, 15, 29
-        self.assertEqual(month(mk('DAILY', date(2026, 1, 1)), 2026, 10), D('3000'))        # flat 30-day month
+        self.assertEqual(month(mk('DAILY', date(2026, 1, 1)), 2026, 10), D('3100'))        # every day of a 31-day month
+        self.assertEqual(month(mk('DAILY', date(2026, 1, 1)), 2026, 2), D('2800'))         # 28 days
+        self.assertEqual(month(mk('DAILY', date(2026, 10, 20)), 2026, 10), D('1200'))      # starts on the 20th: 20..31
+        self.assertEqual(month(mk('DAILY', date(2026, 1, 1), date(2026, 10, 10)), 2026, 10), D('1000'))
         self.assertEqual(month(mk('MONTHLY', date(2026, 1, 1), amount='0'), 2026, 10), D('0'))
 
 

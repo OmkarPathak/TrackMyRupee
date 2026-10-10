@@ -345,6 +345,15 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         context['selected_type_label'] = selected_label
         context['current_status'] = current_status
         context['total_balance'] = total_balance.quantize(Decimal('0.01'))
+        # Rows saved before the account became mandatory: they never moved a balance, so they are
+        # the reason an account's balance can differ from what the transactions add up to.
+        if current_status == 'active' and not self.request.GET.get('search') and not self.request.GET.get('type'):
+            from ..models import CapitalEvent, Expense, Income
+            context['unaccounted'] = {
+                'expenses': Expense.objects.filter(user=self.request.user, account__isnull=True).count(),
+                'income': Income.objects.filter(user=self.request.user, account__isnull=True).count(),
+                'capital_events': CapitalEvent.objects.filter(user=self.request.user, account__isnull=True).count(),
+            }
         context['total_balance_currency'] = user_currency
 
         selected_types = [t for t in self.request.GET.getlist('type') if t]

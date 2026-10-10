@@ -65,6 +65,12 @@ Click **+ Filter**. A short menu opens, with a small search box at the top if th
 
 Filters combine. Pick two, and you see only what matches **both**.
 
+### Amount ranges and "No account"
+
+The **Amount** filter offers ranges such as *Under 500*, *500 to 2,000*, *2,000 to 10,000* and *Over 10,000*. They are in your own currency, using the amount converted to it.
+
+On the Expenses, Income and Capital Events pages the **Account** filter also has a **No account** choice. It lists older entries that were saved before every transaction needed an account. Open one and choose an account so it counts towards that account's balance.
+
 ### What you can filter by, page by page
 
 | Page | Filters available |

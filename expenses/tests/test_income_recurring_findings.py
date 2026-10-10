@@ -158,13 +158,13 @@ class IncomeAndRecurringFindingsTestCase(TestCase):
         self.assertEqual(get_recurring_month_occurrence_amount(rt_quarterly, 2026, 10), Decimal('0.00'))
         self.assertEqual(get_recurring_month_occurrence_amount(rt_quarterly, 2026, 11), Decimal('3000.00'))
 
-        # Daily item: full monthly equivalent
+        # Daily item: one occurrence per day of the month (October has 31)
         rt_daily = RecurringTransaction(
             frequency='DAILY',
             base_amount=Decimal('50.00'),
             start_date=date(2026, 1, 1),
         )
-        self.assertEqual(get_recurring_month_occurrence_amount(rt_daily, 2026, 10), Decimal('1500.00'))
+        self.assertEqual(get_recurring_month_occurrence_amount(rt_daily, 2026, 10), Decimal('1550.00'))
 
     def test_item2_weekly_recurring_in_dashboard_forecast_and_recurring_list(self):
         """

@@ -148,6 +148,7 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
                 }
 
             self.fields['category'].widget = forms.Select(choices=choices, attrs={'class': 'form-select django-multi-select'})
+            self._allowed_categories = {name for name, _label in choices}
             
             # Cache account queryset/default account id to avoid repeated lookups per form init
             account_cache = getattr(user, '_expense_form_account_cache', None)
@@ -194,7 +195,13 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
     def clean_category(self):
         category = self.cleaned_data.get('category')
         if category:
-            return category.strip()
+            category = category.strip()
+            allowed = getattr(self, '_allowed_categories', None)
+            unchanged = bool(self.instance.pk and category == (self.instance.category or '').strip())
+            # A category must be one of the user's own. An existing expense may keep a category
+            # that has since been deleted (or that their plan no longer unlocks) until it is changed.
+            if allowed is not None and not unchanged and category not in allowed:
+                raise forms.ValidationError(_('Choose one of your categories.'))
         return category
 
     def clean_amount(self):

@@ -90,6 +90,7 @@ class DataExportView(LoginRequiredMixin, TemplateView):
                 _('Description'),
                 _('Account'),
                 _('Account Currency'),
+                _('Source Type'),
             ])
             for i in Income.objects.select_related('account').filter(user=request.user).order_by('-date'):
                 writer.writerow([
@@ -102,6 +103,7 @@ class DataExportView(LoginRequiredMixin, TemplateView):
                     i.description,
                     i.account.name if i.account else '',
                     i.account.currency if i.account else '',
+                    i.source_type,
                 ])
             files_to_zip['incomes.csv'] = output.getvalue()
 

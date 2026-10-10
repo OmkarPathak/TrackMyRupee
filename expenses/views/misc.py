@@ -23,6 +23,7 @@ from django.db.models import Case, Count, Q, Sum, When
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.formats import date_format
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View
@@ -321,10 +322,19 @@ def upload_view(request):
         
         from . import predict_category_ai
 
+        from finance_tracker.plans import get_limit as _plan_limit
+        cap_today = timezone.localdate()
+        _cap = _plan_limit(request.user.profile.active_tier, 'expenses_per_month')
+        remaining_this_month = None
+        if _cap is not None and _cap != -1:
+            remaining_this_month = max(0, _cap - Expense.objects.filter(
+                user=request.user, date__year=cap_today.year, date__month=cap_today.month).count())
+
         summary = {
             'total_rows': 0,
             'created_count': 0,
             'duplicate_count': 0,
+            'limit_skipped': 0,
             'error_count': 0,
             'errors': [], # Detail log
             'total_amount': 0,
@@ -701,6 +711,14 @@ def upload_view(request):
                         if dedup_key in existing_keys or dedup_key in seen_in_file_keys:
                             summary['duplicate_count'] += 1
                             continue
+
+                        # The plan's monthly expense cap also applies to imports (it only counts the
+                        # current month, like adding expenses one by one); rows over it are skipped.
+                        if remaining_this_month is not None and date_val.year == cap_today.year and date_val.month == cap_today.month:
+                            if remaining_this_month <= 0:
+                                summary['limit_skipped'] += 1
+                                continue
+                            remaining_this_month -= 1
 
                         seen_in_file_keys.add(dedup_key)
 
