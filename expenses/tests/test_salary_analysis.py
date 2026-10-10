@@ -235,13 +235,13 @@ class SalaryAnalysisServiceTest(TestCase):
         target = date(2026, 5, 15)
         metrics = SalaryAnalysisService.calculate_salary_cycle_metrics(self.user, target)
         
-        # Interest should be part of expenses
-        # Principal should reduce savings
-        # Savings = Income - Expenses - Interest - Principal
-        #         = 10000 - 1000 - 800 - 3200 = 5000
+        # Interest counts as spending; principal is repaying borrowed money, so it does not
+        # (single definition in expenses/savings.py).
+        # Savings = Income - Expenses - Interest = 10000 - 1000 - 800 = 8200
         self.assertEqual(metrics['total_income'], 10000)
         self.assertEqual(metrics['total_loan_principal'], 3200)
-        self.assertAlmostEqual(metrics['savings'], 5000, places=0)
+        self.assertAlmostEqual(metrics['savings'], 8200, places=0)
+        self.assertAlmostEqual(metrics['savings_rate'], 82.0, places=1)
         
     def test_multiple_users_salary_dates_independent(self):
         """Test that different users can have different salary dates."""

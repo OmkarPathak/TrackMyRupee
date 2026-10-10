@@ -18,6 +18,7 @@ from .models import (
     LoanRepayment,
     annotate_loan_principal_totals,
 )
+from .savings import CASHBACK_REFUND_TYPES, calculate_savings, counted_capital_total, loan_interest_total
 from .utils import get_safe_date
 
 logger = logging.getLogger(__name__)
@@ -564,57 +565,42 @@ class SalaryAnalysisService:
         income_list = transactions['income']
         expense_list = transactions['expenses']
         
-        # Calculate totals in base currency
-        total_income = Decimal('0')
-        savings_rate_denominator = Decimal('0')
-        for inc in income_list:
-            total_income += inc.base_amount or Decimal('0')
-            if inc.source_type not in ['Cashback & Rewards', 'Refund / Reimbursement']:
-                savings_rate_denominator += inc.base_amount or Decimal('0')
-        
-        total_expenses = Decimal('0')
-        for exp in expense_list:
-            total_expenses += exp.base_amount or Decimal('0')
-        
-        # Calculate loan repayment amount in this cycle
-        total_loan_principal = Decimal('0')
+        # Savings and the savings rate come from the single definition in expenses/savings.py
         loan_repayments = LoanRepayment.objects.filter(
             loan__user=user,
             date__gte=cycle_start,
             date__lte=cycle_end
         )
+        total_loan_interest = loan_interest_total(loan_repayments)
+        # Principal is reported for information only: repaying borrowed money is not spending.
+        total_loan_principal = Decimal('0')
         for repay in loan_repayments:
-            # Principal = EMI - Interest, adjusted for exchange rate
-            principal = (repay.base_amount or Decimal('0')) - (repay.interest_portion or Decimal('0')) * (repay.exchange_rate or Decimal('1'))
-            total_loan_principal += principal
-        
-        # Calculate savings = Income - Expenses - Loan Principal
-        savings = total_income - total_expenses - total_loan_principal
-        # Include loan interest in expenses for savings calculation
-        total_loan_interest = Decimal('0')
-        for repay in loan_repayments:
-            interest = (repay.interest_portion or Decimal('0')) * (repay.exchange_rate or Decimal('1'))
-            total_loan_interest += interest
-        
-        # Include capital events (not excluded from averages) in expenses
-        total_cap_events = CapitalEvent.objects.filter(
-            user=user,
-            date__gte=cycle_start,
-            date__lte=cycle_end,
-            exclude_from_averages=False,
-        ).aggregate(total=Sum('base_amount'))['total'] or Decimal('0')
+            total_loan_principal += (repay.base_amount or Decimal('0')) - (repay.interest_portion or Decimal('0')) * (repay.exchange_rate or Decimal('1'))
 
-        # Savings = Income - Expenses (including interest) - Principal - Capital Events
-        total_expenses_with_interest = total_expenses + total_loan_interest + total_cap_events
-        savings = total_income - total_expenses_with_interest - total_loan_principal
-        
+        income_total = sum((inc.base_amount or Decimal('0') for inc in income_list), Decimal('0'))
+        cashback_refund = sum(
+            (inc.base_amount or Decimal('0') for inc in income_list if inc.source_type in CASHBACK_REFUND_TYPES),
+            Decimal('0'),
+        )
+        total_expenses = sum((exp.base_amount or Decimal('0') for exp in expense_list), Decimal('0'))
+        total_cap_events = counted_capital_total(
+            CapitalEvent.objects.filter(user=user, date__gte=cycle_start, date__lte=cycle_end)
+        )
+        result = calculate_savings(
+            income=income_total,
+            cashback_refund=cashback_refund,
+            operating_expenses=total_expenses,
+            loan_interest=total_loan_interest,
+            capital_events=total_cap_events,
+        )
+        total_income = result.income
+        savings = result.savings
+        savings_rate = result.rate
+
         # Calculate daily burn
         num_days = (cycle_end - cycle_start).days + 1
         daily_burn = (total_expenses + total_cap_events) / num_days if num_days > 0 else Decimal('0')
-        
-        # Calculate savings rate
-        savings_rate = (savings / savings_rate_denominator * 100) if savings_rate_denominator > 0 else Decimal('0')
-        
+
         return {
             'cycle_start': cycle_start,
             'cycle_end': cycle_end,

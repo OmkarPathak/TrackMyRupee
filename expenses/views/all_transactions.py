@@ -19,6 +19,7 @@ from django.views.generic import ListView
 
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, CapitalEvent, Expense, Income, LoanRepayment, Transfer
+from ..savings import savings_from_querysets
 from ..utils import get_exchange_rate
 from ..filters.definitions import ALL_TRANSACTIONS_FILTERS
 from ..periods import get_cycle_context, resolve_period
@@ -301,13 +302,13 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         context['loan_amount'] = loan_stats['total'] or 0
         context['capital_event_amount'] = cap_stats['total'] or 0
 
-        net_remaining = context['income_amount'] - context['expense_amount'] - context['capital_event_amount']
+        # Net remaining and its rate come from the single savings definition (expenses/savings.py),
+        # applied to whatever the active filters left on the page.
+        savings_result = savings_from_querysets(incomes, expenses, loan_repayments, capital_events)
+        net_remaining = savings_result.savings
         context['net_remaining'] = net_remaining
         context['net_saved'] = net_remaining
-        if context['income_amount'] > 0:
-            context['savings_rate'] = round((net_remaining / context['income_amount']) * 100, 1)
-        else:
-            context['savings_rate'] = 0
+        context['savings_rate'] = float(savings_result.rate_rounded(1))
 
         # Convert transactions to list and calculate CC running balance
         tx_list = list(context.get('transactions', []))

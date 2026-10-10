@@ -39,6 +39,12 @@ from ..models import (
 from ..recurring_utils import (
     calculate_recurring_equivalents,
 )
+from ..savings import (
+    calculate_savings,
+    income_totals,
+    monthly_savings,
+    savings_from_querysets,
+)
 from ..services import FinancialService, LoanService, SalaryAnalysisService
 from ..templatetags.digit_filters import compact_amount
 from ..utils import (
@@ -375,14 +381,8 @@ def home_view(request):
             incomes = incomes.filter(date__month__in=selected_months)
             investments = investments.filter(date__month__in=selected_months)
     
-    # One aggregate call instead of two DB round-trips
-    _income_agg = incomes.aggregate(
-        total=Sum('base_amount'),
-        cb_rf=Sum('base_amount', filter=Q(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement'])),
-    )
-    total_income = _income_agg['total'] or 0
-    total_cb_rf_income = _income_agg['cb_rf'] or 0
-    savings_rate_denominator = total_income - total_cb_rf_income
+    # One aggregate call for income and its cashback/refund part (see expenses/savings.py)
+    total_income, total_cb_rf_income = income_totals(incomes)
     total_investments = sum_transfers_base(investments)
     
     # Fetch loan repayments for the selected period (moved up to fix UnboundLocalError)
@@ -756,9 +756,17 @@ def home_view(request):
     total_expenses = total_expenses_base + total_loan_interest + included_capital_events_total
     transaction_count = _expense_agg['count'] + loan_stats['repayment_count'] + _included_events_count
     
-    # Savings for display = Income - Operating Expenses - Interest Paid
-    # (Does NOT include principal repayment, since principal is returning borrowed money, not spending)
-    savings = total_income - total_expenses
+    # Savings and the savings rate are defined once, in expenses/savings.py
+    # (principal repayment is not spending; only interest is).
+    current_savings = calculate_savings(
+        income=total_income,
+        cashback_refund=total_cb_rf_income,
+        operating_expenses=total_expenses_base,
+        loan_interest=total_loan_interest,
+        capital_events=included_capital_events_total,
+    )
+    savings = current_savings.savings
+    savings_rate_denominator = current_savings.denominator
     
     # Calculate MoM Changes ONLY if exactly one year and one month are selected
     prev_month_data = None
@@ -787,16 +795,11 @@ def home_view(request):
                     date__gte=prev_cycle_start,
                     date__lte=prev_cycle_end,
                 ))
-                _prev_income_agg = Income.objects.filter(
+                prev_income, prev_cb_rf = income_totals(Income.objects.filter(
                     user=request.user,
                     date__gte=prev_cycle_start,
                     date__lte=prev_cycle_end,
-                ).aggregate(
-                    total=Sum('base_amount'),
-                    cb_rf=Sum('base_amount', filter=Q(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement'])),
-                )
-                prev_income = _prev_income_agg['total'] or 0
-                prev_cb_rf = _prev_income_agg['cb_rf'] or 0
+                ))
                 prev_loan_stats = LoanRepayment.objects.filter(
                     loan__user=request.user,
                     date__gte=prev_cycle_start,
@@ -827,14 +830,9 @@ def home_view(request):
                     date__year=prev_year, date__month=prev_month
                 ))
 
-                _prev_income_agg = Income.objects.filter(
+                prev_income, prev_cb_rf = income_totals(Income.objects.filter(
                     user=request.user, date__year=prev_year, date__month=prev_month,
-                ).aggregate(
-                    total=Sum('base_amount'),
-                    cb_rf=Sum('base_amount', filter=Q(source_type__in=['Cashback & Rewards', 'Refund / Reimbursement'])),
-                )
-                prev_income = _prev_income_agg['total'] or 0
-                prev_cb_rf = _prev_income_agg['cb_rf'] or 0
+                ))
                 prev_loan_stats = LoanRepayment.objects.filter(
                     loan__user=request.user,
                     date__year=prev_year,
@@ -853,9 +851,15 @@ def home_view(request):
             prev_loan_interest = prev_loan_stats['total_interest'] or 0
             prev_loan_emi = prev_loan_stats['total_emi'] or 0
             prev_loan_principal = prev_loan_emi - prev_loan_interest
-            prev_expenses_total = prev_expenses_op + prev_loan_interest + prev_cap_events
-            prev_savings = prev_income - prev_expenses_total
-            prev_savings_rate_denominator = prev_income - prev_cb_rf
+            prev_result = calculate_savings(
+                income=prev_income,
+                cashback_refund=prev_cb_rf,
+                operating_expenses=prev_expenses_op,
+                loan_interest=prev_loan_interest,
+                capital_events=prev_cap_events,
+            )
+            prev_expenses_total = prev_result.spending
+            prev_savings = prev_result.savings
 
             def calc_pct(current, previous):
                 if previous == 0:
@@ -888,7 +892,7 @@ def home_view(request):
                 'expense_pct': calc_pct(total_expenses, prev_expenses_total),
                 'investments_pct': calc_pct(total_investments, prev_investments),
                 'savings_pct': calc_pct(savings, prev_savings),
-                'savings_rate': (prev_savings / prev_savings_rate_denominator * 100) if prev_savings_rate_denominator > 0 else 0,
+                'savings_rate': float(prev_result.rate),
                 'income_diff_amount': total_income - prev_income,
                 'expense_diff_amount': total_expenses - prev_expenses_total,
                 'investments_diff_amount': total_investments - prev_investments,
@@ -967,7 +971,7 @@ def home_view(request):
 
 
     # Calculate Hero Metrics for the Ideal Layout
-    savings_rate_value = (savings / savings_rate_denominator * 100) if savings_rate_denominator > 0 else 0
+    savings_rate_value = float(current_savings.rate)
     hero_status = 'needs_attention'
     if savings_rate_value >= 20:
         hero_status = 'excellent'
@@ -1202,7 +1206,7 @@ def home_view(request):
         top_5_categories = category_data[:5]
         
         # 2. Savings Rate
-        savings_rate = (savings / savings_rate_denominator) * 100 if savings_rate_denominator > 0 else 0
+        savings_rate = float(current_savings.rate)
         
         # 3. AI Insight (Trend analysis for top category)
         viral_insight = None
@@ -1464,7 +1468,7 @@ def home_view(request):
     near_budget_cats = [c for c in category_limits if c['used_percent'] is not None and 90 <= c['used_percent'] <= 100]
     
     # Check savings rate for "Softener" context
-    savings_rate_alert = (savings / savings_rate_denominator * 100) if savings_rate_denominator > 0 else 0
+    savings_rate_alert = float(current_savings.rate)
     
     if over_budget_cats:
         if len(over_budget_cats) == 1:
@@ -1535,7 +1539,7 @@ def home_view(request):
         
         # Savings Win
         if savings_rate_denominator > 0 and savings > 0:
-            savings_rate = (savings / savings_rate_denominator) * 100
+            savings_rate = float(current_savings.rate)
             if savings_rate >= 20:
                 msg_text = _("You've saved %(savings_rate)s%% of your income this month.") % {'savings_rate': f"{savings_rate:.0f}"}
                 share_text = _("I saved %(savings_rate)s%% of my income this month using TrackMyRupee! 🏆") % {'savings_rate': f"{savings_rate:.0f}"}
@@ -2727,11 +2731,6 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             user=user, date__gte=trend_year_start, date__lte=trend_year_end
         ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount')).order_by('month')
         
-        monthly_cb_rf = Income.objects.filter(
-            user=user, date__gte=trend_year_start, date__lte=trend_year_end,
-            source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']
-        ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount')).order_by('month')
-        
         monthly_expenses = Expense.objects.filter(
             user=user, date__gte=trend_year_start, date__lte=trend_year_end
         ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount')).order_by('month')
@@ -2744,7 +2743,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         curr = trend_year_start
         while curr <= today:
             d = curr.replace(day=1)
-            data_map[d] = {'income': 0, 'expense': 0, 'cb_rf': 0}
+            data_map[d] = {'income': 0, 'expense': 0}
             # Move to next month
             # Carefully handle month increment
             next_month = curr.month + 1
@@ -2764,15 +2763,6 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
                 if d in data_map:
                     data_map[d]['income'] = float(item['total'])
                     
-        for item in monthly_cb_rf:
-            if item['month']:
-                d = item['month']
-                if isinstance(d, datetime):
-                    d = d.date()
-                d = d.replace(day=1)
-                if d in data_map:
-                    data_map[d]['cb_rf'] = float(item['total'])
-                
         for item in monthly_expenses:
              if item['month']:
                 d = item['month']
@@ -2782,6 +2772,14 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
                 if d in data_map:
                     data_map[d]['expense'] = float(item['total'])
                 
+        # Savings per month (interest and counted capital events included) from the single definition
+        month_savings = monthly_savings(
+            user, trend_year_start, trend_year_end,
+            extra_capital_by_month=(
+                {(k.year, k.month): v for k, v in capital_event_monthly_map.items()} if include_capital_events else None
+            ),
+        )
+
         # Sort and prepare lists
         sorted_keys = sorted(data_map.keys())
         # Limit to last 12 months if while loop went over
@@ -2791,20 +2789,15 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             labels.append(date_format(k, 'M Y'))
             inc = data_map[k]['income']
             exp = data_map[k]['expense']
-            cb_rf_val = data_map[k].get('cb_rf', 0.0)
             # If the "include capital events" toggle is on, add their totals to the expense bars
             if include_capital_events:
                 exp += capital_event_monthly_map.get(k, 0.0)
             income_data.append(inc)
             expense_data.append(exp)
             
-            # Balance Rate = (Income - Expense) / (Income - Cashback/Refunds) * 100
-            denom = inc - cb_rf_val
-            if denom > 0:
-                rate = ((inc - exp) / denom) * 100
-            else:
-                rate = 0
-            balance_rate_data.append(round(rate, 1))
+            # Balance (savings) rate: defined once in expenses/savings.py
+            month_result = month_savings.get((k.year, k.month))
+            balance_rate_data.append(float(month_result.rate_rounded(1)) if month_result else 0)
 
         context['chart_labels'] = labels
         context['income_data'] = income_data
@@ -2854,20 +2847,17 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         context['total_expense_ytd'] = ytd_expense_agg
         context['total_invested_ytd'] = ytd_invest_agg
         
-        # Exclude Cashback/Refunds from YTD avg balance rate denominator
-        ytd_cb_rf = Income.objects.filter(
-            user=user, date__year=selected_year,
-            source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']
-        )
+        # YTD savings rate, from the single definition (current year stops at today)
+        ytd_filter = {'date__year': selected_year}
         if selected_year == today.year:
-            ytd_cb_rf = ytd_cb_rf.filter(date__lte=today)
-        ytd_cb_rf_agg = ytd_cb_rf.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-        ytd_savings_rate_denominator = ytd_income_agg - ytd_cb_rf_agg
-
-        if ytd_savings_rate_denominator > 0:
-            context['avg_balance_rate'] = round(((ytd_income_agg - ytd_expense_agg) / ytd_savings_rate_denominator) * 100, 1)
-        else:
-            context['avg_balance_rate'] = 0
+            ytd_filter['date__lte'] = today
+        ytd_savings = savings_from_querysets(
+            Income.objects.filter(user=user, **ytd_filter),
+            Expense.objects.filter(user=user, **ytd_filter),
+            LoanRepayment.objects.filter(loan__user=user, **ytd_filter),
+            CapitalEvent.objects.filter(user=user, **ytd_filter),
+        )
+        context['avg_balance_rate'] = float(ytd_savings.rate_rounded(1))
             
         # ---------------------------------------------------------
         # 4. Sankey Data (Income -> Expenses/Investments/Savings) YTD

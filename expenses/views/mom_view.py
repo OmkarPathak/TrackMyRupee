@@ -11,6 +11,7 @@ from django.utils import timezone
 from ..account_types import investment_codes
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, CapitalEvent, Expense, Income, Transfer
+from ..savings import monthly_savings
 from ..templatetags.digit_filters import compact_amount
 from ..utils import get_exchange_rate
 
@@ -61,10 +62,6 @@ def mom_analysis_view(request):
     history_start = months_data[0]['start']
     
     batch_inc = Income.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-    batch_cb_rf = Income.objects.filter(
-        user=user, date__gte=history_start,
-        source_type__in=['Cashback & Rewards', 'Refund / Reimbursement']
-    ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     batch_exp = Expense.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     batch_inv = Transfer.objects.filter(
         user=user, date__gte=history_start, 
@@ -72,11 +69,14 @@ def mom_analysis_view(request):
     ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('converted_amount'))
     
     mo_inc_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inc}
-    mo_cb_rf_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_cb_rf}
     mo_exp_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_exp}
     mo_inv_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inv}
 
-    # Add capital events (not excluded from averages) to the expense map
+    # Savings per month (interest and counted capital events included) from the single definition
+    month_savings = monthly_savings(user, history_start, months_data[-1]['end'])
+
+    # Add capital events (not excluded from averages) to the expense map (used for the net-worth
+    # cash-flow reconstruction below)
     batch_cap = CapitalEvent.objects.filter(
         user=user, date__gte=history_start, exclude_from_averages=False
     ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
@@ -135,8 +135,9 @@ def mom_analysis_view(request):
     today = timezone.now().date()
     
     for m in months_data:
-        m_inc = mo_inc_map.get((m['year'], m['month']), 0)
-        m_exp = mo_exp_map.get((m['year'], m['month']), 0)
+        m_result = month_savings.get((m['year'], m['month']))
+        m_inc = float(m_result.income) if m_result else 0
+        m_exp = float(m_result.spending) if m_result else 0
         m_inv = mo_inv_map.get((m['year'], m['month']), 0)
 
         
@@ -160,7 +161,7 @@ def mom_analysis_view(request):
             inc_data.append(float(m_inc))
             exp_data.append(float(m_exp))
             inv_data.append(float(m_inv))
-            sav_data.append(float(m_inc - m_exp))
+            sav_data.append(float(m_result.savings))
             burn_data.append(float(m_exp / days) if days > 0 else 0)
 
     # 4. Summary & Advanced Insights
@@ -180,15 +181,10 @@ def mom_analysis_view(request):
         if nw_data[-4] > 0:
             nw_pct_3m = (nw_change_3m / nw_data[-4]) * 100
     
-    # Savings Rate
-    curr_income = inc_data[-1] if inc_data[-1] is not None else 0
-    # Exclude cashback and refund from savings rate denominator
-    curr_cb_rf = 0.0
-    if months_data:
-        latest_month_item = months_data[-1]
-        curr_cb_rf = mo_cb_rf_map.get((latest_month_item['year'], latest_month_item['month']), 0.0)
-    curr_savings_rate_denominator = curr_income - curr_cb_rf
-    savings_rate = (curr_savings / curr_savings_rate_denominator * 100) if curr_savings_rate_denominator > 0 else 0
+    # Savings Rate (single definition in expenses/savings.py)
+    latest = months_data[-1] if months_data else None
+    latest_result = month_savings.get((latest['year'], latest['month'])) if latest else None
+    savings_rate = float(latest_result.rate) if latest_result else 0
     
     # Streak Calculation
     savings_streak = 0

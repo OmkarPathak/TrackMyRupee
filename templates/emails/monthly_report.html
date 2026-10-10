@@ -136,7 +136,7 @@
                     </div>
                     <ul style="margin: 0; padding-left: 18px; line-height: 1.6;">
                         <li><b>Total Expenses (Outflow):</b> Sum of regular expenses ({{ currency_symbol }}{{ data.regular_expense|default:0|floatformat:0 }}), loan repayments ({{ currency_symbol }}{{ data.loan_repayments|default:0|floatformat:0 }}), and capital events ({{ currency_symbol }}{{ data.capital_events_total|default:0|floatformat:0 }}).</li>
-                        <li><b>Savings Rate:</b> Calculated as <code>(Total Income − Total Outflow) / (Total Income − Refunds/Cashbacks)</code>. Refunds and cashbacks are excluded from base income so rewards don't distort your savings rate.</li>
+                        <li><b>Savings Rate:</b> Calculated as <code>(Income − Expenses − Loan Interest − Capital Events counted in averages) / (Income − Refunds/Cashbacks)</code>. Loan principal is repaying borrowed money, so it is not counted as spending. Refunds and cashbacks are excluded from the base so rewards don't distort your savings rate. This is the same rate you see on your dashboard.</li>
                         <li><b>Investments & Credit Card Pending:</b> Computed as of {{ end_date|date:"N j, Y" }} directly from your double-entry ledger account balances.</li>
                         <li><b>Top Categories:</b> Highlights your top 4 regular expense categories by spend.</li>
                     </ul>

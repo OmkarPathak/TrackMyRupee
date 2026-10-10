@@ -91,9 +91,13 @@ A score from 0 to 100 calculated from your year-to-date savings rate:
 
 Expand the **Health Breakdown** section on the Analytics page to see four component metrics: Savings Rate, Expense Growth, Consistency (positive-savings months out of last 10), and Risk Buffer (months of runway). See [Analytics and Health](../11-analytics-and-health/index.md).
 
-### Why does my savings rate feel lower than expected?
+### How is my savings rate calculated?
 
-The savings rate denominator excludes Cashback and Rewards and Refund / Reimbursement income, so one-off recoveries do not artificially inflate your rate. This gives you a truer picture of how much you are genuinely saving from your earned income.
+Savings rate = (Income − Expenses − Loan interest − Capital Events that count towards averages) ÷ (Income − Cashback and Refund income) × 100. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See [How the Savings Rate Is Calculated](../11-analytics-and-health/index.md#3-how-the-savings-rate-is-calculated) for the rules and a worked example.
+
+### Why is my savings rate different from what I expected?
+
+The usual reasons are: loan **principal** is not counted as spending (only the interest is), Capital Events are left out unless you turned off their **Exclude from Averages & Trends** setting, and Cashback and Refund income is not part of the base your rate is measured against. Also check that the pages you compare are looking at the same period and filters.
 
 ---
 
