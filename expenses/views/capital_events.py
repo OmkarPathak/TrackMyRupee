@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Count, Sum
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
@@ -23,6 +23,19 @@ from .utils import (
     get_object_by_uuid_or_pk,
     redirect_to_uuid_url_if_needed,
 )
+
+
+def _find_source_expense(user, raw_id):
+    """The user's expense behind a "?from_expense=" link (numeric id or uuid), else None.
+
+    Junk values from a hand-edited URL must not crash the page.
+    """
+    if not raw_id:
+        return None
+    try:
+        return get_object_by_uuid_or_pk(Expense, raw_id, user=user)
+    except (Http404, ValueError, ValidationError):
+        return None
 
 
 class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
@@ -91,19 +104,16 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
         # Support pre-fill from "convert expense" flow
         initial = {}
         expense_id = request.GET.get('from_expense')
-        if expense_id:
-            try:
-                src = Expense.objects.get(pk=expense_id, user=request.user)
-                initial = {
-                    'amount': src.amount,
-                    'date': src.date,
-                    'currency': src.currency,
-                    'account': src.account_id,
-                    'note': src.description,
-                    'subtype': 'other',
-                }
-            except Expense.DoesNotExist:
-                pass
+        src = _find_source_expense(request.user, expense_id)
+        if src:
+            initial = {
+                'amount': src.amount,
+                'date': src.date,
+                'currency': src.currency,
+                'account': src.account_id,
+                'note': src.description,
+                'subtype': 'other',
+            }
         
         if 'amount' in request.GET:
             initial['amount'] = request.GET.get('amount')
@@ -129,11 +139,10 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
 
                     # Optionally delete the original expense after conversion
                     if from_expense_id and request.POST.get('delete_source_expense') == '1':
-                        try:
-                            Expense.objects.get(pk=from_expense_id, user=request.user).delete()
+                        source_expense = _find_source_expense(request.user, from_expense_id)
+                        if source_expense:
+                            source_expense.delete()
                             messages.info(request, _("Original expense deleted after conversion."))
-                        except Expense.DoesNotExist:
-                            pass
 
                 messages.success(request, _("Capital event recorded successfully."))
                 ph_capture(request.user, 'capital_event_created', {'subtype': getattr(event, 'subtype', ''), 'amount': str(event.amount)})
@@ -183,9 +192,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
                 messages.success(request, _("Capital event updated."))
                 ph_capture(request.user, 'capital_event_updated', {})
                 next_url = request.POST.get('next') or request.GET.get('next')
-                if next_url:
-                    return redirect(next_url)
-                return redirect('capital-event-list')
+                return redirect(get_safe_redirect_url(request, next_url, reverse_lazy('capital-event-list')))
             except (RuntimeError, ValidationError):
                 messages.error(request, _("Unable to update capital event because currency conversion failed or data is invalid."))
                 next_url = request.POST.get('next') or request.GET.get('next') or ''
@@ -213,10 +220,11 @@ class CapitalEventDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteVie
     def get_queryset(self):
         return CapitalEvent.objects.filter(user=self.request.user)
 
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, _("Capital event deleted."))
+    def form_valid(self, form):
+        # Django 4+ deletes through form_valid on POST; a custom delete() is never called.
+        messages.success(self.request, _("Capital event deleted."))
         ph_capture(self.request.user, 'capital_event_deleted', {})
-        return super().delete(request, *args, **kwargs)
+        return super().form_valid(form)
 
     def get_success_url(self):
         next_url = self.request.GET.get('next') or self.request.POST.get('next')
@@ -239,7 +247,9 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
                     currency=event.currency,
                     description=event.note or event.get_subtype_display(),
                     category=event.get_subtype_display(),
-                    account=event.account,
+                    # An event kept out of cash flow never moved the account's balance, so the
+                    # expense it becomes must not start doing so.
+                    account=event.account if event.include_in_net_worth else None,
                 )
                 expense.save()
                 event.delete()

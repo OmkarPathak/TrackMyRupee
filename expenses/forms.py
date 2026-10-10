@@ -1528,6 +1528,14 @@ class CapitalEventForm(SearchableSelectFormMixin, forms.ModelForm):
             raise forms.ValidationError(_("Amount must be greater than zero."))
         return amount
 
+    def clean_date(self):
+        value = self.cleaned_data.get('date')
+        # A capital event is a payment that has happened: it moves the account balance right away.
+        # One day of slack so users ahead of the server's timezone can still log "today".
+        if value and value > timezone.localdate() + timedelta(days=1):
+            raise forms.ValidationError(_('Capital event date cannot be in the future.'))
+        return value
+
 
 class HoldingForm(forms.ModelForm):
     class Meta:
