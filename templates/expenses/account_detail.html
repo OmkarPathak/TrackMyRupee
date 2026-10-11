@@ -17,80 +17,9 @@
     max-height: 140px;
     height: auto;
 }
-/* Remove bottom border from last row to keep the card bottom clean */
-.table tbody tr:last-child td {
+/* The table, type pills and amount colours come from the shared tmr-table / style.css rules. */
+#tableView table tbody tr:last-child td {
     border-bottom: 0 !important;
-}
-.table {
-    border-bottom: 0 !important;
-}
-/* Soften table row borders for premium look */
-.table th, .table td {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-}
-[data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .table td {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
-
-@media (max-width: 767.98px) {
-    .transaction-ledger-card {
-        background-color: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-    .transaction-ledger-card .card-header {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        border-bottom: none !important;
-    }
-    .transaction-ledger-card .card-header form {
-        max-width: 100% !important;
-    }
-    .transaction-ledger-card .card-footer {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        border-top: none !important;
-    }
-    #mobileGridView {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }
-
-    #mobileGridView .expense-card .card-body > .mobile-card-inner {
-        display: grid !important;
-        /* Precise widths for card components: icon: 38px info: 1fr amount: 95px menu: 30px */
-        grid-template-columns: 38px minmax(0, 1fr) 95px 30px !important;
-        grid-template-areas: "icon info amount menu" !important;
-        align-items: center !important;
-        gap: 0 !important;
-        transition: all 0.3s ease;
-    }
-
-    #mobileGridView .expense-card .category-icon-container { 
-        grid-area: icon; 
-        margin: 0 !important; 
-        width: 32px !important;
-        height: 32px !important;
-        justify-self: center;
-    }
-    #mobileGridView .expense-card .flex-grow-1 { 
-        grid-area: info; 
-        margin: 0 !important; 
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
-        overflow: hidden;
-    }
-    #mobileGridView .expense-card .flex-shrink-0.text-end { 
-        grid-area: amount; 
-        margin: 0 !important; 
-        width: 100% !important;
-        padding-right: 4px; /* Space before menu */
-    }
-    #mobileGridView .expense-card .dropdown { 
-        grid-area: menu; 
-        margin: 0 !important; 
-        justify-self: center;
-    }
 }
 
 /* Card View Styles */

@@ -958,3 +958,122 @@ class TestForeignCurrencyDetail(AccountBase):
         response = self.client.get(reverse('account-detail', args=[self.usd.pk]))
         self.assertEqual(response.context['filtered_net_total'], D('-10.00'))
         self.assertEqual(self.bal(self.inr), D('100800.00'))
+
+
+class TestLedgerPresentation(AccountBase):
+    """The account ledger uses the same table vocabulary as All Transactions."""
+
+    def setUp(self):
+        super().setUp()
+        self.bank = self.acct('Bank', 10000)
+        self.other = self.acct('Savings', 0)
+
+    def detail(self, **params):
+        return self.client.get(reverse('account-detail', args=[self.bank.pk]), params)
+
+    def rows(self, **params):
+        return {r.transaction_type: r for r in self.detail(**params).context['page_obj']}
+
+    def populate(self):
+        Income.objects.create(user=self.user, account=self.bank, amount=D('5000'), source_type='Salary',
+                              date=today(), currency='₹', description='March salary')
+        Expense.objects.create(user=self.user, account=self.bank, amount=D('1200'), category='Food',
+                               date=today(), currency='₹', description='Dinner')
+        Transfer.objects.create(user=self.user, from_account=self.bank, to_account=self.other,
+                                amount=D('700'), date=today())
+        Transfer.objects.create(user=self.user, from_account=self.other, to_account=self.bank,
+                                amount=D('100'), date=today())
+        goal = SavingsGoal.objects.create(user=self.user, name='Trip', target_amount=D('9999'), currency='₹')
+        GoalContribution.objects.create(goal=goal, account=self.bank, amount=D('300'), date=today())
+
+    def test_each_row_has_a_kind_a_label_and_a_direction(self):
+        self.populate()
+        rows = self.rows()
+        self.assertEqual((rows['EXPENSE'].row_kind, rows['EXPENSE'].row_label, rows['EXPENSE'].row_is_inflow),
+                         ('expense', 'Expense', False))
+        self.assertEqual((rows['INCOME'].row_kind, rows['INCOME'].row_is_inflow), ('income', True))
+        self.assertEqual((rows['TRANSFER_OUT'].row_kind, rows['TRANSFER_OUT'].row_is_inflow), ('transfer', False))
+        self.assertEqual((rows['TRANSFER_IN'].row_kind, rows['TRANSFER_IN'].row_is_inflow), ('transfer', True))
+        self.assertEqual((rows['SAVINGS'].row_kind, rows['SAVINGS'].row_is_inflow), ('savings', False))
+
+    def test_the_category_or_source_badge_names_what_the_row_is(self):
+        self.populate()
+        rows = self.rows()
+        self.assertEqual(rows['EXPENSE'].row_badge, 'Food')
+        self.assertEqual(rows['INCOME'].row_badge, 'Salary')
+        self.assertEqual(rows['TRANSFER_OUT'].row_badge, 'To Savings')
+        self.assertEqual(rows['TRANSFER_IN'].row_badge, 'From Savings')
+        self.assertEqual(rows['SAVINGS'].row_badge, 'Trip')
+
+    def test_a_capital_event_left_out_of_net_worth_is_neutral(self):
+        from expenses.models import CapitalEvent
+        CapitalEvent.objects.create(user=self.user, account=self.bank, amount=D('900'), date=today(),
+                                    subtype='ASSET_PURCHASE', currency='₹', include_in_net_worth=False)
+        row = self.rows()['CAPITAL_EVENT']
+        self.assertTrue(row.row_is_neutral)
+        self.assertEqual(self.bal(self.bank), D('10000.00'))
+
+    def test_the_summary_adds_up_what_came_in_and_went_out(self):
+        self.populate()
+        context = self.detail().context
+        self.assertEqual(context['money_in'], D('5100.00'))
+        self.assertEqual(context['money_out'], D('2200.00'))
+        self.assertEqual(context['money_in'] - context['money_out'], context['filtered_net_total'])
+        self.assertEqual(context['row_count'], 5)
+
+    def test_the_summary_follows_the_filters_but_the_header_count_does_not(self):
+        self.populate()
+        context = self.detail(tx_type='EXPENSE').context
+        self.assertEqual((context['row_count'], context['money_in'], context['money_out']),
+                         (1, D('0.00'), D('1200.00')))
+        self.assertEqual(context['total_transactions'], 5)
+        self.assertEqual(self.detail().context['total_transactions'], 5)
+
+    def test_it_uses_the_shared_table_and_type_pills(self):
+        self.populate()
+        html = self.detail().content.decode()
+        self.assertIn('tmr-table', html)
+        self.assertIn('type-badge type-expense', html)
+        self.assertIn('type-badge type-income', html)
+        self.assertIn('type-badge type-transfer', html)
+        self.assertIn('type-badge type-savings', html)
+        self.assertIn('amount-income', html)
+        self.assertIn('amount-expense', html)
+
+    def test_the_shared_colours_live_in_the_global_stylesheet(self):
+        from pathlib import Path
+        css = (Path(__file__).resolve().parents[2] / 'static' / 'style.css').read_text()
+        for name in ('type-badge', 'type-expense', 'type-savings', 'amount-income', 'amount-expense', 'amount-neutral'):
+            self.assertIn(f'.{name}', css)
+
+    def test_edit_links_come_back_to_this_page(self):
+        self.populate()
+        html = self.detail(tx_type='EXPENSE').content.decode()
+        self.assertIn('/edit/?next=', html)
+
+    def test_the_amount_header_sorts_and_cycles(self):
+        self.populate()
+        html = self.detail().content.decode()
+        self.assertIn('amount-sort-link', html)
+        self.assertIn('sort=amount_desc', html)
+        self.assertIn('sort=amount_asc', self.detail(sort='amount_desc').content.decode())
+        self.assertIn('sort=date_desc', self.detail(sort='amount_asc').content.decode())
+
+    def test_the_toolbar_offers_the_ledger_filters(self):
+        config = self.detail().context['filter_config']
+        self.assertEqual([f.key for f in config.filters], ['tx_type', 'category', 'amount_range'])
+        self.assertTrue(config.supports_search)
+
+    def test_an_empty_ledger_says_so_and_a_filtered_one_offers_to_clear(self):
+        empty = self.detail().content.decode()
+        self.assertIn('no activities recorded for this account yet', empty)
+        self.assertNotIn('Clear Filters', empty)
+        self.populate()
+        filtered = self.detail(search='zzz-no-match').content.decode()
+        self.assertIn('Clear Filters', filtered)
+
+    def test_one_transaction_reads_in_the_singular(self):
+        Expense.objects.create(user=self.user, account=self.bank, amount=D('10'), category='Food',
+                               date=today(), currency='₹')
+        html = self.detail().content.decode()
+        self.assertIn('transaction</span>', html.replace('\n', ''))

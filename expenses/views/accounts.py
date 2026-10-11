@@ -1121,6 +1121,29 @@ class AccountDetailView(LoginRequiredMixin, View):
                 item.base_amount_display = item.base_amount if item.currency != account.currency else None
                 item.description = item.note if item.note else item.get_subtype_display()
 
+        # One vocabulary for the shared table: the row's kind (pill colour), what the Category/Source
+        # badge says, and whether money came in or went out of this account.
+        for item in page_obj:
+            self._decorate_row(item, account)
+
+        is_filtered = bool(
+            selected_tx_types or selected_categories or selected_amounts or search_query or time_period != 'all'
+        )
+        if is_filtered:
+            total_transactions = (
+                Expense.objects.filter(user=request.user, account=account).count()
+                + Income.objects.filter(user=request.user, account=account).count()
+                + Transfer.objects.filter(user=request.user).filter(Q(from_account=account) | Q(to_account=account)).count()
+                + GoalContribution.objects.filter(goal__user=request.user, account=account).count()
+                + LoanRepayment.objects.filter(loan__user=request.user, from_account=account).count()
+                + CapitalEvent.objects.filter(user=request.user, account=account).count()
+            )
+        else:
+            total_transactions = paginator.count
+
+        money_in = inc_total + in_total
+        money_out = exp_total + out_total + sav_total + loan_total + cap_total
+
         applied_filters = {}
         if selected_tx_types:
             applied_filters['tx_type'] = selected_tx_types
@@ -1131,6 +1154,10 @@ class AccountDetailView(LoginRequiredMixin, View):
 
         context = {
             'account': account,
+            'money_in': money_in,
+            'money_out': money_out,
+            'row_count': paginator.count,
+            'total_transactions': total_transactions,
             'ledger': page_obj,
             'page_obj': page_obj,
             'is_paginated': paginator.num_pages > 1,
@@ -1155,6 +1182,43 @@ class AccountDetailView(LoginRequiredMixin, View):
         response = render(request, template_name, context)
         patch_vary_headers(response, ['HX-Request'])
         return response
+
+    ROW_KINDS = {
+        'EXPENSE': ('expense', _('Expense'), False),
+        'INCOME': ('income', _('Income'), True),
+        'TRANSFER_OUT': ('transfer', _('Transfer'), False),
+        'TRANSFER_IN': ('transfer', _('Transfer'), True),
+        'SAVINGS': ('savings', _('Savings'), False),
+        'LOAN_REPAYMENT': ('loan', _('Loan Repayment'), False),
+        'CAPITAL_EVENT': ('capital_event', _('Capital Event'), False),
+    }
+
+    def _decorate_row(self, item, account):
+        kind, label, is_inflow = self.ROW_KINDS[item.transaction_type]
+        item.row_kind = kind
+        item.row_label = label
+        item.row_is_inflow = is_inflow
+        # A capital event that is left out of net worth never moved this account's balance.
+        item.row_is_neutral = item.transaction_type == 'CAPITAL_EVENT' and not item.include_in_net_worth
+
+        tag = item.transaction_type
+        badge, variant = '', 'primary'
+        if tag == 'EXPENSE':
+            badge, variant = item.category, 'danger'
+        elif tag == 'INCOME':
+            badge, variant = getattr(item, 'category', '') or item.source_type, 'success'
+        elif tag == 'TRANSFER_OUT':
+            badge = _('To %(name)s') % {'name': item.to_account.name}
+        elif tag == 'TRANSFER_IN':
+            badge = _('From %(name)s') % {'name': item.from_account.name}
+        elif tag == 'SAVINGS':
+            badge, variant = item.goal.name, 'warning'
+        elif tag == 'LOAN_REPAYMENT':
+            badge, variant = item.loan.name, 'warning'
+        elif tag == 'CAPITAL_EVENT':
+            badge, variant = item.get_subtype_display(), 'danger'
+        item.row_badge = badge
+        item.row_badge_variant = variant
 
     def get_trend_data(self, account, user):
         

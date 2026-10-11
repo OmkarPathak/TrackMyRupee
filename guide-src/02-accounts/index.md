@@ -92,15 +92,34 @@ Moving money between your own accounts is covered in [Transfers](../06-transfers
 
 ## 5. Reading Account Transaction History
 
-Click any account row to open its detail page. The page shows a ledger of all credits and debits, with relative timestamps such as "3 days ago" and "7 days ago".
+Click any account row to open its detail page. Below the balance and its trend chart is the account's full **Transaction History**: every expense, income, transfer in or out, goal contribution, loan repayment and capital event posted to that account.
 
 
 ![An account with its balance trend and history](img/account-detail-desktop.webp){ loading=lazy }
 
 
-Click the **History** button at the top right of the detail page to view the full unfiltered ledger for that account.
+The table looks and behaves like the [All Transactions](../03-transactions-expenses/index.md) page:
 
----
+| Column | What it shows |
+|---|---|
+| **Date** | When it happened |
+| **Type** | A coloured pill: Expense, Income, Transfer, Savings, Loan Repayment or Capital Event |
+| **Description** | Your note (long notes are cut short; hover to read all of it) |
+| **Category/Source** | The expense category, income source, the other account of a transfer ("To SBI Savings", "From HDFC"), the goal, the loan, or the capital event type |
+| **Amount** | Green with **+** when money came into this account, red with **-** when it left. A foreign-currency row also shows its value in your own currency underneath. A capital event you excluded from net worth never moved the balance, so it is shown in grey with no sign |
+| **Actions** | Edit or delete the row (or open its goal or loan). After saving you land back on this page |
+
+Click the **Amount** heading to sort by amount, and again to flip the order. On a phone the rows become cards grouped by day.
+
+Under the title, a line sums up what you are looking at: the number of transactions, the money **in**, the money **out** and the **net**. The totals are in the account's own currency and follow your filters. The count in the card at the top is always the account's total, whatever you filter.
+
+### Searching and filtering
+
+The same toolbar as the other list pages sits above the table:
+
+- **Search** matches descriptions, categories, income sources, goal and loan names.
+- **Time range** (All time by default), **Sort**, and **Filter** with **Transaction Type**, **Category** and **Amount**. Picking a category shows only expenses and income, because transfers, savings and loan rows have none.
+- Each active filter appears as a chip you can clear on its own, or use **Clear all**.
 
 ## 6. How Net Worth Is Calculated
 
