@@ -83,15 +83,16 @@ A **Systematic Investment Plan (SIP)** involves transferring a fixed amount regu
 
 As your SIP executes or when you make lump-sum investments, your holdings update in two distinct ways.
 
-### Updating Units and Purchase Price
-
-When new units are allocated by the AMC:
+### Adding and Removing Holdings
 
 1. Go to **Holdings** (`/holdings/`) or your account detail page.
-2. Click **Add Holding** (or open your existing holding to update it).
-3. Enter your updated cumulative **Units** and updated average purchase price (**Avg Cost**).
-4. The system updates your cost basis immediately:
-   $$\text{New Cost Basis} = \text{Updated Units} \times \text{New Avg Cost}$$
+2. Click **Add Holding** and enter the fund name (pick it from the search so its scheme code is filled in), your **Units** and your **Avg Cost** per unit. Both must be greater than zero. If you leave the scheme code blank, TrackMyRupee tries to find it from the name.
+3. The cost basis is calculated immediately:
+   $$\text{Cost Basis} = \text{Units} \times \text{Avg Cost}$$
+
+A holding cannot be edited in place. When more units are allocated, remove the old holding and add it again with the new cumulative units and average cost. **Delete** only hides the holding (it stops counting in the portfolio), it does not touch your account balance.
+
+The totals at the top of the Holdings page are in your own currency: a holding in another currency is converted at the latest exchange rate before it is added in.
 
 ### Automatic Daily NAV Updates
 

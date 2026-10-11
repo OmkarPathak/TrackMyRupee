@@ -51,6 +51,15 @@ The transfer debits the **From Account** and credits the **To Account** immediat
 
 The transfer appears in the **Transactions** list at `/transactions/` with a special transfer indicator. It does not appear in the Expenses or Income lists.
 
+### Rules a transfer follows
+
+- The amount must be greater than zero, and the two accounts must be different and both yours and active.
+- **Different currencies**: the amount is in the **From Account's** currency and is converted for the receiving account at the current exchange rate (Rs. 8,000 into a dollar account at 80 credits $100).
+- **Credit cards** can be the source: the balance simply goes further negative.
+- **Locked accounts** (over your plan's limit) cannot be used.
+- **Double clicks** are safe: the form carries a one-time key, so submitting twice creates one transfer.
+- **Editing** a transfer moves only the difference. **Deleting** it returns the money to the From Account and takes it back from the To Account.
+
 !!! warning "Do not log a transfer as Expense and Income"
     A common mistake is logging the outflow as an expense from one account and the inflow as income to another. This double-counts the money in your Analytics, inflating both your total expense and total income figures by the transferred amount. Always use Add → Internal Transfer instead.
 

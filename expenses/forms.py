@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_recaptcha.fields import ReCaptchaField
@@ -1014,6 +1015,12 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             self.fields['linked_physical_asset'].queryset = PhysicalAsset.objects.none()
             self.fields['premium_payment_account'].queryset = Account.objects.none()
 
+        if self._has_activity():
+            # Transactions are stored against this account in its currency; changing it would
+            # relabel every balance without converting it.
+            self.fields['currency'].disabled = True
+            self.fields['currency'].help_text = _('Locked: this account already has transactions.')
+
         if self.instance and self.instance.pk:
             has_income = Income.objects.filter(account=self.instance, source_type='Investment Returns').exists()
             if getattr(self.instance, 'record_maturity_income', False) or has_income:
@@ -1037,6 +1044,45 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 ).first()
                 if rt and rt.account:
                     self.initial['premium_payment_account'] = rt.account
+
+    def _has_activity(self):
+        """True once anything has been posted to this account (its currency is then fixed)."""
+        from .models import CapitalEvent
+        account = self.instance
+        if not account.pk:
+            return False
+        return (
+            Expense.objects.filter(account=account).exists()
+            or Income.objects.filter(account=account).exists()
+            or Transfer.objects.filter(Q(from_account=account) | Q(to_account=account)).exists()
+            or GoalContribution.objects.filter(account=account).exists()
+            or LoanRepayment.objects.filter(from_account=account).exists()
+            or CapitalEvent.objects.filter(account=account).exists()
+        )
+
+    def clean_credit_limit(self):
+        value = self.cleaned_data.get('credit_limit')
+        if value is not None and value < 0:
+            raise forms.ValidationError(_('Credit limit cannot be negative.'))
+        return value
+
+    def clean_deposit_principal(self):
+        value = self.cleaned_data.get('deposit_principal')
+        if value is not None and value < 0:
+            raise forms.ValidationError(_('Deposit principal cannot be negative.'))
+        return value
+
+    def clean_deposit_rate(self):
+        value = self.cleaned_data.get('deposit_rate')
+        if value is not None and not 0 <= value <= 100:
+            raise forms.ValidationError(_('Interest rate must be between 0 and 100 percent.'))
+        return value
+
+    def clean_rd_installment_amount(self):
+        value = self.cleaned_data.get('rd_installment_amount')
+        if value is not None and value < 0:
+            raise forms.ValidationError(_('Installment amount cannot be negative.'))
+        return value
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
@@ -1373,13 +1419,8 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
         if from_account == to_account:
             raise forms.ValidationError(_("Source and destination accounts must be different."))
         
-        if amount and amount <= 0:
+        if amount is not None and amount <= 0:
             raise forms.ValidationError(_("Transfer amount must be greater than zero."))
-
-        if from_account and amount and from_account.balance < amount:
-            # Allow negative balances to show "liability", example: in case of credit cards, 
-            # the account balance can be negative
-            pass
 
         return cleaned_data
 

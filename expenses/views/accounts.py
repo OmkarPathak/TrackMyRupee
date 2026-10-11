@@ -16,6 +16,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
 from expenses.views.utils import get_safe_redirect_url
@@ -112,14 +113,16 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
         account_list = list(queryset)
             
-        # Annotate locked status
+        # Annotate locked status. The plan keeps the oldest accounts open, whatever the list is
+        # currently sorted or filtered by, so the locked set comes from creation order alone.
+        locked_ids = set()
         if self.request.user.is_authenticated:
             limit = get_limit(self.request.user.profile.active_tier, 'accounts')
-            for i, acc in enumerate(account_list):
-                acc.is_locked = (limit != -1 and i >= limit)
-        else:
-            for acc in account_list:
-                acc.is_locked = False
+            if limit != -1:
+                oldest_first = Account.objects.filter(user=self.request.user, is_active=True).order_by('created_at', 'id')
+                locked_ids = set(oldest_first.values_list('id', flat=True)[limit:])
+        for acc in account_list:
+            acc.is_locked = acc.is_active and acc.id in locked_ids
 
         return account_list
 
@@ -530,6 +533,10 @@ class AccountRestoreView(LoginRequiredMixin, View):
             messages.error(request, _("You have reached the limit of %(limit)s accounts for your current plan. Please upgrade to restore this account.") % {'limit': limit})
             return redirect('pricing')
             
+        if Account.objects.filter(user=request.user, name__iexact=account.name, is_active=True).exists():
+            messages.error(request, _("An account named '%(name)s' already exists. Rename it before restoring this one.") % {'name': account.name})
+            return redirect(f"{reverse_lazy('account-list')}?status=inactive")
+
         account.is_active = True
         account.save()
         messages.success(request, _("Account restored successfully!"))
@@ -609,7 +616,7 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         next_url = self.request.GET.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, reverse_lazy('transfer-list'))
         return super().get_success_url()
 
     def dispatch(self, request, *args, **kwargs):
@@ -676,7 +683,7 @@ class TransferUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     def get_success_url(self):
         next_url = self.request.GET.get('next')
         if next_url:
-            return next_url
+            return get_safe_redirect_url(self.request, next_url, reverse_lazy('transfer-list'))
         return super().get_success_url()
 
     def get_form_kwargs(self):
@@ -1503,7 +1510,11 @@ def holding_create_view(request, pk=None):
     from ..models import AMFIScheme, Holding
     from ..nav_provider import NAVFetchService
 
-    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse_lazy('holding-list')
+    next_url = get_safe_redirect_url(
+        request,
+        request.POST.get('next') or request.META.get('HTTP_REFERER'),
+        reverse_lazy('holding-list'),
+    )
     account_id = pk or request.POST.get('account_id')
     
     if not account_id:
@@ -1574,6 +1585,7 @@ def holding_create_view(request, pk=None):
     return redirect(next_url)
 
 
+@require_POST
 def holding_delete_view(request, pk):
     """
     Deactivates a Holding from an account.
@@ -1591,7 +1603,11 @@ def holding_delete_view(request, pk):
     messages.success(request, _("Holding '%(name)s' removed.") % {'name': holding.instrument_name})
     ph_capture(request.user, 'holding_deleted', {})
     
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or reverse_lazy('holding-list')
+    next_url = get_safe_redirect_url(
+        request,
+        request.POST.get('next') or request.GET.get('next') or request.META.get('HTTP_REFERER'),
+        reverse_lazy('holding-list'),
+    )
     return redirect(next_url)
 
 
@@ -1616,13 +1632,23 @@ class HoldingsListView(LoginRequiredMixin, ListView):
         total_valuation = Decimal('0.00')
         total_cost = Decimal('0.00')
         
+        user_currency = self.request.user.profile.currency
+        rates = {}
+
+        def to_user_currency(amount, currency):
+            if currency == user_currency:
+                return amount
+            if currency not in rates:
+                try:
+                    rates[currency] = get_exchange_rate(currency, user_currency)
+                except Exception:
+                    rates[currency] = Decimal('1.0')
+            return (amount * rates[currency]).quantize(Decimal('0.01'))
+
         for h in holdings:
             val = h.valuations.first()
-            if val:
-                total_valuation += val.value
-            else:
-                total_valuation += h.cost_basis
-            total_cost += h.cost_basis
+            total_valuation += to_user_currency(val.value if val else h.cost_basis, h.currency)
+            total_cost += to_user_currency(h.cost_basis, h.currency)
             
         unrealized_gain = total_valuation - total_cost
         gain_pct = ((unrealized_gain / total_cost) * Decimal('100')).quantize(Decimal('0.1')) if total_cost > 0 else Decimal('0.0')

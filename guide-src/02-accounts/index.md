@@ -38,7 +38,13 @@ The form is a two-step wizard:
 
 Click **Save** when done.
 
----
+Account names must be unique among your active accounts (capital letters do not matter, so "HDFC" and "hdfc" clash). A credit limit and a deposit principal cannot be negative, and an interest rate must be between 0 and 100.
+
+!!! info "How many accounts you can have"
+    Free allows 2 active accounts, Plus allows 10, and Pro is unlimited. Deleted accounts do not count. If you go over a limit (for example after a downgrade), your **oldest** accounts stay open and the newer ones are locked until you upgrade or delete some: a locked account cannot be opened, edited or used in a transfer. Pinning or searching never changes which accounts are locked.
+
+!!! info "Balances are stored in the account's currency"
+    An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the **currency of an account is locked** as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or capital event). Change it only while the account is unused.
 
 ## 3. Account Types Reference
 
@@ -71,10 +77,16 @@ Click **Save** when done.
 
 Click any account row to open its detail page. Use the pencil (edit) icon to update the Account Name, Initial Balance, or any type-specific fields.
 
-If an account no longer needs new transactions but has transaction history you want to keep, mark it **Inactive** instead of deleting it. Inactive accounts are hidden from transaction pickers but their full history is preserved.
+**Deleting an account does not erase anything.** It marks the account inactive: it disappears from the list, from transaction pickers and from net worth, but every expense, income, transfer and other row you posted to it stays in place, and you can still open its history. To see deleted accounts, open the **Inactive** view on the Accounts page.
 
-!!! warning "Deleting vs. deactivating"
-    Deleting an account removes the account record. Any past expenses, incomes, and transfers linked to it will lose their account reference - those transaction records stay in the system but the account field becomes blank on them. If the account has any history, deactivate it instead.
+Use **Restore** on an inactive account to bring it back. Restoring is refused if you are already at your plan's account limit, or if another active account now has the same name (rename one of them first).
+
+!!! warning "Editing the balance"
+    Editing the balance by hand treats the number you enter as the truth and records the difference as an adjustment. It does not create an income or expense, so your reports do not change.
+
+### Transfers between accounts
+
+Moving money between your own accounts is covered in [Transfers](../06-transfers/index.md). Editing or deleting a transfer puts the money back exactly as it was before applying the change.
 
 ---
 
