@@ -20,7 +20,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models import Case, Count, Q, Sum, When
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.formats import date_format
 from django.utils import timezone
@@ -54,231 +54,52 @@ class CalendarView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
     htmx_template_name = 'expenses/partials/_calendar_content.html'
 
     def get_context_data(self, **kwargs):
+        from .. import calendar_data
+
         context = super().get_context_data(**kwargs)
-        today = datetime.now()
-        
-        # Get year/month from URL or default to current
-        year = self.kwargs.get('year', today.year)
-        month = self.kwargs.get('month', today.month)
-        
-        # Validate year/month
-        try:
-            year = int(year)
-            month = int(month)
-            if month < 1 or month > 12:
-                raise ValueError
-        except ValueError:
-            year = today.year
-            month = today.month
+        today = timezone.localdate()
+        year, month = calendar_data.clamp_month(
+            self.kwargs.get('year', today.year), self.kwargs.get('month', today.month), today)
+        prev_year, prev_month = calendar_data.shift_month(year, month, -1)
+        next_year, next_month = calendar_data.shift_month(year, month, 1)
+        search_query = self.request.GET.get('search', '').strip()
 
-        # Calculate prev/next month for navigation
-        if month == 1:
-            prev_month_date = date(year - 1, 12, 1)
-        else:
-            prev_month_date = date(year, month - 1, 1)
-            
-        if month == 12:
-            next_month_date = date(year + 1, 1, 1)
-        else:
-            next_month_date = date(year, month + 1, 1)
-
-        # Get search query
-        search_query = self.request.GET.get('search', '')
-
-        # Base filters
-        expense_filters = Q(user=self.request.user, date__year=year, date__month=month)
-        income_filters = Q(user=self.request.user, date__year=year, date__month=month)
-        
-        if search_query:
-            # Filter expenses by description or category
-            expense_filters &= (Q(description__icontains=search_query) | Q(category__icontains=search_query))
-            # Filter income by source or description
-            income_filters &= (Q(source__icontains=search_query) | Q(description__icontains=search_query))
-
-        # Get Expense Data for the month
-        expenses = Expense.objects.filter(expense_filters).values('date').annotate(
-            total=Sum('base_amount'),
-            count=Count('id')
-        )
-        
-        # Get Income Data for the month via DB aggregation
-        income_qs = Income.objects.filter(income_filters).values('date').annotate(
-            total=Sum('base_amount'),
-            count=Count('id'),
-            salary_count=Count(Case(
-                When(Q(source_type='Salary') | Q(description__icontains='salary') | Q(source__icontains='salary'), then=1),
-                default=None
-            ))
-        )
-        from collections import defaultdict
-        income_map = defaultdict(lambda: {'total': 0, 'count': 0, 'has_salary': False})
-        for item in income_qs:
-            day = item['date'].day
-            income_map[day] = {
-                'total': item['total'] or 0,
-                'count': item['count'],
-                'has_salary': (item['salary_count'] or 0) > 0
-            }
-
-        # Get investment data (Transfers to investment/FD accounts)
-        investment_filters = Q(user=self.request.user, date__year=year, date__month=month, to_account__account_type__in=list(investment_codes()))
-        if search_query:
-            investment_filters &= (Q(description__icontains=search_query) | Q(to_account__name__icontains=search_query))
-        
-        investments = Transfer.objects.filter(investment_filters).values('date').annotate(
-            total=Sum('converted_amount'),
-            count=Count('id')
-        )
-        
-        # Map data for easy lookup by day
-        # Keys are integers (day of month)
-        expense_map = {e['date'].day: {'total': e['total'], 'count': e['count']} for e in expenses}
-        investment_map = {inv['date'].day: {'total': inv['total'], 'count': inv['count']} for inv in investments}
-        
-        # Calculate average daily expense for non-zero expense days
-        expense_days = [float(e['total']) for e in expenses if float(e['total']) > 0]
-        avg_expense = sum(expense_days) / len(expense_days) if expense_days else 0
-        
-        # Get pending recurring transactions for the month
-        pending_recurring_map = defaultdict(list)
-        recurring_configs = RecurringTransaction.objects.filter(user=self.request.user, is_active=True)
-        
-        view_month_start = date(year, month, 1)
-        last_day = calendar.monthrange(year, month)[1]
-        view_month_end = date(year, month, last_day)
-        
-        for rt in recurring_configs:
-            check_date = rt.next_due_date
-            if not check_date:
-                continue
-            
-            # Project forward if the next due date is before the viewing month
-            forward_iterations = 0
-            while check_date < view_month_start:
-                if forward_iterations >= MAX_CATCHUP_PER_RUN:
-                    logger.warning(
-                        "RecurringTransaction %s exceeded iteration cap (%s) during forward projection to %s.",
-                        rt.id, MAX_CATCHUP_PER_RUN, view_month_start,
-                    )
-                    break
-                if rt.end_date and check_date > rt.end_date:
-                    break
-                check_date = rt.get_next_date(check_date, rt.frequency)
-                forward_iterations += 1
-            
-            # Collect all occurrences within the month
-            month_iterations = 0
-            while check_date <= view_month_end:
-                if month_iterations >= MAX_CATCHUP_PER_RUN:
-                    logger.warning(
-                        "RecurringTransaction %s exceeded iteration cap (%s) during monthly occurrence collection for %s-%s.",
-                        rt.id, MAX_CATCHUP_PER_RUN, year, month,
-                    )
-                    break
-                if rt.end_date and check_date > rt.end_date:
-                    break
-                # Only show if not yet processed
-                if check_date > (rt.last_processed_date or date(1900, 1, 1)):
-                    pending_recurring_map[check_date.day].append({
-                        'description': rt.description,
-                        'amount': float(rt.amount),
-                        'type': rt.transaction_type,
-                        'currency': rt.currency
-                    })
-                check_date = rt.get_next_date(check_date, rt.frequency)
-                month_iterations += 1
-
-        # Build Calendar Grid
-        cal = calendar.Calendar(firstweekday=6) # Start on Sunday
-        month_days = cal.monthdayscalendar(year, month)
-        
-        # Transform into a list of weeks, where each day is an object
-        calendar_data = []
-        for week in month_days:
-            week_data = []
-            for day in week:
-                if day == 0:
-                    week_data.append(None) # Empty slot
-                else:
-                    expense_info = expense_map.get(day, {'total': 0, 'count': 0})
-                    income_info = income_map.get(day, {'total': 0, 'count': 0, 'has_salary': False})
-                    investment_info = investment_map.get(day, {'total': 0, 'count': 0})
-                    
-                    total_activity = float(income_info['total'] or 0) + float(expense_info['total'] or 0) + float(investment_info['total'] or 0)
-                    pending_recurring = pending_recurring_map.get(day, [])
-                    pending_total = sum(pr['amount'] for pr in pending_recurring)
-                    
-                    # Highlight salary day
-                    has_pending_salary = any(pr['type'] == 'INCOME' and 'salary' in pr['description'].lower() for pr in pending_recurring)
-                    is_salary_day = income_info['has_salary'] or has_pending_salary
-                    
-                    # Add is_high_spend flag
-                    is_high_spend = False
-                    if expense_info['total'] > 0:
-                        if avg_expense > 0:
-                            is_high_spend = float(expense_info['total']) >= avg_expense and float(expense_info['total']) >= 500
-                        else:
-                            is_high_spend = float(expense_info['total']) >= 500
-                            
-                    # Check if this day is a subscription date with a 3-day warning
-                    subscription_warning = False
-                    if pending_recurring:
-                        try:
-                            cell_date = date(year, month, day)
-                            today_date = date.today()
-                            if 0 <= (cell_date - today_date).days <= 3:
-                                subscription_warning = True
-                        except ValueError:
-                            pass
-                    
-                    week_data.append({
-                        'day': day,
-                        'income': income_info['total'],
-                        'income_count': income_info['count'],
-                        'expense': expense_info['total'],
-                        'expense_count': expense_info['count'],
-                        'investment': investment_info['total'],
-                        'investment_count': investment_info['count'],
-                        'total_count': income_info['count'] + expense_info['count'] + investment_info['count'],
-                        'total_activity': total_activity,
-                        'pending_recurring': pending_recurring,
-                        'pending_total': pending_total,
-                        'is_salary_day': is_salary_day,
-                        'is_high_spend': is_high_spend,
-                        'subscription_warning': subscription_warning
-                    })
-            calendar_data.append(week_data)
-        
-        # Find max activity for heatmap normalization
-        all_activities = [d['total_activity'] for week in calendar_data for d in week if d]
-        max_activity = max(all_activities) if all_activities else 0
-        
-        # Assign intensity (0-4)
-        for week in calendar_data:
-            for day_data in week:
-                if day_data:
-                    if max_activity > 0:
-                        ratio = day_data['total_activity'] / max_activity
-                        if ratio == 0: intensity = 0
-                        elif ratio <= 0.25: intensity = 1
-                        elif ratio <= 0.5: intensity = 2
-                        elif ratio <= 0.75: intensity = 3
-                        else: intensity = 4
-                    else:
-                        intensity = 0
-                    day_data['intensity'] = intensity
-
-        context['calendar_data'] = calendar_data
-        context['current_year'] = year
-        context['current_month'] = month
-        context['month_name'] = date_format(date(year, month, 1), 'F')
-        context['prev_year'] = prev_month_date.year
-        context['prev_month'] = prev_month_date.month
-        context['next_year'] = next_month_date.year
-        context['next_month'] = next_month_date.month
-        context['search_query'] = search_query
-        
+        weeks = calendar_data.build_month(self.request.user, year, month, today, search_query)
+        context.update({
+            'calendar_data': weeks,
+            'current_year': year,
+            'current_month': month,
+            'month_name': date_format(date(year, month, 1), 'F'),
+            'prev_year': prev_year, 'prev_month': prev_month,
+            'next_year': next_year, 'next_month': next_month,
+            'search_query': search_query,
+            'today': today,
+            # the day opened in the detail panel: today when viewing this month, else nothing yet
+            'selected_iso': today.isoformat() if (year, month) == (today.year, today.month) else '',
+        })
         return context
+
+
+class CalendarDayView(LoginRequiredMixin, TemplateView):
+    """The detail panel of one day (what happened, what is due, what is coming up)."""
+    template_name = 'expenses/partials/_calendar_day.html'
+
+    def get_context_data(self, **kwargs):
+        from .. import calendar_data
+
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+        try:
+            day = date(int(self.kwargs['year']), int(self.kwargs['month']), int(self.kwargs['day']))
+        except (ValueError, OverflowError):
+            raise Http404
+        if not (calendar_data.MIN_YEAR <= day.year <= today.year + calendar_data.MAX_YEARS_AHEAD):
+            raise Http404
+        context.update(calendar_data.day_detail(
+            self.request.user, day, today, self.request.GET.get('search', '').strip()))
+        context['search_query'] = self.request.GET.get('search', '').strip()
+        return context
+
 
 @login_required
 def upload_view(request):

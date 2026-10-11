@@ -916,6 +916,7 @@ class TMRFilterSystem {
       if (sY && sM && sD && eY && eM && eD) {
         if (sY === eY) {
           if (sM === eM) {
+            if (sD === eD) return `${sD} ${months[sM - 1]} ${sY}`;   // a single day
             return `${sD}–${eD} ${months[sM - 1]} ${sY}`;
           }
           return `${sD} ${months[sM - 1]} – ${eD} ${months[eM - 1]} ${sY}`;

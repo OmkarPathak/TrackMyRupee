@@ -1,78 +1,10 @@
 {% extends 'base.html' %}
-{% load i18n digit_filters %}
+{% load i18n static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=1.9">
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}">
 <div class="fade-in">
     {% include 'expenses/partials/_calendar_content.html' %}
 </div>
-
-<style>
-    /* Ensure the grid borders align nicely */
-    .d-grid > div:last-child {
-        border-right: none !important;
-    }
-
-    .small-xs {
-        font-size: 0.7rem;
-    }
-
-    .day-cell {
-        transition: background-color 0.15s ease-in-out;
-        overflow: hidden;
-    }
-
-    .day-cell:hover {
-        background-color: rgba(var(--bs-primary-rgb), 0.03);
-    }
-
-    .subscription-warning-ring {
-        outline: 2px solid #fd7e14 !important;
-        outline-offset: -2px;
-    }
-
-    .salary-day-highlight {
-        background-color: rgba(108, 117, 125, 0.08) !important;
-    }
-    [data-bs-theme="dark"] .salary-day-highlight {
-        background-color: rgba(173, 181, 189, 0.12) !important;
-    }
-
-    .salary-star {
-        color: #6c757d !important;
-    }
-    [data-bs-theme="dark"] .salary-star {
-        color: #adb5bd !important;
-    }
-
-    /* Heatmap Intensities - Using the theme's teal color #1D9E75 (approx RGB: 29, 158, 117) */
-    .heatmap-tile {
-        width: 12px;
-        height: 12px;
-        border-radius: 2px;
-        border: 1px solid rgba(0,0,0,0.05);
-    }
-    
-    .heatmap-0 { background-color: transparent; }
-    .heatmap-1 { background-color: rgba(29, 158, 117, 0.08); }
-    .heatmap-2 { background-color: rgba(29, 158, 117, 0.2); }
-    .heatmap-3 { background-color: rgba(29, 158, 117, 0.4); }
-    .heatmap-4 { background-color: rgba(29, 158, 117, 0.65); }
-    
-    [data-bs-theme="dark"] .heatmap-1 { background-color: rgba(29, 158, 117, 0.15); }
-    [data-bs-theme="dark"] .heatmap-2 { background-color: rgba(29, 158, 117, 0.3); }
-    [data-bs-theme="dark"] .heatmap-3 { background-color: rgba(29, 158, 117, 0.5); }
-    [data-bs-theme="dark"] .heatmap-4 { background-color: rgba(29, 158, 117, 0.8); }
-
-    .heatmap-4 .fw-bold, .heatmap-4 .text-muted {
-        color: inherit !important;
-    }
-    
-    /* Mobile optimization */
-    @media (max-width: 768px) {
-        .day-cell {
-            min-height: 60px !important; /* Smaller height for mobile */
-            padding: 0.25rem !important;
-        }
-    }
-</style>
 {% endblock %}

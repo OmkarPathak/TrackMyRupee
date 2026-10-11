@@ -74,6 +74,7 @@ urlpatterns = [
     # Calendar
     path('calendar/', views.CalendarView.as_view(), name='calendar'),
     path('calendar/<int:year>/<int:month>/', views.CalendarView.as_view(), name='calendar-month'),
+    path('calendar/day/<int:year>/<int:month>/<int:day>/', views.CalendarDayView.as_view(), name='calendar-day'),
     # Recurring Transactions
     path('recurring/', views.RecurringTransactionListView.as_view(), name='recurring-list'),
     path('pricing/', views.PricingView.as_view(), name='pricing'),

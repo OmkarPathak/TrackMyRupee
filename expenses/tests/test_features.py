@@ -75,7 +75,9 @@ class FeatureViewTest(BaseFeatureTest):
         self.assertTemplateUsed(response, 'expenses/partials/_calendar_content.html')
         self.assertTemplateNotUsed(response, 'base.html')
 
-    def test_calendar_with_stale_recurring_transaction_iteration_cap(self):
+    def test_calendar_with_a_years_old_unposted_daily_schedule(self):
+        """A schedule that has been due for five years is projected by arithmetic, not day by day:
+        the page stays quick and the schedule shows on every day of the month."""
         past_date = date.today() - timedelta(days=365 * 5)
         RecurringTransaction.objects.create(
             user=self.user,
@@ -89,11 +91,11 @@ class FeatureViewTest(BaseFeatureTest):
             is_active=True,
         )
 
-        with self.assertLogs('expenses.views.misc', level='WARNING') as cm:
-            response = self.client.get(reverse('calendar'))
+        response = self.client.get(reverse('calendar'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(any("exceeded iteration cap" in log for log in cm.output))
+        cells = [c for week in response.context['calendar_data'] for c in week if c]
+        self.assertTrue(all(len(c['pending']) == 1 for c in cells))
 
     def test_budget_view(self):
         url = reverse('budget')

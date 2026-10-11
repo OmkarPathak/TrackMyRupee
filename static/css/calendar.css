@@ -1,0 +1,178 @@
+/* Calendar page. Every colour comes from the theme tokens in style.css, which already define the
+   light and dark values (--color-success-text, --color-danger-text, --color-info-text, --color-muted-text,
+   --color-warning, --color-primary, --bs-success-rgb ...), so nothing here is hard-coded per theme. */
+
+.cal {
+  --cal-in: var(--color-success-text);
+  --cal-out: var(--color-danger-text);
+  --cal-invest: var(--color-info-text);
+  --cal-pending: var(--color-muted-text);
+  --cal-star: var(--color-warning);
+  --cal-due: var(--color-warning);
+  --cal-ink: var(--color-primary);
+  --cal-on-ink: var(--bs-body-bg);
+  --cal-cell: var(--bs-body-bg);
+  --cal-line: var(--bs-border-color-translucent);
+  --cal-gap: 0.75rem;
+  --cal-radius: 1rem;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+.cal-title { font-weight: 800; letter-spacing: -0.02em; margin: 0; font-size: clamp(1.35rem, 2.6vw, 1.9rem); white-space: nowrap; }
+
+/* The month grid fills the screen below the page header (the detail panel is under the fold). */
+.cal-main { display: flex; flex-direction: column; height: calc(100dvh - 7.5rem); min-height: 30rem; }
+.cal-head { display: flex; align-items: center; gap: .75rem; margin-bottom: .6rem; flex-wrap: nowrap; }
+.cal-nav { display: flex; align-items: center; gap: .6rem; }
+.cal-search-form { margin: 0 0 0 auto; flex: 0 1 22rem; min-width: 0; }
+.cal-search-form .tmr-search-box { max-width: none; width: 100%; min-width: 0; }   /* the shared search box (tmr_filter.css), sized by this row */
+.cal-weeks { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--cal-gap); }
+.cal-weeks .cal-week { flex: 1 1 0; min-height: 0; margin-bottom: 0; }
+.cal-nav-btn {
+  width: 2.1rem; height: 2.1rem; border-radius: 50%; flex: none; padding: 0; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--cal-cell); border: 1px solid var(--cal-line); color: var(--bs-body-color);
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.cal-nav-btn i { display: block; line-height: 1; font-size: 1rem; width: 1em; height: 1em; text-align: center; }
+.cal-nav-btn i::before { display: block; line-height: 1; vertical-align: 0; }
+.cal-nav-btn:hover { border-color: var(--cal-ink); }
+.cal-btn-ink {
+  background: var(--cal-ink); color: var(--cal-on-ink); border: 0; border-radius: .75rem;
+  padding: .45rem 1rem; font-weight: 700; font-size: .9rem; text-decoration: none; white-space: nowrap;
+}
+.cal-btn-ink:hover { color: var(--cal-on-ink); opacity: .9; }
+
+/* ── Legend ─────────────────────────────────────────────────────────── */
+.cal-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem 1rem; font-size: .75rem; color: var(--bs-secondary-color); margin-bottom: .5rem; }
+.cal-legend > span { display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; line-height: 1.2; }
+.cal-legend .dot { display: inline-block; flex: none; width: .6rem; height: .6rem; border-radius: 50%; }
+.cal-legend .dot.in { background: var(--cal-in); }
+.cal-legend .dot.out { background: var(--cal-out); }
+.cal-legend .dot.invest { background: var(--cal-invest); }
+.cal-legend .dot.pending { background: var(--cal-pending); }
+.cal-legend .star { flex: none; color: var(--cal-star); font-size: .8rem; line-height: 1; }
+.cal-legend .ring { display: inline-block; flex: none; box-sizing: border-box; margin: 0; width: .75rem; height: .75rem; border: 2px solid var(--cal-due); border-radius: .2rem; }
+.cal-heat-scale { display: inline-flex; align-items: center; gap: .3rem; margin-left: auto; white-space: nowrap; }
+.cal-heat-swatch { width: .9rem; height: .9rem; border-radius: .25rem; border: 1px solid var(--cal-line); }
+
+/* Heat: the success tint, which the dark theme redefines through --bs-success-rgb. */
+.cal-heat-0 { background-color: var(--cal-cell); }
+.cal-heat-1 { background-color: rgba(var(--bs-success-rgb), 0.07); }
+.cal-heat-2 { background-color: rgba(var(--bs-success-rgb), 0.15); }
+.cal-heat-3 { background-color: rgba(var(--bs-success-rgb), 0.25); }
+.cal-heat-4 { background-color: rgba(var(--bs-success-rgb), 0.38); }
+
+/* ── Grid ───────────────────────────────────────────────────────────── */
+.cal-weekdays, .cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--cal-gap); }
+.cal-weekdays { padding: 0 .25rem .5rem; margin-bottom: .6rem; border-bottom: 1px solid var(--cal-line); text-align: center; font-size: .8rem; font-weight: 700; color: var(--bs-secondary-color); text-transform: uppercase; letter-spacing: .04em; }
+.cal-cell {
+  position: relative; display: flex; flex-direction: column; min-height: 0; overflow: hidden; padding: .5rem .65rem;
+  border-radius: var(--cal-radius); border: 1px solid var(--cal-line); cursor: pointer; text-align: left;
+  color: var(--bs-body-color); transition: transform .12s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.cal-cell:hover { border-color: var(--cal-ink); }
+.cal-cell:focus-visible { outline: 2px solid var(--cal-ink); outline-offset: 2px; }
+.cal-cell.is-due { border: 2px solid var(--cal-due); }
+.cal-cell.is-selected { box-shadow: 0 0 0 2px var(--cal-ink); }
+.cal-cell-blank { visibility: hidden; }
+
+.cal-cell-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .2rem .35rem; margin-bottom: .25rem; }
+.cal-daynum { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6rem; height: 1.6rem; font-weight: 700; font-size: .95rem; border-radius: 999px; padding: 0 .3rem; }
+.cal-cell.is-today .cal-daynum { background: var(--cal-ink); color: var(--cal-on-ink); }
+.cal-star { color: var(--cal-star); font-size: .8rem; margin-left: .25rem; }
+.cal-due-tag {
+  font-size: .62rem; font-weight: 700; padding: .1rem .45rem; border-radius: 999px; white-space: nowrap;
+  background: rgba(var(--bs-warning-rgb), 0.18); color: var(--color-warning-text);
+}
+
+.cal-lines { margin-top: auto; display: flex; flex-direction: column; gap: .2rem; }
+.cal-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: .4rem; }
+.cal-line b { font-size: .88rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cal-line small { font-size: .68rem; color: var(--bs-secondary-color); white-space: nowrap; }
+.cal-in { color: var(--cal-in); }
+.cal-out { color: var(--cal-out); }
+.cal-invest { color: var(--cal-invest); }
+.cal-pend-list { margin-top: .35rem; padding-top: .35rem; border-top: 1px dashed var(--cal-line); display: flex; flex-direction: column; gap: .15rem; }
+.cal-pend { display: flex; justify-content: space-between; gap: .4rem; font-size: .72rem; color: var(--cal-pending); }
+.cal-pend span:first-child { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-pend span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cal-more { text-align: center; font-size: .65rem; color: var(--cal-pending); }
+
+.cal-dots { display: none; gap: .2rem; justify-content: center; margin-top: auto; }
+.cal-dots i { width: .32rem; height: .32rem; border-radius: 50%; display: inline-block; background: var(--cal-pending); }
+.cal-dots i.in { background: var(--cal-in); }
+.cal-dots i.out { background: var(--cal-out); }
+.cal-dots i.invest { background: var(--cal-invest); }
+.cal-dots i.pending { background: var(--cal-pending); }
+
+/* ── Day panel ──────────────────────────────────────────────────────── */
+.cal-panel {
+  margin-top: 1.25rem; padding: 1.1rem 1.25rem; border-radius: var(--cal-radius);
+  scroll-margin-top: 4.75rem;
+  background: var(--cal-cell); border: 1px solid var(--cal-line);
+}
+.cal-panel-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.cal-panel-title { font-weight: 800; font-size: 1.15rem; margin: 0; }
+.cal-today-pill { font-size: .65rem; font-weight: 700; padding: .15rem .5rem; border-radius: 999px; background: var(--cal-ink); color: var(--cal-on-ink); margin-left: .4rem; vertical-align: middle; }
+.cal-section { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--bs-secondary-color); margin: 1rem 0 .35rem; }
+.cal-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .55rem 0; border-bottom: 1px solid var(--cal-line); text-decoration: none; color: var(--bs-body-color); }
+.cal-row:hover { color: var(--bs-body-color); background: rgba(var(--bs-success-rgb), 0.05); }
+.cal-row:last-child { border-bottom: 0; }
+.cal-row-main { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: .6rem; }
+.cal-row-text { flex: 1 1 auto; min-width: 0; }
+.cal-row-dot { width: .5rem; height: .5rem; border-radius: 50%; flex: none; background: var(--cal-pending); }
+.cal-row-dot.in { background: var(--cal-in); }
+.cal-row-dot.out { background: var(--cal-out); }
+.cal-row-dot.invest { background: var(--cal-invest); }
+.cal-row-title { font-weight: 600; font-size: .95rem; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-row-sub { display: block; font-size: .78rem; line-height: 1.3; color: var(--bs-secondary-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-row-amount { flex: none; font-weight: 700; font-size: .95rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cal-empty { color: var(--bs-secondary-color); padding: .75rem 0; }
+
+/* ── Cell shape ──────────────────────────────────────────────────────
+   Small screens: every day is a square, sized by the width, so the shape never depends on the
+   screen height. Wide screens: the grid still fills the height, but a row can never be taller
+   than ~0.9 of a cell's width, so a day is never a tall rectangle either. */
+@media (max-width: 991.98px) {
+  .cal-main { height: auto; min-height: 0; }
+  .cal-weeks { flex: none; }
+  .cal-weeks .cal-week { flex: none; }
+  .cal-cell, .cal-cell-blank { aspect-ratio: 1 / 1; }
+}
+@media (min-width: 992px) {
+  .cal-weeks { container-type: inline-size; }
+  .cal-weeks .cal-week { max-height: calc((100cqw - 6 * var(--cal-gap)) / 7 * 0.9); }
+}
+
+/* ── Mobile: a compact grid; the detail panel does the talking ──────── */
+@media (max-width: 767.98px) {
+  .cal { --cal-gap: .45rem; --cal-radius: .85rem; }
+  .cal-head { flex-wrap: wrap; row-gap: .85rem; margin-bottom: .9rem; }
+  .cal-nav { order: 1; width: 100%; justify-content: center; }
+  .cal-search-form { order: 2; flex: 1 1 100%; margin: 0; }
+  .cal-weekdays { font-size: .62rem; padding-bottom: .55rem; margin-bottom: .75rem; }
+  .cal-cell { padding: .3rem; align-items: center; }
+  .cal-cell-head { margin: 0; justify-content: center; }
+  .cal-daynum { font-size: .8rem; min-width: 1.4rem; height: 1.4rem; }
+  .cal-cell-head { flex-wrap: nowrap; }
+  .cal-star { position: absolute; top: .2rem; right: .22rem; margin: 0; font-size: .5rem; line-height: 1; }
+  .cal-lines, .cal-due-tag { display: none; }
+  .cal-dots { display: flex; }
+  .cal-cell.is-due { border-width: 2px; }
+  .cal-legend { font-size: .7rem; gap: .5rem 1rem; margin-bottom: 1rem; }
+  .cal-heat-below { justify-content: center; margin: 1rem 0 0; font-size: .7rem; gap: .4rem; color: var(--bs-secondary-color); }
+  .cal-panel { border-radius: 1.25rem 1.25rem .75rem .75rem; padding: 1.1rem 1.15rem; margin-top: 1.5rem; }
+  .cal-panel-head { margin-bottom: .6rem; gap: .25rem .75rem; flex-wrap: nowrap; }
+  .cal-panel-title { font-size: 1rem; white-space: nowrap; }
+  .cal-today-pill { font-size: .58rem; padding: .1rem .4rem; margin-left: .3rem; }
+  .cal-panel-head a { font-size: .72rem; white-space: nowrap; }
+  .cal-section { font-size: .62rem; margin: 1.1rem 0 .3rem; }
+  .cal-row { padding: .65rem 0; gap: .6rem; }
+  .cal-row-main { gap: .5rem; }
+  .cal-row-title { font-size: .85rem; }
+  .cal-row-sub { font-size: .7rem; }
+  .cal-row-amount { font-size: .85rem; }
+  .cal-empty { font-size: .8rem; padding: .5rem 0 .25rem; }
+  .cal { padding-bottom: 5.5rem; }   /* clears the bottom navigation */
+}

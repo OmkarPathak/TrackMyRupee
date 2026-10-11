@@ -1,0 +1,58 @@
+{% load i18n digit_filters expense_extras %}
+<div class="cal-panel-head">
+    <h2 class="cal-panel-title">{{ date|date:"D, j M" }}{% if is_today %}<span class="cal-today-pill">{% trans "Today" %}</span>{% endif %}</h2>
+    <a class="small fw-semibold text-decoration-none" href="{% url 'all-transactions' %}?time_period=custom&start_date={{ date|date:'Y-m-d' }}&end_date={{ date|date:'Y-m-d' }}">{% trans "View in transactions" %} <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+</div>
+
+{% if items %}
+<div class="d-flex flex-wrap gap-3 small text-muted mb-1">
+    {% if income > 0 %}<span>{% trans "In" %} <b class="cal-in">{{ currency_symbol }}{{ income|compact_amount:currency_symbol|translate_digits }}</b></span>{% endif %}
+    {% if outflow > 0 %}<span>{% trans "Out" %} <b class="cal-out">{{ currency_symbol }}{{ outflow|compact_amount:currency_symbol|translate_digits }}</b></span>{% endif %}
+    {% if invested > 0 %}<span>{% trans "Invested" %} <b class="cal-invest">{{ currency_symbol }}{{ invested|compact_amount:currency_symbol|translate_digits }}</b></span>{% endif %}
+</div>
+<div class="cal-section">{% trans "Transactions" %}</div>
+{% for item in items %}
+<a class="cal-row" href="{% url item.url_name item.key %}">
+    <span class="cal-row-main">
+        <span class="cal-row-dot {% if item.flow == 'in' %}in{% elif item.flow == 'out' %}out{% elif item.flow == 'invest' %}invest{% endif %}"></span>
+        <span class="cal-row-text">
+            <span class="cal-row-title d-block">{{ item.title }}</span>
+            <span class="cal-row-sub">{% if item.detail %}{{ item.detail }}{% endif %}{% if item.detail and item.account %} · {% endif %}{% if item.account %}{{ item.account }}{% endif %}</span>
+        </span>
+    </span>
+    <span class="cal-row-amount {% if item.flow == 'in' %}cal-in{% elif item.flow == 'out' %}cal-out{% elif item.flow == 'invest' %}cal-invest{% endif %}">
+        {% if item.flow == 'in' %}+{% elif item.flow == 'out' %}&minus;{% endif %}{{ currency_symbol }}{{ item.amount|compact_amount:currency_symbol|translate_digits }}
+    </span>
+</a>
+{% endfor %}
+{% endif %}
+
+{% if pending %}
+<div class="cal-section">{% trans "Scheduled" %}</div>
+{% for p in pending %}
+<div class="cal-row">
+    <span class="cal-row-main">
+        <span class="cal-row-dot"></span>
+        <span class="cal-row-text"><span class="cal-row-title d-block">{{ p.description }}</span><span class="cal-row-sub">{% trans "Pending" %}</span></span>
+    </span>
+    <span class="cal-row-amount">{{ currency_symbol }}{{ p.amount|compact_amount:currency_symbol|translate_digits }}</span>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if not items and not pending %}
+<div class="cal-empty">{% if search_query %}{% trans "Nothing on this day matches your search." %}{% else %}{% trans "No activity on this day." %}{% endif %}</div>
+{% endif %}
+
+{% if coming_up %}
+<div class="cal-section">{% trans "Coming up" %}</div>
+{% for c in coming_up %}
+<div class="cal-row">
+    <span class="cal-row-main">
+        <span class="cal-row-dot {% if c.kind == 'in' %}in{% elif c.kind == 'invest' %}invest{% endif %}"></span>
+        <span class="cal-row-text"><span class="cal-row-title d-block">{{ c.title }}</span><span class="cal-row-sub">{{ c.date|date:"D j M" }} · {% trans "Pending" %}</span></span>
+    </span>
+    <span class="cal-row-amount">{{ currency_symbol }}{{ c.amount|compact_amount:currency_symbol|translate_digits }}</span>
+</div>
+{% endfor %}
+{% endif %}
