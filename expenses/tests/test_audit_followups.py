@@ -180,3 +180,5 @@ class TestExportAndUnaccounted(Base):
         # the notice counts all time, so its links must not stay on "this month"
         self.assertContains(response, '?account=none&time_period=all')
         self.assertNotContains(response, '?account=none"')
+        self.assertContains(response, 'data-bs-dismiss="alert"')   # the notice can be dismissed
+        self.assertContains(response, 'data-total="1"')
