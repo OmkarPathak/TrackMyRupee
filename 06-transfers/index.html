@@ -795,6 +795,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. What Happens After a Transfer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules-a-transfer-follows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rules a transfer follows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1093,6 +1108,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. What Happens After a Transfer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules-a-transfer-follows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rules a transfer follows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1161,7 +1191,22 @@
 <h2 id="4-what-happens-after-a-transfer">4. What Happens After a Transfer<a class="headerlink" href="#4-what-happens-after-a-transfer" title="Permanent link">&para;</a></h2>
 <p>The transfer debits the <strong>From Account</strong> and credits the <strong>To Account</strong> immediately. Both account balances update the moment you click Execute Transfer.</p>
 <p><img alt="The list of transfers" loading="lazy" src="img/transfers-list-desktop.webp" /></p>
-<p>The transfer appears in the <strong>Transactions</strong> list at <code>/transactions/</code> with a special transfer indicator. It does not appear in the Expenses or Income lists.</p>
+<p>All your transfers are listed under <strong>Accounts → Transfers</strong> (<code>/transfers/</code>), newest first, 20 to a page. The page has the same toolbar as the other lists:</p>
+<ul>
+<li><strong>Search</strong> matches the description and either account's name.</li>
+<li><strong>Time range</strong> (All time by default), <strong>Sort</strong>, and <strong>Filter</strong> by <strong>From Account</strong>, <strong>To Account</strong> and <strong>Amount</strong>. Click the <strong>Amount</strong> heading to sort by amount; transfers between accounts in different currencies are compared by their value in your own currency.</li>
+<li>The line under the title shows how many transfers match and the total moved, in your currency. A transfer from a foreign-currency account shows its own amount with the converted value underneath.</li>
+</ul>
+<p>The transfer also appears in the <strong>Transactions</strong> list at <code>/transactions/</code> with a special transfer indicator. It does not appear in the Expenses or Income lists.</p>
+<h3 id="rules-a-transfer-follows">Rules a transfer follows<a class="headerlink" href="#rules-a-transfer-follows" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The amount must be greater than zero, and the two accounts must be different and both yours and active.</li>
+<li><strong>Different currencies</strong>: the amount is in the <strong>From Account's</strong> currency and is converted for the receiving account at the current exchange rate (Rs. 8,000 into a dollar account at 80 credits $100).</li>
+<li><strong>Credit cards</strong> can be the source: the balance simply goes further negative.</li>
+<li><strong>Locked accounts</strong> (over your plan's limit) cannot be used.</li>
+<li><strong>Double clicks</strong> are safe: the form carries a one-time key, so submitting twice creates one transfer.</li>
+<li><strong>Editing</strong> a transfer moves only the difference. <strong>Deleting</strong> it returns the money to the From Account and takes it back from the To Account.</li>
+</ul>
 <div class="admonition warning">
 <p class="admonition-title">Do not log a transfer as Expense and Income</p>
 <p>A common mistake is logging the outflow as an expense from one account and the inflow as income to another. This double-counts the money in your Analytics, inflating both your total expense and total income figures by the transferred amount. Always use Add → Internal Transfer instead.</p>

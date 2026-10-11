@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="User guide and tutorials for TrackMyRupee: personal finance tracking made simple.">
+        <meta name="description" content="Set a savings target, add contributions from your accounts, and see progress, pace and a projected finish date in TrackMyRupee.">
       
       
         <meta name="author" content="TrackMyRupee">
@@ -908,27 +908,27 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-logging-a-contribution" class="md-nav__link">
+  <a href="#3-adding-a-contribution" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Logging a Contribution
+      3. Adding a Contribution
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-reading-the-progress-card" class="md-nav__link">
+  <a href="#4-reading-the-goal" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Reading the Progress Card
+      4. Reading the Goal
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-editing-or-closing-a-goal" class="md-nav__link">
+  <a href="#5-when-a-goal-is-reached" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Editing or Closing a Goal
+      5. When a Goal Is Reached
     </span>
   </a>
   
@@ -1078,27 +1078,27 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-logging-a-contribution" class="md-nav__link">
+  <a href="#3-adding-a-contribution" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Logging a Contribution
+      3. Adding a Contribution
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-reading-the-progress-card" class="md-nav__link">
+  <a href="#4-reading-the-goal" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Reading the Progress Card
+      4. Reading the Goal
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-editing-or-closing-a-goal" class="md-nav__link">
+  <a href="#5-when-a-goal-is-reached" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Editing or Closing a Goal
+      5. When a Goal Is Reached
     </span>
   </a>
   
@@ -1129,10 +1129,10 @@
 
 
 <h1 id="savings-goals">Savings Goals<a class="headerlink" href="#savings-goals" title="Permanent link">&para;</a></h1>
-<p>Set a savings target, contribute funds from any account, and track progress toward your goal.</p>
+<p>Set a target, set money aside towards it from your accounts, and see how close you are, how fast you are going, and when you are likely to finish.</p>
 <div class="admonition note">
-<p class="admonition-title">Plan required</p>
-<p>Savings Goals are available on the Pro plan. The Goals link appears in the sidebar and in the mobile More sheet under Net Worth only when your account has the Pro tier active.</p>
+<p class="admonition-title">How many goals your plan allows</p>
+<p><strong>Free</strong> lets you keep <strong>1</strong> goal, <strong>Plus</strong> keeps <strong>5</strong>, and <strong>Pro</strong> has no limit. If you have more goals than your plan allows (for example after a downgrade), the oldest ones stay usable and the newer ones are <strong>locked</strong>: you can still see them and delete them, but you cannot edit them or add or change contributions until you upgrade or free a slot.</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Start a goal in under a minute</p>
@@ -1142,43 +1142,48 @@
 <h2 id="1-opening-the-goals-page">1. Opening the Goals Page<a class="headerlink" href="#1-opening-the-goals-page" title="Permanent link">&para;</a></h2>
 <p>Navigate to <strong>Sidebar → Goals</strong> on desktop, or go to <strong>More → Goals</strong> on mobile.</p>
 <p><img alt="The Savings Goals page" loading="lazy" src="img/goals-list-desktop.webp" /></p>
-<p>Click <strong>Add Goal</strong> to open the goal creation form.</p>
+<p>The page shows <strong>Total Saved</strong> across all your goals, in your own currency (a goal in another currency is converted), and a card for each goal with its progress bar, target and estimated finish. Click <strong>New Goal</strong> to add one.</p>
 <hr />
 <h2 id="2-creating-a-goal">2. Creating a Goal<a class="headerlink" href="#2-creating-a-goal" title="Permanent link">&para;</a></h2>
 <p>Fill in the following fields:</p>
 <p><img alt="The New Savings Goal form" loading="lazy" src="img/add-goal-desktop.webp" /></p>
 <ol>
-<li><strong>Goal Name</strong>: A short label for what you are saving toward, for example "Goa Trip Fund", "Emergency Reserve", or "MacBook".</li>
-<li><strong>Target Amount</strong>: The total rupee amount you want to reach.</li>
-<li><strong>Target Date</strong> (optional): A deadline for reaching the goal. When set, the progress card will calculate how much you need to contribute per remaining salary cycle.</li>
-<li><strong>Linked Account</strong>: The account whose balance contributions will be counted toward this goal.</li>
+<li><strong>Goal Name</strong>: A short label, for example "Goa Trip Fund", "Emergency Reserve", or "MacBook".</li>
+<li><strong>Target Amount</strong>: The total you want to reach. It must be more than zero.</li>
+<li><strong>Currency</strong>: Defaults to your own. Pick another if you are saving in it. <strong>It cannot be changed after money has been added</strong>, because each contribution was charged to its account at that currency.</li>
+<li><strong>Target Date</strong> (optional): A deadline. For a new goal it must be today or later. With a date set, the goal tells you how much to save each month and whether you are on track.</li>
+<li><strong>Icon</strong> and <strong>Colour</strong>: How the goal looks on your list.</li>
 </ol>
 <p>Click <strong>Save</strong>.</p>
 <hr />
-<h2 id="3-logging-a-contribution">3. Logging a Contribution<a class="headerlink" href="#3-logging-a-contribution" title="Permanent link">&para;</a></h2>
-<p>Navigate to <strong>Sidebar → Goals</strong> and find your goal card. Click <strong>Add Contribution</strong>.</p>
-<p>Enter the amount and the source account. The contribution is recorded as a goal contribution ledger entry. It debits the source account and credits the goal, so your net worth stays accurate.</p>
+<h2 id="3-adding-a-contribution">3. Adding a Contribution<a class="headerlink" href="#3-adding-a-contribution" title="Permanent link">&para;</a></h2>
+<p>Open a goal and click <strong>Add Contribution</strong>. Enter the <strong>amount</strong>, the <strong>account</strong> it comes from, and the <strong>date</strong> (not in the future). All three are needed.</p>
+<p>The contribution takes the amount <strong>out of that account's balance</strong> and adds it to the goal. If the account is in a different currency, it is charged the converted amount in its own currency. Your <strong>net worth does not drop</strong>: money you have set aside for a goal is still yours, so it is added back when net worth is worked out.</p>
+<p>You can <strong>edit</strong> a contribution (the account and goal balances move by the difference) or <strong>delete</strong> it (the money goes back to the account). Deleting a whole goal returns every contribution to the account it came from.</p>
 <div class="admonition tip">
 <p class="admonition-title">Use a dedicated savings account</p>
-<p>Create a separate Savings Account in the app (for example, "Goa Trip Savings") and link it to the goal. Transfer your monthly contribution from your salary account to this dedicated account via Add → Internal Transfer. The goal's progress bar will reflect the transferred amount automatically.</p>
+<p>Create a separate Savings Account (for example "Goa Trip Savings"), and transfer your monthly amount to it from your salary account with <strong>Add → Internal Transfer</strong>. Then log the goal contribution from that account.</p>
 </div>
 <hr />
-<h2 id="4-reading-the-progress-card">4. Reading the Progress Card<a class="headerlink" href="#4-reading-the-progress-card" title="Permanent link">&para;</a></h2>
-<p>Each goal card shows:</p>
+<h2 id="4-reading-the-goal">4. Reading the Goal<a class="headerlink" href="#4-reading-the-goal" title="Permanent link">&para;</a></h2>
+<p>Each goal shows:</p>
 <p><img alt="A goal with its summary and trend" loading="lazy" src="img/goal-detail-desktop.webp" /></p>
 <ul>
-<li><strong>Saved so far</strong>: The total amount contributed</li>
-<li><strong>Remaining</strong>: How much more is needed to reach the target</li>
-<li><strong>Percentage complete</strong>: A visual progress bar</li>
-<li><strong>Per-cycle target</strong>: If you set a Target Date, this shows how much you need to save each salary cycle to meet the deadline</li>
+<li><strong>Saved</strong>, <strong>Target</strong> and <strong>Remaining</strong>, with a progress bar (it stops at 100 percent even if you save more)</li>
+<li><strong>Estimated completion</strong>: your <strong>average daily pace</strong> since your first contribution, carried forward until the remaining amount is reached. One early, large contribution makes the pace look fast, so treat it as an estimate that settles as you keep contributing</li>
+<li><strong>Needed per month</strong> (with a target date): what is left divided by the months until the deadline</li>
+<li><strong>On track or not</strong>: you are on track when the estimated finish is on or before the target date. If not, the goal shows how much more per month you would need. A goal whose target date has passed shows the whole remaining amount as still needed</li>
+<li><strong>Early or late</strong>: for example "12 days early" or "2 months late"</li>
+<li><strong>Savings trend</strong>: the last 30 days for a young goal, or the last 12 months for an older one, with a dotted line projecting to the target</li>
 </ul>
+<p>The <strong>Contribution History</strong> lists every contribution. You can search it and filter by account or amount.</p>
 <hr />
-<h2 id="5-editing-or-closing-a-goal">5. Editing or Closing a Goal<a class="headerlink" href="#5-editing-or-closing-a-goal" title="Permanent link">&para;</a></h2>
-<p>Click the goal card's three-dot menu to edit the goal name, target amount, target date, or linked account.</p>
-<p>To archive a completed goal, select <strong>Mark as Completed</strong>. This does not withdraw or move any funds. It simply removes the goal from your active list and marks it as done in the records.</p>
+<h2 id="5-when-a-goal-is-reached">5. When a Goal Is Reached<a class="headerlink" href="#5-when-a-goal-is-reached" title="Permanent link">&para;</a></h2>
+<p>As soon as the saved amount reaches the target, the goal is marked <strong>Achieved</strong> automatically, and it leaves your "active goals" count. If you later delete or reduce a contribution so the amount falls below the target, or you raise the target, the goal opens again by itself. There is nothing to mark by hand, and no money moves when a goal is achieved.</p>
+<p>To change the name, target, date, icon or colour, click <strong>Edit Goal</strong>. Lowering the target below what you have saved completes the goal.</p>
 <div class="admonition example">
 <p class="admonition-title">Real-world use case</p>
-<p>Priya wants to save Rs. 80,000 for a Goa trip in March, which is 4 salary cycles away. She creates a goal: Goal Name: Goa Trip, Target: Rs. 80,000, Target Date: 01 Mar. The app tells her she needs to contribute Rs. 20,000 per cycle. Each time her salary arrives, she transfers Rs. 20,000 to her Goa Savings account and logs a goal contribution. The progress bar moves from 0 percent to 25 percent to 50 percent to 75 percent and finally to 100 percent, giving her a visible commitment that is harder to ignore than a mental note.</p>
+<p>Priya wants to save Rs. 80,000 for a Goa trip in March, about four months away. She creates a goal with Target Rs. 80,000 and Target Date 01 Mar, and the goal tells her she needs roughly Rs. 20,000 a month. Each time her salary arrives she transfers Rs. 20,000 to her Goa Savings account and logs a contribution from it. The progress bar climbs from 25 to 50 to 75 percent, the estimate shows "on time", and when the last contribution brings the total to Rs. 80,000 the goal shows Achieved.</p>
 </div>
 <hr />
 <h2 id="related-links">Related Links<a class="headerlink" href="#related-links" title="Permanent link">&para;</a></h2>
@@ -1194,6 +1199,9 @@
 
 
 
+
+  
+  
 
 
 

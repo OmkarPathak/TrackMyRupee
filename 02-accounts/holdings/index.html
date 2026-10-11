@@ -684,9 +684,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#updating-units-and-purchase-price" class="md-nav__link">
+  <a href="#adding-and-removing-holdings" class="md-nav__link">
     <span class="md-ellipsis">
-      Updating Units and Purchase Price
+      Adding and Removing Holdings
     </span>
   </a>
   
@@ -1199,9 +1199,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#updating-units-and-purchase-price" class="md-nav__link">
+  <a href="#adding-and-removing-holdings" class="md-nav__link">
     <span class="md-ellipsis">
-      Updating Units and Purchase Price
+      Adding and Removing Holdings
     </span>
   </a>
   
@@ -1318,15 +1318,15 @@
 <hr />
 <h2 id="4-how-holdings-and-units-are-updated">4. How Holdings and Units Are Updated<a class="headerlink" href="#4-how-holdings-and-units-are-updated" title="Permanent link">&para;</a></h2>
 <p>As your SIP executes or when you make lump-sum investments, your holdings update in two distinct ways.</p>
-<h3 id="updating-units-and-purchase-price">Updating Units and Purchase Price<a class="headerlink" href="#updating-units-and-purchase-price" title="Permanent link">&para;</a></h3>
-<p>When new units are allocated by the AMC:</p>
+<h3 id="adding-and-removing-holdings">Adding and Removing Holdings<a class="headerlink" href="#adding-and-removing-holdings" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Go to <strong>Holdings</strong> (<code>/holdings/</code>) or your account detail page.</li>
-<li>Click <strong>Add Holding</strong> (or open your existing holding to update it).</li>
-<li>Enter your updated cumulative <strong>Units</strong> and updated average purchase price (<strong>Avg Cost</strong>).</li>
-<li>The system updates your cost basis immediately:
-   $<span class="arithmatex">\(\text{New Cost Basis} = \text{Updated Units} \times \text{New Avg Cost}\)</span>$</li>
+<li>Click <strong>Add Holding</strong> and enter the fund name (pick it from the search so its scheme code is filled in), your <strong>Units</strong> and your <strong>Avg Cost</strong> per unit. Both must be greater than zero. If you leave the scheme code blank, TrackMyRupee tries to find it from the name.</li>
+<li>The cost basis is calculated immediately:
+   $<span class="arithmatex">\(\text{Cost Basis} = \text{Units} \times \text{Avg Cost}\)</span>$</li>
 </ol>
+<p>A holding cannot be edited in place. When more units are allocated, remove the old holding and add it again with the new cumulative units and average cost. <strong>Delete</strong> only hides the holding (it stops counting in the portfolio), it does not touch your account balance.</p>
+<p>The totals at the top of the Holdings page are in your own currency: a holding in another currency is converted at the latest exchange rate before it is added in.</p>
 <h3 id="automatic-daily-nav-updates">Automatic Daily NAV Updates<a class="headerlink" href="#automatic-daily-nav-updates" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Automatic background sync</strong>: TrackMyRupee runs daily background jobs that pull updated NAVs after Indian market closing hours (approximately 11 PM IST).</li>

@@ -620,6 +620,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Editing Account Details and Balance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transfers-between-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transfers between accounts
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -628,6 +643,21 @@
       5. Reading Account Transaction History
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="5. Reading Account Transaction History">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#searching-and-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      Searching and filtering
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1117,6 +1147,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Editing Account Details and Balance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transfers-between-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transfers between accounts
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1125,6 +1170,21 @@
       5. Reading Account Transaction History
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="5. Reading Account Transaction History">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#searching-and-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      Searching and filtering
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1197,7 +1257,15 @@
 <li><strong>Type-specific fields</strong>: Fill in details that apply to your account type. For example, Fixed Deposits show deposit terms and maturity date fields. Credit Cards show a credit limit field.</li>
 </ol>
 <p>Click <strong>Save</strong> when done.</p>
-<hr />
+<p>Account names must be unique among your active accounts (capital letters do not matter, so "HDFC" and "hdfc" clash). A credit limit and a deposit principal cannot be negative, and an interest rate must be between 0 and 100.</p>
+<div class="admonition info">
+<p class="admonition-title">How many accounts you can have</p>
+<p>Free allows 2 active accounts, Plus allows 10, and Pro is unlimited. Deleted accounts do not count. If you go over a limit (for example after a downgrade), your <strong>oldest</strong> accounts stay open and the newer ones are locked until you upgrade or delete some: a locked account cannot be opened, edited or used in a transfer. Pinning or searching never changes which accounts are locked.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Balances are stored in the account's currency</p>
+<p>An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the <strong>currency of an account is locked</strong> as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or capital event). Change it only while the account is unused.</p>
+</div>
 <h2 id="3-account-types-reference">3. Account Types Reference<a class="headerlink" href="#3-account-types-reference" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1267,17 +1335,62 @@
 <hr />
 <h2 id="4-editing-account-details-and-balance">4. Editing Account Details and Balance<a class="headerlink" href="#4-editing-account-details-and-balance" title="Permanent link">&para;</a></h2>
 <p>Click any account row to open its detail page. Use the pencil (edit) icon to update the Account Name, Initial Balance, or any type-specific fields.</p>
-<p>If an account no longer needs new transactions but has transaction history you want to keep, mark it <strong>Inactive</strong> instead of deleting it. Inactive accounts are hidden from transaction pickers but their full history is preserved.</p>
+<p><strong>Deleting an account does not erase anything.</strong> It marks the account inactive: it disappears from the list, from transaction pickers and from net worth, but every expense, income, transfer and other row you posted to it stays in place, and you can still open its history. To see deleted accounts, open the <strong>Inactive</strong> view on the Accounts page.</p>
+<p>Use <strong>Restore</strong> on an inactive account to bring it back. Restoring is refused if you are already at your plan's account limit, or if another active account now has the same name (rename one of them first).</p>
 <div class="admonition warning">
-<p class="admonition-title">Deleting vs. deactivating</p>
-<p>Deleting an account removes the account record. Any past expenses, incomes, and transfers linked to it will lose their account reference - those transaction records stay in the system but the account field becomes blank on them. If the account has any history, deactivate it instead.</p>
+<p class="admonition-title">Editing the balance</p>
+<p>Editing the balance by hand treats the number you enter as the truth and records the difference as an adjustment. It does not create an income or expense, so your reports do not change.</p>
 </div>
+<h3 id="transfers-between-accounts">Transfers between accounts<a class="headerlink" href="#transfers-between-accounts" title="Permanent link">&para;</a></h3>
+<p>Moving money between your own accounts is covered in <a href="../06-transfers/">Transfers</a>. Editing or deleting a transfer puts the money back exactly as it was before applying the change.</p>
 <hr />
 <h2 id="5-reading-account-transaction-history">5. Reading Account Transaction History<a class="headerlink" href="#5-reading-account-transaction-history" title="Permanent link">&para;</a></h2>
-<p>Click any account row to open its detail page. The page shows a ledger of all credits and debits, with relative timestamps such as "3 days ago" and "7 days ago".</p>
+<p>Click any account row to open its detail page. Below the balance and its trend chart is the account's full <strong>Transaction History</strong>: every expense, income, transfer in or out, goal contribution, loan repayment and capital event posted to that account.</p>
 <p><img alt="An account with its balance trend and history" loading="lazy" src="img/account-detail-desktop.webp" /></p>
-<p>Click the <strong>History</strong> button at the top right of the detail page to view the full unfiltered ledger for that account.</p>
-<hr />
+<p>The table looks and behaves like the <a href="../03-transactions-expenses/">All Transactions</a> page:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Date</strong></td>
+<td>When it happened</td>
+</tr>
+<tr>
+<td><strong>Type</strong></td>
+<td>A coloured pill: Expense, Income, Transfer, Savings, Loan Repayment or Capital Event</td>
+</tr>
+<tr>
+<td><strong>Description</strong></td>
+<td>Your note (long notes are cut short; hover to read all of it)</td>
+</tr>
+<tr>
+<td><strong>Category/Source</strong></td>
+<td>The expense category, income source, the other account of a transfer ("To SBI Savings", "From HDFC"), the goal, the loan, or the capital event type</td>
+</tr>
+<tr>
+<td><strong>Amount</strong></td>
+<td>Green with <strong>+</strong> when money came into this account, red with <strong>-</strong> when it left. A foreign-currency row also shows its value in your own currency underneath. A capital event you excluded from net worth never moved the balance, so it is shown in grey with no sign</td>
+</tr>
+<tr>
+<td><strong>Actions</strong></td>
+<td>Edit or delete the row (or open its goal or loan). After saving you land back on this page</td>
+</tr>
+</tbody>
+</table>
+<p>Click the <strong>Amount</strong> heading to sort by amount, and again to flip the order. On a phone the rows become cards grouped by day.</p>
+<p>Under the title, a line sums up what you are looking at: the number of transactions, the money <strong>in</strong>, the money <strong>out</strong> and the <strong>net</strong>. The totals are in the account's own currency and follow your filters. The count in the card at the top is always the account's total, whatever you filter.</p>
+<h3 id="searching-and-filtering">Searching and filtering<a class="headerlink" href="#searching-and-filtering" title="Permanent link">&para;</a></h3>
+<p>The same toolbar as the other list pages sits above the table:</p>
+<ul>
+<li><strong>Search</strong> matches descriptions, categories, income sources, goal and loan names.</li>
+<li><strong>Time range</strong> (All time by default), <strong>Sort</strong>, and <strong>Filter</strong> with <strong>Transaction Type</strong>, <strong>Category</strong> and <strong>Amount</strong>. Picking a category shows only expenses and income, because transfers, savings and loan rows have none.</li>
+<li>Each active filter appears as a chip you can clear on its own, or use <strong>Clear all</strong>.</li>
+</ul>
 <h2 id="6-how-net-worth-is-calculated">6. How Net Worth Is Calculated<a class="headerlink" href="#6-how-net-worth-is-calculated" title="Permanent link">&para;</a></h2>
 <p><strong>Net worth = what you hold - what you owe.</strong> The <strong>Net Worth</strong> tile on the Dashboard sums your active accounts, each valued by its type, and subtracts liabilities. Everything is converted to your currency at the latest exchange rate.</p>
 <ul>
