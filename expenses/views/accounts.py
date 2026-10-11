@@ -10,7 +10,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import CharField, IntegerField, Q, Value
+from django.db.models import CharField, Count, IntegerField, Q, Sum, Value
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -37,7 +37,12 @@ from ..models import (
     Transfer,
     _run_ledger_shadow,
 )
-from ..filters.definitions import ACCOUNT_DETAIL_FILTERS, ACCOUNT_LIST_FILTERS
+from ..filters.definitions import (
+    ACCOUNT_DETAIL_FILTERS,
+    ACCOUNT_LIST_FILTERS,
+    TRANSFER_FILTERS,
+)
+from ..filters.engine import apply_filter_config
 from ..posthog_utils import ph_capture
 from ..utils import get_exchange_rate
 from .mixins import (
@@ -669,10 +674,22 @@ class TransferListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTr
     template_name = 'expenses/transfer_list.html'
     htmx_template_name = 'expenses/partials/_transfer_list.html'
     context_object_name = 'transfers'
-    paginate_by = 10
+    paginate_by = 20
 
     def get_queryset(self):
-        return Transfer.objects.filter(user=self.request.user).select_related('from_account', 'to_account').order_by('-date')
+        base_qs = Transfer.objects.filter(user=self.request.user).select_related('from_account', 'to_account')
+        queryset, self.applied_state = apply_filter_config(base_qs, self.request, TRANSFER_FILTERS)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        stats = self.object_list.aggregate(count=Count('id'), moved=Sum('converted_amount'))
+        ctx['filtered_count'] = stats['count']
+        ctx['filtered_amount'] = stats['moved'] or Decimal('0.00')
+        ctx['filter_config'] = TRANSFER_FILTERS
+        ctx['applied_state'] = self.applied_state
+        ctx['search_query'] = self.applied_state.get('search', '')
+        return ctx
 
 class TransferUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Transfer

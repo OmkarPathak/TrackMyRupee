@@ -49,7 +49,13 @@ The transfer debits the **From Account** and credits the **To Account** immediat
 ![The list of transfers](img/transfers-list-desktop.webp){ loading=lazy }
 
 
-The transfer appears in the **Transactions** list at `/transactions/` with a special transfer indicator. It does not appear in the Expenses or Income lists.
+All your transfers are listed under **Accounts → Transfers** (`/transfers/`), newest first, 20 to a page. The page has the same toolbar as the other lists:
+
+- **Search** matches the description and either account's name.
+- **Time range** (All time by default), **Sort**, and **Filter** by **From Account**, **To Account** and **Amount**. Click the **Amount** heading to sort by amount; transfers between accounts in different currencies are compared by their value in your own currency.
+- The line under the title shows how many transfers match and the total moved, in your currency. A transfer from a foreign-currency account shows its own amount with the converted value underneath.
+
+The transfer also appears in the **Transactions** list at `/transactions/` with a special transfer indicator. It does not appear in the Expenses or Income lists.
 
 ### Rules a transfer follows
 

@@ -53,7 +53,8 @@
         <div class="card-body p-0">
             <!-- 1. Table View -->
             <div id="tableView" class="table-responsive d-none d-md-block">
-                <table class="table table-hover table-striped mb-0 text-start align-middle">
+                <table class="table table-hover table-striped mb-0 text-start align-middle tmr-table" style="min-width: 960px;">
+                    <colgroup><col style="width: 134px"><col style="width: 210px"><col style="width: 150px"><col><col style="width: 150px"><col style="width: 200px"><col style="width: 150px"><col style="width: 92px"></colgroup>
                     <thead>
                         <tr>
                             <th class="ps-4">{% trans "Date" %}</th>
@@ -75,13 +76,15 @@
                                     <i class="bi bi-flag me-1"></i>{{ event.get_subtype_display }}
                                 </span>
                             </td>
-                            <td class="fw-bold">
+                            <td class="fw-bold tmr-amount">
                                 {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
                             </td>
-                            <td data-bs-toggle="tooltip" data-bs-placement="top" title="{{ event.note|default:'' }}">
-                                {{ event.note|default:"—"|truncatechars:40 }}
+                            <td>
+                                <div class="tmr-truncate" title="{{ event.note|default:'' }}">{{ event.note|default:"—" }}</div>
                             </td>
-                            <td>{{ event.account.name|default:"—" }}</td>
+                            <td>
+                                <div class="tmr-truncate" title="{{ event.account.name|default:'' }}">{{ event.account.name|default:"—" }}</div>
+                            </td>
                             <td>
                                 {% if event.linked_loan %}
                                     <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none">

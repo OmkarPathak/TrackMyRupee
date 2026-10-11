@@ -4003,7 +4003,7 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
 
 
 /* ==========================================================================
-   Data tables (All Transactions, Expenses, Income, Subscriptions): column widths + typography only.
+   Data tables (every list in the app): column widths + typography only.
    Opt in with <table class="table tmr-table"> and a <colgroup>. Fixed layout means long text is
    trimmed with an ellipsis (full text in the title attribute, shown on hover) instead of widening
    the table and pushing the Actions column off-screen. No colours, badges or behaviour change here.
@@ -4019,6 +4019,12 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Cells that hold rich, multi-line content (or a whole empty-state block) may wrap instead of truncating */
+.tmr-table td.tmr-wrap,
+.tmr-table td[colspan] {
+  white-space: normal;
 }
 
 /* The actions column holds a dropdown menu: do not clip it */
@@ -4128,3 +4134,36 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
 [data-bs-theme="dark"] .amount-loan { color: var(--color-warning-text, #F4B44E) !important; }
 [data-bs-theme="dark"] .amount-savings { color: var(--color-warning-text, #F4B44E) !important; }
 [data-bs-theme="dark"] .amount-capital_event { color: var(--color-danger-text, #F49C8C) !important; }
+
+/* "How it works" / info hint beside a page title: just a quiet outline glyph, no ring or button chrome. */
+.info-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  margin-left: 0.25rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  opacity: 0.55;
+  font-size: 1.05rem;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.info-hint:hover,
+.info-hint:focus-visible,
+.info-hint[aria-expanded="true"] {
+  opacity: 1;
+  color: var(--bs-primary);
+  background-color: var(--bs-tertiary-bg);
+}
+.info-hint:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 1px;
+}

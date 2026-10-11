@@ -10,7 +10,8 @@
 
         {# ── Desktop table (≥ md) ───────────────────────────────────────────── #}
         <div class="table-responsive d-none d-md-block">
-            <table class="table table-hover table-striped align-middle mb-0">
+            <table class="table table-hover table-striped align-middle mb-0 tmr-table" style="min-width: 520px;">
+                <colgroup><col style="width: 134px"><col><col style="width: 180px"><col style="width: 92px"></colgroup>
                 <thead>
                     <tr>
                         <th class="ps-4">{% trans "Date" %}</th>
@@ -25,13 +26,13 @@
                         <td class="ps-4 text-nowrap">{{ r.date|date:"d M Y" }}</td>
                         <td>
                             {% if r.from_account %}
-                            <span class="small text-muted">{{ r.from_account.name }}</span>
+                            <span class="tmr-truncate" title="{{ r.from_account.name }}">{{ r.from_account.name }}</span>
                             {% else %}
                             <span class="text-muted small">—</span>
                             {% endif %}
                         </td>
-                        <td class="text-end fw-bold text-success">
-                            -{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}
+                        <td class="text-end fw-bold tmr-amount amount-loan">
+                            &minus;{{ loan.currency }}{{ r.amount|ind_comma:loan.currency|translate_digits }}
                         </td>
                         <td class="text-end pe-4">
                             <div class="dropdown">

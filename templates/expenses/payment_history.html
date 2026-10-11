@@ -77,7 +77,8 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0 align-middle">
+                <table class="table table-hover table-striped mb-0 align-middle tmr-table" style="min-width: 760px;">
+                    <colgroup><col style="width: 180px"><col><col style="width: 140px"><col style="width: 130px"><col style="width: 230px"></colgroup>
                     <thead>
                         <tr>
                             <th class="ps-4">{% trans "Date" %}</th>
@@ -101,7 +102,7 @@
                                     {% endif %}
                                 </div>
                             </td>
-                            <td class="fw-bold">₹{{ payment.amount|floatformat:2|translate_digits }}</td>
+                            <td class="fw-bold tmr-amount">₹{{ payment.amount|floatformat:2|translate_digits }}</td>
                             <td>
                                 {% if payment.status == 'SUCCESS' %}
                                     <span class="badge-soft badge-soft-success">{% trans "Success" %}</span>
@@ -112,7 +113,7 @@
                                 {% endif %}
                             </td>
                             <td class="text-end pe-4">
-                                <code class="small text-muted">{{ payment.order_id }}</code>
+                                <code class="small text-muted tmr-truncate" title="{{ payment.order_id }}">{{ payment.order_id }}</code>
                             </td>
                         </tr>
                         {% empty %}

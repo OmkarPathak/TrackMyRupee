@@ -17,7 +17,8 @@
         <div class="card-body p-0">
             <!-- Desktop Table View -->
             <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover mb-0 text-start align-middle">
+                <table class="table table-hover mb-0 text-start align-middle tmr-table" style="min-width: 640px;">
+                    <colgroup><col><col style="width: 170px"><col style="width: 110px"></colgroup>
                     <thead>
                         <tr>
                             <th class="ps-4">{% trans "Notification" %}</th>
@@ -28,7 +29,7 @@
                     <tbody>
                         {% for notification in notifications %}
                         <tr class="{% if not notification.is_read %}bg-primary bg-opacity-10{% endif %}">
-                            <td class="ps-4 py-3 border-bottom-0 border-top">
+                            <td class="ps-4 py-3 border-bottom-0 border-top tmr-wrap">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="flex-shrink-0 rounded-circle d-flex align-items-center justify-content-center
                                         {% if notification.notification_type == 'RECURRING' %}bg-info-subtle text-info

@@ -202,7 +202,8 @@
 
         <!-- Desktop Table View -->
         <div class="table-responsive d-none d-md-block">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover table-striped align-middle mb-0 tmr-table" style="min-width: 640px;">
+                <colgroup><col style="width: 134px"><col><col style="width: 148px"><col style="width: 160px"><col style="width: 92px"></colgroup>
                 <thead>
                     <tr>
                         <th class="ps-4">{% trans "Date" %}</th>
@@ -215,10 +216,10 @@
                 <tbody>
                     {% for contrib in contributions %}
                     <tr>
-                        <td class="ps-4 text-muted small">{{ contrib.date|date:"d M Y" }}</td>
+                        <td class="ps-4 text-nowrap">{{ contrib.date|date:"d M Y"|translate_digits }}</td>
                         <td>
-                            <div class="fw-bold">{% trans "Goal Contribution" %}</div>
-                            <div class="small text-muted">
+                            <div class="tmr-truncate fw-semibold">{% trans "Goal Contribution" %}</div>
+                            <div class="small text-muted tmr-truncate">
                                 {% if contrib.account %}
                                     {% trans "From" %}: {{ contrib.account.name }}
                                 {% else %}
@@ -227,10 +228,10 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">{% trans "Savings" %}</span>
+                            <span class="type-badge type-savings">{% trans "Savings" %}</span>
                         </td>
-                        <td class="text-end">
-                            <span class="fw-bold text-success signed-amount">
+                        <td class="text-end tmr-amount">
+                            <span class="fw-bold amount-income signed-amount">
                                 +{{ goal.currency }}{{ contrib.amount|ind_comma:goal.currency|translate_digits }}
                             </span>
                         </td>

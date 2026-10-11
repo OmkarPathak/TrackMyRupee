@@ -6,8 +6,8 @@
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="h4 mb-0 fw-bold d-flex align-items-center gap-2">
                 <span>{% trans "Loans & Liabilities" %}</span>
-                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideLoans" aria-expanded="false" title="{% trans 'How it works' %}">
-                    <i class="bi bi-info-lg" style="font-size: 0.65rem;"></i>
+                <button class="info-hint" data-bs-toggle="collapse" data-bs-target="#guideLoans" aria-expanded="false" title="{% trans 'How it works' %}">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
                 </button>
             </h1>
             <a href="{% url 'loan-create' %}" class="btn btn-sm btn-primary fw-bold rounded-3 px-3 shadow-sm d-flex align-items-center gap-1" onclick="window.showLoader()">
@@ -28,8 +28,8 @@
             <div class="col-md-6 mb-3 mb-md-0">
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <h1 class="h3 mb-0 fw-bold">{% trans "Loans & Liabilities" %}</h1>
-                    <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" style="width: 24px; height: 24px; min-width: 24px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="collapse" data-bs-target="#guideLoans" aria-expanded="false" title="{% trans 'How it works' %}">
-                        <i class="bi bi-info-lg" style="font-size: 0.75rem;"></i>
+                    <button class="info-hint" data-bs-toggle="collapse" data-bs-target="#guideLoans" aria-expanded="false" title="{% trans 'How it works' %}">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
                     </button>
                 </div>
                 <p class="text-muted mb-0">{% trans "Track your borrowings and repayment progress." %}</p>

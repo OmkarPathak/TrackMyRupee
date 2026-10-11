@@ -655,6 +655,52 @@ CAPITAL_EVENT_FILTERS = FilterSetConfig(
 )
 
 
+TRANSFER_FILTERS = FilterSetConfig(
+    page_key="transfers",
+    filters=[
+        FilterDef(
+            key="from_account",
+            label="From Account",
+            type="multi_select",
+            source="dynamic",
+            options_fn=get_user_accounts,
+            field_name="from_account_id",
+            lookup_expr="in",
+        ),
+        FilterDef(
+            key="to_account",
+            label="To Account",
+            type="multi_select",
+            source="dynamic",
+            options_fn=get_user_accounts,
+            field_name="to_account_id",
+            lookup_expr="in",
+        ),
+        FilterDef(
+            key="amount_range",
+            label="Amount",
+            type="single_select",
+            source="static",
+            options=AMOUNT_RANGE_OPTIONS,
+            custom_filter_fn=filter_amount_range,
+        ),
+    ],
+    sort_options=[
+        {"key": "date_desc", "label": "Date, newest"},
+        {"key": "date_asc", "label": "Date, oldest"},
+        {"key": "amount_desc", "label": "Amount, highest"},
+        {"key": "amount_asc", "label": "Amount, lowest"},
+    ],
+    default_sort="date_desc",
+    default_time_range="all",
+    supports_time_period=True,
+    supports_search=True,
+    search_placeholder="Search transfers...",
+    search_field="description",
+    search_fields=["description", "from_account__name", "to_account__name"],
+)
+
+
 DASHBOARD_FILTERS = FilterSetConfig(
     page_key="dashboard",
     filters=[

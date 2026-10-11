@@ -34,7 +34,11 @@ def apply_filter_config(
 
     # 1. Date / Time Period Filter
     if config.supports_time_period:
-        queryset = apply_date_filters(queryset, request)
+        explicit_period = any(request.GET.get(k) for k in ('time_period', 'start_date', 'end_date'))
+        # apply_date_filters only reads the request, whose own fallback is "this month"; a page whose
+        # configured default is "all" must not be narrowed when nobody picked a period.
+        if explicit_period or config.default_time_range != 'all':
+            queryset = apply_date_filters(queryset, request)
         period = resolve_period(
             user=getattr(request, 'user', None),
             time_period=applied_state['time_period'],
@@ -130,11 +134,15 @@ def apply_filter_config(
                     model._meta.get_field('base_amount')
                     amount_field = 'base_amount'
                 except Exception:
-                    try:
-                        model._meta.get_field('amount')
-                        amount_field = 'amount'
-                    except Exception:
-                        amount_field = 'base_amount'
+                    # Transfers keep their value in the user's currency in converted_amount; their plain
+                    # amount is in the sending account's own currency and cannot be compared across accounts.
+                    for candidate in ('converted_amount', 'amount'):
+                        try:
+                            model._meta.get_field(candidate)
+                            amount_field = candidate
+                            break
+                        except Exception:
+                            continue
             if sort_by == 'amount_desc':
                 queryset = queryset.order_by(f'-{amount_field}', '-id')
             else:

@@ -1,4 +1,4 @@
-{% load i18n digit_filters %}
+{% load i18n digit_filters expense_extras filter_tags %}
 
 <style>
     .header-action-btn {
@@ -27,89 +27,84 @@
 
 
 <div id="transfer-list-shell">
-    <div class="pt-1 mb-2">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <a href="{% url 'account-list' %}" class="btn p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                    <i class="bi bi-arrow-left"></i>
-                </a>
-                <h2 class="h4 mb-0 fw-bold text-nowrap">{% trans "Internal Transfers" %}</h2>
-                <button class="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; min-width: 28px; line-height: 1;" data-bs-toggle="collapse" data-bs-target="#guideTransfers" aria-expanded="false" title="{% trans 'How it works' %}">
-                    <i class="bi bi-info-lg" style="font-size: 0.75rem;"></i>
-                </button>
+    <div class="pt-1 pb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <h1 class="h4 mb-0 fw-bold text-nowrap">{% trans "Internal Transfers" %}</h1>
+                    <button class="info-hint" data-bs-toggle="collapse" data-bs-target="#guideTransfers" aria-expanded="false" aria-controls="guideTransfers" aria-label="{% trans 'About transfers' %}">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <p class="mb-0 mt-2 fw-medium" style="font-size: 0.95rem;">
+                    <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% blocktrans count counter=filtered_count %}transfer{% plural %}transfers{% endblocktrans %} &middot;
+                    <span class="fw-bold text-primary">{{ user.profile.currency }}{{ filtered_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "moved" %}
+                </p>
             </div>
-            <a href="{% url 'transfer-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center">
-                <i class="bi bi-plus-lg me-1"></i> {% trans "Add" %}
+            <a href="{% url 'transfer-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
+                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans "Add" %}
             </a>
         </div>
-        <p class="text-muted small mb-3">{% trans "History of all money movements between your accounts" %}</p>
     </div>
 
     {% include 'partials/guide_transfers.html' %}
 
-    <div class="card shadow-sm border-0 transfer-list-card">
+    {% if filter_config %}
+    {% render_filter_toolbar filter_config applied_state %}
+    {% endif %}
+
+    {% if transfers %}
+    <div class="card border-0 shadow-sm rounded-4 d-none d-md-block transfer-list-card">
         <div class="card-body p-0">
-            <!-- Desktop Table View -->
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover table-striped mb-0 text-start align-middle">
+            <div id="tableView" class="table-responsive">
+                <table class="table table-hover table-striped mb-0 text-start align-middle tmr-table" style="min-width: 820px;">
+                    <colgroup><col style="width: 134px"><col style="width: 210px"><col style="width: 210px"><col><col style="width: 170px"><col style="width: 92px"></colgroup>
                     <thead>
                         <tr>
                             <th class="ps-4">{% trans "Date" %}</th>
                             <th>{% trans "From" %}</th>
                             <th>{% trans "To" %}</th>
                             <th>{% trans "Description" %}</th>
-                            <th class="text-end">{% trans "Amount" %}</th>
+                            <th class="text-end">
+                                {% with sort=applied_state.sort %}
+                                <a class="amount-sort-link d-inline-flex align-items-center justify-content-end w-100 text-decoration-none" style="cursor: pointer;" hx-get="{% url 'transfer-list' %}?{% if sort == 'amount_desc' %}{% url_replace sort='amount_asc' %}{% elif sort == 'amount_asc' %}{% url_replace sort='date_desc' %}{% else %}{% url_replace sort='amount_desc' %}{% endif %}" hx-target="#transfer-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                                    <span>{% trans "Amount" %}</span>
+                                    {% if sort == 'amount_asc' %}<i class="bi bi-arrow-up-short"></i>{% elif sort == 'amount_desc' %}<i class="bi bi-arrow-down-short"></i>{% else %}<i class="bi bi-arrow-down-up text-muted opacity-50"></i>{% endif %}
+                                </a>
+                                {% endwith %}
+                            </th>
                             <th class="text-end pe-4">{% trans "Actions" %}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for transfer in transfers %}
                         <tr>
-                            <td class="ps-4 small text-muted">
-                                {{ transfer.date|date:"M d, Y" }}
+                            <td class="ps-4 text-nowrap">{{ transfer.date|date:"d M Y"|translate_digits }}</td>
+                            <td>
+                                <span class="badge-soft badge-soft-danger text-nowrap d-inline-block text-truncate" style="max-width: 100%;" title="{{ transfer.from_account.name }}">{{ transfer.from_account.name }}</span>
                             </td>
                             <td>
-                                <span class="badge bg-danger bg-opacity-10 text-danger border small">
-                                    {{ transfer.from_account.name }}
-                                </span>
+                                <span class="badge-soft badge-soft-success text-nowrap d-inline-block text-truncate" style="max-width: 100%;" title="{{ transfer.to_account.name }}">{{ transfer.to_account.name }}</span>
                             </td>
                             <td>
-                                <span class="badge bg-success bg-opacity-10 text-success border small">
-                                    {{ transfer.to_account.name }}
-                                </span>
+                                <div class="tmr-truncate" title="{{ transfer.description|default:'' }}">{{ transfer.description|default:"-" }}</div>
                             </td>
-                            <td class="small text-muted">
-                                {{ transfer.description|default:"-" }}
+                            <td class="text-end fw-bold tmr-amount amount-transfer">
+                                {{ transfer.from_account.currency }}{{ transfer.amount|ind_comma:transfer.from_account.currency|translate_digits }}
+                                {% if transfer.from_account.currency != user.profile.currency %}
+                                    <div class="small fw-normal text-muted">≈ {{ user.profile.currency }}{{ transfer.converted_amount|ind_comma:user.profile.currency|translate_digits }}</div>
+                                {% endif %}
                             </td>
-                            <td class="text-end fw-bold">
-                                {{ user.profile.currency }}{{ transfer.amount|floatformat:2|translate_digits }}
-                            </td>
-                            <td class="text-end pe-4 text-nowrap">
-                                <div class="hstack gap-3 justify-content-end">
-                                    <a href="{% url 'transfer-edit' transfer.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Edit' %}">
-                                        <i class="bi bi-pencil-square text-primary fs-6"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 d-inline-flex align-items-center" title="{% trans 'Delete' %}"
-                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                            data-url="{% url 'transfer-delete' transfer.uuid %}"
-                                            data-message="{% blocktrans with from=transfer.from_account.name to=transfer.to_account.name %}Are you sure you want to delete the transfer from {{ from }} to {{ to }}?{% endblocktrans %}">
-                                        <i class="bi bi-trash text-danger fs-6"></i>
+                            <td class="text-end pe-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Transfer actions' %}">
+                                        <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                        <span class="visually-hidden">{% trans "Transfer actions" %}</span>
                                     </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr class="empty-state-container">
-                            <td colspan="6" class="text-center py-5">
-                                <div class="py-4">
-                                    <div class="mb-4">
-                                        {% include 'illustrations/empty_transfers.svg' %}
-                                    </div>
-                                    <h4 class="fw-bold text-muted">{% trans "No Transfers Yet" %}</h4>
-                                    <p class="text-muted mb-4">{% trans "Start moving money between your accounts to see them here." %}</p>
-                                    <a href="{% url 'transfer-create' %}" class="btn btn-primary">
-                                        <i class="bi bi-plus-lg me-1"></i> {% trans "Make a Transfer" %}
-                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        <li><a class="dropdown-item py-2" href="{% url 'transfer-edit' transfer.uuid %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
+                                        <li><button type="button" class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'transfer-delete' transfer.uuid %}?next={{ request.get_full_path|urlencode }}" data-message="{% blocktrans with from=transfer.from_account.name to=transfer.to_account.name %}Are you sure you want to delete the transfer from {{ from }} to {{ to }}?{% endblocktrans %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
+                                    </ul>
                                 </div>
                             </td>
                         </tr>
@@ -117,130 +112,93 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
 
-            <!-- Mobile Grid View -->
-            <div id="mobileGridView" class="py-2 d-md-none px-3">
-                {% regroup transfers by date as transfers_by_date %}
-                {% for group in transfers_by_date %}
-                <div class="mb-3">
-                    <!-- Day Header -->
-                    <div class="d-flex justify-content-between align-items-center px-1 mb-2">
-                        <div class="text-body-secondary fw-semibold" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
-                            {{ group.grouper|date:"d M Y"|translate_digits }}
+    <div id="mobileGridView" class="py-2 d-md-none">
+        {% regroup transfers by date as transfers_by_date %}
+        {% for group in transfers_by_date %}
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+                <div class="text-body-secondary fw-semibold small">{{ group.grouper|date:"d M, Y"|translate_digits }}</div>
+            </div>
+            {% for transfer in group.list %}
+            <div class="card expense-card rounded-4 border-0 mb-2" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;"><i class="bi bi-arrow-left-right"></i></div>
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="fw-semibold mb-1 text-truncate" style="font-size: 0.93rem;">{{ transfer.description|default:_("Transfer") }}</div>
+                            <div class="text-muted text-truncate" style="font-size: 0.72rem;">
+                                {{ transfer.from_account.name }} <i class="bi bi-arrow-right mx-1"></i> {{ transfer.to_account.name }}
+                            </div>
                         </div>
-                    </div>
-                    <!-- Day's Transfer Items -->
-                    {% for transfer in group.list %}
-                    <div class="card expense-card shadow-sm border-0 position-relative mb-3">
-                        <div class="card-body px-3" style="padding-top: 1.25rem; padding-bottom: 1.25rem;">
-                            <div class="mobile-card-inner">
-                                <!-- Left-Mid: Icon (Vertically Centered) -->
-                                <div class="category-icon-container">
-                                    <i class="bi bi-arrow-left-right text-info"></i>
-                                </div>
-
-                                <!-- Middle: Info -->
-                                <div class="flex-grow-1 min-width-0 px-1">
-                                    {% trans "No description" as no_desc %}
-                                    <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" 
-                                         data-bs-toggle="tooltip" data-bs-placement="top" title="{{ transfer.description|default:no_desc }}">
-                                        {{ transfer.description|default:no_desc }}
-                                    </div>
-                                    <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
-                                        <span class="text-truncate">
-                                            {{ transfer.from_account.name }} <i class="bi bi-arrow-right mx-1"></i> {{ transfer.to_account.name }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Right: Amount + Type Badge -->
-                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
-                                    <div class="fw-bold text-body-emphasis mb-1" style="font-size: 1.02rem; line-height: 1.2;">
-                                        {{ user.profile.currency }}{{ transfer.amount|floatformat:2|translate_digits }}
-                                    </div>
-                                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1" style="font-size: 0.65rem;">{% trans "Transfer" %}</span>
-                                </div>
-
-                                <!-- Far Right: Menu -->
-                                <div class="dropdown flex-shrink-0">
-                                    <button class="btn btn-link text-decoration-none p-1 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" data-bs-boundary="viewport">
-                                        <i class="bi bi-three-dots-vertical text-body-secondary opacity-50"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px;">
-                                        <li><a class="dropdown-item py-2 px-3" href="{% url 'transfer-edit' transfer.uuid %}"><i class="bi bi-pencil me-2"></i> {% trans "Edit" %}</a></li>
-                                        <li>
-                                            <button type="button" class="dropdown-item py-2 px-3 text-danger cursor-pointer"
-                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                    data-url="{% url 'transfer-delete' transfer.uuid %}"
-                                                    data-message="{% blocktrans with from=transfer.from_account.name to=transfer.to_account.name %}Are you sure you want to delete the transfer from {{ from }} to {{ to }}?{% endblocktrans %}">
-                                                <i class="bi bi-trash me-2"></i> {% trans "Delete" %}
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
+                        <div class="text-end d-flex align-items-center gap-2">
+                            <div class="fw-bold amount-transfer">
+                                {{ transfer.from_account.currency }}{{ transfer.amount|ind_comma:transfer.from_account.currency|translate_digits }}
+                                {% if transfer.from_account.currency != user.profile.currency %}
+                                    <div class="small fw-normal text-muted" style="font-size: 0.65rem;">≈ {{ user.profile.currency }}{{ transfer.converted_amount|ind_comma:user.profile.currency|translate_digits }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-link btn-sm text-decoration-none p-0 no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-label="{% trans 'Transfer actions' %}">
+                                    <i class="bi bi-three-dots-vertical text-muted" aria-hidden="true"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <li><a class="dropdown-item py-2" href="{% url 'transfer-edit' transfer.uuid %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
+                                    <li><button type="button" class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'transfer-delete' transfer.uuid %}?next={{ request.get_full_path|urlencode }}" data-message="{% blocktrans with from=transfer.from_account.name to=transfer.to_account.name %}Are you sure you want to delete the transfer from {{ from }} to {{ to }}?{% endblocktrans %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
+                                </ul>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-                {% empty %}
-                <div class="text-center py-5">
-                    <div class="py-4">
-                        <div class="mb-4">
-                            {% include 'illustrations/empty_transfers.svg' %}
-                        </div>
-                        <h4 class="fw-bold text-muted">{% trans "No Transfers Yet" %}</h4>
-                        <p class="text-muted mb-4">{% trans "Start moving money between your accounts to see them here." %}</p>
-                        <a href="{% url 'transfer-create' %}" class="btn btn-primary">
-                            <i class="bi bi-plus-lg me-1"></i> {% trans "Make a Transfer" %}
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
             </div>
+            {% endfor %}
         </div>
-        {% if is_paginated %}
-        <div class="card-footer bg-transparent py-3 border-top">
-            <nav aria-label="Transfer pagination">
-                <ul class="pagination justify-content-center mb-0">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <button type="button" class="page-link" hx-get="{% url 'transfer-list' %}?page={{ page_obj.previous_page_number }}" hx-target="#transfer-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </button>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">&laquo;</span>
-                        </li>
-                    {% endif %}
-
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <button type="button" class="page-link" hx-get="{% url 'transfer-list' %}?page={{ num }}" hx-target="#transfer-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</button>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <button type="button" class="page-link" hx-get="{% url 'transfer-list' %}?page={{ page_obj.next_page_number }}" hx-target="#transfer-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </button>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">&raquo;</span>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-container py-5">
+        <div class="mb-4">{% include 'illustrations/empty_transfers.svg' %}</div>
+        {% if search_query or applied_state.filters or applied_state.time_period != 'all' %}
+            <div class="h4 fw-bold text-body-emphasis">{% trans "No transfers found" %}</div>
+            <p class="text-muted small mx-auto mb-4" style="max-width: 300px;">{% trans "We couldn't find any transfers matching your current filters. Try adjusting your search or date range." %}</p>
+            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4 text-nowrap" hx-get="{% url 'transfer-list' %}" hx-target="#transfer-list-shell" hx-swap="outerHTML" hx-push-url="true">
+                <i class="bi bi-x-circle me-2"></i>{% trans "Clear Filters" %}
+            </button>
+        {% else %}
+            <div class="h4 fw-bold text-body-emphasis">{% trans "No Transfers Yet" %}</div>
+            <p class="text-muted mb-4">{% trans "Start moving money between your accounts to see them here." %}</p>
+            <a href="{% url 'transfer-create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> {% trans "Make a Transfer" %}</a>
         {% endif %}
     </div>
+    {% endif %}
+
+    {% if is_paginated %}
+    <div class="py-3">
+        <nav aria-label="{% trans 'Transfer pagination' %}">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><button type="button" class="page-link" hx-get="{% url 'transfer-list' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#transfer-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"><span aria-hidden="true">&laquo;</span></button></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><button type="button" class="page-link" hx-get="{% url 'transfer-list' %}?{% url_replace page=num %}" hx-target="#transfer-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{{ num|translate_digits }}</button></li>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item"><button type="button" class="page-link" hx-get="{% url 'transfer-list' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#transfer-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar"><span aria-hidden="true">&raquo;</span></button></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </div>
 
 {% include 'expenses/partials/_oob_messages.html' %}

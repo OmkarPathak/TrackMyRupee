@@ -12,8 +12,8 @@
                 </a>
                 <h1 class="h3 fw-bold mb-0">{{ loan.name }}</h1>
                 <span class="badge bg-primary ms-3 rounded-pill px-3">{{ loan.get_loan_type_display }}</span>
-                <a href="https://docs.trackmyrupee.com/08-loans/" target="_blank" class="btn btn-outline-secondary rounded-circle p-0 d-inline-flex align-items-center justify-content-center text-muted ms-2" style="width: 26px; height: 26px; min-width: 26px; line-height: 1; border: 1px solid var(--bs-border-color);" data-bs-toggle="tooltip" title="{% trans 'View Loans Tutorial & Amortization Guide' %}">
-                    <i class="bi bi-info-lg" style="font-size: 0.7rem;"></i>
+                <a href="https://docs.trackmyrupee.com/08-loans/" target="_blank" class="info-hint" data-bs-toggle="tooltip" title="{% trans 'View Loans Tutorial & Amortization Guide' %}">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
                 </a>
             </div>
             <p class="text-muted ms-5 mb-0">{% trans "Track repayments and monitor your amortization schedule." %}</p>

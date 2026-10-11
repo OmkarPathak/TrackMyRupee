@@ -38,7 +38,8 @@
 
                 <div class="d-none d-md-block">
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 text-start align-middle">
+                        <table class="table table-hover table-striped mb-0 text-start align-middle tmr-table" style="min-width: 520px;">
+                            <colgroup><col style="width: 64px"><col><col style="width: 200px"><col style="width: 92px"></colgroup>
                             <thead>
                                 <tr>
                                     <th class="ps-4" style="width: 40px;">
@@ -60,12 +61,12 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex align-items-center gap-2 min-width-0">
                                             <i class="bi {{ category.icon }} fs-5"></i>
-                                            <span>{{ category.name }}</span>
+                                            <span class="tmr-truncate" title="{{ category.name }}">{{ category.name }}</span>
                                         </div>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end tmr-amount">
                                         {% if category.limit %}
                                             {{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}
                                         {% else %}

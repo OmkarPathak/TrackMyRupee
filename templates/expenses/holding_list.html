@@ -62,7 +62,8 @@
             {% if holdings %}
                 <!-- Desktop Table View -->
                 <div class="table-responsive d-none d-md-block">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover table-striped align-middle mb-0 tmr-table" style="min-width: 820px;">
+                        <colgroup><col><col style="width: 200px"><col style="width: 130px"><col style="width: 150px"><col style="width: 200px"><col style="width: 92px"></colgroup>
                         <thead>
                             <tr>
                                 <th class="ps-4">{% trans "Holding / Fund" %}</th>
@@ -77,19 +78,19 @@
                             {% for h in holdings %}
                                 <tr>
                                     <td class="ps-4">
-                                        <div class="fw-bold text-body-emphasis">{{ h.instrument_name }}</div>
+                                        <div class="fw-bold text-body-emphasis tmr-truncate" title="{{ h.instrument_name }}">{{ h.instrument_name }}</div>
                                         {% if h.scheme_code %}
                                             <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.7rem;">AMFI Code: {{ h.scheme_code }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{% url 'account-detail' h.account.uuid %}" class="text-decoration-none fw-semibold text-body">
+                                        <a href="{% url 'account-detail' h.account.uuid %}" class="text-decoration-none fw-semibold text-body tmr-truncate" title="{{ h.account.name }}">
                                             {{ h.account.name }}
                                         </a>
                                     </td>
-                                    <td>{{ h.units|ind_comma|translate_digits }}</td>
-                                    <td>{{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</td>
-                                    <td>
+                                    <td class="tmr-amount">{{ h.units|ind_comma|translate_digits }}</td>
+                                    <td class="tmr-amount">{{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</td>
+                                    <td class="tmr-amount">
                                         {% with val=h.valuations.all.0 %}
                                             {% if val %}
                                                 <span class="fw-bold text-success">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</span>

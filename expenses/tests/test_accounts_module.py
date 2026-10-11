@@ -1077,3 +1077,129 @@ class TestLedgerPresentation(AccountBase):
                                date=today(), currency='₹')
         html = self.detail().content.decode()
         self.assertIn('transaction</span>', html.replace('\n', ''))
+
+
+class TestTransferList(AccountBase):
+    def setUp(self):
+        super().setUp()
+        self.a = self.acct('Alpha', 100000)
+        self.b = self.acct('Beta', 0)
+        self.c = self.acct('Gamma', 0)
+
+    def make(self, n, **kw):
+        values = dict(user=self.user, from_account=self.a, to_account=self.b, amount=D('10'), date=today())
+        values.update(kw)
+        return [Transfer.objects.create(**{**values, 'description': f'move {i}'}) for i in range(n)]
+
+    def get(self, **params):
+        return self.client.get(reverse('transfer-list'), params)
+
+    def test_twenty_rows_a_page_and_the_rest_on_the_next(self):
+        self.make(25)
+        response = self.get()
+        self.assertEqual(len(response.context['transfers']), 20)
+        self.assertTrue(response.context['is_paginated'])
+        self.assertEqual(len(self.get(page=2).context['transfers']), 5)
+
+    def test_there_is_no_back_arrow(self):
+        self.make(1)
+        self.assertNotContains(self.get(), 'bi-arrow-left"')
+
+    def test_it_shows_every_transfer_by_default_not_just_this_month(self):
+        self.make(1, date=today() - datetime.timedelta(days=200))
+        self.assertEqual(len(self.get().context['transfers']), 1)
+
+    def test_it_has_the_shared_toolbar_and_table(self):
+        self.make(1)
+        response = self.get()
+        self.assertEqual([f.key for f in response.context['filter_config'].filters],
+                         ['from_account', 'to_account', 'amount_range'])
+        self.assertTrue(response.context['filter_config'].supports_search)
+        html = response.content.decode()
+        self.assertIn('tmr-table', html)
+        self.assertIn('amount-sort-link', html)
+        self.assertNotIn('badge bg-danger bg-opacity-10 text-danger border small', html)
+
+    def test_search_matches_the_description_and_either_account_name(self):
+        Transfer.objects.create(user=self.user, from_account=self.a, to_account=self.b, amount=D('5'),
+                                date=today(), description='rent')
+        Transfer.objects.create(user=self.user, from_account=self.a, to_account=self.c, amount=D('5'),
+                                date=today(), description='other')
+        self.assertEqual(len(self.get(search='rent').context['transfers']), 1)
+        self.assertEqual([t.to_account.name for t in self.get(search='gamm').context['transfers']], ['Gamma'])
+        self.assertEqual(len(self.get(search='alph').context['transfers']), 2)
+
+    def test_filtering_by_the_sending_and_receiving_account(self):
+        self.make(2)
+        Transfer.objects.create(user=self.user, from_account=self.b, to_account=self.c, amount=D('1'), date=today())
+        self.assertEqual(len(self.get(from_account=self.b.pk).context['transfers']), 1)
+        self.assertEqual(len(self.get(to_account=self.b.pk).context['transfers']), 2)
+        self.assertEqual(len(self.get(from_account=self.a.pk, to_account=self.c.pk).context['transfers']), 0)
+
+    def test_the_dates_filter_the_list(self):
+        self.make(1, date=today() - datetime.timedelta(days=60))
+        self.make(1)
+        start = (today() - datetime.timedelta(days=5)).isoformat()
+        response = self.get(time_period='custom', start_date=start, end_date=today().isoformat())
+        self.assertEqual(len(response.context['transfers']), 1)
+
+    def test_amount_buckets_use_the_value_in_your_currency(self):
+        self.seed_fx('80')
+        usd = self.acct('Dollars', 1000, currency='$')
+        Transfer.objects.create(user=self.user, from_account=usd, to_account=self.b, amount=D('10'), date=today())
+        self.make(1, amount=D('600'))
+        under = self.get(amount_range='Under 500').context['transfers']
+        self.assertEqual(len(under), 0)
+        mid = self.get(amount_range='500 to 2,000').context['transfers']
+        self.assertEqual(len(mid), 2)
+
+    def test_amount_sort_orders_by_the_value_in_your_currency(self):
+        self.seed_fx('80')
+        usd = self.acct('Dollars', 1000, currency='$')
+        small = Transfer.objects.create(user=self.user, from_account=self.a, to_account=self.b, amount=D('500'), date=today())
+        big = Transfer.objects.create(user=self.user, from_account=usd, to_account=self.b, amount=D('10'), date=today())
+        ordered = list(self.get(sort='amount_desc').context['transfers'])
+        self.assertEqual([t.pk for t in ordered], [big.pk, small.pk])
+        ordered = list(self.get(sort='amount_asc').context['transfers'])
+        self.assertEqual([t.pk for t in ordered], [small.pk, big.pk])
+
+    def test_the_summary_counts_and_totals_what_matches(self):
+        self.make(3, amount=D('100'))
+        Transfer.objects.create(user=self.user, from_account=self.b, to_account=self.c, amount=D('50'),
+                                date=today(), description='tiny')
+        context = self.get().context
+        self.assertEqual((context['filtered_count'], context['filtered_amount']), (4, D('350.00')))
+        context = self.get(search='tiny').context
+        self.assertEqual((context['filtered_count'], context['filtered_amount']), (1, D('50.00')))
+
+    def test_a_foreign_amount_shows_its_own_symbol_and_the_converted_value(self):
+        self.seed_fx('80')
+        usd = self.acct('Dollars', 1000, currency='$')
+        Transfer.objects.create(user=self.user, from_account=usd, to_account=self.b, amount=D('10'), date=today())
+        html = self.get().content.decode()
+        self.assertIn('$10', html)
+        self.assertIn('≈ ₹800', html)
+
+    def test_pagination_keeps_the_filters(self):
+        self.make(25)
+        html = self.get(search='move').content.decode()
+        self.assertIn('search=move', html[html.index('Transfer pagination'):])
+
+    def test_edit_and_delete_come_back_to_this_page(self):
+        self.make(1)
+        html = self.get(search='move').content.decode()
+        self.assertIn('/edit/?next=', html)
+        self.assertIn('/delete/?next=', html)
+
+    def test_an_empty_list_offers_to_make_one_and_a_filtered_one_to_clear(self):
+        self.assertContains(self.get(), 'Make a Transfer')
+        self.make(1)
+        self.assertContains(self.get(search='zzz-nothing'), 'Clear Filters')
+
+    def test_other_users_transfers_never_appear(self):
+        other = self.make_user('someone-else')
+        x = Account.objects.create(user=other, name='X', balance=100)
+        y = Account.objects.create(user=other, name='Y', balance=100)
+        Transfer.objects.create(user=other, from_account=x, to_account=y, amount=D('5'), date=today(),
+                                description='secret')
+        self.assertNotContains(self.get(), 'secret')
