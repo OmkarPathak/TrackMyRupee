@@ -16,21 +16,27 @@ Navigate to **Sidebar → Analytics** on desktop, or go to **More → Analytics*
 
 ## 2. Reading the Financial Health Score
 
-The **Health Score** card at the top of the Analytics page shows a score from 0 to 100. The score is calculated from your year-to-date (YTD) savings rate:
+The **Health Score** card at the top of the Analytics page shows a score from 0 to 100, worked out from the year's savings rate (see section 3):
 
-| Score | What it means | Savings rate |
+| Score | Label | Savings rate |
 |---|---|---|
-| 10 | Needs attention | Negative (spending more than income) |
-| 40 | Needs improvement | 0 to 20 percent |
-| 70 (Stable) | On track | 20 to 30 percent |
-| 95 (Wealth Builder) | Excellent | 30 percent or more |
+| 10 | At Risk | Negative (spending more than you earn) |
+| 40 | Caution | 0 to under 10 percent |
+| 70 | Stable | 10 to under 30 percent |
+| 95 | Wealth Builder | 30 percent or more |
 
-Expand the **Health Breakdown** section to see the four component metrics that make up the score:
+With no data at all the rate is 0, so the card reads 40 / Caution.
 
-- **Savings Rate**: The percentage of income saved year-to-date
-- **Expense Growth**: Your current monthly average spend compared to your 3-month historical average
-- **Consistency**: How many of the last 10 months had positive savings
-- **Risk Buffer**: Months of financial runway, calculated as YTD savings divided by average monthly expense
+Under the score, short **insights** say what the number means: how much you saved out of how much you earned (the same figures the rate is built from), how far you are from the 30 percent mark, whether one category takes more than 30 percent of your income, and whether your spending is running more than 15 percent above your 3-month average.
+
+Expand the **Health Breakdown** section to see the four metrics behind it. Each has a green, amber or red icon:
+
+| Metric | What it measures | Green | Amber | Red |
+|---|---|---|---|---|
+| **Savings Rate** | The year's savings rate | 20% or more | above 0% | 0% or less |
+| **Expense Growth** | Your everyday spending per month this year (expenses plus loan interest, no capital events) compared with the average of the last 3 completed months | zero or falling | up to +15% | above +15% |
+| **Consistency** | How many of the last 10 completed months had positive savings (and some income) | 7 or more | 4 to 6 | fewer than 4 |
+| **Risk Buffer** | Months you could live on your savings: the year's savings divided by your average monthly spend over the last 3 completed months | 6 months or more | 3 to 6 | under 3 |
 
 ---
 
@@ -59,15 +65,31 @@ A few rules sit behind that:
 
 ---
 
-## 4. Understanding YTD Totals
+## 4. Year-to-Date Totals and the Charts
 
-The Analytics page shows year-to-date totals for Income, Expenses, and Invested amounts, along with a YTD Savings Rate. These are factual summaries of the data you have logged. They are not predictions or advice.
+Pick a year with the selector at the top. For the **current year** everything stops at **today**, so entries dated ahead (such as recurring ones posted in advance) are not counted yet. A **past year** is the whole year, January to December.
+
+The tiles show:
+
+- **Total Income**: all income for the period.
+- **Total Expenses**: what you spent. This is the same "spending" the savings rate uses: expenses, plus the **interest** part of loan repayments, plus capital events that count. Loan principal is not spending. So **Income − Total Expenses = your savings**.
+- **Total Invested**: transfers into your investment and deposit accounts (mutual funds, demat, NPS, FD, RD and similar), in your own currency.
+- **Savings Rate**: the rate for the whole period.
+
+The charts all use the same period and the same definitions:
+
+- **Monthly income and expenses** with the month's savings rate as a line. The bars and the line reconcile: a month's rate is (income − the spending bar) ÷ income. The **Include capital events** switch temporarily adds the capital events you excluded from averages to the bars and the rate.
+- **Category distribution** (expense entries only) and **spending by day of week**.
+- **Where your money went** (flow diagram): income splits into savings, investments, loan interest, capital events and living expenses, with your five biggest categories listed under living expenses and the rest grouped as Other. A year in which you spent more than you earned shows the shortfall as "Deficit".
+- **This month so far**: a running total against your category limits spread evenly over the month, with a projection at your current daily pace (current year only), and a split of this month's spending into recurring and one-time entries.
+
+These are factual summaries of the data you have logged. They are not predictions or advice.
 
 ---
 
 ## 5. Reading the Trends Page
 
-Navigate to **Sidebar → Trends** on desktop, or go to **More → Analytics → Trends** on mobile (URL: `/trends/`).
+Navigate to **Sidebar → Trends** on desktop, or go to **More → Trends** on mobile (URL: `/analytics/mom/`).
 
 
 ![The Trends page](img/trends-desktop.webp){ loading=lazy }
@@ -80,12 +102,9 @@ The Trends page shows two key analyses:
 
 ---
 
-## 6. Using Year and Date Selectors
+## 6. Year in Review ("Wrapped")
 
-Both the Analytics and Trends pages have year and date range selectors at the top. Use these to:
-
-- Compare your current year's performance against a prior year
-- Zoom into a specific period such as a quarter or a custom date range
+On Plus and Pro, the **View <year> Wrapped** button on the Analytics page opens a story-style summary of the selected year (URL: `/year-in-review/<year>/`): what you earned and spent, your top three categories, your highest and lowest spending months, your most-used payment method, your biggest single expense, how much you invested, and the goals you completed. The current year counts up to today. Free accounts are shown the pricing page instead.
 
 ---
 
@@ -96,7 +115,7 @@ The Financial Health score, the insights panel, and all Trends analyses are **de
 They are not financial advice and they do not predict future outcomes. Use them as data-informed prompts for your own decision-making.
 
 !!! example "Real-world use case"
-    Nisha is considering applying for a personal loan and wants to understand her financial standing first. She opens Analytics and checks her Health Score. It shows 40 (savings rate 12 percent, Needs Improvement). She then opens Trends and sees an over-idle flag: Rs. 1.8 lakh sitting in a Savings Account earning 3 percent per year. She transfers Rs. 80,000 into her Mutual Fund account via Add → Internal Transfer, which shifts her asset allocation. Two months later, with her savings rate up to 22 percent and the idle-cash flag cleared, her Health Score moves to 70 (Stable), giving her a cleaner financial picture before she approaches a lender.
+    Nisha is considering applying for a personal loan and wants to understand her financial standing first. She opens Analytics and checks her Health Score. It shows 40 (savings rate 6 percent, Caution). She then opens Trends and sees an over-idle flag: Rs. 1.8 lakh sitting in a Savings Account earning 3 percent per year. She transfers Rs. 80,000 into her Mutual Fund account via Add → Internal Transfer, which shifts her asset allocation. Two months later, with her savings rate up to 22 percent and the idle-cash flag cleared, her Health Score moves to 70 (Stable), giving her a cleaner financial picture before she approaches a lender.
 
 ---
 

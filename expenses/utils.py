@@ -127,12 +127,21 @@ def generate_year_in_review_data(user, year):
     Aggregates financial data for a specific year to generate a 'Year in Review' summary.
     Returns a dictionary of statistics.
     """
-    from .models import Expense, Income, SavingsGoal
+    from django.utils import timezone
+
+    from .models import CapitalEvent, Expense, Income, LoanRepayment, SavingsGoal
+    from .savings import savings_from_querysets
     data = {}
-    
+
+    # The current year stops at today, so entries dated ahead (recurring ones posted in advance) are not
+    # counted in a story about what has already happened.
+    period = {'date__year': year}
+    if year == timezone.localdate().year:
+        period['date__lte'] = timezone.localdate()
+
     # Base querysets
-    expenses = Expense.objects.filter(user=user, date__year=year)
-    incomes = Income.objects.filter(user=user, date__year=year)
+    expenses = Expense.objects.filter(user=user, **period)
+    incomes = Income.objects.filter(user=user, **period)
     goals = SavingsGoal.objects.filter(user=user, created_at__year=year, is_completed=True)
     
     # 1. Total Spend and Total Income (using base_amount to handle multi-currency)
@@ -141,7 +150,15 @@ def generate_year_in_review_data(user, year):
     
     data['total_spent'] = total_spent
     data['total_earned'] = total_earned
-    data['net_saved'] = total_earned - total_spent
+    # Saved and the savings rate come from the one definition (loan interest and capital events that
+    # count are spending; loan principal is not), so they agree with Analytics and the Dashboard.
+    savings = savings_from_querysets(
+        incomes, expenses,
+        LoanRepayment.objects.filter(loan__user=user, **period),
+        CapitalEvent.objects.filter(user=user, **period),
+    )
+    data['net_saved'] = savings.savings
+    data['savings_rate'] = savings.rate_rounded(1)
     data['transaction_count'] = expenses.count()
     
     if data['transaction_count'] == 0:
@@ -216,7 +233,7 @@ def generate_year_in_review_data(user, year):
     from .models import Account, Transfer
     _investment_account_types = list(market_linked_codes() | deposit_codes())
     investments = Transfer.objects.filter(
-        user=user, date__year=year,
+        user=user, **period,
         to_account__account_type__in=_investment_account_types,
     )
     data['total_invested'] = investments.aggregate(total=Sum('converted_amount'))['total'] or Decimal('0.00')

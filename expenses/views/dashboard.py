@@ -2707,97 +2707,47 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             key = date(ev_date.year, ev_date.month, 1)
             capital_event_monthly_map[key] = capital_event_monthly_map.get(key, 0.0) + float(ev['base_amount'])
         
-        # 1. Monthly Trends (Selected Year)
+        # 1. Monthly Trends (Selected Year): January to this month for the current year, the whole of
+        # January to December for a past year.
         labels = []
         income_data = []
         expense_data = []
         balance_rate_data = []
-        
-        # Determine the start and end date for the selected year
+
         trend_year_start = date(selected_year, 1, 1)
         trend_year_end = date(selected_year, 12, 31)
-        
-        # Fetch data grouped by Month for the selected year
-        monthly_income = Income.objects.filter(
-            user=user, date__gte=trend_year_start, date__lte=trend_year_end
-        ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount')).order_by('month')
-        
-        monthly_expenses = Expense.objects.filter(
-            user=user, date__gte=trend_year_start, date__lte=trend_year_end
-        ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('base_amount')).order_by('month')
-        
-        # Merge data into a map {date: {income: 0, expense: 0, cb_rf: 0}}
-        data_map = {}
-        
-        # Initialize map with all 12 months to ensure 0s for missing months
-        # Iterate from trend_year_start to today month by month
-        curr = trend_year_start
-        while curr <= today:
-            d = curr.replace(day=1)
-            data_map[d] = {'income': 0, 'expense': 0}
-            # Move to next month
-            # Carefully handle month increment
-            next_month = curr.month + 1
-            next_year = curr.year
-            if next_month > 12:
-                next_month = 1
-                next_year += 1
-            curr = date(next_year, next_month, 1)
+        last_month = today.month if selected_year == today.year else 12
 
-        # Fill with DB data
-        for item in monthly_income:
-            if item['month']:
-                d = item['month']
-                if isinstance(d, datetime):
-                    d = d.date()
-                d = d.replace(day=1)
-                if d in data_map:
-                    data_map[d]['income'] = float(item['total'])
-                    
-        for item in monthly_expenses:
-             if item['month']:
-                d = item['month']
-                if isinstance(d, datetime):
-                    d = d.date()
-                d = d.replace(day=1)
-                if d in data_map:
-                    data_map[d]['expense'] = float(item['total'])
-                
-        # Savings per month (interest and counted capital events included) from the single definition
+        # Everything below comes from the single savings definition (expenses/savings.py), so a month's
+        # bars (income, spending) and its savings rate always reconcile. Spending includes loan interest
+        # and capital events that count (plus the excluded ones when the toggle is on).
         month_savings = monthly_savings(
             user, trend_year_start, trend_year_end,
             extra_capital_by_month=(
                 {(k.year, k.month): v for k, v in capital_event_monthly_map.items()} if include_capital_events else None
             ),
         )
-
-        # Sort and prepare lists
-        sorted_keys = sorted(data_map.keys())
-        # Limit to last 12 months if while loop went over
-        sorted_keys = sorted_keys[-12:]
-        
-        for k in sorted_keys:
-            labels.append(date_format(k, 'M Y'))
-            inc = data_map[k]['income']
-            exp = data_map[k]['expense']
-            # If the "include capital events" toggle is on, add their totals to the expense bars
-            if include_capital_events:
-                exp += capital_event_monthly_map.get(k, 0.0)
-            income_data.append(inc)
-            expense_data.append(exp)
-            
-            # Balance (savings) rate: defined once in expenses/savings.py
-            month_result = month_savings.get((k.year, k.month))
+        for month_number in range(1, last_month + 1):
+            month_result = month_savings.get((selected_year, month_number))
+            labels.append(date_format(date(selected_year, month_number, 1), 'M Y'))
+            income_data.append(float(month_result.income) if month_result else 0.0)
+            expense_data.append(float(month_result.spending) if month_result else 0.0)
             balance_rate_data.append(float(month_result.rate_rounded(1)) if month_result else 0)
 
         context['chart_labels'] = labels
         context['income_data'] = income_data
         context['expense_data'] = expense_data
         context['balance_rate_data'] = balance_rate_data
-        
+
+        # Rows of the selected year; this year stops at today so future-dated entries (for example
+        # recurring ones posted ahead) do not skew year-to-date figures.
+        period_filter = {'date__year': selected_year}
+        if selected_year == today.year:
+            period_filter['date__lte'] = today
+
         # 2. Category Breakdown (Selected Year)
         category_stats = Expense.objects.filter(
-            user=user, date__year=selected_year
+            user=user, **period_filter
         ).values('category').annotate(total=Sum('base_amount')).order_by('-total')
         
         cat_labels = [_(x['category']) for x in category_stats]
@@ -2823,31 +2773,23 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
                     total += t.amount
             return total
 
-        if selected_year == today.year:
-            # For current year, limit to today so future recurring entries don't skew YTD
-            ytd_income_agg = Income.objects.filter(user=user, date__year=selected_year, date__lte=today).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-            ytd_expense_agg = Expense.objects.filter(user=user, date__year=selected_year, date__lte=today).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-            ytd_invest_agg = get_transfers_total(selected_year, limit_to_today=True)
-        else:
-            # For past years, show the full year's total
-            ytd_income_agg = Income.objects.filter(user=user, date__year=selected_year).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-            ytd_expense_agg = Expense.objects.filter(user=user, date__year=selected_year).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
-            ytd_invest_agg = get_transfers_total(selected_year, limit_to_today=False)
-        
+        ytd_invest_agg = get_transfers_total(selected_year, limit_to_today=(selected_year == today.year))
+
+        # YTD savings from the single definition (current year stops at today)
+        ytd_savings = savings_from_querysets(
+            Income.objects.filter(user=user, **period_filter),
+            Expense.objects.filter(user=user, **period_filter),
+            LoanRepayment.objects.filter(loan__user=user, **period_filter),
+            CapitalEvent.objects.filter(user=user, **period_filter),
+        )
+        # "Total Expenses" is what the savings rate is measured against: expenses plus loan interest and
+        # capital events that count (loan principal is repaying borrowed money, not spending).
+        ytd_income_agg = ytd_savings.income
+        ytd_expense_agg = ytd_savings.spending
+
         context['total_income_ytd'] = ytd_income_agg
         context['total_expense_ytd'] = ytd_expense_agg
         context['total_invested_ytd'] = ytd_invest_agg
-        
-        # YTD savings rate, from the single definition (current year stops at today)
-        ytd_filter = {'date__year': selected_year}
-        if selected_year == today.year:
-            ytd_filter['date__lte'] = today
-        ytd_savings = savings_from_querysets(
-            Income.objects.filter(user=user, **ytd_filter),
-            Expense.objects.filter(user=user, **ytd_filter),
-            LoanRepayment.objects.filter(loan__user=user, **ytd_filter),
-            CapitalEvent.objects.filter(user=user, **ytd_filter),
-        )
         context['avg_balance_rate'] = float(ytd_savings.rate_rounded(1))
             
         # ---------------------------------------------------------
@@ -2882,9 +2824,13 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             if invest_flow > 0:
                 sankey_data.append([income_source, _('Investments'), invest_flow])
 
-            # C. Living Expenses (Bottom)
-            if ytd_expense_agg > 0:
-                sankey_data.append([income_source, _('Living Expenses'), float(ytd_expense_agg)])
+            # C. Living Expenses (Bottom), then the other things that count as spending
+            if ytd_savings.loan_interest > 0:
+                sankey_data.append([income_source, _('Loan Interest'), float(ytd_savings.loan_interest)])
+            if ytd_savings.capital_events > 0:
+                sankey_data.append([income_source, _('Capital Events'), float(ytd_savings.capital_events)])
+            if ytd_savings.operating_expenses > 0:
+                sankey_data.append([income_source, _('Living Expenses'), float(ytd_savings.operating_expenses)])
                 
                 # Level 2 (Detailed breakdown of top 5 categories)
                 top_cats = list(category_stats[:5])
@@ -2920,9 +2866,13 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         
         # Currency symbol for formatting
         currency = user.profile.currency if hasattr(user, 'profile') else '₹'
-        savings_ytd = float(ytd_income_agg) - float(ytd_expense_agg)
-        income_f = float(ytd_income_agg)
-        expense_f = float(ytd_expense_agg)
+        # The same numbers the savings rate is built from, so "you saved X out of Y (Z%)" adds up:
+        # savings = income - spending, and Y is the base the rate is measured against.
+        savings_ytd = float(ytd_savings.savings)
+        income_f = float(ytd_savings.denominator)
+        expense_f = float(ytd_savings.spending)
+        # What a month of everyday spending costs (no capital events), comparable to the 3-month average
+        run_rate_spend_f = float(ytd_savings.operating_expenses + ytd_savings.loan_interest)
         
         # Top category context (used across insights)
         top_cat_name = cat_labels[0] if cat_data else None
@@ -3014,11 +2964,11 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
                     pass
 
         # Spending Trend Projection (uses 3-month avg calculated earlier)
-        if avg_expense > 0 and expense_f > 0 and selected_year == today.year:
+        if avg_expense > 0 and run_rate_spend_f > 0 and selected_year == today.year:
             avg_expense_f = float(avg_expense)
             # Compare current year monthly average to historical
             months_elapsed = today.month
-            current_monthly_avg = expense_f / months_elapsed if months_elapsed > 0 else 0
+            current_monthly_avg = run_rate_spend_f / months_elapsed if months_elapsed > 0 else 0
             if current_monthly_avg > avg_expense_f * 1.15:  # 15% higher than historical
                 pct_increase = ((current_monthly_avg - avg_expense_f) / avg_expense_f) * 100
                 next_month_name = (today.replace(day=28) + timedelta(days=4)).strftime('%B')
@@ -3054,7 +3004,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         # 2. Expense Growth (current monthly avg vs 3-month historical avg)
         avg_expense_f = float(avg_expense) if avg_expense > 0 else 0
         months_elapsed = today.month if selected_year == today.year else 12
-        current_monthly_avg = expense_f / months_elapsed if months_elapsed > 0 else 0
+        current_monthly_avg = run_rate_spend_f / months_elapsed if months_elapsed > 0 else 0
         
         if avg_expense_f > 0:
             expense_growth_pct = round(((current_monthly_avg - avg_expense_f) / avg_expense_f) * 100, 1)
@@ -3135,7 +3085,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
 
         # 4. Day-of-Week Spending (Selected Year)
         dow_stats = Expense.objects.filter(
-            user=user, date__year=selected_year
+            user=user, **period_filter
         ).annotate(weekday=ExtractWeekDay('date')).values('weekday').annotate(
             total=Sum('base_amount')
         ).order_by('weekday')
@@ -3217,7 +3167,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         
         total_sum = Expense.objects.filter(
             user=user, date__year=today.year, date__month=today.month
-        ).aggregate(Sum('base_amount'))['base_amount__sum'] or 1 # Avoid div by zero
+        ).aggregate(Sum('base_amount'))['base_amount__sum'] or 0
         
         rec_val = float(recurring_sum)
         one_time_val = float(total_sum) - rec_val
@@ -3459,6 +3409,11 @@ class YearInReviewView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         _, year = parse_month_year(self.request)
+        # /year-in-review/<year>/ (the link on Analytics) names the year in the path
+        path_year = self.kwargs.get('year')
+        if path_year is not None and 2000 <= path_year <= timezone.localdate().year + 5:
+            year = path_year
+        context['year'] = year
         context['review_data'] = generate_year_in_review_data(self.request.user, year)
         return context
 
