@@ -702,6 +702,31 @@ class SavingsGoalForm(SearchableSelectFormMixin, forms.ModelForm):
         if user:
             self.fields['currency'].initial = user.profile.currency
 
+    def clean_name(self):
+        return (self.cleaned_data.get('name') or '').strip()
+
+    def clean_target_amount(self):
+        amount = self.cleaned_data.get('target_amount')
+        if amount is not None and amount <= 0:
+            raise forms.ValidationError(_('Target amount must be greater than zero.'))
+        return amount
+
+    def clean_target_date(self):
+        value = self.cleaned_data.get('target_date')
+        unchanged = bool(self.instance.pk and value == self.instance.target_date)
+        # A new goal needs a deadline that is still ahead; an existing goal may keep one that has passed.
+        if value and value < timezone.localdate() and not unchanged:
+            raise forms.ValidationError(_('Choose a target date that is today or later.'))
+        return value
+
+    def clean_currency(self):
+        currency = self.cleaned_data.get('currency')
+        if self.instance.pk and currency != self.instance.currency and self.instance.contributions.exists():
+            # Every contribution was charged to its account using the goal's currency; changing it
+            # afterwards would make deleting or editing those contributions refund the wrong amount.
+            raise forms.ValidationError(_('The currency cannot be changed once money has been added to this goal.'))
+        return currency
+
     def clean_target_amount(self):
         target_amount = self.cleaned_data.get('target_amount')
         if target_amount is not None and target_amount <= 0:
@@ -737,6 +762,14 @@ class GoalContributionForm(AccountRequiredMixin, SearchableSelectFormMixin, form
         if amount is not None and amount <= 0:
             raise forms.ValidationError(_("Contribution amount must be greater than zero."))
         return amount
+
+    def clean_date(self):
+        value = self.cleaned_data.get('date')
+        # A contribution is money that has already left the account. One day of slack so users ahead
+        # of the server's timezone can still log "today".
+        if value and value > timezone.localdate() + timedelta(days=1):
+            raise forms.ValidationError(_('Contribution date cannot be in the future.'))
+        return value
  
  
 class CategoryForm(SearchableSelectFormMixin, forms.ModelForm):

@@ -302,7 +302,7 @@ A quick way to sanity-check your plan: take the target, subtract what you have a
 ### Watch out for
 
 !!! tip "A goal is not a separate bank account"
-    The goal tracks progress toward a target. It does not move your money anywhere by itself. If you want the money kept apart, put it in a separate account and track the goal against that.
+    The goal tracks progress toward a target. Creating it does not move any money. Each **contribution** you log later takes that amount out of the account you choose and adds it to the goal. If you want the money kept apart, put it in a separate account and log your contributions from that.
 
 ---
 

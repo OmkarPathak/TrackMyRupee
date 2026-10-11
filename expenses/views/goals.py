@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Min, Sum
 from django.http import JsonResponse
@@ -20,6 +21,7 @@ from ..filters import GOAL_DETAIL_FILTERS, apply_filter_config
 from ..forms import GoalContributionForm, SavingsGoalForm
 from ..models import GoalContribution, SavingsGoal
 from ..posthog_utils import ph_capture
+from ..utils import get_exchange_rate
 from .mixins import UUIDOrIntLookupMixin
 from .utils import (
     get_object_by_uuid_or_pk,
@@ -42,7 +44,17 @@ class SavingsGoalListView(LoginRequiredMixin, ListView):
         profile = self.request.user.profile
         for goal in all_goals:
             goal.is_locked = profile.is_goal_locked(goal, ordered_goals=all_goals)
-        context.update({'goals': all_goals, 'total_saved': round(sum(g.current_amount for g in all_goals), 2), 'can_create_goal': profile.can_add_goal()})
+        base_currency = profile.currency
+        total_saved = Decimal('0.00')
+        for goal in all_goals:
+            amount = goal.current_amount or Decimal('0.00')
+            if goal.currency != base_currency:
+                try:
+                    amount = (amount * get_exchange_rate(goal.currency, base_currency)).quantize(Decimal('0.01'))
+                except Exception:
+                    pass  # no rate available: show the goal's own figure rather than failing the page
+            total_saved += amount
+        context.update({'goals': all_goals, 'total_saved': total_saved.quantize(Decimal('0.01')), 'can_create_goal': profile.can_add_goal()})
         return context
 
 class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
@@ -107,11 +119,10 @@ class SavingsGoalDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView
     success_url = reverse_lazy('goal-list')
     def get_queryset(self): return SavingsGoal.objects.filter(user=self.request.user)
 
-    def delete(self, request, *args, **kwargs):
-        from django.contrib import messages
-        from django.utils.translation import gettext as _
+    def form_valid(self, form):
+        # Django 4 deletes through form_valid, so the message and analytics live here
+        response = super().form_valid(form)
         messages.success(self.request, _("Savings goal deleted successfully."))
-        response = super().delete(request, *args, **kwargs)
         ph_capture(self.request.user, 'goal_deleted', {})
         return response
 
@@ -458,7 +469,12 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
         form = GoalContributionForm(request.POST, user=request.user)
 
         if form.is_valid():
-            c = form.save(commit=False); c.goal = goal; c.save()
+            c = form.save(commit=False); c.goal = goal
+            try:
+                c.save()
+            except (RuntimeError, ValidationError):
+                form.add_error(None, _("Unable to add the contribution because currency conversion failed. Please try again."))
+                return render(request, self.template_name, self._get_context_data(request, goal, form=form))
             messages.success(request, _("Contribution added successfully!"))
             request.session['trigger_confetti'] = True
             ph_capture(request.user, 'goal_contribution_added', {'amount': str(c.amount)})
@@ -466,11 +482,24 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
 
         return render(request, self.template_name, self._get_context_data(request, goal, form=form))
  
-class GoalContributionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
+class _LockedGoalGuard:
+    """Contributions of a goal your plan has locked are read-only (the goal itself can still be deleted)."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        contribution = self.get_object()
+        if request.user.profile.is_goal_locked(contribution.goal):
+            messages.error(request, _("This goal is locked."))
+            return redirect('goal-list')
+        return super().dispatch(request, *args, **kwargs)
+
+
+class GoalContributionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, _LockedGoalGuard, UpdateView):
     model = GoalContribution
     form_class = GoalContributionForm
     template_name = 'expenses/contribution_form.html'
-    
+
     def get_queryset(self):
         return GoalContribution.objects.filter(goal__user=self.request.user)
 
@@ -483,14 +512,19 @@ class GoalContributionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, Updat
         return reverse_lazy('goal-detail', kwargs={'pk': get_redirect_pk_or_uuid(self.object.goal)})
 
     def form_valid(self, form):
+        try:
+            response = super().form_valid(form)
+        except (RuntimeError, ValidationError):
+            form.add_error(None, _("Unable to update the contribution because currency conversion failed. Please try again."))
+            return self.form_invalid(form)
         messages.success(self.request, _("Contribution updated successfully!"))
-        response = super().form_valid(form)
         ph_capture(self.request.user, 'goal_contribution_updated', {'amount': str(self.object.amount)})
         return response
 
-class GoalContributionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
+
+class GoalContributionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, _LockedGoalGuard, DeleteView):
     model = GoalContribution
-    
+
     def get_queryset(self):
         return GoalContribution.objects.filter(goal__user=self.request.user)
 
@@ -501,8 +535,9 @@ class GoalContributionDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, Delet
             return get_safe_redirect_url(self.request, next_url, fallback)
         return fallback
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
+        # Django 4 deletes through form_valid, so the message and analytics live here
+        response = super().form_valid(form)
         messages.success(self.request, _("Contribution deleted successfully!"))
-        response = super().delete(request, *args, **kwargs)
         ph_capture(self.request.user, 'goal_contribution_deleted', {})
         return response

@@ -1832,10 +1832,11 @@ class SavingsGoal(models.Model):
         return 0
         
     def save(self, *args, **kwargs):
-        if self.current_amount >= self.target_amount and self.target_amount > 0:
-            self.is_completed = True
-        else:
-            self.is_completed = False
+        self.is_completed = bool(self.target_amount > 0 and self.current_amount >= self.target_amount)
+        if kwargs.get('update_fields') is not None:
+            # A partial save (the contribution code only names current_amount) must still store the
+            # flag it just recomputed, or the database says "open" for a goal that has been reached.
+            kwargs['update_fields'] = set(kwargs['update_fields']) | {'is_completed'}
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
