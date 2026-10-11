@@ -472,3 +472,36 @@
 [data-bs-theme="dark"] .sk-breadcrumb-sep {
   color: rgba(255, 255, 255, 0.2);
 }
+
+
+/* --- Fallback loader: shown by base.html before the deferred skeleton script is available --- */
+#tmr-fallback-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--bs-body-bg-rgb, 250, 249, 246), 0.6);
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+}
+#tmr-fallback-loader .tmr-fallback-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(var(--bs-primary-rgb, 29, 158, 117), 0.2);
+  border-top-color: var(--bs-primary, #1D9E75);
+  animation: tmr-spin 0.7s linear infinite;
+}
+@keyframes tmr-spin { to { transform: rotate(360deg); } }
+
+/* --- In-page (htmx) updates: dim what is being replaced, after a short delay so fast responses do not flash --- */
+.tmr-busy {
+  pointer-events: none;
+  animation: tmr-busy-in 0.25s ease 0.15s forwards;
+}
+@keyframes tmr-busy-in { to { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) {
+  #tmr-fallback-loader .tmr-fallback-spinner { animation-duration: 1.6s; }
+}

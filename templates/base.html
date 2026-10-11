@@ -593,7 +593,7 @@
     <!-- Preload critical local stylesheet so the browser fetches it in parallel -->
     <link rel="preload" href="{% static 'style.css' %}?v=2.8" as="style">
     <link rel="stylesheet" href="{% static 'style.css' %}?v=2.8">
-    <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.5">
+    <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.6">
     <style>
         /* Bootstrap Multiselect Premium Customization */
 
@@ -1241,10 +1241,45 @@
         (function() {
             let loaderTimeout = null;
 
+            // Restart the top progress bar from zero every time (re-adding a class that is already there
+            // would not replay its animation, so a second tap would show nothing).
+            const restartBar = function () {
+                const bar = document.getElementById('global-progress-bar');
+                if (!bar) return;
+                bar.classList.remove('active');
+                bar.style.width = '';
+                void bar.offsetWidth;
+                bar.classList.add('active');
+            };
+
+            // Minimal full-screen feedback that needs nothing but this inline script: used until the
+            // deferred skeleton script has loaded (slow mobile connections), so a tap always shows something.
+            const showFallback = function () {
+                if (document.getElementById('tmr-fallback-loader')) return;
+                const el = document.createElement('div');
+                el.id = 'tmr-fallback-loader';
+                el.setAttribute('role', 'status');
+                el.setAttribute('aria-label', 'Loading');
+                el.innerHTML = '<div class="tmr-fallback-spinner"></div>';
+                document.body.appendChild(el);
+            };
+            const hideFallback = function () {
+                const el = document.getElementById('tmr-fallback-loader');
+                if (el && el.parentNode) el.parentNode.removeChild(el);
+            };
+
             window.showLoader = function (destinationUrl) {
-                // Show skeleton loader with page-specific layout
+                restartBar();
+                // Show skeleton loader with page-specific layout (or the fallback if it is not loaded yet)
                 if (typeof window.showSkeletonLoader === 'function') {
-                    window.showSkeletonLoader(destinationUrl || null);
+                    try {
+                        window.showSkeletonLoader(destinationUrl || null);
+                        hideFallback();
+                    } catch (err) {
+                        showFallback();
+                    }
+                } else {
+                    showFallback();
                 }
                 
                 // Reset safety timeout (10s) to automatically hide if navigation fails
@@ -1254,6 +1289,7 @@
 
             window.hideLoader = function () {
                 document.documentElement.style.cursor = '';
+                hideFallback();
                 // Hide skeleton loader
                 if (typeof window.hideSkeletonLoader === 'function') {
                     window.hideSkeletonLoader();
@@ -1270,8 +1306,13 @@
                 // Ignore right clicks or clicks with modifiers
                 if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
 
+                // On touch, a pointerdown is just as likely the start of a scroll as a tap, so only the
+                // click (which a scroll never produces) may start the loader; a touch pointerdown left the
+                // progress bar stuck "active" and the next real tap then showed nothing.
+                if (e.type === 'pointerdown' && e.pointerType === 'touch') return;
+
                 // Find closest element
-                const clickable = e.target.closest('a, [onclick]');
+                const clickable = e.target.closest('a, [onclick], [data-href]');
                 if (!clickable) return;
 
                 let shouldShow = false;
@@ -1287,6 +1328,9 @@
                     
                     shouldShow = true;
                     destinationUrl = link.href;
+                } else if (clickable.hasAttribute('data-href') && !clickable.classList.contains('no-loader')) {
+                    shouldShow = true;
+                    destinationUrl = clickable.getAttribute('data-href');
                 } else if (clickable.hasAttribute('onclick')) {
                     const onclick = clickable.getAttribute('onclick');
                     if (onclick.includes('location.') || onclick.includes('history.')) {
@@ -1296,14 +1340,7 @@
 
                 if (shouldShow) {
                     // INSTANT FEEDBACK
-                    const bar = document.getElementById('global-progress-bar');
-                    if (bar) {
-                        bar.style.width = '10%';
-                        bar.classList.add('active');
-                        // Force paint
-                        void document.documentElement.offsetWidth;
-                        bar.style.width = '30%';
-                    }
+                    restartBar();
                     document.documentElement.style.cursor = 'wait';
                     
                     // Full Skeleton (only on click to avoid multiple triggers on touch-scroll)
@@ -1357,11 +1394,17 @@
     </script>
 
     <script>
-        document.body.addEventListener('htmx:beforeRequest', function () {
+        document.body.addEventListener('htmx:beforeRequest', function (e) {
             const bar = document.getElementById('global-progress-bar');
             if (bar) {
+                bar.classList.remove('active');
+                void bar.offsetWidth;
                 bar.classList.add('active');
             }
+            // The 4px bar alone is easy to miss on a phone: also dim the content being replaced (after a
+            // short delay so quick responses do not flash).
+            const target = e.detail && e.detail.target;
+            if (target && target.classList) target.classList.add('tmr-busy');
         });
 
         // Disable HTMX default auto-focusing and focus-scrolling behavior globally
@@ -1376,11 +1419,12 @@
             }
         });
 
-        const clearHtmxLoader = function () {
+        const clearHtmxLoader = function (e) {
             const bar = document.getElementById('global-progress-bar');
             if (bar) {
                 bar.classList.remove('active');
             }
+            document.querySelectorAll('.tmr-busy').forEach(function (el) { el.classList.remove('tmr-busy'); });
             // Prevent mobile/PWA soft keyboard auto-opening on HTMX swaps/settles (except inside the New Expense composer)
             if (document.activeElement && 
                 (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') && 
@@ -1392,6 +1436,8 @@
         document.body.addEventListener('htmx:afterSettle', clearHtmxLoader);
         document.body.addEventListener('htmx:responseError', clearHtmxLoader);
         document.body.addEventListener('htmx:sendError', clearHtmxLoader);
+        document.body.addEventListener('htmx:timeout', clearHtmxLoader);
+        document.body.addEventListener('htmx:swapError', clearHtmxLoader);
     </script>
 
     <!-- Bootstrap JS -->
@@ -2156,7 +2202,7 @@
     {% include 'components/cookie_consent.html' %}
 
     {% block scripts %}{% endblock %}
-    <script defer src="{% static 'js/sidebar.js' %}?v=1.1"></script>
+    <script defer src="{% static 'js/sidebar.js' %}?v=1.2"></script>
     {% block extra_body %}{% endblock %}
 
     {% if user.is_authenticated %}

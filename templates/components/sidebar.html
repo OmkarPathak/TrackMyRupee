@@ -261,6 +261,26 @@
         </div>
     </div>
 </aside>
+<script>
+    /* Put the sidebar back exactly as it was before the first paint (scroll position and collapsed state),
+       so navigating from a link far down the list does not flash at the top and then jump. */
+    (function () {
+        try {
+            var sb = document.getElementById('sidebar');
+            if (!sb) return;
+            if (localStorage.getItem('sidebarState') === 'collapsed') {
+                sb.classList.add('collapsed');
+                document.body.classList.add('sidebar-collapsed');
+            }
+            var content = sb.querySelector('.sidebar-content');
+            var saved = sessionStorage.getItem('sidebarScrollTop');
+            if (content && saved !== null) {
+                content.scrollTop = parseInt(saved, 10) || 0;
+                content.dataset.scrollRestored = 'true';
+            }
+        } catch (e) {}
+    })();
+</script>
 
 <!-- Quick Search / Command Palette Modal -->
 <div class="modal fade" id="pageSearchModal" tabindex="-1" aria-labelledby="pageSearchModalLabel" aria-hidden="true">

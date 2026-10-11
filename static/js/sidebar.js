@@ -59,14 +59,18 @@
         // Manage & preserve sidebar scroll position across page loads / navigation
         const sidebarContent = sidebar ? sidebar.querySelector('.sidebar-content') : null;
         if (sidebarContent) {
-            // Restore saved scroll position if available in sessionStorage
+            // The inline script in sidebar.html already restored the position before first paint. Do it here
+            // only as a fallback, and only once: initSidebar also runs after every htmx swap, and re-applying
+            // a stale saved value then would make the sidebar jump.
+            const firstInit = !sidebarContent.dataset.scrollInitDone;
+            sidebarContent.dataset.scrollInitDone = 'true';
             const savedScrollTop = sessionStorage.getItem('sidebarScrollTop');
-            if (savedScrollTop !== null) {
+            if (firstInit && savedScrollTop !== null && !sidebarContent.dataset.scrollRestored) {
                 sidebarContent.scrollTop = parseInt(savedScrollTop, 10);
             }
 
-            // Always ensure active link is visible in sidebar scroll container
-            const activeLink = sidebarContent.querySelector('.nav-link.active');
+            // Make sure the active link is visible in the sidebar scroll container (first load only)
+            const activeLink = firstInit ? sidebarContent.querySelector('.nav-link.active') : null;
             if (activeLink) {
                 const containerRect = sidebarContent.getBoundingClientRect();
                 const activeRect = activeLink.getBoundingClientRect();
