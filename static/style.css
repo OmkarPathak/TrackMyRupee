@@ -2643,21 +2643,32 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
   pointer-events: auto;
   flex: 1;
   height: 100%;
-  background: #ffffff;
+  /* Glass: translucent fill, blur and saturate what scrolls underneath, light edge highlight */
+  background: rgba(255, 255, 255, 0.38);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  backdrop-filter: blur(24px) saturate(200%);
   border-radius: 30px;
   display: flex;
   align-items: center;
   justify-content: space-around;
   padding: 0 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   transition: all 0.3s ease;
 }
 
 [data-bs-theme="dark"] .mobile-nav-capsule {
-  background: #1e2328;
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(30, 35, 40, 0.42);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Browsers without backdrop-filter keep a solid, readable bar */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .mobile-nav-capsule { background: #ffffff; }
+  [data-bs-theme="dark"] .mobile-nav-capsule { background: #1e2328; }
 }
 
 .mobile-nav-item {
@@ -2690,6 +2701,15 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* The sheet hands focus back to this button when it closes, which drew the global focus ring as a green
+   box around "More". The active colour already shows where you are. */
+.mobile-bottom-nav .mobile-nav-item:focus,
+.mobile-bottom-nav .mobile-nav-item:focus-visible,
+[data-bs-theme="dark"] .mobile-bottom-nav .mobile-nav-item:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .mobile-nav-item.active {
@@ -2731,9 +2751,8 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 }
 
 [data-bs-theme="dark"] .mobile-fab-btn {
-  background-color: #5DCAA5;
-  color: #064e3b !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(93, 202, 165, 0.25);
+  /* Same deep green and white plus as the light theme; only the shadow is deeper */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(15, 118, 87, 0.25);
 }
 
 .mobile-fab-btn i {
@@ -2750,11 +2769,6 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 .mobile-fab-btn:active {
   transform: scale(0.94);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-[data-bs-theme="dark"] .mobile-fab-btn {
-  background-color: #1D9E75;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(29, 158, 117, 0.15);
 }
 
 /* --- Mobile Bottom Sheet (Offcanvas Drawer) --- */
