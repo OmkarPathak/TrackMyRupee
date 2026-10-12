@@ -98,13 +98,18 @@ def handle_user_post_save(sender, instance, created, **kwargs):
                 from django.core.mail import send_mail
                 from django.template.loader import render_to_string
 
-                html_message = render_to_string('email/welcome_email.html', {
+                from finance_tracker.plans import PLAN_DETAILS
+                context = {
                     'user': instance,
-                })
+                    'free': PLAN_DETAILS['FREE']['limits'],
+                    'plus_price': PLAN_DETAILS['PLUS']['price_monthly'],
+                }
+                html_message = render_to_string('email/welcome_email.html', context)
+                text_message = render_to_string('email/welcome_email.txt', context)
 
                 send_mail(
                     subject='Welcome to TrackMyRupee! 🎉',
-                    message='Welcome to TrackMyRupee! Start tracking your finances today.',
+                    message=text_message,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[instance.email],
                     html_message=html_message,

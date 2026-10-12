@@ -1,10 +1,18 @@
 import logging
+import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail.backends.base import BaseEmailBackend
 
 logger = logging.getLogger(__name__)
+
+# One-time links (email confirmation, password reset) must not sit readable in the log table.
+_SECRET_LINK_RE = re.compile(r'https?://[^\s"\'<>]*(?:confirm-email|password/reset/key)[^\s"\'<>]*')
+
+
+def redact_secret_links(text):
+    return _SECRET_LINK_RE.sub('[link removed]', text) if text else text
 
 
 class LoggedEmailBackend(BaseEmailBackend):
@@ -35,10 +43,12 @@ class LoggedEmailBackend(BaseEmailBackend):
             return 0
 
         backend = self._get_real_backend()
+        failure = None
         try:
             sent_count = backend.send_messages(email_messages)
         except Exception as e:
             logger.error(f"Error sending email messages via real backend: {e}")
+            failure = e
             sent_count = 0
 
         # Log each message to the database regardless of send success
@@ -60,12 +70,17 @@ class LoggedEmailBackend(BaseEmailBackend):
                     user=user,
                     to_email=", ".join(message.to) if message.to else "No Recipient",
                     subject=message.subject,
-                    body=message.body,
-                    html_body=html_body,
+                    body=redact_secret_links(message.body),
+                    html_body=redact_secret_links(html_body),
                     status='SENT' if sent_count > 0 else 'FAILED',
-                    error_message=None if sent_count > 0 else "Backend reported 0 sent messages",
+                    error_message=None if sent_count > 0 else (
+                        str(failure)[:500] if failure else "Backend reported 0 sent messages"
+                    ),
                 )
             except Exception as e:
                 logger.error(f"Failed to log email to database: {e}")
 
+        # Callers rely on this to know a send failed (a drip or report must not be marked as sent).
+        if failure is not None and not self.fail_silently:
+            raise failure
         return sent_count

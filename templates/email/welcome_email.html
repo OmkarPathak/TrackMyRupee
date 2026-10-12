@@ -3,27 +3,43 @@
 {% block title %}Welcome to TrackMyRupee!{% endblock %}
 
 {% block content %}
-    <h2>Welcome to the Family! 🎉</h2>
-    
-    <p>Hi <strong>{{ user.username }}</strong>,</p>
-    
-    <p>We're thrilled to have you on board. TrackMyRupee is designed to make managing your finances simple, smart, and stress-free.</p>
-    
-    <p>Here are a few things you can do to get started:</p>
-    
-    <div style="text-align: left; margin: 25px 0; background: #f8f9fa; border-radius: 12px; padding: 20px;">
-        <p style="margin-bottom: 10px;">📊 <strong>Track Expenses:</strong> Log your daily spends in seconds.</p>
-        <p style="margin-bottom: 10px;">🔄 <strong>Manage Subscriptions:</strong> Never miss a renewal date.</p>
-        <p style="margin-bottom: 0;">💡 <strong>Gain Insights:</strong> See where your money goes with visual charts.</p>
+    <h2>Welcome to TrackMyRupee! 🎉</h2>
+
+    <p>Hi <strong>{{ user.first_name|default:user.username }}</strong>,</p>
+
+    <p>TrackMyRupee is one place for your whole financial life: everyday spending, every account and card, loans, goals and your net worth. It is built for Indian money, but works in any currency.</p>
+
+    <h3 style="margin: 28px 0 10px;">Your first 5 minutes</h3>
+    <ol style="text-align: left; padding-left: 20px; line-height: 1.7;">
+        <li>Add your accounts (bank, cash, cards, wallets) with their current balances.</li>
+        <li>Log your first expense: type something like <strong>swiggy 320</strong> in the quick-add box and press Enter.</li>
+        <li>Add your salary or other income, so your savings rate can be worked out.</li>
+        <li>Set a budget for the one category you want to watch.</li>
+    </ol>
+
+    <div style="margin: 30px 0;">
+        <a href="https://trackmyrupee.com/dashboard/" class="btn btn-primary">Go to Dashboard</a>
     </div>
-    
-    <div style="margin: 35px 0;">
-        <a href="https://trackmyrupee.com/" class="btn btn-primary">
-            Go to Dashboard
-        </a>
+
+    <h3 style="margin: 28px 0 10px;">What you can do</h3>
+    <div style="text-align: left; margin: 10px 0 25px; background: #f8f9fa; border-radius: 12px; padding: 20px; line-height: 1.6;">
+        <p style="margin: 0 0 12px;">⚡ <strong>Track every rupee:</strong> expenses and income with categories, quick-add by typing or voice, and upload past expenses from Excel.</p>
+        <p style="margin: 0 0 12px;">🔄 <strong>Recurring transactions:</strong> rent, salary, subscriptions and SIPs logged for you on the due date.</p>
+        <p style="margin: 0 0 12px;">🏦 <strong>Accounts and transfers:</strong> bank, cash, cards, wallets, deposits and investments, each with its own ledger. Transfers never count as spending.</p>
+        <p style="margin: 0 0 12px;">📈 <strong>Net worth:</strong> everything you own minus everything you owe, over time.</p>
+        <p style="margin: 0 0 12px;">🏠 <strong>Loans and capital events:</strong> EMIs split into principal and interest, and one-off big purchases kept apart from your monthly picture.</p>
+        <p style="margin: 0 0 12px;">🎯 <strong>Budgets and goals:</strong> category budgets with alerts, and savings goals with milestones at 50%, 90% and 100%.</p>
+        <p style="margin: 0 0 12px;">📅 <strong>Calendar and analytics:</strong> spending day by day, your savings rate, month-on-month trends and a financial health view.</p>
+        <p style="margin: 0 0 12px;">🔔 <strong>Reminders:</strong> bills and card dates 3 days ahead, plus a daily nudge to log expenses (switch it off in Settings).</p>
+        <p style="margin: 0;">📱 <strong>On your phone:</strong> install it to your home screen like an app, and export your data any time on Plus and Pro.</p>
     </div>
-    
-    <p>If you have any questions, feel free to reply to this email. We're here to help!</p>
-    
-    <p>Happy Tracking,<br>The TrackMyRupee Team</p>
+
+    <h3 style="margin: 28px 0 10px;">Your plan</h3>
+    <p>You start on <strong>Free</strong>: {{ free.accounts }} accounts, {{ free.expenses_per_month }} expenses a month, {{ free.budget_categories }} budget categories, {{ free.recurring_transactions }} recurring transactions and {{ free.savings_goals }} savings goal. Nothing expires. Plus (from ₹{{ plus_price }} a month) and Pro lift those limits and add alert emails, export and Year in Review. <a href="https://trackmyrupee.com/pricing/" style="color: #1D9E75;">See plans</a></p>
+
+    <p>A step-by-step guide to every feature is at <a href="https://docs.trackmyrupee.com/" style="color: #1D9E75;">docs.trackmyrupee.com</a>.</p>
+
+    <p>Questions, ideas or something not working? Write to <a href="mailto:support@trackmyrupee.com" style="color: #1D9E75;">support@trackmyrupee.com</a>. A person reads every message.</p>
+
+    <p>Happy tracking,<br>The TrackMyRupee Team</p>
 {% endblock %}

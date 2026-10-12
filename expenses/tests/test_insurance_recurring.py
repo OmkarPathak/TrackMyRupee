@@ -292,7 +292,7 @@ class InsuranceRecurringTransactionTests(TestCase):
         cmd._process_recurring_reminders(self.user)
 
         notif = Notification.objects.get(user=self.user, notification_type='RECURRING')
-        self.assertEqual(notif.link, "/accounts/")
+        self.assertEqual(notif.link, "/accounts/list/")
 
     def test_delete_physical_asset_cascades_to_recurring_transaction(self):
         """Deleting PhysicalAsset cascades to delete its linked RecurringTransaction and handles no-schedule asset."""
@@ -553,7 +553,7 @@ class InsuranceRecurringTransactionTests(TestCase):
         notif = Notification.objects.get(user=self.user, notification_type='RECURRING')
         self.assertIn("Pure Term Life Protection", notif.title)
         self.assertIn("Pure Term Life Protection", notif.message)
-        self.assertEqual(notif.link, "/accounts/")
+        self.assertEqual(notif.link, "/accounts/list/")
 
     def test_physical_asset_str_display(self):
         """PhysicalAsset string representation shows linked account name and optional policy number."""

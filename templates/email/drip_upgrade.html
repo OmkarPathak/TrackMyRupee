@@ -7,7 +7,7 @@
     
     <p>Hi <strong>{{ user.first_name|default:user.username }}</strong>,</p>
     
-    <p>You've been using TrackMyRupee for <strong>2 weeks</strong> now. That's already more consistent than 80% of people who try to track their finances! 🎉</p>
+    <p>You've been using TrackMyRupee for <strong>2 weeks</strong> now. Staying consistent is the hardest part of tracking your money, and you're doing it. 🎉</p>
     
     <p>But imagine what you could do with the full toolkit:</p>
     
@@ -16,9 +16,10 @@
         <div style="background: #f2f0eb; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
             <p style="margin: 0 0 12px; font-weight: 700; color: #1D9E75; font-size: 18px;">✨ Plus Plan</p>
             <table style="width: 100%; font-size: 14px; color: #4a5568;">
-                <tr><td style="padding: 6px 0;">📂 15 Budget Categories</td></tr>
-                <tr><td style="padding: 6px 0;">🔄 5 Recurring Transactions</td></tr>
-                <tr><td style="padding: 6px 0;">🎯 5 Savings Goals</td></tr>
+                <tr><td style="padding: 6px 0;">📂 {{ plus.budget_categories }} Budget Categories</td></tr>
+                <tr><td style="padding: 6px 0;">🔄 {{ plus.recurring_transactions }} Recurring Transactions</td></tr>
+                <tr><td style="padding: 6px 0;">🎯 {{ plus.savings_goals }} Savings Goals</td></tr>
+                <tr><td style="padding: 6px 0;">🏦 Up to {{ plus.accounts }} Accounts</td></tr>
                 <tr><td style="padding: 6px 0;">📧 Email Reminders</td></tr>
                 <tr><td style="padding: 6px 0;">📊 Export to CSV/Excel</td></tr>
                 <tr><td style="padding: 6px 0;">📅 Year in Review</td></tr>
@@ -30,8 +31,9 @@
             <p style="margin: 0 0 12px; font-weight: 700; color: #7c3aed; font-size: 18px;">🔮 Pro Plan</p>
             <table style="width: 100%; font-size: 14px; color: #4a5568;">
                 <tr><td style="padding: 6px 0;">♾️ Unlimited Everything</td></tr>
-                <tr><td style="padding: 6px 0;">🧠 AI-Powered Category Predictions</td></tr>
-                <tr><td style="padding: 6px 0;">⚡ Priority Support</td></tr>
+                <tr><td style="padding: 6px 0;">🏦 Unlimited Accounts and Loans</td></tr>
+                <tr><td style="padding: 6px 0;">📈 Full Net Worth History</td></tr>
+                <tr><td style="padding: 6px 0;">⚡ Priority Email Support</td></tr>
             </table>
         </div>
     </div>

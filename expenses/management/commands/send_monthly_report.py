@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Sum
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.utils.html import escape, mark_safe
+from django.utils.html import escape, mark_safe, strip_tags
 from django.utils.translation import gettext as _
 
 from expenses.account_types import resolve_category_selector
@@ -83,14 +83,16 @@ class Command(BaseCommand):
                     'currency_symbol': user.profile.currency if hasattr(user, 'profile') else '₹'
                 })
 
-                send_mail(
+                delivered = send_mail(
                     subject=subject,
-                    message=subject,
+                    message=" ".join(strip_tags(html_message).split()),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
                     html_message=html_message,
                     fail_silently=False
                 )
+                if not delivered:
+                    raise RuntimeError("the email backend reported 0 messages sent")
 
                 # If the active email backend did not already log the email to EmailLog
                 # (e.g. locmem backend during tests), log it here so subsequent runs
@@ -164,10 +166,16 @@ class Command(BaseCommand):
             atype = acc_type_map.get(pk, 'OTHER')
             if atype in investment_codes:
                 total_investments += val
-            if atype == 'CREDIT_CARD':
-                credit_card_pending += abs(val)
+            # Only money owed: a card in credit (positive balance) is not pending
+            if atype == 'CREDIT_CARD' and val < 0:
+                credit_card_pending += -val
 
-        nw_at_start = nw_at_end - (total_income - total_expense)
+        # Opening position is the ledger the day before the month began. Reconstructing it from
+        # income minus outflow was wrong: loan principal and transfers do not change net worth,
+        # while interest, price moves and FX do.
+        nw_at_start, _start_balances = LedgerReadService.get_net_worth(
+            user, as_of=start_date - timedelta(days=1)
+        )
         nw_change = nw_at_end - nw_at_start
         nw_change_pct = round((nw_change / nw_at_start * 100), 1) if nw_at_start > 0 else 0
 
@@ -188,7 +196,8 @@ class Command(BaseCommand):
         ai_insight = None
         if top_categories:
             top_cat = top_categories[0]
-            top_pct = round(float(top_cat['total']) / float(total_expense) * 100) if total_expense > 0 else 0
+            # Share of what was actually spent in categories, not of loan or capital outflow
+            top_pct = round(float(top_cat['total']) / float(total_regular_expense) * 100) if total_regular_expense > 0 else 0
             potential = float(top_cat['total']) * 0.15  # Suggest 15% saving
 
             ai_insight = _("You spent <b>{pct}%</b> of your total budget on <b>{cat}</b>. Reducing this by 15% next month could save you <b>{sym}{savings}</b>!").format(

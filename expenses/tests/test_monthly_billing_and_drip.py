@@ -20,6 +20,11 @@ class LifecycleEmailTest(TestCase):
         self.profile.tier = 'FREE'
         self.profile.last_drip_email_day = 0
         self.profile.save()
+        # Drips go only to confirmed addresses
+        from allauth.account.models import EmailAddress
+        EmailAddress.objects.update_or_create(
+            user=self.user, email=self.user.email, defaults={'primary': True, 'verified': True}
+        )
 
         # Create subscription plans for the pricing context
         SubscriptionPlan.objects.create(

@@ -19,6 +19,10 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 
     COOLDOWN_MINUTES = 15
     DAILY_LIMIT = 3
+    # EmailLog has no "kind" column, so verification mails are recognised by their subject
+    # (account/email/email_confirmation*_subject.txt). Any other mail, such as the welcome
+    # email sent a moment earlier, must not count against the cooldown.
+    VERIFICATION_SUBJECT = 'Confirm Your Email Address'
 
     def is_email_bomb_risk(self, recipient_email, user=None):
         """
@@ -49,17 +53,21 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         # 1. Cooldown check: Was any confirmation email sent in the last 15 minutes?
         recent_sends = EmailLog.objects.filter(
             to_email__iexact=recipient_email,
+            subject__icontains=self.VERIFICATION_SUBJECT,
             sent_at__gte=fifteen_minutes_ago,
             status='SENT',
         ).exists()
 
         if recent_sends:
             logger.warning("Email rate limit cooldown triggered for recipient: %s", recipient_email)
-            return True, _(f"Please wait {self.COOLDOWN_MINUTES} minutes before requesting another verification email.")
+            return True, _("Please wait %(minutes)d minutes before requesting another verification email.") % {
+                'minutes': self.COOLDOWN_MINUTES,
+            }
 
         # 2. Daily cap check: Have 3 or more confirmation emails been sent in the last 24 hours?
         daily_count = EmailLog.objects.filter(
             to_email__iexact=recipient_email,
+            subject__icontains=self.VERIFICATION_SUBJECT,
             sent_at__gte=twenty_four_hours_ago,
             status='SENT',
         ).count()
@@ -88,4 +96,9 @@ class CustomAccountAdapter(DefaultAccountAdapter):
                 # Fail gracefully by not calling super().send_mail()
                 return
 
-        super().send_mail(template_prefix, email, context)
+        try:
+            super().send_mail(template_prefix, email, context)
+        except Exception:
+            # A delivery failure must not turn sign-up or password reset into a 500: the user
+            # can ask for another email, and the failure is already in EmailLog.
+            logger.exception("Could not send allauth email (template=%s, to=%s)", template_prefix, email)

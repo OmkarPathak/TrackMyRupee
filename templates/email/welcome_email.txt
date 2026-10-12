@@ -1,18 +1,53 @@
-Welcome to the Family!
+Welcome to TrackMyRupee, {{ user.first_name|default:user.username }}!
 
-Hi {{ user.username }},
+TrackMyRupee is one place for your whole financial life: everyday spending, every account and card, loans, goals and your net worth. It is built for Indian money, but works in any currency.
 
-We're thrilled to have you on board. TrackMyRupee is designed to make managing your finances simple, smart, and stress-free.
+YOUR FIRST 5 MINUTES
+1. Add your accounts (bank, cash, cards, wallets, deposits, investments) with their current balances.
+2. Log your first expense. Just type something like "swiggy 320" in the quick-add box and press Enter.
+3. Add your salary or other income, so your savings rate can be worked out.
+4. Set a budget for the one category you want to keep an eye on.
 
-Here are a few things you can do to get started:
-- Track Expenses: Log your daily spends in seconds.
-- Manage Subscriptions: Never miss a renewal date.
-- Gain Insights: See where your money goes with visual charts.
+WHAT YOU CAN DO
 
-Start exploring your dashboard:
-https://trackmyrupee.com/dashboard
+Track every rupee
+- Expenses and income, with categories, notes and payment methods.
+- Quick-add: type a line, or tap the mic, and the details are filled in for you.
+- Upload past expenses from Excel and get months of history in seconds.
+- Recurring transactions for rent, salary, subscriptions and SIPs, logged for you on the due date.
 
-If you have any questions, feel free to reply to this email. We're here to help!
+See the whole picture
+- Accounts: bank, cash, credit cards, wallets, fixed and recurring deposits, mutual funds, stocks and more, each with its own ledger.
+- Transfers between accounts, which never count as spending.
+- Net worth: everything you own minus everything you owe, as it changes over time.
+- Loans: EMIs split into principal and interest, with the interest counted as the cost of borrowing.
+- Capital events: one-off big items (a laptop, a wedding, a down payment) tracked separately, so one large purchase does not distort your monthly picture.
 
-Happy Tracking,
+Stay in control
+- Budgets by category, with a progress bar and an alert when you get close.
+- Savings goals with progress and milestone alerts at 50%, 90% and 100%.
+- Calendar view: spending day by day, to spot the expensive days.
+- Reminders: bills and credit card dates 3 days ahead, and a daily nudge to log your expenses (you can switch it off in Settings).
+
+Understand your money
+- Dashboard and Analytics: savings rate, where your money goes, trends month on month and a financial health view.
+- Search and filters on every list, the same way everywhere.
+- Year in Review (Plus and Pro): your year in one page.
+
+Take it with you
+- Works in the browser on any phone, and installs to your home screen like an app. Push notifications are available once you allow them.
+- Export your data to CSV or Excel (Plus and Pro). It is your data.
+
+YOUR PLAN
+You start on Free: {{ free.accounts }} accounts, {{ free.expenses_per_month }} expenses a month, {{ free.budget_categories }} budget categories, {{ free.recurring_transactions }} recurring transactions and {{ free.savings_goals }} savings goal. Nothing expires. Plus (from ₹{{ plus_price }} a month) and Pro lift those limits, add alert emails, export and Year in Review.
+See plans: https://trackmyrupee.com/pricing/
+
+START HERE
+https://trackmyrupee.com/dashboard/
+
+A step-by-step guide to every feature is at https://docs.trackmyrupee.com/
+
+Questions, ideas or something not working? Write to support@trackmyrupee.com. A person reads every message.
+
+Happy tracking,
 The TrackMyRupee Team

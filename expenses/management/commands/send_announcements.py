@@ -21,8 +21,8 @@ class Command(BaseCommand):
     help = 'Broadcasts queued feature announcements via WebPush and Email based on audience filter'
 
     def handle(self, *args, **kwargs):
-        queued_announcements = Announcement.objects.filter(status='QUEUED')
-        if not queued_announcements.exists():
+        queued_announcements = list(Announcement.objects.filter(status='QUEUED'))
+        if not queued_announcements:
             self.stdout.write("No queued announcements to send.")
             return
 
@@ -34,6 +34,12 @@ class Command(BaseCommand):
         subscribed_user_ids = set(PushInformation.objects.values_list('user_id', flat=True))
 
         for announcement in queued_announcements:
+            # Claim it first: a crash or a second run part-way through must not mail everyone twice
+            claimed = Announcement.objects.filter(pk=announcement.pk, status='QUEUED').update(
+                status='SENT', sent_at=timezone.now()
+            )
+            if not claimed:
+                continue
             self.stdout.write(f"Processing announcement: '{announcement.title}' (Audience: {announcement.audience})...")
 
             # Resolve target users based on audience
@@ -93,16 +99,11 @@ class Command(BaseCommand):
                             to=[user.email]
                         )
                         msg.attach_alternative(html_message, "text/html")
-                        msg.send()
-                        email_count += 1
+                        if msg.send():
+                            email_count += 1
                     except Exception as e:
                         logger.error(f"Failed email announcement send for {user.email}: {e}")
                         self.stdout.write(self.style.ERROR(f"Email send failed for {user.email}: {e}"))
-
-            # Update announcement status
-            announcement.status = 'SENT'
-            announcement.sent_at = timezone.now()
-            announcement.save(update_fields=['status', 'sent_at'])
 
             self.stdout.write(
                 self.style.SUCCESS(

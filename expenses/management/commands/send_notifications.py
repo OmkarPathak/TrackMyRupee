@@ -230,7 +230,7 @@ class Command(BaseCommand):
                     title = f"Upcoming Insurance Premium: {policy_name}"
                     message = f"Your {rt.get_frequency_display().lower()} insurance premium of {rt.currency}{rt.amount} for {policy_name} is due on {next_due.strftime('%b %d')}."
                     linked_acc = rt.physical_asset.linked_accounts.first() if rt.physical_asset else None
-                    link = f"/accounts/{linked_acc.uuid}/" if linked_acc else "/accounts/"
+                    link = f"/accounts/{linked_acc.uuid}/" if linked_acc else "/accounts/list/"
                 else:
                     title = f"Upcoming {rt.get_transaction_type_display()}: {rt.description}"
                     message = f"Your {rt.get_frequency_display().lower()} {rt.get_transaction_type_display().lower()} of {rt.currency}{rt.amount} is due on {next_due.strftime('%b %d')}."
