@@ -36,6 +36,19 @@
     category: 'category', account: 'account', payment: 'payment_method'
   };
 
+  // On a phone the full prompt does not fit the input and gets cut mid-sentence, so there the question is
+  // shown as a label above the input and the placeholder keeps only the example.
+  (function () {
+    var input = document.getElementById('tmr-quick-input');
+    if (!input || !window.matchMedia) return;
+    var mq = window.matchMedia('(max-width: 575.98px)');
+    function apply() {
+      input.placeholder = (mq.matches ? input.dataset.placeholderShort : input.dataset.placeholderLong) || input.placeholder;
+    }
+    apply();
+    if (mq.addEventListener) mq.addEventListener('change', apply); else if (mq.addListener) mq.addListener(apply);
+  })();
+
   // ── Elements ──────────────────────────────────────────────────────────────
   var el = {
     quick: $('tmr-quick-input'), go: $('tmr-go'), mic: $('tmr-mic'),
@@ -354,7 +367,38 @@
     });
     chips.slice(0, 4).forEach(function (c) {
       var b = document.createElement('button');
-      b.type = 'button'; b.className = 'tmr-flow-cat'; b.textContent = c.label;
+      b.type = 'button'; b.className = 'tmr-uchip';
+      var u = c.usual;
+      var icon = 'bi-lightning-charge';
+      if (u) {
+        var named = S.data && S.data.category_icons && S.data.category_icons[u.category];
+        icon = /^bi-[a-z0-9-]+$/.test(named || '') ? named : 'bi-tag';
+      }
+      var ic = document.createElement('span');
+      ic.className = 'tmr-uchip__icon';
+      ic.innerHTML = '<i class="bi ' + icon + '" aria-hidden="true"></i>';
+      b.appendChild(ic);
+      var name = document.createElement('span');
+      name.className = 'tmr-uchip__name';
+      name.textContent = u ? (u.name || u.description) : c.label;
+      b.appendChild(name);
+      if (u && u.recurring) {
+        var tag = document.createElement('span');
+        tag.className = 'tmr-uchip__tag';
+        tag.innerHTML = '<i class="bi bi-arrow-repeat" aria-hidden="true"></i>';
+        tag.appendChild(document.createTextNode(t('tagRecurring')));
+        b.appendChild(tag);
+      }
+      if (u) {
+        var amt = document.createElement('span');
+        amt.className = 'tmr-uchip__amount';
+        var n = parseFloat(u.amount);
+        var shown;
+        try { shown = n.toLocaleString('en-IN', { maximumFractionDigits: 2 }); } catch (e) { shown = String(n); }
+        amt.textContent = (u.currency || '') + shown;
+        b.appendChild(amt);
+        b.setAttribute('aria-label', (u.name || u.description) + ' ' + amt.textContent);
+      }
       b.addEventListener('click', function () {
         if (c.usual) fillFromUsual(c); else { el.quick.value = c.label; parse(); }
       });

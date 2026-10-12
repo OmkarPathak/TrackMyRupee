@@ -43,6 +43,7 @@
   <span data-k="tagLastUsed">{% trans "Last used" %}</span>
   <span data-k="tagToday">{% trans "Today" %}</span>
   <span data-k="tagCheck">{% trans "Check" %}</span>
+  <span data-k="tagRecurring">{% trans "Recurring" %}</span>
   <span data-k="fAmount">{% trans "Amount" %}</span>
   <span data-k="fDate">{% trans "Date" %}</span>
   <span data-k="fDescription">{% trans "Description" %}</span>
@@ -55,19 +56,27 @@
   <span data-k="ex4">{% trans "uber 150" %}</span>
 </div>
 <div id="tmr-composer" class="tmr-c" data-next="{{ next_url }}" data-entry="{{ request.GET.source }}">
-  <h1 class="tmr-c__title mb-4 fw-bold" id="tmr-c-title">{% trans "Add a new expense" %}</h1>
+  <header class="tmr-c__head">
+    <div>
+      <h1 class="tmr-c__title fw-bold" id="tmr-c-title">{% trans "Add a new expense" %}</h1>
+      <p class="tmr-c__sub">{% trans "Type it, say it, or tap one of your usuals." %}</p>
+    </div>
+  </header>
 
   <div class="tmr-c__card form-card" role="region" aria-labelledby="tmr-c-title">
     <div class="tmr-c__body">
+      <label class="tmr-quick__label" for="tmr-quick-input">{% trans "What did you spend on?" %}</label>
       <div class="tmr-quick">
-        <label class="visually-hidden" for="tmr-quick-input">{% trans "What did you spend on?" %}</label>
+        <i class="bi bi-pencil tmr-quick__icon" aria-hidden="true"></i>
         <input id="tmr-quick-input" class="border-0" type="text" autocomplete="off" autocapitalize="none" spellcheck="false"
                enterkeyhint="go" maxlength="300"
+               data-placeholder-long="{% trans 'What did you spend on? e.g. swiggy 320' %}"
+               data-placeholder-short="{% trans 'e.g. swiggy 320' %}"
                placeholder="{% trans 'What did you spend on? e.g. swiggy 320' %}">
         <button type="button" class="tmr-mic" id="tmr-mic" aria-label="{% trans 'Speak expense' %}">
           <i class="bi bi-mic-fill" aria-hidden="true"></i>
         </button>
-        <button type="button" class="tmr-go" id="tmr-go">{% trans "Go" %}</button>
+        <button type="button" class="tmr-go" id="tmr-go"><span>{% trans "Go" %}</span> <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
       </div>
       <p class="tmr-datenote" id="tmr-datenote" hidden>
         <span id="tmr-datenote-text"></span>
@@ -78,13 +87,13 @@
       <!-- State A: empty -->
       <section id="tmr-state-a">
         <div class="tmr-usual">
-          <span class="tmr-usual__label" id="tmr-usual-label">{% trans "Your usual" %}</span>
+          <span class="tmr-usual__label" id="tmr-usual-label"><i class="bi bi-lightning-charge" aria-hidden="true"></i>{% trans "Your usual" %}</span>
           <div class="tmr-usual__chips" id="tmr-usual" role="group" aria-labelledby="tmr-usual-label"></div>
         </div>
-        <p class="tmr-help">{% trans "Press Enter to fill the details. You can edit everything before adding." %}</p>
+        <p class="tmr-help">{% trans "Press" %} <kbd class="tmr-kbd">{% trans "Enter" %}</kbd> {% trans "to fill the details. You can edit everything before adding." %}</p>
         <hr class="tmr-sep">
         <button type="button" class="tmr-linkbtn" id="tmr-manual">
-          {% trans "Enter details manually" %} <i class="bi bi-caret-down-fill" aria-hidden="true" style="font-size:.7rem"></i>
+          {% trans "Enter details manually" %} <i class="bi bi-chevron-down" aria-hidden="true"></i>
         </button>
       </section>
 

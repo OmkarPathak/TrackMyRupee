@@ -122,8 +122,15 @@ def usual_expenses(user, limit=4):
             if not row:
                 continue
             desc = p['description'].strip()
+            # Expenses posted by a recurring schedule carry a "(Recurring)" suffix: show that as a tag
+            # instead of part of the name.
+            recurring = desc.lower().endswith('(recurring)')
+            name = desc[:-len('(recurring)')].strip() if recurring else desc
+            name = (name[:1].upper() + name[1:]) if name else desc
             usuals.append({
                 'label': f"{desc.lower()[:24]} {_format_chip_amount(p['amount'])}",
+                'name': name,
+                'recurring': recurring,
                 'description': desc,
                 'amount': str(p['amount']),
                 'currency': row['currency'],
@@ -184,6 +191,7 @@ def build_payload(user):
             sym: LARGE_AMOUNT_THRESHOLDS.get(sym, LARGE_AMOUNT_DEFAULT) for sym, _label in CURRENCY_CHOICES
         },
         'usuals': usual_expenses(user),
+        'category_icons': dict(Category.objects.filter(user=user).values_list('name', 'icon')),
     }
 
 
