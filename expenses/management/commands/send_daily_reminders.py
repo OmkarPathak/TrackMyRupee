@@ -8,7 +8,7 @@ from django.utils import timezone
 from webpush import send_user_notification
 from webpush.models import PushInformation
 
-from expenses.models import UserProfile
+from expenses.models import Expense, UserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,9 @@ class Command(BaseCommand):
         
         # Get all profiles with daily_reminder enabled
         profiles = UserProfile.objects.filter(daily_reminder=True).select_related('user')
+
+        # Nobody who has already logged an expense today needs reminding
+        logged_today = set(Expense.objects.filter(date=timezone.localdate()).values_list('user_id', flat=True))
         
         # Pre-fetch push notification subscriptions once to avoid N+1 queries
         subscribed_user_ids = set(PushInformation.objects.values_list('user_id', flat=True))
@@ -35,7 +38,9 @@ class Command(BaseCommand):
         
         for profile in profiles:
             user = profile.user
-            
+            if user.id in logged_today:
+                continue
+
             # 1. Internal UI Notification
             title = "Expense Reminder 💸"
             message = "Don't forget to add your expenses for today to keep your tracker up to date!"

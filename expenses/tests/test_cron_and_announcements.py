@@ -81,7 +81,9 @@ class DailyRemindersOptimizationTest(TestCase):
         # Run command under query check
         # With pre-fetching subscribed_user_ids, query count for PushInformation is exactly 1 regardless of profile count
         with patch('expenses.management.commands.send_daily_reminders.send_user_notification'):
-            with self.assertNumQueries(2):  # 1 for UserProfile+User, 1 for PushInformation values_list
+            # 1 for UserProfile+User, 1 for PushInformation, 1 for who has already logged an expense today:
+            # each is one batch query whatever the number of profiles
+            with self.assertNumQueries(3):
                 cmd.handle()
 
 

@@ -127,6 +127,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         from ..onboarding_v2 import (
+            CLIENT_EVENTS,
             compute_cycle_range,
             get_checklist_items,
             get_or_create_onboarding_state,
@@ -135,6 +136,7 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
             handle_step3_confirm,
             mark_onboarding_finished,
             record_onboarding_event,
+            sanitize_client_properties,
         )
 
         try:
@@ -170,7 +172,8 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                 salary_raw = data.get('salary_amount')
                 salary_amount = _parse_decimal(salary_raw, default=None) if salary_raw not in (None, '') else None
                 balance_raw = data.get('balance_now')
-                balance_now = _parse_decimal(balance_raw, default=Decimal('0.00')) if balance_raw not in (None, '') else Decimal('0.00')
+                # blank means "not typed" (None), which is different from typing 0
+                balance_now = _parse_decimal(balance_raw, default=Decimal('0.00')) if balance_raw not in (None, '') else None
                 bank_choice = data.get('bank_choice')
                 custom_bank_name = data.get('custom_bank_name')
                 auto_log = bool(data.get('auto_log_salary', True))
@@ -201,6 +204,8 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                     return JsonResponse(res)
 
                 amount = _parse_decimal(data.get('amount'), default=Decimal('0.00'))
+                if amount <= 0:
+                    return JsonResponse({'success': False, 'error': _('Enter an amount greater than zero.')}, status=400)
                 description = (data.get('description') or 'Expense').strip()
                 category = (data.get('category') or 'Miscellaneous').strip()
                 account_id = data.get('account_id')
@@ -233,9 +238,8 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
 
             elif action == 'event':
                 event_name = data.get('event')
-                properties = data.get('properties', {})
-                if event_name:
-                    record_onboarding_event(request.user, event_name, properties)
+                if event_name in CLIENT_EVENTS:
+                    record_onboarding_event(request.user, event_name, sanitize_client_properties(data.get('properties')))
                 return JsonResponse({'success': True})
 
             elif action == 'checklist':

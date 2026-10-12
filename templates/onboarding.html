@@ -1423,13 +1423,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
             const data = await res.json();
+            if (!data.success) { showOnboardingError(data.error); }
             if (data.success) {
                 currentStep = 3;
                 renderStepUI();
             }
         } catch (e) {
             console.error("Step 2 failed", e);
+            showOnboardingError();
         }
+    }
+
+    // Tell the person what went wrong instead of leaving the button looking dead
+    function showOnboardingError(message) {
+        const panel = document.querySelector('.step-panel.active') || document.body;
+        let box = document.getElementById('onboardingError');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'onboardingError';
+            box.className = 'alert alert-danger small py-2 mt-3';
+            box.setAttribute('role', 'alert');
+        }
+        box.textContent = message || "{% trans 'Something went wrong, please try again.' %}";
+        panel.appendChild(box);
     }
 
     async function submitStep3(isSkip) {
@@ -1461,9 +1477,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 await loadChecklist();
                 currentStep = 4;
                 renderStepUI();
+            } else {
+                showOnboardingError(data.error);
             }
         } catch (e) {
             console.error("Step 3 failed", e);
+            showOnboardingError();
         }
     }
 

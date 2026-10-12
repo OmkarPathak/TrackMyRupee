@@ -15,7 +15,7 @@
                 <span class="position-absolute translate-middle badge rounded-pill bg-danger border border-light {% if not has_unread_notifications %}visually-hidden{% endif %}" 
                       id="notification-badge-mobile"
                       style="top: 5px; right: -5px; font-size: 0.65rem; padding: 0.25em 0.4em;">
-                    {{ unread_notifications_count }}
+                    {% if unread_notifications_count > 9 %}9+{% else %}{{ unread_notifications_count }}{% endif %}
                     <span class="visually-hidden">New alerts</span>
                 </span>
             </a>
@@ -131,7 +131,7 @@
                         <span class="position-absolute translate-middle badge rounded-pill bg-danger border border-light {% if not has_unread_notifications %}visually-hidden{% endif %}" 
                               id="notification-badge"
                               style="top: 5px; right: -5px; font-size: 0.65rem; padding: 0.25em 0.4em;">
-                            {{ unread_notifications_count }}
+                            {% if unread_notifications_count > 9 %}9+{% else %}{{ unread_notifications_count }}{% endif %}
                             <span class="visually-hidden">New alerts</span>
                         </span>
                     </a>

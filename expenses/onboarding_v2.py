@@ -27,6 +27,27 @@ from .posthog_utils import ph_capture
 logger = logging.getLogger(__name__)
 
 
+# Events the page itself may report (the server records all the other ones)
+CLIENT_EVENTS = frozenset({
+    'onboarding_step_viewed', 'onboarding_why_we_ask_opened', 'quick_add_parsed', 'checklist_item_opened',
+})
+
+
+def sanitize_client_properties(properties) -> Dict[str, Any]:
+    """Keep a handful of small scalar values from whatever the browser sent."""
+    if not isinstance(properties, dict):
+        return {}
+    clean: Dict[str, Any] = {}
+    for key, value in list(properties.items())[:10]:
+        if not isinstance(key, str) or len(key) > 50:
+            continue
+        if isinstance(value, bool) or value is None or isinstance(value, (int, float)):
+            clean[key] = value
+        elif isinstance(value, str):
+            clean[key] = value[:200]
+    return clean
+
+
 def record_onboarding_event(user, event_name: str, properties: Optional[Dict[str, Any]] = None):
     """
     Log privacy-safe onboarding events to the local DB table and PostHog.
@@ -142,11 +163,9 @@ def handle_step2(
 
     today = timezone.localdate()
     chosen_payday = int(payday) if payday and 1 <= int(payday) <= 32 else 1
-    actual_salary_date = 1
-    if chosen_payday == 32:
-        actual_salary_date = calendar.monthrange(today.year, today.month)[1]
-    else:
-        actual_salary_date = min(chosen_payday, 31)
+    # "Last day of month" is stored as 31: every shorter month clamps it to its own last day, whereas
+    # today's last day (say the 30th) would be wrong for the other months.
+    actual_salary_date = 31 if chosen_payday == 32 else min(chosen_payday, 31)
 
     profile.salary_date = actual_salary_date
     profile.save(update_fields=['salary_date'])
@@ -169,10 +188,12 @@ def handle_step2(
             account_type = 'SAVINGS_ACCOUNT'
 
     salary_dec = salary_amount if salary_amount and salary_amount > 0 else None
-    balance_dec = balance_now if balance_now is not None else Decimal('0.00')
+    balance_typed = balance_now is not None
+    balance_dec = balance_now if balance_typed else Decimal('0.00')
 
     with transaction.atomic():
         created_or_updated_account = None
+        account_is_new = True
         if account_name:
             if state.account and state.account.is_active:
                 created_or_updated_account = state.account
@@ -183,6 +204,7 @@ def handle_step2(
                 existing = Account.objects.filter(user=user, name=account_name, is_active=True).first()
                 if existing:
                     created_or_updated_account = existing
+                    account_is_new = False  # an account the person already had: not ours to zero
                 else:
                     created_or_updated_account = Account(
                         user=user,
@@ -191,7 +213,8 @@ def handle_step2(
                         currency=profile.currency,
                     )
 
-            created_or_updated_account.balance = Decimal('0.00')
+            if account_is_new:
+                created_or_updated_account.balance = Decimal('0.00')
             created_or_updated_account.save()
             state.account = created_or_updated_account
 
@@ -226,7 +249,7 @@ def handle_step2(
         # CRITICAL Balance Correctness requirement:
         # After creating/updating Income, account.balance had `salary_dec` added to it by Income.save().
         # Set account.balance exactly equal to typed balance_dec so displayed balance matches user input.
-        if created_or_updated_account:
+        if created_or_updated_account and (account_is_new or balance_typed):
             Account.objects.filter(pk=created_or_updated_account.pk).update(balance=balance_dec)
             created_or_updated_account.refresh_from_db()
 
@@ -308,8 +331,19 @@ def handle_step3_confirm(
         record_onboarding_event(user, 'onboarding_step_skipped', {'step': 3})
         return {'success': True, 'step': 4}
 
+    if amount is None or amount <= 0:
+        return {'success': False, 'error': _('Enter an amount greater than zero.')}
+
     if not date_val:
         date_val = timezone.localdate()
+
+    # Use the person's own category when one matches (any capitalisation); otherwise create it, so the
+    # expense never points at a category that does not exist.
+    category_name = (category_name or 'Miscellaneous').strip()[:255] or 'Miscellaneous'
+    category_obj = Category.objects.filter(user=user, name__iexact=category_name).first()
+    if category_obj is None:
+        category_obj = Category.objects.create(user=user, name=category_name)
+    category_name = category_obj.name
 
     target_account = None
     if account_id:
@@ -381,7 +415,8 @@ def get_checklist_items(user) -> Tuple[List[Dict[str, Any]], int, int]:
     persona = getattr(profile, 'persona', None) or 'SALARIED'
 
     missing_items = []
-    has_payday = bool(getattr(profile, 'salary_date', None) and profile.salary_date > 1)
+    # Payday on the 1st is a real answer too: the profile default is 1, so also trust what step 2 recorded
+    has_payday = bool(state.salary_day) or bool(getattr(profile, 'salary_date', None) and profile.salary_date > 1)
     has_salary = Income.objects.filter(user=user, is_deleted=False).exists()
     has_account = Account.objects.filter(user=user, is_active=True).exists()
     has_expense = Expense.objects.filter(user=user, is_deleted=False).exists()
@@ -435,8 +470,9 @@ def get_checklist_items(user) -> Tuple[List[Dict[str, Any]], int, int]:
     ]
 
     has_credit_card = Account.objects.filter(user=user, is_active=True, account_type='CREDIT_CARD').exists()
+    from .account_types import investment_codes
     has_investments = Account.objects.filter(
-        user=user, is_active=True, account_type__in=['MUTUAL_FUND', 'DEMAT', 'SIP', 'FD', 'RD', 'PPF', 'EPF', 'NPS', 'GOLD']
+        user=user, is_active=True, account_type__in=list(investment_codes())
     ).exists()
     from .models import Loan
     has_loan = Loan.objects.filter(user=user, is_active=True).exists()

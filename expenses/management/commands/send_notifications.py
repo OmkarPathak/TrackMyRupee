@@ -5,7 +5,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.core.management.base import BaseCommand
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django.templatetags.static import static
 from django.utils import timezone
@@ -45,9 +45,11 @@ class Command(BaseCommand):
         
         # --- Pre-fetch all necessary data to avoid N+1 queries ---
         
-        # 1. Pre-fetch Active Savings Goals
+        # 1. Pre-fetch savings goals: the ones still open, plus any that were reached recently, so the
+        #    "Goal Completed" alert is still sent now that a reached goal is flagged completed.
         self.active_goals_by_user = {}
-        for goal in SavingsGoal.objects.filter(is_completed=False):
+        recently_reached = timezone.now() - timedelta(days=30)
+        for goal in SavingsGoal.objects.filter(Q(is_completed=False) | Q(updated_at__gte=recently_reached)):
             self.active_goals_by_user.setdefault(goal.user_id, []).append(goal)
             
         # 2. Pre-fetch Active Recurring Transactions
@@ -71,6 +73,9 @@ class Command(BaseCommand):
             created_at__year=self.today.year,
             created_at__month=self.today.month
         ).values('user_id', 'slug'):
+            self.sent_notifications_by_user.setdefault(n['user_id'], set()).add(n['slug'])
+        #    A milestone is announced once ever (its slug has no month in it), not once a month.
+        for n in Notification.objects.filter(slug__startswith='milestone-').values('user_id', 'slug'):
             self.sent_notifications_by_user.setdefault(n['user_id'], set()).add(n['slug'])
             
         # 6. Pre-fetch Push Information presence
@@ -327,8 +332,11 @@ class Command(BaseCommand):
                     profile.save(update_fields=['expiry_reminder_sent'])
 
     def _cleanup_old_notifications(self):
-        """Cleanup notifications older than 90 days."""
+        """Cleanup notifications older than 90 days. Milestones are kept (at most three per goal): their
+        slug is what stops them being announced again."""
         cutoff_date = timezone.now() - timedelta(days=90)
-        deleted_count, _ = Notification.objects.filter(created_at__lt=cutoff_date).delete()
+        deleted_count, _ = Notification.objects.filter(created_at__lt=cutoff_date).exclude(
+            notification_type='MILESTONE'
+        ).delete()
         if deleted_count > 0:
             self.stdout.write(self.style.SUCCESS(f"Cleaned up {deleted_count} old notifications"))

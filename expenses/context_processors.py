@@ -35,9 +35,10 @@ def _build_global_badge_data(user):
     today = timezone.now().date()
     next_week = today + timedelta(days=7)
 
-    unread_notifications = list(
-        Notification.objects.filter(user=user, is_read=False).order_by('-created_at')[:9]
-    )
+    unread_qs = Notification.objects.filter(user=user, is_read=False)
+    unread_notifications = list(unread_qs.order_by('-created_at')[:9])
+    # The menu lists at most nine, but the badge must show how many there really are
+    unread_count = len(unread_notifications) if len(unread_notifications) < 9 else unread_qs.count()
     all_accounts = list(Account.objects.filter(user=user, is_active=True).order_by('name'))
     # Subscriptions: due within next 7 days or overdue
     upcoming_subscriptions_count = RecurringTransaction.objects.filter(
@@ -47,7 +48,7 @@ def _build_global_badge_data(user):
     return {
         'notifications': unread_notifications,
         'has_unread_notifications': bool(unread_notifications),
-        'unread_notifications_count': len(unread_notifications),
+        'unread_notifications_count': unread_count,
         'active_goals_count': SavingsGoal.objects.filter(user=user, is_completed=False).count(),
         'upcoming_subscriptions_count': upcoming_subscriptions_count,
         'calendar_this_week_count': upcoming_subscriptions_count,

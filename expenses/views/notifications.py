@@ -129,6 +129,7 @@ def get_notification_by_uuid_or_pk(pk, user):
     return Notification.objects.get(pk=pk, user=user)
 
 @login_required
+@require_POST
 def mark_single_notification_read(request, pk):
     try:
         notification = get_notification_by_uuid_or_pk(pk, request.user)
