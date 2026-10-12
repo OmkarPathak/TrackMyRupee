@@ -380,6 +380,7 @@
         window.PWA_ICON_URL = "{% static 'img/pwa-icon-512.png' %}";
     </script>
     <script defer src="{% static 'js/ios-pwa-splash.js' %}"></script>
+    <script defer src="{% static 'js/reminder_optin.js' %}"></script>
 
     <!-- Service Worker -->
     <script>
@@ -432,6 +433,7 @@
         // Global WebPush Configuration
         window.VAPID_PUBLIC_KEY = "{{ vapid_public_key }}";
         window.IS_WEBPUSH_SUBSCRIBED = "{{ is_webpush_subscribed }}" === "True";
+        window.TMR_SAVE_PUSH_URL = "{% url 'save_webpush_info' %}";
 
         document.addEventListener('DOMContentLoaded', function () {
             const pushBtns = document.querySelectorAll('.enable-push-btn');
@@ -591,8 +593,8 @@
 
     {% load static %}
     <!-- Preload critical local stylesheet so the browser fetches it in parallel -->
-    <link rel="preload" href="{% static 'style.css' %}?v=3.1" as="style">
-    <link rel="stylesheet" href="{% static 'style.css' %}?v=3.1">
+    <link rel="preload" href="{% static 'style.css' %}?v=3.4" as="style">
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=3.4">
     <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.6">
     <style>
         /* Bootstrap Multiselect Premium Customization */

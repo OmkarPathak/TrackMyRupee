@@ -50,12 +50,13 @@
                         <label class="h6 mb-0 fw-bold d-block" for="{{ form.daily_reminder.id_for_label }}">
                             {% trans "Daily Expense Reminder" %}
                         </label>
-                        <div class="form-text text-muted small mt-1">{% trans "Receive a daily push notification to track your spends. (Requires App Installation)" %}</div>
+                        <div class="form-text text-muted small mt-1">{% trans "Get a push notification at 9 pm on days you haven't logged any expense. Works in your browser; on iPhone, add the app to your Home Screen first." %}</div>
                     </div>
                     <div class="form-check form-switch p-0 m-0 flex-shrink-0">
                         {{ form.daily_reminder }}
                     </div>
                 </div>
+                {% include 'components/reminder_optin.html' with variant='settings' %}
             </div>
 
             <div class="mb-4">

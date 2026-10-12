@@ -1058,8 +1058,8 @@ body.has-sidebar {
 
 /* Override Bootstrap form check/switch colors */
 .form-check-input:checked {
-  background-color: #1D9E75;
-  border-color: #1D9E75;
+  background-color: var(--color-secondary, #0F7657);
+  border-color: var(--color-secondary, #0F7657);
 }
 
 .text-teal {
@@ -1193,8 +1193,8 @@ body.has-sidebar {
 [data-bs-theme="dark"] .amount-income  { color: var(--color-success-text) !important; }
 
 .form-check-input:focus {
-  border-color: #1D9E75;
-  box-shadow: 0 0 0 0.25rem rgba(29, 158, 117, 0.25);
+  border-color: var(--color-secondary, #0F7657);
+  box-shadow: 0 0 0 0.25rem rgba(15, 118, 87, 0.25);
 }
 
 /* Override Bootstrap button component colors globally */
@@ -4181,3 +4181,15 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
   outline: 2px solid var(--bs-primary);
   outline-offset: 1px;
 }
+
+/* --- Daily reminder opt-in (components/reminder_optin.html) ---
+   The card variant uses the same Bootstrap classes as the install banner on the dashboard
+   (card, shadow-sm, rounded-4, icon circle); this only adds that banner's green wash. */
+.tmr-reminder--card {
+  background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05));
+  border: 1px solid rgba(29, 158, 117, 0.2) !important;
+}
+.tmr-reminder--plain { margin-top: 0.75rem; }
+.tmr-reminder[hidden],
+.tmr-reminder [hidden] { display: none !important; }
+.tmr-reminder-icon { width: 48px; height: 48px; }

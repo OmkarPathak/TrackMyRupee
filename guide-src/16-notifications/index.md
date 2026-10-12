@@ -46,7 +46,13 @@ Recurring and budget alerts are sent **at most once a month** for each item. You
 
 Once a day you can get a push reminder to log your expenses. It is **skipped on any day you have already added an expense**, and it does not create an entry in the bell.
 
-Turn it on or off in **Settings → Profile → Daily Expense Reminder**. It is on by default, and it only reaches devices with push turned on.
+It arrives at **9 pm IST**, on every plan, including Free. Turn it on or off in **Settings → Profile → Daily Expense Reminder**. The switch is on by default, but a reminder can only reach a device that has push turned on.
+
+**You do not need to install the app.** In Chrome, Edge, Firefox and Safari on a computer or Android phone, tap **Remind me at 9 pm** (on the dashboard, in the setup wizard, or in Settings) and allow notifications when the browser asks. Settings shows whether reminders are on, off or blocked for the browser you are using.
+
+**On iPhone and iPad** push only works from the installed app: tap Share, choose **Add to Home Screen**, open TrackMyRupee from your Home Screen, then turn reminders on.
+
+If you tap **Not now** on the dashboard card it comes back after 3 days, then 7, 14 and 30, and then stays away. You can always turn reminders on from Settings.
 
 ---
 
@@ -56,7 +62,7 @@ Turn it on or off in **Settings → Profile → Daily Expense Reminder**. It is 
 
 **I get the same alert every month.** Recurring and budget alerts are monthly by design, because your bill and your spending are monthly. Goal milestones are one-time.
 
-**I turned push on but nothing arrives.** Push needs the installed app or a browser that supports it, and notification permission for the site. See [the mobile app](../20-mobile-app/index.md).
+**I turned push on but nothing arrives.** Push needs a browser that supports it (on iPhone, the installed app) and notification permission for the site. If you tapped Block once, allow notifications again in the browser's site settings (the lock icon next to the address). See [the mobile app](../20-mobile-app/index.md).
 
 ---
 

@@ -1,0 +1,51 @@
+{% load i18n %}
+{% comment %}
+  Daily 9 pm reminder opt-in. include with variant="card" (dashboard), "settings" or "onboarding".
+  Every state's text lives here; static/js/reminder_optin.js decides which one is visible.
+  Hidden until the script has looked at this browser, so nothing flashes.
+{% endcomment %}
+<div data-reminder-optin data-variant="{{ variant|default:'card' }}" hidden
+     class="tmr-reminder {% if variant == 'settings' %}tmr-reminder--plain{% else %}tmr-reminder--card card shadow-sm border-0 rounded-4 p-3{% endif %}">
+
+    <div data-reminder-when="ask" hidden class="d-flex align-items-center gap-3 flex-wrap">
+        <span class="tmr-reminder-icon rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" aria-hidden="true"><i class="bi bi-bell-fill fs-4"></i></span>
+        <div class="flex-grow-1" style="min-width: 12rem;">
+            <div class="fw-bold mb-1 fs-6">{% trans "Never miss a day" %}</div>
+            <div class="text-muted small">{% trans "Get a nudge at 9 pm on days you haven't logged anything. No install needed." %}</div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" data-reminder-enable>{% trans "Remind me at 9 pm" %}</button>
+            {% if variant != 'settings' %}
+            <button type="button" class="btn btn-link btn-sm text-muted text-decoration-none" data-reminder-dismiss>{% trans "Not now" %}</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div data-reminder-when="ios-install" hidden class="d-flex align-items-start gap-3">
+        <span class="tmr-reminder-icon rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" aria-hidden="true"><i class="bi bi-phone fs-4"></i></span>
+        <div class="flex-grow-1">
+            <div class="fw-bold mb-1 fs-6">{% trans "Get the 9 pm reminder on iPhone" %}</div>
+            <div class="text-muted small">{% trans "On iPhone and iPad, reminders work once the app is on your Home Screen: tap Share, choose Add to Home Screen, then open TrackMyRupee from there and turn reminders on." %}</div>
+        </div>
+        {% if variant == 'card' %}
+        <button type="button" class="btn btn-link btn-sm text-muted text-decoration-none" data-reminder-dismiss>{% trans "Not now" %}</button>
+        {% endif %}
+    </div>
+
+    <div data-reminder-when="on" hidden class="d-flex align-items-center gap-2 small">
+        <i class="bi bi-check-circle-fill text-success"></i>
+        <span>{% trans "Reminders are on. You'll get a nudge at 9 pm on days you haven't logged anything." %}</span>
+    </div>
+
+    <div data-reminder-when="blocked" hidden class="d-flex align-items-start gap-2 small">
+        <i class="bi bi-bell-slash-fill text-danger mt-1"></i>
+        <span>{% trans "Notifications are blocked for this site, so reminders can't reach you. Allow notifications in your browser's site settings (the lock icon next to the address), then reload this page." %}</span>
+    </div>
+
+    <div data-reminder-when="unsupported" hidden class="d-flex align-items-start gap-2 small text-muted">
+        <i class="bi bi-info-circle mt-1"></i>
+        <span>{% trans "This browser can't receive push reminders. A recent Chrome, Edge, Firefox or Safari can." %}</span>
+    </div>
+
+    <div data-reminder-error hidden class="small text-danger mt-2">{% trans "We couldn't turn reminders on. Please try again in a moment." %}</div>
+</div>
