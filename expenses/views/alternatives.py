@@ -16,6 +16,8 @@ class AlternativePageView(TemplateView):
         context = super().get_context_data(**kwargs)
         
         competitors_data = {
+            # TODO-VERIFY: every statement about Axio, Walnut and INDmoney below describes a third-party
+            # product and has not been fact-checked. Verify before relying on it.
             'axio': {
                 'competitor_id': 'axio',
                 'competitor_name': 'Axio',
