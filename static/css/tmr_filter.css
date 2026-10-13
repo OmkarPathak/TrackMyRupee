@@ -236,6 +236,21 @@
   margin: 0;
 }
 
+/* Compact chips at every width. style.css has a generic .tmr-chip (a roomy pill used by other widgets)
+   whose padding, 1.5px border and 50rem radius leaked into these and made them big on desktop. */
+.tmr-chip-row .tmr-chip {
+  height: 28px;
+  padding: 0;
+  gap: 0;
+  border-width: 1px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+}
+.tmr-chip-row .tmr-chip.tmr-chip-unset { border-width: 1px; }
+.tmr-chip-row .tmr-chip .tmr-chip-label { padding: 0 6px 0 8px; font-size: 0.75rem; }
+.tmr-chip-row .tmr-chip .tmr-chip-value-btn { padding: 0 6px; font-size: 0.78rem; }
+.tmr-chip-row .tmr-chip .tmr-chip-remove-btn { padding: 0 6px; font-size: 0.75rem; }
+
 .tmr-chip.tmr-chip-unset {
   background-color: var(--bs-tertiary-bg);
   border: 1.5px dashed var(--tmr-filter-border-unset);
@@ -1167,6 +1182,15 @@
 
 .dashboard-sub-row {
   min-height: 28px;
+}
+
+/* Desktop: room between the header and the metric cards (phones keep the tighter spacing). Wide screens
+   have the salary cycle in the header row; between tablet and wide it is the row below that ends the header. */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .dashboard-sub-row.mb-1 { margin-bottom: 1rem !important; }
+}
+@media (min-width: 1200px) {
+  .dashboard-header-container.mb-2 { margin-bottom: 1rem !important; }
 }
 
 @media (min-width: 768px) {
