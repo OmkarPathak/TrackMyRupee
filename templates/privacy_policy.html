@@ -165,7 +165,7 @@
                             <li class="mb-2">
                                 <strong>{% trans "Service Providers" %}:</strong>
                                 {% blocktrans %}
-                                With trusted third-party vendors (e.g., hosting providers, email services, payment gateways like Razorpay, and product analytics platforms like PostHog and Google Analytics) who assist our operations.
+                                With the companies listed in the table below, which process data on our behalf to run the Service.
                                 {% endblocktrans %}
                             </li>
 
@@ -182,6 +182,61 @@
                                 {% endblocktrans %}
                             </li>
                         </ul>
+                        <h5 class="h6 fw-bold mt-4" id="service-providers">{% trans "Service Providers" %}</h5>
+                        {# TODO-VERIFY (provider names/regions): Supabase region and plan (not in repo; DATABASE_URL only). Application hosting provider and region: the repo shows a Docker + nginx deployment and an old onrender.com origin, so the provider is unknown; name it here. Brevo region (email, via django-anymail). PostHog region: the default host in settings.py is us.i.posthog.com (US cloud) unless POSTHOG_HOST overrides it. Sentry is initialised only when SENTRY_DSN is set; confirm it is enabled in production. Regions are deliberately not stated until confirmed. #}
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle text-muted">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">{% trans "Provider" %}</th>
+                                        <th scope="col">{% trans "Purpose" %}</th>
+                                        <th scope="col">{% trans "Data it receives" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Supabase</td>
+                                        <td>{% trans "Database hosting (managed PostgreSQL)" %}</td>
+                                        <td>{% trans "Everything stored in your account: email, username, transactions, accounts, budgets, goals and settings. Region: see provider documentation." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{% trans "Application hosting provider" %}</td>
+                                        <td>{% trans "Runs the application servers" %}</td>
+                                        <td>{% trans "Data passing through the application while it is processed, including requests, IP addresses and the content you submit. Region: see provider documentation." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Razorpay</td>
+                                        <td>{% trans "Payment processing" %}</td>
+                                        <td>{% trans "Payment details you enter at checkout, which are handled by Razorpay and not stored by us, plus your email and the plan you buy." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Brevo</td>
+                                        <td>{% trans "Sending email" %}</td>
+                                        <td>{% trans "Your email address and the content of emails we send you, such as verification links, reminders and reports." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Google Analytics</td>
+                                        <td>{% trans "Website analytics, only if you accept cookies" %}</td>
+                                        <td>{% trans "Cookie identifiers, IP address, browser and device details, and pages visited." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>PostHog</td>
+                                        <td>{% trans "Product analytics, only if you accept cookies" %}</td>
+                                        <td>{% trans "Page views, feature events, your plan tier and a pseudonymous ID. Not your email, username, descriptions or amounts. Region: see provider documentation." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sentry</td>
+                                        <td>{% trans "Error monitoring" %}</td>
+                                        <td>{% trans "Technical details about errors and performance, such as the page involved and the error message." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{% trans "jsDelivr, Google Fonts, Google Charts" %}</td>
+                                        <td>{% trans "Delivering fonts, styles and chart code on some pages" %}</td>
+                                        <td>{% trans "Your IP address and browser details when these files are requested." %}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     {# TODO-VERIFY: Supabase storage-level encryption at rest. Confirm in the Supabase docs/dashboard for our plan and region before keeping the sentence in section 5 (and the matching "Data at Rest" text in security.html). The code does no application-level encryption (audit A). #}
