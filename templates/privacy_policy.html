@@ -183,7 +183,7 @@
                             </li>
                         </ul>
                         <h5 class="h6 fw-bold mt-4" id="service-providers">{% trans "Service Providers" %}</h5>
-                        {# TODO-VERIFY: Sentry region (not stated; Sentry is enabled in production per the owner). Confirmed by the owner on 2026-10-13: Supabase database in Mumbai, India (ap-south-1); application servers on a DigitalOcean droplet in Mumbai, India; Brevo (email) in the US; PostHog in the US. Re-check these if the setup changes. #}
+                        {# Provider regions confirmed by the owner on 2026-10-13: Supabase Mumbai (ap-south-1), DigitalOcean Mumbai, Brevo US, PostHog US, Sentry US (data storage region shown in the Sentry organization settings). Re-check if the setup changes. #}
                         <div class="table-responsive">
                             <table class="table table-sm align-middle text-muted">
                                 <thead>
@@ -227,7 +227,7 @@
                                     <tr>
                                         <td>Sentry</td>
                                         <td>{% trans "Error monitoring" %}</td>
-                                        <td>{% trans "Technical details about errors and performance, such as the page involved and the error message." %}</td>
+                                        <td>{% trans "Technical details about errors and performance, such as the page involved and the error message. Region: United States." %}</td>
                                     </tr>
                                     <tr>
                                         <td>{% trans "jsDelivr, Google Fonts, Google Charts" %}</td>
