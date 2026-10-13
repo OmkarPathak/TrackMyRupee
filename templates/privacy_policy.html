@@ -170,6 +170,7 @@
                         </ul>
                     </div>
 
+                    {# TODO-VERIFY: Supabase storage-level encryption at rest. Confirm in the Supabase docs/dashboard for our plan and region before keeping the sentence in section 5 (and the matching "Data at Rest" text in security.html). The code does no application-level encryption (audit A). #}
                     <div id="section-5" class="mb-5">
                         <h3 class="h4 fw-bold mb-3">{% trans "5. Data Security" %}</h3>
                         <p class="text-muted">
@@ -202,7 +203,7 @@
                         <p class="text-muted">
                             <strong>{% trans "Note" %}:</strong>
                             {% blocktrans %}
-                            Your financial data (expenses, incomes, categories) is stored in our database and is not encrypted at rest. While we take measures to protect our infrastructure, we encourage you not to enter highly sensitive information (such as bank account numbers or credit card details) into expense descriptions.
+                            Our database is hosted on Supabase, which encrypts stored data at the storage level. Your transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.
                             {% endblocktrans %}
                         </p>
                     </div>

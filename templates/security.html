@@ -10,16 +10,17 @@
             <!-- Header section -->
             <div class="text-center mb-5 fade-in">
                 <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 border mb-3 fw-bold" style="border-color: rgba(var(--bs-primary-rgb), 0.2) !important;">
-                    <i class="bi bi-shield-check me-1"></i> {% trans "Your Data, Secured" %}
+                    <i class="bi bi-shield-check me-1"></i> {% trans "How we protect your data" %}
                 </span>
                 <h1 class="display-5 fw-bold mb-4" style="letter-spacing: -1px;">Security &amp; Data Protection</h1>
                 <p class="text-muted mx-auto" style="max-width: 800px; line-height: 1.6;">
-                    At TrackMyRupee, we treat your financial data with the utmost respect. We employ industry-standard security practices to ensure your information is safe, private, and always available to you.
+                    This page describes how we protect your data and where the limits are. No system is perfectly secure, so we also say what we do not do.
                 </p>
             </div>
 
             <!-- Content section -->
             <div class="row g-5 fade-in" style="animation-delay: 0.2s;">
+                {# TODO-VERIFY: Supabase storage-level encryption at rest (including backups). Confirm in the Supabase docs/dashboard; no AES-256 / AWS KMS specifics are claimed until confirmed. The code does no application-level encryption (audit A). #}
                 <!-- Data at Rest -->
                 <div class="col-12">
                     <div class="card security-card-premium overflow-hidden border-0 rounded-5 position-relative">
@@ -36,7 +37,7 @@
                                 </div>
                                 <div class="col-lg-8 border-start-lg ps-lg-5">
                                     <p class="text-muted mb-0" style="line-height: 1.7;">
-                                        {% trans "We utilize Supabase, a managed PostgreSQL database service, hosted on highly secure cloud infrastructure. All data stored within our databases, including backups, is encrypted at rest using industry-standard AES-256 encryption (via AWS KMS). This ensures that even in the highly unlikely event of physical hardware compromise, your data remains irretrievable without the necessary decryption keys." %}
+                                        {% trans "Our database is a managed PostgreSQL service hosted on Supabase, which encrypts stored data at the storage level. Transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions." %}
                                     </p>
                                 </div>
                             </div>
@@ -60,7 +61,7 @@
                                 </div>
                                 <div class="col-lg-8 border-start-lg ps-lg-5">
                                     <p class="text-muted mb-0" style="line-height: 1.7;">
-                                        {% trans "Every interaction you have with TrackMyRupee is secured. We enforce strict HTTPS connections for all traffic between your browser or device and our servers. Additionally, all connections between our application servers and our Supabase database are securely encrypted using TLS (Transport Layer Security), preventing any interception, tampering, or eavesdropping of your sensitive financial information as it travels across the internet." %}
+                                        {% trans "We serve the site over HTTPS, and the app is configured to connect to its database over TLS. This protects your data from being read or altered while it travels between your browser, our servers and the database." %}
                                     </p>
                                 </div>
                             </div>
@@ -68,6 +69,7 @@
                     </div>
                 </div>
 
+                {# TODO-VERIFY: backup frequency, retention period and location on our Supabase plan. The previous text claimed daily backups in geographically redundant locations; neither is claimed now. #}
                 <!-- Database Backups -->
                 <div class="col-12">
                     <div class="card security-card-premium overflow-hidden border-0 rounded-5 position-relative">
@@ -84,7 +86,7 @@
                                 </div>
                                 <div class="col-lg-8 border-start-lg ps-lg-5">
                                     <p class="text-muted mb-0" style="line-height: 1.7;">
-                                        {% trans "Your data's availability and durability are critical. We leverage Supabase's automated database backup systems to securely back up our database architecture daily. These backups are stored in geographically redundant locations and enable data recovery in the highly unlikely event of data corruption or a catastrophic system failure." %}
+                                        {% trans "We rely on the automated database backups provided by Supabase to recover from data corruption or a system failure. Backups are kept for a limited period, so data you delete can remain in backups for a while, as described in section 7 of the Privacy Policy." %}
                                     </p>
                                 </div>
                             </div>
