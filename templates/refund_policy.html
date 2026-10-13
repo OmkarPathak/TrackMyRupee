@@ -6,7 +6,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
             <h1 class="display-4 fw-bold mb-4 text-center">{% trans "Refund and Cancellation Policy" %}</h1>
-            <p class="text-muted text-center mb-5">{% trans "Last updated: January 24, 2026" %}</p>
+            <p class="text-muted text-center mb-5">{% trans "Last updated: October 2026" %}</p>
 
             <p class="lead mb-4">
                 {% blocktrans %}
@@ -38,6 +38,12 @@
                         <strong>{% trans "Effect of Cancellation" %}:</strong>
                         {% blocktrans %}
                         Upon cancellation, your subscription will remain active until the end of the current billing cycle. You will not be charged for the next cycle.
+                        {% endblocktrans %}
+                    </li>
+                    <li class="mb-2">
+                        <strong>{% trans "Auto-Renewal" %}:</strong>
+                        {% blocktrans %}
+                        If you turned auto-renew on when you bought your plan, cancelling stops future renewals. Cancel before your next renewal date to avoid being charged for the next period.
                         {% endblocktrans %}
                     </li>
                     <li class="mb-2">

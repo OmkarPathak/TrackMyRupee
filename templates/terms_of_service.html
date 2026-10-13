@@ -106,7 +106,13 @@
                             <li class="mb-2">
                                 <strong>{% trans "Billing Cycle" %}:</strong>
                                 {% blocktrans %}
-                                Subscriptions are billed at the start of each billing period (monthly or yearly). Subscriptions do not auto-renew; you will need to manually renew when your current period expires.
+                                Subscriptions are billed at the start of each billing period (monthly or yearly). When you buy a plan you choose whether to turn auto-renew on. With auto-renew on, your plan renews at the end of each period through Razorpay until you cancel. With it off, you pay once for the period and must renew manually when it expires.
+                                {% endblocktrans %}
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Free Pro Trial" %}:</strong>
+                                {% blocktrans %}
+                                Accounts on the Free tier that have not used it before can start one 7-day Pro trial from the Pricing page. The trial does not renew or charge you automatically.
                                 {% endblocktrans %}
                             </li>
                             <li class="mb-2">
