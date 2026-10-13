@@ -822,6 +822,13 @@
                     <i class="bi bi-chevron-right"></i>
                 </a>
             {% endif %}
+            <!-- Wide screens: salary cycle sits right of the month. Narrower screens keep it in the row below -->
+            <div class="salary-cycle-subtle text-muted d-none d-xl-flex align-items-center ms-3 text-nowrap">
+        <span>
+            {% trans "Salary cycle:" %} {{ salary_cycle_start|date:"d M" }} - {{ salary_cycle_end|date:"d M" }}
+            <a href="{% url 'profile-settings' %}" class="d-inline-flex align-items-center justify-content-center p-1 text-muted text-decoration-none" style="min-width: 24px; min-height: 24px;" aria-label="{% trans 'Edit salary cycle in profile settings' %}" title="{% trans 'Edit salary cycle' %}"><i class="bi bi-pencil"></i></a>
+        </span>
+    </div>
         </div>
 
         <!-- Unified Filter Toolbar ("This month" & Filter buttons) -->
@@ -857,7 +864,7 @@
 </div>
 
 <!-- Secondary Row: Salary cycle (left) & Mobile Action Buttons (right) -->
-<div class="mb-1 fade-in dashboard-sub-row d-flex align-items-center justify-content-between">
+<div class="mb-1 fade-in dashboard-sub-row d-flex d-xl-none align-items-center justify-content-between">
     <div class="salary-cycle-subtle text-muted">
         <span>
             {% trans "Salary cycle:" %} {{ salary_cycle_start|date:"d M" }} - {{ salary_cycle_end|date:"d M" }}
