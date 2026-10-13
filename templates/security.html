@@ -20,7 +20,7 @@
 
             <!-- Content section -->
             <div class="row g-5 fade-in" style="animation-delay: 0.2s;">
-                {# TODO-VERIFY: Supabase storage-level encryption at rest (including backups). Confirm in the Supabase docs/dashboard; no AES-256 / AWS KMS specifics are claimed until confirmed. The code does no application-level encryption (audit A). #}
+                {# TODO-VERIFY: Supabase storage-level encryption at rest Confirm in the Supabase docs/dashboard; no AES-256 / AWS KMS specifics are claimed until confirmed. The code does no application-level encryption (audit A). #}
                 <!-- Data at Rest -->
                 <div class="col-12">
                     <div class="card security-card-premium overflow-hidden border-0 rounded-5 position-relative">
@@ -37,7 +37,7 @@
                                 </div>
                                 <div class="col-lg-8 border-start-lg ps-lg-5">
                                     <p class="text-muted mb-0" style="line-height: 1.7;">
-                                        {% trans "Our database is a managed PostgreSQL service hosted on Supabase, which encrypts stored data at the storage level. Transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions." %}
+                                        {% trans "Our database is a managed PostgreSQL service hosted on Supabase in Bangalore, India, which encrypts stored data at the storage level. Transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions." %}
                                     </p>
                                 </div>
                             </div>
@@ -69,7 +69,7 @@
                     </div>
                 </div>
 
-                {# TODO-VERIFY: backup frequency, retention period and location on our Supabase plan. The previous text claimed daily backups in geographically redundant locations; neither is claimed now. #}
+                {# The owner confirmed on 2026-10-13 that no Supabase backups are configured, so no backup claims are made. If backups are enabled, describe their frequency and retention here and update privacy_policy.html section 7. #}
                 <!-- Database Backups -->
                 <div class="col-12">
                     <div class="card security-card-premium overflow-hidden border-0 rounded-5 position-relative">
@@ -81,12 +81,12 @@
                                         <div class="icon-glow bg-info bg-opacity-10 text-info rounded-4 me-3 d-flex justify-content-center align-items-center shadow-sm" style="width: 56px; height: 56px;">
                                             <i class="bi bi-cloud-arrow-up-fill fs-3"></i>
                                         </div>
-                                        <h3 class="fw-bold mb-0">{% trans "Automated Backups" %}</h3>
+                                        <h3 class="fw-bold mb-0">{% trans "Backups" %}</h3>
                                     </div>
                                 </div>
                                 <div class="col-lg-8 border-start-lg ps-lg-5">
                                     <p class="text-muted mb-0" style="line-height: 1.7;">
-                                        {% trans "We rely on the automated database backups provided by Supabase to recover from data corruption or a system failure. Backups are kept for a limited period, so data you delete can remain in backups for a while, as described in section 7 of the Privacy Policy." %}
+                                        {% trans "We do not currently configure database backups. There is no separate copy of your data to restore from if the database is lost or corrupted, so we encourage you to use the CSV export from time to time to keep your own copy. Because there are no backups, data you delete is removed from our live database immediately and is not kept elsewhere." %}
                                     </p>
                                 </div>
                             </div>

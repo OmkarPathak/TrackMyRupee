@@ -2,7 +2,7 @@ Account Deleted - TrackMyRupee
 
 Hi {{ username }},
 
-Your account has been deleted. Your data has been removed from our live database. Copies in backups are removed as the backups expire, within 30-90 days.
+Your account has been deleted. Your data has been removed from our live database. We do not currently keep database backups.
 
 Note: Payment records held by Razorpay are kept under Razorpay's own retention obligations and are not deleted by us.
 

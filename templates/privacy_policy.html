@@ -183,7 +183,7 @@
                             </li>
                         </ul>
                         <h5 class="h6 fw-bold mt-4" id="service-providers">{% trans "Service Providers" %}</h5>
-                        {# TODO-VERIFY (provider names/regions): Supabase region and plan (not in repo; DATABASE_URL only). Application hosting provider and region: the repo shows a Docker + nginx deployment and an old onrender.com origin, so the provider is unknown; name it here. Brevo region (email, via django-anymail). PostHog region: the default host in settings.py is us.i.posthog.com (US cloud) unless POSTHOG_HOST overrides it. Sentry is initialised only when SENTRY_DSN is set; confirm it is enabled in production. Regions are deliberately not stated until confirmed. #}
+                        {# TODO-VERIFY: Sentry region (not stated; Sentry is enabled in production per the owner). Confirmed by the owner on 2026-10-13: Supabase database in Bangalore, India; application servers on a DigitalOcean droplet in Mumbai, India; Brevo (email) in the US; PostHog in the US. Re-check these if the setup changes. #}
                         <div class="table-responsive">
                             <table class="table table-sm align-middle text-muted">
                                 <thead>
@@ -197,12 +197,12 @@
                                     <tr>
                                         <td>Supabase</td>
                                         <td>{% trans "Database hosting (managed PostgreSQL)" %}</td>
-                                        <td>{% trans "Everything stored in your account: email, username, transactions, accounts, budgets, goals and settings. Region: see provider documentation." %}</td>
+                                        <td>{% trans "Everything stored in your account: email, username, transactions, accounts, budgets, goals and settings. Region: Bangalore, India." %}</td>
                                     </tr>
                                     <tr>
-                                        <td>{% trans "Application hosting provider" %}</td>
+                                        <td>DigitalOcean</td>
                                         <td>{% trans "Runs the application servers" %}</td>
-                                        <td>{% trans "Data passing through the application while it is processed, including requests, IP addresses and the content you submit. Region: see provider documentation." %}</td>
+                                        <td>{% trans "Data passing through the application while it is processed, including requests, IP addresses and the content you submit. Region: Mumbai, India." %}</td>
                                     </tr>
                                     <tr>
                                         <td>Razorpay</td>
@@ -212,7 +212,7 @@
                                     <tr>
                                         <td>Brevo</td>
                                         <td>{% trans "Sending email" %}</td>
-                                        <td>{% trans "Your email address and the content of emails we send you, such as verification links, reminders and reports." %}</td>
+                                        <td>{% trans "Your email address and the content of emails we send you, such as verification links, reminders and reports. Region: United States." %}</td>
                                     </tr>
                                     <tr>
                                         <td>Google Analytics</td>
@@ -222,7 +222,7 @@
                                     <tr>
                                         <td>PostHog</td>
                                         <td>{% trans "Product analytics, only if you accept cookies" %}</td>
-                                        <td>{% trans "Page views, feature events, your plan tier and a pseudonymous ID. Not your email, username, descriptions or amounts. Region: see provider documentation." %}</td>
+                                        <td>{% trans "Page views, feature events, your plan tier and a pseudonymous ID. Not your email, username, descriptions or amounts. Region: United States." %}</td>
                                     </tr>
                                     <tr>
                                         <td>Sentry</td>
@@ -272,7 +272,7 @@
                         <p class="text-muted">
                             <strong>{% trans "Note" %}:</strong>
                             {% blocktrans %}
-                            Our database is hosted on Supabase, which encrypts stored data at the storage level. Your transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.
+                            Our database is hosted on Supabase in Bangalore, India, which encrypts stored data at the storage level. Your transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.
                             {% endblocktrans %}
                         </p>
                     </div>
@@ -315,7 +315,7 @@
                         <p class="text-muted small">
                             <strong>{% trans "Note on Erasure Requests" %}:</strong>
                             {% blocktrans %}
-                            Deleting your account removes your data from our live database. Some records cannot be removed immediately: copies in backups, a minimal record of the deletion request, and data held by the service providers listed in section 4. Section 7 explains each of these.
+                            Deleting your account removes your data from our live database. Some records are not removed: a minimal record of the deletion request, and data held by the service providers listed in section 4. Section 7 explains each of these.
                             {% endblocktrans %}
                         </p>
                     </div>
@@ -337,16 +337,16 @@
                             <li class="mb-2">
                                 <strong>{% trans "Deleted Accounts" %}:</strong>
                                 {% blocktrans %}
-                                If you delete your account, your personal data and financial data are removed from our live database immediately. Copies in database backups are removed as those backups expire, within 30-90 days.
+                                If you delete your account, your personal data and financial data are removed from our live database immediately. We do not currently configure database backups, so there are no backup copies of your data to expire.
                                 {% endblocktrans %}
-                                {# TODO-VERIFY: the 30-90 day backup window against the backup retention actually configured on our Supabase plan. #}
+                                {# TODO-VERIFY: the owner confirmed on 2026-10-13 that no Supabase backups are configured. If backups are ever enabled, state their retention period here and in security.html, terms_of_service.html section 7, the account-deleted emails and the deletion confirmation screens. #}
                             </li>
                             <li class="mb-2">
                                 <strong>{% trans "Deletion record" %}:</strong>
                                 {% blocktrans %}
-                                We keep a minimal record that a deletion was requested (your email address, username and the time of the request), so that we can show the request was honoured.
+                                We keep a minimal record that a deletion was requested (your email address, username and the time of the request), so that we can show the request was honoured. We keep this record indefinitely.
                                 {% endblocktrans %}
-                                {# TODO-VERIFY: retention period for this record (DeletionRequestAuditLog); the code keeps it indefinitely. #}
+                                {# The deletion record (DeletionRequestAuditLog) is kept indefinitely; confirmed by the owner on 2026-10-13. #}
                             </li>
                             <li class="mb-2">
                                 <strong>{% trans "Payment Records" %}:</strong>

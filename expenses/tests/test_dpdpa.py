@@ -181,7 +181,7 @@ class DPDPAComplianceTestCase(TestCase):
         email = mail.outbox[0]
         self.assertEqual(email.to, ['consent@example.com'])
         self.assertEqual(email.subject, 'Account Deleted - TrackMyRupee')
-        self.assertIn('Your data has been removed from our live database. Copies in backups are removed as the backups expire, within 30-90 days.', email.body)
+        self.assertIn('Your data has been removed from our live database. We do not currently keep database backups.', email.body)
         self.assertIn("Razorpay's own retention obligations", email.body)
         self.assertIn('are not deleted by us', email.body)
 
@@ -217,7 +217,7 @@ class DPDPAComplianceTestCase(TestCase):
         email = mail.outbox[0]
         self.assertEqual(email.to, ['consent@example.com'])
         self.assertEqual(email.subject, 'Account Deleted - TrackMyRupee')
-        self.assertIn('Your data has been removed from our live database. Copies in backups are removed as the backups expire, within 30-90 days.', email.body)
+        self.assertIn('Your data has been removed from our live database. We do not currently keep database backups.', email.body)
 
     @override_settings(ACCOUNT_DELETION_ASYNC=False)
     @patch.object(User, 'delete', side_effect=Exception("Simulated database failure during deletion"))
