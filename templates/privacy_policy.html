@@ -123,27 +123,34 @@
                         <h3 class="h4 fw-bold mb-3">{% trans "3. Cookies & Tracking Technologies" %}</h3>
                         <p class="text-muted">
                             {% blocktrans %}
-                            We use cookies and similar tracking technologies to track the activity on our Service and hold certain information.
+                            We always use a few strictly necessary cookies: your login session, CSRF protection, and a record of your cookie choice. Analytics cookies and scripts are used only if you click Accept on the cookie banner. If you decline, or have not chosen yet, the Google Analytics and PostHog scripts are not loaded, no analytics cookies are set, and no analytics events are sent from your browser or from our servers.
                             {% endblocktrans %}
                         </p>
-                        <h5 class="h6 fw-bold mt-4">{% trans "Google Analytics" %}</h5>
+                        <h5 class="h6 fw-bold mt-4">{% trans "Google Analytics (only if you accept)" %}</h5>
                         <p class="text-muted">
                             {% blocktrans %}
-                            We use Google Analytics to monitor and analyze the use of our Service. Google Analytics involves the use of cookies to collect information such as your IP address, browser type, and pages visited. This helps us understand user behavior and improve our platform.
+                            Google Analytics uses cookies to collect information such as your IP address, browser type, device and the pages you visit, so we can understand how the site is used. We switch off Google's advertising features.
                             {% endblocktrans %}
                         </p>
                         <p class="text-muted">
                             {% blocktrans %}
-                            You can opt-out of having your activity available to Google Analytics by installing the Google Analytics Opt-out Browser Add-on.
+                            You can also opt out of Google Analytics across all websites by installing the Google Analytics Opt-out Browser Add-on.
                             {% endblocktrans %}
                             <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">Google Analytics Opt-out Browser Add-on</a>.
                         </p>
-                        <h5 class="h6 fw-bold mt-4">{% trans "PostHog Analytics" %}</h5>
+                        <h5 class="h6 fw-bold mt-4">{% trans "PostHog (only if you accept)" %}</h5>
                         <p class="text-muted">
                             {% blocktrans %}
-                            We use PostHog for product analytics and user event tracking. PostHog helps us understand how features (such as budgets, goals, and exports) are used so we can improve product quality and user experience. Captured data may include anonymous session identifiers, feature interaction events, page views, and user account metadata (such as subscription tier).
+                            PostHog helps us understand which features (such as budgets, goals, and exports) are used. It receives page views, feature events (for example, that a budget was created), your plan tier, and a pseudonymous identifier, which is a salted hash of your account ID. We do not send your email, username, transaction descriptions or amounts to PostHog. Automatic click and text capture and session recording are turned off.
                             {% endblocktrans %}
                         </p>
+                        <h5 class="h6 fw-bold mt-4" id="cookie-preferences">{% trans "Changing your choice" %}</h5>
+                        <p class="text-muted">
+                            {% blocktrans %}
+                            You can change your choice at any time using the Cookie preferences link in the footer, or the button below. Declining removes the analytics cookies we set. Analytics data already collected is not deleted when you change your choice.
+                            {% endblocktrans %}
+                        </p>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="if (window.tmrOpenCookiePreferences) { window.tmrOpenCookiePreferences(); }">{% trans "Cookie preferences" %}</button>
                     </div>
 
                     <div id="section-4" class="mb-5">

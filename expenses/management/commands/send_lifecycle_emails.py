@@ -122,7 +122,7 @@ class Command(BaseCommand):
                 )
 
             except Exception as e:
-                logger.error(f"Failed to send drip email to {user.email}: {e}")
+                logger.error(f"Failed to send drip email to user {user.pk}: {e}")
                 self.stdout.write(
                     self.style.ERROR(f"Failed to send email to {user.email}: {e}")
                 )

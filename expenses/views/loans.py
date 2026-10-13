@@ -496,7 +496,7 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                             messages.warning(request, _("The repayment was recorded, but an identical recurring repayment already exists."))
 
                 messages.success(request, _("Repayment recorded successfully!"))
-                ph_capture(request.user, 'loan_repayment_added', {'amount': str(repayment.amount)})
+                ph_capture(request.user, 'loan_repayment_added', {})
             except (RuntimeError, ValidationError):
                 messages.error(request, _("Unable to record repayment because currency conversion failed or repayment data is invalid."))
         else:
@@ -514,7 +514,7 @@ class LoanInterestRateCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View)
             rate.loan = loan
             rate.save()
             messages.success(request, _("Interest rate updated successfully!"))
-            ph_capture(request.user, 'loan_interest_rate_updated', {'interest_rate': str(rate.interest_rate)})
+            ph_capture(request.user, 'loan_interest_rate_updated', {})
         else:
             messages.error(request, _("Error updating interest rate."))
         return redirect('loan-detail', pk=loan.uuid)

@@ -62,9 +62,9 @@ def log_and_notify_deletion(user=None, username=None, email=None):
                 recipient_list=[email],
                 html_message=html_message,
             )
-            logger.info(f"Account deletion confirmation email sent to {email}")
+            logger.info("Account deletion confirmation email sent")
         except Exception as e:
-            logger.error(f"Failed to send account deletion email to {email}: {e}")
+            logger.error("Failed to send account deletion email: %s", e)
 
 
 def delete_user_account(user_id):
@@ -89,10 +89,10 @@ def delete_user_account(user_id):
         with transaction.atomic():
             user.delete()
         log_and_notify_deletion(username=username, email=email)
-        logger.info(f"Successfully deleted account for user {user_id} ({username})")
+        logger.info(f"Successfully deleted account for user {user_id}")
         return True
     except Exception as e:
-        logger.exception(f"Account deletion failed for user {user_id} ({username}): {e}")
+        logger.exception(f"Account deletion failed for user {user_id}: {e}")
         return False
     finally:
         cache.delete(f'account_deletion_lock_{user_id}')

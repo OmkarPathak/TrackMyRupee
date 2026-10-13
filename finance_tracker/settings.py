@@ -123,6 +123,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'expenses.middleware.AnalyticsConsentMiddleware',
     'expenses.middleware.DPDPAConsentMiddleware',
     'expenses.middleware.TimezoneMiddleware', # Active user timezone
     'expenses.middleware.LocaleMiddlewareByProfile',

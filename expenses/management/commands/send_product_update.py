@@ -179,7 +179,7 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write(self.style.WARNING(f"Failed to send email to {user.email} (Backend returned 0)"))
             except Exception as e:
-                logger.error(f"Failed to send update email to {user.email}: {e}")
+                logger.error(f"Failed to send update email to user {user.pk}: {e}")
                 self.stdout.write(self.style.ERROR(f"Failed to send to {user.email}: {e}"))
 
         self.stdout.write(self.style.SUCCESS(f"Finished. Sent {sent_count} emails."))

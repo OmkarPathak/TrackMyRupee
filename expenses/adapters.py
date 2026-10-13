@@ -37,14 +37,14 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 
         # Check if user account is deactivated
         if user and not user.is_active:
-            logger.warning("Blocked email send to inactive user: %s (%s)", user.username, recipient_email)
+            logger.warning("Blocked email send to inactive user id=%s", user.pk)
             return True, _("This account is inactive. Please contact support.")
 
         # Also check if user with this email exists and is inactive
         if not user:
             existing_user = User.objects.filter(email__iexact=recipient_email, is_active=False).first()
             if existing_user:
-                logger.warning("Blocked email send to inactive user email: %s", recipient_email)
+                logger.warning("Blocked email send to an inactive account (user id=%s)", existing_user.pk)
                 return True, _("This account is inactive. Please contact support.")
 
         fifteen_minutes_ago = now - timedelta(minutes=self.COOLDOWN_MINUTES)
@@ -59,7 +59,7 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         ).exists()
 
         if recent_sends:
-            logger.warning("Email rate limit cooldown triggered for recipient: %s", recipient_email)
+            logger.warning("Email rate limit cooldown triggered")
             return True, _("Please wait %(minutes)d minutes before requesting another verification email.") % {
                 'minutes': self.COOLDOWN_MINUTES,
             }
@@ -73,7 +73,7 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         ).count()
 
         if daily_count >= self.DAILY_LIMIT:
-            logger.warning("Email daily limit reached (%d) for recipient: %s", daily_count, recipient_email)
+            logger.warning("Email daily limit reached (%d)", daily_count)
             return True, _("Daily limit for verification emails reached. Please try again tomorrow.")
 
         return False, ""
@@ -92,7 +92,7 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         if is_verification_email:
             is_blocked, error_msg = self.is_email_bomb_risk(email, user=user)
             if is_blocked:
-                logger.warning("Blocked allauth email send (template=%s, to=%s): %s", template_prefix, email, error_msg)
+                logger.warning("Blocked allauth email send (template=%s): %s", template_prefix, error_msg)
                 # Fail gracefully by not calling super().send_mail()
                 return
 
@@ -101,4 +101,4 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         except Exception:
             # A delivery failure must not turn sign-up or password reset into a 500: the user
             # can ask for another email, and the failure is already in EmailLog.
-            logger.exception("Could not send allauth email (template=%s, to=%s)", template_prefix, email)
+            logger.exception("Could not send allauth email (template=%s)", template_prefix)

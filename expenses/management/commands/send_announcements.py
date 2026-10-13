@@ -75,7 +75,7 @@ class Command(BaseCommand):
                         send_user_notification(user=user, payload=push_payload, ttl=3600)
                         push_count += 1
                     except Exception as e:
-                        logger.warning(f"Failed push announcement send for {user.username}: {e}")
+                        logger.warning(f"Failed push announcement send for user {user.pk}: {e}")
                         self.stdout.write(self.style.WARNING(f"Push send failed for {user.username}: {e}"))
 
                 # 2. Send Email if enabled and user has valid email
@@ -102,7 +102,7 @@ class Command(BaseCommand):
                         if msg.send():
                             email_count += 1
                     except Exception as e:
-                        logger.error(f"Failed email announcement send for {user.email}: {e}")
+                        logger.error(f"Failed email announcement send for user {user.pk}: {e}")
                         self.stdout.write(self.style.ERROR(f"Email send failed for {user.email}: {e}"))
 
             self.stdout.write(

@@ -114,9 +114,9 @@ def handle_user_post_save(sender, instance, created, **kwargs):
                     recipient_list=[instance.email],
                     html_message=html_message,
                 )
-                logger.info(f"Welcome email sent to {instance.email}")
+                logger.info(f"Welcome email sent to user {instance.pk}")
             except Exception as e:
-                logger.error(f"Failed to send welcome email to {instance.email}: {e}")
+                logger.error(f"Failed to send welcome email to user {instance.pk}: {e}")
     else:
         # Handle profile saving for existing users
         if hasattr(instance, 'profile'):

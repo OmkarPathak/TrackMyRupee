@@ -269,7 +269,6 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
             return self.form_invalid(form)
 
         ph_capture(self.request.user, 'income_created', {
-            'amount': str(self.object.amount),
             'currency': self.object.currency,
             'source_type': self.object.source_type or '',
             'has_account': bool(self.object.account_id),
@@ -313,7 +312,6 @@ class IncomeUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
         try:
             response = super().form_valid(form)
             ph_capture(self.request.user, 'income_updated', {
-                'amount': str(self.object.amount),
                 'currency': self.object.currency,
             })
             messages.success(self.request, _("Income record updated successfully!"))
