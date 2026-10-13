@@ -863,6 +863,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Filling the Form">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#categories-and-your-year-end-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Categories and your year-end audit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1166,6 +1181,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Filling the Form">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#categories-and-your-year-end-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Categories and your year-end audit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1261,7 +1291,7 @@
 <tr>
 <td><strong>Exclude from Budget</strong></td>
 <td>It does not count against your category budgets.</td>
-<td>It counts towards the budget for the category with the same name as its subtype (for example <em>Large Purchase</em>), on the Budget page, in your Dashboard breakdown, and in budget alerts.</td>
+<td>It counts towards the budget for the event's <strong>Category</strong> if you chose one, otherwise for the category with the same name as its subtype (for example <em>Large Purchase</em>), on the Budget page, in your Dashboard breakdown, and in budget alerts.</td>
 </tr>
 <tr>
 <td><strong>Include in Cash Flow / Net Worth</strong></td>
@@ -1292,12 +1322,22 @@
 <li><strong>Currency</strong>: Defaults to your profile currency.</li>
 <li><strong>Date</strong> (required): The date the payment was made. It cannot be in the future.</li>
 <li><strong>Subtype</strong> (required): What kind of event it is. The choices are <strong>Loan Down Payment, Loan Prepayment, Large Purchase, Medical Lump Sum, Gift Given, Gift Received, Investment Lump Sum,</strong> and <strong>Other</strong>.</li>
+<li><strong>Category</strong> (optional): One of your own categories, for example <em>Electronics</em> for a laptop. See <a href="#categories-and-your-year-end-audit">Categories and your year-end audit</a>. The Subtype says what kind of event it is. The Category says where the money belongs in your category totals.</li>
 <li><strong>Account</strong> (required): The account the money came from. If you forget it, the form shows a message under the field and nothing is saved. This keeps every payment, such as a loan prepayment, traceable to an account.</li>
 <li><strong>Linked Loan</strong> (optional): Connect a down payment or prepayment to one of your active loans.</li>
 <li><strong>Note</strong> (optional): A short description, such as "Kitchen renovation advance".</li>
 <li>The three switches described above.</li>
 </ol>
 <p>Click <strong>Save</strong> when done.</p>
+<h3 id="categories-and-your-year-end-audit">Categories and your year-end audit<a class="headerlink" href="#categories-and-your-year-end-audit" title="Permanent link">&para;</a></h3>
+<p>A capital event never appears in your everyday expense list, so a total "by category" for the year would normally leave out your biggest purchases. The optional <strong>Category</strong> fixes that:</p>
+<ul>
+<li><strong>Analytics</strong>: turn on <strong>Include capital events</strong> (next to the year picker). The <em>Category distribution</em> chart then adds every capital event of that year under its Category, merged with the expenses in the same category. An event with no category appears under its Subtype name (for example <em>Medical Lump Sum</em>). The switch is <strong>off by default</strong>, so your usual charts and averages stay as they were. It also adds events you excluded from averages to the monthly bars.</li>
+<li><strong>Budgets</strong>: an event you did not exclude from the budget counts towards the budget of its Category (or, with none chosen, its Subtype name).</li>
+<li><strong>Capital Events list</strong>: filter by Category like any other filter.</li>
+<li><strong>Converting</strong>: an expense turned into a capital event keeps its category, and a capital event turned back into an expense gets its Category (or its Subtype name if it has none).</li>
+</ul>
+<p>Existing events have no category until you edit them. Nothing changes for them.</p>
 <hr />
 <h2 id="5-linking-a-capital-event-to-a-loan">5. Linking a Capital Event to a Loan<a class="headerlink" href="#5-linking-a-capital-event-to-a-loan" title="Permanent link">&para;</a></h2>
 <p>If you are recording a home loan down payment or a lump-sum prepayment on an existing loan, use the <strong>Linked Loan</strong> field to connect the Capital Event to that loan record.</p>
