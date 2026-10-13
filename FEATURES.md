@@ -25,7 +25,7 @@ Work with your preferred currency. Update your profile settings to display your 
 Typing descriptions manually? Let the app do the work.
 - **Personalized Learning**: Recognizes your custom habits (e.g., "Momos" → "Street Food") from your history.
 - **Rule-Based Instant Match**: Instantly detects common terms like "Uber", "Netflix", "Zomato", etc.
-- **Generative AI (Optional)**: Connect Google Gemini AI for advanced context-aware categorization.
+- **No External AI**: Matching runs inside the app. Descriptions are not sent to third-party AI services.
 
 ### 8. Smart Notifications & Email Reminders 🔔
 Stay on top of your bills with a multi-channel notification system:

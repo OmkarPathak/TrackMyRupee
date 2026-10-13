@@ -91,7 +91,6 @@ def parse_expense_view(request):
             hints=hints,
             default_currency=user.profile.currency,
             default_account=default_account,
-            skip_genai=True,
         )
     except Exception:
         return JsonResponse({'success': False, 'error': _('Unable to parse expense right now.')}, status=400)

@@ -84,9 +84,6 @@
     VAPID_PRIVATE_KEY=''
     VAPID_ADMIN_EMAIL='support@example.com'
 
-    # AI Insights
-    GEMINI_API_KEY=''
-
     # Analytics & Tracking
     GOOGLE_ANALYTICS_ID=''
     SENTRY_DSN=''

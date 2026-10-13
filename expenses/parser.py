@@ -236,7 +236,7 @@ def _match_account(text, accounts):
 
 
 def parse_expense_nl(text, user_categories=None, user_accounts=None, user=None, account_info=None,
-                     hints=None, default_currency='₹', default_account=None, skip_genai=False):
+                     hints=None, default_currency='₹', default_account=None):
     """Parse one line of free text into expense fields.
 
     Args:
@@ -248,7 +248,6 @@ def parse_expense_nl(text, user_categories=None, user_accounts=None, user=None, 
         default_currency: symbol used when the text carries no currency signal.
         default_account: info dict of the account that will be pre-selected (used only to infer
             what a bare "card" means).
-        skip_genai: never call the generative fallback (keeps the endpoint fast).
     """
     if not text or not text.strip():
         return None
@@ -350,7 +349,7 @@ def parse_expense_nl(text, user_categories=None, user_accounts=None, user=None, 
         is_clue_found = True
 
     if not category_found and description:
-        predicted = predict_category_ai(description, user=user, categories=user_categories, skip_genai=skip_genai)
+        predicted = predict_category_ai(description, user=user, categories=user_categories)
         if predicted:
             category, category_conf = predicted, 'medium'
             is_clue_found = True

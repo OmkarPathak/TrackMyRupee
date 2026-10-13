@@ -523,7 +523,7 @@ def upload_view(request):
                             category_name = str(row[cat_idx]).strip()
                         
                         if not category_name:
-                            category_name = predict_category_ai(desc, user=request.user, skip_genai=True, history_map=history_map) or 'Food'
+                            category_name = predict_category_ai(desc, user=request.user, history_map=history_map) or 'Food'
 
                         # Dedup check in Python
                         raw_str = f"{date_val}_{amount}_{selected_currency}_{desc}_{category_name}"

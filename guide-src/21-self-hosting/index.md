@@ -49,7 +49,6 @@ DEBUG=False
 # VAPID_PUBLIC_KEY=''          # Web Push notifications
 # VAPID_PRIVATE_KEY=''
 # VAPID_ADMIN_EMAIL='you@example.com'
-# GEMINI_API_KEY=''            # AI category insights
 # GOOGLE_ANALYTICS_ID=''
 # SENTRY_DSN=''
 # RECAPTCHA_PUBLIC_KEY=''

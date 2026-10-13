@@ -1,6 +1,8 @@
 
-import os
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 # Simple Rule-Based Keyword Mapping
 KEYWORD_MAPPING = {
@@ -36,12 +38,11 @@ def predict_category_rule_based(description):
                 return category
     return None
 
-def predict_category_ai(description, user=None, categories=None, skip_genai=False, history_map=None):
+def predict_category_ai(description, user=None, categories=None, history_map=None):
     """
     Predicts category using:
     1. Historical Data (User-specific Custom Categories or pre-fetched history_map)
     2. Rule-Based Keywords (General)
-    3. Generative AI (Gemini) - Fallback
     """
     description = description.strip()
     
@@ -81,7 +82,7 @@ def predict_category_ai(description, user=None, categories=None, skip_genai=Fals
                           return similar['category']
 
         except Exception as e:
-            print(f"Historical Prediction Error: {e}")
+            logger.debug("Historical category prediction failed: %s", e)
             pass
 
     # 1. Try Rule-Based First (Fastest, Free)
@@ -103,34 +104,4 @@ def predict_category_ai(description, user=None, categories=None, skip_genai=Fals
                     return uc
         return category
 
-    # 2. Try Gemini AI (if configured)
-    api_key = os.getenv('GEMINI_API_KEY')
-    if api_key and not skip_genai:
-        try:
-            # Lazy import to avoid import errors if library not installed
-            import google.generativeai as genai
-            
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash') # Use Flash for speed/cost
-            
-            # Use user's categories if available, otherwise fallback to defaults
-            category_list = ", ".join(categories) if categories else "Food, Groceries, Transport, Shopping, Bills, Health, Education, Entertainment, Rent, Investment, Other"
-            
-            prompt = f"""
-            Classify the following expense description into one of these categories: 
-            {category_list}
-            
-            Description: "{description}"
-            
-            Return ONLY the category name. If none fit perfectly, pick the closest one.
-            """
-            
-            response = model.generate_content(prompt)
-            if response.text:
-                return response.text.strip()
-                
-        except Exception as e:
-            print(f"Gemini API Error: {e}")
-            pass
-            
     return None

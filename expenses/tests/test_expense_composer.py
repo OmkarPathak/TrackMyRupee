@@ -26,7 +26,6 @@ CATEGORIES = ['Food & Dining', 'Transport', 'Groceries', 'Shopping']
 def parse(text, **kw):
     kw.setdefault('user_categories', CATEGORIES)
     kw.setdefault('account_info', ACCOUNTS)
-    kw.setdefault('skip_genai', True)
     return parse_expense_nl(text, **kw)
 
 

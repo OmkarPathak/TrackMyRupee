@@ -42,7 +42,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 *   **Learns Your Habits**: It remembers the category, account and payment method you pick for each merchant, and offers your usual expenses as one-tap chips.
 *   **Safety Nets**: A second look at unusually large amounts, a 10-minute undo, and double-tap protection so one expense is never saved twice.
 *   **Bulk Import**: Import months of data from Excel.
-*   **Smart Category Prediction**: Personalised learning and rule-based matching, with optional Gemini AI for harder cases.
+*   **Smart Category Prediction**: Personalised learning and rule-based matching. Category prediction runs inside the app; descriptions are not sent to third-party AI services.
 
 ### 🧭 TMR Flows
 *   **11 Guided Flows**: Loan, credit card, salary, rent or bill, insurance, SIP or RD, fixed deposit, PPF/EPF/NPS, savings goal, car and gold.
