@@ -58,6 +58,8 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
 # Option to disable the admin panel url
 ENABLE_ADMIN_URL = os.getenv('ENABLE_ADMIN_URL', 'False').lower() in {'1', 'true', 'yes', 'on'}
+# The test suite exercises the admin, so it must not depend on the developer's .env.
+ENABLE_ADMIN_URL = ENABLE_ADMIN_URL or IS_TESTING
 
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
     'ALLOWED_HOSTS',
@@ -123,6 +125,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'expenses.middleware.AnalyticsConsentMiddleware',
     'expenses.middleware.DPDPAConsentMiddleware',
     'expenses.middleware.TimezoneMiddleware', # Active user timezone
     'expenses.middleware.LocaleMiddlewareByProfile',

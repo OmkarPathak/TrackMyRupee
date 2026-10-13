@@ -228,3 +228,23 @@ class AgentMarkdownMiddleware:
         markdown_text = re.sub(r'\n{3,}', '\n\n', markdown_text)
         return markdown_text.strip()
 
+
+
+
+class AnalyticsConsentMiddleware:
+    """
+    Makes the visitor's cookie-banner choice available to server-side analytics.
+    The browser mirrors the choice into a first-party `tmr_consent` cookie; only the
+    value "accepted" enables server-side PostHog events (see posthog_utils.py).
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from .posthog_utils import reset_analytics_consent, set_analytics_consent
+
+        token = set_analytics_consent(request.COOKIES.get('tmr_consent') == 'accepted')
+        try:
+            return self.get_response(request)
+        finally:
+            reset_analytics_consent(token)

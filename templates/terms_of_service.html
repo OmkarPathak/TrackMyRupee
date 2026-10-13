@@ -12,7 +12,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
             <h1 class="display-4 fw-bold mb-4 text-center">{% trans "Terms of Service" %}</h1>
-            <p class="text-muted text-center mb-5">{% trans "Last updated: June 2026" %}</p>
+            <p class="text-muted text-center mb-5">{% trans "Last updated: October 2026" %}</p>
 
                     <div class="bg-body-tertiary p-4 rounded mb-5">
                         <h5 class="fw-bold mb-3">{% trans "Table of Contents" %}</h5>
@@ -45,7 +45,7 @@
                         <h3 class="h4 fw-bold mb-3">{% trans "2. Use of Service" %}</h3>
                         <p class="text-muted">
                             {% blocktrans %}
-                            You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account. You must be at least 13 years of age to use this Service.
+                            You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account. You must be at least 18 years of age to use this Service.
                             {% endblocktrans %}
                         </p>
                         <p class="text-muted">{% trans "You agree not to:" %}</p>
@@ -66,7 +66,7 @@
                         </p>
                         <p class="text-muted">
                             {% blocktrans %}
-                            By using the Service, you grant us a limited, non-exclusive license to use your data solely for the purpose of providing and improving the Service (e.g., generating charts, analytics, and reports for your account).
+                            By using the Service, you grant us a limited, non-exclusive license to use your data only to provide the features of the Service to your account (for example, generating charts, forecasts, and reports for you). If you accept analytics cookies, we also collect product-usage events, such as which features are used, as described in the Privacy Policy. These events do not include your transaction descriptions or amounts. We never sell your data or use it for advertising.
                             {% endblocktrans %}
                         </p>
                         <p class="text-muted">
@@ -106,7 +106,13 @@
                             <li class="mb-2">
                                 <strong>{% trans "Billing Cycle" %}:</strong>
                                 {% blocktrans %}
-                                Subscriptions are billed at the start of each billing period (monthly or yearly). Subscriptions do not auto-renew; you will need to manually renew when your current period expires.
+                                Subscriptions are billed at the start of each billing period (monthly or yearly). When you buy a plan you choose whether to turn auto-renew on. With auto-renew on, your plan renews at the end of each period through Razorpay until you cancel. With it off, you pay once for the period and must renew manually when it expires.
+                                {% endblocktrans %}
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Free Pro Trial" %}:</strong>
+                                {% blocktrans %}
+                                Accounts on the Free tier that have not used it before can start one 7-day Pro trial from the Pricing page. The trial does not renew or charge you automatically.
                                 {% endblocktrans %}
                             </li>
                             <li class="mb-2">
@@ -161,7 +167,7 @@
                         </ul>
                         <p class="text-muted">
                             {% blocktrans %}
-                            You may also delete your account at any time from your account settings. Upon deletion, all your data will be permanently removed in accordance with our Privacy Policy.
+                            You may also delete your account at any time from your account settings. Upon deletion, your data is removed from our live systems immediately, as described in the Privacy Policy (including what we keep after deletion).
                             {% endblocktrans %}
                         </p>
                     </div>

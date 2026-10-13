@@ -76,7 +76,7 @@ class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
         form.instance.user = self.request.user
         messages.success(self.request, _("Savings goal created successfully!"))
         response = super().form_valid(form)
-        ph_capture(self.request.user, 'goal_created', {'target_amount': str(self.object.target_amount), 'has_target_date': bool(self.object.target_date)})
+        ph_capture(self.request.user, 'goal_created', {'has_target_date': bool(self.object.target_date)})
         return response
 
     def get_form_kwargs(self):
@@ -477,7 +477,7 @@ class SavingsGoalDetailView(LoginRequiredMixin, View):
                 return render(request, self.template_name, self._get_context_data(request, goal, form=form))
             messages.success(request, _("Contribution added successfully!"))
             request.session['trigger_confetti'] = True
-            ph_capture(request.user, 'goal_contribution_added', {'amount': str(c.amount)})
+            ph_capture(request.user, 'goal_contribution_added', {})
             return redirect('goal-detail', pk=get_redirect_pk_or_uuid(goal))
 
         return render(request, self.template_name, self._get_context_data(request, goal, form=form))
@@ -518,7 +518,7 @@ class GoalContributionUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, _Lock
             form.add_error(None, _("Unable to update the contribution because currency conversion failed. Please try again."))
             return self.form_invalid(form)
         messages.success(self.request, _("Contribution updated successfully!"))
-        ph_capture(self.request.user, 'goal_contribution_updated', {'amount': str(self.object.amount)})
+        ph_capture(self.request.user, 'goal_contribution_updated', {})
         return response
 
 

@@ -23,13 +23,13 @@ Unlike traditional finance apps, TrackMyRupee **does not** read your SMS, **does
 
 Stop being the product. Most "free" finance apps profit by selling your spending habits. TrackMyRupee is built differently:
 
-- **🔒 Zero Surveillance**: No SMS reading. No bank scraping. Period.
+- **🔒 Minimal Data**: No SMS reading and no bank scraping. We collect only what you enter plus basic account details. Optional analytics run only if you accept cookies, as described in the [Privacy Policy](https://trackmyrupee.com/privacy-policy/).
 - **⚡ Fast Manual Entry**: Type "zomato 450 yesterday upi" and the app fills in the amount, date, category and payment method for you.
 - **🧭 Set Up Life Events in One Form**: TMR Flows turn "I took a loan" or "I started a new job" into every linked record you need.
 - **📈 Comprehensive Net Worth**: Cash, bank accounts, investments, deposits, physical assets and loans in one unified view.
 - **🎯 Goal-Slaying Engine**: Visual savings goals with progress tracking and celebratory confetti.
 - **🌍 Global Ready**: Multi-currency support with live exchange rates and interfaces in English, Hindi and Marathi.
-- **🛡️ Data Sovereignty**: Export your entire history anytime. Delete your account and all data with one click.
+- **🛡️ Your Data, Your Control**: Export your entire history anytime, or self-host. Deleting your account removes your data from the live database; see the Privacy Policy for backups and payment records.
 
 ![Budget Dashboard: TrackMyRupee](static/img/desktop.png)
 
@@ -42,7 +42,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 *   **Learns Your Habits**: It remembers the category, account and payment method you pick for each merchant, and offers your usual expenses as one-tap chips.
 *   **Safety Nets**: A second look at unusually large amounts, a 10-minute undo, and double-tap protection so one expense is never saved twice.
 *   **Bulk Import**: Import months of data from Excel.
-*   **Smart Category Prediction**: Personalised learning and rule-based matching, with optional Gemini AI for harder cases.
+*   **Smart Category Prediction**: Personalised learning and rule-based matching. Category prediction runs inside the app; descriptions are not sent to third-party AI services.
 
 ### 🧭 TMR Flows
 *   **11 Guided Flows**: Loan, credit card, salary, rent or bill, insurance, SIP or RD, fixed deposit, PPF/EPF/NPS, savings goal, car and gold.
@@ -86,7 +86,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 *   **Amortization Schedule**: Visual breakdown of principal versus interest for each payment.
 *   **Repayment Logging**: Track actual payments and monitor remaining principal.
 
-### 🔐 Bank-Grade Accounting
+### 🔐 Double-Entry Accounting
 *   **Double-Entry Ledger**: Every transaction is recorded on both sides for data integrity.
 *   **Reconciliation Tools**: Maintenance commands detect and report discrepancies.
 

@@ -10,7 +10,7 @@
     </div>
     <h2 class="fw-bold mb-1">{% trans "Data Consent Required" %}</h2>
     <p class="text-muted small">
-        {% trans "To continue using TrackMyRupee, we require your explicit, informed consent for processing your personal details in compliance with the DPDPA (India)." %}
+        {% trans "To continue using TrackMyRupee, we require your explicit, informed consent for processing your personal details, as described in our Privacy Policy and India's DPDP Act, 2023." %}
     </p>
 </div>
 
@@ -19,7 +19,7 @@
 
     <div class="alert alert-info border-0 rounded-4 mb-4 small text-muted text-start">
         <i class="bi bi-info-circle-fill text-info me-1"></i>
-        {% trans "You're in control — you can withdraw consent at any time from Settings, and all your data will be permanently deleted." %}
+        {% trans "You're in control — you can withdraw consent at any time from Settings, and your data will be deleted as described in the Privacy Policy." %}
     </div>
 
     <div class="d-flex justify-content-end mb-2">
@@ -68,6 +68,15 @@
         </div>
     </div>
 
+    <!-- Age confirmation -->
+    <div class="form-check mb-4 text-start">
+        <input class="form-check-input" type="checkbox" name="confirm_age" id="id_confirm_age" required>
+        <label class="form-check-label small text-muted" for="id_confirm_age">
+            {% url 'terms-of-service' as terms_url %}{% url 'privacy-policy' as privacy_url %}
+            {% blocktrans %}I confirm that I am 18 years of age or older, and I have read the <a href="{{ terms_url }}" target="_blank" rel="noopener">Terms of Service</a> and <a href="{{ privacy_url }}" target="_blank" rel="noopener">Privacy Policy</a>.{% endblocktrans %}
+        </label>
+    </div>
+
     <button class="btn btn-primary btn-xl w-100 mb-3 shadow-sm" type="submit" id="btn_submit_consent">
         {% trans "I understand and consent" %}
     </button>
@@ -89,10 +98,11 @@
         const linkEnableAll = document.getElementById("link_enable_all");
 
         function updateSubmitButton() {
-            btnSubmit.disabled = !(chkTransactions.checked && chkDevice.checked);
+            const chkAge = document.getElementById("id_confirm_age");
+            btnSubmit.disabled = !(chkTransactions.checked && chkDevice.checked && chkAge && chkAge.checked);
         }
 
-        [chkTransactions, chkDevice].forEach(el => {
+        [chkTransactions, chkDevice, document.getElementById("id_confirm_age")].forEach(el => {
             if (el) el.addEventListener('change', updateSubmitButton);
         });
 

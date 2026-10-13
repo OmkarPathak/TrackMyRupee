@@ -87,8 +87,11 @@ class TestLaunchPath(TestCase):
         # no async third-party script tag in the document head, and no preconnect to analytics hosts
         self.assertNotRegex(html, r'<script[^>]*async[^>]*googletagmanager')
         self.assertNotIn('rel="preconnect"', html)
-        # the posthog init (which downloads array.js) and the gtag injection both sit inside tmrAfterLoad
-        init_at = html.index("posthog.init('phc_test'")
-        self.assertLess(html.rindex('tmrAfterLoad(function', 0, init_at), init_at)
+        # the posthog init (which downloads array.js) and the gtag injection both sit inside afterLoad
+        # (an alias of tmrAfterLoad in the consent-gated loader), and the loader's ids come from the context
+        self.assertIn("var PH_KEY = 'phc_test'", html)
+        self.assertIn("var afterLoad = window.tmrAfterLoad", html)
+        init_at = html.index('posthog.init(PH_KEY')
+        self.assertLess(html.rindex('afterLoad(function', 0, init_at), init_at)
         gtag_at = html.index('googletagmanager.com/gtag/js')
-        self.assertLess(html.rindex('tmrAfterLoad(function', 0, gtag_at), gtag_at)
+        self.assertLess(html.rindex('afterLoad(function', 0, gtag_at), gtag_at)

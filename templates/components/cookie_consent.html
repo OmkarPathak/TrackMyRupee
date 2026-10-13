@@ -3,9 +3,8 @@
     <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
         <div class="text-center text-md-start">
             <p class="mb-0 small">
-                {% trans "We use cookies to improve your experience and analyze site traffic." %} 
-                {% trans "By clicking \"Accept\", you verify that you are comfortable with us using tracking cookies." %}
-                <a href="{% url 'privacy-policy' %}" class="text-white text-decoration-underline">{% trans "Privacy Policy" %}</a>.
+                {% trans "With your permission, we use Google Analytics and PostHog cookies to measure site traffic and which features are used. If you decline, no analytics scripts or cookies are loaded and the site works the same. You can change this later from Cookie preferences in the footer." %}
+                <a href="{% url 'privacy-policy' %}#section-3" class="text-white text-decoration-underline">{% trans "Privacy Policy" %}</a>.
             </p>
         </div>
         <div class="d-flex gap-2">
@@ -17,34 +16,44 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const consent = localStorage.getItem('cookieConsent');
+        let consent = null;
+        try { consent = localStorage.getItem('cookieConsent'); } catch (e) {}
         const banner = document.getElementById('cookie-consent-banner');
         const isDemo = banner && banner.dataset.isDemo === 'true';
-        
-        // Show banner if no choice made and not in demo mode
+
+        // Show the banner if no choice has been made yet (not in demo mode).
         if (!consent && !isDemo) {
             banner.classList.remove('d-none');
         }
 
+        // Lets the "Cookie preferences" links reopen the banner after a choice was made.
+        window.tmrOpenCookiePreferences = function () {
+            banner.classList.remove('d-none');
+        };
+
+        function choose(choice) {
+            if (typeof window.tmrSetConsent === 'function') {
+                window.tmrSetConsent(choice);
+            } else {
+                // Analytics is not configured on this deployment; still remember the choice.
+                try { localStorage.setItem('cookieConsent', choice); } catch (e) {}
+            }
+        }
+
         document.getElementById('btn-accept-cookies').addEventListener('click', function() {
-            // Show loader
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Accepting...';
-            
-            localStorage.setItem('cookieConsent', 'accepted');
-            
-            // Reload to ensure a fresh "Granted" page load for the scanner
-            setTimeout(() => {
-                window.location.reload();
-            }, 500); // Small delay to let user see the interaction
+            this.disabled = true;
+            choose('accepted');
+            // Reload so analytics starts from a clean page load after consent.
+            window.location.reload();
         });
 
-        // Handle Decline
         document.getElementById('btn-decline-cookies').addEventListener('click', function() {
-            localStorage.setItem('cookieConsent', 'declined');
-            // Default is already denied, so just hide banner
+            const wasAccepted = consent === 'accepted';
+            choose('declined');
+            consent = 'declined';
             banner.classList.add('d-none');
+            // If analytics was running on this page, reload so it is gone.
+            if (wasAccepted) { window.location.reload(); }
         });
     });
 </script>

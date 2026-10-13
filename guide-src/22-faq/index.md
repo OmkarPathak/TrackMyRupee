@@ -16,7 +16,7 @@ No. TrackMyRupee is privacy-first by design. It does not read SMS, connect to ne
 
 ### Is my data safe?
 
-Yes. Data is encrypted in transit (HTTPS), stored securely, and never sold to third parties. If you prefer to host your own instance, see [Self-Hosting](../21-self-hosting/index.md). You get full data control with zero data leaving your server.
+We never sell your data, read your SMS or ask for bank logins, and data is encrypted in transit (HTTPS). No online service is risk-free, so see the [Privacy Policy](https://trackmyrupee.com/privacy-policy/) and [Security page](https://trackmyrupee.com/security/) for what we collect and how we protect it. If you prefer to host your own instance, see [Self-Hosting](../21-self-hosting/index.md); then your data stays on your own server.
 
 ### Can I use TrackMyRupee in currencies other than rupees?
 

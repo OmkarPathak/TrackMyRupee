@@ -141,7 +141,6 @@ class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
         try:
             response = super().form_valid(form)
             ph_capture(self.request.user, 'expense_updated', {
-                'amount': str(self.object.amount),
                 'currency': self.object.currency,
                 'category': self.object.category or '',
             })

@@ -624,6 +624,13 @@ class SalaryDateUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
         }
 
 class CustomSignupForm(forms.Form):
+    # Age confirmation is validated at signup only. It is deliberately not stored (no schema change).
+    confirm_age = forms.BooleanField(
+        required=True,
+        label=_("I confirm that I am 18 years of age or older"),
+        error_messages={'required': _("You must confirm that you are 18 years of age or older to create an account.")},
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
     consent_email = forms.BooleanField(
         required=True,
         label=_("Email Address"),

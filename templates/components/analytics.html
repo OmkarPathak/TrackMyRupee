@@ -1,0 +1,98 @@
+{% comment %}
+  Analytics loader, shared by base.html and marketing_base.html.
+
+  Nothing from Google Analytics or PostHog is requested, and no analytics cookie or
+  storage key is written, unless the visitor has clicked Accept on the cookie banner
+  (localStorage.cookieConsent === 'accepted'). Decline (or no choice yet) means no
+  analytics script is loaded at all. The choice is also mirrored into a first-party
+  `tmr_consent` cookie so the server can skip its own PostHog events for visitors who
+  have not accepted (see expenses/posthog_utils.py).
+
+  PostHog is started with autocapture and session recording disabled, and identifies the
+  user only by a salted hash of their id (never email, username or amounts).
+{% endcomment %}
+{% if GOOGLE_ANALYTICS_ID or POSTHOG_API_KEY %}
+<script>
+(function () {
+    var GA_ID = '{{ GOOGLE_ANALYTICS_ID|default:""|escapejs }}';
+    var PH_KEY = '{{ POSTHOG_API_KEY|default:""|escapejs }}';
+    var PH_HOST = '{{ POSTHOG_HOST|default:""|escapejs }}';
+    var PH_ID = '{{ POSTHOG_DISTINCT_ID|default:""|escapejs }}';
+    var PH_TIER = '{{ POSTHOG_TIER|default:""|escapejs }}';
+    var afterLoad = window.tmrAfterLoad || function (fn) { fn(); };
+
+    function stored() { try { return localStorage.getItem('cookieConsent'); } catch (e) { return null; } }
+    function mirrorCookie(value) {
+        document.cookie = 'tmr_consent=' + value + '; Max-Age=31536000; Path=/; SameSite=Lax' +
+            (location.protocol === 'https:' ? '; Secure' : '');
+    }
+
+    // Used by the cookie banner: records the choice, removes analytics traces on decline, then reloads.
+    window.tmrSetConsent = function (choice) {
+        try { localStorage.setItem('cookieConsent', choice); } catch (e) {}
+        mirrorCookie(choice);
+        if (choice !== 'accepted') {
+            try { if (window.posthog && window.posthog.opt_out_capturing) { window.posthog.opt_out_capturing(); } } catch (e) {}
+            var host = location.hostname.split('.');
+            var domains = ['', location.hostname];
+            if (host.length > 1) { domains.push('.' + host.slice(-2).join('.')); }
+            document.cookie.split(';').forEach(function (c) {
+                var name = c.split('=')[0].trim();
+                if (/^(_ga|_gid|_gat|_gcl|ph_|__ph)/.test(name)) {
+                    domains.forEach(function (d) {
+                        document.cookie = name + '=; Max-Age=0; Path=/' + (d ? '; Domain=' + d : '');
+                    });
+                }
+            });
+            try {
+                Object.keys(localStorage).forEach(function (k) {
+                    if (/^(ph_|__ph|posthog)/.test(k)) { localStorage.removeItem(k); }
+                });
+            } catch (e) {}
+        }
+    };
+
+    var choice = stored();
+    if (choice === 'accepted' || choice === 'declined') { mirrorCookie(choice); }
+    if (choice !== 'accepted') { return; }
+
+    if (GA_ID) {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { dataLayer.push(arguments); };
+        // Advertising signals stay off; only measurement is enabled, and only after Accept.
+        gtag('consent', 'default', {
+            'ad_storage': 'denied', 'ad_user_data': 'denied', 'ad_personalization': 'denied',
+            'analytics_storage': 'granted'
+        });
+        gtag('js', new Date());
+        gtag('config', GA_ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
+        afterLoad(function () {
+            var g = document.createElement('script');
+            g.async = true;
+            g.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_ID);
+            document.head.appendChild(g);
+        });
+    }
+
+    if (PH_KEY) {
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        afterLoad(function () {
+            posthog.init(PH_KEY, {
+                api_host: PH_HOST,
+                person_profiles: 'identified_only',
+                autocapture: false,               // no click / text / input capture
+                disable_session_recording: true,  // no session replay
+                capture_pageview: false,
+                capture_pageleave: false
+            });
+            posthog.capture('$pageview');
+            if (PH_ID) { posthog.identify(PH_ID, PH_TIER ? { tier: PH_TIER } : {}); }
+            // HTMX navigations swap content without a full page load.
+            document.addEventListener('htmx:afterSettle', function () {
+                posthog.capture('$pageview', { '$current_url': window.location.href });
+            });
+        });
+    }
+})();
+</script>
+{% endif %}

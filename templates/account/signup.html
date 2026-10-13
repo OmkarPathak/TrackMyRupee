@@ -39,7 +39,7 @@
     <div id="credentials_section">
         <div class="row g-2.5">
             {% for field in form %}
-                {% if field.name != 'consent_email' and field.name != 'consent_transactions' and field.name != 'consent_device' %}
+                {% if field.name != 'consent_email' and field.name != 'consent_transactions' and field.name != 'consent_device' and field.name != 'confirm_age' %}
                 <div class="mb-2.5">
                     <label for="{{ field.id_for_label }}" class="form-label small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.68rem;">
                         {{ field.label }}
@@ -103,13 +103,13 @@
         <div class="mb-4">
             <h5 class="fw-bold text-dark">{% trans "Data Consent Settings" %}</h5>
             <p class="text-muted small">
-                {% trans "To comply with the DPDP Act of India, please review the categories of personal data we collect. Toggling each is required to complete your registration." %}
+                {% trans "Under India's DPDP Act, 2023, we ask for your consent. Please review the categories of personal data we collect. Toggling each is required to complete your registration." %}
             </p>
         </div>
 
         <div class="alert alert-info border-0 rounded-4 mb-4 small text-muted text-start">
             <i class="bi bi-shield-fill-check text-info me-1"></i>
-            {% trans "You're in control — you can withdraw consent at any time from Settings, and all your data will be permanently deleted." %}
+            {% trans "You're in control — you can withdraw consent at any time from Settings, and your data will be deleted as described in the Privacy Policy." %}
         </div>
 
         <div class="d-flex justify-content-end mb-2">
@@ -158,6 +158,16 @@
             </div>
         </div>
 
+        <!-- Age confirmation -->
+        <div class="form-check mb-4 text-start">
+            <input class="form-check-input" type="checkbox" name="confirm_age" id="id_confirm_age" required>
+            <label class="form-check-label small text-muted" for="id_confirm_age">
+                {% url 'terms-of-service' as terms_url %}{% url 'privacy-policy' as privacy_url %}
+                {% blocktrans %}I confirm that I am 18 years of age or older, and I have read the <a href="{{ terms_url }}" target="_blank" rel="noopener">Terms of Service</a> and <a href="{{ privacy_url }}" target="_blank" rel="noopener">Privacy Policy</a>.{% endblocktrans %}
+            </label>
+        </div>
+
+        {% if form.confirm_age.errors %}<div class="text-danger small mb-3">{{ form.confirm_age.errors.0 }}</div>{% endif %}
         <button class="btn-auth-primary mb-3" type="submit" id="btn_submit_consent">
             {% trans "I understand and consent" %}
         </button>
@@ -185,10 +195,11 @@
         const linkEnableAll = document.getElementById("link_enable_all");
 
         function updateSubmitButton() {
-            btnSubmit.disabled = !(chkTransactions.checked && chkDevice.checked);
+            const chkAge = document.getElementById("id_confirm_age");
+            btnSubmit.disabled = !(chkTransactions.checked && chkDevice.checked && chkAge && chkAge.checked);
         }
 
-        [chkTransactions, chkDevice].forEach(el => {
+        [chkTransactions, chkDevice, document.getElementById("id_confirm_age")].forEach(el => {
             if (el) el.addEventListener('change', updateSubmitButton);
         });
 

@@ -62,9 +62,22 @@ def log_and_notify_deletion(user=None, username=None, email=None):
                 recipient_list=[email],
                 html_message=html_message,
             )
-            logger.info(f"Account deletion confirmation email sent to {email}")
+            logger.info("Account deletion confirmation email sent")
         except Exception as e:
-            logger.error(f"Failed to send account deletion email to {email}: {e}")
+            logger.error("Failed to send account deletion email: %s", e)
+
+
+def _delete_email_logs(user, email):
+    from django.db.models import Q
+
+    from expenses.models import EmailLog
+
+    query = Q(pk__in=[])
+    if user is not None:
+        query |= Q(user=user)
+    if email:
+        query |= Q(to_email__iexact=email)
+    EmailLog.objects.filter(query).delete()
 
 
 def delete_user_account(user_id):
@@ -87,12 +100,17 @@ def delete_user_account(user_id):
 
     try:
         with transaction.atomic():
+            # EmailLog.user is SET_NULL, so the cascade would leave the address, subject and body
+            # of every email we sent this user in the live database. Remove them explicitly.
+            _delete_email_logs(user, email)
             user.delete()
         log_and_notify_deletion(username=username, email=email)
-        logger.info(f"Successfully deleted account for user {user_id} ({username})")
+        # The deletion confirmation above creates a new EmailLog row; remove it too.
+        _delete_email_logs(None, email)
+        logger.info(f"Successfully deleted account for user {user_id}")
         return True
     except Exception as e:
-        logger.exception(f"Account deletion failed for user {user_id} ({username}): {e}")
+        logger.exception(f"Account deletion failed for user {user_id}: {e}")
         return False
     finally:
         cache.delete(f'account_deletion_lock_{user_id}')
@@ -182,7 +200,7 @@ class WithdrawConsentView(LoginRequiredMixin, DeleteView):
         dispatched = dispatch_account_deletion(user_id)
         logout(self.request)
         if dispatched:
-            messages.success(self.request, _("Your consent has been withdrawn and your account deletion has been initiated as per DPDPA requirements. You will no longer be able to log in."))
+            messages.success(self.request, _("Your consent has been withdrawn and your account deletion has been initiated as described in our Privacy Policy. You will no longer be able to log in."))
         else:
             messages.warning(self.request, _("Account deletion is already in progress."))
         return redirect(self.success_url)

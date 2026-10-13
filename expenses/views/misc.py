@@ -523,7 +523,7 @@ def upload_view(request):
                             category_name = str(row[cat_idx]).strip()
                         
                         if not category_name:
-                            category_name = predict_category_ai(desc, user=request.user, skip_genai=True, history_map=history_map) or 'Food'
+                            category_name = predict_category_ai(desc, user=request.user, history_map=history_map) or 'Food'
 
                         # Dedup check in Python
                         raw_str = f"{date_val}_{amount}_{selected_currency}_{desc}_{category_name}"
@@ -737,8 +737,10 @@ def dpdp_consent_view(request):
         consent_email = request.POST.get('consent_email') == 'on'
         consent_transactions = request.POST.get('consent_transactions') == 'on'
         consent_device = request.POST.get('consent_device') == 'on'
+        # Age is confirmed here for social (Google) signups; it is not stored.
+        confirm_age = request.POST.get('confirm_age') == 'on'
 
-        if consent_email and consent_transactions and consent_device:
+        if consent_email and consent_transactions and consent_device and confirm_age:
             from django.utils import timezone
             profile.consent_granted = True
             profile.consent_timestamp = timezone.now()
@@ -758,7 +760,10 @@ def dpdp_consent_view(request):
             messages.success(request, _("Thank you for your consent. You can now use TrackMyRupee."))
             return redirect('home')
         else:
-            messages.error(request, _("You must agree to all data collection terms to use TrackMyRupee."))
+            if consent_email and consent_transactions and consent_device:
+                messages.error(request, _("You must confirm that you are 18 years of age or older to use TrackMyRupee."))
+            else:
+                messages.error(request, _("You must agree to all data collection terms to use TrackMyRupee."))
 
     return render(request, 'expenses/dpdp_consent.html', {
         'page_title': _('Data Consent Required')

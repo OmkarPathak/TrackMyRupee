@@ -39,6 +39,7 @@ class DPDPAComplianceTestCase(TestCase):
             'consent_email': True,
             'consent_transactions': True,
             'consent_device': True,
+            'confirm_age': True,
         }
         form = CustomSignupForm(data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
@@ -89,6 +90,7 @@ class DPDPAComplianceTestCase(TestCase):
             'consent_email': 'on',
             'consent_transactions': 'on',
             'consent_device': 'on',
+            'confirm_age': 'on',
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.endswith(reverse('home')))
@@ -97,6 +99,35 @@ class DPDPAComplianceTestCase(TestCase):
         self.assertTrue(self.profile.consent_granted)
         self.assertEqual(self.profile.consent_version, 'v1.0')
         self.assertIsNotNone(self.profile.consent_timestamp)
+
+    def test_signup_form_requires_age_confirmation(self):
+        """Signup is rejected server-side when the 18+ confirmation is missing or false."""
+        base = {'consent_email': True, 'consent_transactions': True, 'consent_device': True}
+        self.assertTrue(CustomSignupForm().fields['confirm_age'].required)
+        missing = CustomSignupForm(data=base)
+        self.assertFalse(missing.is_valid())
+        self.assertIn('confirm_age', missing.errors)
+        unchecked = CustomSignupForm(data={**base, 'confirm_age': False})
+        self.assertFalse(unchecked.is_valid())
+        self.assertIn('confirm_age', unchecked.errors)
+
+    def test_signup_page_renders_age_checkbox(self):
+        response = self.client.get(reverse('account_signup'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="confirm_age"')
+        self.assertContains(response, '18 years of age or older')
+
+    def test_standalone_consent_view_rejects_missing_age_confirmation(self):
+        """The Google/social consent page also refuses consent without the 18+ confirmation."""
+        self.client.login(username='consentuser', password='password123')
+        response = self.client.post(reverse('dpdp_consent'), {
+            'consent_email': 'on',
+            'consent_transactions': 'on',
+            'consent_device': 'on',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.profile.refresh_from_db()
+        self.assertFalse(self.profile.consent_granted)
 
     def test_standalone_consent_view_post_failure(self):
         """Test that submitting `/consent/` without all toggles fails and redirects back with error."""
@@ -150,9 +181,9 @@ class DPDPAComplianceTestCase(TestCase):
         email = mail.outbox[0]
         self.assertEqual(email.to, ['consent@example.com'])
         self.assertEqual(email.subject, 'Account Deleted - TrackMyRupee')
-        self.assertIn('Your account has been deleted. All personal data will be permanently removed within 7 days.', email.body)
-        self.assertIn('retained for 5 years', email.body)
-        self.assertIn('cannot be deleted on request', email.body)
+        self.assertIn('Your data has been removed from our live database. We do not currently keep database backups.', email.body)
+        self.assertIn("Razorpay's own retention obligations", email.body)
+        self.assertIn('are not deleted by us', email.body)
 
     @override_settings(ACCOUNT_DELETION_ASYNC=False)
     def test_account_delete_logs_audit_and_sends_email(self):
@@ -186,7 +217,7 @@ class DPDPAComplianceTestCase(TestCase):
         email = mail.outbox[0]
         self.assertEqual(email.to, ['consent@example.com'])
         self.assertEqual(email.subject, 'Account Deleted - TrackMyRupee')
-        self.assertIn('Your account has been deleted. All personal data will be permanently removed within 7 days.', email.body)
+        self.assertIn('Your data has been removed from our live database. We do not currently keep database backups.', email.body)
 
     @override_settings(ACCOUNT_DELETION_ASYNC=False)
     @patch.object(User, 'delete', side_effect=Exception("Simulated database failure during deletion"))
@@ -271,3 +302,42 @@ class DPDPAComplianceTestCase(TestCase):
         self.assertEqual(response.context['num_transactions'], 1)
 
 
+
+
+class AccountDeletionRemovesDataTests(TestCase):
+    """Deleting an account removes every user-linked row, including email logs."""
+
+    def test_related_rows_are_removed(self):
+        from decimal import Decimal
+
+        from expenses.models import (
+            Account, Category, ConsentEvent, DeletionRequestAuditLog, EmailLog, Income,
+            Notification, PaymentHistory, SavingsGoal,
+        )
+        from expenses.views.settings import delete_user_account
+
+        user = User.objects.create_user(username='leaver2', email='leaver2@example.com', password='pw12345!')
+        other = User.objects.create_user(username='stayer', email='stayer@example.com', password='pw12345!')
+        for u in (user, other):
+            Expense.objects.create(user=u, date=date.today(), amount=100, category='Food', description='lunch')
+            Income.objects.create(user=u, date=date.today(), amount=500, source='Salary')
+            SavingsGoal.objects.create(user=u, name='Trip', target_amount=Decimal('1000'))
+            Notification.objects.create(user=u, title='Hi', message='There')
+            PaymentHistory.objects.create(user=u, order_id=f'o-{u.pk}', amount=Decimal('99'), tier='PLUS', status='SUCCESS')
+            ConsentEvent.objects.create(user=u, action='GRANTED', purpose='Test', consent_version='v1.0')
+            EmailLog.objects.create(user=u, to_email=u.email, subject='Hello', body='body with private details')
+        # An email log whose user link was already lost still carries the address.
+        EmailLog.objects.create(user=None, to_email='leaver2@example.com', subject='Old', body='old body')
+
+        self.assertTrue(delete_user_account(user.id))
+
+        self.assertFalse(User.objects.filter(pk=user.pk).exists())
+        for model in (Expense, Income, SavingsGoal, Notification, PaymentHistory, ConsentEvent, Category, Account, UserProfile):
+            self.assertEqual(model.objects.filter(user_id=user.pk).count(), 0, model.__name__)
+        self.assertEqual(EmailLog.objects.filter(to_email__iexact='leaver2@example.com').count(), 0)
+        self.assertEqual(EmailLog.objects.filter(user__isnull=True).count(), 0)
+        # Other users are untouched.
+        self.assertEqual(Expense.objects.filter(user=other).count(), 1)
+        self.assertEqual(EmailLog.objects.filter(user=other).count(), 1)
+        # Only the minimal deletion record remains.
+        self.assertEqual(DeletionRequestAuditLog.objects.filter(username='leaver2').count(), 1)

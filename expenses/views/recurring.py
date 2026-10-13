@@ -225,7 +225,7 @@ class RecurringTransactionCreateView(LoginRequiredMixin, CreateView):
             return self.form_invalid(form)
         messages.success(self.request, _("Recurring transaction created successfully!"))
         process_user_recurring_transactions(self.request.user, force=True)
-        ph_capture(self.request.user, 'recurring_created', {'transaction_type': self.object.transaction_type, 'frequency': self.object.frequency, 'amount': str(self.object.amount)})
+        ph_capture(self.request.user, 'recurring_created', {'transaction_type': self.object.transaction_type, 'frequency': self.object.frequency})
         return response
     
     def get_form_kwargs(self):

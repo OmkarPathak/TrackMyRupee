@@ -660,7 +660,7 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
         try:
             response = super().form_valid(form)
             messages.success(self.request, _("Transfer completed successfully!"))
-            ph_capture(self.request.user, 'transfer_created', {'amount': str(self.object.amount), 'currency': getattr(self.object, 'currency', ''), 'is_cross_currency': bool(getattr(self.object, 'exchange_rate', None) and self.object.exchange_rate != 1)})
+            ph_capture(self.request.user, 'transfer_created', {'currency': getattr(self.object, 'currency', ''), 'is_cross_currency': bool(getattr(self.object, 'exchange_rate', None) and self.object.exchange_rate != 1)})
             return response
         except IntegrityError:
             messages.error(self.request, _("Duplicate transfer found! This transfer has already been completed."))

@@ -146,7 +146,7 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
                             messages.info(request, _("Original expense deleted after conversion."))
 
                 messages.success(request, _("Capital event recorded successfully."))
-                ph_capture(request.user, 'capital_event_created', {'subtype': getattr(event, 'subtype', ''), 'amount': str(event.amount)})
+                ph_capture(request.user, 'capital_event_created', {'subtype': getattr(event, 'subtype', '')})
                 return redirect('capital-event-list')
             except (RuntimeError, ValidationError):
                 messages.error(request, _("Unable to save capital event because currency conversion failed or data is invalid."))

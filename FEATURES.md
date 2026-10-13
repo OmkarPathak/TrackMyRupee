@@ -25,7 +25,7 @@ Work with your preferred currency. Update your profile settings to display your 
 Typing descriptions manually? Let the app do the work.
 - **Personalized Learning**: Recognizes your custom habits (e.g., "Momos" → "Street Food") from your history.
 - **Rule-Based Instant Match**: Instantly detects common terms like "Uber", "Netflix", "Zomato", etc.
-- **Generative AI (Optional)**: Connect Google Gemini AI for advanced context-aware categorization.
+- **No External AI**: Matching runs inside the app. Descriptions are not sent to third-party AI services.
 
 ### 8. Smart Notifications & Email Reminders 🔔
 Stay on top of your bills with a multi-channel notification system:
@@ -50,7 +50,7 @@ Take control of your spending patterns:
 - **Flexible Management**: Update budgets anytime as your lifestyle changes.
 
 ### 11. Double-Entry Ledger System 🔐
-Bank-grade accounting for personal finances:
+Double-entry accounting for personal finances:
 - **Balanced Transactions**: Every transaction is recorded twice to ensure integrity (debit/credit).
 - **Auto-Reconciliation**: System detects and flags discrepancies in real-time.
 - **Reconciliation Reports**: Monthly reports showing your account balances vs app records.
