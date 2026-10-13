@@ -31,7 +31,7 @@ class AlternativePageView(TemplateView):
                 'faqs': [
                     {
                         'question': _('Why should I choose a manual expense tracker over Axio?'),
-                        'answer': _('Manual tracking gives you complete control and ensures privacy. Axio reads your personal SMS messages to automate tracking, which exposes your private data. TrackMyRupee does not require any SMS permissions, keeping your financial life completely secure.')
+                        'answer': _('Manual tracking gives you complete control and ensures privacy. Axio reads your personal SMS messages to automate tracking, which exposes your private data. TrackMyRupee does not require any SMS permissions, so you never have to grant that access.')
                     },
                     {
                         'question': _('Is manual logging time-consuming compared to Axio\'s auto-tracking?'),
@@ -95,7 +95,7 @@ class AlternativePageView(TemplateView):
                 'faqs': [
                     {
                         'question': _('How does TrackMyRupee compare to INDmoney for wealth tracking?'),
-                        'answer': _('INDmoney automatically tracks wealth by scanning your emails and linking your accounts. TrackMyRupee lets you log and track your mutual funds, stocks, fixed deposits, and loans manually. You get identical net worth analytics and historical trends, but with 100% data privacy.')
+                        'answer': _('INDmoney automatically tracks wealth by scanning your emails and linking your accounts. TrackMyRupee lets you log and track your mutual funds, stocks, fixed deposits, and loans manually. You get identical net worth analytics and historical trends, but without sharing your email or bank credentials.')
                     },
                     {
                         'question': _('Do I need to link my Gmail to track my mutual funds?'),
@@ -103,7 +103,7 @@ class AlternativePageView(TemplateView):
                     },
                     {
                         'question': _('Is my data secure on TrackMyRupee?'),
-                        'answer': _('Extremely secure. All data is encrypted in transit using HTTPS and at rest using bank-grade AES-256 encryption. Best of all, TrackMyRupee is fully open source on GitHub, meaning our codebase is fully transparent and verified by the community.')
+                        'answer': _('Data is encrypted in transit using HTTPS, and we never ask for bank logins, SMS or email access. TrackMyRupee is also open source on GitHub, so you can read the code. See our Security page and Privacy Policy for details.')
                     }
                 ],
                 'keywords_used': [

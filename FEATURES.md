@@ -50,7 +50,7 @@ Take control of your spending patterns:
 - **Flexible Management**: Update budgets anytime as your lifestyle changes.
 
 ### 11. Double-Entry Ledger System 🔐
-Bank-grade accounting for personal finances:
+Double-entry accounting for personal finances:
 - **Balanced Transactions**: Every transaction is recorded twice to ensure integrity (debit/credit).
 - **Auto-Reconciliation**: System detects and flags discrepancies in real-time.
 - **Reconciliation Reports**: Monthly reports showing your account balances vs app records.

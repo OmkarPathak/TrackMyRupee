@@ -182,7 +182,7 @@ class WithdrawConsentView(LoginRequiredMixin, DeleteView):
         dispatched = dispatch_account_deletion(user_id)
         logout(self.request)
         if dispatched:
-            messages.success(self.request, _("Your consent has been withdrawn and your account deletion has been initiated as per DPDPA requirements. You will no longer be able to log in."))
+            messages.success(self.request, _("Your consent has been withdrawn and your account deletion has been initiated as described in our Privacy Policy. You will no longer be able to log in."))
         else:
             messages.warning(self.request, _("Account deletion is already in progress."))
         return redirect(self.success_url)

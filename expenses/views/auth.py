@@ -455,15 +455,15 @@ class FeaturesPageView(TemplateView):
             {
                 'id': 'trust',
                 'title': 'Trust & Control',
-                'description': 'Your data is yours. Full privacy and data sovereignty with a secure manual expense tracker for India.',
+                'description': 'Your data is yours. Export it anytime, delete your account whenever you like, and track expenses manually without SMS access or bank logins.',
                 'items': [
                     {
                         'title': 'Your data is never locked in',
-                        'desc': 'Export your full transaction history to CSV anytime. Enjoy the security of a no SMS access expense manager that keeps your financial details private.'
+                        'desc': 'Export your full transaction history to CSV anytime. Track expenses without granting SMS access or bank logins.'
                     },
                     {
                         'title': 'Balanced Double-Entry Ledger',
-                        'desc': 'Bank-grade accounting. Every transaction is recorded twice to ensure data integrity. Auto-reconciliation detects discrepancies and keeps your records spotless.'
+                        'desc': 'Double-entry accounting. Every transaction is recorded twice to ensure data integrity. Auto-reconciliation detects discrepancies and keeps your records spotless.'
                     },
                     {
                         'title': 'Extended Account Types',
