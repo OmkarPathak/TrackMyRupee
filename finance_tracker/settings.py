@@ -65,6 +65,11 @@ ENABLE_ADMIN_URL = os.getenv('ENABLE_ADMIN_URL', 'False').lower() in {'1', 'true
 # The test suite exercises the admin, so it must not depend on the developer's .env.
 ENABLE_ADMIN_URL = ENABLE_ADMIN_URL or IS_TESTING
 
+# Tests create thousands of users; hashing each password with the production PBKDF2 settings (600k
+# rounds) costs roughly a quarter of a second per user. Production keeps Django's default hashers.
+if IS_TESTING:
+    PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
     'ALLOWED_HOSTS',
     'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'

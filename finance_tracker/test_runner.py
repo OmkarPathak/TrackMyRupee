@@ -1,7 +1,10 @@
 import copyreg
+import os
 import sys
+import time
 import traceback
 import types
+import unittest
 from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
@@ -64,6 +67,26 @@ copyreg.pickle(types.TracebackType, _reduce_traceback)
 copyreg.pickle(types.FrameType, _reduce_frame)
 
 
+def _install_test_timing():
+    """Opt-in per-test timing: set TEST_TIMING_FILE=/tmp/t and every test appends "seconds<TAB>test id" to
+    /tmp/t.<pid> (one file per worker process). Used to find slow tests; does nothing otherwise."""
+    path = os.environ.get('TEST_TIMING_FILE')
+    if not path or getattr(unittest.TestCase.run, '_tmr_timed', False):
+        return
+    original = unittest.TestCase.run
+
+    def timed(self, result=None):
+        started = time.perf_counter()
+        try:
+            return original(self, result)
+        finally:
+            with open(f'{path}.{os.getpid()}', 'a') as handle:
+                handle.write(f'{time.perf_counter() - started:.4f}\t{self.id()}\n')
+
+    timed._tmr_timed = True
+    unittest.TestCase.run = timed
+
+
 def _start_fx_stub():
     """Replace requests.get with the offline exchange-rate stub (once per process)."""
     if getattr(_start_fx_stub, 'patcher', None) is None:
@@ -76,6 +99,7 @@ def _init_worker_offline(counter, *args, **kwargs):
     run the runner's setup_test_environment, so without this the stub only worked for serial runs."""
     _init_worker(counter, *args, **kwargs)
     _start_fx_stub()
+    _install_test_timing()
 
 
 class _OfflineParallelTestSuite(ParallelTestSuite):
@@ -119,6 +143,7 @@ class ParallelTestRunner(DiscoverRunner):
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
         _start_fx_stub()
+        _install_test_timing()
 
     def teardown_test_environment(self, **kwargs):
         patcher = getattr(_start_fx_stub, 'patcher', None)
