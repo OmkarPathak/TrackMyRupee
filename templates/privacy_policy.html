@@ -183,7 +183,7 @@
                             </li>
                         </ul>
                         <h5 class="h6 fw-bold mt-4" id="service-providers">{% trans "Service Providers" %}</h5>
-                        {# TODO-VERIFY: Sentry region (not stated; Sentry is enabled in production per the owner). Confirmed by the owner on 2026-10-13: Supabase database in Bangalore, India; application servers on a DigitalOcean droplet in Mumbai, India; Brevo (email) in the US; PostHog in the US. Re-check these if the setup changes. #}
+                        {# TODO-VERIFY: Sentry region (not stated; Sentry is enabled in production per the owner). Confirmed by the owner on 2026-10-13: Supabase database in Mumbai, India (ap-south-1); application servers on a DigitalOcean droplet in Mumbai, India; Brevo (email) in the US; PostHog in the US. Re-check these if the setup changes. #}
                         <div class="table-responsive">
                             <table class="table table-sm align-middle text-muted">
                                 <thead>
@@ -197,7 +197,7 @@
                                     <tr>
                                         <td>Supabase</td>
                                         <td>{% trans "Database hosting (managed PostgreSQL)" %}</td>
-                                        <td>{% trans "Everything stored in your account: email, username, transactions, accounts, budgets, goals and settings. Region: Bangalore, India." %}</td>
+                                        <td>{% trans "Everything stored in your account: email, username, transactions, accounts, budgets, goals and settings. Region: Mumbai, India." %}</td>
                                     </tr>
                                     <tr>
                                         <td>DigitalOcean</td>
@@ -239,7 +239,7 @@
                         </div>
                     </div>
 
-                    {# TODO-VERIFY: Supabase storage-level encryption at rest. Confirm in the Supabase docs/dashboard for our plan and region before keeping the sentence in section 5 (and the matching "Data at Rest" text in security.html). The code does no application-level encryption (audit A). #}
+                    {# TODO-VERIFY: Supabase storage-level encryption at rest. Supabase's security page says customer data is encrypted at rest with AES-256, but it does not say whether that covers our plan (the project is on the Free plan, region ap-south-1 / Mumbai, confirmed from the dashboard on 2026-10-13). Confirm in Supabase's docs or with support, then delete this comment. Confirm in the Supabase docs/dashboard for our plan and region before keeping the sentence in section 5 (and the matching "Data at Rest" text in security.html). The code does no application-level encryption (audit A). #}
                     <div id="section-5" class="mb-5">
                         <h3 class="h4 fw-bold mb-3">{% trans "5. Data Security" %}</h3>
                         <p class="text-muted">
@@ -272,7 +272,7 @@
                         <p class="text-muted">
                             <strong>{% trans "Note" %}:</strong>
                             {% blocktrans %}
-                            Our database is hosted on Supabase in Bangalore, India, which encrypts stored data at the storage level. Your transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.
+                            Our database is hosted on Supabase in Mumbai, India, which encrypts stored data at the storage level. Your transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.
                             {% endblocktrans %}
                         </p>
                     </div>
