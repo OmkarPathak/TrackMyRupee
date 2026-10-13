@@ -329,12 +329,12 @@ class SalaryDateFormTest(TestCase):
         """Test that SalaryDateUpdateForm rejects invalid salary dates."""
         from expenses.forms import SalaryDateUpdateForm
         
-        # Invalid: Less than 1
-        form = SalaryDateUpdateForm(data={'salary_date': '0'}, instance=self.user.profile)
-        # Form may not validate this at form level, but model validation should catch it
-        
-        # Invalid: Greater than 31
-        form = SalaryDateUpdateForm(data={'salary_date': '32'}, instance=self.user.profile)
+        for bad in ('0', '32', '-1', 'abc'):
+            form = SalaryDateUpdateForm(data={'salary_date': bad}, instance=self.user.profile)
+            self.assertFalse(form.is_valid(), bad)
+            self.assertIn('salary_date', form.errors)
+        for good in ('1', '15', '31'):
+            self.assertTrue(SalaryDateUpdateForm(data={'salary_date': good}, instance=self.user.profile).is_valid(), good)
         # Same as above
 
     def test_profile_update_form_social_user_email_disabled(self):

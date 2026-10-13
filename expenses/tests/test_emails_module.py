@@ -143,8 +143,10 @@ class SignupEmailFlowTests(TestCase):
 
     def test_delivery_failure_does_not_break_the_signup_request(self):
         user = User.objects.create_user('unlucky', 'unlucky@example.com', 'pw')
-        with patch('allauth.account.adapter.DefaultAccountAdapter.send_mail', side_effect=RuntimeError('down')):
-            CustomAccountAdapter().send_mail('account/email/password_reset_key', user.email, {'user': user})
+        with patch('allauth.account.adapter.DefaultAccountAdapter.send_mail', side_effect=RuntimeError('down')) as send:
+            with self.assertLogs('expenses.adapters', level='ERROR'):
+                self.assertIsNone(CustomAccountAdapter().send_mail('account/email/password_reset_key', user.email, {'user': user}))
+        send.assert_called_once()
 
 
 class LifecycleEmailTests(TestCase):
@@ -431,8 +433,10 @@ class EmailTemplateLinkTests(TestCase):
 
     def test_notification_fallback_links_resolve(self):
         source = Path(settings.BASE_DIR, 'expenses/management/commands/send_notifications.py').read_text()
-        for url_path in set(re.findall(r'"(/[a-z\-/]+/)"', source)):
-            resolve(url_path)
+        links = set(re.findall(r'"(/[a-z\-/]+/)"', source))
+        self.assertTrue(links)
+        for url_path in links:
+            self.assertTrue(resolve(url_path), url_path)
 
     def test_every_email_template_renders_with_minimal_context(self):
         from django.template.loader import render_to_string
