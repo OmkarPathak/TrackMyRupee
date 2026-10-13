@@ -7,9 +7,11 @@ Usage:
     from expenses.posthog_utils import ph_capture
 
     ph_capture(request.user, 'expense_created', {
-        'amount': str(expense.amount),
-        'category': expense.category,
+        'currency': expense.currency,
+        'has_account': bool(expense.account_id),
     })
+
+Amounts, descriptions, names and emails are stripped from properties (see _FORBIDDEN_PROPERTY_KEYS).
 
 The helper is a no-op when POSTHOG_API_KEY is not set, so it is safe
 in development and CI environments without any configuration.

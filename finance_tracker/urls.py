@@ -74,7 +74,7 @@ def llms_txt(request):
 
 SECURITY_TXT = "\n".join([
     "Contact: mailto:support@trackmyrupee.com",
-    "Expires: 2027-10-13T00:00:00.000Z",
+    "Expires: 2027-09-30T00:00:00.000Z",
     "Preferred-Languages: en",
     "Canonical: https://trackmyrupee.com/.well-known/security.txt",
     "",
@@ -83,7 +83,8 @@ SECURITY_TXT = "\n".join([
 
 @require_GET
 def security_txt(request):
-    # RFC 9116. Renew the Expires date before it passes (it is one year from 2026-10-13).
+    # RFC 9116: Expires should be less than a year away. Renew it before it passes; a test fails 30 days
+    # beforehand as a reminder.
     return HttpResponse(SECURITY_TXT, content_type="text/plain; charset=utf-8")
 
 

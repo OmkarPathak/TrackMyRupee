@@ -6,7 +6,7 @@ from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 import requests
-from django.test.runner import DiscoverRunner
+from django.test.runner import DiscoverRunner, ParallelTestSuite, _init_worker
 
 
 def _clean_exception(exc):
@@ -64,6 +64,24 @@ copyreg.pickle(types.TracebackType, _reduce_traceback)
 copyreg.pickle(types.FrameType, _reduce_frame)
 
 
+def _start_fx_stub():
+    """Replace requests.get with the offline exchange-rate stub (once per process)."""
+    if getattr(_start_fx_stub, 'patcher', None) is None:
+        _start_fx_stub.patcher = mock.patch('requests.get', side_effect=ParallelTestRunner._fake_requests_get)
+        _start_fx_stub.patcher.start()
+
+
+def _init_worker_offline(counter, *args, **kwargs):
+    """Django's worker initialiser, then the stub. On macOS/Windows workers are spawned fresh and never
+    run the runner's setup_test_environment, so without this the stub only worked for serial runs."""
+    _init_worker(counter, *args, **kwargs)
+    _start_fx_stub()
+
+
+class _OfflineParallelTestSuite(ParallelTestSuite):
+    init_worker = _init_worker_offline
+
+
 class ParallelTestRunner(DiscoverRunner):
     """
     Custom Django test runner with robust multiprocessing Exception, Traceback, and Frame pickling support
@@ -76,6 +94,7 @@ class ParallelTestRunner(DiscoverRunner):
     _FX_HOSTS = ('api.frankfurter.app', 'api.exchangerate-api.com')
     _FX_SUPPORTED = {'INR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'KRW', 'SGD', 'AED', 'NZD', 'HKD', 'SEK', 'NOK', 'ZAR', 'THB', 'MYR'}
     _real_requests_get = staticmethod(requests.get)
+    parallel_test_suite = _OfflineParallelTestSuite
 
     @classmethod
     def _fake_requests_get(cls, url, *args, **kwargs):
@@ -99,9 +118,11 @@ class ParallelTestRunner(DiscoverRunner):
 
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
-        self._fx_patch = mock.patch('requests.get', side_effect=self._fake_requests_get)
-        self._fx_patch.start()
+        _start_fx_stub()
 
     def teardown_test_environment(self, **kwargs):
-        self._fx_patch.stop()
+        patcher = getattr(_start_fx_stub, 'patcher', None)
+        if patcher is not None:
+            patcher.stop()
+            _start_fx_stub.patcher = None
         super().teardown_test_environment(**kwargs)

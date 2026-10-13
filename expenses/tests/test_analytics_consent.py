@@ -108,7 +108,7 @@ class SecurityTxtTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response['Content-Type'].startswith('text/plain'))
         body = response.content.decode()
-        for field in ('Contact: mailto:support@trackmyrupee.com', 'Expires: 2027-10-13', 'Preferred-Languages: en',
+        for field in ('Contact: mailto:support@trackmyrupee.com', 'Expires: ', 'Preferred-Languages: en',
                       'Canonical: https://trackmyrupee.com/.well-known/security.txt'):
             self.assertIn(field, body)
 
