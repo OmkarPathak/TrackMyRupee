@@ -888,7 +888,7 @@
 </div>
 
 {% if user.username != 'demo' %}
-<div class="mt-4">{% include 'components/reminder_optin.html' with variant='card' %}</div>
+{% include 'components/reminder_optin.html' with variant='card' %}
 <!-- PWA Promotion Card (Mobile Only, Non-Standalone) -->
 <div id="pwa-promo-card" class="card shadow-sm border-0 rounded-4 mb-2 mt-4 overflow-hidden nw-animate-in d-md-none" style="display: none !important; background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05)); border: 1px solid rgba(29, 158, 117, 0.2) !important;">
     <div class="card-body p-3 d-flex align-items-center gap-3 position-relative" style="padding-right: 2.75rem !important;">
@@ -934,7 +934,7 @@
 
 
 
-<div class="accordion mb-4" id="insightsAccordion">
+<div class="accordion mb-0" id="insightsAccordion">
     <div class="accordion-item border-0 rounded-4 overflow-hidden">
         <h2 class="accordion-header d-none" id="headingInsights">
             <button class="accordion-button collapsed px-4 py-2 fw-bold bg-transparent text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInsights" aria-expanded="false" aria-controls="collapseInsights" style="font-size: 1rem; box-shadow: none;">

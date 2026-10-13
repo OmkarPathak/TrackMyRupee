@@ -4188,6 +4188,7 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
 .tmr-reminder--card {
   background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05));
   border: 1px solid rgba(29, 158, 117, 0.2) !important;
+  margin-top: 1rem;   /* only takes space while the card is shown ([hidden] removes it) */
 }
 .tmr-reminder--plain { margin-top: 0.75rem; }
 .tmr-reminder[hidden],
