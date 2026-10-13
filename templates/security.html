@@ -20,7 +20,7 @@
 
             <!-- Content section -->
             <div class="row g-5 fade-in" style="animation-delay: 0.2s;">
-                {# TODO-VERIFY: Supabase storage-level encryption at rest Confirm in the Supabase docs/dashboard; no AES-256 / AWS KMS specifics are claimed until confirmed. The code does no application-level encryption (audit A). #}
+                {# Supabase states hosted projects are encrypted at rest by default (Supabase assistant answer for Free-plan projects, confirmed by the owner on 2026-10-13). This is storage-level only; the app does no application-level encryption. #}
                 <!-- Data at Rest -->
                 <div class="col-12">
                     <div class="card security-card-premium overflow-hidden border-0 rounded-5 position-relative">

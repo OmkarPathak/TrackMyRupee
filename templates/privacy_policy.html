@@ -239,7 +239,7 @@
                         </div>
                     </div>
 
-                    {# TODO-VERIFY: Supabase storage-level encryption at rest. Supabase's security page says customer data is encrypted at rest with AES-256, but it does not say whether that covers our plan (the project is on the Free plan, region ap-south-1 / Mumbai, confirmed from the dashboard on 2026-10-13). Confirm in Supabase's docs or with support, then delete this comment. Confirm in the Supabase docs/dashboard for our plan and region before keeping the sentence in section 5 (and the matching "Data at Rest" text in security.html). The code does no application-level encryption (audit A). #}
+                    {# Supabase states hosted projects are encrypted at rest by default (Supabase assistant answer for Free-plan projects, confirmed by the owner on 2026-10-13). This is storage-level only; the app does no application-level encryption. #}
                     <div id="section-5" class="mb-5">
                         <h3 class="h4 fw-bold mb-3">{% trans "5. Data Security" %}</h3>
                         <p class="text-muted">
