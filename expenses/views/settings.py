@@ -67,6 +67,19 @@ def log_and_notify_deletion(user=None, username=None, email=None):
             logger.error("Failed to send account deletion email: %s", e)
 
 
+def _delete_email_logs(user, email):
+    from django.db.models import Q
+
+    from expenses.models import EmailLog
+
+    query = Q(pk__in=[])
+    if user is not None:
+        query |= Q(user=user)
+    if email:
+        query |= Q(to_email__iexact=email)
+    EmailLog.objects.filter(query).delete()
+
+
 def delete_user_account(user_id):
     """
     Deletes the user and all associated data inside an atomic transaction.
@@ -87,8 +100,13 @@ def delete_user_account(user_id):
 
     try:
         with transaction.atomic():
+            # EmailLog.user is SET_NULL, so the cascade would leave the address, subject and body
+            # of every email we sent this user in the live database. Remove them explicitly.
+            _delete_email_logs(user, email)
             user.delete()
         log_and_notify_deletion(username=username, email=email)
+        # The deletion confirmation above creates a new EmailLog row; remove it too.
+        _delete_email_logs(None, email)
         logger.info(f"Successfully deleted account for user {user_id}")
         return True
     except Exception as e:

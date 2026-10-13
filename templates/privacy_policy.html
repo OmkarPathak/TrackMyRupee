@@ -313,7 +313,7 @@
                         <p class="text-muted small">
                             <strong>{% trans "Note on Erasure Requests" %}:</strong>
                             {% blocktrans %}
-                            Payment records are retained for 5 years as required by Indian tax law and cannot be deleted on request.
+                            Deleting your account removes your data from our live database. Some records cannot be removed immediately: copies in backups, a minimal record of the deletion request, and data held by the service providers listed in section 4. Section 7 explains each of these.
                             {% endblocktrans %}
                         </p>
                     </div>
@@ -335,13 +335,28 @@
                             <li class="mb-2">
                                 <strong>{% trans "Deleted Accounts" %}:</strong>
                                 {% blocktrans %}
-                                If you delete your account, your personal data is removed from our live databases immediately and from backups within 30-90 days.
+                                If you delete your account, your personal data and financial data are removed from our live database immediately. Copies in database backups are removed as those backups expire, within 30-90 days.
                                 {% endblocktrans %}
+                                {# TODO-VERIFY: the 30-90 day backup window against the backup retention actually configured on our Supabase plan. #}
                             </li>
                             <li class="mb-2">
-                                <strong>{% trans "Exception for Payment Records" %}:</strong>
+                                <strong>{% trans "Deletion record" %}:</strong>
                                 {% blocktrans %}
-                                Payment records are retained for 5 years as required by Indian tax law and cannot be deleted on request.
+                                We keep a minimal record that a deletion was requested (your email address, username and the time of the request), so that we can show the request was honoured.
+                                {% endblocktrans %}
+                                {# TODO-VERIFY: retention period for this record (DeletionRequestAuditLog); the code keeps it indefinitely. #}
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Payment Records" %}:</strong>
+                                {% blocktrans %}
+                                Our own copy of your payment history is deleted with your account. Payment records held by Razorpay are kept under Razorpay's own retention obligations and are not deleted by us.
+                                {% endblocktrans %}
+                                {# TODO-VERIFY / LEGAL REVIEW: this policy used to say payment records are retained for 5 years under Indian tax law, but delete_user_account cascades and removes PaymentHistory rows. Decide whether to keep a retained copy (needs a code and schema change) and what period applies. #}
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Third-party providers" %}:</strong>
+                                {% blocktrans %}
+                                Deleting your account does not automatically delete data already sent to our service providers, for example analytics data if you accepted cookies, or emails delivered to you. Those providers keep data under their own retention settings. To ask about it, contact us at the address in section 10.
                                 {% endblocktrans %}
                             </li>
                         </ul>
