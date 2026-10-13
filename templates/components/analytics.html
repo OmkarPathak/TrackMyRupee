@@ -21,6 +21,14 @@
     var PH_TIER = '{{ POSTHOG_TIER|default:""|escapejs }}';
     var afterLoad = window.tmrAfterLoad || function (fn) { fn(); };
 
+    // Page addresses carry search and filter text (?search=salary), which must not reach analytics.
+    // Only the address up to the path is ever sent.
+    function cleanUrl(url) {
+        if (typeof url !== 'string') { return url; }
+        return url.split('#')[0].split('?')[0];
+    }
+    function pageUrl() { return location.origin + location.pathname; }
+
     function stored() { try { return localStorage.getItem('cookieConsent'); } catch (e) { return null; } }
     function mirrorCookie(value) {
         document.cookie = 'tmr_consent=' + value + '; Max-Age=31536000; Path=/; SameSite=Lax' +
@@ -65,7 +73,12 @@
             'analytics_storage': 'granted'
         });
         gtag('js', new Date());
-        gtag('config', GA_ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
+        gtag('config', GA_ID, {
+            allow_google_signals: false,
+            allow_ad_personalization_signals: false,
+            page_location: pageUrl(),
+            page_referrer: cleanUrl(document.referrer)
+        });
         afterLoad(function () {
             var g = document.createElement('script');
             g.async = true;
@@ -83,13 +96,24 @@
                 autocapture: false,               // no click / text / input capture
                 disable_session_recording: true,  // no session replay
                 capture_pageview: false,
-                capture_pageleave: false
+                capture_pageleave: false,
+                // Last stop for every event: strip query strings and fragments from any address property
+                sanitize_properties: function scrub(props) {
+                    Object.keys(props).forEach(function (key) {
+                        if (/url$|referrer$/i.test(key)) {
+                            props[key] = cleanUrl(props[key]);
+                        } else if ((key === '$set' || key === '$set_once') && props[key] && typeof props[key] === 'object') {
+                            scrub(props[key]);   // first-visit properties are sent nested
+                        }
+                    });
+                    return props;
+                }
             });
             posthog.capture('$pageview');
             if (PH_ID) { posthog.identify(PH_ID, PH_TIER ? { tier: PH_TIER } : {}); }
             // HTMX navigations swap content without a full page load.
             document.addEventListener('htmx:afterSettle', function () {
-                posthog.capture('$pageview', { '$current_url': window.location.href });
+                posthog.capture('$pageview', { '$current_url': pageUrl() });
             });
         });
     }

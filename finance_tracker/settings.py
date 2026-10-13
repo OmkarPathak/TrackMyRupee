@@ -33,6 +33,10 @@ if os.environ.get('SENTRY_DSN') and not IS_TESTING:
         # without the overhead of full tracing on every request.
         traces_sample_rate=0.05,
         ignore_errors=[DisallowedHost],
+        # Error reports must not carry the values of local variables: in a view they can hold
+        # amounts, descriptions and account names. The privacy policy says Sentry gets the page
+        # and the error message only. send_default_pii stays at its default (off).
+        include_local_variables=False,
     )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -66,7 +70,7 @@ ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
     'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'
 ).split(',') if host.strip()]
 
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com,https://django-finance-tracker-fr1u.onrender.com').split(',')
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com').split(',')
 CSRF_FAILURE_VIEW = 'finance_tracker.csrf.csrf_failure'  # friendly recovery + reason logging for expired login forms
 
 # Absolute URL for generating links in background tasks (emails, push)

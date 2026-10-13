@@ -72,7 +72,7 @@
                             <li class="mb-2">
                                 <strong>{% trans "Payment Information" %}:</strong>
                                 {% blocktrans %}
-                                Payment details (handled by Razorpay) &rarr; Subscription processing &rarr; Contractual necessity &rarr; 5 years as required by Indian tax law.
+                                Payment details (handled by Razorpay, not stored by us) and our own record of your plan and payments &rarr; Subscription processing &rarr; Contractual necessity &rarr; Our record is kept until account deletion; Razorpay keeps its own records.
                                 {% endblocktrans %}
                             </li>
                         </ul>
@@ -230,9 +230,19 @@
                                         <td>{% trans "Technical details about errors and performance, such as the page involved and the error message. Region: United States." %}</td>
                                     </tr>
                                     <tr>
-                                        <td>{% trans "jsDelivr, Google Fonts, Google Charts" %}</td>
-                                        <td>{% trans "Delivering fonts, styles and chart code on some pages" %}</td>
-                                        <td>{% trans "Your IP address and browser details when these files are requested." %}</td>
+                                        <td>{% trans "jsDelivr, Cloudflare cdnjs, Google Fonts, Google Charts" %}</td>
+                                        <td>{% trans "Delivering fonts, styles, scripts and chart code on some pages, and fonts in some of our emails" %}</td>
+                                        <td>{% trans "Your IP address and browser details when these files are requested, including when you open one of our emails that uses these fonts." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{% trans "Google (Sign in with Google)" %}</td>
+                                        <td>{% trans "Optional sign-in if you choose Continue with Google" %}</td>
+                                        <td>{% trans "Google tells us your name and email address, and learns that you signed in to TrackMyRupee." %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{% trans "Browser push services (Google, Mozilla, Apple or Microsoft, depending on your browser)" %}</td>
+                                        <td>{% trans "Delivering push notifications, only if you turn them on" %}</td>
+                                        <td>{% trans "Your browser's push address and the notification, which is encrypted so that only your device can read its text. The service can see that a notification was sent, and when." %}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -353,7 +363,7 @@
                                 {% blocktrans %}
                                 Our own copy of your payment history is deleted with your account. Payment records held by Razorpay are kept under Razorpay's own retention obligations and are not deleted by us.
                                 {% endblocktrans %}
-                                {# TODO-VERIFY / LEGAL REVIEW: this policy used to say payment records are retained for 5 years under Indian tax law, but delete_user_account cascades and removes PaymentHistory rows. Decide whether to keep a retained copy (needs a code and schema change) and what period applies. #}
+                                {# Payment history is removed with the account (delete_user_account cascades); Razorpay keeps its own records. The text states exactly that and makes no claim about a legal retention period. #}
                             </li>
                             <li class="mb-2">
                                 <strong>{% trans "Third-party providers" %}:</strong>
