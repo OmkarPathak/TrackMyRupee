@@ -4,7 +4,8 @@
 Used by the Budget page and by the budget alerts (notifications), so they can never disagree.
 
   * Spending in a category for a month = expenses in that category + capital events that are NOT
-    excluded from budgets (each counted under the name of its subtype, e.g. "Large Purchase").
+    excluded from budgets (each counted under the category chosen on the event, else the name of its
+    subtype, e.g. "Large Purchase").
   * Category names match case-insensitively ("food" counts towards "Food").
   * A category is  over  when spent > limit,  at its limit  from 85% of the limit (or exactly at
     it), otherwise on track. No limit (blank or 0) means no status.
@@ -58,6 +59,11 @@ def _subtype_names() -> dict:
     return {value: str(label) for value, label in CapitalEvent.SUBTYPE_CHOICES}
 
 
+def capital_report_name(category, subtype, names: dict) -> str:
+    """The category a capital event is reported under: the one the user chose, else its subtype's name."""
+    return category or names.get(subtype, subtype)
+
+
 def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decimal]:
     """({normalised category name: total}, grand total) in base currency for one month."""
     from .models import CapitalEvent, Expense
@@ -70,8 +76,8 @@ def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decima
 
     names = _subtype_names()
     for row in (CapitalEvent.objects.filter(user=user, date__year=year, date__month=month, exclude_from_budget=False)
-                .values('subtype').annotate(total=Sum('base_amount'))):
-        key = normalize_category(names.get(row['subtype'], row['subtype']))
+                .values('category', 'subtype').annotate(total=Sum('base_amount'))):
+        key = normalize_category(capital_report_name(row['category'], row['subtype'], names))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
 
     return spend, sum(spend.values(), ZERO)
@@ -89,7 +95,7 @@ def bulk_monthly_spend(year: int, month: int) -> dict:
 
     names = _subtype_names()
     for row in (CapitalEvent.objects.filter(date__year=year, date__month=month, exclude_from_budget=False)
-                .values('user_id', 'subtype').annotate(total=Sum('base_amount'))):
-        key = (row['user_id'], normalize_category(names.get(row['subtype'], row['subtype'])))
+                .values('user_id', 'category', 'subtype').annotate(total=Sum('base_amount'))):
+        key = (row['user_id'], normalize_category(capital_report_name(row['category'], row['subtype'], names)))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
     return spend

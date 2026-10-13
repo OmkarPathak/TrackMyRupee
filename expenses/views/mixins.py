@@ -286,6 +286,7 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                             CapitalEvent(
                                 user=user, date=current_date, amount=rt.amount,
                                 currency=rt.currency, subtype=subtype,
+                                category=rt.category or '',
                                 note=description, account=rt.account,
                                 linked_loan=rt.loan,
                                 exclude_from_averages=rt.exclude_from_averages,

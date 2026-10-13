@@ -624,6 +624,15 @@ CAPITAL_EVENT_FILTERS = FilterSetConfig(
             lookup_expr="in",
         ),
         FilterDef(
+            key="category",
+            label="Category",
+            type="multi_select",
+            source="dynamic",
+            options_fn=get_user_categories,
+            field_name="category",
+            lookup_expr="in",
+        ),
+        FilterDef(
             key="account",
             label="Account",
             type="multi_select",

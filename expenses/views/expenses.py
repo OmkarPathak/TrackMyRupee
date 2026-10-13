@@ -296,6 +296,7 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
                 currency=expense.currency,
                 note=expense.description,
                 subtype=subtype,
+                category=expense.category,
                 account=expense.account,
             )
             event.save()

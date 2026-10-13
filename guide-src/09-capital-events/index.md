@@ -21,7 +21,7 @@ By default a Capital Event is **kept out of your everyday numbers but still move
 | Switch | When it is **on** (the default) | When you turn it **off** |
 |---|---|---|
 | **Exclude from Averages & Trends** | The event does not count as spending in your monthly totals, your savings rate, or your trend charts. It shows as a small marker on the dashboard charts instead. | It counts as spending for that month, like a regular expense. |
-| **Exclude from Budget** | It does not count against your category budgets. | It counts towards the budget for the category with the same name as its subtype (for example *Large Purchase*), on the Budget page, in your Dashboard breakdown, and in budget alerts. |
+| **Exclude from Budget** | It does not count against your category budgets. | It counts towards the budget for the event's **Category** if you chose one, otherwise for the category with the same name as its subtype (for example *Large Purchase*), on the Budget page, in your Dashboard breakdown, and in budget alerts. |
 | **Include in Cash Flow / Net Worth** | The account you chose goes down by the amount, so your balance and net worth stay true. | The account balance is not touched, though the event still records which account it relates to. Use this when the payment was made on your behalf and the money never left that account. |
 
 So the usual one-off payment leaves your Dining Out, Transport, and Groceries budget bars alone, and your Analytics averages keep reflecting your real recurring spend, while your account balance still drops by the right amount.
@@ -56,12 +56,24 @@ Complete the following fields:
 2. **Currency**: Defaults to your profile currency.
 3. **Date** (required): The date the payment was made. It cannot be in the future.
 4. **Subtype** (required): What kind of event it is. The choices are **Loan Down Payment, Loan Prepayment, Large Purchase, Medical Lump Sum, Gift Given, Gift Received, Investment Lump Sum,** and **Other**.
-5. **Account** (required): The account the money came from. If you forget it, the form shows a message under the field and nothing is saved. This keeps every payment, such as a loan prepayment, traceable to an account.
-6. **Linked Loan** (optional): Connect a down payment or prepayment to one of your active loans.
-7. **Note** (optional): A short description, such as "Kitchen renovation advance".
-8. The three switches described above.
+5. **Category** (optional): One of your own categories, for example *Electronics* for a laptop. See [Categories and your year-end audit](#categories-and-your-year-end-audit). The Subtype says what kind of event it is. The Category says where the money belongs in your category totals.
+6. **Account** (required): The account the money came from. If you forget it, the form shows a message under the field and nothing is saved. This keeps every payment, such as a loan prepayment, traceable to an account.
+7. **Linked Loan** (optional): Connect a down payment or prepayment to one of your active loans.
+8. **Note** (optional): A short description, such as "Kitchen renovation advance".
+9. The three switches described above.
 
 Click **Save** when done.
+
+### Categories and your year-end audit
+
+A capital event never appears in your everyday expense list, so a total "by category" for the year would normally leave out your biggest purchases. The optional **Category** fixes that:
+
+- **Analytics**: turn on **Include capital events** (next to the year picker). The *Category distribution* chart then adds every capital event of that year under its Category, merged with the expenses in the same category. An event with no category appears under its Subtype name (for example *Medical Lump Sum*). The switch is **off by default**, so your usual charts and averages stay as they were. It also adds events you excluded from averages to the monthly bars.
+- **Budgets**: an event you did not exclude from the budget counts towards the budget of its Category (or, with none chosen, its Subtype name).
+- **Capital Events list**: filter by Category like any other filter.
+- **Converting**: an expense turned into a capital event keeps its category, and a capital event turned back into an expense gets its Category (or its Subtype name if it has none).
+
+Existing events have no category until you edit them. Nothing changes for them.
 
 ---
 

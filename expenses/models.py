@@ -2441,6 +2441,9 @@ class CapitalEvent(models.Model):
         verbose_name=_('Subtype'),
     )
     note = models.TextField(blank=True, default='', verbose_name=_('Note'))
+    # Optional: which of the user's own categories this belongs to in category reports (for example a
+    # laptop under "Electronics"). Empty means the event is reported under its subtype name.
+    category = models.CharField(max_length=255, blank=True, default='', verbose_name=_('Category'))
 
     # Optional link to an existing Loan record
     linked_loan = models.ForeignKey(
@@ -2489,6 +2492,11 @@ class CapitalEvent(models.Model):
 
     def __str__(self):
         return f"{self.date} – {self.get_subtype_display()} – {self.currency}{self.amount}"
+
+    @property
+    def report_category(self):
+        """The name this event goes under in category reports: its category, else its subtype name."""
+        return self.category or str(self.get_subtype_display())
 
     def save(self, *args, **kwargs):
         with transaction.atomic():

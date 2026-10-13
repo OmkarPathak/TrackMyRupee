@@ -505,8 +505,8 @@
 
     {% load static %}
     <!-- Preload critical local stylesheet so the browser fetches it in parallel -->
-    <link rel="preload" href="{% static 'style.css' %}?v=3.4" as="style">
-    <link rel="stylesheet" href="{% static 'style.css' %}?v=3.4">
+    <link rel="preload" href="{% static 'style.css' %}?v=3.7" as="style">
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=3.7">
     <link rel="stylesheet" href="{% static 'skeleton-loader.css' %}?v=1.6">
     <style>
         /* Bootstrap Multiselect Premium Customization */
@@ -1486,8 +1486,37 @@
                 btn.type = 'button';
                 btn.className = 'form-select text-start searchable-select-btn' + (isSmall ? ' form-select-sm' : '');
                 if (sel.disabled) btn.disabled = true;
+                // data-placeholder: an optional select whose empty choice is shown as muted placeholder
+                // text, never as a row in the list. A small x clears a chosen value.
+                const placeholder = sel.dataset.placeholder || '';
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.className = 'searchable-select-clear';
+                clearBtn.setAttribute('aria-label', '{% trans "Clear" %}');
+                clearBtn.innerHTML = '&times;';
+                clearBtn.hidden = true;
+                function syncBtn() {
+                    const current = sel.options[sel.selectedIndex];
+                    if (placeholder) {
+                        const has = !!(current && current.value !== '');
+                        btn.textContent = has ? current.text : placeholder;
+                        btn.classList.toggle('searchable-select-placeholder', !has);
+                        clearBtn.hidden = !has || sel.disabled;
+                    } else if (current) {
+                        btn.textContent = current.text;
+                    }
+                }
                 btn.textContent = sel.options[sel.selectedIndex]?.text || '{% trans "Select..." %}';
                 wrapper.appendChild(btn);
+                if (placeholder) {
+                    wrapper.appendChild(clearBtn);
+                    clearBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        sel.value = '';
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    syncBtn();
+                }
 
                 // Dropdown panel
                 const dropdown = document.createElement('div');
@@ -1520,7 +1549,7 @@
 
                             Array.from(child.children).forEach(function(opt) {
                                 if (opt.tagName !== 'OPTION') return;
-                                if (!opt.value && opt.text.trim() === '---------') return;
+                                if (!opt.value && (placeholder || opt.text.trim() === '---------')) return;
                                 const text = opt.text;
                                 if (term && text.toLowerCase().indexOf(term) === -1) return;
 
@@ -1536,7 +1565,7 @@
                                     if (opt.disabled) return;
                                     sel.value = opt.value;
                                     sel.dispatchEvent(new Event('change', { bubbles: true }));
-                                    btn.textContent = text;
+                                    syncBtn();
                                     close();
                                 });
                                 groupContainer.appendChild(item);
@@ -1553,7 +1582,7 @@
                             }
                         } else if (child.tagName === 'OPTION') {
                             const opt = child;
-                            if (!opt.value && opt.text.trim() === '---------') return;
+                            if (!opt.value && (placeholder || opt.text.trim() === '---------')) return;
                             const text = opt.text;
                             if (term && text.toLowerCase().indexOf(term) === -1) return;
 
@@ -1566,7 +1595,7 @@
                                 if (opt.disabled) return;
                                 sel.value = opt.value;
                                 sel.dispatchEvent(new Event('change', { bubbles: true }));
-                                btn.textContent = text;
+                                syncBtn();
                                 close();
                             });
                             list.appendChild(item);
@@ -1634,13 +1663,13 @@
                 // Sync if value changes programmatically
                 sel.addEventListener('change', function() {
                     const opt = sel.options[sel.selectedIndex];
-                    if (opt) btn.textContent = opt.text;
+                    if (opt) syncBtn();
                 });
 
                 // Public refresh API
                 sel.searchableSelectRefresh = function() {
                     const opt = sel.options[sel.selectedIndex];
-                    if (opt) btn.textContent = opt.text;
+                    if (opt) syncBtn();
                     buildOptions(search.value);
                 };
                 sel.multiSelectRefresh = sel.searchableSelectRefresh;
@@ -1933,6 +1962,25 @@
     .multi-select-wrapper {
         position: relative;
     }
+    .searchable-select-placeholder { color: var(--bs-secondary-color, #6c757d); }
+    .searchable-select-clear {
+        position: absolute;
+        top: 50%;
+        right: 2.25rem;
+        transform: translateY(-50%);
+        width: 1.5rem;
+        height: 1.5rem;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 1.15rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .searchable-select-clear:hover { background: rgba(var(--bs-primary-rgb), 0.1); color: var(--bs-body-color); }
+    .searchable-select-clear[hidden] { display: none; }
     .searchable-select-btn,
     .multi-select-btn {
         overflow: hidden;

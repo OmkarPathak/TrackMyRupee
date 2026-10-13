@@ -4193,3 +4193,102 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
 .tmr-reminder[hidden],
 .tmr-reminder [hidden] { display: none !important; }
 .tmr-reminder-icon { width: 48px; height: 48px; }
+
+/* --- Toggle chip: a labelled pill with a small switch inside (Analytics: Include capital events) --- */
+.tmr-toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  height: 31px;
+  margin: 0;
+  padding: 0 0.85rem 0 0.4rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 999px;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.tmr-toggle-chip:hover { border-color: rgba(var(--bs-primary-rgb), 0.5); }
+.tmr-toggle-chip.is-on {
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  border-color: rgba(var(--bs-primary-rgb), 0.45);
+  color: var(--color-success-text, #0F7657);
+}
+[data-bs-theme="dark"] .tmr-toggle-chip.is-on { color: #5DCAA5; }
+.tmr-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.tmr-toggle-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 30px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--bs-secondary-bg, #dee2e6);
+  transition: background-color 0.2s ease;
+}
+.tmr-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tmr-toggle-chip.is-on .tmr-toggle-track { background: var(--color-secondary, #0F7657); }
+.tmr-toggle-chip.is-on .tmr-toggle-thumb { transform: translateX(12px); }
+.tmr-toggle-input:focus-visible + .tmr-toggle-track {
+  outline: 2px solid var(--color-secondary, #0F7657);
+  outline-offset: 2px;
+}
+
+/* --- Year pill: calendar icon + the app's standard searchable dropdown, same height as .tmr-toggle-chip --- */
+.tmr-year-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 31px;
+  min-width: 7.5rem;
+  padding: 0 0.3rem 0 0.8rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 999px;
+  background: var(--bs-body-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease;
+}
+.tmr-year-pill:hover,
+.tmr-year-pill:focus-within { border-color: rgba(var(--bs-primary-rgb), 0.5); }
+.tmr-year-pill > .bi { color: var(--color-success-text, #0F7657); font-size: 0.85rem; }
+[data-bs-theme="dark"] .tmr-year-pill > .bi { color: #5DCAA5; }
+.tmr-year-pill .searchable-select-wrapper { flex: 1 1 auto; min-width: 0; }
+.tmr-year-pill .searchable-select-btn {
+  height: 29px;
+  min-height: 0;
+  padding: 0 1.6rem 0 0;
+  border: 0;
+  background-color: transparent;
+  box-shadow: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 29px;
+}
+.tmr-year-pill .searchable-select-dropdown {
+  left: auto;
+  right: -0.3rem;
+  min-width: 9rem;
+  margin-top: 0.6rem;
+}

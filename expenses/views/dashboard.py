@@ -44,6 +44,7 @@ from finance_tracker.plans import get_limit
 from ..budgets import (
     BUDGET_WARNING_PERCENT,
     budget_status,
+    capital_report_name,
     monthly_spend_by_category,
     normalize_category,
     percent_used,
@@ -505,8 +506,8 @@ def home_view(request):
     # Captured here so the net-worth-change block below can reuse this period's total
     # instead of firing a duplicate CapitalEvent query with the same filters.
     period_capital_events_budget_total = 0.0
-    for item in budget_events.values('subtype').annotate(total=Sum('base_amount')):
-        cat_name = _subtype_display.get(item['subtype'], item['subtype'])
+    for item in budget_events.values('category', 'subtype').annotate(total=Sum('base_amount')):
+        cat_name = item['category'] or _subtype_display.get(item['subtype'], item['subtype'])
         matched_cat = None
         for uc_name in user_categories.keys():
             if uc_name.lower() == cat_name.lower():
@@ -2745,13 +2746,29 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         if selected_year == today.year:
             period_filter['date__lte'] = today
 
-        # 2. Category Breakdown (Selected Year)
+        # 2. Category Breakdown (Selected Year). With the capital events switch on, every capital event of
+        # the year is added under its own category (or, with none chosen, its event type's name), so a
+        # year-end audit by category includes the big one-off items.
         category_stats = Expense.objects.filter(
             user=user, **period_filter
         ).values('category').annotate(total=Sum('base_amount')).order_by('-total')
-        
-        cat_labels = [_(x['category']) for x in category_stats]
-        cat_data = [float(x['total']) for x in category_stats]
+
+        category_totals = {}   # normalised name -> [display name, total]
+        for row in category_stats:
+            slot = category_totals.setdefault(normalize_category(row['category']), [row['category'], 0.0])
+            slot[1] += float(row['total'])
+        if include_capital_events:
+            subtype_names = {value: str(label) for value, label in CapitalEvent.SUBTYPE_CHOICES}
+            for row in (CapitalEvent.objects.filter(user=user, is_deleted=False, **period_filter)
+                        .values('category', 'subtype').annotate(total=Sum('base_amount'))):
+                name = capital_report_name(row['category'], row['subtype'], subtype_names)
+                slot = category_totals.setdefault(normalize_category(name), [name, 0.0])
+                slot[1] += float(row['total'])
+        ranked = sorted(category_totals.values(), key=lambda item: item[1], reverse=True)
+
+        cat_labels = [_(name) for name, _total in ranked]
+        cat_data = [total for _name, total in ranked]
+        context['include_capital_events'] = include_capital_events
         
         context['cat_labels'] = cat_labels
         context['cat_data'] = cat_data

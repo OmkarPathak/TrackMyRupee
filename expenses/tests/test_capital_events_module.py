@@ -770,5 +770,5 @@ class TestFlagsSteerTheDashboard(CapBase):
 class TestCapitalEventDocs(CapBase):
     def test_form_offers_every_documented_field(self):
         self.assertEqual(list(CapitalEventForm(user=self.user).fields),
-                         ['date', 'amount', 'currency', 'account', 'subtype', 'linked_loan', 'note',
+                         ['date', 'amount', 'currency', 'account', 'subtype', 'category', 'linked_loan', 'note',
                           'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth'])

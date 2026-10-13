@@ -79,7 +79,7 @@ The tiles show:
 The charts all use the same period and the same definitions:
 
 - **Monthly income and expenses** with the month's savings rate as a line. The bars and the line reconcile: a month's rate is (income − the spending bar) ÷ income. The **Include capital events** switch temporarily adds the capital events you excluded from averages to the bars and the rate.
-- **Category distribution** (expense entries only) and **spending by day of week**.
+- **Category distribution** and **spending by day of week**. The category chart shows expenses only, unless the **Include capital events** switch is on: then every capital event of the year is added under its own category (or its event type, if you gave it none), so a year-end audit by category includes the one-off items.
 - **Where your money went** (flow diagram): income splits into savings, investments, loan interest, capital events and living expenses, with your five biggest categories listed under living expenses and the rest grouped as Other. A year in which you spent more than you earned shows the shortfall as "Deficit".
 - **This month so far**: a running total against your category limits spread evenly over the month, with a projection at your current daily pace (current year only), and a split of this month's spending into recurring and one-time entries.
 

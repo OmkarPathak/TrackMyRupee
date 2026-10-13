@@ -18,8 +18,9 @@ class AnalyticsForecastCleanupTest(TestCase):
     def test_forecast_and_dead_analytics_context_keys_removed(self):
         """
         Verify that deprecated forecast keys (forecast_income, forecast_expenses, forecast_labels)
-        and dead analytics context keys (analytics_capital_annotations, include_capital_events, total_balance_ytd)
-        have been removed from the AnalyticsView context.
+        and dead analytics context keys (analytics_capital_annotations, total_balance_ytd)
+        have been removed from the AnalyticsView context. include_capital_events is live again: it is the
+        state of the "Include capital events" switch in the page header (off by default).
         """
         response = self.client.get(reverse('analytics'))
         self.assertEqual(response.status_code, 200)
@@ -31,5 +32,5 @@ class AnalyticsForecastCleanupTest(TestCase):
 
         # Dead analytics context keys removed
         self.assertNotIn('analytics_capital_annotations', response.context)
-        self.assertNotIn('include_capital_events', response.context)
+        self.assertIs(response.context['include_capital_events'], False)
         self.assertNotIn('total_balance_ytd', response.context)

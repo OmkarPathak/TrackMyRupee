@@ -1655,7 +1655,7 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
     class Meta:
         model = CapitalEvent
         fields = [
-            'date', 'amount', 'currency', 'account', 'subtype',
+            'date', 'amount', 'currency', 'account', 'subtype', 'category',
             'linked_loan', 'note',
             'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth',
         ]
@@ -1665,6 +1665,7 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select'}),
             'subtype': forms.Select(attrs={'class': 'form-select', 'id': 'id_subtype'}),
+            'category': forms.Select(attrs={'class': 'form-select', 'id': 'id_category'}),
             'linked_loan': forms.Select(attrs={'class': 'form-select', 'id': 'id_linked_loan'}),
             'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'exclude_from_averages': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -1676,6 +1677,22 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['date'].initial = date.today
+        # Optional category: one of the user's own categories (the ones used in budgets and reports)
+        names = []
+        if user:
+            names = list(Category.objects.filter(user=user).order_by('name').values_list('name', flat=True))
+        current = self.instance.category if self.instance and self.instance.pk else ''
+        if current and current not in names:
+            names.append(current)   # keep a category that has since been renamed or deleted editable
+        self.fields['category'] = forms.ChoiceField(
+            required=False,
+            label=_('Category'),
+            choices=[('', '')] + [(n, n) for n in names],
+            # Shown as muted placeholder text (and cleared with the x), never as a row in the list
+            widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_category',
+                                       'data-placeholder': str(_('Select a category'))}),
+            help_text=_('Optional. Without one, it is reported under its event type.'),
+        )
         if user:
             self.fields['currency'].initial = user.profile.currency
             self.fields['account'].queryset = Account.objects.filter(user=user, is_active=True).order_by('name')

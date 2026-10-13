@@ -75,6 +75,7 @@
                                 <span class="badge-soft badge-soft-primary align-items-center gap-1">
                                     <i class="bi bi-flag me-1"></i>{{ event.get_subtype_display }}
                                 </span>
+                                {% if event.category %}<div class="small text-muted mt-1 tmr-truncate" title="{{ event.category }}"><i class="bi bi-tag me-1"></i>{{ event.category }}</div>{% endif %}
                             </td>
                             <td class="fw-bold tmr-amount">
                                 {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
@@ -180,7 +181,7 @@
                                         {{ event.note|default:event.get_subtype_display }}
                                     </div>
                                     <div class="text-muted mt-1" style="font-size: 0.65rem;">
-                                        <span class="text-truncate">{{ event.get_subtype_display }}{% if event.account.name %} • {{ event.account.name|truncatechars:18 }}{% endif %}</span>
+                                        <span class="text-truncate">{{ event.get_subtype_display }}{% if event.category %} • {{ event.category|truncatechars:18 }}{% endif %}{% if event.account.name %} • {{ event.account.name|truncatechars:18 }}{% endif %}</span>
                                     </div>
                                     {% if event.linked_loan %}
                                     <div class="text-primary mt-1" style="font-size: 0.65rem;">

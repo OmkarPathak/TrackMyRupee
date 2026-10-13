@@ -255,7 +255,7 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
                     amount=event.amount,
                     currency=event.currency,
                     description=event.note or event.get_subtype_display(),
-                    category=event.get_subtype_display(),
+                    category=event.category or event.get_subtype_display(),
                     account=event.account,
                 )
                 expense.save()

@@ -12,14 +12,19 @@
             <h1 class="h3 fw-bold mb-1">{% trans "Analytics & Trends" %}</h1>
             <p class="text-muted mb-0">{% trans "Visualizing your financial journey over the year." %}</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <a href="{% url 'year_in_review' year=selected_year %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm d-flex align-items-center gap-2 transition-all">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="{% url 'year_in_review' year=selected_year %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm d-flex align-items-center gap-2 transition-all text-nowrap flex-shrink-0">
                 <i class="bi bi-stars"></i> {% trans "View" %} {{ selected_year }} {% trans "Wrapped" %}
             </a>
-            <form method="get" class="d-inline-block">
-                <div class="input-group input-group-sm shadow-sm" style="width: 130px;">
-                    <span class="input-group-text bg-body border-end-0 text-primary"><i class="bi bi-calendar3"></i></span>
-                    <select name="year" class="form-select border-start-0 ps-0 fw-bold" onchange="this.form.submit()" style="cursor: pointer;">
+            <form method="get" class="d-inline-flex align-items-center gap-2 flex-wrap">
+                <label class="tmr-toggle-chip{% if include_capital_events %} is-on{% endif %}" for="includeCapitalEvents" title="{% trans 'Add one-off capital events (a laptop, a down payment) to the monthly bars and the category chart' %}">
+                    <input type="checkbox" role="switch" id="includeCapitalEvents" name="include_capital_events" value="1" class="tmr-toggle-input" {% if include_capital_events %}checked{% endif %} onchange="this.form.submit()">
+                    <span class="tmr-toggle-track" aria-hidden="true"><span class="tmr-toggle-thumb"></span></span>
+                    <span class="tmr-toggle-label">{% trans "Include capital events" %}</span>
+                </label>
+                <div class="tmr-year-pill">
+                    <i class="bi bi-calendar3" aria-hidden="true"></i>
+                    <select id="analyticsYear" name="year" class="form-select form-select-sm" aria-label="{% trans 'Year' %}" onchange="this.form.submit()">
                         {% for yr in available_years %}
                             <option value="{{ yr }}" {% if yr == selected_year %}selected{% endif %}>{{ yr }}</option>
                         {% endfor %}
@@ -343,7 +348,7 @@
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-transparent border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <h3 class="h5 fw-bold mb-0">{% trans "Category Distribution" %} ({{ selected_year }})</h3>
+                    <h3 class="h5 fw-bold mb-0">{% trans "Category Distribution" %} ({{ selected_year }}){% if include_capital_events %} <span class="badge-soft badge-soft-primary fw-semibold ms-1" style="font-size: 0.65rem;">{% trans "incl. capital events" %}</span>{% endif %}</h3>
                     <div class="chart-toggle-pill">
                         <button type="button" class="btn-toggle active" id="btnDonutView" onclick="switchCategoryView('donut')">
                             {% trans "Donut" %}
