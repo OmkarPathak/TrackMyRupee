@@ -100,3 +100,19 @@ class AnalyticsMarkupTests(TestCase):
         self.assertIn('btn-decline-cookies', html)
         self.assertIn('tmrOpenCookiePreferences', html)
         self.assertIn('id="cookie-preferences"', html)
+
+
+class SecurityTxtTests(TestCase):
+    def test_security_txt_is_served(self):
+        response = self.client.get('/.well-known/security.txt')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response['Content-Type'].startswith('text/plain'))
+        body = response.content.decode()
+        for field in ('Contact: mailto:support@trackmyrupee.com', 'Expires: 2027-10-13', 'Preferred-Languages: en',
+                      'Canonical: https://trackmyrupee.com/.well-known/security.txt'):
+            self.assertIn(field, body)
+
+    def test_security_page_has_reporting_section(self):
+        cache.clear()
+        html = self.client.get(reverse('security')).content.decode()
+        self.assertIn('Report a security issue', html)
