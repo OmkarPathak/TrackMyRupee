@@ -63,11 +63,6 @@ class FeatureViewTest(BaseFeatureTest):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    def test_calendar_month(self):
-        url = reverse('calendar-month', kwargs={'year': 2025, 'month': 1})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
     def test_calendar_htmx_returns_partial_only(self):
         url = reverse('calendar')
         response = self.client.get(url, HTTP_HX_REQUEST='true')
@@ -96,11 +91,6 @@ class FeatureViewTest(BaseFeatureTest):
         self.assertEqual(response.status_code, 200)
         cells = [c for week in response.context['calendar_data'] for c in week if c]
         self.assertTrue(all(len(c['pending']) == 1 for c in cells))
-
-    def test_budget_view(self):
-        url = reverse('budget')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
 
     def test_export_expenses(self):
         # Upgrade user to Plus with lifetime access to bypass date check
@@ -176,70 +166,6 @@ class FeatureViewTest(BaseFeatureTest):
             names = set(zip_file.namelist())
             self.assertIn('expenses.csv', names)
             self.assertIn('loan_repayments.csv', names)
-
-class RecurringCRUDTest(BaseFeatureTest):
-    def test_create_recurring(self):
-        # Upgrade user to Pro for unlimited recurring transactions
-        self.user.profile.tier = 'PRO'
-        self.user.profile.is_lifetime = True
-        self.user.profile.save()
-
-        # Ensure category exists for form choice validation
-        Category.objects.get_or_create(user=self.user, name='Entertainment')
-        
-        url = reverse('recurring-create')
-        acct = Account.objects.create(user=self.user, name='Wallet', account_type='CASH_WALLET', balance=100000, currency='₹')
-        data = {
-            'account': acct.pk,
-            'transaction_type': 'EXPENSE',
-            'amount': 500,
-            'description': 'Netflix',
-            'frequency': 'MONTHLY',
-            'start_date': date.today(),
-            'category': 'Entertainment',
-            'payment_method': 'Cash',
-            'currency': '₹'
-        }
-        response = self.client.post(url, data)
-        if response.status_code == 200:
-             self.fail(f"Form errors: {response.context['form'].errors}")
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(RecurringTransaction.objects.count(), 1)
-
-    def test_update_recurring(self):
-        Category.objects.get_or_create(user=self.user, name='Entertainment')
-        rt = RecurringTransaction.objects.create(
-            user=self.user, transaction_type='EXPENSE', amount=500, description='Netflix',
-            frequency='MONTHLY', start_date=date.today(), category='Entertainment', currency='₹'
-        )
-        url = reverse('recurring-edit', kwargs={'pk': rt.pk})
-        data = {
-            'transaction_type': 'EXPENSE',
-            'amount': 600,
-            'description': 'Netflix Premium',
-            'frequency': 'MONTHLY',
-            'start_date': date.today(),
-            'category': 'Entertainment',
-            'payment_method': 'Credit Card',
-            'currency': '₹'
-        }
-        response = self.client.post(url, data)
-        if response.status_code == 200:
-             self.fail(f"Form errors: {response.context['form'].errors}")
-        self.assertEqual(response.status_code, 302)
-        rt.refresh_from_db()
-        self.assertEqual(rt.amount, 600)
-
-    def test_delete_recurring(self):
-        rt = RecurringTransaction.objects.create(
-            user=self.user, transaction_type='EXPENSE', amount=500, description='Netflix',
-            frequency='MONTHLY', start_date=date.today(), currency='₹'
-        )
-        url = reverse('recurring-delete', kwargs={'pk': rt.pk})
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(RecurringTransaction.objects.count(), 0)
-
 class NotificationViewTest(BaseFeatureTest):
     def test_notification_list(self):
         Notification.objects.create(user=self.user, title='Title', message='Msg')

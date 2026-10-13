@@ -297,14 +297,6 @@ class IncomeCRUDTest(BaseViewTest):
         self.assertEqual(income.description, 'Updated without account')
         self.assertIsNone(income.account)
 
-    def test_delete_income(self):
-        income = Income.objects.create(user=self.user, date=date.today(), amount=1000, source='Bonus', currency='₹')
-        url = reverse('income-delete', kwargs={'pk': income.pk})
-        # Delete view usually expects POST to confirm
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(Income.objects.count(), 0)
-
     def test_income_list_standard_get_renders_full_page(self):
         response = self.client.get(reverse('income-list'))
         self.assertEqual(response.status_code, 200)

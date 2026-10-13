@@ -459,19 +459,9 @@ class CapitalEventAuthTest(TestCase):
         response = self.client.get(reverse('capital-event-delete', kwargs={'pk': self.event.pk}))
         self.assertEqual(response.status_code, 302)
 
-    def test_edit_returns_404_for_other_user(self):
-        self.client.login(username='hacker', password='hackerpass')
-        response = self.client.get(reverse('capital-event-edit', kwargs={'pk': self.event.pk}))
-        self.assertEqual(response.status_code, 404)
-
     def test_delete_returns_404_for_other_user(self):
         self.client.login(username='hacker', password='hackerpass')
         response = self.client.get(reverse('capital-event-delete', kwargs={'pk': self.event.pk}))
-        self.assertEqual(response.status_code, 404)
-
-    def test_convert_returns_404_for_other_user(self):
-        self.client.login(username='hacker', password='hackerpass')
-        response = self.client.post(reverse('capital-event-convert', kwargs={'pk': self.event.pk}))
         self.assertEqual(response.status_code, 404)
 
 

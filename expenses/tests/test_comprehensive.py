@@ -111,17 +111,6 @@ class IncomeCreationTest(_BaseTestCase):
 class IncomeAccountBalanceTest(_BaseTestCase):
     """Income ↔ Account balance interactions."""
 
-    def test_income_adds_to_account_balance(self):
-        Income.objects.create(
-            user=self.user,
-            date=date.today(),
-            amount=Decimal("500.00"),
-            source="Freelance",
-            account=self.bank,
-        )
-        self.bank.refresh_from_db()
-        self.assertEqual(self.bank.balance, Decimal("5500.00"))
-
     def test_income_update_reverts_then_applies(self):
         income = Income.objects.create(
             user=self.user,

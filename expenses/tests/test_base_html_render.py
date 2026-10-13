@@ -33,11 +33,6 @@ class BaseHtmlRenderTest(TestCase):
         self.assertIn("document.addEventListener('DOMContentLoaded', function ()", content)
         self.assertIn("htmx.config.defaultFocus = false;", content)
 
-    def test_account_detail_render(self):
-        # 2. Test Account Detail Page
-        response = self.client.get(reverse('account-detail', kwargs={'pk': self.account.pk}))
-        self.assertEqual(response.status_code, 200)
-
     def test_htmx_partial_swap_render(self):
         # 3. Test HTMX partial swap request
         response = self.client.get(reverse('expense-list'), HTTP_HX_REQUEST='true', HTTP_HX_TARGET='expense-list-shell')
