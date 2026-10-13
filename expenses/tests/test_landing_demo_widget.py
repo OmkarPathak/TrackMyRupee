@@ -7,7 +7,7 @@ from django.urls import reverse
 from expenses.models import Account, PhysicalAsset, Loan, AssetValuation
 
 
-class LandingDemoWidgetTest(TestCase):
+class LandingWithoutDemoUserTest(TestCase):
     def setUp(self):
         cache.clear()
         User.objects.filter(username='demo').delete()
@@ -23,9 +23,24 @@ class LandingDemoWidgetTest(TestCase):
         self.assertEqual(response.context['demo_networth_rows'], [])
         self.assertContains(response, 'id="networth-demo-data"')
 
+
+class LandingDemoWidgetTest(TestCase):
+    """Building the demo account is by far the slowest step, so it is done once for the class (each test
+    still starts from a clean database state: setUpTestData is rolled back per test)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.filter(username='demo').delete()
+        call_command('setup_demo_user')
+
+    def setUp(self):
+        cache.clear()
+
+    def tearDown(self):
+        cache.clear()
+
     def test_landing_page_includes_demo_breakdown(self):
         """When setup_demo_user runs, LandingPageView includes populated breakdown in context."""
-        call_command('setup_demo_user')
         response = self.client.get(reverse('landing'))
         self.assertEqual(response.status_code, 200)
         
@@ -52,7 +67,6 @@ class LandingDemoWidgetTest(TestCase):
 
     def test_demo_breakdown_caching(self):
         """The demo net worth breakdown is cached in Django cache after first view request."""
-        call_command('setup_demo_user')
         cache_key = 'landing_demo_networth_breakdown'
         self.assertIsNone(cache.get(cache_key))
 
@@ -68,7 +82,6 @@ class LandingDemoWidgetTest(TestCase):
 
     def test_landing_page_query_count_with_cache(self):
         """Landing page query count remains low and constant when demo breakdown is cached."""
-        call_command('setup_demo_user')
         # Warm cache
         self.client.get(reverse('landing'))
 
