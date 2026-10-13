@@ -68,6 +68,15 @@
         </div>
     </div>
 
+    <!-- Age confirmation -->
+    <div class="form-check mb-4 text-start">
+        <input class="form-check-input" type="checkbox" name="confirm_age" id="id_confirm_age" required>
+        <label class="form-check-label small text-muted" for="id_confirm_age">
+            {% url 'terms-of-service' as terms_url %}{% url 'privacy-policy' as privacy_url %}
+            {% blocktrans %}I confirm that I am 18 years of age or older, and I have read the <a href="{{ terms_url }}" target="_blank" rel="noopener">Terms of Service</a> and <a href="{{ privacy_url }}" target="_blank" rel="noopener">Privacy Policy</a>.{% endblocktrans %}
+        </label>
+    </div>
+
     <button class="btn btn-primary btn-xl w-100 mb-3 shadow-sm" type="submit" id="btn_submit_consent">
         {% trans "I understand and consent" %}
     </button>
@@ -89,10 +98,11 @@
         const linkEnableAll = document.getElementById("link_enable_all");
 
         function updateSubmitButton() {
-            btnSubmit.disabled = !(chkTransactions.checked && chkDevice.checked);
+            const chkAge = document.getElementById("id_confirm_age");
+            btnSubmit.disabled = !(chkTransactions.checked && chkDevice.checked && chkAge && chkAge.checked);
         }
 
-        [chkTransactions, chkDevice].forEach(el => {
+        [chkTransactions, chkDevice, document.getElementById("id_confirm_age")].forEach(el => {
             if (el) el.addEventListener('change', updateSubmitButton);
         });
 

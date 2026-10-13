@@ -39,6 +39,7 @@ class DPDPAComplianceTestCase(TestCase):
             'consent_email': True,
             'consent_transactions': True,
             'consent_device': True,
+            'confirm_age': True,
         }
         form = CustomSignupForm(data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
@@ -89,6 +90,7 @@ class DPDPAComplianceTestCase(TestCase):
             'consent_email': 'on',
             'consent_transactions': 'on',
             'consent_device': 'on',
+            'confirm_age': 'on',
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.endswith(reverse('home')))
@@ -97,6 +99,35 @@ class DPDPAComplianceTestCase(TestCase):
         self.assertTrue(self.profile.consent_granted)
         self.assertEqual(self.profile.consent_version, 'v1.0')
         self.assertIsNotNone(self.profile.consent_timestamp)
+
+    def test_signup_form_requires_age_confirmation(self):
+        """Signup is rejected server-side when the 18+ confirmation is missing or false."""
+        base = {'consent_email': True, 'consent_transactions': True, 'consent_device': True}
+        self.assertTrue(CustomSignupForm().fields['confirm_age'].required)
+        missing = CustomSignupForm(data=base)
+        self.assertFalse(missing.is_valid())
+        self.assertIn('confirm_age', missing.errors)
+        unchecked = CustomSignupForm(data={**base, 'confirm_age': False})
+        self.assertFalse(unchecked.is_valid())
+        self.assertIn('confirm_age', unchecked.errors)
+
+    def test_signup_page_renders_age_checkbox(self):
+        response = self.client.get(reverse('account_signup'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="confirm_age"')
+        self.assertContains(response, '18 years of age or older')
+
+    def test_standalone_consent_view_rejects_missing_age_confirmation(self):
+        """The Google/social consent page also refuses consent without the 18+ confirmation."""
+        self.client.login(username='consentuser', password='password123')
+        response = self.client.post(reverse('dpdp_consent'), {
+            'consent_email': 'on',
+            'consent_transactions': 'on',
+            'consent_device': 'on',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.profile.refresh_from_db()
+        self.assertFalse(self.profile.consent_granted)
 
     def test_standalone_consent_view_post_failure(self):
         """Test that submitting `/consent/` without all toggles fails and redirects back with error."""
