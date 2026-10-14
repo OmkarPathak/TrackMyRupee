@@ -55,71 +55,58 @@ def get_exchange_rate(from_curr, to_curr):
     if cached_rate:
         return Decimal(str(cached_rate))
 
-    # DB Fallback before network HTTP call
+    # A stored rate is only used without asking the live service when it is from today. Using a row of
+    # any age here froze every pair at the first rate ever fetched, because only a live fetch writes rows.
+    latest_row = None
     try:
-        db_rate_obj = FXRate.objects.filter(
+        latest_row = FXRate.objects.filter(
             from_currency=from_code, to_currency=to_code
-        ).order_by('-as_of_date').first()
-        if db_rate_obj and db_rate_obj.rate:
-            cache.set(cache_key, float(db_rate_obj.rate), 60 * 60 * 12)
-            return Decimal(str(db_rate_obj.rate))
+        ).order_by('-as_of_date', '-created_at').first()
+        if latest_row and latest_row.rate and latest_row.as_of_date >= timezone.localdate():
+            cache.set(cache_key, float(latest_row.rate), 60 * 60 * 12)
+            return Decimal(str(latest_row.rate))
     except Exception as db_exc:
         logger.warning("FXRate DB lookup failed: %s", db_exc)
 
-    try:
-        # Primary: Frankfurter API
-        url = f"https://api.frankfurter.app/latest?from={from_code}&to={to_code}"
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-        data = response.json()
-        rate = data['rates'][to_code]
-        
-        # Cache for 24 hours
-        cache.set(cache_key, rate, 60*60*24)
-        
+    def record(rate, source):
+        cache.set(cache_key, rate, 60 * 60 * 24)
         try:
             FXRate.objects.update_or_create(
                 from_currency=from_code,
                 to_currency=to_code,
-                as_of_date=timezone.now().date(),
-                defaults={'rate': Decimal(str(rate)), 'source': 'Frankfurter'}
+                as_of_date=timezone.localdate(),
+                defaults={'rate': Decimal(str(rate)), 'source': source}
             )
         except Exception as db_err:
             logger.warning("Failed to record FXRate: %s", db_err)
-            
         return Decimal(str(rate))
+
+    try:
+        # Primary: Frankfurter API
+        response = requests.get(f"https://api.frankfurter.app/latest?from={from_code}&to={to_code}", timeout=5)
+        response.raise_for_status()
+        return record(response.json()['rates'][to_code], 'Frankfurter')
     except Exception as e:
         logger.warning("Frankfurter API error: %s. Trying fallback...", e)
-        
-        try:
-            # Fallback: ExchangeRate-API (v4 - free tier, no key needed for simple pairs)
-            # Standard URL: https://api.exchangerate-api.com/v4/latest/{base}
-            fallback_url = f"https://api.exchangerate-api.com/v4/latest/{from_code}"
-            fb_response = requests.get(fallback_url, timeout=5)
-            fb_response.raise_for_status()
-            fb_data = fb_response.json()
-            rate = fb_data['rates'][to_code]
-            
-            # Cache for 24 hours
-            cache.set(cache_key, rate, 60*60*24)
-            
-            try:
-                FXRate.objects.update_or_create(
-                    from_currency=from_code,
-                    to_currency=to_code,
-                    as_of_date=timezone.now().date(),
-                    defaults={'rate': Decimal(str(rate)), 'source': 'ExchangeRate-API'}
-                )
-            except Exception as db_err:
-                logger.warning("Failed to record FXRate: %s", db_err)
-                
-            return Decimal(str(rate))
-        except Exception as fb_e:
-            logger.warning("Fallback API error: %s", fb_e)
-            logger.warning("All exchange rate APIs failed for %s->%s.", from_code, to_code)
-            raise RuntimeError(
-                f"Exchange rate unavailable for {from_code}->{to_code}."
-            ) from fb_e
+
+    try:
+        # Fallback: ExchangeRate-API (v4 - free tier, no key needed for simple pairs)
+        fb_response = requests.get(f"https://api.exchangerate-api.com/v4/latest/{from_code}", timeout=5)
+        fb_response.raise_for_status()
+        return record(fb_response.json()['rates'][to_code], 'ExchangeRate-API')
+    except Exception as fb_e:
+        logger.warning("Fallback API error: %s", fb_e)
+        logger.warning("All exchange rate APIs failed for %s->%s.", from_code, to_code)
+        if latest_row is not None and latest_row.rate:
+            # Both services are down: an older stored rate beats failing the page. Remember it briefly so
+            # the next requests do not each wait on two timeouts.
+            logger.error("Using the stored %s->%s rate from %s because no live rate is available.",
+                         from_code, to_code, latest_row.as_of_date)
+            cache.set(cache_key, float(latest_row.rate), 60 * 15)
+            return Decimal(str(latest_row.rate))
+        raise RuntimeError(
+            f"Exchange rate unavailable for {from_code}->{to_code}."
+        ) from fb_e
 
 
 def generate_year_in_review_data(user, year):

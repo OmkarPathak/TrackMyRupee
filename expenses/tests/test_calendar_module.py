@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from expenses import calendar_data
 from expenses.models import (
@@ -139,7 +140,7 @@ class TestOccurrences(CalBase):
 
 class TestPendingByDay(CalBase):
     def test_kinds_and_base_currency_amounts(self):
-        FXRate.objects.update_or_create(from_currency='USD', to_currency='INR', as_of_date=TODAY,
+        FXRate.objects.update_or_create(from_currency='USD', to_currency='INR', as_of_date=timezone.localdate(),
                                         defaults={'rate': D('80'), 'source': 't'})
         cache.clear()
         self.schedule(description='Rent', amount=D('1000'), start_date=d(5))
@@ -211,7 +212,7 @@ class TestMonthGrid(CalBase):
         self.assertEqual(cell['total_count'], 5)
 
     def test_amounts_are_in_the_users_currency(self):
-        FXRate.objects.update_or_create(from_currency='USD', to_currency='INR', as_of_date=TODAY,
+        FXRate.objects.update_or_create(from_currency='USD', to_currency='INR', as_of_date=timezone.localdate(),
                                         defaults={'rate': D('80'), 'source': 't'})
         cache.clear()
         usd = Account.objects.create(user=self.user, name='USD', account_type='SAVINGS_ACCOUNT', balance=D('100'),

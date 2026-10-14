@@ -65,6 +65,12 @@ Account names must be unique among your active accounts (capital letters do not 
 !!! info "Note on Recurring Deposits (RD)"
     RD valuation is not treated like a single lump-sum FD from day one. Each installment accrues from its own deposit date, and only installments that were actually posted are counted. If a month is skipped, that installment is not assumed automatically.
 
+!!! info "How a deposit's interest is counted"
+    Time is counted the way a bank does it: whole years from the start date, then the extra days over 365. A one-year deposit is therefore exactly one year, even across 29 February, so a deposit that has reached its maturity date shows the maturity amount your bank quotes (for example, ₹1,00,000 at 7% compounded quarterly for one year is **₹1,07,185.90**). Accrual stops at the maturity date, or at the closing date if you closed it early. An RD installment paid from an account in another currency is counted in the RD's own currency.
+
+!!! info "Exchange rates"
+    Amounts in another currency are converted at a rate fetched from a live exchange-rate service, once a day per currency pair. If the service cannot be reached, the most recent rate we already have is used instead, so your pages keep working. The rate used for a transaction is saved with it. Net worth for a past date uses the rate on or before that date.
+
 !!! info "Note on Credit Card, BNPL, and Overdraft Billing Dates"
     For revolving credit accounts (Credit Card, BNPL, Overdraft), you can set an optional **Billing Day of Month** (1–31). TrackMyRupee computes the next upcoming billing date, displays a badge on your account list, and sends a **3-day advance reminder**.
     - **In-App Notification Panel**: Delivered to all active users.

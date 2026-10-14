@@ -207,6 +207,10 @@ class FXService:
         )
         if as_of is not None:
             qs = qs.filter(as_of_date__lte=as_of)
+        else:
+            # Current valuation: only today's rates count. An older one is refreshed below (and still
+            # used as the fallback if the live services are down).
+            qs = qs.filter(as_of_date__gte=timezone.localdate())
 
         # For each from_currency, we want the most recent row.
         # Use DISTINCT ON if available (PostgreSQL), or Python-side dedup.

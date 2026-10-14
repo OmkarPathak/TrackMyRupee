@@ -45,6 +45,26 @@ def get_current_balance(account: Account) -> Decimal:
 # DEPOSIT Valuation Strategy (FD & RD — SPEC §2.1)
 # ---------------------------------------------------------------------------
 
+def _add_years(d: date, years: int) -> date:
+    try:
+        return d.replace(year=d.year + years)
+    except ValueError:  # 29 February in a year that has none
+        return d.replace(year=d.year + years, day=28)
+
+
+def _years_between(start: date, end: date) -> Decimal:
+    """Time between two dates in years, the way a bank counts it for a deposit: whole years by calendar
+    anniversary, then the odd days over 365. A one-year deposit is exactly 1.0 even across 29 February,
+    so a deposit that reaches maturity shows the maturity amount the bank quotes."""
+    if end <= start:
+        return Decimal('0')
+    years = end.year - start.year
+    if _add_years(start, years) > end:
+        years -= 1
+    leftover_days = (end - _add_years(start, years)).days
+    return Decimal(years) + Decimal(leftover_days) / Decimal('365')
+
+
 def _calculate_fd_current(
     principal: Decimal,
     rate_pct: Decimal,
@@ -67,8 +87,7 @@ def _calculate_fd_current(
     if start_date > end_date:
         return principal
 
-    days_elapsed = (end_date - start_date).days
-    years = Decimal(str(days_elapsed)) / Decimal('365.25')
+    years = _years_between(start_date, end_date)
     rate = rate_pct / Decimal('100')
     comp_freq = compounding or 'SIMPLE'
 
@@ -84,6 +103,15 @@ def _calculate_fd_current(
         value = principal * ((Decimal('1') + rate) ** years)
 
     return value.quantize(Decimal('0.01'))
+
+
+def _in_account_currency(transfer, account: Account) -> Decimal:
+    """A transfer's amount is in the sending account's currency; the deposit counts it in its own."""
+    from .utils import get_exchange_rate
+    sent_in = transfer.from_account.currency
+    if not sent_in or sent_in == account.currency:
+        return transfer.amount
+    return (transfer.amount * get_exchange_rate(sent_in, account.currency)).quantize(Decimal('0.01'))
 
 
 def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, Decimal]]:
@@ -117,7 +145,7 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
         to_account=account,
         date__gte=start_date,
         date__lte=end_date,
-    ).order_by('date'))
+    ).select_related('from_account').order_by('date'))
 
     transfers_by_month: dict[tuple[int, int], list[Transfer]] = {}
     first_tx_month: tuple[int, int] | None = None
@@ -141,7 +169,7 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
         key = (current_year, current_month)
         if key in transfers_by_month:
             for t in transfers_by_month[key]:
-                installments.append((t.date, t.amount))
+                installments.append((t.date, _in_account_currency(t, account)))
         else:
             is_before_tracking = (first_tx_month is None) or (key < first_tx_month)
             if is_before_tracking and inst_amount > Decimal('0.00'):
@@ -225,10 +253,7 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
 
         total_val = Decimal('0.00')
         for d_i, amt_i in installments:
-            days_i = (end_date - d_i).days
-            if days_i < 0:
-                days_i = 0
-            years_i = Decimal(str(days_i)) / Decimal('365.25')
+            years_i = _years_between(d_i, end_date)
 
             if comp_freq == 'SIMPLE':
                 val_i = amt_i * (Decimal('1') + rate * years_i)

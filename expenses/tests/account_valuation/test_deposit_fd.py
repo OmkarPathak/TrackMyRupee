@@ -17,8 +17,8 @@ class TestDepositFD(TestCase):
         """
         Worked example — FD: ₹5,00,000 principal, 7.5% annual, quarterly compounding,
         500 days elapsed.
-        years = 500 / 365.25 = 1.36892539
-        value = 500000 * (1 + 0.075/4)^(4 * 1.36892539) = 552140.70
+        years = 1 whole year + 135 / 365 = 1.36986301
+        value = 500000 * (1 + 0.075/4)^(4 * 1.36986301) = 553574.59
         """
         start = date(2025, 1, 1)
         account = Account.objects.create(
@@ -40,8 +40,8 @@ class TestDepositFD(TestCase):
         display = get_display_value(account, today=target_today)
 
         self.assertEqual(baseline, Decimal('500000.00'))
-        self.assertEqual(current, Decimal('553536.03'))
-        self.assertEqual(display, Decimal('553536.03'))
+        self.assertEqual(current, Decimal('553574.59'))
+        self.assertEqual(display, Decimal('553574.59'))
 
         # Test toggle off (show_accrued_balance=False)
         account.show_accrued_balance = False
@@ -67,14 +67,14 @@ class TestDepositFD(TestCase):
             deposit_compounding='SIMPLE',
         )
 
-        # Accrual at maturity (365 days): 100000 * (1 + 0.10 * 365/365.25) = 109993.16
+        # Accrual at maturity: one whole year, so exactly the 10% the bank quotes: 110000.00
         val_at_maturity = get_current(account, today=maturity)
-        self.assertEqual(val_at_maturity, Decimal('109993.16'))
+        self.assertEqual(val_at_maturity, Decimal('110000.00'))
 
-        # 100 days after maturity -> must remain capped at 109993.16
+        # 100 days after maturity -> must remain capped at 110000.00
         after_maturity = maturity + timedelta(days=100)
         val_after_maturity = get_current(account, today=after_maturity)
-        self.assertEqual(val_after_maturity, Decimal('109993.16'))
+        self.assertEqual(val_after_maturity, Decimal('110000.00'))
 
     def test_fd_closed_date_cap(self):
         """
@@ -97,8 +97,8 @@ class TestDepositFD(TestCase):
 
         after_closed = start + timedelta(days=365)
         val = get_current(account, today=after_closed)
-        # Accrues for 180 days only: 100000 * (1 + 0.10 * (180/365.25)) = 104928.13
-        self.assertEqual(val, Decimal('104928.13'))
+        # Accrues for 180 days only: 100000 * (1 + 0.10 * (180/365)) = 104931.51
+        self.assertEqual(val, Decimal('104931.51'))
 
     def test_fd_start_date_today_or_future(self):
         """
@@ -168,5 +168,5 @@ class TestDepositFD(TestCase):
         )
 
         eval_date = start + timedelta(days=730) # 2 years (730 days)
-        # 100000 * (1 + 0.10)^(730/365.25) = 120984.21
-        self.assertEqual(get_current(account, today=eval_date), Decimal('120984.21'))
+        # Two whole years at 10% a year: 100000 * 1.1^2 = 121000.00
+        self.assertEqual(get_current(account, today=eval_date), Decimal('121000.00'))

@@ -302,3 +302,14 @@ def _connect_global_badge_invalidation():
 
 
 _connect_global_badge_invalidation()
+
+
+@receiver(post_save, sender=Income)
+@receiver(post_delete, sender=Income)
+@receiver(post_save, sender=Expense)
+@receiver(post_delete, sender=Expense)
+def clear_interest_summary_cache(sender, instance, **kwargs):
+    """The accounts page shows interest earned and charged; recording or removing a transaction must be
+    reflected at once, not after the summary's five-minute cache runs out."""
+    if getattr(instance, 'user_id', None):
+        cache.delete(f'interest_summary_{instance.user_id}_None_None')
