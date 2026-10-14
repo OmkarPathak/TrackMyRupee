@@ -1112,6 +1112,26 @@
   
   
     <li class="md-nav__item">
+      <a href="../23-plans-and-billing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Plans and Billing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../22-faq/" class="md-nav__link">
         
   
@@ -1304,7 +1324,7 @@
 </div>
 <div class="admonition info">
 <p class="admonition-title">Balances are stored in the account's currency</p>
-<p>An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the <strong>currency of an account is locked</strong> as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or capital event). Change it only while the account is unused.</p>
+<p>An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the <strong>currency of an account is locked</strong> as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or capital event). Change it only while the account is unused. If you later edit or delete such a transaction, the account gets back exactly the amount it took or gave at the time, even if the exchange rate has moved since.</p>
 </div>
 <h2 id="3-account-types-reference">3. Account Types Reference<a class="headerlink" href="#3-account-types-reference" title="Permanent link">&para;</a></h2>
 <table>
@@ -1364,6 +1384,14 @@
 <div class="admonition info">
 <p class="admonition-title">Note on Recurring Deposits (RD)</p>
 <p>RD valuation is not treated like a single lump-sum FD from day one. Each installment accrues from its own deposit date, and only installments that were actually posted are counted. If a month is skipped, that installment is not assumed automatically.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">How a deposit's interest is counted</p>
+<p>Time is counted the way a bank does it: whole years from the start date, then the extra days over 365. A one-year deposit is therefore exactly one year, even across 29 February, so a deposit that has reached its maturity date shows the maturity amount your bank quotes (for example, ₹1,00,000 at 7% compounded quarterly for one year is <strong>₹1,07,185.90</strong>). Accrual stops at the maturity date, or at the closing date if you closed it early. An RD installment paid from an account in another currency is counted in the RD's own currency.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Exchange rates</p>
+<p>Amounts in another currency are converted at a rate fetched from a live exchange-rate service, once a day per currency pair. If the service cannot be reached, the most recent rate we already have is used instead, so your pages keep working. The rate used for a transaction is saved with it. Net worth for a past date uses the rate on or before that date.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">Note on Credit Card, BNPL, and Overdraft Billing Dates</p>

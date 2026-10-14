@@ -225,6 +225,14 @@
         <xhtml:link rel="alternate" hreflang="mr" href="https://docs.trackmyrupee.com/mr/22-faq/"/>
     </url>
     <url>
+        <loc>https://docs.trackmyrupee.com/23-plans-and-billing/</loc>
+        <lastmod>2026-10-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.trackmyrupee.com/23-plans-and-billing/"/>
+        <xhtml:link rel="alternate" hreflang="hi" href="https://docs.trackmyrupee.com/hi/23-plans-and-billing/"/>
+        <xhtml:link rel="alternate" hreflang="mr" href="https://docs.trackmyrupee.com/mr/23-plans-and-billing/"/>
+    </url>
+    <url>
         <loc>https://docs.trackmyrupee.com/screenshots/MANIFEST/</loc>
         <lastmod>2026-10-14</lastmod>
         <changefreq>daily</changefreq>
@@ -457,6 +465,14 @@
         <xhtml:link rel="alternate" hreflang="mr" href="https://docs.trackmyrupee.com/mr/22-faq/"/>
     </url>
     <url>
+        <loc>https://docs.trackmyrupee.com/hi/23-plans-and-billing/</loc>
+        <lastmod>2026-10-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="hi" href="https://docs.trackmyrupee.com/hi/23-plans-and-billing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.trackmyrupee.com/23-plans-and-billing/"/>
+        <xhtml:link rel="alternate" hreflang="mr" href="https://docs.trackmyrupee.com/mr/23-plans-and-billing/"/>
+    </url>
+    <url>
         <loc>https://docs.trackmyrupee.com/hi/screenshots/MANIFEST/</loc>
         <lastmod>2026-10-14</lastmod>
         <changefreq>daily</changefreq>
@@ -687,6 +703,14 @@
         <xhtml:link rel="alternate" hreflang="mr" href="https://docs.trackmyrupee.com/mr/22-faq/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.trackmyrupee.com/22-faq/"/>
         <xhtml:link rel="alternate" hreflang="hi" href="https://docs.trackmyrupee.com/hi/22-faq/"/>
+    </url>
+    <url>
+        <loc>https://docs.trackmyrupee.com/mr/23-plans-and-billing/</loc>
+        <lastmod>2026-10-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="mr" href="https://docs.trackmyrupee.com/mr/23-plans-and-billing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.trackmyrupee.com/23-plans-and-billing/"/>
+        <xhtml:link rel="alternate" hreflang="hi" href="https://docs.trackmyrupee.com/hi/23-plans-and-billing/"/>
     </url>
     <url>
         <loc>https://docs.trackmyrupee.com/mr/screenshots/MANIFEST/</loc>

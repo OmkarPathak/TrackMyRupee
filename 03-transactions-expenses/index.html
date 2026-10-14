@@ -1223,6 +1223,26 @@
   
   
     <li class="md-nav__item">
+      <a href="../23-plans-and-billing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Plans and Billing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../22-faq/" class="md-nav__link">
         
   
@@ -1551,9 +1571,10 @@
 <p>It understands:</p>
 <ul>
 <li><strong>Amounts</strong> written as <code>450</code>, <code>1,250</code>, <code>1.5k</code>, <code>2 lakh</code> or <code>1 crore</code>, with or without ₹, Rs, or a currency word</li>
-<li><strong>Dates</strong> such as <em>today</em>, <em>yesterday</em>, <em>day before yesterday</em>, <em>3 oct</em>, <em>3<sup>rd</sup> october</em>, and <em>03/10</em>. Common Hindi and Marathi words for yesterday and today work too.</li>
+<li><strong>Dates</strong> such as <em>today</em>, <em>yesterday</em>, <em>day before yesterday</em>, <em>3 oct</em>, <em>3<sup>rd</sup> october</em>, <em>03/10</em>, and <em>2025-10-03</em> (year, month, day). A date typed with a month name needs the month, so <em>12 oct</em> works but a bare <em>12<sup>th</sup></em> does not. Common Hindi and Marathi words for yesterday and today work too.</li>
 <li><strong>Payment methods</strong> such as UPI, GPay, PhonePe, Paytm, credit card, debit card, cash, and net banking</li>
-<li><strong>Account names</strong>, when you mention the bank or card by name</li>
+<li><strong>Account names</strong>, when you mention the bank or card by name. If two accounts share a word (two HDFC accounts), add the word that tells them apart, such as <code>hdfc regalia</code>; otherwise the app asks you to check the account.</li>
+<li><strong>Categories</strong>, from your own category names (as whole words) and from common words such as <em>dinner</em>, <em>petrol</em>, <em>electricity</em>. Part of a word does not count: <em>teacher</em> is not <em>tea</em>. Long numbers with no ₹ sign, such as a phone number, are never taken as the amount.</li>
 <li><strong>Hindi and Marathi</strong>, including Devanagari numerals</li>
 </ul>
 <p>Anything it does not recognise as one of those becomes the <strong>description</strong>.</p>
@@ -1693,7 +1714,8 @@
 <h3 id="turn-an-expense-into-a-capital-event">Turn an expense into a Capital Event<a class="headerlink" href="#turn-an-expense-into-a-capital-event" title="Permanent link">&para;</a></h3>
 <p>If you logged something big as an ordinary expense, open its menu and choose <strong>Convert to Capital Event</strong> (you will be asked to confirm). The expense is removed and an equal Capital Event is created for the same date, account, and amount, so the money is charged once, and your monthly budget no longer includes it. See <a href="../09-capital-events/">Capital Events</a>.</p>
 <h3 id="export-to-csv">Export to CSV<a class="headerlink" href="#export-to-csv" title="Permanent link">&para;</a></h3>
-<p>On <strong>Plus</strong> and <strong>Pro</strong>, the export button downloads exactly what the list is showing: the same period, search, filters, and sort. The file has the date, description, amount, currency, exchange rate, amount in your currency, category, payment method, and account. On the Free plan the button takes you to the pricing page.</p>
+<p>On every plan, the export button downloads exactly what the list is showing: the same period, search, filters, and sort. The file has the date, description, amount, currency, exchange rate, amount in your currency, category, payment method, and account. It opens correctly in Excel with the ₹ sign and Hindi text, and any text that starts with <code>=</code>, <code>+</code>, <code>-</code> or <code>@</code> is saved with a leading quote so a spreadsheet shows it as text instead of running it as a formula.</p>
+<p>To take <strong>all</strong> your data, use <strong>Settings → Export Data</strong>: expenses, income, transfers, loan repayments, subscriptions, goals and goal contributions, accounts (with their current balance), capital events, loans, and categories with their budgets. One choice gives a CSV file; several are packed into a ZIP.</p>
 <div class="admonition example">
 <p class="admonition-title">Real-world use case</p>
 <p>After a Swiggy delivery arrives, Meera opens <strong>Add Expense</strong>, types <code>swiggy dinner 450 upi</code>, and presses Enter. The amount, UPI, and the Food category are filled in for her, because she has logged Swiggy before and the app remembered. She glances at the form, taps <strong>Add expense</strong>, and the whole thing takes about ten seconds.</p>
