@@ -4,8 +4,9 @@ import csv
 import io
 import json
 import re
-import traceback
-from datetime import date, datetime
+import logging
+from itertools import islice
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 import dns.flags
@@ -101,6 +102,41 @@ class CalendarDayView(LoginRequiredMixin, TemplateView):
         return context
 
 
+# Limits on one import. A file is read whole into memory, so it must be small; the row cap is far above what
+# a month or a year of personal statements holds.
+MAX_IMPORT_BYTES = 5 * 1024 * 1024
+MAX_IMPORT_ROWS = 5000
+MAX_XLSX_UNCOMPRESSED_BYTES = 30 * 1024 * 1024   # a spreadsheet is a zip: refuse one that expands enormously
+MAX_AMOUNT = Decimal('1e13')                      # what Expense.amount (15 digits, 2 decimals) can hold
+
+
+def _xlsx_expands_too_much(uploaded_file):
+    """True for a spreadsheet whose contents would unpack far beyond its upload size (a zip bomb)."""
+    import zipfile
+    uploaded_file.seek(0)
+    try:
+        with zipfile.ZipFile(uploaded_file) as archive:
+            return sum(info.file_size for info in archive.infolist()) > MAX_XLSX_UNCOMPRESSED_BYTES
+    except zipfile.BadZipFile:
+        return False        # not a real .xlsx: the fallbacks below deal with old .xls, HTML and CSV
+    finally:
+        uploaded_file.seek(0)
+
+
+def _signed_amount(raw):
+    """The number in a cell as a signed Decimal ("(100.00)" is negative), or None if there is none."""
+    text = str(raw).replace(',', '').strip()
+    negative = text.startswith('(') and text.endswith(')')
+    cleaned = re.sub(r'[^\d\.\-]', '', text)
+    if not cleaned:
+        return None
+    try:
+        value = Decimal(cleaned)
+    except Exception:
+        return None
+    return -abs(value) if negative else value
+
+
 @login_required
 def upload_view(request):
     """
@@ -114,6 +150,24 @@ def upload_view(request):
         uploaded_file = request.FILES['file']
         selected_currency = request.POST.get('currency', request.user.profile.currency)
         selected_account_id = request.POST.get('account')
+
+        def reject(message):
+            messages.error(request, message)
+            return render(request, 'upload.html', {
+                'results': None,
+                'currencies': CURRENCY_CHOICES,
+                'default_currency': request.user.profile.currency,
+                'accounts': accounts_qs,
+                'selected_account_id': selected_account_id,
+            })
+
+        file_name = (uploaded_file.name or '').lower()
+        if not file_name.endswith(('.xlsx', '.xls', '.csv')):
+            return reject(_("Please upload an Excel (.xlsx) or CSV (.csv) file."))
+        if uploaded_file.size > MAX_IMPORT_BYTES:
+            return reject(_("This file is too large to import (the limit is 5 MB). Split it into smaller files."))
+        if file_name.endswith(('.xlsx', '.xls')) and _xlsx_expands_too_much(uploaded_file):
+            return reject(_("This spreadsheet is too large to import. Split it into smaller files."))
 
         selected_account = None
         if not selected_account_id and accounts_qs.exists():
@@ -141,6 +195,11 @@ def upload_view(request):
                 'selected_account_id': None,
             })
         
+        # One import at a time per user: a double click would otherwise run twice and import every row twice.
+        upload_lock = f'expense_import_lock_{request.user.id}'
+        if not cache.add(upload_lock, 1, timeout=300):
+            return reject(_("An import is already running. Wait for it to finish, then upload again."))
+
         from . import predict_category_ai
 
         from finance_tracker.plans import get_limit as _plan_limit
@@ -156,6 +215,7 @@ def upload_view(request):
             'created_count': 0,
             'duplicate_count': 0,
             'limit_skipped': 0,
+            'credit_skipped': 0,
             'error_count': 0,
             'errors': [], # Detail log
             'total_amount': 0,
@@ -177,6 +237,9 @@ def upload_view(request):
                 for idx, h in enumerate(header_l):
                     if field == 'amount' and any(d_kw in h for d_kw in ['date', 'dt']):
                         # Avoid mapping columns like "Value Dt" or "Value Date" to "amount"
+                        continue
+                    if field == 'category' and 'type' in h and any(w in h for w in ('transaction', 'txn', 'trans')):
+                        # "Transaction Type" holds Dr/Cr/UPI, not a spending category
                         continue
                     if any(kw in h for kw in keywords):
                         mapping[field] = idx
@@ -202,7 +265,17 @@ def upload_view(request):
                     parsed = datetime.strptime(date_str, fmt).date()
                     # If year is not in format, strptime defaults to 1900
                     if parsed.year == 1900:
-                        return parsed.replace(year=datetime.now().year)
+                        # No year written: this year, unless that puts it well in the future ("15 Dec"
+                        # in a January statement means last December).
+                        this_year = timezone.localdate().year
+                        try:
+                            candidate = parsed.replace(year=this_year)
+                        except ValueError:      # 29 February
+                            candidate = parsed.replace(year=this_year, day=28)
+                        if candidate > timezone.localdate() + timedelta(days=31):
+                            candidate = candidate.replace(year=this_year - 1, day=min(candidate.day, 28)
+                                                          if candidate.month == 2 else candidate.day)
+                        return candidate
                     return parsed
                 except ValueError:
                     continue
@@ -255,13 +328,13 @@ def upload_view(request):
 
         try:
             data_rows = []
-            if uploaded_file.name.endswith(('.xlsx', '.xls')):
+            if file_name.endswith(('.xlsx', '.xls')):
                 sheets_data = []
                 try:
                     uploaded_file.seek(0)
                     wb = openpyxl.load_workbook(uploaded_file, data_only=True)
                     for sheet in wb.worksheets:
-                        rows = list(sheet.iter_rows(values_only=True))
+                        rows = list(islice(sheet.iter_rows(values_only=True), MAX_IMPORT_ROWS + 25))
                         if rows:
                             sheets_data.append(rows)
                 except Exception:
@@ -333,7 +406,7 @@ def upload_view(request):
                             if row and any(v is not None for v in row):
                                 data_rows.append((row, mapping, idx))
 
-            elif uploaded_file.name.endswith('.csv'):
+            elif file_name.endswith('.csv'):
                 uploaded_file.seek(0)
                 content = uploaded_file.read()
                 decoded = None
@@ -345,7 +418,7 @@ def upload_view(request):
                 
                 if decoded:
                     reader = csv.reader(io.StringIO(decoded))
-                    rows = list(reader)
+                    rows = list(islice(reader, MAX_IMPORT_ROWS + 25))
                     if rows:
                         mapping = {}
                         start_idx = 0
@@ -364,6 +437,10 @@ def upload_view(request):
                             for idx, row in enumerate(rows[start_idx:], start=start_idx + 1):
                                 if row and any(v and str(v).strip() for v in row):
                                     data_rows.append((row, mapping, idx))
+
+            if len(data_rows) > MAX_IMPORT_ROWS:
+                cache.delete(upload_lock)
+                return reject(_("This file has more than 5,000 rows. Split it into smaller files and import them one at a time."))
 
             if not data_rows:
                 messages.warning(request, _("Could not detect required columns (Date, Amount, Description). Please check your file."))
@@ -400,6 +477,9 @@ def upload_view(request):
                 prefix_map = {w: max(cats.items(), key=lambda x: x[1])[0] for w, cats in prefix_counts.items()}
                 history_map = {'exact': exact_map, 'prefix': prefix_map}
 
+                from ..models import Category
+                user_category_names = list(Category.objects.filter(user=request.user).values_list('name', flat=True))
+
                 # Precompute currency conversion rates
                 base_currency = request.user.profile.currency
                 if selected_currency == base_currency:
@@ -412,6 +492,21 @@ def upload_view(request):
                 if selected_account and selected_currency != selected_account.currency:
                     from ..models import get_exchange_rate
                     account_rate = get_exchange_rate(selected_currency, selected_account.currency)
+
+                # A statement with one signed Amount column holds debits and credits together. When both signs
+                # appear, the sign most rows have is the expenses and the other sign (salary, refunds) is not
+                # an expense, so those rows are left out instead of being counted as spending.
+                amount_signs = {1: 0, -1: 0}
+                for _row, _mapping, _idx in data_rows:
+                    _amount_idx = _mapping.get('amount')
+                    if _amount_idx is None or _amount_idx >= len(_row) or _row[_amount_idx] is None:
+                        continue
+                    _value = _signed_amount(_row[_amount_idx])
+                    if _value:
+                        amount_signs[1 if _value > 0 else -1] += 1
+                expense_sign = None
+                if amount_signs[1] and amount_signs[-1] and amount_signs[1] != amount_signs[-1]:
+                    expense_sign = 1 if amount_signs[1] > amount_signs[-1] else -1
 
                 batch = []
                 BATCH_SIZE = 200
@@ -510,7 +605,15 @@ def upload_view(request):
                         cleaned_amount_str = re.sub(r'[^\d\.\-]', '', amount_str)
                         if not cleaned_amount_str:
                             raise ValueError(_("Invalid amount format: ") + str(raw_amount))
-                        amount = abs(Decimal(cleaned_amount_str))
+                        signed = _signed_amount(raw_amount)
+                        if signed is None:
+                            raise ValueError(_("Invalid amount format: ") + str(raw_amount))
+                        if expense_sign is not None and (1 if signed > 0 else -1) != expense_sign:
+                            summary['credit_skipped'] += 1
+                            continue
+                        amount = abs(signed)
+                        if amount >= MAX_AMOUNT:
+                            raise ValueError(_("Amount is too large: ") + str(raw_amount))
                         
                         desc = str(row[desc_idx]).strip() if row[desc_idx] is not None else ""
                         if not desc:
@@ -523,7 +626,13 @@ def upload_view(request):
                             category_name = str(row[cat_idx]).strip()
                         
                         if not category_name:
-                            category_name = predict_category_ai(desc, user=request.user, history_map=history_map) or 'Food'
+                            # A rule's category is matched to one of the user's own where there is a match; with
+                            # no guess at all it is "Other", not an arbitrary category.
+                            category_name = (
+                                predict_category_ai(desc, user=request.user, history_map=history_map,
+                                                    categories=user_category_names) or 'Other'
+                            )
+                        category_name = category_name[:255]
 
                         # Dedup check in Python
                         raw_str = f"{date_val}_{amount}_{selected_currency}_{desc}_{category_name}"
@@ -579,6 +688,9 @@ def upload_view(request):
                 if summary['created_count'] > 0:
                     cache.delete(f"filter_merchants:{request.user.id}")
                     cache.delete(f"filter_categories:{request.user.id}")
+                    # bulk_create sends no signals, so the dashboard and analytics caches are cleared here
+                    from ..signals import invalidate_dashboard_cache
+                    invalidate_dashboard_cache(user_id=request.user.id)
 
                 results = summary
                 if summary['created_count'] > 0:
@@ -593,9 +705,12 @@ def upload_view(request):
                     messages.info(request, _("Processing complete. No new expenses were added."))
 
 
-        except Exception as e:
-            traceback.print_exc()
-            messages.error(request, f"Error processing file: {e}")
+        except Exception:
+            logging.getLogger(__name__).exception("Expense import failed for user %s", request.user.id)
+            messages.error(request, _("We could not read this file. Check that it is a valid Excel or CSV file with Date, "
+                                      "Amount and Description columns, then try again."))
+        finally:
+            cache.delete(upload_lock)
 
     return render(request, 'upload.html', {
         'results': results,

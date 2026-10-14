@@ -54,6 +54,18 @@
                             <div class="h4 mb-0 fw-bold text-warning">{{ results.duplicate_count }}</div>
                         </div>
                     </div>
+                    {% if results.credit_skipped %}
+                    <div class="col-12">
+                        <div class="alert alert-info mb-0 small">
+                            {% blocktrans with count=results.credit_skipped %}{{ count }} rows were left out because they have the opposite sign to most of your amounts (credits, salary or refunds in a bank statement), so they are not spending.{% endblocktrans %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if results.duplicate_count %}
+                    <div class="col-12">
+                        <div class="text-muted small">{% trans "Duplicates are rows already imported before, or repeated identically (same date, amount and description) earlier in this file." %}</div>
+                    </div>
+                    {% endif %}
                     {% if results.limit_skipped %}
                     <div class="col-12">
                         <div class="alert alert-warning mb-0 small">
@@ -156,7 +168,7 @@
         </form>
     </div>
     <div class="text-muted small py-3 mt-3">
-        {% trans "Supported formats: .xlsx, .xls, .csv" %}
+        {% trans "Supported formats: .xlsx, .xls, .csv, up to 5 MB and 5,000 rows" %}
     </div>
 </div>
 {% endblock %}

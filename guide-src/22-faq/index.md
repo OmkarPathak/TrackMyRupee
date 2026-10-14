@@ -32,7 +32,7 @@ The account is hidden and no longer counts in your net worth, but nothing is los
 
 ### How do I delete my whole TrackMyRupee account?
 
-Go to **Settings** and choose **Delete account** (or **Withdraw consent**, which does the same). You are asked to confirm, signed out at once, and your data is deleted in the background: transactions, accounts, goals, loans, notifications and the history of emails we sent you. If you pay by an auto-renewing subscription, it is cancelled so you are not charged again. You get one confirmation email when it is done. This cannot be undone. To keep a copy first, use **Settings → Export Data** (free on every plan).
+Go to **Settings** and choose **Delete account** (or **Withdraw consent**, which does the same). You are asked to confirm, signed out at once, and your data is deleted in the background: transactions, accounts, goals, loans, notifications and the history of emails we sent you. If you pay by an auto-renewing subscription, it is cancelled so you are not charged again. You get one confirmation email when it is done. We keep the record of any payment you made (amount, date, plan and the email it was made under) for our accounts and for payment disputes; it is no longer linked to a login. This cannot be undone. To keep a copy first, use **Settings → Export Data** (free on every plan).
 
 ### How do I change my email address?
 
@@ -56,7 +56,7 @@ A transfer moves money between accounts you already own. It does not change your
 
 ### Can I import transactions from a spreadsheet?
 
-Yes. Go to **Sidebar → Expenses → Upload** and choose an `.xlsx` or `.csv` file, the **currency** of the amounts, and the **account** they were paid from (every expense is charged to an account). The app recognises the Date, Amount and Description columns from their headings, and uses a Category column if there is one, or guesses a category if not. Rows that look identical to one you already have are skipped as duplicates. On the Free plan the monthly expense limit also applies to imports: rows dated in the current month beyond the limit are skipped and the upload summary tells you how many.
+Yes. Go to **Sidebar → Expenses → Upload** and choose an `.xlsx` or `.csv` file, the **currency** of the amounts, and the **account** they were paid from (every expense is charged to an account). The app recognises the Date, Amount and Description columns from their headings, and uses a Category column if there is one, or guesses a category if not. Rows that look identical to one you already have, or that repeat an earlier row of the same file exactly, are skipped as duplicates. A file can be up to 5 MB and 5,000 rows; split a bigger one. If the Amount column mixes signs, as in a bank statement, the sign most rows have is taken as spending and the other rows (salary, refunds) are left out and counted in the summary. A row with no category gets a match from your own categories or past entries, otherwise **Other**; a column called *Transaction Type* is never used as the category. A date written without a year (such as *15 Dec*) means the most recent such date, never one in the future. Only one import can run at a time. On the Free plan the monthly expense limit also applies to imports: rows dated in the current month beyond the limit are skipped and the upload summary tells you how many.
 
 ### What is a Capital Event and when should I use it?
 

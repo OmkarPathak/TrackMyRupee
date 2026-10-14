@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -232,10 +232,11 @@ class UploadViewTest(TestCase):
         self.assertEqual(Expense.objects.first().description, 'Found It')
 
     def test_partial_date_defaults_to_current_year(self):
-        current_year = datetime.now().year
+        recent = date.today() - timedelta(days=3)
+        current_year = recent.year
         data = [
             ['Date', 'Description', 'Amount'],
-            ['15 Dec', 'Partial Date', 50],
+            [recent.strftime('%d %b'), 'Partial Date', 50],
         ]
         csv_file = self.create_csv_file(data)
         csv_file.name = 'test.csv'
@@ -385,7 +386,7 @@ class UploadViewTest(TestCase):
         # With pre-fetching and bulk_create, it executes in only 12 queries, plus 6 to rebuild
         # global_badge_data (the upload saves the Account, which invalidates that cache).
         # (+1 query: the plan's monthly expense cap is counted once before the loop)
-        with self.assertNumQueries(19):
+        with self.assertNumQueries(20):   # one more than before: the user's category names, to match predictions
             response = self.client.post(reverse('upload'), {
                 'account': self.account.id,
                 'currency': '₹',
