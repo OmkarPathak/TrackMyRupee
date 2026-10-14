@@ -75,9 +75,9 @@
                         <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> {% trans "Add" %}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item py-2" href="{% url 'expense-create' %}"><i class="bi bi-dash-circle me-2 text-danger"></i>{% trans "Add Expense" %}</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'income-create' %}"><i class="bi bi-plus-circle me-2 text-success"></i>{% trans "Add Income" %}</a></li>
-                        <li><a class="dropdown-item py-2" href="{% url 'transfer-create' %}"><i class="bi bi-arrow-left-right me-2 text-primary"></i>{% trans "Add Transfer" %}</a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{% url 'expense-create' %}"><span class="add-menu-ico text-danger me-2"><i class="bi bi-receipt-cutoff"></i></span>{% trans "Add Expense" %}</a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{% url 'income-create' %}"><span class="add-menu-ico text-success me-2"><i class="bi bi-wallet2"></i></span>{% trans "Add Income" %}</a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{% url 'transfer-create' %}"><span class="add-menu-ico text-info me-2"><i class="bi bi-arrow-left-right"></i></span>{% trans "Add Transfer" %}</a></li>
                     </ul>
                 </div>
             </div>
