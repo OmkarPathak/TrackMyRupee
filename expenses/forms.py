@@ -1728,3 +1728,32 @@ class HoldingForm(forms.ModelForm):
             'scheme_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 101234'}),
             'isin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional ISIN'}),
         }
+
+
+class AccountReconcileForm(forms.Form):
+    """Statement details a user checks an account's balance against."""
+
+    statement_date = forms.DateField(
+        label=_('Statement date'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text=_('The date your bank statement or app shows the balance for.'),
+    )
+    statement_balance = forms.DecimalField(
+        label=_('Balance on the statement'),
+        max_digits=15,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        help_text=_('Enter it the way this app shows the account: money you owe on a credit card is negative.'),
+    )
+    note = forms.CharField(
+        label=_('Note'),
+        required=False,
+        max_length=255,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Optional, e.g. "March statement"')}),
+    )
+
+    def clean_statement_date(self):
+        value = self.cleaned_data['statement_date']
+        if value > timezone.localdate():
+            raise forms.ValidationError(_('The statement date cannot be in the future.'))
+        return value

@@ -53,7 +53,7 @@ Take control of your spending patterns:
 Double-entry accounting for personal finances:
 - **Balanced Transactions**: Every transaction is recorded twice to ensure integrity (debit/credit).
 - **Auto-Reconciliation**: System detects and flags discrepancies in real-time.
-- **Reconciliation Reports**: Monthly reports showing your account balances vs app records.
+- **Reconcile Against Your Statement**: Enter a bank or card statement balance for any bank, cash, wallet or credit card account. The app shows the difference, points at likely causes, and can post a clearly labelled adjustment. Every check is kept in a per-account history.
 - **Audit Trail**: Complete history of all transactions with optional notes and attachments.
 
 ### 12. Year in Review & Monthly Reports 📈

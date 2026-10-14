@@ -528,6 +528,39 @@ class LedgerReconciliationReport(models.Model):
     def __str__(self):
         return f"{self.user_id}:{self.account_id}:{self.as_of_date} ({self.status})"
 
+class AccountReconciliation(models.Model):
+    """A user-submitted check of an account's balance against a bank statement."""
+
+    STATUS_CHOICES = [
+        ('MATCHED', _('Matched')),
+        ('ADJUSTED', _('Adjusted')),
+        ('OPEN', _('Left open')),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='account_reconciliations')
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='reconciliations')
+    statement_date = models.DateField()
+    statement_balance = models.DecimalField(max_digits=15, decimal_places=2)
+    # What the app showed for the account on statement_date when the check was confirmed.
+    app_balance = models.DecimalField(max_digits=15, decimal_places=2)
+    difference = models.DecimalField(max_digits=15, decimal_places=2)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    adjustment_entry = models.ForeignKey(
+        'JournalEntry', null=True, blank=True, on_delete=models.SET_NULL, related_name='+',
+    )
+    note = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-statement_date', '-created_at']
+        indexes = [
+            models.Index(fields=['account', '-statement_date'], name='acc_recon_acct_date_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.account_id}:{self.statement_date} ({self.status})"
+
+
 class Expense(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

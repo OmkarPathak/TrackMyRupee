@@ -28,6 +28,7 @@ from ..forms import AccountForm, TransferForm
 from ..ledger_read_service import LedgerReadService, _compute_deposit_value
 from ..models import (
     Account,
+    AccountReconciliation,
     CapitalEvent,
     Expense,
     GoalContribution,
@@ -44,6 +45,7 @@ from ..filters.definitions import (
 )
 from ..filters.engine import apply_filter_config
 from ..posthog_utils import ph_capture
+from ..reconciliation import is_reconcilable
 from ..utils import get_exchange_rate
 from .mixins import (
     HtmxPartialTemplateMixin,
@@ -171,6 +173,11 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         now = timezone.now()
         _deposit_codes = deposit_codes()
 
+        # Newest statement check per account, in one query, for the "Reconciled" badge.
+        last_reconciliation = {}
+        for rec in AccountReconciliation.objects.filter(account__in=accounts).order_by('-statement_date', '-created_at'):
+            last_reconciliation.setdefault(rec.account_id, rec)
+
         for account in accounts:
             try:
                 rate = cached_rate(account.currency, user_currency)
@@ -218,6 +225,9 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
             account.base_value = base_value
             total_balance += base_value
+
+            account.can_reconcile = account.is_active and not account.is_locked and is_reconcilable(account)
+            account.last_reconciliation = last_reconciliation.get(account.id)
 
         # Group accounts using nested ACCOUNT_TYPES groups
         grouped_accounts = []
@@ -1171,6 +1181,7 @@ class AccountDetailView(LoginRequiredMixin, View):
 
         context = {
             'account': account,
+            'can_reconcile': account.is_active and is_reconcilable(account) and request.user.username != 'demo',
             'money_in': money_in,
             'money_out': money_out,
             'row_count': paginator.count,
