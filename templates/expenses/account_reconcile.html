@@ -12,12 +12,12 @@
 
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-                    <div>
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div class="flex-grow-1 min-w-0">
                         <h1 class="h4 fw-bold mb-1">{% trans "Reconcile account" %}</h1>
                         <p class="text-muted mb-0">{% blocktrans with name=account.name %}Check that {{ name }} matches your bank or card statement.{% endblocktrans %}</p>
                     </div>
-                    <a href="{% url 'account-reconciliation-history' account.uuid %}" class="btn btn-sm btn-outline-secondary">
+                    <a href="{% url 'account-reconciliation-history' account.uuid %}" class="btn btn-sm btn-outline-secondary flex-shrink-0 text-nowrap">
                         <i class="bi bi-clock-history me-1"></i>{% trans "History" %}
                     </a>
                 </div>
@@ -63,15 +63,15 @@
                 <div class="row text-center g-3 mb-3">
                     <div class="col-4">
                         <div class="text-muted small">{% trans "Statement" %}</div>
-                        <div class="fw-bold fs-5">{{ account.currency }}{{ comparison.statement_balance|ind_comma:account.currency|translate_digits }}</div>
+                        <div class="fw-bold fs-5">{{ comparison.statement_balance|money_exact:account.currency }}</div>
                     </div>
                     <div class="col-4">
                         <div class="text-muted small">{% trans "In this app" %}</div>
-                        <div class="fw-bold fs-5">{{ account.currency }}{{ comparison.app_balance|ind_comma:account.currency|translate_digits }}</div>
+                        <div class="fw-bold fs-5">{{ comparison.app_balance|money_exact:account.currency }}</div>
                     </div>
                     <div class="col-4">
                         <div class="text-muted small">{% trans "Difference" %}</div>
-                        <div class="fw-bold fs-5 {% if comparison.matched %}text-success{% else %}text-danger{% endif %}">{{ account.currency }}{{ comparison.difference|ind_comma:account.currency|translate_digits }}</div>
+                        <div class="fw-bold fs-5 {% if comparison.matched %}text-success{% else %}text-danger{% endif %}">{{ comparison.difference|money_exact_signed:account.currency }}</div>
                     </div>
                 </div>
 
@@ -101,7 +101,7 @@
                                             {% if reason == 'same_amount' %}{% trans "Same size as the difference: it may be a duplicate, or one like it may be missing." %}{% else %}{% trans "Half the difference: it may have been entered in the wrong direction." %}{% endif %}
                                         </div>
                                     </div>
-                                    <span class="fw-semibold text-nowrap">{{ account.currency }}{{ flow.amount|ind_comma:account.currency|translate_digits }}</span>
+                                    <span class="fw-semibold text-nowrap">{{ flow.amount|money_exact:account.currency }}</span>
                                 </li>
                             {% endfor %}
                         </ul>
@@ -126,7 +126,7 @@
                         {% for flow in comparison.recent %}
                             <li class="list-group-item d-flex justify-content-between gap-2">
                                 <span>{{ flow.date|date:"j M" }} · {{ flow.description|default:flow.kind|truncatechars:60 }}</span>
-                                <span class="text-nowrap {% if flow.amount < 0 %}text-danger{% else %}text-success{% endif %}">{{ account.currency }}{{ flow.amount|ind_comma:account.currency|translate_digits }}</span>
+                                <span class="text-nowrap {% if flow.amount < 0 %}text-danger{% else %}text-success{% endif %}">{{ flow.amount|money_exact:account.currency }}</span>
                             </li>
                         {% endfor %}
                     </ul>
@@ -144,7 +144,7 @@
                             <button type="submit" name="action" value="open" class="btn btn-primary">{% trans "Save this check" %}</button>
                         </div>
                     {% else %}
-                        <p class="small text-muted">{% blocktrans with amount=comparison.difference|ind_comma:account.currency|translate_digits %}Correcting adds a clearly labelled adjustment of {{ amount }} to this account. Your transactions are not changed.{% endblocktrans %}</p>
+                        <p class="small text-muted">{% blocktrans with amount=comparison.difference|money_exact_signed:account.currency %}Correcting adds a clearly labelled adjustment of {{ amount }} to this account. Your transactions are not changed.{% endblocktrans %}</p>
                         <div class="d-flex justify-content-end gap-2 flex-wrap">
                             <button type="submit" name="action" value="open" class="btn btn-action-cancel">{% trans "Leave it open" %}</button>
                             <button type="submit" name="action" value="adjust" class="btn btn-primary">{% trans "Correct my balance" %}</button>

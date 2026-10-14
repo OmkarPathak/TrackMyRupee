@@ -259,3 +259,16 @@ class ReconcileLedgersCommandTest(ReconciliationTestBase):
         call_command('reconcile_ledgers', user_id=self.user.id)
         remaining = set(LedgerReconciliationReport.objects.filter(account=self.bank, as_of_date__lt=self.today).values_list('status', flat=True))
         self.assertEqual(remaining, {'DRIFT'})
+
+
+class MoneyExactFilterTest(TestCase):
+    def test_sign_goes_before_the_symbol_and_paise_are_kept(self):
+        from expenses.templatetags.digit_filters import money_exact, money_exact_signed
+
+        self.assertEqual(money_exact(D('-450.00'), '₹'), '-₹450')
+        self.assertEqual(money_exact(D('1234567.50'), '₹'), '₹12,34,567.50')
+        self.assertEqual(money_exact(D('0.01'), '₹'), '₹0.01')
+        self.assertEqual(money_exact(D('-1200'), '$'), '-$1,200')
+        self.assertEqual(money_exact_signed(D('249'), '₹'), '+₹249')
+        self.assertEqual(money_exact_signed(D('-249.50'), '₹'), '-₹249.50')
+        self.assertEqual(money_exact_signed(D('0'), '₹'), '₹0')

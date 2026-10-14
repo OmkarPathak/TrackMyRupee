@@ -26,14 +26,14 @@
                                 <div>
                                     <div class="fw-semibold">{{ rec.statement_date|date:"j M Y" }}</div>
                                     <div class="small text-muted">
-                                        {% blocktrans with s=rec.statement_balance|ind_comma:account.currency|translate_digits a=rec.app_balance|ind_comma:account.currency|translate_digits %}Statement {{ s }} · App {{ a }}{% endblocktrans %}
+                                        {% blocktrans with s=rec.statement_balance|money_exact:account.currency a=rec.app_balance|money_exact:account.currency %}Statement {{ s }} · App {{ a }}{% endblocktrans %}
                                     </div>
                                     {% if rec.note %}<div class="small mt-1">{{ rec.note }}</div>{% endif %}
                                 </div>
                                 <div class="text-end">
                                     <span class="badge {% if rec.status == 'MATCHED' %}bg-success{% elif rec.status == 'ADJUSTED' %}bg-primary{% else %}bg-warning text-dark{% endif %}">{{ rec.get_status_display }}</span>
                                     {% if rec.status != 'MATCHED' %}
-                                        <div class="small text-muted mt-1">{% trans "Difference" %}: {{ account.currency }}{{ rec.difference|ind_comma:account.currency|translate_digits }}</div>
+                                        <div class="small text-muted mt-1">{% trans "Difference" %}: {{ rec.difference|money_exact_signed:account.currency }}</div>
                                     {% endif %}
                                 </div>
                             </div>

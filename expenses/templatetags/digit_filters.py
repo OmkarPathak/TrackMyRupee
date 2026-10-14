@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
 
@@ -66,3 +68,28 @@ def compact_amount(value, currency=''):
             res = intcomma(f"{abs_num:,.0f}")
     
     return f"{sign}{res}"
+
+
+def _exact_money(value, currency, plus=False):
+    try:
+        num = Decimal(str(value)).quantize(Decimal('0.01'))
+    except (InvalidOperation, ValueError, TypeError):
+        return value
+    sign = '-' if num < 0 else ('+' if plus and num > 0 else '')
+    whole, cents = divmod(abs(num), 1)
+    body = ind_comma(int(whole), currency)
+    if cents:
+        body += f"{cents:.2f}"[1:]
+    return f"{sign}{currency}{body}"
+
+
+@register.filter
+def money_exact(value, currency='₹'):
+    """Amount with the sign in front of the symbol and paise kept: -₹450, ₹1,234.50."""
+    return utils_translate_digits(_exact_money(value, currency))
+
+
+@register.filter
+def money_exact_signed(value, currency='₹'):
+    """Like money_exact, with an explicit + for positive amounts: +₹249."""
+    return utils_translate_digits(_exact_money(value, currency, plus=True))
