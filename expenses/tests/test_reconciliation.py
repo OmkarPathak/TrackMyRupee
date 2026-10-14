@@ -126,6 +126,21 @@ class ReconciliationServiceTest(ReconciliationTestBase):
         self.assertEqual(self.ledger_balance(), D('1300.00'))
         self.assertEqual(self.bank.balance, D('1300.00'))
 
+    def test_keeping_the_app_balance_records_it_and_changes_nothing(self):
+        entries_before = JournalEntry.objects.count()
+        rec = reconciliation.record(self.bank, self.five_days_ago, D('1400.00'), action='accept', note='Cheque not cleared')
+        self.assertEqual(rec.status, 'ACCEPTED')
+        self.assertEqual(rec.difference, D('-100.00'))
+        self.assertIsNone(rec.adjustment_entry)
+        self.assertEqual(JournalEntry.objects.count(), entries_before)
+        self.assertEqual(self.ledger_balance(), D('1300.00'))
+        self.assertEqual(self.bank.balance, D('1300.00'))
+        self.assertEqual(FinancialAuditLog.objects.filter(model_name='AccountReconciliation').count(), 1)
+
+    def test_keeping_the_app_balance_on_a_match_is_just_a_match(self):
+        rec = reconciliation.record(self.bank, self.five_days_ago, D('1500.00'), action='accept')
+        self.assertEqual(rec.status, 'MATCHED')
+
     def test_account_types_without_a_statement_are_refused(self):
         fd = Account.objects.create(user=self.user, name='FD', account_type='FD', balance=D('5000.00'))
         self.assertFalse(reconciliation.is_reconcilable(fd))
@@ -148,7 +163,7 @@ class ReconciliationViewTest(ReconciliationTestBase):
         response = self.client.post(reverse('account-reconcile', args=[self.bank.uuid]), self.payload())
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['comparison'].difference, D('-50.00'))
-        self.assertContains(response, 'from ₹1,300 to ₹1,250')
+        self.assertContains(response, 'from <span class="text-nowrap">₹1,300</span> to <span class="text-nowrap">₹1,250</span>')
         self.assertContains(response, 'changes no balance')
         self.assertEqual(AccountReconciliation.objects.count(), 0)
 
@@ -168,6 +183,27 @@ class ReconciliationViewTest(ReconciliationTestBase):
         self.assertEqual(self.ledger_balance(), D('1250.00'))
         history = self.client.get(reverse('account-reconciliation-history', args=[self.bank.uuid]))
         self.assertContains(history, 'Adjusted')
+
+    def test_confirm_accept_saves_without_a_note_and_history_says_no_ledger_entry(self):
+        response = self.client.post(
+            reverse('account-reconcile-confirm', args=[self.bank.uuid]), self.payload(action='accept', note=''),
+        )
+        self.assertRedirects(response, reverse('account-reconciliation-history', args=[self.bank.uuid]))
+        self.assertEqual(AccountReconciliation.objects.get().status, 'ACCEPTED')
+        self.assertEqual(self.ledger_balance(), D('1300.00'))
+        history = self.client.get(reverse('account-reconciliation-history', args=[self.bank.uuid]))
+        self.assertContains(history, 'Kept app balance')
+        self.assertContains(history, 'No ledger entry was made')
+
+    def test_history_shows_the_ledger_adjustment_that_was_posted(self):
+        self.client.post(reverse('account-reconcile-confirm', args=[self.bank.uuid]), self.payload(action='adjust'))
+        history = self.client.get(reverse('account-reconciliation-history', args=[self.bank.uuid]))
+        self.assertContains(history, 'Ledger adjustment of <span class="text-nowrap">-₹50</span> posted on')
+
+    def test_result_page_offers_all_three_choices(self):
+        response = self.client.post(reverse('account-reconcile', args=[self.bank.uuid]), self.payload())
+        for value in ('adjust', 'accept', 'open'):
+            self.assertContains(response, f'name="action" value="{value}"')
 
     def test_confirm_needs_a_known_action(self):
         response = self.client.post(

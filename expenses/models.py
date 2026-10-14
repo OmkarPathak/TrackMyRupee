@@ -535,6 +535,7 @@ class AccountReconciliation(models.Model):
         ('MATCHED', _('Matched')),
         ('ADJUSTED', _('Adjusted')),
         ('OPEN', _('Left open')),
+        ('ACCEPTED', _('Kept app balance')),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='account_reconciliations')

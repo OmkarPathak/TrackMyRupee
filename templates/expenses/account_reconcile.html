@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center fade-in">
-    <div class="col-lg-8">
+    <div class="col-lg-10 col-xl-8">
         <nav aria-label="breadcrumb" class="mb-3">
             <a href="{% url 'account-detail' account.uuid %}" class="text-decoration-none small">
                 <i class="bi bi-arrow-left me-1"></i>{{ account.name }}
@@ -145,11 +145,13 @@
                         </div>
                     {% else %}
                         <ul class="small text-muted ps-3 mb-3">
-                            <li class="mb-1"><strong>{% trans "Correct my balance" %}:</strong> {% blocktrans with name=account.name now=comparison.current_balance|money_exact:account.currency after=comparison.balance_after|money_exact:account.currency amount=comparison.difference|money_exact_signed:account.currency %}changes {{ name }} from {{ now }} to {{ after }} (an adjustment of {{ amount }}). Your net worth changes by the same amount and other accounts are untouched. Your transactions are not edited, and the adjustment does not count as income or spending.{% endblocktrans %}</li>
+                            <li class="mb-1"><strong>{% trans "Correct my balance" %}:</strong> {% blocktrans with name=account.name now=comparison.current_balance|money_exact:account.currency after=comparison.balance_after|money_exact:account.currency amount=comparison.difference|money_exact_signed:account.currency %}changes {{ name }} from <span class="text-nowrap">{{ now }}</span> to <span class="text-nowrap">{{ after }}</span> (an adjustment of <span class="text-nowrap">{{ amount }}</span>). Your net worth changes by the same amount and other accounts are untouched. Your transactions are not edited, and the adjustment does not count as income or spending.{% endblocktrans %}</li>
+                            <li class="mb-1"><strong>{% trans "My app balance is correct" %}:</strong> {% trans "records that you checked and decided the app is right, for example a payment that has not cleared yet. No balance changes." %}</li>
                             <li><strong>{% trans "Leave it open" %}:</strong> {% trans "saves this check and changes no balance, so you can look for the missing entry first." %}</li>
                         </ul>
-                        <div class="d-flex justify-content-end gap-2 flex-wrap">
+                        <div class="d-grid gap-2 d-lg-flex justify-content-lg-end">
                             <button type="submit" name="action" value="open" class="btn btn-action-cancel">{% trans "Leave it open" %}</button>
+                            <button type="submit" name="action" value="accept" class="btn btn-outline-secondary">{% trans "My app balance is correct" %}</button>
                             <button type="submit" name="action" value="adjust" class="btn btn-primary">{% trans "Correct my balance" %}</button>
                         </div>
                     {% endif %}

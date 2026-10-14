@@ -75,7 +75,7 @@ def account_reconcile_confirm_view(request, pk):
 
     form = AccountReconcileForm(request.POST)
     action = request.POST.get('action')
-    if not form.is_valid() or action not in {'adjust', 'open'}:
+    if not form.is_valid() or action not in {'adjust', 'accept', 'open'}:
         messages.error(request, _("Those statement details are not valid. Please check them and try again."))
         return redirect('account-reconcile', pk=account.uuid)
 
@@ -95,6 +95,8 @@ def account_reconcile_confirm_view(request, pk):
         messages.success(request, _("The balance matches your statement. Nothing needed changing."))
     elif result.status == 'ADJUSTED':
         messages.success(request, _("Balance corrected to match your statement."))
+    elif result.status == 'ACCEPTED':
+        messages.success(request, _("Saved. Your app balance was kept as correct, and no balance was changed."))
     else:
         messages.info(request, _("Saved. The difference is still open, and your balance has not been changed."))
     return redirect('account-reconciliation-history', pk=account.uuid)
@@ -103,7 +105,7 @@ def account_reconcile_confirm_view(request, pk):
 @login_required
 def account_reconciliation_history_view(request, pk):
     account = get_object_by_uuid_or_pk(Account.objects.all(), pk, user=request.user)
-    rows = AccountReconciliation.objects.filter(account=account, user=request.user)
+    rows = AccountReconciliation.objects.filter(account=account, user=request.user).select_related('adjustment_entry')
     page = Paginator(rows, HISTORY_PAGE_SIZE).get_page(request.GET.get('page'))
     return render(request, 'expenses/account_reconciliation_history.html', {
         'account': account,

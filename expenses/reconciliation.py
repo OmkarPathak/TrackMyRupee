@@ -200,7 +200,8 @@ def compare(account, statement_date, statement_balance):
 
 
 def record(account, statement_date, statement_balance, *, action, note=''):
-    """Persist a reconciliation. ``action`` is 'adjust' (post a correcting entry) or 'open'.
+    """Persist a reconciliation. ``action`` is 'adjust' (post a correcting entry), 'accept' (the app's balance is right:
+    record the decision, change nothing) or 'open' (unresolved, look into it later).
 
     The comparison is recomputed under a lock, never taken from the submitted form, so a stale
     page or a double submit cannot post a wrong or duplicate adjustment: once the first
@@ -217,6 +218,8 @@ def record(account, statement_date, statement_balance, *, action, note=''):
             status = 'MATCHED'
         elif action == 'adjust':
             status = 'ADJUSTED'
+        elif action == 'accept':
+            status = 'ACCEPTED'
         else:
             status = 'OPEN'
 

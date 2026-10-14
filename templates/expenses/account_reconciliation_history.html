@@ -29,11 +29,16 @@
                                         {% blocktrans with s=rec.statement_balance|money_exact:account.currency a=rec.app_balance|money_exact:account.currency %}Statement {{ s }} · App {{ a }}{% endblocktrans %}
                                     </div>
                                     {% if rec.note %}<div class="small mt-1">{{ rec.note }}</div>{% endif %}
+                                    {% if rec.adjustment_entry %}
+                                        <div class="small text-muted mt-1"><i class="bi bi-journal-check me-1"></i>{% blocktrans with amount=rec.difference|money_exact_signed:account.currency when=rec.adjustment_entry.posted_at|date:"j M Y, H:i" %}Ledger adjustment of <span class="text-nowrap">{{ amount }}</span> posted on {{ when }}.{% endblocktrans %}</div>
+                                    {% elif rec.status == 'ACCEPTED' %}
+                                        <div class="small text-muted mt-1">{% trans "App balance kept. No ledger entry was made." %}</div>
+                                    {% endif %}
                                 </div>
                                 <div class="text-end">
-                                    <span class="badge {% if rec.status == 'MATCHED' %}bg-success{% elif rec.status == 'ADJUSTED' %}bg-primary{% else %}bg-warning text-dark{% endif %}">{{ rec.get_status_display }}</span>
+                                    <span class="badge {% if rec.status == 'MATCHED' %}bg-success{% elif rec.status == 'ADJUSTED' %}bg-primary{% elif rec.status == 'ACCEPTED' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">{{ rec.get_status_display }}</span>
                                     {% if rec.status != 'MATCHED' %}
-                                        <div class="small text-muted mt-1">{% trans "Difference" %}: {{ rec.difference|money_exact_signed:account.currency }}</div>
+                                        <div class="small text-muted mt-1 text-nowrap">{% trans "Difference" %}: {{ rec.difference|money_exact_signed:account.currency }}</div>
                                     {% endif %}
                                 </div>
                             </div>
