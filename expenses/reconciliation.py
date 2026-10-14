@@ -95,25 +95,25 @@ def dated_flows(account):
     user = account.user
     flows = []
 
-    for e in Expense.objects.filter(user=user, account=account):
+    for e in Expense.objects.filter(user=user, account=account, is_deleted=False):
         flows.append(Flow(e.date, 'expense', e.description, -_convert(e.amount, e.currency, account)))
 
-    for i in Income.objects.filter(user=user, account=account):
+    for i in Income.objects.filter(user=user, account=account, is_deleted=False):
         flows.append(Flow(i.date, 'income', i.description or '', _convert(i.amount, i.currency, account)))
 
-    for t in Transfer.objects.filter(user=user, from_account=account):
+    for t in Transfer.objects.filter(user=user, from_account=account, is_deleted=False):
         flows.append(Flow(t.date, 'transfer', t.description or '', -_quantize(t.amount)))
 
-    for t in Transfer.objects.filter(user=user, to_account=account).select_related('from_account'):
+    for t in Transfer.objects.filter(user=user, to_account=account, is_deleted=False).select_related('from_account'):
         flows.append(Flow(t.date, 'transfer', t.description or '', _convert(t.amount, t.from_account.currency, account)))
 
-    for c in GoalContribution.objects.filter(goal__user=user, account=account).select_related('goal'):
+    for c in GoalContribution.objects.filter(goal__user=user, account=account, is_deleted=False).select_related('goal'):
         flows.append(Flow(c.date, 'goal', c.goal.name, -_convert(c.amount, c.goal.currency, account)))
 
-    for r in LoanRepayment.objects.filter(loan__user=user, from_account=account).select_related('loan'):
+    for r in LoanRepayment.objects.filter(loan__user=user, from_account=account, is_deleted=False).select_related('loan'):
         flows.append(Flow(r.date, 'loan', r.loan.name, -_convert(r.amount, r.loan.currency, account)))
 
-    for ce in CapitalEvent.objects.filter(user=user, account=account, include_in_net_worth=True):
+    for ce in CapitalEvent.objects.filter(user=user, account=account, include_in_net_worth=True, is_deleted=False):
         flows.append(Flow(ce.date, 'capital', ce.note or '', -_convert(ce.amount, ce.currency, account)))
 
     return flows
@@ -144,9 +144,9 @@ def _missing_opening_entry(account):
 
 def _unaccounted_rows(user):
     return {
-        'expenses': Expense.objects.filter(user=user, account__isnull=True).count(),
-        'income': Income.objects.filter(user=user, account__isnull=True).count(),
-        'capital_events': CapitalEvent.objects.filter(user=user, account__isnull=True).count(),
+        'expenses': Expense.objects.filter(user=user, account__isnull=True, is_deleted=False).count(),
+        'income': Income.objects.filter(user=user, account__isnull=True, is_deleted=False).count(),
+        'capital_events': CapitalEvent.objects.filter(user=user, account__isnull=True, is_deleted=False).count(),
     }
 
 

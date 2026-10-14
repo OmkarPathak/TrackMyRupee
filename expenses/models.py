@@ -86,6 +86,25 @@ def _run_ledger_shadow(posting_fn, source_type=None, source_id=None, action=None
         if getattr(settings, 'LEDGER_ENFORCE_BALANCED_WRITE', False):
             raise ValidationError(_('Unable to save transaction right now. Please try again.'))
 
+
+def _undo_amount(source_type, source_id, account, *, inflow, fallback):
+    """The amount (in the account's currency, positive) a transaction put into or took out of ``account``.
+
+    Read from the ledger so that editing or deleting a foreign-currency transaction returns exactly what it
+    moved, whatever the exchange rate is now. ``fallback`` (the amount converted at today's rate) is used when
+    the ledger has no record of it."""
+    from .ledger_read_service import LedgerReadService
+
+    try:
+        effect = LedgerReadService.recorded_effect_on_account(source_type, source_id, account)
+    except Exception:
+        return fallback
+    if effect is None:
+        return fallback
+    amount = effect if inflow else -effect
+    return amount if amount > 0 else fallback
+
+
 class SoftDeleteManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
@@ -610,7 +629,8 @@ class Expense(models.Model):
                     if old_instance.currency != old_account.currency:
                         rate = get_exchange_rate(old_instance.currency, old_account.currency)
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
-                    
+                    reversal_amount = _undo_amount('EXPENSE', old_instance.pk, old_account, inflow=False, fallback=reversal_amount)
+
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
@@ -715,7 +735,8 @@ class Expense(models.Model):
                 if self.currency != locked_account.currency:
                     rate = get_exchange_rate(self.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
-                
+                apply_amount = _undo_amount('EXPENSE', self.pk, locked_account, inflow=False, fallback=apply_amount)
+
                 locked_account.balance += apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
@@ -907,6 +928,7 @@ class Income(models.Model):
                         rate = get_exchange_rate(old_instance.currency, old_account.currency)
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                     
+                    reversal_amount = _undo_amount('INCOME', old_instance.pk, old_account, inflow=True, fallback=reversal_amount)
                     old_account.balance -= reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
@@ -1007,6 +1029,7 @@ class Income(models.Model):
                     rate = get_exchange_rate(self.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
                 
+                apply_amount = _undo_amount('INCOME', self.pk, locked_account, inflow=True, fallback=apply_amount)
                 locked_account.balance -= apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
@@ -1126,6 +1149,7 @@ class Transfer(models.Model):
                     rate = get_exchange_rate(old_instance.from_account.currency, old_instance.to_account.currency)
                     reversal_to_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                 
+                reversal_to_amount = _undo_amount('TRANSFER', old_instance.pk, old_to_account, inflow=True, fallback=reversal_to_amount)
                 old_to_account.balance -= reversal_to_amount
                 old_to_account.save(update_fields=['balance', 'updated_at'])
 
@@ -1226,6 +1250,7 @@ class Transfer(models.Model):
                 rate = get_exchange_rate(from_account.currency, to_account.currency)
                 to_revert_amount = (self.amount * rate).quantize(Decimal('0.01'))
                 
+            to_revert_amount = _undo_amount('TRANSFER', self.pk, to_account, inflow=True, fallback=to_revert_amount)
             to_account.balance -= to_revert_amount
             to_account.save(update_fields=['balance', 'updated_at'])
 
@@ -1954,6 +1979,7 @@ class GoalContribution(models.Model):
                         rate = get_exchange_rate(old_instance.goal.currency, old_account.currency)
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                         
+                    reversal_amount = _undo_amount('GOAL_CONTRIBUTION', old_instance.pk, old_account, inflow=False, fallback=reversal_amount)
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
                 locked_goal.current_amount -= old_instance.amount
@@ -2044,6 +2070,7 @@ class GoalContribution(models.Model):
                     rate = get_exchange_rate(self.goal.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
                     
+                apply_amount = _undo_amount('GOAL_CONTRIBUTION', self.pk, locked_account, inflow=False, fallback=apply_amount)
                 locked_account.balance += apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
                 
@@ -2309,6 +2336,7 @@ class LoanRepayment(models.Model):
                         rate = get_exchange_rate(old_instance.loan.currency, old_account.currency)
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                     
+                    reversal_amount = _undo_amount('LOAN_REPAYMENT', old_instance.pk, old_account, inflow=False, fallback=reversal_amount)
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
@@ -2400,6 +2428,7 @@ class LoanRepayment(models.Model):
                     rate = get_exchange_rate(self.loan.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
 
+                apply_amount = _undo_amount('LOAN_REPAYMENT', self.pk, locked_account, inflow=False, fallback=apply_amount)
                 locked_account.balance += apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
@@ -2550,6 +2579,7 @@ class CapitalEvent(models.Model):
                     if old_instance.currency != old_account.currency:
                         rate = get_exchange_rate(old_instance.currency, old_account.currency)
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
+                    reversal_amount = _undo_amount('CAPITAL_EVENT', old_instance.pk, old_account, inflow=False, fallback=reversal_amount)
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
@@ -2628,6 +2658,7 @@ class CapitalEvent(models.Model):
                 if self.currency != locked_account.currency:
                     rate = get_exchange_rate(self.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                apply_amount = _undo_amount('CAPITAL_EVENT', self.pk, locked_account, inflow=False, fallback=apply_amount)
                 locked_account.balance += apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 

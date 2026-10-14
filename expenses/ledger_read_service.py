@@ -117,6 +117,28 @@ class LedgerReadService:
         return (line.amount * rate).quantize(Decimal("0.01"))
 
     @classmethod
+    def recorded_effect_on_account(cls, source_type, source_id, account):
+        """What a transaction did to ``account`` according to the ledger, in the account's currency
+        (positive: money in, negative: money out), net of any earlier reversal. ``None`` when the ledger
+        has nothing for it (an older record, or a posting that is still queued).
+
+        Undoing a transaction from this, instead of converting its amount again at today's rate, keeps the
+        balance exact when the exchange rate has moved since the transaction was entered."""
+        lines = list(JournalLine.objects.filter(
+            journal_entry__source_type=source_type,
+            journal_entry__source_id=source_id,
+            journal_entry__status="POSTED",
+            account_ref_id=account.pk,
+        ).only("direction", "amount", "currency"))
+        if not lines:
+            return None
+        effect = Decimal("0.00")
+        for line in lines:
+            amount = cls._line_amount_in_account_currency(line, account)
+            effect += amount if line.direction == "DEBIT" else -amount
+        return effect.quantize(Decimal("0.01"))
+
+    @classmethod
     def _get_opening_account_ids(cls, user):
         opening_account_ids = set(
             JournalEntry.objects.filter(

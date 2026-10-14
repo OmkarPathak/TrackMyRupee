@@ -318,11 +318,11 @@ class LedgerReadServiceTest(TestCase):
             self.assertEqual(self.cash.balance, Decimal("200.00"))
             self.assertEqual(LedgerReadService.get_account_balance(self.cash), Decimal("200.00"))
             
-            # 2. Delete expense.
-            # exchange rate: 85.00.
+            # 2. Delete expense. The rate has moved to 85.00, but the account gets back exactly the
+            # 800.00 the expense took (read from the ledger), not 850.00 at the new rate.
             expense.delete()
             self.cash.refresh_from_db()
-            self.assertEqual(self.cash.balance, Decimal("1050.00"))
+            self.assertEqual(self.cash.balance, Decimal("1000.00"))
             
             # Verification that no exception is raised and ledger read is calculated correctly.
             with patch('expenses.fx.get_exchange_rate') as mock_read_rate:

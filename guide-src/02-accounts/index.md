@@ -44,7 +44,7 @@ Account names must be unique among your active accounts (capital letters do not 
     Free allows 2 active accounts, Plus allows 10, and Pro is unlimited. Deleted accounts do not count. If you go over a limit (for example after a downgrade), your **oldest** accounts stay open and the newer ones are locked until you upgrade or delete some: a locked account cannot be opened, edited or used in a transfer. Pinning or searching never changes which accounts are locked.
 
 !!! info "Balances are stored in the account's currency"
-    An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the **currency of an account is locked** as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or capital event). Change it only while the account is unused.
+    An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the **currency of an account is locked** as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or capital event). Change it only while the account is unused. If you later edit or delete such a transaction, the account gets back exactly the amount it took or gave at the time, even if the exchange rate has moved since.
 
 ## 3. Account Types Reference
 
