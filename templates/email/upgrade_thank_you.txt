@@ -1,0 +1,18 @@
+{% autoescape off %}Thank you for choosing {{ tier_name }}, {{ user.first_name|default:user.username }}!
+
+Your payment went through and {{ tier_name }} is active on your account. Thank you for supporting TrackMyRupee. It is a small team, and paying users are what keep the app independent and ad-free.
+
+Plan: {{ tier_name }}{% if duration_label %} ({{ duration_label }}){% endif %}
+Amount paid: ₹{{ amount|floatformat:"-2" }}
+{% if lifetime %}Valid: for life, with no renewals{% elif valid_until %}{% if auto_renews %}Next renewal{% else %}Valid until{% endif %}: {{ valid_until|date:"j F Y" }}{% if auto_renews %} (renews automatically; you can cancel any time from Settings){% endif %}{% endif %}
+
+WHAT YOU NOW HAVE
+{% for line in highlights %}- {{ line }}
+{% endfor %}
+Open your dashboard: {{ base_url }}/dashboard/
+
+Something not right with your payment or plan? Write to support@trackmyrupee.com. A person reads every message.
+
+With thanks,
+The TrackMyRupee Team
+{% endautoescape %}

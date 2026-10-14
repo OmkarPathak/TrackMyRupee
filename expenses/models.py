@@ -1591,6 +1591,18 @@ class UserProfile(models.Model):
     onboarding_completed_at = models.DateTimeField(null=True, blank=True)
 
     @property
+    def pays_by_subscription(self):
+        """True when the latest successful payment was a recurring Razorpay subscription charge
+        (as opposed to a one-time order, a trial or a manual grant)."""
+        if not self.razorpay_subscription_id:
+            return False
+        latest_order_id = (
+            PaymentHistory.objects.filter(user_id=self.user_id, status='SUCCESS')
+            .order_by('-created_at', '-id').values_list('order_id', flat=True).first()
+        )
+        return latest_order_id == self.razorpay_subscription_id
+
+    @property
     def is_pro(self):
         """Check if user has active Pro access (either lifetime or valid subscription)."""
         if self.tier == 'PRO':

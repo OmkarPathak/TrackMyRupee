@@ -14,6 +14,7 @@ from django.views.generic import ListView
 from finance_tracker.plans import PLAN_DETAILS
 
 from .models import PaymentHistory, SubscriptionPlan, UserProfile
+from .payment_emails import send_upgrade_thank_you
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +177,7 @@ def verify_payment(request):
             # Race condition guard: if the webhook already processed this payment
             # (marked it SUCCESS and set subscription_end_date), we must still
             # activate profile.tier here — don't return 400 early.
+            first_activation = False
             if payment_record.status == 'SUCCESS':
                 # Check if the tier was already activated by the webhook
                 profile = request.user.profile
@@ -189,6 +191,7 @@ def verify_payment(request):
                 payment_record.status = 'SUCCESS'
                 payment_record.save()
                 profile = request.user.profile
+                first_activation = True
 
             # Activate / update the subscription tier and dates
             profile.tier = payment_record.tier
@@ -208,6 +211,10 @@ def verify_payment(request):
 
             profile.expiry_reminder_sent = False
             profile.save()
+
+            # Whichever of verify/webhook flips the payment to SUCCESS first sends the thank-you
+            if first_activation:
+                send_upgrade_thank_you(request.user, payment_record)
 
             return JsonResponse({'success': True})
         except PaymentHistory.DoesNotExist:
@@ -270,6 +277,7 @@ def razorpay_webhook(request):
                         # subscription notes (fallback). This makes the webhook fully
                         # self-sufficient — profile.tier is activated even if the user
                         # closed the tab before verify_payment ran.
+                        thank_you_for = None
                         history = PaymentHistory.objects.filter(order_id=sub_id).order_by('-created_at').first()
                         if history:
                             activated_tier = history.tier
@@ -277,6 +285,7 @@ def razorpay_webhook(request):
                                 history.payment_id = payment_id
                                 history.status = 'SUCCESS'
                                 history.save()
+                                thank_you_for = history
                             else:
                                 # Renewal charge on an already active subscription:
                                 # create a new PaymentHistory row instead of mutating the initial row.
@@ -293,7 +302,7 @@ def razorpay_webhook(request):
                             # Fall back to subscription notes if no PaymentHistory exists
                             notes = event_data['payload']['subscription']['entity'].get('notes', {})
                             activated_tier = notes.get('plan', profile.tier)
-                            PaymentHistory.objects.create(
+                            thank_you_for = PaymentHistory.objects.create(
                                 payment_id=payment_id,
                                 user=profile.user,
                                 order_id=sub_id,
@@ -314,6 +323,8 @@ def razorpay_webhook(request):
                             current_end, tz=dt_timezone.utc
                         )
                         profile.save()
+                        if thank_you_for:
+                            send_upgrade_thank_you(profile.user, thank_you_for)
                         logger.info(
                             f"subscription.charged: activated tier={activated_tier} for sub_id={sub_id} "
                             f"until {profile.subscription_end_date}"

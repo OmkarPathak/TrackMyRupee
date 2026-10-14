@@ -454,6 +454,7 @@ class EmailTemplateLinkTests(TestCase):
         for name in ['email/welcome_email.html', 'email/account_deleted_email.html', 'email/announcement.html',
                      'email/drip_tips.html', 'email/drip_discover.html', 'email/drip_upgrade.html',
                      'email/drip_summary.html', 'email/recurring_reminder.html', 'email/product_update.html',
+                     'email/upgrade_thank_you.html',
                      'emails/monthly_report.html', 'account/email/email_confirmation_signup_message.html',
                      'account/email/email_confirmation_message.html', 'account/email/password_reset_key_message.html']:
             self.assertTrue(render_to_string(name, context).strip(), name)
@@ -509,3 +510,95 @@ class DripCopyTests(TestCase):
         html = [m for m in mail.outbox if m.to == [user.email]][0].alternatives[0][0]
         stats = re.findall(r'font-size: 28px[^>]*>\s*(\d+)\s*<', html)
         self.assertEqual(stats, ['3', '0', '2'])
+
+
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend', RAZORPAY_KEY_ID='k', RAZORPAY_KEY_SECRET='s')
+class UpgradeThankYouTests(TestCase):
+    """One thank-you per first payment on a plan: not for renewals, trials or a payment seen twice."""
+
+    def setUp(self):
+        import json  # noqa: F401
+        self.user = verified_user('payer')
+        self.client.force_login(self.user)
+
+    def thank_yous(self):
+        return [m for m in mail.outbox if m.subject.startswith('Thank you for upgrading')]
+
+    def verify(self, order_id, payment_id='pay_1'):
+        import json
+        from django.urls import reverse
+        with patch('expenses.views_payment.razorpay.Client'):
+            return self.client.post(
+                reverse('verify-payment'),
+                json.dumps({'razorpay_order_id': order_id, 'razorpay_payment_id': payment_id, 'razorpay_signature': 'x'}),
+                content_type='application/json')
+
+    def test_a_one_time_payment_gets_a_thank_you_with_plan_amount_and_end_date(self):
+        from expenses.models import PaymentHistory
+        PaymentHistory.objects.create(user=self.user, order_id='order_1', amount=499, tier='PLUS', duration='YEARLY')
+        self.assertEqual(self.verify('order_1').status_code, 200)
+        sent = self.thank_yous()
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(sent[0].subject, 'Thank you for upgrading to Plus')
+        self.assertEqual(sent[0].to, [self.user.email])
+        self.assertIn('₹499', sent[0].body)
+        self.assertIn('Valid until', sent[0].body)
+        self.assertNotIn('renews automatically', sent[0].body)
+        self.assertIn('Unlimited expenses', sent[0].alternatives[0][0])
+
+    def test_a_lifetime_payment_says_it_never_renews(self):
+        from expenses.models import PaymentHistory
+        PaymentHistory.objects.create(user=self.user, order_id='order_2', amount=1999, tier='PRO', duration='LIFETIME')
+        self.verify('order_2')
+        self.assertIn('for life', self.thank_yous()[0].body)
+
+    def test_repeating_the_verification_does_not_send_a_second_one(self):
+        from expenses.models import PaymentHistory
+        PaymentHistory.objects.create(user=self.user, order_id='order_3', amount=49, tier='PLUS', duration='MONTHLY')
+        self.verify('order_3')
+        self.verify('order_3')
+        self.assertEqual(len(self.thank_yous()), 1)
+
+    def webhook(self, sub_id, payment_id):
+        import json
+        from django.urls import reverse
+        end = int((timezone.now() + timedelta(days=30)).timestamp())
+        payload = {'event': 'subscription.charged', 'payload': {
+            'subscription': {'entity': {'id': sub_id, 'current_end': end}},
+            'payment': {'entity': {'id': payment_id, 'amount': 4900}}}}
+        with patch('expenses.views_payment.razorpay.Client'), self.settings(RAZORPAY_WEBHOOK_SECRET='w'):
+            return self.client.post(reverse('razorpay-webhook'), json.dumps(payload),
+                                    content_type='application/json', HTTP_X_RAZORPAY_SIGNATURE='sig')
+
+    def test_a_subscription_is_thanked_on_the_first_charge_only_and_says_it_renews(self):
+        from expenses.models import PaymentHistory
+        self.user.profile.razorpay_subscription_id = 'sub_9'
+        self.user.profile.save()
+        PaymentHistory.objects.create(user=self.user, order_id='sub_9', amount=49, tier='PLUS', duration='MONTHLY')
+        self.webhook('sub_9', 'pay_first')
+        self.webhook('sub_9', 'pay_renewal')
+        sent = self.thank_yous()
+        self.assertEqual(len(sent), 1)
+        self.assertIn('renews automatically', sent[0].body)
+
+    def test_the_browser_confirming_after_the_webhook_does_not_thank_twice(self):
+        from expenses.models import PaymentHistory
+        self.user.profile.razorpay_subscription_id = 'sub_8'
+        self.user.profile.save()
+        PaymentHistory.objects.create(user=self.user, order_id='sub_8', amount=49, tier='PLUS', duration='MONTHLY')
+        self.webhook('sub_8', 'pay_x')
+        self.verify('sub_8', 'pay_x')
+        self.assertEqual(len(self.thank_yous()), 1)
+
+    def test_a_trial_gets_no_thank_you(self):
+        from django.urls import reverse
+        self.client.post(reverse('start-trial'))
+        self.assertEqual(self.thank_yous(), [])
+
+    def test_a_mail_failure_does_not_undo_the_payment(self):
+        from expenses.models import PaymentHistory
+        PaymentHistory.objects.create(user=self.user, order_id='order_4', amount=49, tier='PLUS', duration='MONTHLY')
+        with patch('expenses.payment_emails.send_mail', side_effect=RuntimeError('down')):
+            self.assertEqual(self.verify('order_4').status_code, 200)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.tier, 'PLUS')

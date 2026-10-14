@@ -320,10 +320,13 @@ class Command(BaseCommand):
                     break 
 
     def _process_subscription_reminders(self, profile):
-        """Notifies about upcoming subscription expiries (2 days prior)."""
+        """Notifies about upcoming plan expiries (2 days prior). Only for plans that really end:
+        a recurring subscription renews itself, so it gets no expiry warning."""
         if profile.tier in ['PLUS', 'PRO'] and not profile.is_lifetime and profile.subscription_end_date:
             expiry_target = self.today + timedelta(days=2)
             if profile.subscription_end_date.date() == expiry_target and not profile.expiry_reminder_sent:
+                if profile.pays_by_subscription:
+                    return
                 title = "Subscription Expiring Soon"
                 message = f"Your {profile.get_tier_display()} plan ends in 2 days ({profile.subscription_end_date.strftime('%b %d')})."
                 link = "/pricing/"

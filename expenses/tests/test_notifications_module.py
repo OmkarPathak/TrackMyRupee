@@ -330,6 +330,28 @@ class TestSubscriptionReminder(NotifBase):
         self.assertEqual(notes[0].link, '/pricing/')
         self.assertTrue(UserProfile.objects.get(user=self.user).expiry_reminder_sent)
 
+    def test_a_recurring_subscription_gets_no_expiry_warning_because_it_renews(self):
+        from expenses.models import PaymentHistory
+        end = timezone.now() + datetime.timedelta(days=2)
+        UserProfile.objects.filter(user=self.user).update(
+            tier='PLUS', subscription_end_date=end, is_lifetime=False, razorpay_subscription_id='sub_1')
+        PaymentHistory.objects.create(user=self.user, order_id='sub_1', payment_id='pay_1', amount=49,
+                                      tier='PLUS', duration='MONTHLY', status='SUCCESS')
+        self.run_command()
+        self.assertEqual(Notification.objects.filter(user=self.user).count(), 0)
+
+    def test_a_one_time_payment_still_gets_the_warning_even_after_an_abandoned_subscription_checkout(self):
+        from expenses.models import PaymentHistory
+        end = timezone.now() + datetime.timedelta(days=2)
+        UserProfile.objects.filter(user=self.user).update(
+            tier='PLUS', subscription_end_date=end, is_lifetime=False, razorpay_subscription_id='sub_abandoned')
+        PaymentHistory.objects.create(user=self.user, order_id='sub_abandoned', amount=49, tier='PLUS',
+                                      duration='MONTHLY', status='PENDING')
+        PaymentHistory.objects.create(user=self.user, order_id='order_1', payment_id='pay_2', amount=499,
+                                      tier='PLUS', duration='YEARLY', status='SUCCESS')
+        self.run_command()
+        self.assertEqual(Notification.objects.filter(user=self.user, title='Subscription Expiring Soon').count(), 1)
+
     def test_lifetime_and_free_users_get_none(self):
         end = timezone.now() + datetime.timedelta(days=2)
         UserProfile.objects.filter(user=self.user).update(tier='PRO', subscription_end_date=end, is_lifetime=True)

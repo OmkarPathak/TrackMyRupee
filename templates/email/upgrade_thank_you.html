@@ -1,0 +1,34 @@
+{% extends "account/email/base_email.html" %}
+
+{% block title %}Thank you for upgrading to {{ tier_name }}{% endblock %}
+
+{% block content %}
+    <h2>Thank you for choosing {{ tier_name }} 💚</h2>
+
+    <p>Hi <strong>{{ user.first_name|default:user.username }}</strong>,</p>
+
+    <p>Your payment went through and <strong>{{ tier_name }}</strong> is active on your account. Thank you for supporting TrackMyRupee. It is a small team, and paying users are what keep the app independent and ad-free.</p>
+
+    <div style="text-align: left; margin: 20px 0 25px; background: #f8f9fa; border-radius: 12px; padding: 20px; line-height: 1.6;">
+        <p style="margin: 0 0 6px;"><strong>Plan:</strong> {{ tier_name }}{% if duration_label %} ({{ duration_label }}){% endif %}</p>
+        <p style="margin: 0 0 6px;"><strong>Amount paid:</strong> ₹{{ amount|floatformat:"-2" }}</p>
+        {% if lifetime %}
+        <p style="margin: 0;"><strong>Valid:</strong> for life, with no renewals</p>
+        {% elif valid_until %}
+        <p style="margin: 0;"><strong>{% if auto_renews %}Next renewal{% else %}Valid until{% endif %}:</strong> {{ valid_until|date:"j F Y" }}{% if auto_renews %} (renews automatically; you can cancel any time from Settings){% endif %}</p>
+        {% endif %}
+    </div>
+
+    <h3 style="margin: 28px 0 10px;">What you now have</h3>
+    <ul style="text-align: left; padding-left: 20px; line-height: 1.7;">
+        {% for line in highlights %}<li>{{ line }}</li>{% endfor %}
+    </ul>
+
+    <div style="margin: 30px 0;">
+        <a href="{{ base_url }}/dashboard/" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+
+    <p>Something not right with your payment or plan? Write to <a href="mailto:support@trackmyrupee.com" style="color: #1D9E75;">support@trackmyrupee.com</a>. A person reads every message.</p>
+
+    <p>With thanks,<br>The TrackMyRupee Team</p>
+{% endblock %}

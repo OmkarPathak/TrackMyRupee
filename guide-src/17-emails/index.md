@@ -23,6 +23,15 @@ If a confirmation email does not arrive, check spam, then use **Resend** on the 
 
 ---
 
+## Plan emails
+
+| Email | When | Notes |
+|-------|------|-------|
+| **Thank you for upgrading** | Once, when your first payment on Plus or Pro goes through | Shows the plan, the amount paid and either the end date, the next renewal date or "for life". Renewals do not send another one, and neither does a free trial. |
+| **Subscription Expiring Soon** | Two days before a plan that you paid for once (monthly, yearly) ends | Arrives in that day's alert digest on Plus and Pro. Plans on automatic renewal do not get it, because they renew themselves. |
+
+---
+
 ## Getting-started tips (Free accounts)
 
 Free accounts with a confirmed address get up to four short emails after sign-up:
