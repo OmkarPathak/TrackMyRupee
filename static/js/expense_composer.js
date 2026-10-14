@@ -661,7 +661,16 @@
   function setBusy(on) {
     S.saving = on;
     [el.add, el.addAnother, el.cancel].forEach(function (b) { b.disabled = on; });
-    if (on) el.add.textContent = t('adding'); else el.add.innerHTML = addHtml;
+    if (on) {
+      el.add.textContent = '';
+      var spin = document.createElement('span');
+      spin.className = 'spinner-border spinner-border-sm me-2';
+      spin.setAttribute('aria-hidden', 'true');
+      el.add.appendChild(spin);
+      el.add.appendChild(document.createTextNode(t('adding')));
+    } else {
+      el.add.innerHTML = addHtml;
+    }
   }
 
   function attemptAdd(another) {
@@ -721,7 +730,10 @@
       body: JSON.stringify(body)
     }).then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
       .then(function (res) {
-        setBusy(false);
+        // Leaving the page after a plain Add: stay busy until the browser has gone, or the button
+        // would look idle for the seconds the next page takes to load.
+        var leaving = res.j && res.j.success && !another;
+        if (!leaving) setBusy(false);
         if (res.j && res.j.success) return onSaved(res.j, another);
         var j = res.j || {};
         if (j.code === 'limit') {
@@ -771,6 +783,8 @@
   // ── Page lifecycle ────────────────────────────────────────────────────────
   // New Expense is an ordinary page: Cancel / Close / a finished add go back to where the user came from.
   function leave() { window.location.assign(S.nextUrl); }
+  // Coming back with the browser's Back button restores this page as it was left: undo the busy state.
+  window.addEventListener('pageshow', function (e) { if (e.persisted && S.saving) setBusy(false); });
 
 
   el.cancel.addEventListener('click', function () { if (!S.saving) leave(); });
