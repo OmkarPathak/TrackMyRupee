@@ -167,6 +167,9 @@
                     </p>
                 </div>
                 <div class="card-body p-3 px-md-4 pb-md-4 d-flex flex-column justify-content-between flex-grow-1">
+                    {% if not asset_allocation.has_data %}
+                    <p class="text-muted small mb-0 my-auto text-center">{% trans "Add an account with a balance to see how your money is spread between bank and investments." %}</p>
+                    {% else %}
                     <div>
                         <!-- Bank accounts progress bar -->
                         <div class="mb-4">
@@ -220,6 +223,7 @@
                             {% blocktrans with sip=asset_allocation.suggest_sip_formatted sum=asset_allocation.sip_added_3y %}If you invested just {{ sip }}/month from idle bank balance, you'd add {{ sum }} in 3 years (at 12% CAGR){% endblocktrans %}
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

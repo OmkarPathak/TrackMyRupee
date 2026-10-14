@@ -2262,9 +2262,10 @@ class LoanInterestRate(models.Model):
     def __str__(self):
         return f"{self.loan.name} - {self.interest_rate}% from {self.effective_date}"
 
-def annotate_loan_principal_totals(queryset):
+def annotate_loan_principal_totals(queryset, as_of=None):
     """Annotate a Loan queryset with `paid_principal` and `capital_prepaid`.
 
+    With ``as_of`` only repayments and prepayments dated on or before that day are counted.
     `Loan.remaining_principal` runs two aggregate queries per loan unless those attributes
     are already present. Looping over loans without this costs 2 DB round trips per loan;
     with it the totals arrive in the same query as the loans. The values are the same
@@ -2275,15 +2276,21 @@ def annotate_loan_principal_totals(queryset):
     from django.db.models.functions import Coalesce
 
     zero = Value(Decimal('0.00'))
+    repayments = LoanRepayment.objects.filter(loan=OuterRef('pk'))
+    prepayments = CapitalEvent.objects.filter(
+        linked_loan=OuterRef('pk'), subtype__in=['loan_down_payment', 'loan_prepayment']
+    )
+    if as_of is not None:
+        # Only what had been paid by that date (net worth "as of" a past day)
+        repayments = repayments.filter(date__lte=as_of)
+        prepayments = prepayments.filter(date__lte=as_of)
     paid = (
-        LoanRepayment.objects.filter(loan=OuterRef('pk'))
+        repayments
         .order_by().values('loan')
         .annotate(total=Sum('principal_portion')).values('total')
     )
     prepaid = (
-        CapitalEvent.objects.filter(
-            linked_loan=OuterRef('pk'), subtype__in=['loan_down_payment', 'loan_prepayment']
-        )
+        prepayments
         .order_by().values('linked_loan')
         .annotate(total=Sum('amount')).values('total')
     )

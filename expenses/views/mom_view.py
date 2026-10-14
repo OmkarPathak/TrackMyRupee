@@ -8,12 +8,11 @@ from django.db.models import Sum
 from django.shortcuts import render
 from django.utils import timezone
 
-from ..account_types import investment_codes
+from ..account_types import STRATEGY, investment_codes, strategy_for
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, CapitalEvent, Expense, Income, Transfer
 from ..savings import monthly_savings
 from ..templatetags.digit_filters import compact_amount
-from ..utils import get_exchange_rate
 
 
 @login_required
@@ -33,7 +32,7 @@ def mom_analysis_view(request):
 
     # 1. Get last num_months months (including current)
     months_data = []
-    curr_date = timezone.now().date()
+    curr_date = timezone.localdate()
     
     for i in range(num_months):
         year = curr_date.year
@@ -61,69 +60,26 @@ def mom_analysis_view(request):
     from django.db.models.functions import TruncMonth
     history_start = months_data[0]['start']
     
-    batch_inc = Income.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-    batch_exp = Expense.objects.filter(user=user, date__gte=history_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
     batch_inv = Transfer.objects.filter(
-        user=user, date__gte=history_start, 
+        user=user, date__gte=history_start,
         to_account__account_type__in=list(investment_codes())
     ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('converted_amount'))
-    
-    mo_inc_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inc}
-    mo_exp_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_exp}
     mo_inv_map = {(item['m'].year, item['m'].month): float(item['total']) for item in batch_inv}
 
     # Savings per month (interest and counted capital events included) from the single definition
     month_savings = monthly_savings(user, history_start, months_data[-1]['end'])
 
-    # Add capital events (not excluded from averages) to the expense map (used for the net-worth
-    # cash-flow reconstruction below)
-    batch_cap = CapitalEvent.objects.filter(
-        user=user, date__gte=history_start, exclude_from_averages=False
-    ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-    for item in batch_cap:
-        key = (item['m'].year, item['m'].month)
-        mo_exp_map[key] = mo_exp_map.get(key, 0.0) + float(item['total'])
-
-
-    # 2. Net Worth Calculation (Backwards reconstruction)
-    current_net_worth, _ = LedgerReadService.get_net_worth(user)
-
-    # Helper: get net cashflow for a month from pre-fetched maps
-    def get_net_cashflow_cached(year, month):
-        inc = mo_inc_map.get((year, month), 0)
-        exp = mo_exp_map.get((year, month), 0)
-        return Decimal(str(inc)) - Decimal(str(exp))
-
-
-    # We want Net Worth at the END of each selected month.
+    # 2. Net worth at the END of each month, from the ledger as it stood on that day. (Working backwards
+    # from today by subtracting each month's income minus spending was wrong: loan principal and transfers
+    # do not change net worth, while interest, price moves and exchange rates do.) The current month ends
+    # in the future, so it is simply the net worth now.
+    current_net_worth, current_balances = LedgerReadService.get_net_worth(user)
     nw_data = []
-    running_nw = current_net_worth
-    
-    # NW at end of current month (today)
-    nw_data.append(float(running_nw))
-    
-    # Current month start
-    curr_month_start = date.today().replace(day=1)
-    
-    if num_months > 1:
-        # Subtract current month's cashflow to get NW at end of previous month
-        # Since the pre-fetched maps use TruncMonth, they already contain data up to 'today' for the current month.
-        running_nw -= get_net_cashflow_cached(date.today().year, date.today().month)
-
-        nw_data.append(float(running_nw))
-        
-        # Subtract previous months' cashflows
-        temp_date = curr_month_start
-        for i in range(num_months - 2):
-            p_end = temp_date - timedelta(days=1)
-            p_start = p_end.replace(day=1)
-            
-            running_nw -= get_net_cashflow_cached(p_start.year, p_start.month)
-
-            nw_data.append(float(running_nw))
-            temp_date = p_start
-        
-    nw_data.reverse() # Oldest to Newest
+    for m in months_data:
+        if m['end'] >= timezone.localdate():
+            nw_data.append(float(current_net_worth))
+        else:
+            nw_data.append(float(LedgerReadService.get_net_worth(user, as_of=m['end'])[0]))
 
     # 3. Income, Expense, Savings for each month
     labels = []
@@ -132,8 +88,8 @@ def mom_analysis_view(request):
     inc_data = []
     inv_data = []
     burn_data = []
-    today = timezone.now().date()
-    
+    today = timezone.localdate()
+
     for m in months_data:
         m_result = month_savings.get((m['year'], m['month']))
         m_inc = float(m_result.income) if m_result else 0
@@ -266,32 +222,30 @@ def mom_analysis_view(request):
             
             creep_categories.sort(key=lambda x: x['growth_rate'], reverse=True)
 
-    # Asset Allocation Health
-    active_accounts = Account.objects.filter(user=user, is_active=True)
+    # Asset Allocation Health: how the money you hold is spread, from each account's value in your
+    # currency (deposits accrued, holdings at market), counting only accounts with a positive balance.
+    # Cards and loans are what you owe, not what you hold, and a user with nothing to spread sees an
+    # empty card rather than invented figures.
+    bank_codes = {'BANK', 'SAVINGS_ACCOUNT', 'SALARY_ACCOUNT', 'CURRENT_ACCOUNT'}
+    growing_codes = set(investment_codes())
     bank_tot = Decimal('0.00')
     inv_tot = Decimal('0.00')
     total_tot = Decimal('0.00')
-    for acc in active_accounts:
-        bal = acc.balance
-        if acc.currency != currency_symbol:
-            rate = get_exchange_rate(acc.currency, currency_symbol)
-            bal = (bal * rate).quantize(Decimal('0.01'))
-        
-        if acc.account_type in ['BANK', 'SAVINGS_ACCOUNT', 'SALARY_ACCOUNT', 'CURRENT_ACCOUNT']:
-            bank_tot += bal
-        elif acc.account_type in investment_codes():
-            inv_tot += bal
-        total_tot += bal
-    
-    if total_tot > 0:
-        bank_pct = (bank_tot / total_tot) * 100
-        inv_pct = (inv_tot / total_tot) * 100
-    else:
-        bank_pct = Decimal('88.4')
-        inv_pct = Decimal('6.8')
-        bank_tot = Decimal('1380000') # 13.8L
-        inv_tot = Decimal('106000')
-        total_tot = bank_tot + inv_tot
+    for acc in Account.objects.filter(user=user, is_active=True):
+        if strategy_for(acc.account_type) in (STRATEGY.REVOLVING_CREDIT, STRATEGY.LOAN_OUTSTANDING):
+            continue
+        value = current_balances.get(acc.pk, Decimal('0.00'))
+        if value <= 0:
+            continue
+        if acc.account_type in bank_codes:
+            bank_tot += value
+        elif acc.account_type in growing_codes:
+            inv_tot += value
+        total_tot += value
+
+    has_allocation = total_tot > 0
+    bank_pct = (bank_tot / total_tot) * 100 if has_allocation else Decimal('0')
+    inv_pct = (inv_tot / total_tot) * 100 if has_allocation else Decimal('0')
 
     if bank_tot >= 500000:
         suggest_sip = 5000
@@ -335,6 +289,7 @@ def mom_analysis_view(request):
         'creep_categories': creep_categories,
         'has_enough_creep_data': has_enough_creep_data,
         'asset_allocation': {
+            'has_data': has_allocation,
             'bank_pct': round(bank_pct, 1),
             'inv_pct': round(inv_pct, 1),
             'bank_balance_formatted': f"{currency_symbol}{compact_amount(bank_tot, currency_symbol)}",

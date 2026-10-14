@@ -36,20 +36,28 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db.models import Sum
+from django.utils import timezone
 
 from .account_types import KIND, STRATEGY, classify, strategy_for, resolve_category_selector
 from .fx import FXService
 from .ledger_rollout import is_user_in_read_cohort
 from .models import (
     AssetValuation,
+    CapitalEvent,
+    Expense,
+    GoalContribution,
     Holding,
+    Income,
     JournalEntry,
     JournalLine,
     LedgerAccount,
     Loan,
     LoanScheduleInstallment,
+    LoanRepayment,
     PhysicalAsset,
     SavingsGoal,
+    Transfer,
+    Valuation,
     annotate_loan_principal_totals,
 )
 from .utils import get_exchange_rate
@@ -57,14 +65,14 @@ from .utils import get_exchange_rate
 logger = logging.getLogger(__name__)
 
 
-def _compute_deposit_value(account, ledger_balance: Decimal) -> Decimal:
+def _compute_deposit_value(account, ledger_balance: Decimal, as_of=None) -> Decimal:
     """
     Compute accrued DEPOSIT value for an account.
     Delegates to expenses.account_valuation.get_current_deposit(account)
     for unified FD and RD accrual math (including maturity/closed date caps).
     """
     from .account_valuation import get_current_deposit
-    return get_current_deposit(account, ledger_balance=ledger_balance)
+    return get_current_deposit(account, ledger_balance=ledger_balance, today=as_of)
 
 
 class LedgerReadService:
@@ -257,7 +265,7 @@ class LedgerReadService:
     # ──────────────────────────────────────────────────────────────────────────
 
     @classmethod
-    def _fetch_latest_holding_valuations(cls, account_ids: list) -> dict:
+    def _fetch_latest_holding_valuations(cls, account_ids: list, as_of=None) -> dict:
         """
         Fetch latest Valuation per active Holding for all given account IDs.
         ONE query via LEFT JOIN on Valuation.
@@ -266,12 +274,28 @@ class LedgerReadService:
         Returns: {account_id: list of {'value': Decimal, 'currency': str}}
         Note: the caller is responsible for FX conversion.
         """
-        rows = list(
-            Holding.objects
-            .filter(account_id__in=account_ids, is_active=True)
-            .order_by('id', '-valuations__as_of_date', '-valuations__created_at')
-            .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'scheme_code', 'valuations__value')
-        )
+        if as_of is None:
+            rows = list(
+                Holding.objects
+                .filter(account_id__in=account_ids, is_active=True)
+                .order_by('id', '-valuations__as_of_date', '-valuations__created_at')
+                .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'scheme_code', 'valuations__value')
+            )
+        else:
+            # The latest valuation recorded on or before that day
+            rows = list(
+                Holding.objects.filter(account_id__in=account_ids, is_active=True)
+                .order_by('id')
+                .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'scheme_code')
+            )
+            at_date = {}
+            for v in (
+                Valuation.objects.filter(holding_id__in=[r['id'] for r in rows], as_of_date__lte=as_of)
+                .order_by('holding_id', '-as_of_date', '-created_at').values('holding_id', 'value')
+            ):
+                at_date.setdefault(v['holding_id'], v['value'])
+            for r in rows:
+                r['valuations__value'] = at_date.get(r['id'])
 
         scheme_codes = {r['scheme_code'] for r in rows if r['scheme_code']}
         nav_caches = {}
@@ -298,7 +322,7 @@ class LedgerReadService:
             val = r['valuations__value']
             if val is None:
                 scheme_code = r['scheme_code']
-                cache_nav = nav_caches.get(scheme_code) if scheme_code else None
+                cache_nav = nav_caches.get(scheme_code) if (scheme_code and as_of is None) else None
                 if cache_nav is not None:
                     val = (units * cache_nav).quantize(Decimal('0.01'))
                 else:
@@ -315,18 +339,16 @@ class LedgerReadService:
         return account_holding_vals
 
     @classmethod
-    def _fetch_latest_asset_valuations(cls, asset_ids: list) -> dict:
+    def _fetch_latest_asset_valuations(cls, asset_ids: list, as_of=None) -> dict:
         """
         Fetch latest AssetValuation per PhysicalAsset for all given asset IDs.
         ONE query. Returns: {asset_id: Decimal value}.
         """
 
-        rows = (
-            AssetValuation.objects
-            .filter(asset_id__in=asset_ids)
-            .order_by('asset_id', '-as_of_date', '-created_at')
-            .values('asset_id', 'value')
-        )
+        valuations = AssetValuation.objects.filter(asset_id__in=asset_ids)
+        if as_of is not None:
+            valuations = valuations.filter(as_of_date__lte=as_of)
+        rows = valuations.order_by('asset_id', '-as_of_date', '-created_at').values('asset_id', 'value')
 
         seen_assets: set = set()
         result: dict = {}
@@ -340,7 +362,7 @@ class LedgerReadService:
         return result
 
     @classmethod
-    def _fetch_loan_outstanding(cls, loan_ids: list) -> dict:
+    def _fetch_loan_outstanding(cls, loan_ids: list, as_of=None) -> dict:
         """
         Outstanding principal for each loan, in the loan's own currency. At most three queries.
 
@@ -352,19 +374,24 @@ class LedgerReadService:
 
         Returns: {loan_id: Decimal outstanding_principal}
         """
-        from .models import CapitalEvent, Loan, annotate_loan_principal_totals
-
-        loans = list(annotate_loan_principal_totals(Loan.objects.filter(id__in=loan_ids)))
+        loans = list(annotate_loan_principal_totals(Loan.objects.filter(id__in=loan_ids), as_of=as_of))
         outstanding = {
             loan.id: loan.remaining_principal.quantize(Decimal('0.01')) for loan in loans
         }
+        if as_of is not None:
+            # A loan that had not started yet owed nothing
+            for loan in loans:
+                if loan.start_date and loan.start_date > as_of:
+                    outstanding[loan.id] = Decimal('0.00')
 
         emi_loan_ids = [l.id for l in loans if l.repayment_type not in ('BULLET', 'INTEREST_ONLY')]
         if emi_loan_ids:
             latest: dict = {}
+            installments = LoanScheduleInstallment.objects.filter(loan_id__in=emi_loan_ids, is_paid=True)
+            if as_of is not None:
+                installments = installments.filter(due_date__lte=as_of)
             for row in (
-                LoanScheduleInstallment.objects
-                .filter(loan_id__in=emi_loan_ids, is_paid=True)
+                installments
                 .order_by('loan_id', '-due_date', '-installment_no')
                 .values('loan_id', 'due_date', 'scheduled_balance')
             ):
@@ -373,13 +400,104 @@ class LedgerReadService:
                 prepaid_after = set()
                 for ev in CapitalEvent.objects.filter(
                     linked_loan_id__in=list(latest), subtype__in=['loan_down_payment', 'loan_prepayment']
-                ).values('linked_loan_id', 'date'):
+                ).filter(**({'date__lte': as_of} if as_of is not None else {})).values('linked_loan_id', 'date'):
                     if ev['date'] > latest[ev['linked_loan_id']]['due_date']:
                         prepaid_after.add(ev['linked_loan_id'])
                 for loan_id, row in latest.items():
                     if loan_id not in prepaid_after:
                         outstanding[loan_id] = max(Decimal('0.00'), row['scheduled_balance'])
         return outstanding
+
+    @classmethod
+    def _roll_back_balances(cls, accounts, balances, as_of):
+        """Balances as they stood at the end of ``as_of``.
+
+        Journal entries are stamped with the time they were posted, not the date of the transaction, so a
+        past balance is the balance now minus what the dated transactions after ``as_of`` did to it (the same
+        rule reconciliation uses). Manual adjustments and the opening balance carry no transaction date and
+        always count. A handful of grouped queries, whatever the number of accounts."""
+        by_id = {a.id: a for a in accounts}
+        ids = list(by_id)
+        net_after = {aid: Decimal("0.00") for aid in ids}
+
+        def add(account_id, total, currency, sign):
+            account = by_id.get(account_id)
+            if account is None or not total:
+                return
+            amount = total
+            if currency and currency != account.currency:
+                amount = (total * get_exchange_rate(currency, account.currency)).quantize(Decimal("0.01"))
+            net_after[account_id] += sign * amount
+
+        for model, account_field, currency_field, sign in (
+            (Expense, 'account_id', 'currency', -1),
+            (Income, 'account_id', 'currency', 1),
+            (GoalContribution, 'account_id', 'goal__currency', -1),
+            (LoanRepayment, 'from_account_id', 'loan__currency', -1),
+        ):
+            rows = (
+                model.objects.filter(**{f'{account_field}__in': ids, 'date__gt': as_of, 'is_deleted': False})
+                .values(account_field, currency_field).annotate(total=Sum('amount')).order_by()
+            )
+            for row in rows:
+                add(row[account_field], row['total'], row[currency_field], sign)
+
+        events = (
+            CapitalEvent.objects.filter(account_id__in=ids, date__gt=as_of, include_in_net_worth=True, is_deleted=False)
+            .values('account_id', 'currency').annotate(total=Sum('amount')).order_by()
+        )
+        for row in events:
+            add(row['account_id'], row['total'], row['currency'], -1)
+
+        transfers = Transfer.objects.filter(date__gt=as_of, is_deleted=False)
+        for row in (transfers.filter(from_account_id__in=ids).values('from_account_id')
+                    .annotate(total=Sum('amount')).order_by()):
+            add(row['from_account_id'], row['total'], None, -1)
+        for row in (transfers.filter(to_account_id__in=ids).values('to_account_id', 'from_account__currency')
+                    .annotate(total=Sum('amount')).order_by()):
+            add(row['to_account_id'], row['total'], row['from_account__currency'], 1)
+
+        return {aid: balances[aid] - net_after[aid] for aid in ids}
+
+    @classmethod
+    def _goal_reserves_base(cls, user, base_currency, as_of=None):
+        """What the user's goals hold, in their currency (as of a past day when given)."""
+        total = Decimal("0.00")
+        if as_of is None:
+            for goal in SavingsGoal.objects.filter(user=user):
+                amount = goal.current_amount or Decimal("0.00")
+                if goal.currency != base_currency:
+                    amount = (amount * get_exchange_rate(goal.currency, base_currency)).quantize(Decimal("0.01"))
+                total += amount
+            return total
+        rows = (
+            GoalContribution.objects.filter(goal__user=user, date__lte=as_of, is_deleted=False)
+            .values('goal__currency').annotate(total=Sum('amount')).order_by()
+        )
+        for row in rows:
+            amount = row['total'] or Decimal("0.00")
+            if row['goal__currency'] != base_currency:
+                amount = (amount * get_exchange_rate(row['goal__currency'], base_currency)).quantize(Decimal("0.01"))
+            total += amount
+        return total
+
+    @classmethod
+    def _loans_outstanding_base(cls, user, base_currency, exclude_ids=(), as_of=None):
+        """Outstanding principal of loans (in the user's currency) that no loan account stands for."""
+        loans = Loan.objects.filter(user=user).exclude(id__in=list(exclude_ids))
+        if as_of is None:
+            loans = loans.filter(is_active=True)
+        else:
+            loans = loans.filter(start_date__lte=as_of)
+        total = Decimal("0.00")
+        for loan in annotate_loan_principal_totals(loans, as_of=as_of):
+            remaining = loan.remaining_principal.quantize(Decimal("0.01"))
+            if remaining <= Decimal("0.00"):
+                continue
+            if loan.currency != base_currency:
+                remaining = (remaining * get_exchange_rate(loan.currency, base_currency)).quantize(Decimal("0.01"))
+            total += remaining
+        return total
 
     # ──────────────────────────────────────────────────────────────────────────
     # Main net-worth computation (set-based, ≤ 8 total queries)
@@ -399,8 +517,10 @@ class LedgerReadService:
 
         Args:
             user: Django User instance.
-            as_of: Optional date for historical snapshot reproduction.
-                   FX rates are resolved as-of this date.
+            as_of: Optional past date: the net worth at the end of that day. Balances are rolled back by the
+                   transactions dated after it, deposits accrue only to it, holdings and assets use the latest
+                   valuation on or before it, loans count only the repayments up to it, and FX rates are those
+                   of that day. Today or later means the current net worth.
             include_categories: Optional list of category group names (e.g. 'Investments')
                                 or account_type codes (e.g. 'MUTUAL_FUND').
                                 If specified, only accounts in these categories are included.
@@ -427,8 +547,15 @@ class LedgerReadService:
         accounts = list(user.accounts.filter(is_active=True).select_related('linked_loan', 'linked_physical_asset'))
         extended = getattr(settings, "NET_WORTH_EXTENDED_MODELS_ENABLED", False)
 
+        today = timezone.localdate()
+        historical = as_of is not None and as_of < today
+        if not historical:
+            as_of_cut = None
+        else:
+            as_of_cut = as_of
+
         if not accounts:
-            return cls._net_worth_no_accounts(user, as_of=as_of, extended=extended, detail=detail)
+            return cls._net_worth_no_accounts(user, as_of=as_of_cut, extended=extended, detail=detail)
 
         base_currency = user.profile.currency
         account_ids = [a.id for a in accounts]
@@ -472,6 +599,9 @@ class LedgerReadService:
             )
             ledger_balances[account.id] = balance
 
+        if as_of_cut is not None:
+            ledger_balances = cls._roll_back_balances(accounts, ledger_balances, as_of_cut)
+
         # ── Extended valuation data (fetched only when flag is on) ──────────
         holding_vals_by_account: dict = {}   # {account_id: list of {value, currency}}
         asset_val_map: dict = {}             # {asset_id: Decimal value}
@@ -485,7 +615,7 @@ class LedgerReadService:
             ]
             if holdings_account_ids:
                 holding_vals_by_account = cls._fetch_latest_holding_valuations(
-                    holdings_account_ids
+                    holdings_account_ids, as_of=as_of_cut
                 )
 
             # Q5: latest asset valuations (one query)
@@ -501,7 +631,7 @@ class LedgerReadService:
                 for aid in asset_account_ids
             ]
             if physical_asset_ids:
-                asset_val_map = cls._fetch_latest_asset_valuations(physical_asset_ids)
+                asset_val_map = cls._fetch_latest_asset_valuations(physical_asset_ids, as_of=as_of_cut)
 
             # Q6: loan outstanding (one query per strategy)
             loan_account_ids = [
@@ -511,7 +641,7 @@ class LedgerReadService:
             ]
             loan_ids = [account_map[aid].linked_loan_id for aid in loan_account_ids]
             if loan_ids:
-                loan_outstanding_map = cls._fetch_loan_outstanding(loan_ids)
+                loan_outstanding_map = cls._fetch_loan_outstanding(loan_ids, as_of=as_of_cut)
 
         # Q7: FX rate map (one query, covers all currencies)
         all_currencies: set = {a.currency for a in accounts}
@@ -617,10 +747,10 @@ class LedgerReadService:
             elif strategy == STRATEGY.DEPOSIT:
                 # Accrual if deposit fields set and show_accrued_balance is True, else baseline deposit
                 if is_accrued:
-                    native_val = _compute_deposit_value(account, ledger_bal)
+                    native_val = _compute_deposit_value(account, ledger_bal, as_of_cut)
                 else:
                     from .account_valuation import get_baseline_deposit
-                    native_val = get_baseline_deposit(account, ledger_balance=ledger_bal) or ledger_bal
+                    native_val = get_baseline_deposit(account, ledger_balance=ledger_bal, today=as_of_cut) or ledger_bal
                 account_value = FXService.convert_using_map(
                     native_val, account.currency, fx_map
                 )
@@ -743,26 +873,11 @@ class LedgerReadService:
         # Goal reserves are already included in account balances (goal contributions debit
         # the account and credit the goal reserve ledger account). We preserve the existing
         # behavior of also summing goal current_amount to not reduce net worth for goal movement.
-        goal_reserves_base = Decimal("0.00")
-        for goal in SavingsGoal.objects.filter(user=user):
-            goal_amount = goal.current_amount or Decimal("0.00")
-            if goal.currency != base_currency:
-                rate = get_exchange_rate(goal.currency, base_currency)
-                goal_amount = (goal_amount * rate).quantize(Decimal("0.01"))
-            goal_reserves_base += goal_amount
+        goal_reserves_base = cls._goal_reserves_base(user, base_currency, as_of_cut)
 
         if not extended:
             # Pre-change path: subtract loan principal and add physical assets separately
-            outstanding_loan_base = Decimal("0.00")
-            active_loans = Loan.objects.filter(user=user, is_active=True)
-            for loan in active_loans:
-                remaining_principal = loan.remaining_principal.quantize(Decimal("0.01"))
-                if remaining_principal <= Decimal("0.00"):
-                    continue
-                if loan.currency != base_currency:
-                    rate = get_exchange_rate(loan.currency, base_currency)
-                    remaining_principal = (remaining_principal * rate).quantize(Decimal("0.01"))
-                outstanding_loan_base += remaining_principal
+            outstanding_loan_base = cls._loans_outstanding_base(user, base_currency, as_of=as_of_cut)
 
             physical_assets_base = Decimal("0.00")
 
@@ -780,17 +895,9 @@ class LedgerReadService:
             if strategy_for(a.account_type) == STRATEGY.LOAN_OUTSTANDING
             and a.linked_loan_id is not None
         }
-        unlinked_loans = annotate_loan_principal_totals(
-            Loan.objects.filter(user=user, is_active=True).exclude(id__in=linked_loan_ids)
+        total_liabilities += cls._loans_outstanding_base(
+            user, base_currency, exclude_ids=linked_loan_ids, as_of=as_of_cut
         )
-        for loan in unlinked_loans:
-            remaining_principal = loan.remaining_principal.quantize(Decimal("0.01"))
-            if remaining_principal <= Decimal("0.00"):
-                continue
-            if loan.currency != base_currency:
-                rate = get_exchange_rate(loan.currency, base_currency)
-                remaining_principal = (remaining_principal * rate).quantize(Decimal("0.01"))
-            total_liabilities += remaining_principal
 
         # Goals: already in account balances; keep legacy goal_reserves_base addend for now
         # to avoid disrupting the net-worth number for users who use goals.
@@ -807,30 +914,17 @@ class LedgerReadService:
         """Net worth computation when user has no active accounts."""
         base_currency = user.profile.currency
 
-        goal_reserves_base = Decimal("0.00")
-        for goal in SavingsGoal.objects.filter(user=user):
-            goal_amount = goal.current_amount or Decimal("0.00")
-            if goal.currency != base_currency:
-                rate = get_exchange_rate(goal.currency, base_currency)
-                goal_amount = (goal_amount * rate).quantize(Decimal("0.01"))
-            goal_reserves_base += goal_amount
-
-        outstanding_loan_base = Decimal("0.00")
-        active_loans = Loan.objects.filter(user=user, is_active=True)
-        for loan in active_loans:
-            remaining_principal = loan.remaining_principal.quantize(Decimal("0.01"))
-            if remaining_principal <= Decimal("0.00"):
-                continue
-            if loan.currency != base_currency:
-                rate = get_exchange_rate(loan.currency, base_currency)
-                remaining_principal = (remaining_principal * rate).quantize(Decimal("0.01"))
-            outstanding_loan_base += remaining_principal
+        goal_reserves_base = cls._goal_reserves_base(user, base_currency, as_of)
+        outstanding_loan_base = cls._loans_outstanding_base(user, base_currency, as_of=as_of)
 
         physical_assets_base = Decimal("0.00")
         if extended:
             assets = PhysicalAsset.objects.filter(user=user, is_active=True)
             for asset in assets:
-                latest_val = asset.valuations.order_by('-as_of_date', '-created_at').first()
+                valuations = asset.valuations.all()
+                if as_of is not None:
+                    valuations = valuations.filter(as_of_date__lte=as_of)
+                latest_val = valuations.order_by('-as_of_date', '-created_at').first()
                 if latest_val:
                     val = latest_val.value
                     if asset.currency != base_currency:

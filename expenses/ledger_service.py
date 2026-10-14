@@ -206,8 +206,11 @@ class LedgerPostingService:
                 cross_rate = FXService.rate(currency, account_ref.currency)
                 line_amount = (amount * cross_rate).quantize(Decimal("0.01"))
                 line_currency = account_ref.currency
-                # Recompute fx_rate and base_amount relative to the converted currency
-                fx_rate, base_amount = cls._to_base_amount(user, line_amount, line_currency)
+                # The account-side line is the same value in the account's currency, so it keeps the base
+                # amount of the transaction. Converting it to base again through a second route (and rounding
+                # twice) gave the two sides different bases, and the entry was refused as unbalanced.
+                if line_amount:
+                    fx_rate = (base_amount / line_amount).quantize(Decimal("0.000001"))
             except Exception as e:
                 # Fall back to transaction values on conversion error
                 logger.warning("FX conversion error in _build_line (%s -> %s): %s", currency, account_ref.currency, e)

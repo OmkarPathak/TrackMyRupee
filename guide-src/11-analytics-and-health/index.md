@@ -95,16 +95,18 @@ Navigate to **Sidebar → Trends** on desktop, or go to **More → Trends** on m
 ![The Trends page](img/trends-desktop.webp){ loading=lazy }
 
 
-The Trends page shows two key analyses:
+The Trends page charts the last months of income, spending, savings and **net worth**. Each month's net worth is the figure at the **end of that month**: your balances as they stood that day (later transactions are taken back out), deposits accrued only up to then, holdings and property at their latest value on or before it, and loans at what was still owed. The current month is your net worth now. How many months you see depends on your plan (Free 2, Plus 6, Pro 12).
+
+It also shows two key analyses:
 
 - **Category Creep Detection**: Identifies categories where your spend has grown significantly compared to a previous period. This helps you spot gradual increases before they become a problem.
-- **Asset Allocation Health**: Shows how your wealth is distributed across cash, fixed-income, and market-linked investments. A flag appears if too much wealth is sitting idle in low-yield accounts.
+- **Asset Allocation Health**: Shows how your wealth is distributed across cash, fixed-income, and market-linked investments. A flag appears if too much wealth is sitting idle in low-yield accounts. It counts the accounts you hold money in (deposits and holdings at their current value); credit cards, loans and overdrawn accounts are what you owe, so they are left out, and with nothing to spread the card stays empty.
 
 ---
 
 ## 6. Year in Review ("Wrapped")
 
-On Plus and Pro, the **View <year> Wrapped** button on the Analytics page opens a story-style summary of the selected year (URL: `/year-in-review/<year>/`): what you earned and spent, your top three categories, your highest and lowest spending months, your most-used payment method, your biggest single expense, how much you invested, and the goals you completed. The current year counts up to today. Free accounts are shown the pricing page instead.
+On Plus and Pro, the **View <year> Wrapped** button on the Analytics page opens a story-style summary of the selected year (URL: `/year-in-review/<year>/`): what you earned and spent, your top three categories, your highest and lowest spending months, your most-used payment method, your biggest single expense, how much you invested, and the goals you completed (a goal belongs to the year its last contribution was made). The current year counts up to today. Free accounts are shown the pricing page instead.
 
 ---
 

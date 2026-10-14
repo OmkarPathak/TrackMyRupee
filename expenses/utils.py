@@ -129,7 +129,12 @@ def generate_year_in_review_data(user, year):
     # Base querysets
     expenses = Expense.objects.filter(user=user, **period)
     incomes = Income.objects.filter(user=user, **period)
-    goals = SavingsGoal.objects.filter(user=user, created_at__year=year, is_completed=True)
+    # A goal belongs to the year it was finished (its last contribution), not the year it was created. One
+    # with no contributions recorded falls back to the year it was created.
+    from django.db.models import Max, Q
+    goals = SavingsGoal.objects.filter(user=user, is_completed=True).annotate(
+        finished_on=Max('contributions__date', filter=Q(contributions__is_deleted=False))
+    ).filter(Q(finished_on__year=year) | Q(finished_on__isnull=True, created_at__year=year))
     
     # 1. Total Spend and Total Income (using base_amount to handle multi-currency)
     total_spent = expenses.aggregate(total=Sum('base_amount'))['total'] or Decimal('0.00')
