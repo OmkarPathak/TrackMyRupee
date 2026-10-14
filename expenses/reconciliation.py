@@ -63,11 +63,17 @@ class Comparison:
     app_balance: Decimal
     difference: Decimal
     matched: bool
+    current_balance: Decimal = Decimal('0.00')
     suspects: list = field(default_factory=list)
     recent: list = field(default_factory=list)
     later_count: int = 0
     unaccounted: dict = field(default_factory=dict)
     missing_opening_entry: bool = False
+
+    @property
+    def balance_after(self):
+        """What the account would show today once the difference is corrected."""
+        return (self.current_balance + self.difference).quantize(CENTS)
 
 
 def is_reconcilable(account):
@@ -177,6 +183,7 @@ def compare(account, statement_date, statement_balance):
         app_balance=app_balance,
         difference=difference,
         matched=matched,
+        current_balance=current,
         later_count=sum(1 for f in flows if f.date > statement_date),
     )
     recent_start = statement_date - timedelta(days=RECENT_WINDOW_DAYS)

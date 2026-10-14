@@ -144,7 +144,10 @@
                             <button type="submit" name="action" value="open" class="btn btn-primary">{% trans "Save this check" %}</button>
                         </div>
                     {% else %}
-                        <p class="small text-muted">{% blocktrans with amount=comparison.difference|money_exact_signed:account.currency %}Correcting adds a clearly labelled adjustment of {{ amount }} to this account. Your transactions are not changed.{% endblocktrans %}</p>
+                        <ul class="small text-muted ps-3 mb-3">
+                            <li class="mb-1"><strong>{% trans "Correct my balance" %}:</strong> {% blocktrans with name=account.name now=comparison.current_balance|money_exact:account.currency after=comparison.balance_after|money_exact:account.currency amount=comparison.difference|money_exact_signed:account.currency %}changes {{ name }} from {{ now }} to {{ after }} (an adjustment of {{ amount }}). Your net worth changes by the same amount and other accounts are untouched. Your transactions are not edited, and the adjustment does not count as income or spending.{% endblocktrans %}</li>
+                            <li><strong>{% trans "Leave it open" %}:</strong> {% trans "saves this check and changes no balance, so you can look for the missing entry first." %}</li>
+                        </ul>
                         <div class="d-flex justify-content-end gap-2 flex-wrap">
                             <button type="submit" name="action" value="open" class="btn btn-action-cancel">{% trans "Leave it open" %}</button>
                             <button type="submit" name="action" value="adjust" class="btn btn-primary">{% trans "Correct my balance" %}</button>

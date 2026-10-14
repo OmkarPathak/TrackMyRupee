@@ -74,6 +74,8 @@ class ReconciliationServiceTest(ReconciliationTestBase):
         result = reconciliation.compare(self.bank, self.five_days_ago, D('1450.00'))
         self.assertFalse(result.matched)
         self.assertEqual(result.difference, D('-50.00'))
+        self.assertEqual(result.current_balance, D('1300.00'))
+        self.assertEqual(result.balance_after, D('1250.00'))
 
     def test_suspect_is_a_transaction_the_size_of_the_gap(self):
         Expense.objects.create(
@@ -146,6 +148,8 @@ class ReconciliationViewTest(ReconciliationTestBase):
         response = self.client.post(reverse('account-reconcile', args=[self.bank.uuid]), self.payload())
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['comparison'].difference, D('-50.00'))
+        self.assertContains(response, 'from ₹1,300 to ₹1,250')
+        self.assertContains(response, 'changes no balance')
         self.assertEqual(AccountReconciliation.objects.count(), 0)
 
     def test_future_statement_date_is_rejected(self):
