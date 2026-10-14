@@ -8,7 +8,7 @@ from django.core.cache import cache
 from django.db import IntegrityError
 from django.test import Client, TestCase
 
-from expenses.models import Expense, Income, Notification, RecurringTransaction, UserProfile
+from expenses.models import Expense, FXRate, Income, Notification, RecurringTransaction, UserProfile
 from expenses.utils import get_exchange_rate
 from expenses.views.settings import (
     dispatch_currency_recalculation,
@@ -242,7 +242,8 @@ class CurrencyRecalculationTests(TestCase):
         self.user.profile.currency = '$'
         self.user.profile.save()
 
-        success = recalculate_user_transactions(self.user.id, '₹', '$')
+        with patch('expenses.views.settings.get_exchange_rate', side_effect=rate_side_effect):
+            success = recalculate_user_transactions(self.user.id, '₹', '$')
         self.assertTrue(success)
 
         # Verify all transactions are updated to new base currency (rate 1.0)
@@ -299,16 +300,12 @@ class CurrencyRecalculationTests(TestCase):
         self.user.profile.currency = '$'
         self.user.profile.save()
 
-        # Simulate failure on the 6th expense save
-        real_save = Expense.save
-        call_count = [0]
-        def faulty_save(instance, *args, **kwargs):
-            call_count[0] += 1
-            if call_count[0] == 6:
-                raise IntegrityError("Simulated database constraint failure during recalculation")
-            return real_save(instance, *args, **kwargs)
-
-        with patch.object(Expense, 'save', side_effect=faulty_save, autospec=True):
+        # The expenses are updated first; make the next model's update fail so that the already
+        # updated expenses have to be rolled back with it.
+        Income.objects.create(user=self.user, date=date.today(), amount=Decimal('20.00'), currency='$', source='Salary')
+        with patch('expenses.views.settings.get_exchange_rate', side_effect=rate_side_effect), \
+                patch('expenses.models.IncomeManager.bulk_update',
+                      side_effect=IntegrityError("Simulated database constraint failure during recalculation")):
             success = recalculate_user_transactions(self.user.id, '₹', '$')
             self.assertFalse(success)
 
@@ -333,6 +330,50 @@ class CurrencyRecalculationTests(TestCase):
 
         # Lock is released
         self.assertIsNone(cache.get(f'currency_recalc_lock_{self.user.id}'))
+
+    @patch('expenses.views.settings.get_exchange_rate')
+    def test_every_record_that_stores_a_base_amount_is_recalculated(self, mock_rate):
+        """Capital events, loan repayments and transfers were left in the old currency before."""
+        from expenses.models import Account, CapitalEvent, Loan, LoanRepayment, Transfer
+        mock_rate.side_effect = lambda frm, to: Decimal('1.0') if frm == to else Decimal('0.0125')
+        a = Account.objects.create(user=self.user, name='A', balance=Decimal('10000'), currency='₹')
+        b = Account.objects.create(user=self.user, name='B', balance=Decimal('0'), currency='₹')
+        ce = CapitalEvent.objects.create(user=self.user, account=a, date=date.today(), amount=Decimal('8000'))
+        loan = Loan.objects.create(user=self.user, name='L', loan_type='HOME', initial_principal=Decimal('50000'),
+                                   duration_months=12, start_date=date.today(), is_active=True)
+        rep = LoanRepayment.objects.create(loan=loan, from_account=a, date=date.today(), amount=Decimal('4000'),
+                                           principal_portion=Decimal('3000'), interest_portion=Decimal('1000'))
+        tr = Transfer.objects.create(user=self.user, from_account=a, to_account=b, amount=Decimal('2000'), date=date.today())
+        self.assertEqual((ce.base_amount, rep.base_amount, tr.converted_amount),
+                         (Decimal('8000.00'), Decimal('4000.00'), Decimal('2000.00')))
+        self.user.profile.currency = '$'
+        self.user.profile.save()
+        self.assertTrue(recalculate_user_transactions(self.user.id, '₹', '$'))
+        for obj in (ce, rep, tr):
+            obj.refresh_from_db()
+        self.assertEqual((ce.exchange_rate, ce.base_amount), (Decimal('0.0125'), Decimal('100.00')))
+        self.assertEqual((rep.exchange_rate, rep.base_amount), (Decimal('0.0125'), Decimal('50.00')))
+        self.assertEqual((tr.exchange_rate, tr.converted_amount), (Decimal('0.0125'), Decimal('25.00')))
+
+    @patch('expenses.views.settings.get_exchange_rate')
+    def test_changing_the_display_currency_never_touches_balances_or_the_ledger(self, mock_rate):
+        from expenses.models import Account, JournalEntry
+        mock_rate.side_effect = lambda frm, to: Decimal('1.0') if frm == to else Decimal('0.0125')
+        usd = Account.objects.create(user=self.user, name='USD', balance=Decimal('1000'), currency='$')
+        inr = Account.objects.create(user=self.user, name='INR', balance=Decimal('10000'), currency='₹')
+        FXRate.objects.update_or_create(from_currency='USD', to_currency='INR', as_of_date=date.today(),
+                                        defaults={'rate': Decimal('80'), 'source': 't'})
+        cache.clear()
+        Expense.objects.create(user=self.user, account=inr, date=date.today(), amount=Decimal('100'), currency='$',
+                               category='Food')
+        FXRate.objects.filter(from_currency='USD').update(rate=Decimal('90'))
+        cache.clear()
+        before = (Account.objects.get(pk=inr.pk).balance, Account.objects.get(pk=usd.pk).balance, JournalEntry.objects.count())
+        self.user.profile.currency = '$'
+        self.user.profile.save()
+        self.assertTrue(recalculate_user_transactions(self.user.id, '₹', '$'))
+        after = (Account.objects.get(pk=inr.pk).balance, Account.objects.get(pk=usd.pk).balance, JournalEntry.objects.count())
+        self.assertEqual(before, after)
 
     def test_concurrency_lock_prevents_duplicate_runs(self):
         """dispatch_currency_recalculation skips if a lock already exists for this user."""

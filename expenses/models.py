@@ -105,6 +105,14 @@ def _undo_amount(source_type, source_id, account, *, inflow, fallback):
     return amount if amount > 0 else fallback
 
 
+
+def _ledger_inputs_unchanged(old, new):
+    """True when an edit changes nothing the ledger records (amounts, currency, accounts, the category or
+    source the entry is filed under). Such an edit (a new description, date or note) must neither
+    repost the entry nor re-value what the account was charged at today's exchange rate."""
+    return all(getattr(old, f) == getattr(new, f) for f in new.LEDGER_FIELDS)
+
+
 class SoftDeleteManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
@@ -582,6 +590,7 @@ class AccountReconciliation(models.Model):
 
 
 class Expense(models.Model):
+    LEDGER_FIELDS = ('amount', 'currency', 'account_id', 'category')
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField(verbose_name=_('Date'))
@@ -619,6 +628,7 @@ class Expense(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             old_instance = None
+            kept_amount = None  # the amount already applied to the account, when this save leaves it unchanged
             # Handle balance reversal for updates
             if self.pk:
                 old_instance = Expense.objects.select_related(None).select_for_update().get(pk=self.pk)
@@ -630,6 +640,7 @@ class Expense(models.Model):
                         rate = get_exchange_rate(old_instance.currency, old_account.currency)
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                     reversal_amount = _undo_amount('EXPENSE', old_instance.pk, old_account, inflow=False, fallback=reversal_amount)
+                    kept_amount = reversal_amount
 
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
@@ -659,11 +670,16 @@ class Expense(models.Model):
                     rate = get_exchange_rate(self.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
                 
+                if kept_amount is not None and _ledger_inputs_unchanged(old_instance, self):
+                    apply_amount = kept_amount
                 locked_account.balance -= apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
             def _post_shadow_entry():
                 from .ledger_service import LedgerPostingService
+
+                if old_instance is not None and _ledger_inputs_unchanged(old_instance, self):
+                    return None  # nothing the ledger records has changed
 
                 version_token = _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE')
                 if old_instance is None:
@@ -867,6 +883,7 @@ class ExpenseKeywordHint(models.Model):
 
 
 class Income(models.Model):
+    LEDGER_FIELDS = ('amount', 'currency', 'account_id', 'source')
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     SOURCE_TYPE_CHOICES = [
         ('Salary', _('Salary')),
@@ -917,6 +934,7 @@ class Income(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             old_instance = None
+            kept_amount = None  # the amount already applied to the account, when this save leaves it unchanged
             # Handle balance reversal for updates
             if self.pk:
                 old_instance = Income.objects.select_related(None).select_for_update().get(pk=self.pk)
@@ -929,6 +947,7 @@ class Income(models.Model):
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                     
                     reversal_amount = _undo_amount('INCOME', old_instance.pk, old_account, inflow=True, fallback=reversal_amount)
+                    kept_amount = reversal_amount
                     old_account.balance -= reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
@@ -959,11 +978,16 @@ class Income(models.Model):
                     rate = get_exchange_rate(self.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
                     
+                if kept_amount is not None and _ledger_inputs_unchanged(old_instance, self):
+                    apply_amount = kept_amount
                 locked_account.balance += apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
             def _post_shadow_entry():
                 from .ledger_service import LedgerPostingService
+
+                if old_instance is not None and _ledger_inputs_unchanged(old_instance, self):
+                    return None  # nothing the ledger records has changed
 
                 version_token = _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE')
                 if old_instance is None:
@@ -1093,6 +1117,7 @@ class Income(models.Model):
 INCOME_GROUP_TYPES = Income.INCOME_GROUP_TYPES
 
 class Transfer(models.Model):
+    LEDGER_FIELDS = ('amount', 'from_account_id', 'to_account_id')
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     from_account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transfers_out', verbose_name=_('From Account'))
@@ -1134,6 +1159,7 @@ class Transfer(models.Model):
         self.full_clean()
         with transaction.atomic():
             old_instance = None
+            kept_amount = None
             # Revert-and-Apply pattern for updates
             if self.pk:
                 old_instance = Transfer.objects.select_related('from_account', 'to_account').select_for_update().get(pk=self.pk)
@@ -1150,6 +1176,7 @@ class Transfer(models.Model):
                     reversal_to_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                 
                 reversal_to_amount = _undo_amount('TRANSFER', old_instance.pk, old_to_account, inflow=True, fallback=reversal_to_amount)
+                kept_amount = reversal_to_amount
                 old_to_account.balance -= reversal_to_amount
                 old_to_account.save(update_fields=['balance', 'updated_at'])
 
@@ -1179,11 +1206,17 @@ class Transfer(models.Model):
                 rate = get_exchange_rate(from_account.currency, to_account.currency)
                 to_apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
                 
+            if kept_amount is not None and _ledger_inputs_unchanged(old_instance, self):
+                to_apply_amount = kept_amount
+
             to_account.balance += to_apply_amount
             to_account.save(update_fields=['balance', 'updated_at'])
 
             def _post_shadow_entry():
                 from .ledger_service import LedgerPostingService
+
+                if old_instance is not None and _ledger_inputs_unchanged(old_instance, self):
+                    return None  # nothing the ledger records has changed
 
                 version_token = _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE')
                 if old_instance is None:
@@ -1944,6 +1977,7 @@ class SavingsGoal(models.Model):
         ]
 
 class GoalContribution(models.Model):
+    LEDGER_FIELDS = ('amount', 'account_id', 'goal_id')
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     goal = models.ForeignKey(SavingsGoal, on_delete=models.CASCADE, related_name='contributions')
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='goal_contributions', verbose_name=_('From Account'))
@@ -1968,6 +2002,7 @@ class GoalContribution(models.Model):
             locked_goal = SavingsGoal.objects.select_for_update().get(pk=self.goal_id)
             self.goal = locked_goal
             old_instance = None
+            kept_amount = None  # the amount already applied to the account, when this save leaves it unchanged
             if self.pk:
                 old_instance = GoalContribution.objects.select_related('goal', 'account').select_for_update().get(pk=self.pk)
                 # Revert old balance and goal amount
@@ -1980,6 +2015,7 @@ class GoalContribution(models.Model):
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                         
                     reversal_amount = _undo_amount('GOAL_CONTRIBUTION', old_instance.pk, old_account, inflow=False, fallback=reversal_amount)
+                    kept_amount = reversal_amount
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
                 locked_goal.current_amount -= old_instance.amount
@@ -1995,6 +2031,8 @@ class GoalContribution(models.Model):
                     rate = get_exchange_rate(self.goal.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
                 
+                if kept_amount is not None and _ledger_inputs_unchanged(old_instance, self):
+                    apply_amount = kept_amount
                 locked_account.balance -= apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
             
@@ -2003,6 +2041,9 @@ class GoalContribution(models.Model):
 
             def _post_shadow_entry():
                 from .ledger_service import LedgerPostingService
+
+                if old_instance is not None and _ledger_inputs_unchanged(old_instance, self):
+                    return None  # nothing the ledger records has changed
 
                 version_token = _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE')
                 if old_instance is None:
@@ -2259,6 +2300,7 @@ def annotate_loan_principal_totals(queryset):
 
 
 class LoanRepayment(models.Model):
+    LEDGER_FIELDS = ('amount', 'principal_portion', 'interest_portion', 'from_account_id', 'loan_id')
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='repayments')
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_repayments', verbose_name=_('Paid From Account'))
@@ -2325,6 +2367,7 @@ class LoanRepayment(models.Model):
         self.full_clean()
         with transaction.atomic():
             old_instance = None
+            kept_amount = None  # the amount already applied to the account, when this save leaves it unchanged
             # Handle balance reversal for updates
             if self.pk:
                 old_instance = LoanRepayment.objects.select_for_update().get(pk=self.pk)
@@ -2337,6 +2380,7 @@ class LoanRepayment(models.Model):
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                     
                     reversal_amount = _undo_amount('LOAN_REPAYMENT', old_instance.pk, old_account, inflow=False, fallback=reversal_amount)
+                    kept_amount = reversal_amount
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
@@ -2360,11 +2404,16 @@ class LoanRepayment(models.Model):
                     rate = get_exchange_rate(self.loan.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
                 
+                if kept_amount is not None and _ledger_inputs_unchanged(old_instance, self):
+                    apply_amount = kept_amount
                 locked_account.balance -= apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
             def _post_shadow_entry():
                 from .ledger_service import LedgerPostingService
+
+                if old_instance is not None and _ledger_inputs_unchanged(old_instance, self):
+                    return None  # nothing the ledger records has changed
 
                 version_token = _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE')
                 if old_instance is None:
@@ -2484,6 +2533,7 @@ class DeletionRequestAuditLog(models.Model):
         return f"Deletion request for {self.username} ({self.email}) at {self.requested_at}"
 
 class CapitalEvent(models.Model):
+    LEDGER_FIELDS = ('amount', 'currency', 'account_id', 'include_in_net_worth', 'subtype')
     """
     A large, one-off financial event (e.g., home-loan down payment, big medical bill)
     that is intentionally excluded from regular analytics / budget tracking by default
@@ -2570,6 +2620,7 @@ class CapitalEvent(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             old_instance = None
+            kept_amount = None  # the amount already applied to the account, when this save leaves it unchanged
             if self.pk:
                 # Do not join nullable account relation under FOR UPDATE (unsupported on Postgres outer joins).
                 old_instance = CapitalEvent.objects.select_related(None).select_for_update().get(pk=self.pk)
@@ -2580,6 +2631,7 @@ class CapitalEvent(models.Model):
                         rate = get_exchange_rate(old_instance.currency, old_account.currency)
                         reversal_amount = (old_instance.amount * rate).quantize(Decimal('0.01'))
                     reversal_amount = _undo_amount('CAPITAL_EVENT', old_instance.pk, old_account, inflow=False, fallback=reversal_amount)
+                    kept_amount = reversal_amount
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
 
@@ -2600,11 +2652,16 @@ class CapitalEvent(models.Model):
                 if self.currency != locked_account.currency:
                     rate = get_exchange_rate(self.currency, locked_account.currency)
                     apply_amount = (self.amount * rate).quantize(Decimal('0.01'))
+                if kept_amount is not None and _ledger_inputs_unchanged(old_instance, self):
+                    apply_amount = kept_amount
                 locked_account.balance -= apply_amount
                 locked_account.save(update_fields=['balance', 'updated_at'])
 
             def _post_shadow_entry():
                 from .ledger_service import LedgerPostingService
+
+                if old_instance is not None and _ledger_inputs_unchanged(old_instance, self):
+                    return None  # nothing the ledger records has changed
 
                 version_token = _build_ledger_version(self, 'CREATE' if old_instance is None else 'UPDATE')
                 if old_instance is None:

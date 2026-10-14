@@ -342,6 +342,8 @@ POSTHOG_API_KEY = os.environ.get('POSTHOG_API_KEY')
 POSTHOG_HOST = os.environ.get('POSTHOG_HOST', 'https://us.i.posthog.com')
 
 ACCOUNT_EMAIL_REQUIRED = True
+# A changed email stays pending until its confirmation link is used, then replaces the old one.
+ACCOUNT_CHANGE_EMAIL = True
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_SESSION_REMEMBER = None
 SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds

@@ -172,7 +172,8 @@ def handle_step2(
 
     cycle_start, cycle_end, _ = compute_cycle_range(chosen_payday, today)
 
-    bank_choice = (bank_choice or '').strip()
+    bank_choice = (bank_choice or '').strip()[:40]
+    custom_bank_name = (custom_bank_name or '').strip()[:100]
     account_name = None
     account_type = 'SAVINGS_ACCOUNT'
 

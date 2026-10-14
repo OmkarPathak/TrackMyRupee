@@ -1,6 +1,8 @@
 import logging
 import threading
+from decimal import Decimal
 
+import razorpay
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings as django_settings
 from django.contrib import messages
@@ -17,15 +19,22 @@ from django.views.generic import DeleteView, TemplateView, UpdateView
 from ..forms import LanguageUpdateForm, ProfileUpdateForm
 from ..models import (
     Account,
+    CapitalEvent,
     DeletionRequestAuditLog,
     Expense,
     Income,
+    JournalEntry,
+    JournalLine,
+    LedgerAccount,
+    LoanRepayment,
     Notification,
     RecurringTransaction,
+    Transfer,
     UserProfile,
 )
 from ..posthog_utils import ph_capture
 from ..signals import invalidate_dashboard_cache
+from ..utils import get_exchange_rate
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +76,15 @@ def log_and_notify_deletion(user=None, username=None, email=None):
             logger.error("Failed to send account deletion email: %s", e)
 
 
+def _delete_ledger(user):
+    """Remove the user's ledger before the user. A journal line protects its ledger account from deletion, so
+    the cascade from the user is refused ("protected foreign keys") for anyone who has recorded a transaction,
+    and the account could never be deleted. Lines first, then entries, then ledger accounts."""
+    JournalLine.objects.filter(journal_entry__user=user).delete()
+    JournalEntry.objects.filter(user=user).delete()
+    LedgerAccount.objects.filter(user=user).delete()
+
+
 def _delete_email_logs(user, email):
     from django.db.models import Q
 
@@ -78,6 +96,27 @@ def _delete_email_logs(user, email):
     if email:
         query |= Q(to_email__iexact=email)
     EmailLog.objects.filter(query).delete()
+
+
+def _cancel_subscription_before_deletion(user):
+    """Stop an auto-renewing subscription at the payment gateway. Deleting the account removes the record
+    that links the customer to it, so without this the card would keep being charged for an account that no
+    longer exists. Deletion goes ahead even if the gateway is unreachable (the right to delete does not
+    depend on it), but the failure is logged loudly with the subscription id so it can be cancelled by hand."""
+    profile = getattr(user, 'profile', None)
+    sub_id = getattr(profile, 'razorpay_subscription_id', None)
+    if not sub_id or not profile.pays_by_subscription:
+        return
+    try:
+        client = razorpay.Client(auth=(django_settings.RAZORPAY_KEY_ID, django_settings.RAZORPAY_KEY_SECRET))
+        client.subscription.cancel(sub_id)
+        logger.info("Cancelled subscription %s for the account being deleted (user %s)", sub_id, user.pk)
+    except razorpay.errors.BadRequestError as e:
+        # Already cancelled, completed or expired at Razorpay: nothing is left to charge.
+        logger.info("Subscription %s needed no cancelling on account deletion: %s", sub_id, e)
+    except Exception:
+        logger.exception(
+            "COULD NOT CANCEL SUBSCRIPTION %s for deleted user %s: cancel it in the Razorpay dashboard", sub_id, user.pk)
 
 
 def delete_user_account(user_id):
@@ -99,10 +138,12 @@ def delete_user_account(user_id):
     email = user.email
 
     try:
+        _cancel_subscription_before_deletion(user)
         with transaction.atomic():
             # EmailLog.user is SET_NULL, so the cascade would leave the address, subject and body
             # of every email we sent this user in the live database. Remove them explicitly.
             _delete_email_logs(user, email)
+            _delete_ledger(user)
             user.delete()
         log_and_notify_deletion(username=username, email=email)
         # The deletion confirmation above creates a new EmailLog row; remove it too.
@@ -206,10 +247,49 @@ class WithdrawConsentView(LoginRequiredMixin, DeleteView):
         return redirect(self.success_url)
 
 
+def _renormalize_base_amounts(user, new_currency):
+    """Recompute the exchange rate and the amount in the user's currency on every record that stores one:
+    expenses, income, recurring schedules, capital events, loan repayments and transfers.
+
+    Only those two columns change. Saving each record again would also move account balances and repost
+    the ledger, which re-values foreign-currency transactions at today's rate and has nothing to do with
+    which currency the user prefers to see totals in."""
+    rates = {}
+
+    def rate_for(currency):
+        if currency not in rates:
+            rates[currency] = Decimal('1.0') if currency == new_currency else get_exchange_rate(currency, new_currency)
+        return rates[currency]
+
+    specs = [
+        (Expense, Expense.objects.filter(user=user), lambda t: t.currency, 'exchange_rate', 'base_amount'),
+        (Income, Income.objects.filter(user=user), lambda t: t.currency, 'exchange_rate', 'base_amount'),
+        (RecurringTransaction, RecurringTransaction.objects.filter(user=user), lambda t: t.currency,
+         'exchange_rate', 'base_amount'),
+        (CapitalEvent, CapitalEvent.objects.filter(user=user), lambda t: t.currency, 'exchange_rate', 'base_amount'),
+        (LoanRepayment, LoanRepayment.objects.filter(loan__user=user).select_related('loan'),
+         lambda t: t.loan.currency, 'exchange_rate', 'base_amount'),
+        (Transfer, Transfer.objects.filter(user=user).select_related('from_account'),
+         lambda t: t.from_account.currency, 'exchange_rate', 'converted_amount'),
+    ]
+    for model, queryset, currency_of, rate_field, base_field in specs:
+        batch = []
+        for tx in queryset.iterator(chunk_size=500):
+            rate = rate_for(currency_of(tx))
+            setattr(tx, rate_field, rate)
+            setattr(tx, base_field, (tx.amount * rate).quantize(Decimal('0.01')))
+            batch.append(tx)
+            if len(batch) >= 500:
+                model.objects.bulk_update(batch, [rate_field, base_field])
+                batch = []
+        if batch:
+            model.objects.bulk_update(batch, [rate_field, base_field])
+
+
 def recalculate_user_transactions(user_id, old_currency, new_currency):
     """
-    Recalculates exchange_rate and base_amount for all user transactions (Expense, Income, RecurringTransaction)
-    in a single atomic transaction. If any transaction fails, all changes roll back to prevent partial-completion
+    Recalculates the exchange rate and base-currency amount of all the user's records (see
+    _renormalize_base_amounts) in a single atomic transaction. If any transaction fails, all changes roll back to prevent partial-completion
     data corruption, user profile currency is reverted to old_currency, and a failure Notification is created.
     """
     from django.contrib.auth import get_user_model
@@ -229,11 +309,7 @@ def recalculate_user_transactions(user_id, old_currency, new_currency):
     success = False
     try:
         with transaction.atomic():
-            for model in [Expense, Income, RecurringTransaction]:
-                transactions = list(model.objects.filter(user=user))
-                for tx in transactions:
-                    tx.user = user
-                    tx.save()
+            _renormalize_base_amounts(user, new_currency)
 
         success = True
         invalidate_dashboard_cache(user_id=user.id)
@@ -410,8 +486,16 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, _("Profile updated successfully."))
+        new_email = form.requested_email
         response = super().form_valid(form)
+        if new_email:
+            from allauth.account.models import EmailAddress
+            EmailAddress.objects.add_new_email(self.request, self.request.user, new_email)
+            messages.success(self.request, _(
+                "Profile updated. We sent a confirmation link to %(email)s. Your sign-in email changes once you open it."
+            ) % {'email': new_email})
+        else:
+            messages.success(self.request, _("Profile updated successfully."))
         invalidate_dashboard_cache(user_id=self.request.user.id)
         ph_capture(self.request.user, 'profile_updated', {})
         return response

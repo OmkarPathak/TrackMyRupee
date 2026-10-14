@@ -143,6 +143,11 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
             data = json.loads(request.body)
             action = str(data.get('step') or data.get('action') or '').strip()
 
+            # The shared demo account is read-only (the middleware lets this URL through for the tour's
+            # analytics and checklist), so the steps that would create or change data do nothing for it.
+            if request.user.username == 'demo' and action not in ('event', 'checklist', 'cycle_range'):
+                return JsonResponse({'success': True, 'demo': True})
+
             if action == 'dismiss_checklist':
                 profile = request.user.profile
                 profile.dismissed_onboarding_checklist = True

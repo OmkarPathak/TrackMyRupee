@@ -191,3 +191,79 @@ class TransferRulesTests(Base):
         self.assertEqual((self.bal(self.inr), self.bal(self.inr2)), (D('9925.00'), D('575.00')))
         self.client.post(reverse('transfer-delete', args=[t.uuid]))
         self.assertEqual((self.bal(self.inr), self.bal(self.inr2)), (D('10000.00'), D('500.00')))
+
+
+class EditingOtherFieldsDoesNotRevalueTests(Base):
+    """Changing a description or category must not change what the account was charged, even if the
+    exchange rate has moved since the transaction was entered."""
+
+    def ledger_net(self, account):
+        from expenses.models import JournalLine
+        return sum((l.amount if l.direction == 'DEBIT' else -l.amount)
+                   for l in JournalLine.objects.filter(account_ref=account, journal_entry__status='POSTED'))
+
+    def test_expense(self):
+        e = Expense.objects.create(user=self.user, account=self.inr, amount=D('100'), currency='$', category='Food',
+                                   date=TODAY, description='a')
+        self.rate(85)
+        e.description = 'b'
+        e.date = TODAY
+        e.payment_method = 'UPI'
+        e.save()
+        self.assertEqual(self.bal(self.inr), D('2000.00'))
+        self.assertEqual(self.ledger_net(self.inr), D('-8000.00'))
+
+    def test_moving_an_expense_to_another_category_refiles_it_and_the_account_and_ledger_still_agree(self):
+        e = Expense.objects.create(user=self.user, account=self.inr, amount=D('100'), currency='$', category='Food',
+                                   date=TODAY, description='a')
+        self.rate(85)
+        e.category = 'Fun'
+        e.save()
+        self.assertEqual(self.bal(self.inr), D('10000.00') + self.ledger_net(self.inr))
+
+    def test_income(self):
+        i = Income.objects.create(user=self.user, account=self.inr, amount=D('100'), currency='$', source='Freelance', date=TODAY)
+        self.rate(70)
+        i.description = 'renamed'
+        i.save()
+        self.assertEqual(self.bal(self.inr), D('18000.00'))
+        self.assertEqual(self.ledger_net(self.inr), D('8000.00'))
+
+    def test_transfer(self):
+        t = Transfer.objects.create(user=self.user, from_account=self.usd, to_account=self.inr, amount=D('100'), date=TODAY)
+        self.rate(85)
+        t.description = 'rent share'
+        t.save()
+        self.assertEqual((self.bal(self.usd), self.bal(self.inr)), (D('900.00'), D('18000.00')))
+
+    def test_goal_contribution(self):
+        goal = SavingsGoal.objects.create(user=self.user, name='G', target_amount=D('5000'), currency='$')
+        c = GoalContribution.objects.create(goal=goal, account=self.inr, amount=D('100'), date=TODAY)
+        self.rate(85)
+        c.date = TODAY
+        c.save()
+        self.assertEqual(self.bal(self.inr), D('2000.00'))
+
+    def test_loan_repayment(self):
+        loan = Loan.objects.create(user=self.user, name='L', loan_type='HOME', initial_principal=D('5000'), currency='$',
+                                   duration_months=12, start_date=TODAY, is_active=True)
+        r = LoanRepayment.objects.create(loan=loan, from_account=self.inr, date=TODAY, amount=D('100'),
+                                         principal_portion=D('90'), interest_portion=D('10'))
+        self.rate(85)
+        r.save()
+        self.assertEqual(self.bal(self.inr), D('2000.00'))
+
+    def test_capital_event(self):
+        ce = CapitalEvent.objects.create(user=self.user, account=self.inr, date=TODAY, amount=D('100'), currency='$',
+                                         include_in_net_worth=True)
+        self.rate(85)
+        ce.note = 'laptop'
+        ce.save()
+        self.assertEqual(self.bal(self.inr), D('2000.00'))
+
+    def test_changing_the_amount_does_charge_the_new_amount_at_the_new_rate(self):
+        e = Expense.objects.create(user=self.user, account=self.inr, amount=D('100'), currency='$', category='Food', date=TODAY)
+        self.rate(85)
+        e.amount = D('200')
+        e.save()
+        self.assertEqual(self.bal(self.inr), D('10000.00') - D('17000.00'))

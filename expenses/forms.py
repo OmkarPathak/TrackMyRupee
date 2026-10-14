@@ -581,16 +581,30 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
         email = self.cleaned_data.get('auth_email')
         
         # If the email hasn't changed, allow it (even if duplicates exist in DB)
-        if email == self.instance.email:
+        if email and email.lower() == (self.instance.email or '').lower():
             return email
-            
-        if User.objects.filter(email=email).exclude(id=self.instance.id).exists():
+
+        from allauth.account.models import EmailAddress
+        taken = (
+            User.objects.filter(email__iexact=email).exclude(id=self.instance.id).exists()
+            or EmailAddress.objects.filter(email__iexact=email).exclude(user_id=self.instance.id).exists()
+        )
+        if taken:
             raise forms.ValidationError("Email already assigned to another account.")
         return email
 
+    @property
+    def requested_email(self):
+        """The new address the user typed, or None when the email is unchanged (or managed by social login)."""
+        email = self.cleaned_data.get('auth_email')
+        if not email or self.fields['auth_email'].disabled:
+            return None
+        return None if email.lower() == (self.instance.email or '').lower() else email
+
     def save(self, commit=True):
+        # The sign-in email is NOT changed here: a typed address is unverified, so the view asks allauth to
+        # send it a confirmation link and the account switches only when that link is used.
         user = super().save(commit=False)
-        user.email = self.cleaned_data['auth_email']
         if commit:
             user.save()
             profile = user.profile

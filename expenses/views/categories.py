@@ -196,11 +196,10 @@ class CategoryUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
             new_name = self.object.name
             
             if old_name != new_name:
-                from ..models import Expense, ExpenseKeywordHint, RecurringTransaction
-                Expense.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
-                RecurringTransaction.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
-                # Learned quick-add suggestions must follow the rename too
-                ExpenseKeywordHint.objects.filter(user=self.request.user, category=old_name).update(category=new_name)
+                from ..models import CapitalEvent, Expense, ExpenseKeywordHint, RecurringTransaction
+                # Budgets and reports match category names regardless of case, so the rename does too.
+                for model in (Expense, RecurringTransaction, CapitalEvent, ExpenseKeywordHint):
+                    model.objects.filter(user=self.request.user, category__iexact=old_name).update(category=new_name)
                 
             ph_capture(self.request.user, 'category_updated', {})
             return response

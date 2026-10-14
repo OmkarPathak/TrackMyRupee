@@ -30,6 +30,14 @@ Yes. Each transaction and account has its own **Currency** field. The app suppor
 
 The account is hidden and no longer counts in your net worth, but nothing is lost: its transactions stay linked to it and you can bring it back from the **Inactive** tab on the Accounts page (as long as your plan has room for it). Because every transaction needs an account, you cannot post new ones to a deleted account. See [Accounts and Net Worth](../02-accounts/index.md) for details.
 
+### How do I delete my whole TrackMyRupee account?
+
+Go to **Settings** and choose **Delete account** (or **Withdraw consent**, which does the same). You are asked to confirm, signed out at once, and your data is deleted in the background: transactions, accounts, goals, loans, notifications and the history of emails we sent you. If you pay by an auto-renewing subscription, it is cancelled so you are not charged again. You get one confirmation email when it is done. This cannot be undone. To keep a copy first, use **Settings → Export Data** (free on every plan).
+
+### How do I change my email address?
+
+Open **Settings → Profile**, type the new address and save. We send a confirmation link to the **new** address, and your sign-in email changes only when you open it, so a typo or someone else's address can never take over your account. Until then you keep signing in with the old one. An address that already belongs to another account is refused.
+
 ### How do I fix my opening balance?
 
 Go to **Accounts → [your account] → Edit** (pencil icon). Update the **Initial Balance** field and save. The change takes effect immediately and all future net worth calculations will use the corrected baseline.
