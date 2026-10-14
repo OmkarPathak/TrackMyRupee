@@ -2854,6 +2854,14 @@ class Valuation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def value_for(self, units):
+        """The holding's value from this valuation. One made from a unit price follows the units held now, so
+        changing the units does not leave the old total in place until the next price update; one entered by
+        hand as a total is used as it is."""
+        if self.unit_nav is not None and units:
+            return (Decimal(units) * self.unit_nav).quantize(Decimal('0.01'))
+        return self.value
+
     class Meta:
         ordering = ['-as_of_date', '-created_at']
         indexes = [

@@ -332,7 +332,7 @@ def get_current_holdings(account: Account, ledger_balance: Decimal | None = None
 
         latest_val = holding.valuations.order_by('-as_of_date', '-created_at').first()
         if latest_val:
-            val = latest_val.value
+            val = latest_val.value_for(holding.units)
         else:
             # SPEC §3a point 5: Staleness fallback to FundNAVCache if scheme_code set
             cache_nav = None

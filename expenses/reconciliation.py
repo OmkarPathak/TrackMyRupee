@@ -26,6 +26,7 @@ from .models import (
     GoalContribution,
     Income,
     JournalEntry,
+    JournalLine,
     LoanRepayment,
     Transfer,
 )
@@ -90,31 +91,59 @@ def _convert(amount, from_currency, account):
     return _quantize(amount)
 
 
+def _recorded_effects(account):
+    """What the ledger says each transaction did to ``account`` ({(source type, id): signed amount in the
+    account's currency}), one query. A foreign-currency transaction was charged at the rate of its day; this
+    is that amount, where converting again today would use a different rate."""
+    effects = {}
+    rows = (
+        JournalLine.objects.filter(account_ref_id=account.pk, journal_entry__status='POSTED')
+        .exclude(journal_entry__source_type='ADJUSTMENT')
+        .values('journal_entry__source_type', 'journal_entry__source_id', 'direction', 'amount', 'currency')
+    )
+    for row in rows:
+        amount = row['amount']
+        if row['currency'] and row['currency'] != account.currency:
+            amount = _quantize(amount * get_exchange_rate(row['currency'], account.currency))
+        key = (row['journal_entry__source_type'], row['journal_entry__source_id'])
+        effects[key] = effects.get(key, Decimal('0.00')) + (amount if row['direction'] == 'DEBIT' else -amount)
+    return effects
+
+
 def dated_flows(account):
     """Every dated transaction touching ``account``, signed in the account's currency."""
     user = account.user
     flows = []
+    effects = _recorded_effects(account)
+
+    def signed(source_type, obj, currency, amount, sign):
+        """Same-currency amounts are exact. A foreign one uses what the ledger recorded, else today's rate."""
+        if not currency or currency == account.currency:
+            return sign * _quantize(amount)
+        recorded = effects.get((source_type, obj.pk))
+        return recorded if recorded is not None else sign * _convert(amount, currency, account)
 
     for e in Expense.objects.filter(user=user, account=account, is_deleted=False):
-        flows.append(Flow(e.date, 'expense', e.description, -_convert(e.amount, e.currency, account)))
+        flows.append(Flow(e.date, 'expense', e.description, signed('EXPENSE', e, e.currency, e.amount, -1)))
 
     for i in Income.objects.filter(user=user, account=account, is_deleted=False):
-        flows.append(Flow(i.date, 'income', i.description or '', _convert(i.amount, i.currency, account)))
+        flows.append(Flow(i.date, 'income', i.description or '', signed('INCOME', i, i.currency, i.amount, 1)))
 
     for t in Transfer.objects.filter(user=user, from_account=account, is_deleted=False):
         flows.append(Flow(t.date, 'transfer', t.description or '', -_quantize(t.amount)))
 
     for t in Transfer.objects.filter(user=user, to_account=account, is_deleted=False).select_related('from_account'):
-        flows.append(Flow(t.date, 'transfer', t.description or '', _convert(t.amount, t.from_account.currency, account)))
+        flows.append(Flow(t.date, 'transfer', t.description or '',
+                          signed('TRANSFER', t, t.from_account.currency, t.amount, 1)))
 
     for c in GoalContribution.objects.filter(goal__user=user, account=account, is_deleted=False).select_related('goal'):
-        flows.append(Flow(c.date, 'goal', c.goal.name, -_convert(c.amount, c.goal.currency, account)))
+        flows.append(Flow(c.date, 'goal', c.goal.name, signed('GOAL_CONTRIBUTION', c, c.goal.currency, c.amount, -1)))
 
     for r in LoanRepayment.objects.filter(loan__user=user, from_account=account, is_deleted=False).select_related('loan'):
-        flows.append(Flow(r.date, 'loan', r.loan.name, -_convert(r.amount, r.loan.currency, account)))
+        flows.append(Flow(r.date, 'loan', r.loan.name, signed('LOAN_REPAYMENT', r, r.loan.currency, r.amount, -1)))
 
     for ce in CapitalEvent.objects.filter(user=user, account=account, include_in_net_worth=True, is_deleted=False):
-        flows.append(Flow(ce.date, 'capital', ce.note or '', -_convert(ce.amount, ce.currency, account)))
+        flows.append(Flow(ce.date, 'capital', ce.note or '', signed('CAPITAL_EVENT', ce, ce.currency, ce.amount, -1)))
 
     return flows
 

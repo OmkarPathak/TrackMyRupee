@@ -35,7 +35,7 @@ from datetime import date as date_type
 from decimal import Decimal
 
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.utils import timezone
 
 from .account_types import KIND, STRATEGY, classify, strategy_for, resolve_category_selector
@@ -279,7 +279,8 @@ class LedgerReadService:
                 Holding.objects
                 .filter(account_id__in=account_ids, is_active=True)
                 .order_by('id', '-valuations__as_of_date', '-valuations__created_at')
-                .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'scheme_code', 'valuations__value')
+                .values('id', 'account_id', 'currency', 'units', 'avg_cost', 'scheme_code', 'valuations__value',
+                        'valuations__unit_nav')
             )
         else:
             # The latest valuation recorded on or before that day
@@ -296,6 +297,7 @@ class LedgerReadService:
                 at_date.setdefault(v['holding_id'], v['value'])
             for r in rows:
                 r['valuations__value'] = at_date.get(r['id'])
+                r['valuations__unit_nav'] = None   # units then are not known: use the total recorded then
 
         scheme_codes = {r['scheme_code'] for r in rows if r['scheme_code']}
         nav_caches = {}
@@ -320,6 +322,8 @@ class LedgerReadService:
             cost_basis = (units * avg_cost).quantize(Decimal('0.01'))
 
             val = r['valuations__value']
+            if val is not None and r.get('valuations__unit_nav') is not None and units:
+                val = (units * r['valuations__unit_nav']).quantize(Decimal('0.01'))
             if val is None:
                 scheme_code = r['scheme_code']
                 cache_nav = nav_caches.get(scheme_code) if (scheme_code and as_of is None) else None
@@ -415,49 +419,77 @@ class LedgerReadService:
         Journal entries are stamped with the time they were posted, not the date of the transaction, so a
         past balance is the balance now minus what the dated transactions after ``as_of`` did to it (the same
         rule reconciliation uses). Manual adjustments and the opening balance carry no transaction date and
-        always count. A handful of grouped queries, whatever the number of accounts."""
+        always count. Amounts in the account's own currency are summed in a grouped query; a foreign-currency
+        transaction is taken back out at what the ledger recorded for it, not at today's exchange rate. A
+        handful of queries, whatever the number of accounts or transactions."""
         by_id = {a.id: a for a in accounts}
         ids = list(by_id)
         net_after = {aid: Decimal("0.00") for aid in ids}
 
-        def add(account_id, total, currency, sign):
-            account = by_id.get(account_id)
-            if account is None or not total:
-                return
-            amount = total
+        def convert(amount, currency, account):
             if currency and currency != account.currency:
-                amount = (total * get_exchange_rate(currency, account.currency)).quantize(Decimal("0.01"))
-            net_after[account_id] += sign * amount
+                return (amount * get_exchange_rate(currency, account.currency)).quantize(Decimal("0.01"))
+            return amount
 
-        for model, account_field, currency_field, sign in (
-            (Expense, 'account_id', 'currency', -1),
-            (Income, 'account_id', 'currency', 1),
-            (GoalContribution, 'account_id', 'goal__currency', -1),
-            (LoanRepayment, 'from_account_id', 'loan__currency', -1),
-        ):
-            rows = (
-                model.objects.filter(**{f'{account_field}__in': ids, 'date__gt': as_of, 'is_deleted': False})
-                .values(account_field, currency_field).annotate(total=Sum('amount')).order_by()
-            )
-            for row in rows:
-                add(row[account_field], row['total'], row[currency_field], sign)
-
-        events = (
-            CapitalEvent.objects.filter(account_id__in=ids, date__gt=as_of, include_in_net_worth=True, is_deleted=False)
-            .values('account_id', 'currency').annotate(total=Sum('amount')).order_by()
+        # (model, ledger source type, account field, the transaction's own currency, the account's currency,
+        #  direction of the money for the account, extra filters)
+        specs = (
+            (Expense, 'EXPENSE', 'account_id', 'currency', 'account__currency', -1, {}),
+            (Income, 'INCOME', 'account_id', 'currency', 'account__currency', 1, {}),
+            (GoalContribution, 'GOAL_CONTRIBUTION', 'account_id', 'goal__currency', 'account__currency', -1, {}),
+            (LoanRepayment, 'LOAN_REPAYMENT', 'from_account_id', 'loan__currency', 'from_account__currency', -1, {}),
+            (CapitalEvent, 'CAPITAL_EVENT', 'account_id', 'currency', 'account__currency', -1,
+             {'include_in_net_worth': True}),
+            (Transfer, 'TRANSFER', 'to_account_id', 'from_account__currency', 'to_account__currency', 1, {}),
         )
-        for row in events:
-            add(row['account_id'], row['total'], row['currency'], -1)
+        for model, source_type, account_field, own_currency, account_currency, sign, extra in specs:
+            later = model.objects.filter(
+                **{f'{account_field}__in': ids, 'date__gt': as_of, 'is_deleted': False}, **extra
+            )
+            same_currency = {own_currency: F(account_currency)}
+            for row in (later.filter(**same_currency).values(account_field)
+                        .annotate(total=Sum('amount')).order_by()):
+                net_after[row[account_field]] += sign * (row['total'] or Decimal("0.00"))
 
-        transfers = Transfer.objects.filter(date__gt=as_of, is_deleted=False)
-        for row in (transfers.filter(from_account_id__in=ids).values('from_account_id')
-                    .annotate(total=Sum('amount')).order_by()):
-            add(row['from_account_id'], row['total'], None, -1)
-        for row in (transfers.filter(to_account_id__in=ids).values('to_account_id', 'from_account__currency')
-                    .annotate(total=Sum('amount')).order_by()):
-            add(row['to_account_id'], row['total'], row['from_account__currency'], 1)
+            foreign = list(later.exclude(**same_currency).values('id', account_field, 'amount', own_currency))
+            if not foreign:
+                continue
+            recorded = cls._recorded_effects(source_type, [r['id'] for r in foreign], ids, by_id)
+            for r in foreign:
+                account = by_id[r[account_field]]
+                effect = recorded.get((r['id'], account.id))
+                if effect is None:   # nothing recorded for it: convert at today's rate
+                    effect = sign * convert(r['amount'], r[own_currency], account)
+                net_after[account.id] += effect
+
+        # Money leaving an account by transfer is always in that account's own currency
+        out_rows = (
+            Transfer.objects.filter(from_account_id__in=ids, date__gt=as_of, is_deleted=False)
+            .values('from_account_id').annotate(total=Sum('amount')).order_by()
+        )
+        for row in out_rows:
+            net_after[row['from_account_id']] -= row['total'] or Decimal("0.00")
 
         return {aid: balances[aid] - net_after[aid] for aid in ids}
+
+    @classmethod
+    def _recorded_effects(cls, source_type, source_ids, account_ids, by_id):
+        """{(transaction id, account id): signed amount in the account's currency} from the posted ledger."""
+        effects: dict = {}
+        rows = JournalLine.objects.filter(
+            journal_entry__source_type=source_type,
+            journal_entry__source_id__in=source_ids,
+            journal_entry__status="POSTED",
+            account_ref_id__in=account_ids,
+        ).values('journal_entry__source_id', 'account_ref_id', 'direction', 'amount', 'currency')
+        for row in rows:
+            account = by_id[row['account_ref_id']]
+            amount = row['amount']
+            if row['currency'] and row['currency'] != account.currency:
+                amount = (amount * get_exchange_rate(row['currency'], account.currency)).quantize(Decimal("0.01"))
+            key = (row['journal_entry__source_id'], account.id)
+            effects[key] = effects.get(key, Decimal("0.00")) + (amount if row['direction'] == 'DEBIT' else -amount)
+        return effects
 
     @classmethod
     def _goal_reserves_base(cls, user, base_currency, as_of=None):
@@ -688,7 +720,7 @@ class LedgerReadService:
                                 '-as_of_date', '-created_at'
                             ).first()
                             if latest_val:
-                                val = latest_val.value
+                                val = latest_val.value_for(holding.units)
                                 if holding.currency != base_currency:
                                     rate = get_exchange_rate(holding.currency, base_currency)
                                     val = (val * rate).quantize(Decimal("0.01"))

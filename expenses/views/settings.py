@@ -27,6 +27,7 @@ from ..models import (
     JournalLine,
     LedgerAccount,
     LoanRepayment,
+    NetWorthSnapshot,
     Notification,
     RecurringTransaction,
     Transfer,
@@ -286,6 +287,29 @@ def _renormalize_base_amounts(user, new_currency):
             model.objects.bulk_update(batch, [rate_field, base_field])
 
 
+def _convert_net_worth_snapshots(user, old_currency, new_currency):
+    """The saved net-worth history is a set of plain numbers in whichever currency was the user's at the time,
+    so after a change of currency they are converted too, or the history would jump by the exchange rate."""
+    snapshots = list(NetWorthSnapshot.objects.filter(user=user))
+    if not snapshots or old_currency == new_currency:
+        return
+    rate = get_exchange_rate(old_currency, new_currency)
+    cents = Decimal('0.01')
+    for snap in snapshots:
+        snap.total_net_worth = (snap.total_net_worth * rate).quantize(cents)
+        snap.total_assets = (snap.total_assets * rate).quantize(cents)
+        snap.total_liabilities = (snap.total_liabilities * rate).quantize(cents)
+        converted = {}
+        for key, value in (snap.breakdown or {}).items():
+            try:
+                converted[key] = str((Decimal(str(value)) * rate).quantize(cents))
+            except Exception:
+                converted[key] = value
+        snap.breakdown = converted
+    NetWorthSnapshot.objects.bulk_update(
+        snapshots, ['total_net_worth', 'total_assets', 'total_liabilities', 'breakdown'], batch_size=500)
+
+
 def recalculate_user_transactions(user_id, old_currency, new_currency):
     """
     Recalculates the exchange rate and base-currency amount of all the user's records (see
@@ -310,6 +334,7 @@ def recalculate_user_transactions(user_id, old_currency, new_currency):
     try:
         with transaction.atomic():
             _renormalize_base_amounts(user, new_currency)
+            _convert_net_worth_snapshots(user, old_currency, new_currency)
 
         success = True
         invalidate_dashboard_cache(user_id=user.id)

@@ -1739,7 +1739,7 @@ class HoldingsListView(LoginRequiredMixin, ListView):
 
         for h in holdings:
             val = h.valuations.first()
-            total_valuation += to_user_currency(val.value if val else h.cost_basis, h.currency)
+            total_valuation += to_user_currency(val.value_for(h.units) if val else h.cost_basis, h.currency)
             total_cost += to_user_currency(h.cost_basis, h.currency)
             
         unrealized_gain = total_valuation - total_cost

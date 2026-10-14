@@ -28,6 +28,8 @@ For any active holding, the current unit value is resolved using the following o
 2. **Cached NAV Fallback**: If the live API is temporarily unreachable, TrackMyRupee retrieves the latest cached NAV from the local fund cache.
 3. **Cost Basis Fallback**: If no NAV cache exists yet (for example, a newly added holding), the valuation falls back to your purchase cost basis (Units x Average Cost).
 
+A holding priced from a NAV is always worth **the units you hold now × the latest NAV**, so correcting the number of units changes its value straight away instead of waiting for the next price update. A value you entered yourself as a total is used as you entered it. When you look at net worth on a past date, each holding uses the value recorded on or before that date.
+
 ### Formulas
 
 - **Holding Valuation**

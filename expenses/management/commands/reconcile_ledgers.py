@@ -4,7 +4,6 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Sum
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from expenses.models import (
@@ -13,6 +12,7 @@ from expenses.models import (
     JournalLine,
     LedgerReconciliationReport,
 )
+from expenses.utils import get_exchange_rate
 
 MATCH_RETENTION_DAYS = 90
 
@@ -60,7 +60,22 @@ class Command(BaseCommand):
             )
             opening_account_ids = {int(val) for val in opening_account_ids if val is not None}
 
-        as_of_date = timezone.now().date()
+        as_of_date = timezone.localdate()
+
+        # Every account's ledger balance in ONE query, each line in the account's own currency (an older line
+        # can be recorded in another currency; adding its raw amount would be wrong).
+        accounts_by_id = {a.id: a for a in accounts}
+        ledger_balances = {account_id: Decimal("0.00") for account_id in accounts_by_id}
+        rows = (
+            JournalLine.objects.filter(account_ref_id__in=list(accounts_by_id), journal_entry__status="POSTED")
+            .values("account_ref_id", "direction", "currency").annotate(total=Sum("amount")).order_by()
+        )
+        for row in rows:
+            account = accounts_by_id[row["account_ref_id"]]
+            amount = row["total"]
+            if row["currency"] and row["currency"] != account.currency:
+                amount = (amount * get_exchange_rate(row["currency"], account.currency)).quantize(Decimal("0.01"))
+            ledger_balances[account.id] += amount if row["direction"] == "DEBIT" else -amount
         total = 0
         drifts = 0
         missing_opening_entries = 0
@@ -72,26 +87,7 @@ class Command(BaseCommand):
             if not has_opening_entry:
                 missing_opening_entries += 1
 
-            debit_total = (
-                JournalLine.objects.filter(
-                    account_ref=account,
-                    direction="DEBIT",
-                    journal_entry__status="POSTED",
-                )
-                .aggregate(total=Coalesce(Sum("amount"), Decimal("0.00")))
-                .get("total", Decimal("0.00"))
-            )
-            credit_total = (
-                JournalLine.objects.filter(
-                    account_ref=account,
-                    direction="CREDIT",
-                    journal_entry__status="POSTED",
-                )
-                .aggregate(total=Coalesce(Sum("amount"), Decimal("0.00")))
-                .get("total", Decimal("0.00"))
-            )
-
-            ledger_balance = (debit_total - credit_total).quantize(Decimal("0.01"))
+            ledger_balance = ledger_balances.get(account.id, Decimal("0.00"))
             account_balance = account.balance.quantize(Decimal("0.01"))
             drift_amount = (account_balance - ledger_balance).quantize(Decimal("0.01"))
             status = "MATCH" if abs(drift_amount) <= threshold else "DRIFT"
