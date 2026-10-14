@@ -22,7 +22,6 @@ PLAN_DETAILS = {
             'net_worth': True,
             'net_worth_history': 2,
             'ai_insights': True,
-            'export_csv': False,
             'year_in_review': False,
             'support': _('Community'),
         }
@@ -45,7 +44,6 @@ PLAN_DETAILS = {
             'net_worth': True,
             'net_worth_history': 6,
             'ai_insights': True,
-            'export_csv': True,
             'year_in_review': True,
             'support': _('Email'),
         }
@@ -68,7 +66,6 @@ PLAN_DETAILS = {
             'net_worth': True,
             'net_worth_history': -1,
             'ai_insights': True,
-            'export_csv': True,
             'year_in_review': True,
             'support': _('Priority email'),
         }

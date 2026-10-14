@@ -1212,10 +1212,15 @@ class TestExpenseExport(ExpenseTestBase):
     def descriptions(self, **params):
         return {row[1] for row in self.rows(**params)[1:]}
 
-    def test_free_plan_is_sent_to_pricing(self):
+    def test_the_free_plan_can_export_its_own_data(self):
         free = self.make_user('free-export', tier='FREE')
+        free_cash = Account.objects.create(user=free, name='Cash', balance=Decimal('100'), currency='₹')
+        Expense.objects.create(user=free, account=free_cash, amount=Decimal('5'), base_amount=Decimal('5'), category='Food',
+                               description='Free tea', date=today(), currency='₹', exchange_rate=1)
         self.client.force_login(free)
-        self.assertRedirects(self.client.get(self.url), reverse('pricing'), fetch_redirect_response=False)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Free tea', response.content.decode())
 
     def test_login_required(self):
         self.client.logout()

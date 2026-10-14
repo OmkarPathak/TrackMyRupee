@@ -141,20 +141,6 @@ class SubscriptionTierTest(TestCase):
         self.assertIn('pricing', response.url)
         self.assertEqual(RecurringTransaction.objects.filter(user=self.user).count(), limit)
 
-    def test_export_access(self):
-        """Only Plus/Pro can export."""
-        # Free
-        self.setup_tier('FREE')
-        response = self.client.get(reverse('export-expenses'))
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('pricing', response.url)
-        
-        # Plus
-        self.setup_tier('PLUS')
-        response = self.client.get(reverse('export-expenses'))
-        self.assertEqual(response.status_code, 200) # CSV returned
-        self.assertEqual(response['Content-Type'], 'text/csv')
-
     def test_email_reminder_gate(self):
         """Only Plus/Pro receive email reminders."""
         from datetime import timedelta

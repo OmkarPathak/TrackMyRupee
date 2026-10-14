@@ -36,10 +36,10 @@ Understand your money
 
 Take it with you
 - Works in the browser on any phone, and installs to your home screen like an app. Push notifications are available once you allow them.
-- Export your data to CSV or Excel (Plus and Pro). It is your data.
+- Export your data to CSV or Excel on any plan. It is your data.
 
 YOUR PLAN
-You start on Free: {{ free.accounts }} accounts, {{ free.expenses_per_month }} expenses a month, {{ free.budget_categories }} budget categories, {{ free.recurring_transactions }} recurring transactions and {{ free.savings_goals }} savings goal. Nothing expires. Plus (from ₹{{ plus_price }} a month) and Pro lift those limits, add alert emails, export and Year in Review.
+You start on Free: {{ free.accounts }} accounts, {{ free.expenses_per_month }} expenses a month, {{ free.budget_categories }} budget categories, {{ free.recurring_transactions }} recurring transactions and {{ free.savings_goals }} savings goal. Nothing expires. Plus (from ₹{{ plus_price }} a month) and Pro lift those limits, add alert emails and Year in Review.
 See plans: https://trackmyrupee.com/pricing/
 
 START HERE

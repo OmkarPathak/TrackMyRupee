@@ -26,16 +26,7 @@ from ..posthog_utils import ph_capture
 class DataExportView(LoginRequiredMixin, TemplateView):
     template_name = 'expenses/export_data.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['can_export'] = self.request.user.profile.can_export_csv
-        return context
-
     def post(self, request, *args, **kwargs):
-        if not request.user.profile.can_export_csv:
-            messages.error(request, _("Exporting is a paid feature. Please upgrade."))
-            return redirect('pricing')
-
         selected_entities = request.POST.getlist('entities')
         if not selected_entities:
             messages.warning(request, _("Please select at least one data type to export."))
@@ -208,10 +199,6 @@ def export_expenses(request):
     Improved export_expenses that respects active filters.
     Used by the 'Export' button on the Expense List page.
     """
-    if not request.user.profile.can_export_csv:
-        messages.error(request, _("Exporting is a paid feature. Please upgrade."))
-        return redirect('pricing')
-
     # Re-apply exactly the filters the list view applied (period, search, chips, sort).
     from ..filters import EXPENSE_FILTERS, apply_filter_config
 

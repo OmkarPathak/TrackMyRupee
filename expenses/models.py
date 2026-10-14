@@ -1735,12 +1735,6 @@ class UserProfile(models.Model):
         return 'FREE'
     
     @property
-    def can_export_csv(self):
-        """Checks if CSV export is allowed for the user's tier."""
-        from finance_tracker.plans import get_limit
-        return get_limit(self.active_tier, 'export_csv')
-
-    @property
     def has_ai_access(self):
         """Checks if AI insights is allowed for the user's tier."""
         from finance_tracker.plans import get_limit

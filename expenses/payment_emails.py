@@ -30,8 +30,6 @@ def plan_highlights(tier):
     ]
     if limits.get('email_notifications'):
         lines.append('Alert emails for bills, budgets and goals')
-    if limits.get('export_csv'):
-        lines.append('Export your data any time')
     if limits.get('year_in_review'):
         lines.append('Year in Review')
     return lines

@@ -50,11 +50,9 @@
                         </button>
                     </span>
                 </div>
-                {% if request.user.profile.can_export_csv %}
                 <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-icon-btn no-loader" title="{% trans 'Export' %}">
                     <i class="bi bi-download"></i>
                 </a>
-                {% endif %}
                 <a href="{% url 'expense-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center text-nowrap">
                     <i class="bi bi-plus-lg me-1"></i> {% trans "Add Expense" %}
                 </a>
@@ -84,11 +82,9 @@
                 {% endif %}
             </h1>
             <div class="d-flex align-items-center gap-2">
-                {% if request.user.profile.can_export_csv %}
                 <a href="{% url 'export-expenses' %}?{{ request.GET.urlencode }}" class="header-icon-btn no-loader" title="{% trans 'Export' %}">
                     <i class="bi bi-download"></i>
                 </a>
-                {% endif %}
                 <a href="{% url 'expense-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center">
                     <i class="bi bi-plus-lg me-1"></i> {% trans "Add" %}
                 </a>

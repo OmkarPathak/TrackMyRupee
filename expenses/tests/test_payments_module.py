@@ -232,14 +232,12 @@ class ExpiryTests(CheckoutBase):
         p = self.profile
         self.assertEqual(p.active_tier, 'FREE')
         self.assertTrue(p.subscription_expired)
-        self.assertFalse(p.can_export_csv)
         self.assertFalse(p.can_track_loans)
 
     def test_an_active_plan_has_its_features(self):
         self.set_plan('PLUS', timezone.now() + timedelta(days=1))
         p = self.profile
         self.assertEqual(p.active_tier, 'PLUS')
-        self.assertTrue(p.can_export_csv)
         self.assertTrue(p.can_track_loans)
         self.assertFalse(p.subscription_expired)
 
@@ -266,12 +264,14 @@ class FeatureGatingTests(CheckoutBase):
         p.tier, p.subscription_end_date = tier, (timezone.now() + timedelta(days=30) if tier != 'FREE' else None)
         p.save()
 
-    def test_export_is_paid_only_on_both_entry_points(self):
-        for name, method in (('export-expenses', 'get'), ('export-data', 'post')):
-            r = getattr(self.client, method)(reverse(name))
-            self.assertRedirects(r, reverse('pricing'), fetch_redirect_response=False)
-        self.tier('PLUS')
-        self.assertEqual(self.client.get(reverse('export-expenses')).status_code, 200)
+    def test_exporting_your_own_data_is_open_to_every_plan(self):
+        for tier in ('FREE', 'PLUS', 'PRO'):
+            self.tier(tier)
+            self.assertEqual(self.client.get(reverse('export-expenses')).status_code, 200, tier)
+            self.assertEqual(self.client.get(reverse('export-data')).status_code, 200, tier)
+            r = self.client.post(reverse('export-data'), {'entities': ['expenses']})
+            self.assertEqual(r.status_code, 200, tier)
+            self.assertIn('attachment', r['Content-Disposition'], tier)
 
     def test_year_in_review_is_paid_only(self):
         self.assertRedirects(self.client.get(reverse('year_in_review', args=[2025])), reverse('pricing'),

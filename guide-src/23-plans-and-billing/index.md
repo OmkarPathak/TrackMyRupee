@@ -18,10 +18,9 @@ keywords: TrackMyRupee plans, Plus, Pro, pricing, subscription, cancel, free tri
 | Loans | Not included | 1 active loan | Unlimited |
 | Net worth history | 2 months | 6 months | Full |
 | Alert emails | No | Yes | Yes |
-| Export your data | No | Yes | Yes |
 | Year in Review | No | Yes | Yes |
 
-Prices are on the [pricing page](https://trackmyrupee.com/pricing/). The Free plan never expires.
+Exporting your data is free on every plan. Prices are on the [pricing page](https://trackmyrupee.com/pricing/). The Free plan never expires.
 
 ---
 
@@ -61,6 +60,6 @@ If a renewal payment keeps failing, the subscription stops and the account retur
 Your data is never deleted. The account behaves as Free from the moment the plan ends:
 
 - If you are over a limit, your **oldest** accounts, categories, subscriptions and goals stay usable and the newer ones are locked until you upgrade or delete some.
-- Loans, export and Year in Review need Plus or Pro again.
+- Loans and Year in Review need Plus or Pro again. Exporting your data stays available on every plan.
 
 Your payment history is under **Settings → Payment history**.

@@ -8,111 +8,6 @@
         <p class="text-muted mb-0 small pt-1">{% trans "Take your financial data with you in standard CSV format." %}</p>
     </div>
 
-    {% if not can_export %}
-        <div class="position-relative overflow-hidden rounded-4 shadow-sm mb-4">
-            <!-- Blurred Background Content -->
-            <div class="gated-preview p-4" style="filter: blur(5px); pointer-events: none; opacity: 0.5;">
-                <h5 class="fw-bold mb-4">{% trans "Select Data to Export" %}</h5>
-                <div class="list-group list-group-flush border rounded-4 overflow-hidden mb-4">
-                    <div class="list-group-item py-3 d-flex align-items-center justify-content-between bg-transparent">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-danger bg-opacity-10 text-danger rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
-                                <i class="bi bi-dash-circle fs-5"></i>
-                            </div>
-                            <div class="d-flex flex-column text-start">
-                                <span class="fw-bold">{% trans "Expenses" %}</span>
-                                <small class="text-muted">{% trans "All tracked spending and categories" %}</small>
-                            </div>
-                        </div>
-                        <input class="form-check-input" type="checkbox" checked disabled>
-                    </div>
-                    <div class="list-group-item py-3 d-flex align-items-center justify-content-between bg-transparent">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-success bg-opacity-10 text-success rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
-                                <i class="bi bi-plus-circle fs-5"></i>
-                            </div>
-                            <div class="d-flex flex-column text-start">
-                                <span class="fw-bold">{% trans "Incomes" %}</span>
-                                <small class="text-muted">{% trans "Earning sources and amounts" %}</small>
-                            </div>
-                        </div>
-                        <input class="form-check-input" type="checkbox" checked disabled>
-                    </div>
-                    <div class="list-group-item py-3 d-flex align-items-center justify-content-between bg-transparent">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
-                                <i class="bi bi-bank fs-5"></i>
-                            </div>
-                            <div class="d-flex flex-column text-start">
-                                <span class="fw-bold">{% trans "Loan Repayments" %}</span>
-                                <small class="text-muted">{% trans "Principal and interest repayment history" %}</small>
-                            </div>
-                        </div>
-                        <input class="form-check-input" type="checkbox" checked disabled>
-                    </div>
-                </div>
-                <div class="d-grid d-md-flex justify-content-md-end">
-                    <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm" disabled>
-                        <i class="bi bi-file-earmark-arrow-down me-2"></i> {% trans "Export Now" %}
-                    </button>
-                </div>
-            </div>
-
-            <!-- Absolute Lock Overlay -->
-            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center z-index-1" style="background: rgba(0,0,0,0.1);">
-                <div class="card border-0 shadow-lg rounded-4 text-center p-4 mx-3" style="max-width: 450px; background: var(--bs-card-bg); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1) !important;">
-                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
-                        <i class="bi bi-lock-fill display-4"></i>
-                    </div>
-                    <span class="badge bg-warning text-dark mb-2 align-self-center px-3 py-2 rounded-pill fw-bold">
-                        <i class="bi bi-star-fill me-1"></i> {% trans "PLUS & PRO FEATURE" %}
-                    </span>
-                    <h3 class="h4 fw-bold mb-2">{% trans "Unlock Data Portability" %}</h3>
-                    <p class="text-muted small mb-4">
-                        {% trans "Upgrade your plan to export all your financial records including expenses, incomes, and transfers." %}
-                    </p>
-                    <div class="d-grid">
-                        <a href="{% url 'pricing' %}" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm">
-                            {% trans "Upgrade Now" %}
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card border-0 shadow-sm rounded-4 mt-4">
-            <div class="card-footer bg-body-tertiary border-0 p-4 rounded-4">
-                <h6 class="fw-bold mb-3">{% trans "What you get with Exporting:" %}</h6>
-                <div class="row g-3">
-                    <div class="col-sm-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-check-circle-fill text-success"></i>
-                            <span class="small">{% trans "All Expense records with categories" %}</span>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-check-circle-fill text-success"></i>
-                            <span class="small">{% trans "Complete Income and Source history" %}</span>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-check-circle-fill text-success"></i>
-                            <span class="small">{% trans "Inter-account Transfer data" %}</span>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-check-circle-fill text-success"></i>
-                            <span class="small">{% trans "Recurring Transaction schedules" %}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% else %}
-        <!-- Export Form for Paid Users -->
         <div class="border-0 rounded-4 mb-4">
             <div class="bg-transparent">
                 <form method="post" action="{% url 'export-data' %}" class="no-loader">
@@ -221,7 +116,7 @@
                 </form>
             </div>
         </div>
-    {% endif %}
+    
 
     <!-- Security Note -->
     <div class="text-center mt-5 px-4 mb-5">

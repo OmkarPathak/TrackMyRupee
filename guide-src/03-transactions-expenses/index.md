@@ -207,7 +207,7 @@ If you logged something big as an ordinary expense, open its menu and choose **C
 
 ### Export to CSV
 
-On **Plus** and **Pro**, the export button downloads exactly what the list is showing: the same period, search, filters, and sort. The file has the date, description, amount, currency, exchange rate, amount in your currency, category, payment method, and account. On the Free plan the button takes you to the pricing page.
+On every plan, the export button downloads exactly what the list is showing: the same period, search, filters, and sort. The file has the date, description, amount, currency, exchange rate, amount in your currency, category, payment method, and account.
 
 !!! example "Real-world use case"
     After a Swiggy delivery arrives, Meera opens **Add Expense**, types `swiggy dinner 450 upi`, and presses Enter. The amount, UPI, and the Food category are filled in for her, because she has logged Swiggy before and the app remembered. She glances at the form, taps **Add expense**, and the whole thing takes about ten seconds.
