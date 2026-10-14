@@ -44,6 +44,9 @@ _MULTIPLIERS = {
 }
 _MULT_RE = '|'.join(re.escape(w) for w in sorted(_MULTIPLIERS, key=len, reverse=True))
 
+# Expense.amount is DecimalField(max_digits=15, decimal_places=2).
+MAX_AMOUNT = Decimal('1e13')
+
 _NUM = r'\d{1,3}(?:,\d{2,3})+(?:\.\d+)?|\d+(?:\.\d+)?'
 _AMOUNT_RE = re.compile(
     r'(?<![\w.,])(?P<pre>' + _CUR_RE + r')?\s*(?P<num>' + _NUM + r')\s*(?P<mult>' + _MULT_RE + r')?'
@@ -66,6 +69,8 @@ _DATE_DM_RE = re.compile(
 _DATE_MD_RE = re.compile(
     _L + r'(?P<m>' + _MONTH_RE + r')\.?\s+(?P<d>\d{1,2})(?:st|nd|rd|th)?'
     r'(?:\s*,?\s*(?P<y>\d{4}))?' + _R, re.IGNORECASE)
+_DATE_ISO_RE = re.compile(
+    _L + r'(?P<y>\d{4})[/-](?P<m>\d{1,2})[/-](?P<d>\d{1,2})' + _R)
 _DATE_SLASH_RE = re.compile(
     _L + r'(?P<d>\d{1,2})[/-](?P<m>\d{1,2})(?:[/-](?P<y>\d{2,4}))?' + _R)
 
@@ -158,6 +163,11 @@ def _resolve_year(day, month, year, today):
 
 def _extract_date(text, today):
     """Return (date, span) for the first date expression, or (None, None)."""
+    m = _DATE_ISO_RE.search(text)
+    if m:
+        found = _safe_date(int(m.group('y')), int(m.group('m')), int(m.group('d')))
+        if found:
+            return found, m.span()
     for rx in (_DATE_DM_RE, _DATE_MD_RE):
         m = rx.search(text)
         if m:
@@ -184,6 +194,8 @@ def _to_decimal(raw, mult):
         return None
     if mult:
         value *= _MULTIPLIERS[mult.lower()]
+    if value >= MAX_AMOUNT:
+        return None  # beyond what an amount field can hold: not a price
     return value.quantize(Decimal('0.01'))
 
 
@@ -196,6 +208,8 @@ def _extract_amount(text):
             continue
         marker = m.group('pre') or m.group('post')
         marked = bool(marker or m.group('mult'))
+        if not marked and len(re.sub(r'\D', '', m.group('num').split('.')[0])) >= 10:
+            continue  # ten digits or more with no currency: a phone or reference number, not a price
         currency = CURRENCY_WORDS[marker.lower()] if marker else None
         candidates.append((marked, value, currency, m.span()))
     if not candidates:
@@ -220,13 +234,16 @@ def _match_account(text, accounts):
         if full:
             best.append((len(name) + 100, acc, full.span()))
             continue
+        # The most specific word of the name that appears in the text ("regalia" beats the shared "hdfc").
+        found = None
         for tok in re.findall(r'[^\W_]+', name, re.UNICODE):
             if len(tok) < 3 or tok.lower() in _ACCOUNT_GENERIC:
                 continue
             m = re.search(_L + re.escape(tok) + _R, text, re.IGNORECASE)
-            if m:
-                best.append((len(tok), acc, m.span()))
-                break
+            if m and (found is None or len(tok) > found[0]):
+                found = (len(tok), m.span())
+        if found:
+            best.append((found[0], acc, found[1]))
     if not best:
         return None, None, None
     best.sort(key=lambda b: -b[0])
@@ -332,10 +349,9 @@ def parse_expense_nl(text, user_categories=None, user_accounts=None, user=None, 
     category = 'Other'
     category_conf = 'low'
     category_found = False
-    desc_lower = description.lower()
     if user_categories:
         for cat in user_categories:
-            if cat.lower() in desc_lower:
+            if re.search(_L + re.escape(cat) + _R, description, re.IGNORECASE):
                 category, category_conf, category_found = cat, 'high', True
                 is_clue_found = True
                 break

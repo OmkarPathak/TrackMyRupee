@@ -187,7 +187,8 @@ def filter_amount_range(queryset: QuerySet, values: List[str]) -> QuerySet:
         if key == "Under 500":
             q_objects |= Q(**{f"{amount_field}__lt": Decimal('500')})
         elif key == "500 to 2,000":
-            q_objects |= Q(**{f"{amount_field}__gte": Decimal('500'), f"{amount_field}__lte": Decimal('2000')})
+            # Each bucket owns its lower edge, so an amount of exactly 2,000 is in one bucket, not two.
+            q_objects |= Q(**{f"{amount_field}__gte": Decimal('500'), f"{amount_field}__lt": Decimal('2000')})
         elif key == "2,000 to 10,000":
             q_objects |= Q(**{f"{amount_field}__gte": Decimal('2000'), f"{amount_field}__lte": Decimal('10000')})
         elif key == "Over 10,000":

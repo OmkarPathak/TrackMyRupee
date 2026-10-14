@@ -41,9 +41,10 @@ Here are a few lines it understands:
 It understands:
 
 - **Amounts** written as `450`, `1,250`, `1.5k`, `2 lakh` or `1 crore`, with or without ₹, Rs, or a currency word
-- **Dates** such as *today*, *yesterday*, *day before yesterday*, *3 oct*, *3rd october*, and *03/10*. Common Hindi and Marathi words for yesterday and today work too.
+- **Dates** such as *today*, *yesterday*, *day before yesterday*, *3 oct*, *3rd october*, *03/10*, and *2025-10-03* (year, month, day). A date typed with a month name needs the month, so *12 oct* works but a bare *12th* does not. Common Hindi and Marathi words for yesterday and today work too.
 - **Payment methods** such as UPI, GPay, PhonePe, Paytm, credit card, debit card, cash, and net banking
-- **Account names**, when you mention the bank or card by name
+- **Account names**, when you mention the bank or card by name. If two accounts share a word (two HDFC accounts), add the word that tells them apart, such as `hdfc regalia`; otherwise the app asks you to check the account.
+- **Categories**, from your own category names (as whole words) and from common words such as *dinner*, *petrol*, *electricity*. Part of a word does not count: *teacher* is not *tea*. Long numbers with no ₹ sign, such as a phone number, are never taken as the amount.
 - **Hindi and Marathi**, including Devanagari numerals
 
 Anything it does not recognise as one of those becomes the **description**.
@@ -207,7 +208,9 @@ If you logged something big as an ordinary expense, open its menu and choose **C
 
 ### Export to CSV
 
-On every plan, the export button downloads exactly what the list is showing: the same period, search, filters, and sort. The file has the date, description, amount, currency, exchange rate, amount in your currency, category, payment method, and account.
+On every plan, the export button downloads exactly what the list is showing: the same period, search, filters, and sort. The file has the date, description, amount, currency, exchange rate, amount in your currency, category, payment method, and account. It opens correctly in Excel with the ₹ sign and Hindi text, and any text that starts with `=`, `+`, `-` or `@` is saved with a leading quote so a spreadsheet shows it as text instead of running it as a formula.
+
+To take **all** your data, use **Settings → Export Data**: expenses, income, transfers, loan repayments, subscriptions, goals and goal contributions, accounts (with their current balance), capital events, loans, and categories with their budgets. One choice gives a CSV file; several are packed into a ZIP.
 
 !!! example "Real-world use case"
     After a Swiggy delivery arrives, Meera opens **Add Expense**, types `swiggy dinner 450 upi`, and presses Enter. The amount, UPI, and the Food category are filled in for her, because she has logged Swiggy before and the app remembered. She glances at the form, taps **Add expense**, and the whole thing takes about ten seconds.

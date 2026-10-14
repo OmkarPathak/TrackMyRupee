@@ -437,7 +437,7 @@ class TestExpenseListView(ExpenseTestBase):
         def got(label):
             return {x.base_amount for x in self.client.get(self.url, {'amount_range': label}).context['expenses']}
         self.assertEqual(got('Under ₹500'), {Decimal('499.99')})
-        self.assertEqual(got('₹500 to ₹2,000'), {Decimal('500'), Decimal('2000')})
+        self.assertEqual(got('₹500 to ₹2,000'), {Decimal('500')})
         self.assertEqual(got('₹2,000 to ₹10,000'), {Decimal('2000'), Decimal('2000.01'), Decimal('10000')})
         self.assertEqual(got('Over ₹10,000'), {Decimal('10000.01')})
 
@@ -1207,7 +1207,7 @@ class TestExpenseExport(ExpenseTestBase):
         response = self.client.get(self.url, params)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv')
-        return list(csv.reader(io.StringIO(response.content.decode())))
+        return list(csv.reader(io.StringIO(response.content.decode('utf-8-sig'))))
 
     def descriptions(self, **params):
         return {row[1] for row in self.rows(**params)[1:]}

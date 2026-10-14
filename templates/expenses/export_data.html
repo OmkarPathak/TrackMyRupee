@@ -87,7 +87,7 @@
                         </label>
 
                         <!-- Goals -->
-                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer border-0">
+                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
                                     <i class="bi bi-bullseye fs-5"></i>
@@ -98,6 +98,67 @@
                                 </div>
                             </div>
                             <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="goals">
+                        </label>
+
+                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-piggy-bank fs-5"></i>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{% trans "Goal Contributions" %}</span>
+                                    <small class="text-muted">{% trans "Each deposit towards a savings goal" %}</small>
+                                </div>
+                            </div>
+                            <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="goal_contributions">
+                        </label>
+                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-bank fs-5"></i>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{% trans "Accounts" %}</span>
+                                    <small class="text-muted">{% trans "Your accounts with their current balances" %}</small>
+                                </div>
+                            </div>
+                            <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="accounts">
+                        </label>
+                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-danger bg-opacity-10 text-danger rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-flag fs-5"></i>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{% trans "Capital Events" %}</span>
+                                    <small class="text-muted">{% trans "One-off big purchases and loan prepayments" %}</small>
+                                </div>
+                            </div>
+                            <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="capital_events">
+                        </label>
+                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-secondary bg-opacity-10 text-secondary rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-cash-coin fs-5"></i>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{% trans "Loans" %}</span>
+                                    <small class="text-muted">{% trans "Each loan with its principal and term" %}</small>
+                                </div>
+                            </div>
+                            <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="loans">
+                        </label>
+                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer border-0">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-info bg-opacity-10 text-info rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-tags fs-5"></i>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{% trans "Categories and Budgets" %}</span>
+                                    <small class="text-muted">{% trans "Your categories and monthly budget limits" %}</small>
+                                </div>
+                            </div>
+                            <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="categories">
                         </label>
                     </div>
 

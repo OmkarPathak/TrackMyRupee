@@ -20,22 +20,28 @@ KEYWORD_MAPPING = {
     'Cab': ['cab', 'taxi', 'ola', 'uber', 'auto', 'rental', 'car', 'rapido'],
 }
 
+# A keyword counts only as a whole word (a trailing "s"/"es" is fine: "snacks", "taxis"), so "card" is not
+# "rd", "teacher" is not "tea", "vegas" is not "gas". \b is not used because Devanagari vowel signs are
+# not word characters.
+_WORD_CHARS = r'A-Za-z0-9_\u0900-\u097F'
+_KEYWORD_PATTERNS = {
+    category: re.compile(
+        r'(?<![' + _WORD_CHARS + r'])(?:' + '|'.join(re.escape(k) for k in sorted(keywords, key=len, reverse=True))
+        + r')(?:s|es)?(?![' + _WORD_CHARS + r'])',
+        re.IGNORECASE,
+    )
+    for category, keywords in KEYWORD_MAPPING.items()
+}
+
+
 def predict_category_rule_based(description):
     """
     Predicts category based on keywords in the description.
     Returns the probable category or None.
     """
-    description = description.lower()
-    
-    # Normalize description
-    words = re.findall(r'\w+', description)
-    
-    # direct match
-    for category, keywords in KEYWORD_MAPPING.items():
-        for keyword in keywords:
-            if keyword in words or keyword in description:
-                # Check for exact word match or substring if useful
-                return category
+    for category, pattern in _KEYWORD_PATTERNS.items():
+        if pattern.search(description):
+            return category
     return None
 
 def predict_category_ai(description, user=None, categories=None, history_map=None):
