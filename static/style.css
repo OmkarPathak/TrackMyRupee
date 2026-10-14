@@ -4293,3 +4293,9 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
   min-width: 9rem;
   margin-top: 0.6rem;
 }
+
+/* Add menu (desktop navbar): soft icon badges, same language as the mobile Add sheet */
+.add-menu-ico {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 10px; font-size: 1rem; flex-shrink: 0;
+}
