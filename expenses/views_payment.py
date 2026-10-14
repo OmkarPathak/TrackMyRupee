@@ -6,6 +6,7 @@ import razorpay
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -45,7 +46,11 @@ def create_order(request):
             duration = data.get('duration', 'YEARLY')
             is_recurring = data.get('is_recurring', True)
 
-            if duration not in ('MONTHLY', 'YEARLY', 'LIFETIME'):
+            # Only the two paid plans are for sale, and only monthly or yearly (lifetime is granted by
+            # hand, never bought here: the one-time price lookup below has no lifetime price).
+            if plan_type not in ('PLUS', 'PRO'):
+                return JsonResponse({'error': 'Invalid plan'}, status=400)
+            if duration not in ('MONTHLY', 'YEARLY'):
                 return JsonResponse({'error': 'Invalid duration'}, status=400)
 
             # Check if this is a recurring plan with a linked Razorpay Plan ID
@@ -54,6 +59,15 @@ def create_order(request):
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
             if is_recurring and db_plan and db_plan.razorpay_plan_id and duration in ('MONTHLY', 'YEARLY'):
+                # A second live subscription would be billed alongside the first. Cancel it (Settings)
+                # before starting another; a one-time payment is still possible meanwhile.
+                current = request.user.profile
+                if (current.pays_by_subscription and not current.cancel_at_cycle_end
+                        and current.subscription_end_date and current.subscription_end_date > timezone.now()):
+                    return JsonResponse({
+                        'error': 'You already have an active auto-renewing subscription. Cancel it from '
+                                 'Settings first, or choose "Buy 1 Month/Year" for a one-time payment.'
+                    }, status=400)
                 # Handle RECURRING SUBSCRIPTION
                 subscription_data = {
                     'plan_id': db_plan.razorpay_plan_id,
@@ -133,6 +147,21 @@ def create_order(request):
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
 
+def _paid_period_start(profile, payment_record):
+    """When the period this payment buys begins: at the end of time already paid for, else now.
+
+    Time left on a free trial, or on a plan that was granted rather than bought, is not "paid for",
+    so it is not stretched: someone who pays during a trial gets the whole period they paid for.
+    """
+    now = timezone.now()
+    end = profile.subscription_end_date
+    if end and end > now and PaymentHistory.objects.filter(
+        user=profile.user, status='SUCCESS'
+    ).exclude(pk=payment_record.pk).exists():
+        return end
+    return now
+
+
 @login_required
 def verify_payment(request):
     if request.method == "POST":
@@ -169,53 +198,43 @@ def verify_payment(request):
                 PaymentHistory.objects.filter(order_id=target_id, user=request.user).update(status='FAILED')
                 return JsonResponse({'error': 'Signature Verification Failed'}, status=400)
 
-            # Payment Successful
-            payment_record = PaymentHistory.objects.filter(order_id=target_id, user=request.user).order_by('-created_at').first()
-            if not payment_record:
-                return JsonResponse({'error': 'Order not found'}, status=404)
-            
-            # Race condition guard: if the webhook already processed this payment
-            # (marked it SUCCESS and set subscription_end_date), we must still
-            # activate profile.tier here — don't return 400 early.
-            first_activation = False
-            if payment_record.status == 'SUCCESS':
-                # Check if the tier was already activated by the webhook
-                profile = request.user.profile
-                if profile.tier == payment_record.tier:
-                    # Fully activated already — idempotent success
+            # Payment Successful. Applied exactly once: the row is locked, and only the request that
+            # flips it from PENDING to SUCCESS touches the profile. A repeated verification (double
+            # click, replayed request, an old order after an upgrade) changes nothing.
+            with transaction.atomic():
+                payment_record = (
+                    PaymentHistory.objects.select_for_update()
+                    .filter(order_id=target_id, user=request.user).order_by('-created_at').first()
+                )
+                if not payment_record:
+                    return JsonResponse({'error': 'Order not found'}, status=404)
+                if payment_record.status == 'SUCCESS':
+                    # Already applied here, or by the webhook (which activates the tier itself).
                     return JsonResponse({'success': True})
-                # Tier not yet set (webhook ran first but only set end date)
-                # Fall through to activate below.
-            else:
+
                 payment_record.payment_id = razorpay_payment_id
                 payment_record.status = 'SUCCESS'
                 payment_record.save()
+
                 profile = request.user.profile
-                first_activation = True
+                profile.tier = payment_record.tier
+                if razorpay_subscription_id:
+                    profile.razorpay_subscription_id = razorpay_subscription_id
+                else:
+                    profile.razorpay_order_id = razorpay_order_id
 
-            # Activate / update the subscription tier and dates
-            profile.tier = payment_record.tier
+                if payment_record.duration == 'LIFETIME':
+                    profile.is_lifetime = True
+                else:
+                    # A subscription's real end date arrives with the webhook (Razorpay's current_end);
+                    # this is the provisional window until then. A one-time payment is final.
+                    days = 30 if payment_record.duration == 'MONTHLY' else 365
+                    profile.subscription_end_date = _paid_period_start(profile, payment_record) + timedelta(days=days)
 
-            if razorpay_subscription_id:
-                profile.razorpay_subscription_id = razorpay_subscription_id
-            else:
-                profile.razorpay_order_id = razorpay_order_id
+                profile.expiry_reminder_sent = False
+                profile.save()
 
-            # Set end date only if not already extended by the webhook
-            if payment_record.duration == 'LIFETIME':
-                profile.is_lifetime = True
-            elif not profile.subscription_end_date or profile.subscription_end_date <= timezone.now():
-                # Webhook hasn't extended it yet — set a safe initial window
-                days = 30 if payment_record.duration == 'MONTHLY' else 365
-                profile.subscription_end_date = timezone.now() + timedelta(days=days)
-
-            profile.expiry_reminder_sent = False
-            profile.save()
-
-            # Whichever of verify/webhook flips the payment to SUCCESS first sends the thank-you
-            if first_activation:
-                send_upgrade_thank_you(request.user, payment_record)
-
+            send_upgrade_thank_you(request.user, payment_record)
             return JsonResponse({'success': True})
         except PaymentHistory.DoesNotExist:
              return JsonResponse({'error': 'Order not found'}, status=404)
