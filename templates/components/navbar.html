@@ -115,12 +115,12 @@
                         <span class="fw-bold">{% trans "Add" %}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'expense-create' %}?next={{ request.path }}"><span class="add-menu-ico bg-danger bg-opacity-10 text-danger"><i class="bi bi-receipt-cutoff"></i></span> {% trans "Add Expense" %}</a></li>
-                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'recurring-create' %}?next={{ request.path }}"><span class="add-menu-ico bg-primary bg-opacity-10 text-primary"><i class="bi bi-calendar2-check"></i></span> {% trans "Add Subscription" %}</a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'expense-create' %}?next={{ request.path }}"><span class="add-menu-ico text-danger"><i class="bi bi-receipt-cutoff"></i></span> {% trans "Add Expense" %}</a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'recurring-create' %}?next={{ request.path }}"><span class="add-menu-ico text-primary"><i class="bi bi-calendar2-check"></i></span> {% trans "Add Subscription" %}</a></li>
                         {% if user.username != 'demo' %}
-                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'transfer-create' %}?next={{ request.path }}"><span class="add-menu-ico bg-info bg-opacity-10 text-info"><i class="bi bi-arrow-left-right"></i></span> {% trans "Internal Transfer" %}</a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'transfer-create' %}?next={{ request.path }}"><span class="add-menu-ico text-info"><i class="bi bi-arrow-left-right"></i></span> {% trans "Internal Transfer" %}</a></li>
                         {% endif %}
-                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'income-create' %}?next={{ request.path }}"><span class="add-menu-ico bg-success bg-opacity-10 text-success"><i class="bi bi-wallet2"></i></span> {% trans "Add Income" %}</a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'income-create' %}?next={{ request.path }}"><span class="add-menu-ico text-success"><i class="bi bi-wallet2"></i></span> {% trans "Add Income" %}</a></li>
                     </ul>
                 </li>
 
