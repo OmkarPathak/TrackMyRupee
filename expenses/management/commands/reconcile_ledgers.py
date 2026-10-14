@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
@@ -12,6 +13,8 @@ from expenses.models import (
     JournalLine,
     LedgerReconciliationReport,
 )
+
+MATCH_RETENTION_DAYS = 90
 
 
 class Command(BaseCommand):
@@ -95,19 +98,30 @@ class Command(BaseCommand):
             if status == "DRIFT":
                 drifts += 1
 
-            LedgerReconciliationReport.objects.create(
-                user=account.user,
+            # One report per account per day: a re-run refreshes it instead of adding another row.
+            LedgerReconciliationReport.objects.update_or_create(
                 account=account,
                 as_of_date=as_of_date,
-                account_balance=account_balance,
-                ledger_balance=ledger_balance,
-                drift_amount=drift_amount,
-                status=status,
-                metadata={
-                    "threshold": str(threshold),
-                    "has_opening_entry": has_opening_entry,
+                defaults={
+                    "user": account.user,
+                    "account_balance": account_balance,
+                    "ledger_balance": ledger_balance,
+                    "drift_amount": drift_amount,
+                    "status": status,
+                    "metadata": {
+                        "threshold": str(threshold),
+                        "has_opening_entry": has_opening_entry,
+                    },
                 },
             )
+
+        # Clean matches are only noise after a while; drifts are kept for investigation.
+        if accounts:
+            LedgerReconciliationReport.objects.filter(
+                account__in=accounts,
+                status="MATCH",
+                as_of_date__lt=as_of_date - timedelta(days=MATCH_RETENTION_DAYS),
+            ).delete()
 
         self.stdout.write(
             self.style.SUCCESS(

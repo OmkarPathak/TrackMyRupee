@@ -290,6 +290,14 @@
                                                         <i class="bi bi-eye text-primary"></i><span>{% trans "View Details" %}</span>
                                                     </a>
                                                 </li>
+                                                {% if account.can_reconcile %}
+                                                <li>
+                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
+                                                       href="{% url 'account-reconcile' account.uuid %}">
+                                                        <i class="bi bi-check2-square text-primary"></i><span>{% trans "Reconcile" %}</span>
+                                                    </a>
+                                                </li>
+                                                {% endif %}
                                                 <li>
                                                     <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
                                                        href="{% url 'account-edit' account.uuid %}">
@@ -365,6 +373,13 @@
                                     {% elif account.days_since_update == 1 %}{% trans "Updated 1d ago" %}
                                     {% else %}{% blocktrans with days=account.days_since_update|translate_digits %}Updated {{ days }}d ago{% endblocktrans %}{% endif %}
                                 </div>
+                                {% if account.last_reconciliation %}
+                                    <div class="mt-1" style="font-size: 0.72rem;">
+                                        <a href="{% url 'account-reconciliation-history' account.uuid %}" class="text-decoration-none {% if account.last_reconciliation.status == 'OPEN' %}text-warning{% else %}text-success{% endif %}">
+                                            <i class="bi {% if account.last_reconciliation.status == 'OPEN' %}bi-exclamation-circle{% else %}bi-check2-circle{% endif %} me-1"></i>{% if account.last_reconciliation.status == 'OPEN' %}{% trans "Difference open since" %}{% else %}{% trans "Reconciled" %}{% endif %} {{ account.last_reconciliation.statement_date|date:"j M" }}
+                                        </a>
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <!-- Bottom Divider & Details -->

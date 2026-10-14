@@ -131,6 +131,11 @@
                                     </button>
                                     {% endif %}
                                 {% endif %}
+                                {% if can_reconcile %}
+                                    <a href="{% url 'account-reconcile' account.uuid %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Reconcile' %}" aria-label="{% trans 'Reconcile' %}">
+                                        <i class="bi bi-check2-square" aria-hidden="true"></i>
+                                    </a>
+                                {% endif %}
                                 {% if account.is_active %}
                                     <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit' %}">
                                         <i class="bi bi-pencil" aria-hidden="true"></i>

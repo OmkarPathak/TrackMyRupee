@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters %}
+
+{% block content %}
+<div class="row justify-content-center fade-in">
+    <div class="col-lg-10 col-xl-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <a href="{% url 'account-detail' account.uuid %}" class="text-decoration-none small">
+                <i class="bi bi-arrow-left me-1"></i>{{ account.name }}
+            </a>
+        </nav>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div class="flex-grow-1 min-w-0">
+                        <h1 class="h4 fw-bold mb-1">{% trans "Reconcile account" %}</h1>
+                        <p class="text-muted mb-0">{% blocktrans with name=account.name %}Check that {{ name }} matches your bank or card statement.{% endblocktrans %}</p>
+                    </div>
+                    <a href="{% url 'account-reconciliation-history' account.uuid %}" class="btn btn-sm btn-outline-secondary flex-shrink-0 text-nowrap">
+                        <i class="bi bi-clock-history me-1"></i>{% trans "History" %}
+                    </a>
+                </div>
+
+                {% if last_reconciliation %}
+                    <div class="alert alert-light border small py-2">
+                        {% blocktrans with date=last_reconciliation.statement_date|date:"j M Y" status=last_reconciliation.get_status_display %}Last check: statement of {{ date }} ({{ status }}).{% endblocktrans %}
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'account-reconcile' account.uuid %}" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.statement_date.id_for_label }}" class="form-label fw-semibold">{{ form.statement_date.label }}</label>
+                            {{ form.statement_date }}
+                            <div class="form-text">{{ form.statement_date.help_text }}</div>
+                            {% for error in form.statement_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.statement_balance.id_for_label }}" class="form-label fw-semibold">{{ form.statement_balance.label }} ({{ account.currency }})</label>
+                            {{ form.statement_balance }}
+                            <div class="form-text">{{ form.statement_balance.help_text }}</div>
+                            {% for error in form.statement_balance.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-12">
+                            <label for="{{ form.note.id_for_label }}" class="form-label fw-semibold">{{ form.note.label }}</label>
+                            {{ form.note }}
+                            {% for error in form.note.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary">{% trans "Compare" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if comparison %}
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold mb-3">{% trans "Result" %}</h2>
+                <div class="row text-center g-3 mb-3">
+                    <div class="col-4">
+                        <div class="text-muted small">{% trans "Statement" %}</div>
+                        <div class="fw-bold fs-5">{{ comparison.statement_balance|money_exact:account.currency }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">{% trans "In this app" %}</div>
+                        <div class="fw-bold fs-5">{{ comparison.app_balance|money_exact:account.currency }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">{% trans "Difference" %}</div>
+                        <div class="fw-bold fs-5 {% if comparison.matched %}text-success{% else %}text-danger{% endif %}">{{ comparison.difference|money_exact_signed:account.currency }}</div>
+                    </div>
+                </div>
+
+                {% if comparison.later_count %}
+                    <p class="text-muted small">{% blocktrans count n=comparison.later_count %}{{ n }} transaction dated after the statement date is not counted.{% plural %}{{ n }} transactions dated after the statement date are not counted.{% endblocktrans %}</p>
+                {% endif %}
+
+                {% if comparison.matched %}
+                    <div class="alert alert-success mb-3"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Your balance matches the statement." %}</div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        {% if comparison.difference > 0 %}
+                            {% trans "Your statement is higher than this app. Money may be missing from the app, such as an income or a refund you have not added." %}
+                        {% else %}
+                            {% trans "Your statement is lower than this app. An expense may be missing, or something may be recorded twice." %}
+                        {% endif %}
+                    </div>
+
+                    {% if comparison.suspects %}
+                        <h3 class="h6 fw-bold">{% trans "Worth a look" %}</h3>
+                        <ul class="list-group mb-3">
+                            {% for flow, reason in comparison.suspects %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start gap-2">
+                                    <div>
+                                        <div>{{ flow.date|date:"j M Y" }} · {{ flow.description|default:flow.kind }}</div>
+                                        <div class="small text-muted">
+                                            {% if reason == 'same_amount' %}{% trans "Same size as the difference: it may be a duplicate, or one like it may be missing." %}{% else %}{% trans "Half the difference: it may have been entered in the wrong direction." %}{% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="fw-semibold text-nowrap">{{ flow.amount|money_exact:account.currency }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    {% if comparison.unaccounted.expenses or comparison.unaccounted.income or comparison.unaccounted.capital_events %}
+                        <div class="alert alert-light border small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {% blocktrans with e=comparison.unaccounted.expenses i=comparison.unaccounted.income c=comparison.unaccounted.capital_events %}Some older entries were saved without an account and never changed a balance: {{ e }} expenses, {{ i }} income, {{ c }} capital events.{% endblocktrans %}
+                        </div>
+                    {% endif %}
+                    {% if comparison.missing_opening_entry %}
+                        <div class="alert alert-light border small">
+                            <i class="bi bi-info-circle me-1"></i>{% trans "This account has no recorded opening balance, which can explain a difference." %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                {% if comparison.recent %}
+                    <h3 class="h6 fw-bold mt-4">{% trans "Recent transactions before the statement date" %}</h3>
+                    <ul class="list-group mb-3">
+                        {% for flow in comparison.recent %}
+                            <li class="list-group-item d-flex justify-content-between gap-2">
+                                <span>{{ flow.date|date:"j M" }} · {{ flow.description|default:flow.kind|truncatechars:60 }}</span>
+                                <span class="text-nowrap {% if flow.amount < 0 %}text-danger{% else %}text-success{% endif %}">{{ flow.amount|money_exact:account.currency }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                <form method="post" action="{% url 'account-reconcile-confirm' account.uuid %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="statement_date" value="{{ comparison.statement_date|date:'Y-m-d' }}">
+                    <input type="hidden" name="statement_balance" value="{{ comparison.statement_balance }}">
+                    <input type="hidden" name="note" value="{{ note }}">
+                    {% if is_demo %}
+                        <p class="text-muted small mb-0">{% trans "Saving a reconciliation is disabled in the demo." %}</p>
+                    {% elif comparison.matched %}
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" name="action" value="open" class="btn btn-primary">{% trans "Save this check" %}</button>
+                        </div>
+                    {% else %}
+                        <ul class="small text-muted ps-3 mb-3">
+                            <li class="mb-1"><strong>{% trans "Correct my balance" %}:</strong> {% blocktrans with name=account.name now=comparison.current_balance|money_exact:account.currency after=comparison.balance_after|money_exact:account.currency amount=comparison.difference|money_exact_signed:account.currency %}changes {{ name }} from <span class="text-nowrap">{{ now }}</span> to <span class="text-nowrap">{{ after }}</span> (an adjustment of <span class="text-nowrap">{{ amount }}</span>). Your net worth changes by the same amount and other accounts are untouched. Your transactions are not edited, and the adjustment does not count as income or spending.{% endblocktrans %}</li>
+                            <li class="mb-1"><strong>{% trans "My app balance is correct" %}:</strong> {% trans "records that you checked and decided the app is right, for example a payment that has not cleared yet. No balance changes." %}</li>
+                            <li><strong>{% trans "Leave it open" %}:</strong> {% trans "saves this check and changes no balance, so you can look for the missing entry first." %}</li>
+                        </ul>
+                        <div class="d-grid gap-2 d-lg-flex justify-content-lg-end">
+                            <button type="submit" name="action" value="open" class="btn btn-action-cancel">{% trans "Leave it open" %}</button>
+                            <button type="submit" name="action" value="accept" class="btn btn-outline-secondary">{% trans "My app balance is correct" %}</button>
+                            <button type="submit" name="action" value="adjust" class="btn btn-primary">{% trans "Correct my balance" %}</button>
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
