@@ -63,18 +63,27 @@ class RazorpaySubscriptionTest(TestCase):
         self.assertTrue(PaymentHistory.objects.filter(order_id='sub_123').exists())
 
     @patch('expenses.views_payment.razorpay.Client')
-    def test_create_order_falls_back_to_order_when_plan_missing(self, MockRazorpayClient):
-        """If plan ID is missing, fall back to one-time order creation."""
+    def test_auto_renewal_without_a_razorpay_plan_is_an_error_not_a_one_time_order(self, MockRazorpayClient):
+        """A request for auto-renewal must never quietly become a one-time payment."""
         mock_client_instance = MockRazorpayClient.return_value
-        mock_client_instance.order.create.return_value = {'id': 'order_123', 'status': 'created'}
 
         url = reverse('create-order')
         data = {'plan_type': 'PRO', 'duration': 'MONTHLY'} # pro_monthly has no razorpay_plan_id
         response = self.client.post(url, json.dumps(data), content_type='application/json')
 
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('one-time', response.json()['error'])
+        mock_client_instance.order.create.assert_not_called()
+        self.assertEqual(PaymentHistory.objects.count(), 0)
+
+    @patch('expenses.views_payment.razorpay.Client')
+    def test_a_one_time_order_is_still_available_for_the_same_plan(self, MockRazorpayClient):
+        mock_client_instance = MockRazorpayClient.return_value
+        mock_client_instance.order.create.return_value = {'id': 'order_123', 'status': 'created'}
+        data = {'plan_type': 'PRO', 'duration': 'MONTHLY', 'is_recurring': False}
+        response = self.client.post(reverse('create-order'), json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['type'], 'ORDER')
-        self.assertEqual(response.json()['id'], 'order_123')
+        self.assertEqual((response.json()['type'], response.json()['id']), ('ORDER', 'order_123'))
 
     @patch('expenses.views_payment.razorpay.Client')
     def test_verify_subscription_payment(self, MockRazorpayClient):

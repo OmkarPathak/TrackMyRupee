@@ -29,6 +29,7 @@ from ..models import (
     LoanRepayment,
     NetWorthSnapshot,
     Notification,
+    PaymentHistory,
     RecurringTransaction,
     Transfer,
     UserProfile,
@@ -141,6 +142,8 @@ def delete_user_account(user_id):
     try:
         _cancel_subscription_before_deletion(user)
         with transaction.atomic():
+            # Payment records are kept: note whose they were before the link to the user is removed.
+            PaymentHistory.objects.filter(user=user).update(user_email=email or '', user_username=username)
             # EmailLog.user is SET_NULL, so the cascade would leave the address, subject and body
             # of every email we sent this user in the live database. Remove them explicitly.
             _delete_email_logs(user, email)

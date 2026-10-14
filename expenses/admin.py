@@ -185,13 +185,14 @@ class UserProfileAdmin(DemoExcludeMixin, admin.ModelAdmin):
     
 @admin.register(PaymentHistory)
 class PaymentHistoryAdmin(DemoExcludeMixin, admin.ModelAdmin):
-    list_display = ('user', 'amount', 'tier', 'status', 'created_at', 'subscription_end_date')
+    list_display = ('user', 'user_email', 'amount', 'tier', 'status', 'created_at', 'subscription_end_date')
     list_select_related = ('user', 'user__profile')
     list_filter = ('status', 'tier', 'created_at')
-    search_fields = ('user__username', 'order_id', 'payment_id')
+    search_fields = ('user__username', 'user_email', 'user_username', 'order_id', 'payment_id')
 
     def subscription_end_date(self, obj):
-        return obj.user.profile.subscription_end_date
+        # a deleted account's payment record has no user any more
+        return obj.user.profile.subscription_end_date if obj.user_id else None
     subscription_end_date.short_description = 'Sub End Date'
     subscription_end_date.admin_order_field = 'user__profile__subscription_end_date'
 

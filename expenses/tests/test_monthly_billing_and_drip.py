@@ -153,7 +153,7 @@ class MonthlyBillingPaymentTest(TestCase):
         mock_client_instance.order.create.return_value = {'id': 'order_monthly_123', 'status': 'created'}
 
         url = reverse('create-order')
-        data = {'plan_type': 'PLUS', 'duration': 'MONTHLY'}
+        data = {'plan_type': 'PLUS', 'duration': 'MONTHLY', 'is_recurring': False}
         response = self.client.post(url, json.dumps(data), content_type='application/json')
 
         self.assertEqual(response.status_code, 200)
@@ -174,7 +174,7 @@ class MonthlyBillingPaymentTest(TestCase):
         mock_client_instance.order.create.return_value = {'id': 'order_yearly_123', 'status': 'created'}
 
         url = reverse('create-order')
-        data = {'plan_type': 'PLUS', 'duration': 'YEARLY'}
+        data = {'plan_type': 'PLUS', 'duration': 'YEARLY', 'is_recurring': False}
         response = self.client.post(url, json.dumps(data), content_type='application/json')
 
         self.assertEqual(response.status_code, 200)

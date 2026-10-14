@@ -1832,7 +1832,12 @@ class UserProfile(models.Model):
         return f"{self.user.username}'s Profile ({self.tier})"
 
 class PaymentHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # Payment records outlive the account: deleting an account keeps the record of what was paid (for accounts
+    # and disputes) but unlinks it from the person, leaving only the e-mail address and user name it was made
+    # under.
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user_email = models.CharField(max_length=254, blank=True, default='')
+    user_username = models.CharField(max_length=150, blank=True, default='')
     order_id = models.CharField(max_length=100)
     payment_id = models.CharField(max_length=100, blank=True, null=True)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
@@ -1842,7 +1847,8 @@ class PaymentHistory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.tier} ({self.duration}) - {self.status}"
+        who = self.user.username if self.user_id else (self.user_username or 'deleted account')
+        return f"{who} - {self.tier} ({self.duration}) - {self.status}"
 
 class SubscriptionPlan(models.Model):
     DURATION_CHOICES = [

@@ -58,6 +58,14 @@ def create_order(request):
             
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
+            if is_recurring and not (db_plan and db_plan.razorpay_plan_id):
+                # Never quietly turn a request for auto-renewal into a one-time payment: the buyer would pay
+                # for one period believing it renews.
+                return JsonResponse({
+                    'error': 'Auto-renewal is not available for this plan right now. Choose a one-time payment '
+                             'instead, or try again later.'
+                }, status=400)
+
             if is_recurring and db_plan and db_plan.razorpay_plan_id and duration in ('MONTHLY', 'YEARLY'):
                 # A second live subscription would be billed alongside the first. Cancel it (Settings)
                 # before starting another; a one-time payment is still possible meanwhile.
@@ -277,7 +285,7 @@ def razorpay_webhook(request):
                 profile = UserProfile.objects.filter(razorpay_subscription_id=sub_id).first()
                 if not profile:
                     history = PaymentHistory.objects.filter(order_id=sub_id).select_related('user__profile').first()
-                    if history:
+                    if history and history.user_id:
                         profile = history.user.profile
                         # Back-fill the subscription ID so future webhooks match directly.
                         profile.razorpay_subscription_id = sub_id

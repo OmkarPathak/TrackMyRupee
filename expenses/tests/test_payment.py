@@ -23,7 +23,7 @@ class PaymentViewTest(TestCase):
         mock_client_instance.order.create.return_value = {'id': 'order_123', 'status': 'created'}
 
         url = reverse('create-order')
-        data = {'plan_type': 'PLUS'} 
+        data = {'plan_type': 'PLUS', 'is_recurring': False}
         response = self.client.post(url, json.dumps(data), content_type='application/json')
         
         self.assertEqual(response.status_code, 200)

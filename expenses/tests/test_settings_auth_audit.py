@@ -95,6 +95,47 @@ class AccountDeletionTests(TestCase):
         client.return_value.subscription.cancel.assert_called_once_with('sub_9')
         self.assertFalse(User.objects.filter(pk=self.user.pk).exists())
 
+    def test_payment_records_are_kept_when_the_account_goes_unlinked_from_the_person(self):
+        PaymentHistory.objects.create(user=self.user, order_id='order_7', payment_id='pay_7', amount=499, tier='PLUS',
+                                      duration='YEARLY', status='SUCCESS')
+        email = self.user.email
+        delete_user_account(self.user.id)
+        record = PaymentHistory.objects.get(order_id='order_7')
+        self.assertIsNone(record.user_id)
+        self.assertEqual((record.user_email, record.user_username, record.amount, record.payment_id),
+                         (email, 'gone', D('499.00'), 'pay_7'))
+        self.assertIn('gone', str(record))
+
+    def test_another_users_payment_records_are_untouched(self):
+        PaymentHistory.objects.create(user=self.keeper, order_id='order_8', amount=49, tier='PLUS', status='SUCCESS')
+        delete_user_account(self.user.id)
+        kept = PaymentHistory.objects.get(order_id='order_8')
+        self.assertEqual((kept.user_id, kept.user_email), (self.keeper.id, ''))
+
+    def test_a_late_charge_for_a_deleted_accounts_subscription_is_acknowledged_not_a_server_error(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        PaymentHistory.objects.create(user=self.user, order_id='sub_late', payment_id='pay_a', amount=49, tier='PLUS',
+                                      duration='MONTHLY', status='SUCCESS')
+        delete_user_account(self.user.id)
+        end = int((timezone.now() + timedelta(days=30)).timestamp())
+        payload = {'event': 'subscription.charged', 'payload': {
+            'subscription': {'entity': {'id': 'sub_late', 'current_end': end}},
+            'payment': {'entity': {'id': 'pay_b', 'amount': 4900}}}}
+        with patch('expenses.views_payment.razorpay.Client'), self.settings(RAZORPAY_WEBHOOK_SECRET='w'):
+            r = self.client.post(reverse('razorpay-webhook'), json.dumps(payload), content_type='application/json',
+                                 HTTP_X_RAZORPAY_SIGNATURE='sig')
+        self.assertEqual(r.status_code, 200)
+
+    def test_the_admin_list_still_opens_with_a_record_that_has_no_user(self):
+        PaymentHistory.objects.create(user=self.user, order_id='order_9', amount=49, tier='PLUS', status='SUCCESS')
+        delete_user_account(self.user.id)
+        admin = User.objects.create_superuser(username='boss', email='boss@example.com', password='pw')
+        self.client.force_login(admin)
+        r = self.client.get('/tmr_admin/expenses/paymenthistory/')
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'gone@example.com')
+
     def test_a_one_time_payer_has_nothing_to_cancel(self):
         self.subscribe(latest_is_subscription=False)
         with patch('expenses.views.settings.razorpay.Client') as client:
