@@ -1,3 +1,4 @@
+import math
 from decimal import Decimal, InvalidOperation
 
 from django import template
@@ -24,6 +25,8 @@ def ind_comma(value, currency_symbol='₹'):
         num = float(value)
     except (ValueError, TypeError):
         return value
+    if not math.isfinite(num):
+        return value
         
     if str(currency_symbol).upper() in ['INR', '₹']:
         return format_indian_number(num)
@@ -37,11 +40,14 @@ def compact_amount(value, currency=''):
         num = float(value)
     except (ValueError, TypeError):
         return value
+    if not math.isfinite(num):
+        return value
 
     from django.contrib.humanize.templatetags.humanize import intcomma
 
     abs_num = abs(num)
-    sign = "-" if num < 0 else ""
+    # No "-0" for amounts that round to zero
+    sign = "-" if num < 0 and round(abs_num) != 0 else ""
 
     # Only abbreviate if the absolute number is >= 100,000
     if abs_num < 100000:
@@ -50,7 +56,7 @@ def compact_amount(value, currency=''):
     # Currency-aware formatting
     if str(currency).upper() in ['INR', '₹']:
         # Indian Numbering System (Lakhs, Crores)
-        if abs_num >= 10000000:  # 1 Crore
+        if abs_num >= 10000000 or round(abs_num / 100000, 1) >= 100:  # 1 Crore
             res = f"{abs_num / 10000000:.1f}Cr".replace('.0Cr', 'Cr')
         elif abs_num >= 100000:  # 1 Lakh
             res = f"{abs_num / 100000:.1f}L".replace('.0L', 'L')
@@ -58,9 +64,9 @@ def compact_amount(value, currency=''):
             res = intcomma(f"{abs_num:,.0f}")
     else:
         # International Numbering System (Millions, Billions)
-        if abs_num >= 1000000000:  # 1 Billion
+        if abs_num >= 1000000000 or round(abs_num / 1000000, 1) >= 1000:  # 1 Billion
             res = f"{abs_num / 1000000000:.1f}B".replace('.0B', 'B')
-        elif abs_num >= 1000000:  # 1 Million
+        elif abs_num >= 1000000 or round(abs_num / 1000) >= 1000:  # 1 Million
             res = f"{abs_num / 1000000:.1f}M".replace('.0M', 'M')
         elif abs_num >= 1000:    # 1 Thousand
             res = f"{abs_num / 1000:.0f}k"

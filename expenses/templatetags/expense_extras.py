@@ -10,14 +10,17 @@ def url_replace(context, **kwargs):
     """
     query = context['request'].GET.copy()
     for key, value in kwargs.items():
-        query[key] = value
+        if value is None:
+            query.pop(key, None)  # None clears the parameter instead of becoming "None"
+        else:
+            query[key] = value
     return query.urlencode()
 
 
 @register.filter(name='sum_base_amounts')
 def sum_base_amounts(expenses):
     """Sum the base_amount of a list of expenses."""
-    return sum(e.base_amount for e in expenses)
+    return sum((e.base_amount or 0 for e in expenses), 0)
 
 
 @register.filter(name='sum_net_unified_amounts')
@@ -54,7 +57,7 @@ def payment_color(method):
         'upi': '#9C5400',
         'netbanking': '#0F7657',
     }
-    return colors.get(method.strip().lower(), '#4A4A46')
+    return colors.get(str(method or '').strip().lower(), '#4A4A46')
 
 
 @register.filter(name='payment_bg')
@@ -67,7 +70,7 @@ def payment_bg(method):
         'upi': '#FDF4E7',
         'netbanking': '#E6F4EF',
     }
-    return bgs.get(method.strip().lower(), '#F2F0EB')
+    return bgs.get(str(method or '').strip().lower(), '#F2F0EB')
  
  
 @register.simple_tag(takes_context=True)
@@ -91,7 +94,7 @@ def category_icon(context, category_name, user=None):
             cache.set(cache_key, icon_map, 3600)
         request._category_icon_map = icon_map
     
-    return request._category_icon_map.get(category_name, 'bi-tag')
+    return request._category_icon_map.get(category_name) or 'bi-tag'
 
 
 

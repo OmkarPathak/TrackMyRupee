@@ -1157,9 +1157,9 @@ def home_view(request):
                 'icon': 'hourglass-split',
                 'title': _('Fixed-Income Maturing Soon ⏳'),
                 'message': _("%(name)s matures on %(date)s — %(amount)s will need a home.") % {
-                    'name': mat_acc.name,
+                    'name': escape(mat_acc.name),
                     'date': mat_date_str,
-                    'amount': mat_amount_str,
+                    'amount': escape(mat_amount_str),
                 },
                 'allow_share': False
             })
@@ -1172,13 +1172,13 @@ def home_view(request):
                 
         if speed_alert_categories:
             if len(speed_alert_categories) == 1:
-                msg = _("Trends show you might overspend on %(category)s soon. Take care!") % {'category': speed_alert_categories[0]}
+                msg = _("Trends show you might overspend on %(category)s soon. Take care!") % {'category': escape(speed_alert_categories[0])}
             elif len(speed_alert_categories) == 2:
-                msg = _("Trends show you might overspend on %(cat1)s and %(cat2)s soon.") % {'cat1': speed_alert_categories[0], 'cat2': speed_alert_categories[1]}
+                msg = _("Trends show you might overspend on %(cat1)s and %(cat2)s soon.") % {'cat1': escape(speed_alert_categories[0]), 'cat2': escape(speed_alert_categories[1])}
             else:
                 msg = _("Trends show you might overspend on %(count)s categories soon (%(cats)s, etc).") % {
                     'count': len(speed_alert_categories),
-                    'cats': ', '.join(speed_alert_categories[:2])
+                    'cats': escape(', '.join(speed_alert_categories[:2]))
                 }
                 
             insights.append({

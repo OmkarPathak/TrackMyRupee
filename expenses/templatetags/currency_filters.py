@@ -1,3 +1,5 @@
+import math
+
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
 
@@ -20,6 +22,8 @@ def humanize_currency(value, currency_symbol='₹'):
         value = float(value)
     except (ValueError, TypeError):
         return value
+    if not math.isfinite(value):
+        return value
 
 
     if value < 100000 and value > -100000:
@@ -28,20 +32,21 @@ def humanize_currency(value, currency_symbol='₹'):
     abs_value = abs(value)
     
     def format_num(num, divisor, suffix):
-        result = num / divisor
+        result = round(num / divisor, 1)
         if result % 1 == 0:
             return f"{result:.0f}{suffix}"
         return f"{result:.1f}{suffix}"
 
+    # Promote when rounding would print 1000k / 100L: 999,999 reads as 1M, not 1000k
     if currency_symbol == '₹':
-        if abs_value >= 10000000: # 1 Crore
+        if abs_value >= 10000000 or round(abs_value / 100000, 1) >= 100: # 1 Crore
             return format_num(value, 10000000, 'Cr')
         elif abs_value >= 100000: # 1 Lakh
             return format_num(value, 100000, 'L')
     else:
-        if abs_value >= 1000000000: # 1 Billion
+        if abs_value >= 1000000000 or round(abs_value / 1000000, 1) >= 1000: # 1 Billion
             return format_num(value, 1000000000, 'B')
-        elif abs_value >= 1000000: # 1 Million
+        elif abs_value >= 1000000 or round(abs_value / 1000, 1) >= 1000: # 1 Million
             return format_num(value, 1000000, 'M')
         elif abs_value >= 1000:    # 1 Thousand
             return format_num(value, 1000, 'k')
