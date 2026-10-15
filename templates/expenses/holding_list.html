@@ -118,9 +118,12 @@
                                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                                 {% if h.scheme_code %}
                                                 <li>
-                                                    <a class="dropdown-item py-2" href="{% url 'refresh-holding-nav' h.pk %}">
-                                                        <i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>{% trans "Refresh NAV" %}
-                                                    </a>
+                                                    <form method="post" action="{% url 'refresh-holding-nav' h.pk %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="dropdown-item py-2">
+                                                            <i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>{% trans "Refresh NAV" %}
+                                                        </button>
+                                                    </form>
                                                 </li>
                                                 {% endif %}
                                                 <li>
@@ -164,9 +167,12 @@
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-1">
                                         {% if h.scheme_code %}
                                             <li>
-                                                <a class="dropdown-item py-2 px-3 small" href="{% url 'refresh-holding-nav' h.pk %}">
-                                                    <i class="bi bi-arrow-repeat me-2"></i>{% trans "Refresh NAV" %}
-                                                </a>
+                                                <form method="post" action="{% url 'refresh-holding-nav' h.pk %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item py-2 px-3 small">
+                                                        <i class="bi bi-arrow-repeat me-2"></i>{% trans "Refresh NAV" %}
+                                                    </button>
+                                                </form>
                                             </li>
                                         {% endif %}
                                         <li>

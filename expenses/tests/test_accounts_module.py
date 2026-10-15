@@ -306,7 +306,7 @@ class TestAccountDeleteRestorePin(AccountBase):
 
     def test_restore_brings_it_back(self):
         account = self.acct('HDFC', is_active=False)
-        response = self.client.get(reverse('account-restore', args=[account.pk]))
+        response = self.client.post(reverse("account-restore", args=[account.pk]))
         self.assertRedirects(response, reverse('account-list'))
         account.refresh_from_db()
         self.assertTrue(account.is_active)
@@ -317,7 +317,7 @@ class TestAccountDeleteRestorePin(AccountBase):
         for i in range(2):
             Account.objects.create(user=user, name=f'A{i}', balance=0)
         old = Account.objects.create(user=user, name='Old', balance=0, is_active=False)
-        response = self.client.get(reverse('account-restore', args=[old.pk]))
+        response = self.client.post(reverse("account-restore", args=[old.pk]))
         self.assertRedirects(response, reverse('pricing'), fetch_redirect_response=False)
         old.refresh_from_db()
         self.assertFalse(old.is_active)
@@ -325,7 +325,7 @@ class TestAccountDeleteRestorePin(AccountBase):
     def test_restore_does_not_crash_when_the_name_is_in_use_again(self):
         old = self.acct('HDFC', is_active=False)
         self.acct('HDFC')
-        response = self.client.get(reverse('account-restore', args=[old.pk]))
+        response = self.client.post(reverse("account-restore", args=[old.pk]))
         self.assertEqual(response.status_code, 302)
         old.refresh_from_db()
         self.assertFalse(old.is_active)
@@ -334,7 +334,7 @@ class TestAccountDeleteRestorePin(AccountBase):
     def test_restore_of_another_users_account_is_not_found(self):
         other = self.make_user('someone-else')
         account = Account.objects.create(user=other, name='Theirs', balance=0, is_active=False)
-        response = self.client.get(reverse('account-restore', args=[account.pk]))
+        response = self.client.post(reverse("account-restore", args=[account.pk]))
         self.assertEqual(response.status_code, 404)
 
     def test_pin_toggles_both_ways(self):
@@ -849,7 +849,7 @@ class TestHoldings(AccountBase):
                                        account_type='MUTUAL_FUND')
         holding = self.make_holding(other)
         self.assertEqual(self.client.post(reverse('holding-delete', args=[holding.pk])).status_code, 404)
-        self.assertEqual(self.client.get(reverse('refresh-holding-nav', args=[holding.pk])).status_code, 404)
+        self.assertEqual(self.client.post(reverse("refresh-holding-nav", args=[holding.pk])).status_code, 404)
 
     def test_refresh_reports_success_and_failure(self):
         holding = self.make_holding()
@@ -858,16 +858,16 @@ class TestHoldings(AccountBase):
             latest_nav = D('12.5')
 
         with patch('expenses.nav_provider.NAVFetchService.fetch_scheme', return_value=(Cache(), True)):
-            response = self.client.get(reverse('refresh-holding-nav', args=[holding.pk]))
+            response = self.client.post(reverse("refresh-holding-nav", args=[holding.pk]))
         self.assertRedirects(response, reverse('account-detail', args=[self.funds.pk]), fetch_redirect_response=False)
         self.assertTrue(any('12.5' in m for m in self.messages(response)))
         with patch('expenses.nav_provider.NAVFetchService.fetch_scheme', return_value=(None, False)):
-            response = self.client.get(reverse('refresh-holding-nav', args=[holding.pk]))
+            response = self.client.post(reverse("refresh-holding-nav", args=[holding.pk]))
         self.assertTrue(any('Failed to fetch' in m for m in self.messages(response)))
 
     def test_refresh_without_a_scheme_code_warns(self):
         holding = self.make_holding(scheme_code=None)
-        response = self.client.get(reverse('refresh-holding-nav', args=[holding.pk]))
+        response = self.client.post(reverse("refresh-holding-nav", args=[holding.pk]))
         self.assertTrue(any('No scheme code' in m for m in self.messages(response)))
 
     def test_the_list_totals_use_the_latest_value_or_cost(self):

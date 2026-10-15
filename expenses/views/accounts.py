@@ -538,7 +538,7 @@ class AccountDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
 
 
 class AccountRestoreView(LoginRequiredMixin, View):
-    def get(self, request, pk):
+    def post(self, request, pk):
         account = get_object_by_uuid_or_pk(Account, pk, user=request.user, is_active=False)
         redirect_response = redirect_to_uuid_url_if_needed(request, account)
         if redirect_response:
@@ -1551,6 +1551,7 @@ def search_amfi_schemes(request):
     return JsonResponse({'results': results})
 
 
+@require_POST
 def refresh_holding_nav(request, pk):
     """
     Manual "Refresh Now" action on a holding (SPEC §3a point 3).

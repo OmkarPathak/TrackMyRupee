@@ -100,7 +100,7 @@ The totals at the top of the Holdings page are in your own currency: a holding i
 
 - **Automatic background sync**: TrackMyRupee runs daily background jobs that pull updated NAVs after Indian market closing hours (approximately 11 PM IST).
 - **Manual instant refresh**: Click the **Refresh NAV** icon next to any holding row to trigger an immediate live fetch.
-- **External cron integration**: Set up a free cron job at [cron-job.org](https://cron-job.org) targeting `GET /api/cron/sync-nav/` with `X-Cron-Secret: <YOUR_CRON_SECRET>` for guaranteed daily automated syncing.
+- **External cron integration**: Set up a free cron job at [cron-job.org](https://cron-job.org) targeting `/api/cron/sync-nav/` (GET or POST) with the header `X-Cron-Secret: <YOUR_CRON_SECRET>` (a `?secret=` query parameter only works if `CRON_ALLOW_QUERY_SECRET=true` is set) for guaranteed daily automated syncing.
 
 ---
 

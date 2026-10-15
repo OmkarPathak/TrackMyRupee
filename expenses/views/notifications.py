@@ -1,5 +1,6 @@
 import hmac
 import logging
+import math
 import threading
 
 from django.conf import settings
@@ -11,7 +12,7 @@ from django.core.management import call_command
 from django.http import JsonResponse
 from django.shortcuts import redirect, resolve_url
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 from django.views.generic import ListView
 
 from expenses.views.utils import get_safe_redirect_url
@@ -46,13 +47,16 @@ def _dispatch_cron_command(command_name, lock_timeout=600, **kwargs):
 
 def _cron_authorized(request):
     # Prefer header to avoid leaking secrets through URL logs.
+    auth_header = request.headers.get('Authorization', '')
+    bearer = auth_header[7:].strip() if auth_header.lower().startswith('bearer ') else ''
     provided_secret = (
         request.headers.get('X-Cron-Secret')
-        or request.headers.get('Authorization', '').replace('Bearer ', '').strip()
+        or bearer
         or request.POST.get('secret')
     )
-    if settings.CRON_ALLOW_QUERY_SECRET or not provided_secret:
-        provided_secret = provided_secret or request.GET.get('secret')
+    # The query string ends up in access logs and proxies, so it is opt-in only.
+    if not provided_secret and settings.CRON_ALLOW_QUERY_SECRET:
+        provided_secret = request.GET.get('secret')
 
     expected_secret = (settings.CRON_SECRET or '').strip()
     provided_secret = (provided_secret or '').strip()
@@ -69,7 +73,7 @@ def _get_int_param(request, key, default):
     if raw in (None, ''):
         return default
     try:
-        return int(raw)
+        return max(1, min(int(raw), 100000))
     except (TypeError, ValueError):
         return default
 
@@ -81,9 +85,12 @@ def _get_threshold_param(request, default):
     if raw in (None, ''):
         return default
     try:
-        return str(float(raw))
+        value = float(raw)
     except (TypeError, ValueError):
         return default
+    if not math.isfinite(value) or value < 0:
+        return default
+    return str(value)
 
 
 class NotificationListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
@@ -283,6 +290,7 @@ def trigger_ledger_maintenance_view(request):
 
 
 @csrf_exempt
+@require_http_methods(["GET", "POST"])
 def trigger_sync_nav_cron_view(request):
     """
     HTTP Cron endpoint to sync daily mutual fund NAVs via external services like cron-job.org.
@@ -296,6 +304,8 @@ def trigger_sync_nav_cron_view(request):
     is_sync = (request.GET.get('sync') or request.POST.get('sync', '')).lower() in {'1', 'true', 'yes', 'on'}
 
     if is_sync:
+        if not cache.add('cron_lock_sync_nav_feed', 1, timeout=900):
+            return JsonResponse({'success': False, 'message': 'Already running'}, status=409)
         try:
             from ..nav_provider import NAVFetchService
             service = NAVFetchService()
@@ -305,13 +315,17 @@ def trigger_sync_nav_cron_view(request):
                 'message': 'NAV sync completed successfully',
                 'summary': summary,
             })
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        except Exception:
+            logger.exception("Synchronous cron run failed")
+            return JsonResponse({'success': False, 'error': 'Sync failed; see server logs'}, status=500)
+        finally:
+            cache.delete('cron_lock_sync_nav_feed')
 
     return _dispatch_cron_command('sync_nav_feed', lock_timeout=900, force=force)
 
 
 @csrf_exempt
+@require_http_methods(["GET", "POST"])
 def trigger_sync_funds_cron_view(request):
     """
     HTTP Cron endpoint to sync/refresh the local AMFI mutual fund scheme search catalog (AMFIScheme)
@@ -325,6 +339,8 @@ def trigger_sync_funds_cron_view(request):
     is_sync = (request.GET.get('sync') or request.POST.get('sync', '')).lower() in {'1', 'true', 'yes', 'on'}
 
     if is_sync:
+        if not cache.add('cron_lock_sync_amfi_schemes', 1, timeout=1800):
+            return JsonResponse({'success': False, 'message': 'Already running'}, status=409)
         try:
             from ..nav_provider import NAVFetchService
             service = NAVFetchService()
@@ -334,7 +350,10 @@ def trigger_sync_funds_cron_view(request):
                 'message': 'AMFI schemes sync completed successfully',
                 'count': count,
             })
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        except Exception:
+            logger.exception("Synchronous cron run failed")
+            return JsonResponse({'success': False, 'error': 'Sync failed; see server logs'}, status=500)
+        finally:
+            cache.delete('cron_lock_sync_amfi_schemes')
 
     return _dispatch_cron_command('sync_amfi_schemes', lock_timeout=1800)

@@ -148,9 +148,12 @@
                                 {% if account.holdings.exists %}
                                     {% for h in account.holdings.all %}
                                         {% if h.scheme_code and h.is_active %}
-                                            <a href="{% url 'refresh-holding-nav' h.pk %}" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}" aria-label="{% trans 'Refresh NAV' %}">
-                                                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
-                                            </a>
+                                            <form method="post" action="{% url 'refresh-holding-nav' h.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}" aria-label="{% trans 'Refresh NAV' %}">
+                                                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
                                         {% endif %}
                                     {% endfor %}
                                 {% endif %}
