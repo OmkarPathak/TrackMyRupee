@@ -332,6 +332,9 @@
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (refreshing) return;
                     if (hadController) {
+                        // Never wipe a half-typed form: the new version loads on the next navigation instead
+                        const active = document.activeElement;
+                        if (active && (active.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))) return;
                         refreshing = true;
                         window.location.reload();
                     }

@@ -2,6 +2,14 @@
  * TrackMyRupee - Declarative Chip-Based Filter Toolbar System
  */
 
+// Every value interpolated into an innerHTML template goes through this: option labels are
+// user-named (categories, accounts), and filter values can arrive from the URL.
+function escapeHtml(value) {
+  return String(value === undefined || value === null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 class TMRFilterSystem {
   constructor(pageKey) {
     this.pageKey = pageKey;
@@ -340,13 +348,13 @@ class TMRFilterSystem {
           if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
         } else if (this.state.cycle_active) {
           if (this.state.time_period === 'this_month' && this.state.cycle_range) {
-            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Salary Cycle •&nbsp;</span>${this.state.cycle_range}`;
+            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Salary Cycle •&nbsp;</span>${escapeHtml(this.state.cycle_range)}`;
             if (timeIcon) timeIcon.className = 'bi bi-arrow-repeat text-success tmr-btn-icon';
           } else if (this.state.time_period === 'last_month' && this.state.prev_cycle_range) {
-            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Previous Cycle •&nbsp;</span>${this.state.prev_cycle_range}`;
+            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Previous Cycle •&nbsp;</span>${escapeHtml(this.state.prev_cycle_range)}`;
             if (timeIcon) timeIcon.className = 'bi bi-arrow-repeat text-success tmr-btn-icon';
           } else if (this.state.time_period === 'calendar_month' && this.state.calendar_month_range) {
-            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month •&nbsp;</span>${this.state.calendar_month_range}`;
+            labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month •&nbsp;</span>${escapeHtml(this.state.calendar_month_range)}`;
             if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
           }
         } else {
@@ -428,7 +436,7 @@ class TMRFilterSystem {
       valBtn.className = 'tmr-chip-value-btn';
       
       const valText = this.formatChipValueText(filterDef, selectedVals);
-      valBtn.innerHTML = `<span>${valText}</span><i class="bi bi-caret-down-fill"></i>`;
+      valBtn.innerHTML = `<span>${escapeHtml(valText)}</span><i class="bi bi-caret-down-fill"></i>`;
       valBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.toggleChipValuePopover(valBtn, filterDef);
@@ -641,8 +649,8 @@ class TMRFilterSystem {
         ${filters.map(f => {
           const isAdded = Object.prototype.hasOwnProperty.call(this.state.filters, f.key);
           return `
-            <li class="tmr-popover-item ${isAdded ? 'selected' : ''}" data-filter-key="${f.key}">
-              <span>${isAdded ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${f.label}</span>
+            <li class="tmr-popover-item ${isAdded ? 'selected' : ''}" data-filter-key="${escapeHtml(f.key)}">
+              <span>${isAdded ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''} ${escapeHtml(f.label)}</span>
             </li>
           `;
         }).join('')}
@@ -705,7 +713,7 @@ class TMRFilterSystem {
 
     const loadingHtml = `
       <div class="tmr-popover-header">
-        <input type="text" class="tmr-popover-search" placeholder="Search ${filterDef.label.toLowerCase()}...">
+        <input type="text" class="tmr-popover-search" placeholder="Search ${escapeHtml(filterDef.label.toLowerCase())}...">
       </div>
       <div class="p-3 text-center text-muted small"><i class="bi bi-arrow-repeat spin"></i> Loading options...</div>
     `;
@@ -720,7 +728,7 @@ class TMRFilterSystem {
     const menuHtml = `
       ${showSearchBox ? `
       <div class="tmr-popover-header">
-        <input type="text" class="tmr-popover-search" placeholder="Search ${filterDef.label.toLowerCase()}...">
+        <input type="text" class="tmr-popover-search" placeholder="Search ${escapeHtml(filterDef.label.toLowerCase())}...">
       </div>` : ''}
       <ul class="tmr-popover-list">
         ${this.renderOptionsListHtml(options, currentSelected)}
@@ -814,11 +822,11 @@ class TMRFilterSystem {
       }
 
       html += `
-        <li class="tmr-popover-item ${isChecked ? 'selected' : ''} ${isInactive ? 'tmr-popover-item-inactive' : ''}" data-value="${opt.value}">
+        <li class="tmr-popover-item ${isChecked ? 'selected' : ''} ${isInactive ? 'tmr-popover-item-inactive' : ''}" data-value="${escapeHtml(opt.value)}">
           <span>
             ${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''}
             ${isInactive && !isChecked ? '<i class="bi bi-slash-circle text-muted" style="font-size: 0.85em;"></i>' : ''}
-            <span class="tmr-option-text">${opt.label}</span>
+            <span class="tmr-option-text">${escapeHtml(opt.label)}</span>
           </span>
         </li>
       `;
@@ -867,7 +875,7 @@ class TMRFilterSystem {
           <span>
             ${isChecked ? '<i class="bi bi-check-lg tmr-check-icon"></i>' : ''}
             ${isInactive && !isChecked ? '<i class="bi bi-slash-circle text-muted" style="font-size: 0.85em;"></i>' : ''}
-            <span class="tmr-option-text">${labelText}</span>
+            <span class="tmr-option-text">${escapeHtml(labelText)}</span>
           </span>
         `;
 
@@ -995,7 +1003,7 @@ class TMRFilterSystem {
               }
               <span class="tmr-item-label">Current cycle</span>
             </div>
-            <span class="tmr-item-range">${this.state.cycle_range || ''}</span>
+            <span class="tmr-item-range">${escapeHtml(this.state.cycle_range)}</span>
           </div>
         </li>
 
@@ -1009,7 +1017,7 @@ class TMRFilterSystem {
               }
               <span class="tmr-item-label">Previous cycle</span>
             </div>
-            <span class="tmr-item-range">${this.state.prev_cycle_range || ''}</span>
+            <span class="tmr-item-range">${escapeHtml(this.state.prev_cycle_range)}</span>
           </div>
         </li>
 
@@ -1059,7 +1067,7 @@ class TMRFilterSystem {
               }
               <span class="tmr-item-label">This year</span>
             </div>
-            <span class="tmr-item-range">${thisYearRange}</span>
+            <span class="tmr-item-range">${escapeHtml(thisYearRange)}</span>
           </div>
         </li>
 
@@ -1152,7 +1160,7 @@ class TMRFilterSystem {
               }
               <span class="tmr-item-label">This year</span>
             </div>
-            <span class="tmr-item-range">${thisYearRange}</span>
+            <span class="tmr-item-range">${escapeHtml(thisYearRange)}</span>
           </div>
         </li>
 
@@ -1192,11 +1200,11 @@ class TMRFilterSystem {
         <div class="tmr-custom-date-row">
           <div class="tmr-custom-date-field">
             <label class="tmr-custom-date-label">From</label>
-            <input type="date" class="tmr-custom-date-input tmr-custom-start" value="${this.state.start_date || ''}">
+            <input type="date" class="tmr-custom-date-input tmr-custom-start" value="${escapeHtml(this.state.start_date)}">
           </div>
           <div class="tmr-custom-date-field">
             <label class="tmr-custom-date-label">To</label>
-            <input type="date" class="tmr-custom-date-input tmr-custom-end" value="${this.state.end_date || ''}">
+            <input type="date" class="tmr-custom-date-input tmr-custom-end" value="${escapeHtml(this.state.end_date)}">
           </div>
         </div>
         <div class="tmr-custom-date-actions">
@@ -1261,17 +1269,17 @@ class TMRFilterSystem {
             if (this.state.cycle_active) {
               if (key === 'this_month') {
                 labelSpan.innerHTML = this.state.cycle_range 
-                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Salary Cycle •&nbsp;</span>${this.state.cycle_range}` 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Salary Cycle •&nbsp;</span>${escapeHtml(this.state.cycle_range)}` 
                   : 'Salary Cycle';
                 isCycle = true;
               } else if (key === 'last_month') {
                 labelSpan.innerHTML = this.state.prev_cycle_range 
-                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Previous Cycle •&nbsp;</span>${this.state.prev_cycle_range}` 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Previous Cycle •&nbsp;</span>${escapeHtml(this.state.prev_cycle_range)}` 
                   : 'Previous Cycle';
                 isCycle = true;
               } else if (key === 'calendar_month') {
                 labelSpan.innerHTML = this.state.calendar_month_range 
-                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month •&nbsp;</span>${this.state.calendar_month_range}` 
+                  ? `<span class="tmr-cycle-prefix d-none d-md-inline">Calendar Month •&nbsp;</span>${escapeHtml(this.state.calendar_month_range)}` 
                   : 'Calendar Month';
               } else if (key === 'last_3_months') {
                 labelSpan.textContent = 'Last 3 months';
@@ -1391,8 +1399,8 @@ class TMRFilterSystem {
     const html = `
       <ul class="tmr-popover-list">
         ${sortOptions.map(opt => `
-          <li class="tmr-popover-item ${opt.key === currentKey ? 'selected' : ''}" data-sort-key="${opt.key}">
-            <span>${opt.label}</span>
+          <li class="tmr-popover-item ${opt.key === currentKey ? 'selected' : ''}" data-sort-key="${escapeHtml(opt.key)}">
+            <span>${escapeHtml(opt.label)}</span>
           </li>
         `).join('')}
       </ul>

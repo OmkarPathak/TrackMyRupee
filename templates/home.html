@@ -2897,9 +2897,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     const title = tooltipModel.title[0] || '';
                     const dataPoints = tooltipModel.dataPoints;
                     
+                    // Labels and capital-event names are user-entered text
+                    const escHtml = function (v) {
+                        return String(v === undefined || v === null ? '' : v)
+                            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    };
                     let innerHtml = '';
                     if (title) {
-                        innerHtml += `<div class="tooltip-header">${title}</div>`;
+                        innerHtml += `<div class="tooltip-header">${escHtml(title)}</div>`;
                     }
                     
                     innerHtml += '<div class="tooltip-body">';
@@ -2931,8 +2937,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         innerHtml += `
                             <div class="tooltip-row">
                                 <div class="tooltip-row-left">
-                                    <span class="tooltip-dot" style="background-color: ${color}"></span>
-                                    <span class="tooltip-label">${label}</span>
+                                    <span class="tooltip-dot" style="background-color: ${escHtml(color)}"></span>
+                                    <span class="tooltip-label">${escHtml(label)}</span>
                                 </div>
                                 <span class="tooltip-value">${formattedValue}</span>
                             </div>
@@ -2945,7 +2951,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="tooltip-row">
                                 <div class="tooltip-row-left">
                                     <span class="tooltip-dot" style="background-color: #D4831A; border-radius: 2px; transform: rotate(45deg)"></span>
-                                    <span class="tooltip-label">${ev.subtype}</span>
+                                    <span class="tooltip-label">${escHtml(ev.subtype)}</span>
                                 </div>
                                 <span class="tooltip-value">${formatCurrencyCompact(ev.amount)}</span>
                             </div>

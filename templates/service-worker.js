@@ -1,5 +1,5 @@
 {% load static %}// Updated: 2026-10-10 (navigation preload; precache only what pages actually request, never the dashboard HTML)
-const CACHE_NAME = 'finance-tracker-v37';
+const CACHE_NAME = 'finance-tracker-v38';
 const OFFLINE_URL = '/offline/';
 
 // Precache the offline page and the content-hashed assets every page needs. The pages reference these
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
   // Ignore Razorpay, manifest, and admin pages
   if (event.request.url.includes('razorpay') || 
       event.request.url.includes('manifest.json') ||
-      event.request.url.includes('/admin/')) {
+      event.request.url.includes('/tmr_admin/')) {
     return; 
   }
 
@@ -145,50 +145,69 @@ self.addEventListener('fetch', (event) => {
 
 // Push Notification Event
 self.addEventListener('push', function (event) {
+    let payload = {};
     if (event.data) {
-        let payload;
         try {
             payload = event.data.json();
         } catch (e) {
             payload = { head: 'TrackMyRupee', body: event.data.text() };
         }
-        
-        const title = payload.head || 'TrackMyRupee Notification';
-        const options = {
-            body: payload.body,
-            icon: payload.icon || '/static/img/pwa-icon-512.png',
-            badge: '/static/img/pwa-icon-512.png',
-            image: payload.image || undefined,
-            vibrate: [100, 50, 100],
-            data: { 
-                url: payload.url || '/',
-                dateOfArrival: Date.now(),
-                primaryKey: 1 
-            }
-        };
-        
-        event.waitUntil(
-            self.registration.showNotification(title, options)
-        );
     }
+    if (!payload || typeof payload !== 'object') {
+        payload = { body: String(payload) };
+    }
+
+    // Browsers require every push to show a notification; an empty one gets the subscription throttled.
+    const title = payload.head || 'TrackMyRupee Notification';
+    const options = {
+        body: payload.body,
+        icon: payload.icon || '/static/img/pwa-icon-512.png',
+        badge: '/static/img/pwa-icon-512.png',
+        image: payload.image || undefined,
+        vibrate: [100, 50, 100],
+        data: {
+            url: payload.url || '/',
+            dateOfArrival: Date.now(),
+            primaryKey: 1
+        }
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
 });
+
+// Only same-origin targets are followed; anything else falls back to the home page.
+function resolveNotificationTarget(rawUrl) {
+    try {
+        const target = new URL(rawUrl || '/', self.location.origin);
+        if (target.origin === self.location.origin) return target.href;
+    } catch (e) {
+        // fall through
+    }
+    return new URL('/', self.location.origin).href;
+}
 
 // Notification Click Event
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
+    const targetUrl = resolveNotificationTarget(event.notification.data && event.notification.data.url);
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-            const url = event.notification.data.url;
-            
-            for (let i = 0; i < clientList.length; i++) {
-                const client = clientList[i];
-                if (client.url.includes(url) && 'focus' in client) {
+            // Reuse a window already showing this page; otherwise navigate an open window (or open one)
+            for (const client of clientList) {
+                if (client.url === targetUrl && 'focus' in client) {
                     return client.focus();
                 }
             }
-            if (clients.openWindow) {
-                return clients.openWindow(url);
+            for (const client of clientList) {
+                if ('navigate' in client && 'focus' in client) {
+                    return client.focus().then(function (focused) {
+                        return (focused || client).navigate(targetUrl);
+                    }).catch(function () {
+                        return clients.openWindow(targetUrl);
+                    });
+                }
             }
+            return clients.openWindow(targetUrl);
         })
     );
 });

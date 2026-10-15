@@ -294,6 +294,11 @@
             const searchInput = document.getElementById('global_fund_search_input');
             const schemeInput = document.getElementById('global_scheme_code_input');
             const suggestionsBox = document.getElementById('global_fund_suggestions');
+            const escHtml = function (v) {
+                return String(v === undefined || v === null ? '' : v)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            };
             if (!searchInput || !suggestionsBox) return;
 
             let debounceTimer = null;
@@ -334,10 +339,10 @@
                                 }
 
                                 a.innerHTML = `
-                                    <div class="fw-semibold text-body-emphasis small lh-sm mb-1">${item.scheme_name}</div>
+                                    <div class="fw-semibold text-body-emphasis small lh-sm mb-1">${escHtml(item.scheme_name)}</div>
                                     <div class="d-flex align-items-center gap-1">
                                         ${badges}
-                                        <span class="text-muted ms-1" style="font-size:0.72rem;">Code: ${item.scheme_code}</span>
+                                        <span class="text-muted ms-1" style="font-size:0.72rem;">Code: ${escHtml(item.scheme_code)}</span>
                                     </div>
                                 `;
                                 a.addEventListener('click', function(e) {
