@@ -1,11 +1,18 @@
 import functools
 import logging
 from contextlib import contextmanager
-
-from django.db.models.signals import post_delete, post_save
+from contextvars import ContextVar
 from django.views.decorators.cache import cache_page
 
 logger = logging.getLogger(__name__)
+
+# Per-thread/per-task flag. The old implementation disconnected the signal receivers globally,
+# which silently disabled invalidation for every other request running in the same process.
+_dashboard_invalidation_suppressed = ContextVar('dashboard_invalidation_suppressed', default=False)
+
+
+def dashboard_invalidation_suppressed():
+    return _dashboard_invalidation_suppressed.get()
 
 
 @contextmanager
@@ -16,36 +23,15 @@ def suppress_dashboard_cache_invalidation(user_id=None, invalidate_on_exit=True)
     If invalidate_on_exit is True and user_id is provided, invalidate_dashboard_cache is called
     once upon exiting the block.
     """
-    from .signals import _DASHBOARD_CACHE_MODELS, invalidate_dashboard_cache
+    from .signals import invalidate_dashboard_cache
 
-    models_to_disconnect = _DASHBOARD_CACHE_MODELS
-    for model in models_to_disconnect:
-        post_save.disconnect(
-            invalidate_dashboard_cache,
-            sender=model,
-            dispatch_uid=f'dashboard_cache_invalidate_save_{model.__name__}',
-        )
-        post_delete.disconnect(
-            invalidate_dashboard_cache,
-            sender=model,
-            dispatch_uid=f'dashboard_cache_invalidate_delete_{model.__name__}',
-        )
+    token = _dashboard_invalidation_suppressed.set(True)
     try:
         yield
     finally:
-        for model in models_to_disconnect:
-            post_save.connect(
-                invalidate_dashboard_cache,
-                sender=model,
-                dispatch_uid=f'dashboard_cache_invalidate_save_{model.__name__}',
-            )
-            post_delete.connect(
-                invalidate_dashboard_cache,
-                sender=model,
-                dispatch_uid=f'dashboard_cache_invalidate_delete_{model.__name__}',
-            )
+        _dashboard_invalidation_suppressed.reset(token)
         if invalidate_on_exit and user_id is not None:
-            invalidate_dashboard_cache(user_id=user_id)
+            invalidate_dashboard_cache(user_id=user_id, force=True)
 
 
 def anonymous_cache_page(timeout):

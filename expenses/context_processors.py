@@ -1,4 +1,5 @@
 import calendar
+import logging
 from datetime import timedelta
 
 from django.conf import settings
@@ -17,6 +18,8 @@ from .models import (
 )
 from .utils import translate_digits as ud
 
+
+logger = logging.getLogger(__name__)
 
 GLOBAL_BADGE_CACHE_TTL = 120  # seconds; signal invalidation covers the common write paths
 
@@ -89,13 +92,14 @@ def global_badge_data(request):
         }
 
     cooldown_key = f'deposit_matured_processed_{user.id}'
-    if not cache.get(cooldown_key):
+    # cache.add claims the slot atomically so parallel page loads don't both create the income
+    if cache.add(cooldown_key, True, 3600):
         try:
             from .account_valuation import process_matured_deposit_incomes
             process_matured_deposit_incomes(user)
-            cache.set(cooldown_key, True, 3600)
         except Exception:
-            pass
+            logger.exception("Matured deposit processing failed for user %s", user.id)
+            cache.set(cooldown_key, True, 300)  # retry soon, but not on every page view
 
     cache_key = global_badge_data_cache_key(user.id)
     data = cache.get(cache_key)
@@ -222,6 +226,7 @@ def _active_announcement(request):
         cache.set(cache_key, result, ttl)
         return result
     except Exception:
+        logger.exception("Could not load the active announcement")
         return {
             'active_announcement': None
         }

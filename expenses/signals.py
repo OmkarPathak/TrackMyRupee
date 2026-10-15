@@ -236,6 +236,9 @@ def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwarg
     """
     if kwargs.get('raw', False):
         return
+    from .cache_utils import dashboard_invalidation_suppressed
+    if dashboard_invalidation_suppressed() and not kwargs.get('force'):
+        return
     if user_id is None and instance is not None:
         try:
             user_id = _dashboard_cache_user_id(instance)

@@ -4,6 +4,15 @@ from bs4 import BeautifulSoup, NavigableString
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.cache import patch_vary_headers
+
+
+# Paths that must stay reachable before consent: assets, admin, and the PWA / crawler / public
+# files (a redirect to the consent page would hand the service worker HTML instead of JS).
+CONSENT_EXEMPT_PATH_PREFIXES = (
+    '/static/', '/media/', '/tmr_admin/', '/manifest.json', '/service-worker.js', '/offline/',
+    '/robots.txt', '/sitemap.xml', '/llms.txt', '/.well-known/', '/blog/',
+)
 
 
 class DemoReadOnlyMiddleware:
@@ -27,7 +36,8 @@ class DemoReadOnlyMiddleware:
                     return self.get_response(request)
 
                 messages.warning(request, "⚠️ Demo Account: This action is restricted to read-only mode.")
-                return redirect(request.META.get('HTTP_REFERER', '/'))
+                from expenses.views.utils import get_safe_redirect_url
+                return redirect(get_safe_redirect_url(request, request.META.get('HTTP_REFERER', '/'), '/'))
 
         response = self.get_response(request)
         return response
@@ -49,8 +59,9 @@ class TimezoneMiddleware:
             try:
                 timezone.activate(zoneinfo.ZoneInfo(tzname))
             except Exception:
-                # If cookie is invalid, fallback to default
-                pass
+                # Invalid cookie: fall back to the default zone. Without this the zone
+                # activated by a previous request on this thread would leak into this one.
+                timezone.deactivate()
         else:
             timezone.deactivate()
             
@@ -126,11 +137,7 @@ class DPDPAConsentMiddleware:
                 'indmoney-alternative-privacy',
             ]
 
-            is_static_or_media = (
-                request.path_info.startswith('/static/') or 
-                request.path_info.startswith('/media/') or 
-                request.path_info.startswith('/tmr_admin/')
-            )
+            is_static_or_media = request.path_info.startswith(CONSENT_EXEMPT_PATH_PREFIXES)
 
             if profile and not profile.consent_granted and not is_static_or_media and url_name not in allowed_url_names:
                 return redirect('dpdp_consent')
@@ -152,7 +159,11 @@ class AgentMarkdownMiddleware:
 
         # Only parse HTML with BeautifulSoup for AI/LLM clients requesting Markdown.
         # Regular browsers never send Accept: text/markdown so this is a no-op for them.
-        if request.method == 'GET' and 'text/markdown' in request.META.get('HTTP_ACCEPT', ''):
+        if request.method == 'GET' and response.get('Content-Type', '').startswith('text/html'):
+            # The same URL now has two representations, so shared caches must key on Accept.
+            patch_vary_headers(response, ('Accept',))
+        if request.method == 'GET' and 'text/markdown' in request.META.get('HTTP_ACCEPT', '') \
+                and not getattr(response, 'streaming', False):
             content_type = response.get('Content-Type', '')
             if content_type.startswith('text/html'):
                 html_content = response.content.decode('utf-8')
@@ -162,13 +173,6 @@ class AgentMarkdownMiddleware:
                 response.content = markdown_content.encode('utf-8')
                 response['Content-Type'] = 'text/markdown'
                 response['X-Markdown-Tokens'] = str(token_count)
-
-                if 'Vary' in response:
-                    varies = [v.strip() for v in response['Vary'].split(',')]
-                    if 'Accept' not in varies:
-                        response['Vary'] = f"{response['Vary']}, Accept"
-                else:
-                    response['Vary'] = 'Accept'
 
         return response
 
