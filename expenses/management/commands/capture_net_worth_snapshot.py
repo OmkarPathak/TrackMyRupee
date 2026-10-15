@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         User = get_user_model()
-        today = timezone.now().date()
+        today = timezone.localdate()
         snapshots_created = 0
         snapshots_failed = 0
         chunk_size = options.get('chunk_size', 100)

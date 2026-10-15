@@ -17,18 +17,40 @@ from expenses.models import (
 
 
 class Command(BaseCommand):
-    help = 'Populates trackmyrupee user with meaningful data for the last 12 months'
+    help = (
+        'Populates a sample "trackmyrupee" user with data for the last 12 months. For development only: it '
+        'REPLACES that user\'s data, so it refuses to run when DEBUG is off or when the user already has data, '
+        'unless --force is given.'
+    )
 
-    def handle(self, *args, **kwargs):
+    def add_arguments(self, parser):
+        parser.add_argument('--force', action='store_true',
+                            help='Run outside DEBUG, or replace the data of an existing user with data')
+
+    def handle(self, *args, **options):
+        from django.conf import settings
+        from django.core.management.base import CommandError
+        from django.utils.crypto import get_random_string
+
+        existing = User.objects.filter(username='trackmyrupee').first()
+        if not options['force']:
+            if not settings.DEBUG:
+                raise CommandError("Refusing to run with DEBUG off: this creates a lifetime-Pro sample user and "
+                                   "wipes that user's data. Use --force if that is really what you want.")
+            if existing and (Expense.objects.filter(user=existing).exists() or Account.objects.filter(user=existing).exists()):
+                raise CommandError("The user 'trackmyrupee' already has data, and this would delete it. "
+                                   "Use --force to replace it.")
+
         # 1. Ensure User 'trackmyrupee' exists and is PRO
         user, created = User.objects.get_or_create(username='trackmyrupee', defaults={
             'email': 'trackmyrupee@example.com',
             'is_active': True
         })
         if created:
-            user.set_password('password123')
+            password = get_random_string(16)
+            user.set_password(password)
             user.save()
-            self.stdout.write(self.style.SUCCESS("Created user trackmyrupee with password 'password123'"))
+            self.stdout.write(self.style.SUCCESS(f"Created user trackmyrupee with password '{password}'"))
         else:
             self.stdout.write(self.style.SUCCESS("User trackmyrupee already exists"))
 

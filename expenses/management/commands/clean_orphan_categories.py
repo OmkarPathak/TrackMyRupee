@@ -1,22 +1,31 @@
+from datetime import timedelta
+
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
+from django.utils import timezone
+
 from expenses.models import (
+    CapitalEvent,
     Category,
     Expense,
+    ExpenseKeywordHint,
     GoalContribution,
     Income,
     Loan,
     LoanRepayment,
+    RecurringTransaction,
     SavingsGoal,
 )
 
 
 class Command(BaseCommand):
     help = (
-        "Delete categories that are not linked to Income/Expense/Loan/Goal records. "
+        "Delete categories that nothing uses: no expenses, income, loans, goals, recurring schedules, capital "
+        "events or learned suggestions refer to them, and they carry no budget limit. Categories of accounts "
+        "newer than --min-user-age-days are left alone (a new user's starter categories have no spending yet). "
         "Use --dry-run to preview."
     )
 
@@ -25,6 +34,12 @@ class Command(BaseCommand):
             "--user-id",
             type=int,
             help="Only clean categories for a specific user ID.",
+        )
+        parser.add_argument(
+            "--min-user-age-days",
+            type=int,
+            default=14,
+            help="Leave alone the categories of users who joined less than this many days ago (default 14).",
         )
         parser.add_argument(
             "--dry-run",
@@ -53,6 +68,8 @@ class Command(BaseCommand):
         base_qs = Category.objects.all().order_by("user_id", "name")
         if user_id:
             base_qs = base_qs.filter(user_id=user_id)
+        cutoff = timezone.now() - timedelta(days=options.get("min_user_age_days") or 0)
+        base_qs = base_qs.filter(user__date_joined__lte=cutoff)
 
         annotations = {
             "has_expense_link": Exists(Expense.objects.filter(category_fk_id=OuterRef("pk"))),
@@ -71,6 +88,20 @@ class Command(BaseCommand):
                 )
                 .exclude(source="")
                 .filter(source__iexact=OuterRef("name"))
+            ),
+            # A schedule, a capital event or a learned suggestion that still names the category keeps it
+            "has_recurring_name_link": Exists(
+                RecurringTransaction.objects.filter(user_id=OuterRef("user_id"))
+                .exclude(category__isnull=True).exclude(category="")
+                .filter(category__iexact=OuterRef("name"))
+            ),
+            "has_capital_event_link": Exists(
+                CapitalEvent.objects.filter(user_id=OuterRef("user_id"))
+                .exclude(category="").filter(category__iexact=OuterRef("name"))
+            ),
+            "has_hint_link": Exists(
+                ExpenseKeywordHint.objects.filter(user_id=OuterRef("user_id"))
+                .exclude(category="").filter(category__iexact=OuterRef("name"))
             ),
             # Loan/Goal are name-based in the current schema (no category FK fields).
             "has_loan_name_link": Exists(
@@ -100,6 +131,10 @@ class Command(BaseCommand):
             | Q(has_income_name_link=True)
             | Q(has_loan_name_link=True)
             | Q(has_goal_name_link=True)
+            | Q(has_recurring_name_link=True)
+            | Q(has_capital_event_link=True)
+            | Q(has_hint_link=True)
+            | Q(limit__isnull=False)      # a budget is something the user set up
         )
         for alias in annotations.keys():
             if alias in {
@@ -108,6 +143,9 @@ class Command(BaseCommand):
                 "has_income_name_link",
                 "has_loan_name_link",
                 "has_goal_name_link",
+                "has_recurring_name_link",
+                "has_capital_event_link",
+                "has_hint_link",
             }:
                 continue
             q_keep |= Q(**{alias: True})

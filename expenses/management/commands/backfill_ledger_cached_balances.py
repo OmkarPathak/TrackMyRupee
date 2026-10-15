@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django.db.models import Sum
 
 from expenses.models import JournalLine, LedgerAccount
@@ -23,17 +24,18 @@ class Command(BaseCommand):
             qs = qs.filter(cached_balance__isnull=True)
 
         updated_count = 0
-        for ledger_account in qs:
-            lines = JournalLine.objects.filter(
-                ledger_account=ledger_account,
-                journal_entry__status='POSTED',
-            )
-            debit = lines.filter(direction='DEBIT').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
-            credit = lines.filter(direction='CREDIT').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
-            balance = (debit - credit).quantize(Decimal('0.01'))
-
-            ledger_account.cached_balance = balance
-            ledger_account.save(update_fields=['cached_balance'])
+        for pk in list(qs.values_list('pk', flat=True)):
+            # Locked, so a posting made while this runs cannot be overwritten by a total computed just before it
+            with transaction.atomic():
+                ledger_account = LedgerAccount.objects.select_for_update().get(pk=pk)
+                lines = JournalLine.objects.filter(
+                    ledger_account=ledger_account,
+                    journal_entry__status='POSTED',
+                )
+                debit = lines.filter(direction='DEBIT').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+                credit = lines.filter(direction='CREDIT').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+                ledger_account.cached_balance = (debit - credit).quantize(Decimal('0.01'))
+                ledger_account.save(update_fields=['cached_balance'])
             updated_count += 1
 
         self.stdout.write(

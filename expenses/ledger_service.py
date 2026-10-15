@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import Sum
 from django.utils import timezone
 
 from .fx import FXService
@@ -520,7 +521,22 @@ class LedgerPostingService:
         debit_total == credit_total == 0 which passes _validate_balanced correctly.
         """
         user = account.user
-        amount = abs(account.balance)
+
+        # The opening balance is what the account held BEFORE the ledger started recording it. For a new
+        # account that is its whole balance; for a legacy one that already has posted lines (transactions made
+        # since ledger writing began), those lines are part of the balance already, so they are taken off.
+        # Posting the full balance there counted every one of those transactions twice.
+        already_posted = Decimal("0.00")
+        existing_lines = JournalLine.objects.filter(
+            account_ref_id=account.pk, journal_entry__status="POSTED"
+        ).values("direction", "currency").annotate(total=Sum("amount")).order_by()
+        for row in existing_lines:
+            amount_in_account = row["total"]
+            if row["currency"] and row["currency"] != account.currency:
+                amount_in_account = (amount_in_account * FXService.rate(row["currency"], account.currency)).quantize(Decimal("0.01"))
+            already_posted += amount_in_account if row["direction"] == "DEBIT" else -amount_in_account
+        opening_balance = (account.balance - already_posted).quantize(Decimal("0.01"))
+        amount = abs(opening_balance)
 
         asset_ledger = cls._get_or_create_account_ledger(user, account)
         equity_ledger, _ = LedgerAccount.objects.get_or_create(
@@ -534,7 +550,7 @@ class LedgerPostingService:
             },
         )
 
-        if account.balance >= 0:
+        if opening_balance >= 0:
             debit_ledger, credit_ledger = asset_ledger, equity_ledger
         else:
             debit_ledger, credit_ledger = equity_ledger, asset_ledger
@@ -563,7 +579,7 @@ class LedgerPostingService:
         key = idempotency_key or cls._idempotency_key("ADJUSTMENT", account.id, "OPENING")
         payload = {
             "opening_account_id": account.id,
-            "opening_balance": str(account.balance),
+            "opening_balance": str(opening_balance),
             "currency": account.currency,
             "kind": "OPENING_BALANCE",
         }

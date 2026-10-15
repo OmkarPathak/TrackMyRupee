@@ -58,6 +58,27 @@ class DemoExcludeMixin:
         return qs
 
 
+class ReadOnlyAdminMixin:
+    """For records that are evidence, not settings: the ledger, audit and consent trails and saved history can be
+    looked at but never added, edited or deleted by hand (a hand edit would break the books)."""
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class PerObjectDeleteMixin:
+    """"Delete selected" removes rows with one SQL statement and never runs the model's own delete(), which is
+    what puts the money back in the account and reverses the ledger entry. Delete them one by one instead."""
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            obj.delete()
+
+
 @admin.register(Notification)
 class NotificationAdmin(DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('title', 'user', 'is_read', 'created_at', 'related_transaction')
@@ -84,7 +105,7 @@ class CategoryAdmin(DemoExcludeMixin, admin.ModelAdmin):
 
 
 @admin.register(Expense)
-class ExpenseAdmin(DemoExcludeMixin, admin.ModelAdmin):
+class ExpenseAdmin(PerObjectDeleteMixin, DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('date', 'description', 'category', 'amount', 'user')
     list_select_related = ('user',)
     list_filter = ('date', 'user', 'category')
@@ -92,7 +113,7 @@ class ExpenseAdmin(DemoExcludeMixin, admin.ModelAdmin):
     ordering = ('-date',)
 
 @admin.register(Income)
-class IncomeAdmin(DemoExcludeMixin, admin.ModelAdmin):
+class IncomeAdmin(PerObjectDeleteMixin, DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('date', 'source', 'amount', 'user')
     list_select_related = ('user',)
     list_filter = ('date', 'user', 'source')
@@ -115,7 +136,7 @@ class AccountAdmin(DemoExcludeMixin, admin.ModelAdmin):
     raw_id_fields = ('linked_loan', 'linked_physical_asset')
 
 @admin.register(Transfer)
-class TransferAdmin(DemoExcludeMixin, admin.ModelAdmin):
+class TransferAdmin(PerObjectDeleteMixin, DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('date', 'from_account', 'to_account', 'amount', 'user')
     list_select_related = ('user', 'from_account', 'to_account')
     list_filter = ('date', 'from_account', 'to_account', 'user')
@@ -124,7 +145,7 @@ class TransferAdmin(DemoExcludeMixin, admin.ModelAdmin):
 
 
 @admin.register(LedgerAccount)
-class LedgerAccountAdmin(DemoExcludeMixin, admin.ModelAdmin):
+class LedgerAccountAdmin(ReadOnlyAdminMixin, DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('code', 'name', 'account_type', 'currency', 'user', 'is_active')
     list_select_related = ('user',)
     list_filter = ('account_type', 'currency', 'is_active')
@@ -132,7 +153,7 @@ class LedgerAccountAdmin(DemoExcludeMixin, admin.ModelAdmin):
 
 
 @admin.register(JournalEntry)
-class JournalEntryAdmin(DemoExcludeMixin, admin.ModelAdmin):
+class JournalEntryAdmin(ReadOnlyAdminMixin, DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('id', 'source_type', 'source_id', 'user', 'status', 'posted_at')
     list_select_related = ('user',)
     list_filter = ('source_type', 'status', 'posted_at')
@@ -141,7 +162,7 @@ class JournalEntryAdmin(DemoExcludeMixin, admin.ModelAdmin):
 
 
 @admin.register(JournalLine)
-class JournalLineAdmin(admin.ModelAdmin):
+class JournalLineAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('journal_entry', 'ledger_account', 'direction', 'amount', 'currency', 'base_amount')
     list_select_related = ('journal_entry', 'ledger_account', 'account_ref')
     list_filter = ('direction', 'currency')
@@ -157,7 +178,7 @@ class LedgerPostingFailureAdmin(admin.ModelAdmin):
 
 
 @admin.register(LedgerReconciliationReport)
-class LedgerReconciliationReportAdmin(admin.ModelAdmin):
+class LedgerReconciliationReportAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('as_of_date', 'user', 'account', 'account_balance', 'ledger_balance', 'drift_amount', 'status')
     list_select_related = ('user', 'account')
     list_filter = ('status', 'as_of_date')
@@ -185,6 +206,12 @@ class UserProfileAdmin(DemoExcludeMixin, admin.ModelAdmin):
     
 @admin.register(PaymentHistory)
 class PaymentHistoryAdmin(DemoExcludeMixin, admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     list_display = ('user', 'user_email', 'amount', 'tier', 'status', 'created_at', 'subscription_end_date')
     list_select_related = ('user', 'user__profile')
     list_filter = ('status', 'tier', 'created_at')
@@ -235,7 +262,7 @@ class LoanInterestRateAdmin(admin.ModelAdmin):
 
 
 @admin.register(LoanRepayment)
-class LoanRepaymentAdmin(admin.ModelAdmin):
+class LoanRepaymentAdmin(PerObjectDeleteMixin, admin.ModelAdmin):
     list_display = ('date', 'loan', 'amount', 'principal_portion', 'interest_portion', 'from_account', 'base_amount')
     list_select_related = ('loan', 'from_account')
     list_filter = ('date', 'loan', 'from_account')
@@ -255,12 +282,35 @@ class UserAdmin(BaseUserAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).exclude(username='demo')
 
+    # Deleting a user here must do what the user's own "Delete account" does: cancel a live subscription,
+    # remove the ledger (which protects itself from a plain cascade), keep payment records unlinked, write the
+    # audit entry. A plain delete() fails for anyone with transactions.
+    def get_deleted_objects(self, objs, request):
+        # Django refuses up front when anything "protected" (the user's ledger) would be deleted. Deleting goes
+        # through delete_user_account, which clears the ledger first, so that warning no longer applies.
+        # The same goes for the "you may not delete these related records" check: the ledger and audit tables are
+        # (deliberately) read-only in admin, yet they go with the user. The right to delete a user itself is still
+        # checked by Django before this is reached.
+        to_delete, model_count, _perms_needed, _protected = super().get_deleted_objects(objs, request)
+        return to_delete, model_count, set(), []
+
+    def delete_model(self, request, obj):
+        from .views.settings import delete_user_account
+        if not delete_user_account(obj.pk):
+            self.message_user(request, f"Could not delete {obj.username}; see the server log.", level='error')
+
+    def delete_queryset(self, request, queryset):
+        from .views.settings import delete_user_account
+        failed = [u.username for u in queryset if not delete_user_account(u.pk)]
+        if failed:
+            self.message_user(request, f"Could not delete: {', '.join(failed)}; see the server log.", level='error')
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 
 @admin.register(DeletionRequestAuditLog)
-class DeletionRequestAuditLogAdmin(admin.ModelAdmin):
+class DeletionRequestAuditLogAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('username', 'email', 'requested_at')
     list_filter = ('requested_at',)
     search_fields = ('username', 'email')
@@ -269,7 +319,7 @@ class DeletionRequestAuditLogAdmin(admin.ModelAdmin):
 
 
 @admin.register(CapitalEvent)
-class CapitalEventAdmin(DemoExcludeMixin, admin.ModelAdmin):
+class CapitalEventAdmin(PerObjectDeleteMixin, DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('date', 'get_subtype_display', 'amount', 'currency', 'linked_loan', 'exclude_from_averages', 'exclude_from_budget', 'user')
     list_select_related = ('user', 'account', 'linked_loan')
     list_filter = ('subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth', 'date')
@@ -278,7 +328,7 @@ class CapitalEventAdmin(DemoExcludeMixin, admin.ModelAdmin):
     raw_id_fields = ('linked_loan',)
 
 @admin.register(NetWorthSnapshot)
-class NetWorthSnapshotAdmin(DemoExcludeMixin, admin.ModelAdmin):
+class NetWorthSnapshotAdmin(ReadOnlyAdminMixin, DemoExcludeMixin, admin.ModelAdmin):
     list_display = ('user', 'as_of_date', 'total_net_worth', 'total_assets', 'total_liabilities', 'created_at')
     list_select_related = ('user',)
     list_filter = ('as_of_date',)
@@ -286,7 +336,7 @@ class NetWorthSnapshotAdmin(DemoExcludeMixin, admin.ModelAdmin):
     ordering = ('-as_of_date', '-created_at')
 
 @admin.register(FinancialAuditLog)
-class FinancialAuditLogAdmin(admin.ModelAdmin):
+class FinancialAuditLogAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('id', 'model_name', 'object_id', 'action', 'timestamp')
     list_filter = ('model_name', 'action', 'timestamp')
     search_fields = ('object_id', 'diff')
@@ -307,7 +357,7 @@ class HoldingAdmin(admin.ModelAdmin):
     search_fields = ('instrument_name', 'account__name')
 
 @admin.register(ConsentEvent)
-class ConsentEventAdmin(admin.ModelAdmin):
+class ConsentEventAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('user', 'purpose', 'action', 'timestamp')
     list_filter = ('purpose', 'action', 'timestamp')
 
@@ -317,7 +367,7 @@ class SavingsGoalAdmin(DemoExcludeMixin, admin.ModelAdmin):
     search_fields = ('name', 'user__username')
 
 @admin.register(GoalContribution)
-class GoalContributionAdmin(admin.ModelAdmin):
+class GoalContributionAdmin(PerObjectDeleteMixin, admin.ModelAdmin):
     list_display = ('goal', 'amount', 'date')
     list_filter = ('date',)
 
@@ -429,5 +479,11 @@ class AnnouncementAdmin(DemoExcludeMixin, admin.ModelAdmin):
 
     @admin.action(description="Queue for sending")
     def queue_for_sending(self, request, queryset):
-        updated = queryset.update(status='QUEUED')
+        # Only drafts: queueing one that was already sent would e-mail it to everyone a second time.
+        updated = queryset.filter(status='DRAFT').update(status='QUEUED')
+        skipped = queryset.exclude(status='DRAFT').count()
         self.message_user(request, f"Queued {updated} announcement(s) for background sending.")
+        if skipped:
+            self.message_user(
+                request, f"{skipped} were not queued because they are not drafts (already queued or sent). "
+                         "Duplicate it as a new announcement to send it again.", level='warning')
