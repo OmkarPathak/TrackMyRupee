@@ -97,7 +97,7 @@ class DashboardViewTest(BaseViewTest):
         call_command('setup_demo_user')
         
         demo_client = Client()
-        demo_client.login(username='demo', password='demo_password_123')
+        demo_client.force_login(User.objects.get(username='demo'))
         
         response = demo_client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)

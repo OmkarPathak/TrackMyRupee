@@ -225,6 +225,6 @@ class PlaceholderAndLayoutTests(Base):
     def test_subtype_category_and_account_share_one_row(self):
         html = self.client.get(reverse('capital-event-create')).content.decode()
         row = html[html.index('Row 2: Subtype + Category + Account'):html.index('Loan link (shown only')]
-        self.assertEqual(row.count('col-xl-4 col-md-6'), 3)
+        self.assertEqual(row.count('col-md-4'), 3)
         for field in ('id_subtype', 'id_category', 'id_account'):
             self.assertIn(field, row)

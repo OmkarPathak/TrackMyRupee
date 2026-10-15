@@ -91,10 +91,11 @@ class Command(BaseCommand):
 
             # Keep the same user row for stability in demo login flow.
             user.email = 'demo@example.com'
-            user.set_password('demo_password_123')
+            # Visitors enter through the demo-login view; the account has no password to guess
+            user.set_unusable_password()
             user.save(update_fields=['email', 'password'])
         else:
-            user = User.objects.create_user(username=username, email='demo@example.com', password='demo_password_123')
+            user = User.objects.create_user(username=username, email='demo@example.com', password=None)
         
         # Setup Profile as PRO
         profile, created = UserProfile.objects.get_or_create(user=user)

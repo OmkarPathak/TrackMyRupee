@@ -9,8 +9,8 @@ class StaticViewSitemap(sitemaps.Sitemap):
 
     def items(self):
         return [
-            'landing', 'about', 'signup', 'account_login', 'contact', 
-            'privacy-policy', 'terms-of-service', 'demo_login', 
+            'landing', 'features', 'about', 'account_signup', 'account_login', 'contact',
+            'privacy-policy', 'terms-of-service', 'refund-policy', 'security',
             'blog_list', 'loan-emi-calculator', 'axio-alternative',
             'walnut-alternative-no-sms', 'indmoney-alternative-privacy'
         ]

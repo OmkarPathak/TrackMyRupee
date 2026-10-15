@@ -955,6 +955,9 @@ def doh_handler_view(request):
     if is_json:
         name = request.GET.get('name', '') if request.method == 'GET' else data.get('name', '')
         qtype_str = request.GET.get('type', 'SVCB') if request.method == 'GET' else data.get('type', 'SVCB')
+        # JSON bodies can carry any type; names are at most 255 characters
+        name = str(name)[:255]
+        qtype_str = str(qtype_str)[:20]
 
         try:
             if qtype_str.isdigit():

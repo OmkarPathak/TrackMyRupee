@@ -1,4 +1,5 @@
 import json
+import threading
 import logging
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -276,7 +277,7 @@ class LandingPageView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
-        response['Link'] = '</llms.txt>; rel="service-doc", </sitemap.xml>; rel="describedby", </.well-known/api-catalog>; rel="api-catalog"'
+        response['Link'] = '</llms.txt>; rel="service-doc", </sitemap.xml>; rel="describedby"'
         return response
 
     def _get_demo_net_worth_breakdown(self):
@@ -528,6 +529,9 @@ class LoanEMICalculatorPageView(TemplateView):
         })
         return context
 
+_DEMO_SETUP_LOCK = threading.Lock()
+
+
 def demo_login(request):
     """
     Logs in the read-only 'demo' user without password authentication.
@@ -535,45 +539,40 @@ def demo_login(request):
     """
     list(messages.get_messages(request))
 
-    def setup_demo_user_serialized():
-        """Serialize demo setup across workers to avoid deadlocks during heavy reseeding."""
-        if connection.vendor == 'postgresql':
-            lock_key = 840202607  # Stable advisory lock key for demo setup.
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT pg_advisory_lock(%s)", [lock_key])
-            try:
-                call_command('setup_demo_user')
-            finally:
-                with connection.cursor() as cursor:
-                    cursor.execute("SELECT pg_advisory_unlock(%s)", [lock_key])
-        else:
-            call_command('setup_demo_user')
-
-    try:
-        user = User.objects.get(username='demo')
-        today = date.today()
-
+    def demo_is_stale():
         # With future demo data, last_expense may be in a future month; check current-month data instead.
-        has_current_month_expense = Expense.objects.filter(
-            user=user,
-            date__year=today.year,
-            date__month=today.month,
-        ).exists()
-        has_current_month_income = Income.objects.filter(
-            user=user,
-            date__year=today.year,
-            date__month=today.month,
-        ).exists()
+        demo = User.objects.filter(username='demo').first()
+        if demo is None:
+            return True
+        today = date.today()
+        has_expense = Expense.objects.filter(user=demo, date__year=today.year, date__month=today.month).exists()
+        has_income = Income.objects.filter(user=demo, date__year=today.year, date__month=today.month).exists()
+        return not (has_expense and has_income)
 
-        is_stale = not (has_current_month_expense and has_current_month_income)
-        
-        if is_stale:
-            setup_demo_user_serialized()
-            user = User.objects.get(username='demo')
+    def setup_demo_user_serialized():
+        """Serialize demo setup so visitors arriving together reseed once, not once each.
 
-    except User.DoesNotExist:
+        Whoever waits on the lock re-checks afterwards: if the visitor ahead of them already
+        refreshed the data there is nothing left to do (a second reseed would wipe the data the
+        first one just created while other visitors are browsing it).
+        """
+        with _DEMO_SETUP_LOCK:
+            if connection.vendor == 'postgresql':
+                lock_key = 840202607  # Stable advisory lock key for demo setup (across workers).
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT pg_advisory_lock(%s)", [lock_key])
+                try:
+                    if demo_is_stale():
+                        call_command('setup_demo_user')
+                finally:
+                    with connection.cursor() as cursor:
+                        cursor.execute("SELECT pg_advisory_unlock(%s)", [lock_key])
+            elif demo_is_stale():
+                call_command('setup_demo_user')
+
+    if demo_is_stale():
         setup_demo_user_serialized()
-        user = User.objects.get(username='demo')
+    user = User.objects.get(username='demo')
 
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     messages.success(request, _("🚀 Welcome to Demo Mode! Feel free to explore the app."))

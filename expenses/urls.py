@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.urls import path, register_converter
-from django.views.decorators.cache import cache_page
+from expenses.cache_utils import anonymous_cache_page
 from django.views.generic import RedirectView, TemplateView
 
 from . import views, views_payment
@@ -114,11 +114,11 @@ urlpatterns = [
     
     # Static Pages
     path('tutorial/', RedirectView.as_view(url='https://docs.trackmyrupee.com', permanent=True), name='tutorial'),
-    path('privacy-policy/', cache_page(86400)(TemplateView.as_view(template_name='privacy_policy.html')), name='privacy-policy'),
-    path('terms-of-service/', cache_page(86400)(TemplateView.as_view(template_name='terms_of_service.html')), name='terms-of-service'),
-    path('refund-policy/', cache_page(86400)(TemplateView.as_view(template_name='refund_policy.html')), name='refund-policy'),
-    path('security/', cache_page(86400)(TemplateView.as_view(template_name='security.html')), name='security'),
-    path('about/', cache_page(86400)(TemplateView.as_view(template_name='about.html')), name='about'),
+    path('privacy-policy/', anonymous_cache_page(86400)(TemplateView.as_view(template_name='privacy_policy.html')), name='privacy-policy'),
+    path('terms-of-service/', anonymous_cache_page(86400)(TemplateView.as_view(template_name='terms_of_service.html')), name='terms-of-service'),
+    path('refund-policy/', anonymous_cache_page(86400)(TemplateView.as_view(template_name='refund_policy.html')), name='refund-policy'),
+    path('security/', anonymous_cache_page(86400)(TemplateView.as_view(template_name='security.html')), name='security'),
+    path('about/', anonymous_cache_page(86400)(TemplateView.as_view(template_name='about.html')), name='about'),
     path('offline/', TemplateView.as_view(template_name='offline.html'), name='offline'),
     path('contact/', views.ContactView.as_view(), name='contact'),
 
