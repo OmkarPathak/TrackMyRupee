@@ -34,6 +34,10 @@ class DemoReadOnlyMiddleware:
                 ]
                 if request.path in whitelisted_paths:
                     return self.get_response(request)
+                # A flow's review step only calculates what would be created (nothing is saved), so the demo
+                # can walk through the whole wizard; committing stays blocked.
+                if request.path.startswith('/flows/') and request.path.endswith('/preview/'):
+                    return self.get_response(request)
 
                 messages.warning(request, "⚠️ Demo Account: This action is restricted to read-only mode.")
                 from expenses.views.utils import get_safe_redirect_url

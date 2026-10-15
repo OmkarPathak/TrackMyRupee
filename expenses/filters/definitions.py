@@ -135,6 +135,16 @@ def get_user_account_types(user=None, q: Optional[str] = None) -> List[Dict[str,
         types = list(flat_choices.items())
 
     types.sort(key=lambda x: x[1].lower())
+    # Whole groups (what the tiles on the Accounts page filter by) are offered too, ahead of single types
+    groups = []
+    if user and user.is_authenticated:
+        import re
+        used = {code for code, _label in types}
+        for group_name, choices in ACCOUNT_TYPES:
+            if any(code in used for code, _label in choices):
+                group_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
+                groups.append((group_id, f"{group_name} (all)"))
+    types = groups + types
     if q and q.strip():
         query = q.strip().lower()
         types = [t for t in types if query in t[1].lower()]
@@ -460,14 +470,24 @@ ACCOUNT_LIST_FILTERS = FilterSetConfig(
                 {"value": "pinned", "label": "Pinned only"},
             ],
         ),
+        FilterDef(
+            key="needs_update",
+            label="Needs update",
+            type="single_select",
+            source="static",
+            options=[
+                {"value": "1", "label": "Needs update"},
+            ],
+        ),
     ],
     sort_options=[
+        {"key": "attention", "label": "Needs update first"},
         {"key": "balance_desc", "label": "Balance, highest"},
         {"key": "balance_asc", "label": "Balance, lowest"},
         {"key": "name_asc", "label": "Name, A to Z"},
         {"key": "name_desc", "label": "Name, Z to A"},
     ],
-    default_sort="balance_desc",
+    default_sort="attention",
     supports_time_period=False,
     supports_search=True,
     search_placeholder="Search accounts...",

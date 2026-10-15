@@ -205,5 +205,9 @@ class TestRemainingOptimizations(TestCase):
 
         response = self.client.get(reverse('account-list'), {'search': 'HDFC'})
         self.assertEqual(response.status_code, 200)
-        self.assertIn('HDFC Bank', response.content.decode('utf-8'))
-        self.assertNotIn('ICICI Bank', response.content.decode('utf-8'))
+        # The search narrows the list in the query; every account is still on the page (hidden) so the tiles
+        # and tabs can switch views without another request
+        self.assertEqual([a.name for a in response.context['accounts']], ['HDFC Bank'])
+        in_view = {a.name: a.in_view for a in response.context['display_accounts']}
+        self.assertTrue(in_view['HDFC Bank'])
+        self.assertFalse(in_view['ICICI Bank'])

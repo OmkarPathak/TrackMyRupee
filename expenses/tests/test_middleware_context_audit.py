@@ -136,3 +136,14 @@ class MaturedDepositProcessingTest(TestCase):
             self.client.get(reverse('account-list'))
             self.client.get(reverse('account-list'))
         self.assertEqual(proc.call_count, 1)
+
+
+class DemoFlowPreviewTest(TestCase):
+    def test_demo_can_preview_but_not_commit_a_flow(self):
+        demo = User.objects.create_user('demo', 'demo@example.com', 'pw12345!x')
+        self.client.force_login(demo)
+        preview = self.client.post('/flows/salary/preview/', {'amount': '85000'})
+        self.assertEqual(preview.status_code, 200)
+        commit = self.client.post('/flows/salary/commit/', {'amount': '85000'})
+        self.assertEqual(commit.status_code, 302)
+        self.assertEqual(commit['Location'], '/')

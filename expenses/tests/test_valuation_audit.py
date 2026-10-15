@@ -126,6 +126,7 @@ class RateMapTests(TestCase):
 
 class DepositAccrualTests(TestCase):
     def setUp(self):
+        cache.clear()  # exchange rates are cached per process; these tests store their own
         self.user = User.objects.create_user(username='dep', password='pw')
 
     def fd(self, start, compounding='QUARTERLY', rate='7', principal='100000', **kw):

@@ -13,9 +13,10 @@ from django.db import IntegrityError, transaction
 from django.db.models import CharField, Count, IntegerField, Q, Sum, Value
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
@@ -57,6 +58,24 @@ from .utils import (
     get_object_by_uuid_or_pk,
     redirect_to_uuid_url_if_needed,
 )
+
+
+# Balances kept by hand go stale; these are the account kinds that are (see account_types.STRATEGY)
+_MANUAL_VALUATION_STRATEGIES = frozenset({
+    STRATEGY.DEPOSIT, STRATEGY.HOLDINGS, STRATEGY.PHYSICAL_VALUATION, STRATEGY.INSURANCE_SURRENDER,
+})
+STALE_BALANCE_DAYS = 30
+BILL_WINDOW_DAYS = 10
+MATURITY_WINDOW_DAYS = 180
+
+
+def _group_id_for(account_type):
+    """The `?type=` value of the account group that contains this account type."""
+    import re
+    for group_name, choices in Account.ACCOUNT_TYPES:
+        if any(code == account_type for code, _label in choices):
+            return re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
+    return account_type
 
 
 class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
@@ -118,8 +137,13 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         if search_query:
             queryset = queryset.filter(name__icontains=search_query)
 
-        account_list = list(queryset)
-            
+        filtered_ids = list(queryset.values_list('id', flat=True))
+        account_list = list(
+            Account.objects.select_related('user')
+            .filter(user=self.request.user, is_active=is_active)
+            .order_by('-is_pinned', 'created_at', 'id')
+        )
+
         # Annotate locked status. The plan keeps the oldest accounts open, whatever the list is
         # currently sorted or filtered by, so the locked set comes from creation order alone.
         locked_ids = set()
@@ -128,10 +152,15 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             if limit != -1:
                 oldest_first = Account.objects.filter(user=self.request.user, is_active=True).order_by('created_at', 'id')
                 locked_ids = set(oldest_first.values_list('id', flat=True)[limit:])
+        self._locked_ids = locked_ids
         for acc in account_list:
             acc.is_locked = acc.is_active and acc.id in locked_ids
 
-        return account_list
+        # The summary, tiles and tab counts always describe every account; the list itself is what the
+        # search/filters leave. Both are the same objects, so each account is valued once.
+        self._all_accounts = account_list
+        by_id = {acc.id: acc for acc in account_list}
+        return [by_id[pk] for pk in filtered_ids if pk in by_id]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -140,6 +169,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         total_balance = Decimal('0.00')
         current_status = self.request.GET.get('status', 'active')
         display_balances = {}
+        ledger_net_worth = None
 
         # Memoize exchange rate lookups within this request.
         # get_exchange_rate may hit an external API or DB for each unique currency pair;
@@ -161,24 +191,28 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 cache_key = f'account_net_worth_{self.request.user.id}'
                 is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
                 cached_res = cache.get(cache_key) if not is_testing else None
-                if cached_res is not None:
-                    display_balances = cached_res
+                if isinstance(cached_res, dict) and 'balances' in cached_res:
+                    display_balances = cached_res['balances']
+                    ledger_net_worth = cached_res.get('net_worth')
                 else:
-                    unused_net_worth, display_balances = LedgerReadService.get_net_worth(self.request.user, as_of=today_date)
+                    ledger_net_worth, display_balances = LedgerReadService.get_net_worth(self.request.user, as_of=today_date)
                     if not is_testing:
-                        cache.set(cache_key, display_balances, 300)
+                        cache.set(cache_key, {'balances': display_balances, 'net_worth': ledger_net_worth}, 300)
             except Exception:
                 display_balances = {}
+                ledger_net_worth = None
 
         now = timezone.now()
         _deposit_codes = deposit_codes()
 
         # Newest statement check per account, in one query, for the "Reconciled" badge.
+        all_accounts = getattr(self, '_all_accounts', accounts)
+        shown_ids = {a.id for a in accounts}
         last_reconciliation = {}
-        for rec in AccountReconciliation.objects.filter(account__in=accounts).order_by('-statement_date', '-created_at'):
+        for rec in AccountReconciliation.objects.filter(account__in=all_accounts).order_by('-statement_date', '-created_at'):
             last_reconciliation.setdefault(rec.account_id, rec)
 
-        for account in accounts:
+        for account in all_accounts:
             try:
                 rate = cached_rate(account.currency, user_currency)
             except Exception:
@@ -222,9 +256,18 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
             delta = now - account.updated_at
             account.days_since_update = delta.days
+            # Balances kept by hand (deposits, holdings, property, insurance) go stale; cash and card
+            # balances move with every transaction, so their age says nothing.
+            account.update_target = 'detail' if strategy_for(account.account_type) == STRATEGY.HOLDINGS else 'edit'
+            account.needs_update = bool(
+                account.is_active and not account.is_locked
+                and strategy_for(account.account_type) in _MANUAL_VALUATION_STRATEGIES
+                and account.days_since_update >= STALE_BALANCE_DAYS
+            )
 
             account.base_value = base_value
-            total_balance += base_value
+            if account.id in shown_ids:
+                total_balance += base_value
 
             account.can_reconcile = account.is_active and not account.is_locked and is_reconcilable(account)
             account.last_reconciliation = last_reconciliation.get(account.id)
@@ -336,7 +379,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             group['icon_bg'] = p['icon_bg']
 
         # Apply sort to grouped accounts
-        sort_by = self.request.GET.get('sort', 'balance_desc')
+        sort_by = self.request.GET.get('sort', 'attention')
         for group in grouped_accounts:
             if sort_by == 'balance_asc':
                 group['accounts'] = sorted(group['accounts'], key=lambda a: float(a.base_value))
@@ -348,6 +391,10 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 group['accounts'] = sorted(group['accounts'], key=lambda a: a.name.lower(), reverse=True)
 
         context['grouped_accounts'] = grouped_accounts
+        self._add_overview_context(
+            context, accounts, grouped_accounts, current_status, user_currency, total_balance,
+            display_balances, ledger_net_worth, cached_rate, sort_by,
+        )
         context['account_types'] = Account.ACCOUNT_TYPES
         context['account_count'] = len(accounts)
         selected_type = self.request.GET.get('type', '')
@@ -387,6 +434,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             applied_filters['status'] = [current_status]
         if pinned == 'pinned':
             applied_filters['pinned'] = [pinned]
+        if self.request.GET.get('needs_update') == '1':
+            applied_filters['needs_update'] = ['1']
 
         context['filter_config'] = ACCOUNT_LIST_FILTERS
         context['applied_state'] = {
@@ -399,6 +448,279 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
         context['interest_summary'] = get_interest_summary(self.request.user)
         return context
+
+    # --- overview (summary card, attention cards, tiles, tabs, flat list) -------------------------
+
+    def _query_url(self, **changes):
+        """Current list URL with the given query params replaced ('' or None removes one).
+
+        `sort` and `status` are always written out, so the filter toolbar treats the link as an
+        explicit state instead of restoring a stale one from the browser's storage.
+        """
+        params = self.request.GET.copy()
+        params.pop('page', None)
+        params['sort'] = params.get('sort') or 'attention'
+        if (params.get('status') or 'active') == 'active':
+            params.pop('status', None)
+        for key, value in changes.items():
+            if value in (None, ''):
+                params.pop(key, None)
+            else:
+                params.setlist(key, value if isinstance(value, list) else [value])
+        return f"{reverse('account-list')}?{params.urlencode()}"
+
+    def _net_worth_change(self, ledger_net_worth, today):
+        """Net worth now minus a month ago, from the ledger (None when there is nothing to compare)."""
+        if ledger_net_worth is None:
+            return None
+        user = self.request.user
+        key = f'account_net_worth_prev_{user.id}_{today.isoformat()}'
+        is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
+        previous = cache.get(key) if not is_testing else None
+        if previous is None:
+            try:
+                month_ago = today - timedelta(days=30)
+                previous, _balances = LedgerReadService.get_net_worth(user, as_of=month_ago)
+                if not is_testing:
+                    cache.set(key, previous, 600)
+            except Exception:
+                return None
+        previous = Decimal(str(previous))
+        current = Decimal(str(ledger_net_worth))
+        if previous == 0 and current == 0:
+            return None
+        delta = (current - previous).quantize(Decimal('0.01'))
+        pct = (delta / abs(previous) * 100).quantize(Decimal('0.1')) if previous != 0 else None
+        return {'amount': abs(delta), 'pct': abs(pct) if pct is not None else None,
+                'direction': 'up' if delta > 0 else ('down' if delta < 0 else 'flat')}
+
+    def _attention_cards(self, today, user_currency, display_balances, cached_rate):
+        """What needs a look soon: card bills, maturing deposits, balances that went stale.
+
+        Always built from every active account, so a search or filter never hides a due bill.
+        """
+        user = self.request.user
+        cards = []
+        candidates = list(
+            Account.objects.filter(user=user, is_active=True)
+            .filter(Q(credit_card_billing_day__isnull=False) | Q(deposit_maturity_date__isnull=False))
+        )
+
+        def native_of(account):
+            if account.id in display_balances:
+                base_value = Decimal(str(display_balances[account.id]))
+                rate = Decimal(str(cached_rate(account.currency, user_currency))) or Decimal('1')
+                return base_value if account.currency == user_currency else (base_value / rate)
+            return Decimal(str(account.balance))
+
+        # Bills due within the next 10 days (cards that actually owe something)
+        bills = []
+        for acc in candidates:
+            due = acc.next_billing_date
+            if due is None:
+                continue
+            days = (due - today).days
+            owed = -native_of(acc) if native_of(acc) < 0 else Decimal('0')
+            if 0 <= days <= BILL_WINDOW_DAYS and owed > 0:
+                bills.append((due, acc, owed.quantize(Decimal('0.01')), days))
+        if bills:
+            bills.sort(key=lambda b: (b[0], -b[2]))
+            due, acc, owed, days = bills[0]
+            cards.append({
+                'kind': 'bill', 'badge': _('Bill due soon'), 'tone': 'warning',
+                'title': acc.name, 'amount': owed, 'currency': acc.currency, 'date': due, 'days': days,
+                'more': len(bills) - 1,
+                'url': reverse('account-detail', args=[acc.uuid]),
+            })
+
+        # Deposits maturing within the next 6 months: the nearest date, with everything that lands on it
+        maturing = []
+        deposit_set = deposit_codes()
+        for acc in candidates:
+            if acc.account_type not in deposit_set or not acc.deposit_maturity_date:
+                continue
+            if acc.deposit_closed_date or not (today <= acc.deposit_maturity_date <= today + timedelta(days=MATURITY_WINDOW_DAYS)):
+                continue
+            native = native_of(acc)
+            value = native
+            if acc.deposit_rate is not None:
+                try:
+                    from ..account_valuation import get_current_deposit
+                    value = get_current_deposit(acc, ledger_balance=native, today=acc.deposit_maturity_date)
+                except Exception:
+                    value = native
+            maturing.append((acc.deposit_maturity_date, acc, Decimal(str(value))))
+        if maturing:
+            first_date = min(m[0] for m in maturing)
+            same_day = [m for m in maturing if m[0] == first_date]
+            currencies = {m[1].currency for m in same_day}
+            all_fd = all(m[1].account_type in ('FD', 'FIXED_DEPOSIT') for m in same_day)
+            cards.append({
+                'kind': 'maturity', 'badge': _('Maturing'), 'tone': 'info',
+                'count': len(same_day), 'is_fd': all_fd,
+                'amount': sum((m[2] for m in same_day), Decimal('0')).quantize(Decimal('0.01')),
+                'currency': currencies.pop() if len(currencies) == 1 else user_currency,
+                'date': first_date, 'days': (first_date - today).days,
+                'more': len(maturing) - len(same_day),
+                'url': (reverse('account-detail', args=[same_day[0][1].uuid]) if len(same_day) == 1
+                        else self._query_url(type=_group_id_for(same_day[0][1].account_type), pinned='', needs_update='')),
+            })
+        return cards
+
+    def _stale_balance_count(self):
+        """How many hand-kept balances are 30+ days old, over every active account (not just the filtered ones)."""
+        cutoff = timezone.now() - timedelta(days=STALE_BALANCE_DAYS)
+        locked = getattr(self, '_locked_ids', set())
+        rows = Account.objects.filter(user=self.request.user, is_active=True, updated_at__lte=cutoff).values_list('id', 'account_type')
+        return sum(1 for pk, code in rows if pk not in locked and strategy_for(code) in _MANUAL_VALUATION_STRATEGIES)
+
+    @staticmethod
+    def _overview_groups(all_accounts):
+        """Account groups with totals in the user's currency, share of what is held, and a colour."""
+        import re
+        palette = {
+            'CASH': '#3b82f6', 'BANK': '#3b82f6', 'DEPOSIT': '#d97706', 'FIXED': '#d97706',
+            'INVEST': '#8b5cf6', 'MARKET': '#8b5cf6', 'EQUITY': '#8b5cf6', 'CREDIT': '#ec4899',
+            'LOAN': '#ef4444', 'LIABIL': '#ef4444', 'PHYSICAL': '#14b8a6', 'INSURANCE': '#64748b',
+        }
+        fallback = ['#3b82f6', '#d97706', '#8b5cf6', '#14b8a6', '#64748b']
+        groups, seen = [], set()
+        for group_name, choices in Account.ACCOUNT_TYPES:
+            codes = {val for val, _label in choices}
+            members = [a for a in all_accounts if a.account_type in codes and a.id not in seen]
+            if not members:
+                continue
+            seen.update(a.id for a in members)
+            gtype_for_rows = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
+            for a in members:
+                a.group_type = gtype_for_rows
+            total = sum((a.base_value for a in members), Decimal('0.00')).quantize(Decimal('0.01'))
+            gtype = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
+            color = next((c for token, c in palette.items() if token in gtype), fallback[len(groups) % len(fallback)])
+            groups.append({'type': gtype, 'label': group_name, 'accounts': members, 'count': len(members),
+                           'total': total, 'owed': abs(total), 'color': color})
+        held = float(sum((g['total'] for g in groups if g['total'] > 0), Decimal('0.00')))
+        for g in groups:
+            g['pct'] = round(float(g['total']) / held * 100, 1) if held > 0 and g['total'] > 0 else 0
+            g['pct_int'] = int(round(g['pct']))
+        return groups
+
+    def _add_overview_context(self, context, accounts, grouped_accounts, current_status, user_currency,
+                              total_balance, display_balances, ledger_net_worth, cached_rate, sort_by):
+        today = timezone.localdate()
+        request = self.request
+
+        selected_type = request.GET.get('type', '')
+        needs_update_only = request.GET.get('needs_update') == '1'
+        pinned_only = request.GET.get('pinned') == 'pinned'
+
+        all_accounts = getattr(self, '_all_accounts', accounts)
+        groups = self._overview_groups(all_accounts)
+        context['overview_groups'] = groups
+        context['overall_total'] = sum((a.base_value for a in all_accounts), Decimal('0.00')).quantize(Decimal('0.01'))
+        context['overall_count'] = len(all_accounts)
+
+        # Tiles: one per group (what you hold, then what you owe); a click filters the list to it
+        tiles = []
+        for group in groups:
+            is_liability = any(token in group['type'] for token in ('CREDIT', 'LOAN'))
+            if 'CREDIT' in group['type']:
+                tile_label = _('Owed on cards')
+                owing = sum(1 for a in group['accounts'] if a.base_value < 0)
+                note = _('%(owing)s of %(count)s cards') % {'owing': owing, 'count': group['count']}
+            elif 'LOAN' in group['type']:
+                tile_label = _('Owed on loans')
+                note = ngettext('%(count)s account', '%(count)s accounts', group['count']) % {'count': group['count']}
+            else:
+                tile_label = group['label']
+                note = ngettext('%(count)s account', '%(count)s accounts', group['count']) % {'count': group['count']}
+                if group['pct_int']:
+                    note = f"{note} · {group['pct_int']}%"
+            tiles.append({
+                'type': group['type'], 'label': tile_label, 'note': note, 'total': group['total'],
+                'owed': group['owed'], 'is_liability': is_liability, 'color': group['color'],
+                'selected': selected_type == group['type'],
+                'url': self._query_url(type='' if selected_type == group['type'] else group['type'],
+                                       needs_update='', pinned=''),
+            })
+        context['tiles'] = tiles
+
+        # Allocation summary: what is held vs. what is owed
+        assets_total = sum((g['total'] for g in groups if g['total'] > 0), Decimal('0.00'))
+        owed_total = sum((g['owed'] for g in groups if g['total'] < 0), Decimal('0.00'))
+        context['assets_total'] = assets_total.quantize(Decimal('0.01'))
+        context['owed_total'] = owed_total.quantize(Decimal('0.01'))
+        context['owed_label'] = _('cards and loans') if any('LOAN' in g['type'] and g['total'] < 0 for g in groups) \
+            else _('cards')
+
+        if current_status == 'active':
+            context['net_worth_change'] = self._net_worth_change(ledger_net_worth, today)
+            context['attention_cards'] = self._attention_cards(today, user_currency, display_balances, cached_rate)
+            context['stale_count'] = self._stale_balance_count()
+            context['stale_url'] = self._query_url(pinned='', needs_update='1', type='')
+        else:
+            context['net_worth_change'] = None
+            context['attention_cards'] = []
+            context['stale_count'] = 0
+
+        # Tabs. The counts ignore the tab itself but follow type/search, so they match what a click shows.
+        base = list(all_accounts)
+        context['tab_counts'] = {
+            'all': len(all_accounts),
+            'pinned': sum(1 for a in base if a.is_pinned),
+            'needs_update': sum(1 for a in base if a.needs_update),
+        }
+        if not pinned_only and not needs_update_only:
+            context['active_tab'] = 'all'
+        else:
+            context['active_tab'] = 'needs_update' if needs_update_only else 'pinned'
+        context['tab_urls'] = {
+            'all': self._query_url(pinned='', needs_update=''),
+            'pinned': self._query_url(pinned='pinned', needs_update=''),
+            'needs_update': self._query_url(pinned='', needs_update='1'),
+        }
+
+        # The flat list: needs-update first, then balance, unless another order was picked
+        # Every account is rendered; the ones outside the current view are only hidden. That lets the
+        # tiles and tabs switch the list instantly in the browser instead of asking the server again.
+        shown_ids = {a.id for a in accounts}
+        rows = list(all_accounts)
+        if sort_by == 'attention':
+            rows.sort(key=lambda a: (not a.needs_update, -float(a.base_value)))
+        elif sort_by == 'balance_asc':
+            rows.sort(key=lambda a: float(a.base_value))
+        elif sort_by == 'balance_desc':
+            rows.sort(key=lambda a: float(a.base_value), reverse=True)
+        elif sort_by == 'name_asc':
+            rows.sort(key=lambda a: a.name.lower())
+        elif sort_by == 'name_desc':
+            rows.sort(key=lambda a: a.name.lower(), reverse=True)
+        position = 0
+        for row in rows:
+            row.in_view = row.id in shown_ids and (row.needs_update or not needs_update_only)
+            row.view_position = position if row.in_view else None
+            if row.in_view:
+                position += 1
+        for row in rows:
+            row.is_last_in_view = row.in_view and row.view_position == position - 1
+        context['display_accounts'] = rows
+        context['display_count'] = position
+        context['view_type'] = selected_type if selected_type in {t['type'] for t in tiles} else ''
+        context['sort_label'] = {
+            'attention': _('Sorted by needs update first, then balance'),
+            'balance_desc': _('Sorted by balance, highest first'),
+            'balance_asc': _('Sorted by balance, lowest first'),
+            'name_asc': _('Sorted by name, A to Z'),
+            'name_desc': _('Sorted by name, Z to A'),
+        }.get(sort_by, '')
+        # The tiles and tabs already show a group / pinned / needs-update choice; the full filter panel
+        # opens by itself only for what they cannot express.
+        tile_types = {t['type'] for t in tiles}
+        type_values = [t for t in request.GET.getlist('type') if t]
+        custom_type = bool(type_values) and not (len(type_values) == 1 and type_values[0] in tile_types)
+        context['filters_active'] = bool(custom_type or current_status != 'active' or sort_by != 'attention')
+
+
 
 class AccountCreateView(LoginRequiredMixin, CreateView):
     model = Account

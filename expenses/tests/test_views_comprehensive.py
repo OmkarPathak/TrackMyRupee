@@ -192,7 +192,8 @@ class AccountListViewTest(BaseComprehensiveTest):
             query['sql'] for query in queries.captured_queries
             if 'expenses_journalentry' in query['sql'] and 'opening_account_id' in query['sql']
         ]
-        self.assertEqual(len(opening_lookup_queries), 1)
+        # One lookup per net-worth calculation (now, and a month ago for the change figure), never one per account
+        self.assertLessEqual(len(opening_lookup_queries), 2)
 
     def test_account_list_grouping_and_days_since_update(self):
         """Test that accounts are grouped by type and days_since_update is set."""

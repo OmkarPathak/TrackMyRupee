@@ -10,16 +10,26 @@ Manage all your assets and liabilities in one place and track your overall net w
 
 ## 1. Opening the Accounts Page
 
-Navigate to **Sidebar → Accounts** on desktop, or tap the **Accounts** tab in the bottom navigation on mobile. The page groups your accounts into asset categories such as Cash and Bank, Fixed-Income, and Investments.
+Navigate to **Sidebar → Accounts** on desktop, or tap the **Accounts** tab in the bottom navigation on mobile.
 
 
 ![The Accounts page](img/accounts-list-desktop.webp){ loading=lazy }
 
 
-The total card at the top adds up the accounts that match your current filter, in your own currency. Each account is valued the way Net Worth values it (market value for funds, accrued interest for deposits, outstanding principal for loans), accounts in another currency are converted once, and what you owe on **credit cards and loans counts as negative**. Each row still shows the account's balance in its own currency, and the coloured bar splits only what you hold, so cards and loans appear as their own "owed" lines under it.
+From top to bottom the page has:
+
+- **Net worth card**: your total in your own currency, with how much it changed against a month ago, a coloured bar that splits what you hold (Cash & Bank, Fixed-Income, Investments, Physical Assets and so on), and a line showing what you hold and what you owe on cards and loans. Click a part of the bar's legend to look at only that kind of account.
+- **Needs your attention**: short chips for what to look at soon: a credit card bill due in the next 10 days, deposits maturing in the next 6 months (with how many more come later), and balances that have not been updated in 30 days or more.
+- **Group tiles**: one tile per kind of account with its total and how many accounts it holds. Click a tile to show only those accounts, click it again to show all. **Owed on cards** and **Owed on loans** show what you owe in red.
+- **All / Pinned / Needs update tabs**: switch the list to your pinned accounts, or to the manually kept balances (deposits, holdings, property, insurance) that are 30+ days old. Cash and card balances never count as stale because every transaction updates them.
+- **The list**: balance, last-updated age (with a quick **Update** link when a balance is stale), interest rate and maturity date for deposits, and limit, available credit and next bill date for credit cards. Use the ⋮ menu on a row to view, reconcile, edit, pin or delete an account. The list shows the first five accounts; **Show all** reveals the rest.
+
+The search box, **+ Filter** (account type, status, pinned, needs update) and sort menu sit above the net worth card. Searching and filtering narrow the list; the net worth card, tiles and tab counts always describe all your accounts.
+
+Each account is valued the way Net Worth values it (market value for funds, accrued interest for deposits, outstanding principal for loans), accounts in another currency are converted once, and what you owe on **credit cards and loans counts as negative**. Each row still shows the account's balance in its own currency, and the coloured bar splits only what you hold.
 
 !!! info "Accounts total vs. Net Worth"
-    With no filter, the accounts total and the Dashboard **Net Worth** card agree. Net Worth adds two things the accounts list cannot show: money you have set aside in [Goals](../12-goals/index.md) (it is still yours) and any active loan you track that is not linked to a loan account.
+    The accounts net worth and the Dashboard **Net Worth** card agree on the same accounts. Net Worth adds two things the accounts list cannot show: money you have set aside in [Goals](../12-goals/index.md) (it is still yours) and any active loan you track that is not linked to a loan account.
 
 ---
 

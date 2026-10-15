@@ -19,13 +19,13 @@ class PolicyPageCachingTest(TestCase):
         cache.clear()
 
     def test_signed_in_users_never_get_a_cached_copy(self):
-        user = User.objects.create_user('p1', 'p1@example.com', 'pw12345!x')
+        user = User.objects.create_user('zq_policy_viewer', 'zq_policy_viewer@example.com', 'pw12345!x')
         self.client.force_login(user)
         first = self.client.get(reverse('privacy-policy'))
         user.username  # noqa: B018
         self.assertEqual(first.status_code, 200)
         # Nothing was stored for the signed-in request, so the anonymous visitor builds their own page
-        self.assertNotIn('p1', self.client_class().get(reverse('privacy-policy')).content.decode())
+        self.assertNotIn('zq_policy_viewer', self.client_class().get(reverse('privacy-policy')).content.decode())
 
     def test_anonymous_visitors_are_still_cached(self):
         from django.db import connection
@@ -40,6 +40,10 @@ class PolicyPageCachingTest(TestCase):
 
 class DemoLoginTest(TestCase):
     def setUp(self):
+        cache.clear()
+
+    def tearDown(self):
+        # Seeding the demo caches exchange rates; leave nothing behind for tests that expect their own rates
         cache.clear()
 
     def test_visitors_after_the_first_do_not_reseed(self):

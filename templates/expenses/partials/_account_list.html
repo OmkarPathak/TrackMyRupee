@@ -1,98 +1,255 @@
-{% load i18n digit_filters filter_tags %}
+{% load i18n digit_filters filter_tags expense_extras %}
 
-<div id="account-list-shell">
+<div id="account-list-shell" class="acx" data-view-type="{{ view_type }}" data-view-tab="{{ active_tab }}" data-status="{{ current_status }}" data-sort="{{ sort_by }}">
 <style>
-    .account-group-header .accordion-chevron { transition: transform 0.2s ease-in-out; }
-    .account-group-header.collapsed .accordion-chevron { transform: rotate(-90deg); }
-    .acct-row { border-bottom: 1px solid rgba(0,0,0,0.045); transition: background-color 0.12s ease; }
-    [data-bs-theme="dark"] .acct-row { border-bottom-color: rgba(255,255,255,0.05); }
-    .acct-row:last-child { border-bottom: none; }
-    .acct-row:hover { background-color: rgba(0,0,0,0.018) !important; }
-    [data-bs-theme="dark"] .acct-row:hover { background-color: rgba(255,255,255,0.03) !important; }
-    .acct-row .acct-menu-btn { opacity: 0.3; transition: opacity 0.15s; }
-    .acct-row:hover .acct-menu-btn { opacity: 1; }
-    .account-group-header { cursor: pointer; user-select: none; transition: background-color 0.12s; }
-    .account-group-header:hover { background-color: rgba(0,0,0,0.02); }
-    .accounts-summary-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.10em; font-weight: 700; }
-    .accounts-summary-amount {
-        font-size: clamp(2rem, 5.5vw, 2.8rem);
-        font-weight: 800;
-        letter-spacing: -0.04em;
-        line-height: 1.05;
-        font-variant-numeric: tabular-nums;
-    }.balance-bar-wrap { height: 8px; border-radius: 99px; overflow: hidden; display: flex; gap: 2px; background: transparent; }
-    .balance-bar-segment { border-radius: 99px; flex-shrink: 0; transition: width 0.4s ease; }
-    .tooltip-balance-info .tooltip-inner { max-width: 320px; text-align: left; padding: 10px 14px; font-size: 0.82rem; line-height: 1.55; }
-    @media (max-width: 576px) { .tooltip-balance-info .tooltip-inner { max-width: min(300px, 88vw); } }
-    @media (max-width: 767.98px) { .accounts-filter-row { flex-wrap: wrap; } .accounts-search-wrap { flex: 1 1 100%; order: -1; } .accounts-filter-select { flex: 1 1 auto; } }
-    .rate-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(15,118,87,0.1); color: var(--color-secondary, #0F7657); }
-    .maturity-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(15,118,87,0.08); color: var(--color-secondary, #0F7657); }
-    .billing-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background-color: rgba(212,131,26,0.1); color: var(--color-warning-text, #8F4E00); }
-    [data-bs-theme="dark"] .billing-badge { background-color: rgba(244,180,78,0.15); color: var(--color-warning); }
-    .header-action-btn { height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px !important; transition: all 0.2s ease; border: 1px solid var(--bs-border-color); background: transparent; padding: 0 0.75rem; font-size: 0.875rem; text-decoration: none; color: var(--bs-body-color); font-weight: 500; }
-    .header-action-btn.btn-primary { background-color: var(--color-secondary, #0F7657) !important; color: white !important; border-color: var(--color-secondary, #0F7657) !important; }
-    .header-action-btn:hover { opacity: 0.9; }
-    .account-grid-card {
-        border-radius: 1rem !important;
-        box-shadow: none !important;
-        border: 1px solid rgba(0, 0, 0, 0.08) !important;
-        background-color: var(--bs-card-bg);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    /* Accounts overview. Colours come from the app tokens (light/dark) and Bootstrap's theme variables. */
+    .acx { --acx-surface: var(--bs-card-bg, var(--bs-body-bg)); --acx-soft: var(--bs-tertiary-bg); --acx-line: rgba(26,26,24,.10); --acx-muted: var(--color-muted-text, #595855); --acx-green: var(--color-success-text, #0F7657); --acx-amber: var(--color-warning-text, #9C5400); --acx-red: var(--color-danger-text, #B93822); --acx-blue: var(--color-info-text, #165A9E); }
+    [data-bs-theme="dark"] .acx { --acx-line: rgba(255,255,255,.10); }
+    .acx *, .acx *::before, .acx *::after { box-sizing: border-box; }
+    .acx-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .acx-title { display: flex; align-items: baseline; gap: .6rem; min-width: 0; }
+    .acx-title h1 { font-size: clamp(1.5rem, 4.5vw, 2rem); font-weight: 800; letter-spacing: -.03em; margin: 0; color: var(--bs-body-color); }
+    .acx-count { color: var(--acx-muted); font-size: .85rem; font-weight: 500; white-space: nowrap; }
+    @media (max-width: 767.98px) {
+        .acx-head { flex-wrap: wrap; row-gap: .6rem; }
+        .acx-title { flex-direction: column; gap: 0; flex: 1 1 auto; }
+        .acx-head-actions { gap: .4rem; }
+        .acx-btn-icon, .acx-head-actions .acx-btn { height: 38px; min-width: 38px; }
+        .acx-head-actions .acx-btn { padding: 0 .6rem; }
     }
-    [data-bs-theme="dark"] .account-grid-card {
-        box-shadow: none !important;
-        border-color: rgba(255, 255, 255, 0.08) !important;
+    .acx-head-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+    .acx-search { position: relative; display: none; flex: 1 1 100%; order: 3; }
+    .acx-search.is-open { display: block; }
+    .acx-search i { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--acx-muted); font-size: .85rem; pointer-events: none; }
+    .acx-search input { width: 100%; height: 40px; padding: 0 .9rem 0 2.2rem; border-radius: 12px; border: 1px solid var(--acx-line); background: var(--acx-surface); color: var(--bs-body-color); font-size: .9rem; }
+    .acx-search input:focus { outline: 2px solid var(--acx-green); outline-offset: 1px; }
+    .header-action-btn { height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px !important; transition: all .2s ease; border: 1px solid var(--bs-border-color); background: transparent; text-decoration: none; padding: 0 .75rem; font-size: .875rem; color: var(--bs-body-color); }
+    .header-action-btn:hover { opacity: .9; color: var(--bs-body-color); }
+    .header-action-btn.btn-primary { background-color: var(--color-secondary, #0F7657) !important; border-color: var(--color-secondary, #0F7657) !important; color: #fff !important; }
+    [data-bs-theme="dark"] .acx a.header-action-btn { color: var(--bs-body-color); }
+    [data-bs-theme="dark"] .acx a.header-action-btn.btn-primary { color: #fff !important; }
+    .acx-btn { height: 40px; min-width: 40px; padding: 0 .9rem; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; border-radius: 12px; border: 1px solid var(--acx-line); background: var(--acx-surface); color: var(--bs-body-color); font-size: .88rem; font-weight: 600; text-decoration: none; cursor: pointer; transition: opacity .15s, background-color .15s; }
+    .acx-btn:hover { opacity: .88; color: var(--bs-body-color); }
+    .acx-btn.is-on { border-color: var(--acx-green); color: var(--acx-green); }
+    .acx-btn-primary { background: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff; }
+    .acx-btn-primary:hover { color: #fff; }
+    [data-bs-theme="dark"] .acx-btn-primary { background: var(--color-success, #5DCAA5); border-color: var(--color-success, #5DCAA5); color: #0d1f18; }
+    [data-bs-theme="dark"] .acx-btn-primary:hover { color: #0d1f18; }
+    .acx-btn-icon { width: 40px; padding: 0; }
+    @media (min-width: 768px) {
+        .acx-search { display: block; flex: 0 1 280px; order: 0; }
+        .acx-only-mobile { display: none !important; }
     }
-    .account-grid-card:hover,
-    .account-grid-card:has(.dropdown-menu.show) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+    @media (max-width: 767.98px) { .acx-hide-mobile { display: none !important; } }
+
+    .acx-toolbar { margin-bottom: 1rem; }
+
+    .acx-card { background: var(--acx-surface); border: 1px solid var(--acx-line); border-radius: 20px; }
+    .acx-nw { padding: 1.25rem 1.5rem; display: grid; gap: 1rem 3.5rem; grid-template-columns: minmax(0, 1fr); margin-bottom: 1.5rem; }
+    @media (min-width: 768px) { .acx-nw { grid-template-columns: auto minmax(0, 1fr); align-items: center; } }
+    .acx-label { font-size: .85rem; color: var(--acx-muted); font-weight: 500; }
+    .acx-nw-row { display: flex; flex-direction: column; align-items: flex-start; gap: .3rem; }
+    .acx-nw-amount { font-size: clamp(2rem, 6.5vw, 3rem); font-weight: 800; letter-spacing: -.04em; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--bs-body-color); }
+    .acx-nw-amount.is-negative { color: var(--acx-red); }
+    .acx-chip { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; font-weight: 600; color: var(--acx-muted); }
+    .acx-chip i { font-size: .65rem; }
+    .acx-chip.is-up { color: var(--acx-green); }
+    .acx-chip.is-down { color: var(--acx-red); }
+    .acx-bar { display: flex; gap: 2px; height: 10px; border-radius: 99px; overflow: hidden; }
+    .acx-bar span { display: block; height: 100%; border-radius: 99px; flex-shrink: 0; }
+    .acx-legend { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin-top: .6rem; font-size: .8rem; }
+    .acx-legend a { display: inline-flex; align-items: center; gap: .35rem; text-decoration: none; color: var(--acx-muted); }
+    .acx-legend a b { color: var(--bs-body-color); font-weight: 700; }
+    .acx-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .acx-foot { font-size: .8rem; color: var(--acx-muted); }
+    /* The change figure sits under the amount (column 1) and the assets line under the chart (column 2), so
+       the line starts exactly where the chart does */
+    .acx-nw-meta { display: contents; }
+    .acx-nw-meta .acx-chip, .acx-nw-meta .acx-foot { margin-top: -.5rem; }
+    @media (min-width: 768px) { .acx-nw-meta .acx-chip { grid-column: 1; } .acx-nw-meta .acx-foot { grid-column: 2; align-self: center; } }
+    @media (max-width: 767.98px) { .acx-nw-meta .acx-foot { display: none; } .acx-nw-meta .acx-chip { order: 1; margin-top: -.6rem; } .acx-nw-alloc { order: 2; } }
+
+    .acx-h2 { font-size: 1.1rem; font-weight: 800; margin: 0 0 .7rem; color: var(--bs-body-color); letter-spacing: -.01em; }
+    .acx-attn-wrap { margin-bottom: 1.5rem; }
+    .acx-attn { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    @media (max-width: 767.98px) { .acx-attn { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: .25rem; scrollbar-width: none; } .acx-attn::-webkit-scrollbar { display: none; } .acx-attn > a { flex: 0 0 82%; max-width: 330px; scroll-snap-align: start; } }
+    .acx-attn > a { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .85rem 1rem; border-radius: 16px; text-decoration: none; color: var(--bs-body-color); background: var(--acx-surface); border: 1px solid var(--acx-line); min-width: 0; }
+    .acx-attn > a:hover { border-color: var(--acx-green); }
+    .acx-attn .acx-attn-text { min-width: 0; }
+    .acx-attn .acx-attn-main { font-weight: 500; font-size: .92rem; line-height: 1.35; display: block; overflow-wrap: anywhere; }
+    .acx-attn .acx-attn-sub { font-size: .78rem; color: var(--acx-muted); display: block; margin-top: .15rem; }
+    .acx-attn .acx-arrow { color: var(--acx-green); flex-shrink: 0; }
+    .acx-pill { display: inline-block; padding: .12rem .6rem; margin-bottom: .35rem; border-radius: 999px; font-size: .7rem; font-weight: 700; }
+    .acx-pill.is-warning { background: rgba(212,131,26,.14); color: var(--acx-amber); }
+    .acx-pill.is-info { background: rgba(22,90,158,.12); color: var(--acx-blue); }
+    .acx-pill.is-muted { background: var(--acx-soft); color: var(--acx-muted); }
+    [data-bs-theme="dark"] .acx-pill.is-warning { background: rgba(244,180,78,.16); }
+    [data-bs-theme="dark"] .acx-pill.is-info { background: rgba(133,183,235,.16); }
+
+    /* Wide screens: slim one-line chips that take only the room their text needs, instead of full-width cards */
+    .acx-attn-wrap { margin-bottom: 1.1rem; }
+    .acx-attn-wrap .acx-h2 { font-size: 1rem; margin-bottom: .5rem; }
+    .acx-attn { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .acx-attn > a { padding: .5rem .85rem; gap: .9rem; border-radius: 12px; }
+    .acx-attn .acx-attn-text { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+    .acx-attn .acx-pill { margin-bottom: 0; }
+    .acx-attn .acx-attn-main { font-size: .88rem; }
+    /* Phones: the same slim chips, in one swipeable row */
+    @media (max-width: 767.98px) {
+        .acx-attn { flex-wrap: nowrap; overflow-x: auto; }
+        /* With more than one chip, each is a little narrower than the screen so the next one peeks in */
+        .acx-attn > a:not(:only-child) { flex: 0 0 84%; max-width: 84%; scroll-snap-align: start; }
+        .acx-attn > a:only-child { flex: 1 1 auto; }
+        .acx-attn .acx-attn-text { flex-wrap: nowrap; min-width: 0; }
+        .acx-attn .acx-attn-main { white-space: normal; min-width: 0; }
+        .acx-attn .acx-pill { flex-shrink: 0; }
+        .acx-attn .acx-attn-sub { display: none !important; }
+        .acx-attn .acx-hide-mobile { display: inline !important; }
+        .acx-attn .acx-arrow { display: inline-block; }
     }
-    [data-bs-theme="dark"] .account-grid-card:hover,
-    [data-bs-theme="dark"] .account-grid-card:has(.dropdown-menu.show) {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    .acx-tiles { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); margin-bottom: 1.25rem; }
+    @media (max-width: 767.98px) { .acx-tiles { display: flex; overflow-x: auto; margin-bottom: 1rem; padding-bottom: .25rem; scroll-snap-type: x proximity; scrollbar-width: none; } .acx-tiles::-webkit-scrollbar { display: none; } .acx-tile { flex: 0 0 auto; min-width: 150px; scroll-snap-align: start; } }
+    .acx-tile { display: block; padding: .85rem 1rem; border-radius: 16px; background: var(--acx-soft); border: 1px solid var(--acx-line); text-decoration: none; color: var(--bs-body-color); min-width: 0; transition: border-color .15s; }
+    .acx-tile:hover { border-color: var(--acx-green); color: var(--bs-body-color); }
+    .acx-tile.is-selected { border-color: var(--acx-green); background: var(--acx-surface); box-shadow: 0 0 0 .5px var(--acx-green); }
+    .acx-tile-label { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--acx-muted); font-weight: 500; }
+    .acx-tile-amount { font-size: clamp(1.15rem, 3vw, 1.45rem); font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; margin: .2rem 0; white-space: nowrap; }
+    .acx-tile-amount.is-owed { color: var(--acx-red); }
+    .acx-tile-note { font-size: .75rem; color: var(--acx-muted); }
+
+    .acx-tabs { display: flex; align-items: center; gap: .5rem; margin-bottom: .8rem; overflow-x: auto; scrollbar-width: none; }
+    .acx-tabs::-webkit-scrollbar { display: none; }
+    /* Same pill style as the tabs on the Transactions and Subscriptions pages */
+    .acx-tab { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem 1rem; border-radius: 999px; font-size: .8rem; font-weight: 600; line-height: 1.5; white-space: nowrap; text-decoration: none; background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid rgba(0,0,0,.06); transition: all .15s ease; }
+    [data-bs-theme="dark"] .acx-tab { border-color: rgba(255,255,255,.08); }
+    .acx-tab small { font-size: inherit; font-weight: 600; color: inherit; opacity: .75; }
+    .acx-tab.is-active { background-color: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff; }
+    .acx-tab.is-active small { opacity: .85; }
+    .acx-sort-note { margin-left: auto; font-size: .78rem; color: var(--acx-muted); white-space: nowrap; padding-left: .5rem; }
+    @media (max-width: 767.98px) { .acx-sort-note { display: none; } }
+
+    .acx-list { padding: 0; }
+    .acx-list-head, .acx-row { display: grid; align-items: center; gap: .75rem; padding: .85rem 1.25rem; grid-template-columns: minmax(0, 1fr) auto auto; }
+    @media (min-width: 768px) { .acx-list-head, .acx-row { grid-template-columns: minmax(0, 1fr) 190px 170px 32px; gap: 1rem; } }
+    .acx-list-head { font-size: .7rem; letter-spacing: .08em; font-weight: 700; color: var(--acx-muted); text-transform: uppercase; border-bottom: 1px solid var(--acx-line); padding-top: .9rem; padding-bottom: .7rem; }
+    .acx-list-head > :nth-child(3) { text-align: right; }
+    @media (max-width: 767.98px) { .acx-list-head { display: none; } .acx-row { padding: .8rem 1rem; } }
+    .acx-row { border-bottom: 1px solid var(--acx-line); transition: background-color .12s; }
+    .acx-row:hover { background: var(--acx-soft); }
+    .acx-row:has(.dropdown-menu.show) { position: relative; z-index: 20; }
+    .acx-name { font-weight: 700; font-size: .95rem; line-height: 1.3; color: var(--bs-body-color); text-decoration: none; overflow-wrap: anywhere; }
+    a.acx-name:hover { color: var(--acx-green); }
+    .acx-row.is-locked .acx-name, .acx-row.is-locked .acx-balance { color: var(--acx-muted); }
+    .acx-sub { font-size: .78rem; color: var(--acx-muted); line-height: 1.4; margin-top: .1rem; }
+    .acx-sub .acx-sep::before { content: "·"; margin: 0 .35rem; }
+    .acx-sub a { color: var(--acx-green); font-weight: 600; text-decoration: none; }
+    .acx-stale { color: var(--acx-muted); font-weight: 400; }
+    .acx-updated { font-size: .8rem; color: var(--acx-muted); display: flex; align-items: center; gap: .6rem; }
+    .acx-updated .acx-upd-link { color: var(--acx-green); font-weight: 700; text-decoration: none; }
+    .acx-balance { text-align: right; font-weight: 800; font-size: 1.02rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--bs-body-color); white-space: nowrap; }
+    .acx-balance.is-negative { color: var(--acx-red); }
+    .acx-balance small { display: block; font-size: .72rem; font-weight: 500; letter-spacing: 0; color: var(--acx-muted); }
+    .acx-menu-btn { width: 32px; height: 32px; border-radius: 10px; border: 0; background: transparent; color: var(--acx-muted); display: inline-flex; align-items: center; justify-content: center; }
+    .acx-menu-btn:hover { background: var(--acx-soft); color: var(--bs-body-color); }
+    @media (max-width: 767.98px) {
+        .acx-row { grid-template-columns: minmax(0, 1fr) auto auto; gap: .5rem; }
+        .acx-menu-btn { width: 28px; margin-right: -.3rem; }
     }
-    .account-grid-card-col { position: relative; }
-    .account-grid-card-col:has(.dropdown-menu.show),
-    .account-grid-card:has(.dropdown-menu.show) {
-        z-index: 1050 !important;
+    .acx-util { display: flex; align-items: center; gap: .5rem; margin-top: .35rem; max-width: 260px; }
+    .acx-util .progress { flex: 1; height: 5px; border-radius: 10px; background: var(--acx-soft); }
+    .acx-util span { font-size: .7rem; color: var(--acx-muted); white-space: nowrap; }
+    /* Wide screens have the room: keep the usage bar on the limit line instead of a line of its own */
+    @media (min-width: 768px) { .acx-util { display: inline-flex; width: 190px; margin: 0 0 0 .9rem; vertical-align: middle; } }
+    .acx-badge { display: inline-block; padding: .05rem .5rem; border-radius: 999px; font-size: .68rem; font-weight: 600; border: 1px solid var(--acx-line); color: var(--acx-muted); margin-left: .35rem; }
+    .acx-row.is-last { border-bottom: 0; }
+    .acx-row.is-out { display: none !important; }
+    .acx-rows:not(.is-expanded) > .acx-row.is-extra-m { display: none; }
+    @media (min-width: 768px) {
+        .acx-rows:not(.is-expanded) > .acx-row.is-extra-m { display: grid; }
+        .acx-rows:not(.is-expanded) > .acx-row.is-extra-d { display: none; }
     }
+    .acx-more { display: flex; justify-content: center; padding: .8rem; }
+    .acx-more button { border: 0; background: transparent; color: var(--acx-green); font-weight: 700; font-size: .88rem; padding: .3rem 1rem; }
+    @media (min-width: 768px) { .acx-more.is-md-hidden { display: none; } }
+    /* Same table look as every other list (see static/style.css "Premium Table Refinements" and .tmr-table):
+       container tint + border, tinted header with 14px/700 sentence-case labels, 15px body, 13px secondary text. */
+    .acx-list { background-color: #fcfbfa; border: 1px solid rgba(0,0,0,.05); border-radius: 16px; }
+    [data-bs-theme="dark"] .acx-list { background-color: rgba(255,255,255,.02); border-color: rgba(255,255,255,.07); }
+    .acx-list-head { border-radius: 15px 15px 0 0; background-color: var(--tmr-th-bg); color: var(--tmr-th-color); font-size: 14px; font-weight: 700; text-transform: none; letter-spacing: 0; border-bottom: 1px solid rgba(0,0,0,.04); }
+    [data-bs-theme="dark"] .acx-list-head { border-bottom-color: rgba(255,255,255,.05); }
+    .acx-row { border-bottom: 1px solid rgba(0,0,0,.04); }
+    [data-bs-theme="dark"] .acx-row { border-bottom-color: rgba(255,255,255,.05); }
+    .acx-row:hover { background-color: rgba(29,158,117,.04); }
+    [data-bs-theme="dark"] .acx-row:hover { background-color: rgba(93,202,165,.06); }
+    .acx-name { font-size: 15px; }
+    .acx-sub, .acx-updated { font-size: 13px; }
+    .acx-balance { font-size: 15px; font-weight: 600; }
+    .acx-more { border-top: 1px solid rgba(0,0,0,.04); }
+    [data-bs-theme="dark"] .acx-more { border-top-color: rgba(255,255,255,.05); }
+    .acx-empty { text-align: center; padding: 3rem 1rem; }
+    .acx-nw-alloc { width: 100%; }
+    .acx-short { display: none; }
+    @media (max-width: 767.98px) {
+        .acx-btn-icon, .acx-head-actions .acx-btn { border-radius: 50%; padding: 0; width: 38px; }
+        .acx-nw { padding: 1.1rem 1.15rem; margin-bottom: 1.25rem; }
+        .acx-nw-alloc { width: 100%; }
+        .acx-legend { gap: 0; font-size: .8rem; }
+        .acx-legend a + a::before { content: "·"; margin: 0 .4rem; color: var(--acx-muted); }
+        .acx-legend .acx-dot { display: none; }
+        .acx-legend .acx-long { display: none; }
+        .acx-short { display: inline; }
+        .acx-foot { display: none; }
+        .acx-tile { padding: .7rem .9rem; min-width: 140px; }
+        .acx-tile-note { display: none; }
+        .acx-tabs { display: none; }
+        .acx-row { padding: .95rem 1rem; align-items: start; }
+        .acx-name { font-size: .98rem; font-weight: 600; }
+        .acx-sub { font-size: .8rem; margin-top: .2rem; }
+        .acx-row .acx-badge { display: none; }
+        .acx-row .acx-balance { padding-top: .1rem; font-size: 1rem; }
+        .acx-row .acx-menu-btn { margin-top: -.15rem; }
+        .acx-util { max-width: none; margin-top: .4rem; }
+    }
+    .acx-btn { white-space: nowrap; }
+    /* The dark theme recolours every <a>; keep this page's links on their own colours */
+    .acx a.acx-tile, .acx a.acx-tile:hover, .acx .acx-attn > a, .acx a.acx-name, .acx a.acx-btn:not(.acx-btn-primary) { color: var(--bs-body-color); }
+    .acx a.acx-tab:not(.is-active) { color: var(--bs-secondary-color); }
+    .acx a.acx-name:hover { color: var(--acx-green); }
+    .acx a.acx-tab.is-active, .acx a.acx-tab.is-active:hover { color: #fff; }
+    .acx .acx-legend a { color: var(--acx-muted); }
+    .acx a.acx-btn-primary, .acx a.acx-btn-primary:hover { color: #fff; }
+    [data-bs-theme="dark"] .acx a.acx-btn-primary, [data-bs-theme="dark"] .acx a.acx-btn-primary:hover { color: #0d1f18; }
+    .acx .acx-sub a, .acx .acx-upd-link { color: var(--acx-green); }
+    .acx .acx-sub a.text-warning { color: var(--acx-amber) !important; }
 </style>
 
-
-<!-- PAGE HEADER -->
-<div class="mb-3">
-    <div class="d-flex align-items-center justify-content-between gap-3 pt-1 mb-1">
-        <h1 class="fw-bold text-body mb-0" style="font-size: clamp(1.4rem, 4vw, 1.8rem); letter-spacing: -0.02em;">
-            {% if current_status == 'inactive' %}{% trans "Inactive Accounts" %}{% else %}{% trans "Accounts" %}{% endif %}
-        </h1>
-        <div class="d-flex gap-2 align-items-center flex-shrink-0">
-            <a href="{% url 'transfer-list' %}" class="header-action-btn d-inline-flex align-items-center gap-1">
-                <i class="bi bi-clock-history" aria-hidden="true"></i>
-                <span class="d-none d-sm-inline">{% trans "History" %}</span>
-            </a>
-            <a href="{% url 'account-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center gap-1">
-                <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                <span>{% trans "Add" %}<span class="d-none d-sm-inline"> {% trans "account" %}</span></span>
-            </a>
-        </div>
+<!-- HEADER -->
+<div class="acx-head">
+    <div class="acx-title">
+        <h1>{% if current_status == 'inactive' %}{% trans "Inactive Accounts" %}{% else %}{% trans "Accounts" %}{% endif %}</h1>
+        <span class="acx-count" id="acx-count" data-total="{{ overall_count }}"
+              data-fmt-of="{% trans '%(shown)s of %(total)s accounts' %}" data-fmt-one="{% trans '%(total)s account' %}" data-fmt-many="{% trans '%(total)s accounts' %}">
+            {% if display_count != overall_count %}{% blocktrans with shown=display_count|translate_digits total=overall_count|translate_digits %}{{ shown }} of {{ total }} accounts{% endblocktrans %}
+            {% else %}{{ overall_count|translate_digits }} {% if overall_count == 1 %}{% trans "account" %}{% else %}{% trans "accounts" %}{% endif %}{% endif %}
+        </span>
     </div>
-    <p class="text-muted mb-0 small fw-medium" style="font-size: 0.85rem;">
-        <span class="fw-bold text-primary">{{ account_count|translate_digits }}</span>
-        {% if account_count == 1 %}{% trans "account" %}{% else %}{% trans "accounts" %}{% endif %}
-        {% if search_query or selected_type or current_status != 'active' %}
-            {% trans "found" %} &middot; <span class="fw-bold text-primary">{{ total_balance_currency }}{{ total_balance|ind_comma:total_balance_currency|translate_digits }}</span> {% trans "total" %}
-        {% else %}
-            &middot; {% trans "Every account you track, grouped the way your money actually moves." %}
-        {% endif %}
-    </p>
+    <div class="acx-head-actions">
+        <a href="{% url 'transfer-list' %}" class="header-action-btn d-inline-flex align-items-center gap-1 text-nowrap">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <span class="d-none d-sm-inline">{% trans "History" %}</span>
+        </a>
+        <a href="{% url 'account-create' %}" class="header-action-btn btn-primary d-inline-flex align-items-center gap-1 text-nowrap">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span>{% trans "Add" %}<span class="d-none d-sm-inline"> {% trans "account" %}</span></span>
+        </a>
+    </div>
 </div>
 
 {% if filter_config %}
-{% render_filter_toolbar filter_config applied_state %}
+<div id="acx-toolbar" class="acx-toolbar">
+    {% render_filter_toolbar filter_config applied_state %}
+</div>
 {% endif %}
-
-
 
 {% if unaccounted and unaccounted.expenses or unaccounted and unaccounted.income or unaccounted and unaccounted.capital_events %}
 <div id="unaccounted-notice" class="alert alert-warning alert-dismissible d-flex flex-wrap align-items-center gap-2 small rounded-4 mb-3 pe-5" role="alert"
@@ -124,343 +281,289 @@
 </script>
 {% endif %}
 
-<!-- METRICS CARD -->
-<div class="card bg-body rounded-4 mb-4 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.08) !important;">
-    <div class="card-body p-3 p-md-4">
-        <div class="row g-2 align-items-start mb-1">
-            <!-- Left: total balance -->
-            <div class="col-12 col-md-5">
-                <div class="accounts-summary-amount text-body-emphasis">
-                    {{ total_balance_currency }}{{ total_balance|ind_comma:total_balance_currency|translate_digits }}
-                </div>
-            </div>
-
-            <!-- Right: contextual note (aligned clean text without redundant icon) -->
-            <div class="col-12 col-md-7 pt-md-2">
-                <p class="mb-0 text-muted" style="font-size: 0.82rem; line-height: 1.5;">
-                    {% trans "Your cash, fixed-income, investment and other holdings minus what you owe on credit cards and loans." %}
-                </p>
-            </div>
+<!-- NET WORTH -->
+<section class="acx-card acx-nw" aria-label="{% trans 'Net worth' %}">
+    <div>
+        <div class="acx-label">
+            {% if current_status == 'inactive' %}{% trans "Total of inactive accounts" %}{% else %}{% trans "Net worth" %}{% endif %}
         </div>
-
-        {% if grouped_accounts %}
-        <!-- Progress bar -->
-        <div class="balance-bar-wrap mt-3 mb-2">
-            {% for group in grouped_accounts %}
-                {% if group.type != 'PINNED' and group.pct > 0 %}
-                    <div class="balance-bar-segment" style="width: {{ group.pct }}%; background-color: {{ group.color }};"></div>
-                {% endif %}
-            {% endfor %}
+        <div class="acx-nw-row">
+            <span class="acx-nw-amount {% if overall_total < 0 %}is-negative{% endif %}">{% if overall_total < 0 %}&minus;{% endif %}{{ total_balance_currency }}{{ overall_total|abs_val|ind_comma:total_balance_currency|translate_digits }}</span>
         </div>
-
-        <!-- Legend -->
-        <div class="d-flex align-items-center flex-wrap" style="gap: 6px 16px;">
-            {% for group in grouped_accounts %}
-                {% if group.type != 'PINNED' and group.pct > 0 %}
-                    <a href="{% url 'account-list' %}?type={{ group.type }}&status={{ current_status }}"
-                       hx-get="{% url 'account-list' %}?type={{ group.type }}&status={{ current_status }}"
-                       hx-target="#account-list-shell" hx-swap="outerHTML show:none" hx-push-url="true"
-                       hx-indicator="#global-progress-bar"
-                       class="d-inline-flex align-items-center gap-1 text-decoration-none text-body-secondary"
-                       style="font-size: 0.8rem;">
-                        <span class="rounded-circle flex-shrink-0" style="width: 8px; height: 8px; background-color: {{ group.color }}; display: inline-block;"></span>
-                        {{ group.label }} <span class="fw-bold text-body">{{ group.pct_int|translate_digits }}%</span>
-                    </a>
-                {% endif %}
-            {% endfor %}
-        </div>
-
-        <!-- Short-term credit exclusion note (redesigned pill container) -->
-        {% for group in grouped_accounts %}
-            {% if 'CREDIT' in group.type or 'LOAN' in group.type %}{% if group.total != 0 %}
-            <div class="mt-3 pt-2 px-3 py-2 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background-color: var(--bs-tertiary-bg); border: 1px solid rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center gap-1.5 text-muted" style="font-size: 0.78rem;">
-                    <span class="fw-semibold text-body me-1">{{ group.label }}</span>
-                    <span class="opacity-60 d-none d-sm-inline"> ({% trans "excluded from allocation" %})</span>
-                </div>
-                <div class="fw-bold" style="color: var(--color-danger-text, #B93822); font-size: 0.85rem; font-variant-numeric: tabular-nums;">
-                    &minus;{{ total_balance_currency }}{{ group.owed|ind_comma:total_balance_currency|translate_digits }}
-                </div>
-            </div>
-            {% endif %}{% endif %}
-        {% endfor %}
-        {% endif %}
-
     </div>
-</div>
-
+    {% if overview_groups %}
+    <div class="acx-nw-alloc">
+        <div class="acx-bar" role="img" aria-label="{% trans 'Share of each kind of account in what you hold' %}">
+            {% for group in overview_groups %}{% if group.pct > 0 %}
+                <span style="width: {{ group.pct }}%; background-color: {{ group.color }};"></span>
+            {% endif %}{% endfor %}
+        </div>
+        <div class="acx-legend">
+            {% for group in overview_groups %}{% if group.pct > 0 %}
+                <a href="{% url 'account-list' %}?type={{ group.type }}{% if current_status != 'active' %}&status={{ current_status }}{% endif %}&sort={{ sort_by }}"
+                   class="no-loader" data-acx-type="{{ group.type }}">
+                    <span class="acx-dot" style="background-color: {{ group.color }};"></span>{% if group.label == 'Cash & Bank' %}<span class="acx-long">{{ group.label }}</span><span class="acx-short">{% trans "Cash" %}</span>{% else %}{{ group.label }}{% endif %} <b>{{ group.pct_int|translate_digits }}%</b>
+                </a>
+            {% endif %}{% endfor %}
+        </div>
+    </div>
+    {% endif %}
+<div class="acx-nw-meta">
+            {% if net_worth_change and net_worth_change.direction != 'flat' and current_status == 'active' %}
+                <span class="acx-chip is-{{ net_worth_change.direction }}"
+                      title="{% trans 'Change in net worth over the last 30 days' %}">
+                    <i class="bi bi-caret-{{ net_worth_change.direction }}-fill" aria-hidden="true"></i>
+                    {% if net_worth_change.direction == 'up' %}+{% else %}&minus;{% endif %}{{ total_balance_currency }}{{ net_worth_change.amount|ind_comma:total_balance_currency|translate_digits }}{% if net_worth_change.pct is not None %} ({{ net_worth_change.pct|floatformat:1|translate_digits }}%){% endif %}
+                    {% trans "vs last month" %}
+                </span>
+            {% endif %}
+        {% if owed_total > 0 %}
+        <span class="acx-foot" title="{% trans 'Your cash, fixed-income, investment and other holdings minus what you owe on credit cards and loans.' %}">
+            {% blocktrans with assets=assets_total|ind_comma:total_balance_currency|translate_digits owed=owed_total|ind_comma:total_balance_currency|translate_digits cur=total_balance_currency what=owed_label %}{{ cur }}{{ assets }} in assets, minus {{ cur }}{{ owed }} owed on {{ what }}{% endblocktrans %}
+        </span>
+        {% else %}
+        <span class="acx-foot">{% trans "Your cash, fixed-income, investment and other holdings minus what you owe on credit cards and loans." %}</span>
+        {% endif %}
+            </div>
+</section>
 
 {% include 'partials/guide_accounts.html' %}
 
-
-
-
-<!-- ACCOUNT GROUPS -->
-{% if grouped_accounts %}
-    <div class="d-flex flex-column gap-4">
-    {% for group in grouped_accounts %}
-    <div class="account-group-section">
-
-        <!-- Group header section divider -->
-        <div class="account-group-header d-flex align-items-center justify-content-between py-2 px-1 mb-2 {% if not group.is_open %}collapsed{% endif %}"
-             role="button"
-             tabindex="0"
-             data-bs-toggle="collapse"
-             data-bs-target="#group-{{ group.type }}"
-             aria-expanded="{% if group.is_open %}true{% else %}false{% endif %}"
-             aria-controls="group-{{ group.type }}">
-            <div class="d-flex align-items-center gap-2">
-                <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 {{ group.icon_bg }}"
-                     style="width: 32px; height: 32px; font-size: 0.9rem;">
-                    <i class="{{ group.icon }}"></i>
-                </div>
-                <h2 class="h5 fw-bold text-body mb-0" style="font-size: 1.05rem;">{{ group.label }}</h2>
-                <span class="badge rounded-pill bg-body-tertiary text-body-secondary border px-2 py-0.5"
-                      style="font-size: 0.72rem;">
-                    {{ group.count|translate_digits }}
+<!-- NEEDS YOUR ATTENTION -->
+{% if attention_cards or stale_count %}
+<section class="acx-attn-wrap" aria-labelledby="acx-attn-title">
+    <h2 class="acx-h2" id="acx-attn-title">{% trans "Needs your attention" %}</h2>
+    <div class="acx-attn">
+        {% for card in attention_cards %}
+            <a href="{{ card.url }}">
+                <span class="acx-attn-text">
+                    <span class="acx-pill is-{{ card.tone }}">{{ card.badge }}</span>
+                    <span class="acx-attn-main">
+                        {% if card.kind == 'bill' %}
+                            {{ card.title }} &middot; {{ card.currency }}{{ card.amount|ind_comma:card.currency|translate_digits }}<span class="acx-hide-mobile"> {% trans "on" %} {{ card.date|date:"j M" }}</span>{% if card.more %} <span class="text-muted" title="{% trans 'More credit card bills due soon' %}">{% blocktrans with n=card.more|translate_digits %}+{{ n }} more{% endblocktrans %}</span>{% endif %}
+                        {% else %}
+                            {{ card.count|translate_digits }} {% if card.is_fd %}{% if card.count == 1 %}{% trans "FD" %}{% else %}{% trans "FDs" %}{% endif %}{% else %}{% if card.count == 1 %}{% trans "deposit" %}{% else %}{% trans "deposits" %}{% endif %}{% endif %} &middot; {{ card.currency }}{{ card.amount|ind_comma:card.currency|translate_digits }}<span class="acx-hide-mobile"> {% trans "on" %} {{ card.date|date:"j M Y" }}</span>{% if card.more %} <span class="text-muted" title="{% trans 'More deposits maturing in the next 6 months, on later dates' %}">{% blocktrans with n=card.more|translate_digits %}+{{ n }} more{% endblocktrans %}</span>{% endif %}
+                        {% endif %}
+                    </span>
+                    <span class="acx-attn-sub acx-only-mobile">
+                        {% if card.kind == 'bill' %}
+                            {% if card.days == 0 %}{% blocktrans with d=card.date|date:"j M" %}Bill date {{ d }}, today{% endblocktrans %}{% elif card.days == 1 %}{% blocktrans with d=card.date|date:"j M" %}Bill date {{ d }}, tomorrow{% endblocktrans %}{% else %}{% blocktrans with d=card.date|date:"j M" n=card.days|translate_digits %}Bill date {{ d }}, in {{ n }} days{% endblocktrans %}{% endif %}
+                        {% else %}
+                            {% blocktrans with d=card.date|date:"j M Y" %}Matures on {{ d }}{% endblocktrans %}
+                        {% endif %}
+                    </span>
                 </span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                {% if group.type != 'PINNED' %}
-                <span class="fw-bold text-body" style="font-size: 0.97rem; letter-spacing: -0.3px; white-space: nowrap;">
-                    {{ total_balance_currency }}{{ group.total|ind_comma:total_balance_currency|translate_digits }}
+                <i class="bi bi-arrow-right acx-arrow" aria-hidden="true"></i>
+            </a>
+        {% endfor %}
+        {% if stale_count %}
+            <a href="{{ stale_url }}" class="no-loader" data-acx-tab="needs_update" data-acx-clear-type="1">
+                <span class="acx-attn-text">
+                    <span class="acx-pill is-muted">{% trans "Out of date" %}</span>
+                    <span class="acx-attn-main">{% blocktrans with num=stale_count|translate_digits count n=stale_count %}{{ num }} balance is 30+ days old{% plural %}{{ num }} balances are 30+ days old{% endblocktrans %}</span>
                 </span>
-                {% endif %}
-                <i class="bi bi-chevron-down accordion-chevron text-muted" style="font-size: 0.75rem;"></i>
-            </div>
-        </div>
-
-        <!-- Account Cards Grid -->
-        <div id="group-{{ group.type }}" class="collapse {% if group.is_open %}show{% endif %}">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
-                {% for account in group.accounts %}
-                <div class="col account-grid-card-col">
-                    <div class="card rounded-4 border-0 h-100 account-grid-card transition-all" style="border: 1px solid rgba(0,0,0,0.08) !important;">
-                        <div class="card-body p-3.5 pb-3 d-flex flex-column justify-content-between">
-                            <!-- Header: Title & Dropdown -->
-                            <div>
-                                <div class="d-flex align-items-center justify-content-between gap-2">
-                                    <div class="min-w-0 flex-grow-1">
-                                        {% if account.is_locked %}
-                                            <span class="fw-bold text-muted d-block text-break" style="font-size: 0.95rem; line-height: 1.25;" title="{{ account.name }}">
-                                                <i class="bi bi-lock-fill me-1" style="font-size: 0.7rem;"></i>{{ account.name }}
-                                            </span>
-                                        {% else %}
-                                            <a href="{% url 'account-detail' account.uuid %}"
-                                               class="fw-bold text-decoration-none text-body d-block text-break hover-primary"
-                                               style="font-size: 0.95rem; line-height: 1.25;" title="{{ account.name }}">
-                                                {{ account.name }}
-                                                {% if account.is_pinned %}
-                                                    <i class="bi bi-pin-angle-fill text-warning ms-1" style="font-size: 0.78rem;" title="{% trans 'Pinned Account' %}"></i>
-                                                {% endif %}
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                    <div class="dropdown flex-shrink-0 ms-1 d-inline-flex align-items-center">
-                                        <button class="btn btn-sm btn-link p-0 text-decoration-none no-caret d-inline-flex align-items-center justify-content-center"
-                                                type="button"
-                                                data-bs-toggle="dropdown"
-                                                data-bs-popper-config='{"strategy":"fixed"}'
-                                                aria-expanded="false"
-                                                aria-label="{% trans 'Account actions' %}"
-                                                title="{% trans 'Account actions' %}"
-                                                style="width: 24px; height: 24px; line-height: 1;">
-                                            <i class="bi bi-three-dots-vertical text-muted" style="font-size: 0.9rem;" aria-hidden="true"></i>
-                                            <span class="visually-hidden">{% trans "Account actions" %}</span>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1 py-1">
-                                            {% if current_status == 'inactive' %}
-                                                <li>
-                                                    <form method="post" action="{% url 'account-restore' account.uuid %}">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-success fw-semibold">
-                                                            <i class="bi bi-arrow-counterclockwise"></i><span>{% trans "Restore" %}</span>
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            {% elif account.is_locked %}
-                                                <li>
-                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-primary fw-semibold"
-                                                       href="{% url 'pricing' %}">
-                                                        <i class="bi bi-rocket-takeoff"></i><span>{% trans "Unlock" %}</span>
-                                                    </a>
-                                                </li>
-                                            {% else %}
-                                                <li>
-                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
-                                                       href="{% url 'account-detail' account.uuid %}">
-                                                        <i class="bi bi-eye text-primary"></i><span>{% trans "View Details" %}</span>
-                                                    </a>
-                                                </li>
-                                                {% if account.can_reconcile %}
-                                                <li>
-                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
-                                                       href="{% url 'account-reconcile' account.uuid %}">
-                                                        <i class="bi bi-check2-square text-primary"></i><span>{% trans "Reconcile" %}</span>
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                                <li>
-                                                    <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
-                                                       href="{% url 'account-edit' account.uuid %}">
-                                                        <i class="bi bi-pencil-square text-primary"></i><span>{% trans "Edit" %}</span>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    {% if account.is_pinned %}
-                                                        <button type="button"
-                                                                class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 border-0 bg-transparent w-100 text-start"
-                                                                hx-post="{% url 'account-toggle-pin' account.uuid %}"
-                                                                hx-target="#account-list-shell"
-                                                                hx-swap="outerHTML show:none"
-                                                                hx-include="#accounts-filter-form"
-                                                                hx-indicator="#global-progress-bar">
-                                                            <i class="bi bi-pin-angle-fill text-warning"></i><span>{% trans "Unpin" %}</span>
-                                                        </button>
-                                                    {% else %}
-                                                        <button type="button"
-                                                                class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 border-0 bg-transparent w-100 text-start"
-                                                                hx-post="{% url 'account-toggle-pin' account.uuid %}"
-                                                                hx-target="#account-list-shell"
-                                                                hx-swap="outerHTML show:none"
-                                                                hx-include="#accounts-filter-form"
-                                                                hx-indicator="#global-progress-bar">
-                                                            <i class="bi bi-pin-angle text-primary"></i><span>{% trans "Pin" %}</span>
-                                                        </button>
-                                                    {% endif %}
-                                                </li>
-                                                <li>
-                                                    <button type="button"
-                                                            class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-danger border-0 bg-transparent w-100 text-start"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#deleteModal"
-                                                            data-url="{% url 'account-delete' account.uuid %}"
-                                                            data-message="{% blocktrans with name=account.name %}Are you sure you want to delete account '{{ name }}'?{% endblocktrans %}">
-                                                        <i class="bi bi-trash"></i><span>{% trans "Delete" %}</span>
-                                                    </button>
-                                                </li>
-                                            {% endif %}
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <!-- Account Subtitle / Type -->
-                                <div class="text-muted mt-0.5" style="font-size: 0.78rem;">
-                                    {{ account.get_account_type_display }}
-                                    {% if not account.is_active %}
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill border ms-1" style="font-size: 0.68rem;">{% trans "Inactive" %}</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Middle Section: Balance & Interest Rate -->
-                            <div class="my-3">
-                                <div class="d-flex align-items-baseline justify-content-between gap-2">
-                                    <div class="fw-bold {% if account.display_balance < 0 %}text-danger{% elif account.is_locked %}text-muted{% else %}text-body{% endif %}"
-                                         style="font-size: 1.35rem; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.1;">
-                                        {% if account.has_accrued_value %}
-                                            {{ account.currency }}{{ account.accrued_value|ind_comma:account.currency|translate_digits }}
-                                        {% else %}
-                                            {{ account.currency }}{{ account.display_balance|ind_comma:account.currency|translate_digits }}
-                                        {% endif %}
-                                    </div>
-                                    {% if account.deposit_rate %}
-                                        <div class="fw-bold text-success" style="font-size: 0.85rem;">
-                                            {{ account.deposit_rate|floatformat:1|translate_digits }}% p.a.
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="text-muted mt-1" style="font-size: 0.72rem;">
-                                    {% if account.days_since_update == 0 %}{% trans "Updated today" %}
-                                    {% elif account.days_since_update == 1 %}{% trans "Updated 1d ago" %}
-                                    {% else %}{% blocktrans with days=account.days_since_update|translate_digits %}Updated {{ days }}d ago{% endblocktrans %}{% endif %}
-                                </div>
-                                {% if account.last_reconciliation %}
-                                    <div class="mt-1" style="font-size: 0.72rem;">
-                                        <a href="{% url 'account-reconciliation-history' account.uuid %}" class="text-decoration-none {% if account.last_reconciliation.status == 'OPEN' %}text-warning{% else %}text-success{% endif %}">
-                                            <i class="bi {% if account.last_reconciliation.status == 'OPEN' %}bi-exclamation-circle{% else %}bi-check2-circle{% endif %} me-1"></i>{% if account.last_reconciliation.status == 'OPEN' %}{% trans "Difference open since" %}{% else %}{% trans "Reconciled" %}{% endif %} {{ account.last_reconciliation.statement_date|date:"j M" }}
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Bottom Divider & Details -->
-                            {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit or account.next_billing_date or account.deposit_maturity_date or account.is_deposit_type %}
-                            <div class="pt-3 d-flex align-items-center justify-content-between gap-1 mt-auto" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
-                                {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit or account.next_billing_date %}
-                                    <div class="w-100">
-                                        <div class="d-flex align-items-center justify-content-between gap-1 text-muted {% if account.has_credit_limit %}mb-1.5{% else %}mb-0{% endif %}" style="font-size: 0.75rem; min-height: 24px;">
-                                            {% if account.next_billing_date %}
-                                                <span class="px-2.5 py-1.5 d-inline-flex align-items-center" style="font-size: 0.82rem; font-weight: 600; line-height: 1.2;">
-                                                    {% trans "Next Bill on: " %} {{ account.next_billing_date|date:"d M" }}
-                                                </span>
-                                            {% elif account.has_credit_limit %}
-                                                <span class="fw-medium text-muted d-inline-flex align-items-center" style="line-height: 1.2;">{% trans "Limit:" %} {{ account.currency }}{{ account.credit_limit|compact_amount:account.currency|translate_digits }}</span>
-                                            {% else %}
-                                                <span class="text-muted opacity-75 d-inline-flex align-items-center gap-1" style="line-height: 1.2;">
-                                                    <span>{% trans "Limit:" %}</span>
-                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-1.5 py-0.5 fw-medium d-inline-flex align-items-center" style="font-size: 0.68rem; line-height: 1.2;">{% trans "Not Set" %}</span>
-                                                </span>
-                                            {% endif %}
-
-                                            {% if account.has_credit_limit %}
-                                                <span class="fw-bold text-body-emphasis ms-auto d-inline-flex align-items-center" style="font-size: 0.78rem; line-height: 1.2;">
-                                                    {{ account.currency }}{{ account.available_credit|compact_amount:account.currency|translate_digits }} {% trans "avail" %}
-                                                </span>
-                                            {% else %}
-                                                <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold text-primary ms-auto d-inline-flex align-items-center gap-1" style="font-size: 0.75rem; line-height: 1.2;">
-                                                    <i class="bi bi-plus-circle d-inline-flex align-items-center" style="font-size: 0.82rem; line-height: 1;"></i><span class="d-inline-flex align-items-center">{% trans "Set Limit" %}</span>
-                                                </a>
-                                            {% endif %}
-                                        </div>
-                                        {% if account.has_credit_limit %}
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="progress flex-grow-1 bg-body-tertiary border" style="height: 5px; border-radius: 10px; border-color: rgba(0,0,0,0.06) !important;">
-                                                    <div class="progress-bar rounded-pill {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ account.credit_utilization_pct|stringformat:'f' }}%;" aria-label="{% trans 'Credit utilization' %}" aria-valuenow="{{ account.credit_utilization_pct|stringformat:'f' }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                                <span class="text-muted fw-semibold flex-shrink-0" style="font-size: 0.68rem; white-space: nowrap;">
-                                                    {{ account.credit_utilization_pct|floatformat:1|translate_digits }}% used
-                                                </span>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                {% elif account.is_deposit_type %}
-                                    <div class="d-flex align-items-center justify-content-between gap-1 w-100" style="min-height: 24px;">
-                                        {% if account.deposit_maturity_date %}
-                                            <span class="text-success px-2.5 py-1.5 d-inline-flex align-items-center" style="font-size: 0.82rem; font-weight: 600; line-height: 1.2;">
-                                                {% trans "Matures:" %} {{ account.deposit_maturity_date|date:"d M Y" }}
-                                            </span>
-                                        {% else %}
-                                            <span class="text-muted opacity-75 d-inline-flex align-items-center gap-1" style="font-size: 0.82rem; line-height: 1.2;">
-                                                <span>{% trans "Maturity:" %}</span>
-                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-1.5 py-0.5 fw-medium d-inline-flex align-items-center" style="font-size: 0.68rem; line-height: 1.2;">{% trans "Not Set" %}</span>
-                                            </span>
-                                            <a href="{% url 'account-edit' account.uuid %}" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold text-primary ms-auto d-inline-flex align-items-center gap-1" style="font-size: 0.75rem; line-height: 1.2;">
-                                                <i class="bi bi-pencil d-inline-flex align-items-center" style="font-size: 0.8rem; line-height: 1;"></i><span class="d-inline-flex align-items-center">{% trans "Set Date" %}</span>
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
+                <i class="bi bi-arrow-right acx-arrow" aria-hidden="true"></i>
+            </a>
+        {% endif %}
     </div>
+</section>
+{% endif %}
 
+<!-- KIND TILES -->
+{% if tiles %}
+<nav class="acx-tiles" aria-label="{% trans 'Account groups' %}">
+    {% for tile in tiles %}
+        <a class="acx-tile no-loader {% if tile.selected %}is-selected{% endif %}" href="{{ tile.url }}" data-acx-type="{{ tile.type }}"
+           aria-pressed="{% if tile.selected %}true{% else %}false{% endif %}"
+           title="{% if tile.selected %}{% trans 'Show all accounts' %}{% else %}{% trans 'Show only these accounts' %}{% endif %}">
+            <span class="acx-tile-label"><span class="acx-dot" style="background-color: {{ tile.color }};"></span>{{ tile.label }}</span>
+            <div class="acx-tile-amount {% if tile.is_liability and tile.total < 0 %}is-owed{% endif %}">{% if tile.total < 0 %}&minus;{% endif %}{{ total_balance_currency }}{{ tile.owed|ind_comma:total_balance_currency|translate_digits }}</div>
+            <div class="acx-tile-note">{{ tile.note|translate_digits }}</div>
+        </a>
+    {% endfor %}
+</nav>
+{% endif %}
+
+<!-- TABS -->
+{% if account_count or active_tab != 'all' %}
+<div class="acx-tabs" role="tablist">
+    <a class="acx-tab no-loader {% if active_tab == 'all' %}is-active{% endif %}" role="tab" aria-selected="{% if active_tab == 'all' %}true{% else %}false{% endif %}" href="{{ tab_urls.all }}" data-acx-tab="all">{% trans "All" %}</a>
+    <a class="acx-tab no-loader {% if active_tab == 'pinned' %}is-active{% endif %}" role="tab" aria-selected="{% if active_tab == 'pinned' %}true{% else %}false{% endif %}" href="{{ tab_urls.pinned }}" data-acx-tab="pinned">{% trans "Pinned" %} <small>{{ tab_counts.pinned|translate_digits }}</small></a>
+    <a class="acx-tab no-loader {% if active_tab == 'needs_update' %}is-active{% endif %}" role="tab" aria-selected="{% if active_tab == 'needs_update' %}true{% else %}false{% endif %}" href="{{ tab_urls.needs_update }}" data-acx-tab="needs_update">{% trans "Needs update" %} <small>{{ tab_counts.needs_update|translate_digits }}</small></a>
+    {% if sort_label %}<span class="acx-sort-note">{{ sort_label }}</span>{% endif %}
+</div>
+{% endif %}
+
+<!-- ACCOUNT LIST -->
+{% if overall_count %}
+<section class="acx-card acx-list" aria-label="{% trans 'Accounts' %}">
+    <div class="acx-list-head" aria-hidden="true">
+        <span>{% trans "Account" %}</span>
+        <span>{% trans "Last updated" %}</span>
+        <span>{% trans "Balance" %}</span>
+        <span></span>
+    </div>
+    <div class="acx-rows" id="acx-rows">
+    {% for account in display_accounts %}
+        <div class="acx-row {% if account.is_locked %}is-locked{% endif %}{% if not account.in_view %} is-out{% else %}{% if account.view_position >= 4 %} is-extra-m{% endif %}{% if account.view_position >= 5 %} is-extra-d{% endif %}{% if account.is_last_in_view %} is-last{% endif %}{% endif %}"
+             data-group="{{ account.group_type }}" data-pinned="{% if account.is_pinned %}1{% else %}0{% endif %}" data-stale="{% if account.needs_update %}1{% else %}0{% endif %}" data-name="{{ account.name|lower }}">
+            <!-- Name and details -->
+            <div class="min-w-0" style="min-width: 0;">
+                <div>
+                    {% if account.is_locked %}
+                        <span class="acx-name" title="{{ account.name }}"><i class="bi bi-lock-fill me-1" style="font-size: .7rem;" aria-hidden="true"></i>{{ account.name }}</span>
+                    {% else %}
+                        <a href="{% url 'account-detail' account.uuid %}" class="acx-name" title="{{ account.name }}">{{ account.name }}</a>
+                        {% if account.is_pinned %}<i class="bi bi-pin-angle-fill text-warning ms-1" style="font-size: .78rem;" title="{% trans 'Pinned Account' %}" aria-label="{% trans 'Pinned Account' %}"></i>{% endif %}
+                    {% endif %}
+                    {% if not account.is_active %}<span class="acx-badge">{% trans "Inactive" %}</span>{% endif %}
+                </div>
+                <div class="acx-sub {% if account.needs_update %}acx-hide-mobile{% endif %}">
+                    {{ account.get_account_type_display }}
+                    {% if account.deposit_rate %}<span class="acx-sep"></span>{{ account.deposit_rate|floatformat:1|translate_digits }}% {% trans "p.a." %}{% endif %}
+                    {% if account.is_deposit_type %}
+                        {% if account.deposit_maturity_date %}
+                            <span class="acx-sep"></span>{% trans "Matures" %} {{ account.deposit_maturity_date|date:"j M Y" }}
+                        {% else %}
+                            <span class="acx-sep"></span>{% trans "Maturity date not set" %}
+                            {% if not account.is_locked and account.is_active %}<a href="{% url 'account-edit' account.uuid %}" class="ms-1">{% trans "Set date" %}</a>{% endif %}
+                        {% endif %}
+                    {% elif account.deposit_maturity_date %}
+                        <span class="acx-sep"></span>{% trans "Matures" %} {{ account.deposit_maturity_date|date:"j M Y" }}
+                    {% endif %}
+                    {% if account.next_billing_date %}<span class="acx-sep"></span>{% trans "Next Bill on: " %}{{ account.next_billing_date|date:"d M" }}{% endif %}
+
+                </div>
+                {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit %}
+                <div class="acx-sub">
+                    {% if account.has_credit_limit %}
+                        {% trans "Limit:" %} {{ account.currency }}{{ account.credit_limit|compact_amount:account.currency|translate_digits }}
+                        <span class="acx-sep"></span><b class="text-body-emphasis">{{ account.currency }}{{ account.available_credit|compact_amount:account.currency|translate_digits }} {% trans "avail" %}</b>
+                        <div class="acx-util">
+                            <div class="progress" role="progressbar" aria-label="{% trans 'Credit utilization' %}" aria-valuenow="{{ account.credit_utilization_pct|stringformat:'f' }}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar rounded-pill {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ account.credit_utilization_pct|stringformat:'f' }}%;"></div>
+                            </div>
+                            <span>{{ account.credit_utilization_pct|floatformat:1|translate_digits }}% {% trans "used" %}</span>
+                        </div>
+                    {% else %}
+                        {% trans "Limit:" %} {% trans "Not Set" %}
+                        {% if not account.is_locked and account.is_active %}<a href="{% url 'account-edit' account.uuid %}" class="ms-1">{% trans "Set Limit" %}</a>{% endif %}
+                    {% endif %}
+                </div>
+                {% endif %}
+                <!-- Phones have no Last updated column: the age (and a stale balance) sits under the name -->
+                {% if account.needs_update %}
+                <div class="acx-sub acx-only-mobile acx-stale">
+                    {% if account.deposit_maturity_date %}{% trans "Matures" %} {{ account.deposit_maturity_date|date:"j M Y" }} &middot; {% endif %}{% blocktrans with days=account.days_since_update|translate_digits %}updated {{ days }}d ago{% endblocktrans %}
+                </div>
+                {% endif %}
+                {% if account.last_reconciliation %}
+                <div class="acx-sub">
+                    <a href="{% url 'account-reconciliation-history' account.uuid %}" class="{% if account.last_reconciliation.status == 'OPEN' %}text-warning{% endif %}">
+                        <i class="bi {% if account.last_reconciliation.status == 'OPEN' %}bi-exclamation-circle{% else %}bi-check2-circle{% endif %} me-1" aria-hidden="true"></i>{% if account.last_reconciliation.status == 'OPEN' %}{% trans "Difference open since" %}{% else %}{% trans "Reconciled" %}{% endif %} {{ account.last_reconciliation.statement_date|date:"j M" }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Last updated (tablet and up) -->
+            <div class="acx-updated acx-hide-mobile">
+                {% if account.needs_update %}
+                    <span class="acx-stale">
+                        {% if account.days_since_update == 0 %}{% trans "today" %}{% else %}{% blocktrans with days=account.days_since_update|translate_digits %}{{ days }}d ago{% endblocktrans %}{% endif %}
+                    </span>
+                    {% if not account.is_locked %}
+                    <a class="acx-upd-link" href="{% if account.update_target == 'detail' %}{% url 'account-detail' account.uuid %}{% else %}{% url 'account-edit' account.uuid %}{% endif %}">{% trans "Update" %}</a>
+                    {% endif %}
+                {% else %}
+                    {% if account.days_since_update == 0 %}{% trans "Updated today" %}
+                    {% elif account.days_since_update == 1 %}{% trans "Updated 1d ago" %}
+                    {% else %}{% blocktrans with days=account.days_since_update|translate_digits %}Updated {{ days }}d ago{% endblocktrans %}{% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Balance -->
+            <div class="acx-balance {% if account.display_balance < 0 %}is-negative{% endif %}">
+                {% if account.has_accrued_value %}
+                    {% if account.accrued_value < 0 %}&minus;{% endif %}{{ account.currency }}{{ account.accrued_value|abs_val|ind_comma:account.currency|translate_digits }}
+                {% else %}
+                    {% if account.display_balance < 0 %}&minus;{% endif %}{{ account.currency }}{{ account.display_balance|abs_val|ind_comma:account.currency|translate_digits }}
+                {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="dropdown d-inline-flex justify-content-end">
+                <button class="acx-menu-btn no-caret" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'
+                        aria-expanded="false" aria-label="{% trans 'Account actions' %}" title="{% trans 'Account actions' %}">
+                    <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1 py-1">
+                    {% if current_status == 'inactive' %}
+                        <li>
+                            <form method="post" action="{% url 'account-restore' account.uuid %}">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-success fw-semibold">
+                                    <i class="bi bi-arrow-counterclockwise"></i><span>{% trans "Restore" %}</span>
+                                </button>
+                            </form>
+                        </li>
+                    {% elif account.is_locked %}
+                        <li>
+                            <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-primary fw-semibold" href="{% url 'pricing' %}">
+                                <i class="bi bi-rocket-takeoff"></i><span>{% trans "Unlock" %}</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li><a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2" href="{% url 'account-detail' account.uuid %}"><i class="bi bi-eye text-primary"></i><span>{% trans "View Details" %}</span></a></li>
+                        {% if account.can_reconcile %}
+                        <li><a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2" href="{% url 'account-reconcile' account.uuid %}"><i class="bi bi-check2-square text-primary"></i><span>{% trans "Reconcile" %}</span></a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2" href="{% url 'account-edit' account.uuid %}"><i class="bi bi-pencil-square text-primary"></i><span>{% trans "Edit" %}</span></a></li>
+                        <li>
+                            <button type="button" class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 border-0 bg-transparent w-100 text-start"
+                                    hx-post="{% url 'account-toggle-pin' account.uuid %}" hx-target="#account-list-shell" hx-swap="outerHTML show:none"
+                                    hx-include="#accounts-filter-form" hx-indicator="#global-progress-bar">
+                                {% if account.is_pinned %}<i class="bi bi-pin-angle-fill text-warning"></i><span>{% trans "Unpin" %}</span>{% else %}<i class="bi bi-pin-angle text-primary"></i><span>{% trans "Pin" %}</span>{% endif %}
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 text-danger border-0 bg-transparent w-100 text-start"
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'account-delete' account.uuid %}"
+                                    data-message="{% blocktrans with name=account.name %}Are you sure you want to delete account '{{ name }}'?{% endblocktrans %}">
+                                <i class="bi bi-trash"></i><span>{% trans "Delete" %}</span>
+                            </button>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
     {% endfor %}
     </div>
-
+    <div class="acx-more {% if display_count == 5 %}is-md-hidden{% endif %}" id="acx-more" {% if display_count <= 4 %}hidden{% endif %}>
+        <button type="button" id="acx-more-btn" data-fmt-all="{% trans 'Show all %(n)s' %}" data-show-less="{% trans 'Show less' %}">
+            {% blocktrans with n=display_count|translate_digits %}Show all {{ n }}{% endblocktrans %}
+        </button>
+    </div>
+    <div class="acx-empty" id="acx-empty" {% if display_count %}hidden{% endif %}>
+        <div class="h6 fw-bold text-muted">
+            {% if search_query %}{% trans "No accounts match your search" %}
+            {% elif active_tab == 'needs_update' %}{% trans "Every balance is up to date" %}
+            {% elif active_tab == 'pinned' %}{% trans "No pinned accounts" %}
+            {% else %}{% trans "No accounts match this view" %}{% endif %}
+        </div>
+        <p class="text-muted small mb-0">{% trans "Choose All to see every account." %}</p>
+    </div>
+</section>
 {% else %}
-<div class="text-center py-5">
+<div class="acx-empty">
     <div class="mb-4">{% include 'illustrations/empty_accounts.svg' %}</div>
     <div class="h5 fw-bold text-muted">
         {% if search_query %}
             {% trans "No accounts match your search" %}
+        {% elif active_tab == 'needs_update' %}
+            {% trans "Every balance is up to date" %}
+        {% elif active_tab == 'pinned' %}
+            {% trans "No pinned accounts" %}
         {% elif current_status == 'inactive' %}
             {% trans "No Inactive Accounts" %}
         {% else %}
@@ -470,23 +573,19 @@
     <p class="text-muted small mb-4">
         {% if search_query %}
             {% trans "Try a different search term or clear your filters." %}
+        {% elif active_tab == 'needs_update' or active_tab == 'pinned' %}
+            {% trans "Choose All to see every account." %}
         {% elif current_status == 'inactive' %}
             {% trans "Accounts you deactivate will appear here." %}
         {% else %}
             {% trans "Start by adding your first account." %}
         {% endif %}
     </p>
-    {% if current_status == 'active' and not search_query %}
-        <a href="{% url 'account-create' %}"
-           class="btn btn-sm px-4 py-2 rounded-3 fw-bold text-white d-inline-flex align-items-center justify-content-center gap-1"
-           style="background-color: var(--color-primary, #0F7657); border-color: var(--color-primary, #0F7657);">
-            <i class="bi bi-plus-lg"></i><span>{% trans "Add Account" %}</span>
-        </a>
-    {% elif search_query %}
-        <button type="button"
-                class="btn btn-sm btn-outline-secondary rounded-3 px-4"
-                hx-get="{% url 'account-list' %}" hx-params="none"
-                hx-target="#account-list-shell" hx-swap="outerHTML show:none"
+    {% if current_status == 'active' and not search_query and active_tab == 'all' and not selected_type %}
+        <a href="{% url 'account-create' %}" class="acx-btn acx-btn-primary"><i class="bi bi-plus-lg"></i><span>{% trans "Add Account" %}</span></a>
+    {% else %}
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 px-4"
+                hx-get="{% url 'account-list' %}" hx-params="none" hx-target="#account-list-shell" hx-swap="outerHTML show:none"
                 hx-push-url="true" hx-indicator="#global-progress-bar">
             <i class="bi bi-x-circle me-1"></i>{% trans "Clear filters" %}
         </button>
@@ -497,34 +596,129 @@
 </div>
 <script>
 (function() {
-    function blurSearchInput() {
-        var el = document.getElementById('accounts-search-input');
-        if (el && document.activeElement === el) el.blur();
+    function init() {
+        var more = document.getElementById('acx-more-btn');
+        if (more && !more.dataset.bound) {
+            more.dataset.bound = '1';
+            more.addEventListener('click', function () {
+                var rows = document.getElementById('acx-rows');
+                var expanded = rows.classList.toggle('is-expanded');
+                var visible = rows.querySelectorAll('.acx-row:not(.is-out)').length;
+                more.textContent = expanded ? more.dataset.showLess : fmt(more.dataset.fmtAll, { n: visible });
+            });
+        }
     }
-    function setupGroupHeaders() {
-        document.querySelectorAll('.account-group-header[role="button"]').forEach(function(header) {
-            if (!header.dataset.hasKeyHandler) {
-                header.dataset.hasKeyHandler = 'true';
-                header.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        this.click();
-                    }
-                });
+
+    // ---- Tiles and tabs filter the list right here: every account is already on the page ----
+    function shellOf(el) { return el.closest('#account-list-shell'); }
+    function fmt(template, values) {
+        return template.replace(/%\((\w+)\)s/g, function (_m, key) { return values[key]; });
+    }
+    function currentState(shell) {
+        return { type: shell.dataset.viewType || '', tab: shell.dataset.viewTab || 'all' };
+    }
+    function applyView(shell, state) {
+        var input = document.querySelector('#tmr-toolbar-accounts .tmr-search-input');
+        var q = input ? input.value.trim().toLowerCase() : '';
+        var rowsBox = document.getElementById('acx-rows');
+        if (!rowsBox) return;
+        var shown = 0;
+        rowsBox.querySelectorAll('.acx-row').forEach(function (row) {
+            var match = (!state.type || row.dataset.group === state.type)
+                && (state.tab !== 'pinned' || row.dataset.pinned === '1')
+                && (state.tab !== 'needs_update' || row.dataset.stale === '1')
+                && (!q || row.dataset.name.indexOf(q) !== -1);
+            row.classList.toggle('is-out', !match);
+            row.classList.remove('is-extra-m', 'is-extra-d', 'is-last');
+            if (match) {
+                if (shown >= 4) row.classList.add('is-extra-m');
+                if (shown >= 5) row.classList.add('is-extra-d');
+                shown += 1;
             }
         });
+        var matched = rowsBox.querySelectorAll('.acx-row:not(.is-out)');
+        if (matched.length) matched[matched.length - 1].classList.add('is-last');
+        shell.dataset.viewType = state.type;
+        shell.dataset.viewTab = state.tab;
+
+        shell.querySelectorAll('.acx-tile').forEach(function (tile) {
+            var on = tile.dataset.acxType === state.type;
+            tile.classList.toggle('is-selected', on);
+            tile.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        shell.querySelectorAll('.acx-tab').forEach(function (tab) {
+            var on = tab.dataset.acxTab === state.tab;
+            tab.classList.toggle('is-active', on);
+            tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+
+        var count = document.getElementById('acx-count');
+        if (count) {
+            var total = parseInt(count.dataset.total, 10) || 0;
+            var vals = { shown: shown, total: total };
+            count.textContent = shown !== total ? fmt(count.dataset.fmtOf, vals)
+                : fmt(total === 1 ? count.dataset.fmtOne : count.dataset.fmtMany, vals);
+        }
+        var more = document.getElementById('acx-more');
+        var moreBtn = document.getElementById('acx-more-btn');
+        if (more && moreBtn) {
+            more.hidden = shown <= 4;
+            more.classList.toggle('is-md-hidden', shown === 5);
+            var expanded = rowsBox.classList.contains('is-expanded');
+            moreBtn.textContent = expanded ? moreBtn.dataset.showLess : fmt(moreBtn.dataset.fmtAll, { n: shown });
+        }
+        var empty = document.getElementById('acx-empty');
+        if (empty) empty.hidden = shown > 0;
+        syncAddressAndToolbar(shell, state);
     }
-    function init() {
-        blurSearchInput();
-        setupGroupHeaders();
+    function syncAddressAndToolbar(shell, state) {
+        // Keep the URL (refresh/share) and the hidden filter toolbar describing the same view
+        try {
+            var url = new URL(window.location.href);
+            ['type', 'pinned', 'needs_update'].forEach(function (k) { url.searchParams.delete(k); });
+            url.searchParams.set('sort', shell.dataset.sort || 'attention');
+            if ((shell.dataset.status || 'active') !== 'active') url.searchParams.set('status', shell.dataset.status);
+            else url.searchParams.delete('status');
+            if (state.type) url.searchParams.set('type', state.type);
+            if (state.tab === 'pinned') url.searchParams.set('pinned', 'pinned');
+            if (state.tab === 'needs_update') url.searchParams.set('needs_update', '1');
+            window.history.replaceState(window.history.state, '', url.pathname + url.search);
+        } catch (e) {}
+        try {
+            var inst = window.__tmrFilterInstances && window.__tmrFilterInstances.accounts;
+            if (inst && inst.state) {
+                var f = inst.state.filters || (inst.state.filters = {});
+                delete f.type; delete f.pinned; delete f.needs_update;
+                if (state.type) f.type = [state.type];
+                if (state.tab === 'pinned') f.pinned = ['pinned'];
+                if (state.tab === 'needs_update') f.needs_update = ['1'];
+                inst.renderChipRow();
+                inst.saveStateToStorage();
+            }
+        } catch (e) {}
     }
-    // On initial load
+    if (!window.__acxClicksBound) {
+        window.__acxClicksBound = true;
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest ? e.target.closest('#account-list-shell a[data-acx-type], #account-list-shell a[data-acx-tab]') : null;
+            if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+            var shell = shellOf(link);
+            if (!shell || !document.getElementById('acx-rows')) return;
+            e.preventDefault();
+            var state = currentState(shell);
+            if (link.dataset.acxType !== undefined) {
+                state = { type: state.type === link.dataset.acxType ? '' : link.dataset.acxType, tab: 'all' };
+            } else {
+                state = { type: link.dataset.acxClearType ? '' : state.type, tab: link.dataset.acxTab };
+            }
+            applyView(shell, state);
+        });
+    }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
-    // After every HTMX swap that re-renders this partial
     document.body.addEventListener('htmx:afterSettle', init);
 })();
 </script>

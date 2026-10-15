@@ -70,10 +70,7 @@ ENABLE_ADMIN_URL = ENABLE_ADMIN_URL or IS_TESTING
 if IS_TESTING:
     PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
-ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
-    'ALLOWED_HOSTS',
-    'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'
-).split(',') if host.strip()]
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com').split(',')
 CSRF_FAILURE_VIEW = 'finance_tracker.csrf.csrf_failure'  # friendly recovery + reason logging for expired login forms

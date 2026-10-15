@@ -1,121 +1,12 @@
 {% extends 'base.html' %}
-{% load static i18n digit_filters %}
+{% load static i18n %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=2.2">
-    <script src="{% static 'js/tmr_filter.js' %}?v=1.5" defer></script>
+    <script src="{% static 'js/tmr_filter.js' %}?v=1.10" defer></script>
 {% endblock %}
 
 {% block content %}
-<style>
-    .nav-pills-custom .nav-link.active {
-        background-color: var(--color-secondary, #0F7657) !important;
-        color: white !important;
-    }
-    .nav-pills-custom .nav-link:not(.active):hover {
-        background-color: rgba(29, 158, 117, 0.1);
-        color: var(--color-success-text, #0F7657);
-    }
-    .accounts-summary-card {
-        background-color: rgba(var(--bs-primary-rgb), 0.10);
-        border: 1px solid rgba(29, 158, 117, 0.14);
-        box-shadow: 0 10px 30px rgba(17, 24, 39, 0.04);
-    }
-    .accounts-summary-label {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--color-muted-text, #595855);
-        font-weight: 700;
-    }
-    .accounts-summary-amount {
-        font-size: clamp(1.35rem, 3vw, 2rem);
-        font-weight: 800;
-        letter-spacing: -0.04em;
-        line-height: 1.1;
-        font-variant-numeric: tabular-nums;
-    }
-    .accounts-summary-meta {
-        color: var(--color-muted-text, #595855);
-        font-size: 0.9rem;
-    }
-    @media (max-width: 575.98px) {
-        .accounts-summary-card {
-            padding: 0.9rem 1rem !important;
-        }
-        .accounts-summary-label {
-            font-size: 0.63rem;
-        }
-        .accounts-summary-amount {
-            font-size: 1.15rem;
-            letter-spacing: -0.03em;
-        }
-        .accounts-summary-meta {
-            font-size: 0.72rem;
-        }
-    }
-
-    /* Accordion Custom Styling overrides */
-    .accordion-button:not(.collapsed) {
-        background-color: transparent !important;
-        color: var(--bs-body-color) !important;
-        box-shadow: none !important;
-    }
-    .accordion-button::after {
-        margin-left: 0;
-        filter: grayscale(1) brightness(1.2);
-    }
-    .accordion-button:not(.collapsed)::after {
-        background-image: var(--bs-accordion-btn-icon) !important;
-    }
-    .accordion-button:focus {
-        box-shadow: none !important;
-    }
-    
-    .bg-accordion-child {
-        background-color: rgba(var(--bs-primary-rgb), 0.04) !important;
-    }
-    [data-bs-theme="dark"] .bg-accordion-child {
-        background-color: rgba(var(--bs-primary-rgb), 0.08) !important;
-    }
-    .hover-bg-child:hover {
-        background-color: rgba(var(--bs-primary-rgb), 0.08) !important;
-    }
-    [data-bs-theme="dark"] .hover-bg-child:hover {
-        background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
-    }
-
-    /* Button stylings — matching all other list pages */
-    .view-toggle-btn, .filter-toggle-btn, .header-action-btn {
-        height: 36px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px !important;
-        transition: all 0.2s ease;
-        border: 1px solid var(--bs-border-color);
-        background: transparent;
-    }
-    .view-toggle-btn, .filter-toggle-btn {
-        width: 36px;
-        padding: 0;
-        color: var(--bs-secondary);
-    }
-    .header-action-btn {
-        padding: 0 0.75rem;
-        font-size: 0.875rem;
-        text-decoration: none;
-        color: var(--bs-body-color);
-    }
-    .header-action-btn.btn-primary {
-        background-color: var(--bs-primary) !important;
-        color: white !important;
-        border: none !important;
-    }
-    .header-action-btn:hover {
-        opacity: 0.9;
-    }
-</style>
 <div class="fade-in">
     {% include 'expenses/partials/_account_list.html' %}
 </div>

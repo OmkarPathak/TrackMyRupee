@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center fade-in">
-    <div class="col-lg-8">
+    <div class="col-xl-10 col-lg-12">
         <nav aria-label="breadcrumb" class="mb-3">
             <a href="{% url 'account-detail' account.uuid %}" class="text-decoration-none small">
                 <i class="bi bi-arrow-left me-1"></i>{{ account.name }}
@@ -18,33 +18,52 @@
         </div>
 
         {% if page_obj.object_list %}
-            <div class="card shadow-sm border-0">
-                <ul class="list-group list-group-flush">
-                    {% for rec in page_obj %}
-                        <li class="list-group-item py-3">
-                            <div class="d-flex justify-content-between align-items-start gap-2">
-                                <div>
-                                    <div class="fw-semibold">{{ rec.statement_date|date:"j M Y" }}</div>
-                                    <div class="small text-muted">
-                                        {% blocktrans with s=rec.statement_balance|money_exact:account.currency a=rec.app_balance|money_exact:account.currency %}Statement {{ s }} · App {{ a }}{% endblocktrans %}
-                                    </div>
-                                    {% if rec.note %}<div class="small mt-1">{{ rec.note }}</div>{% endif %}
-                                    {% if rec.adjustment_entry %}
-                                        <div class="small text-muted mt-1"><i class="bi bi-journal-check me-1"></i>{% blocktrans with amount=rec.difference|money_exact_signed:account.currency when=rec.adjustment_entry.posted_at|date:"j M Y, H:i" %}Ledger adjustment of <span class="text-nowrap">{{ amount }}</span> posted on {{ when }}.{% endblocktrans %}</div>
-                                    {% elif rec.status == 'ACCEPTED' %}
-                                        <div class="small text-muted mt-1">{% trans "App balance kept. No ledger entry was made." %}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge {% if rec.status == 'MATCHED' %}bg-success{% elif rec.status == 'ADJUSTED' %}bg-primary{% elif rec.status == 'ACCEPTED' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">{{ rec.get_status_display }}</span>
-                                    {% if rec.status != 'MATCHED' %}
-                                        <div class="small text-muted mt-1 text-nowrap">{% trans "Difference" %}: {{ rec.difference|money_exact_signed:account.currency }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 text-start align-middle tmr-table" style="min-width: 840px;">
+                            <colgroup>
+                                <col style="width: 150px">
+                                <col style="width: 130px">
+                                <col style="width: 130px">
+                                <col style="width: 170px">
+                                <col style="width: 130px">
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="ps-4">{% trans "Statement date" %}</th>
+                                    <th scope="col" class="text-end">{% trans "Statement" %}</th>
+                                    <th scope="col" class="text-end">{% trans "App" %}</th>
+                                    <th scope="col">{% trans "Status" %}</th>
+                                    <th scope="col" class="text-end">{% trans "Difference" %}</th>
+                                    <th scope="col" class="pe-4">{% trans "Notes" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rec in page_obj %}
+                                <tr>
+                                    <td class="ps-4">{{ rec.statement_date|date:"j M Y" }}</td>
+                                    <td class="text-end tmr-amount">{{ rec.statement_balance|money_exact:account.currency }}</td>
+                                    <td class="text-end tmr-amount">{{ rec.app_balance|money_exact:account.currency }}</td>
+                                    <td>
+                                        <span class="badge-soft {% if rec.status == 'MATCHED' %}badge-soft-success{% elif rec.status == 'ADJUSTED' %}badge-soft-primary{% elif rec.status == 'ACCEPTED' %}badge-soft-secondary{% else %}badge-soft-warning{% endif %}">{{ rec.get_status_display }}</span>
+                                    </td>
+                                    <td class="text-end tmr-amount text-nowrap">{% if rec.status != 'MATCHED' %}{{ rec.difference|money_exact_signed:account.currency }}{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
+                                    <td class="tmr-wrap pe-4">
+                                        {% if rec.note %}<div>{{ rec.note }}</div>{% endif %}
+                                        {% if rec.adjustment_entry %}
+                                            <div class="small text-muted"><i class="bi bi-journal-check me-1"></i>{% blocktrans with amount=rec.difference|money_exact_signed:account.currency when=rec.adjustment_entry.posted_at|date:"j M Y, H:i" %}Ledger adjustment of <span class="text-nowrap">{{ amount }}</span> posted on {{ when }}.{% endblocktrans %}</div>
+                                        {% elif rec.status == 'ACCEPTED' %}
+                                            <div class="small text-muted">{% trans "App balance kept. No ledger entry was made." %}</div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             {% if page_obj.has_other_pages %}
                 <div class="d-flex justify-content-between mt-3">
