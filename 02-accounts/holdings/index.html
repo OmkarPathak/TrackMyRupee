@@ -1392,7 +1392,7 @@
 <ul>
 <li><strong>Automatic background sync</strong>: TrackMyRupee runs daily background jobs that pull updated NAVs after Indian market closing hours (approximately 11 PM IST).</li>
 <li><strong>Manual instant refresh</strong>: Click the <strong>Refresh NAV</strong> icon next to any holding row to trigger an immediate live fetch.</li>
-<li><strong>External cron integration</strong>: Set up a free cron job at <a href="https://cron-job.org">cron-job.org</a> targeting <code>GET /api/cron/sync-nav/</code> with <code>X-Cron-Secret: &lt;YOUR_CRON_SECRET&gt;</code> for guaranteed daily automated syncing.</li>
+<li><strong>External cron integration</strong>: Set up a free cron job at <a href="https://cron-job.org">cron-job.org</a> targeting <code>/api/cron/sync-nav/</code> (GET or POST) with the header <code>X-Cron-Secret: &lt;YOUR_CRON_SECRET&gt;</code> (a <code>?secret=</code> query parameter only works if <code>CRON_ALLOW_QUERY_SECRET=true</code> is set) for guaranteed daily automated syncing.</li>
 </ul>
 <hr />
 <h2 id="5-responsive-interface-features">5. Responsive Interface Features<a class="headerlink" href="#5-responsive-interface-features" title="Permanent link">&para;</a></h2>
