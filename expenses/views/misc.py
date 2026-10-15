@@ -9,6 +9,8 @@ from itertools import islice
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 
+from django.conf import settings
+
 import dns.flags
 import dns.message
 import dns.rdata
@@ -776,8 +778,30 @@ class ContactView(View):
             messages.error(request, _("Please use a permanent email address."))
             return render(request, self.template_name, {'form': form})
 
+        if not self._deliver(data):
+            messages.error(request, _("We couldn't send your message right now. Please email us directly or try again later."))
+            return render(request, self.template_name, {'form': form})
+
         messages.success(request, _("Your message has been sent! We'll get back to you shortly."))
         return redirect('contact')
+
+    def _deliver(self, data):
+        """Email the message to the support inbox; replies go straight to the sender."""
+        from django.core.mail import EmailMessage
+        recipient = getattr(settings, 'CONTACT_EMAIL', '') or 'support@trackmyrupee.com'
+        body = f"From: {data['name']} <{data['email']}>\n\n{data['message']}"
+        try:
+            EmailMessage(
+                subject=f"[Contact] {data['subject']}",
+                body=body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[recipient],
+                reply_to=[data['email']],
+            ).send(fail_silently=False)
+        except Exception:
+            logger.exception("Contact form email could not be sent")
+            return False
+        return True
 
     def _get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

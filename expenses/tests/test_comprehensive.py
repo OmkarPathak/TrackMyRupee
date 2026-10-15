@@ -963,6 +963,8 @@ class RecurringTransactionProcessingTest(_BaseTestCase):
         today = timezone.localdate()
         cooldown_key = f'recurring_processed_{self.user.id}_{today}'
         cache.set(cooldown_key, True, 86400)  # Simulate earlier page view today
+        from expenses.models import Category
+        Category.objects.get_or_create(user=self.user, name='Cab')
 
         form_data = {
             'account': self.cash.pk,

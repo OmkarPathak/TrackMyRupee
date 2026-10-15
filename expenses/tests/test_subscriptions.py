@@ -458,6 +458,8 @@ class SubscriptionTierTest(TestCase):
 
     def test_recurring_end_date_validation(self):
         """Form validation should fail if end_date is before start_date."""
+        Category.objects.get_or_create(user=self.user, name='Food')
+        Category.objects.get_or_create(user=self.user, name='Bills')
         self.setup_tier('PLUS')
         account = Account.objects.create(user=self.user, name='Cash Box', account_type='CASH', balance=10000, currency='₹')
 
@@ -507,6 +509,8 @@ class SubscriptionTierTest(TestCase):
 
     def test_active_recurring_transaction_uniqueness(self):
         """Form validation should block duplicate active transactions but allow duplicates if older ones are inactive."""
+        Category.objects.get_or_create(user=self.user, name='Food')
+        Category.objects.get_or_create(user=self.user, name='Bills')
         self.setup_tier('PLUS')
         account = Account.objects.create(user=self.user, name='Cash Box', account_type='CASH', balance=10000, currency='₹')
 

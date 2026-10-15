@@ -26,6 +26,8 @@ class RecurringHistoricalToggleTestCase(TestCase):
             balance=Decimal('100000.00'),
             currency='₹',
         )
+        from expenses.models import Category
+        Category.objects.get_or_create(user=self.user, name='Rent')
         self.past_start = date.today() - timedelta(days=90) # ~3 months ago
 
     def test_recurring_transaction_form_historical_true(self):

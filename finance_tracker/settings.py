@@ -407,6 +407,8 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 # Default Sender
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', "TrackMyRupee <no-reply@trackmyrupee.com>")
+# Inbox that receives the public contact-form messages
+CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'support@trackmyrupee.com')
 SERVER_EMAIL = os.environ.get('SERVER_EMAIL', "no-reply@trackmyrupee.com")
 
 # Production Security Settings

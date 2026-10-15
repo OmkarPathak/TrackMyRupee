@@ -1,3 +1,4 @@
+import re
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
@@ -399,7 +400,8 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             if limit != -1:
                 categories = categories[:limit]
 
-            category_choices = [('', '---------')] + [(cat.name, cat.name) for cat in categories]
+            self._allowed_category_names = [cat.name for cat in categories]
+            category_choices = [('', '---------')] + [(name, name) for name in self._allowed_category_names]
             self.fields['category'].widget = forms.Select(choices=category_choices, attrs={'class': 'form-select'})
         else:
             self.fields['category'].widget = forms.TextInput(attrs={'class': 'form-control'})
@@ -414,6 +416,16 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         self.fields['loan'].required = False
         self.fields['physical_asset'].required = False
         self.fields['payment_method'].required = False
+
+    def clean_category(self):
+        category = (self.cleaned_data.get('category') or '').strip()
+        allowed = getattr(self, '_allowed_category_names', None)
+        if category and allowed is not None and category not in allowed:
+            # A schedule keeps a category that was renamed/deleted since, but a new value must be one
+            # of the user's own categories (the select is only a hint; any text could be posted).
+            if not (self.instance.pk and category == (self.instance.category or '')):
+                raise forms.ValidationError(_('Select one of your categories.'))
+        return category
 
     def clean(self):
         cleaned_data = super().clean()
@@ -689,7 +701,14 @@ class ContactForm(forms.Form):
         'autocomplete': 'off'
     }))
     subject = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'What is this about?'}))
-    message = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'How can we help you?'}))
+    message = forms.CharField(max_length=5000, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'How can we help you?'}))
+
+    def clean_subject(self):
+        # Subject becomes an email header: collapse any line breaks
+        return ' '.join(self.cleaned_data['subject'].split())
+
+    def clean_name(self):
+        return ' '.join(self.cleaned_data['name'].split())
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -749,11 +768,16 @@ class SavingsGoalForm(SearchableSelectFormMixin, forms.ModelForm):
             raise forms.ValidationError(_('The currency cannot be changed once money has been added to this goal.'))
         return currency
 
-    def clean_target_amount(self):
-        target_amount = self.cleaned_data.get('target_amount')
-        if target_amount is not None and target_amount <= 0:
-            raise forms.ValidationError(_("Target amount must be greater than zero."))
-        return target_amount
+    GOAL_COLORS = ('primary', 'success', 'danger', 'warning', 'info')
+
+    def clean_color(self):
+        color = self.cleaned_data.get('color')
+        # The value becomes a Bootstrap class suffix (bg-<color>), so only the offered themes are allowed
+        if color not in self.GOAL_COLORS:
+            if self.instance.pk and color == self.instance.color:
+                return color
+            raise forms.ValidationError(_('Choose one of the listed colours.'))
+        return color
 
 class GoalContributionForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
@@ -1636,6 +1660,14 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
             if user_interest is not None and user_interest < 0:
                 self.add_error('interest_portion', _("Interest portion cannot be negative."))
 
+            if amount is not None and amount > 0:
+                if user_principal is not None and user_principal > amount:
+                    self.add_error('principal_portion', _("Principal portion cannot be more than the repayment amount."))
+                if user_interest is not None and user_interest > amount:
+                    self.add_error('interest_portion', _("Interest portion cannot be more than the repayment amount."))
+            if self.errors.get('principal_portion') or self.errors.get('interest_portion'):
+                return cleaned_data
+
             if user_principal is not None and user_interest is not None:
                 # Ensure sum of principal + interest matches total amount
                 if (user_principal + user_interest).quantize(Decimal('0.01')) != amount.quantize(Decimal('0.01')):
@@ -1709,7 +1741,15 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
         )
         if user:
             self.fields['currency'].initial = user.profile.currency
-            self.fields['account'].queryset = Account.objects.filter(user=user, is_active=True).order_by('name')
+            all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
+            limit = get_limit(user.profile.active_tier, 'accounts')
+            if limit != -1:
+                # Same rule as every other money form: accounts beyond the plan limit are locked
+                unlocked_ids = list(all_accounts.values_list('id', flat=True)[:limit])
+                if self.instance.pk and self.instance.account_id:
+                    unlocked_ids.append(self.instance.account_id)
+                all_accounts = all_accounts.filter(id__in=unlocked_ids)
+            self.fields['account'].queryset = all_accounts.order_by('name')
             self.fields['linked_loan'].queryset = Loan.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['linked_loan'].required = False
             self.fields['linked_loan'].empty_label = _('— No linked loan —')
@@ -1742,6 +1782,26 @@ class HoldingForm(forms.ModelForm):
             'scheme_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 101234'}),
             'isin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional ISIN'}),
         }
+
+    def clean_units(self):
+        units = self.cleaned_data.get('units')
+        if units is not None and units < 0:
+            raise forms.ValidationError(_('Units cannot be negative.'))
+        return units
+
+    def clean_avg_cost(self):
+        avg_cost = self.cleaned_data.get('avg_cost')
+        if avg_cost is not None and avg_cost < 0:
+            raise forms.ValidationError(_('Average cost cannot be negative.'))
+        return avg_cost
+
+    def clean_isin(self):
+        isin = (self.cleaned_data.get('isin') or '').strip().upper()
+        if not isin:
+            return None
+        if not re.fullmatch(r'[A-Z]{2}[A-Z0-9]{9}[0-9]', isin):
+            raise forms.ValidationError(_('Enter a valid 12-character ISIN (e.g. INF179K01VQ6).'))
+        return isin
 
 
 class AccountReconcileForm(forms.Form):
