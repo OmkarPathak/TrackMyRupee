@@ -1,5 +1,12 @@
 # Screenshot manifest
 
+> **Regenerating the guide screenshots:** the images the guide actually uses live in each section's
+> `img/` folder (`guide-src/<section>/img/*.webp`) and are produced by
+> `scripts/capture_guide_screenshots.mjs` from the demo account. Start the app
+> (`python manage.py runserver 8000`), then run `node scripts/capture_guide_screenshots.mjs`
+> (all shots) or `node scripts/capture_guide_screenshots.mjs accounts-list` (shots whose file name contains
+> the text). It needs Google Chrome and Node 22+. The list below is the older capture checklist.
+
 > **Note on 00-philosophy:** The Philosophy page (guide root `00-philosophy.md`) has no
 > dedicated screenshot folder. Its screenshot placeholders point into `01-getting-started/`
 > using the `dashboard-first-look-{desktop,mobile}.png` shots already listed there.
