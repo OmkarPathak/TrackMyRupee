@@ -64,12 +64,12 @@
 
                         <!-- Row 1: Amount + Currency + Date -->
                         <div class="row g-3 mb-3">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold" for="{{ form.amount.id_for_label }}">{{ form.amount.label }} <span class="text-danger">*</span></label>
                                 {{ form.amount }}
                                 {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold" for="{{ form.currency.id_for_label }}">{{ form.currency.label }}</label>
                                 {{ form.currency }}
                             </div>
@@ -82,17 +82,17 @@
 
                         <!-- Row 2: Subtype + Category + Account -->
                         <div class="row g-3 mb-3">
-                            <div class="col-xl-4 col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold" for="{{ form.subtype.id_for_label }}">{{ form.subtype.label }} <span class="text-danger">*</span></label>
                                 {{ form.subtype }}
                                 {% if form.subtype.errors %}<div class="text-danger small mt-1">{{ form.subtype.errors.0 }}</div>{% endif %}
                             </div>
-                            <div class="col-xl-4 col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold" for="{{ form.category.id_for_label }}">{{ form.category.label }} <span class="text-muted fw-normal small">({% trans "optional" %})</span></label>
                                 {{ form.category }}
                                 {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% else %}<div class="form-text">{{ form.category.help_text }}</div>{% endif %}
                             </div>
-                            <div class="col-xl-4 col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold" for="{{ form.account.id_for_label }}">{{ form.account.label }} <span class="text-danger">*</span></label>
                                 {{ form.account }}
                                 {% if form.account.errors %}<div class="text-danger small mt-1">{{ form.account.errors.0 }}</div>{% else %}<div class="form-text">{% trans "The account this money was paid from. Its balance is updated." %}</div>{% endif %}
