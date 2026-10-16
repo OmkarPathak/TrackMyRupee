@@ -828,12 +828,31 @@ class Category(models.Model):
     limit = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Monthly Limit'))
     is_interest_category = models.BooleanField(default=False, verbose_name=_('Is Interest Category'))
 
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        instance._orig_limit = instance.__dict__.get('limit')
+        instance._orig_name = instance.__dict__.get('name')
+        return instance
+
     def save(self, *args, **kwargs):
         if self.name:
             self.name = self.name.strip()
+        is_new = self._state.adding
         super().save(*args, **kwargs)
         from django.core.cache import cache
         cache.delete(f"filter_categories:{self.user_id}")
+        # `limit` is a legacy mirror: budget readers use expenses.budget_resolver. Keep the two in
+        # step so every writer (forms, admin, demo data, tests) lands in the versioned tables.
+        orig_name = getattr(self, '_orig_name', None)
+        orig_limit = getattr(self, '_orig_limit', None)
+        if not is_new and orig_name and orig_name.strip().lower() != self.name.lower():
+            from .budget_writes import rename_category_history
+            rename_category_history(self.user, orig_name, self.name, self)
+        if is_new or self.limit != orig_limit:
+            from .budget_writes import sync_legacy_limit
+            sync_legacy_limit(self)
+        self._orig_limit, self._orig_name = self.limit, self.name
 
     def delete(self, *args, **kwargs):
         user_id = self.user_id
@@ -852,6 +871,82 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class BudgetLimitVersion(models.Model):
+    """A recurring budget limit that applies from `effective_from` (a month's 1st) until a later
+    version replaces it. `amount` NULL means "no limit from this month on".
+
+    Rows are keyed by the normalised category name (spend is keyed by name too), so history
+    survives a category being deleted; `category` is only a convenience link and is kept in sync
+    on rename. Read through expenses.budget_resolver, never directly.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budget_limit_versions')
+    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    category_name = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    effective_from = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'category_name', 'effective_from'],
+                name='unique_budget_version',
+            ),
+            models.CheckConstraint(
+                check=models.Q(amount__isnull=True) | models.Q(amount__gte=0),
+                name='budget_version_amount_gte_0',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['user', 'category_name', '-effective_from'], name='budget_ver_lookup_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.category_name} from {self.effective_from}: {self.amount}"
+
+
+class BudgetMonthOverride(models.Model):
+    """A one-month budget limit that beats the recurring version for that month only.
+    `amount` NULL means "no limit this month"."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budget_month_overrides')
+    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    category_name = models.CharField(max_length=255)
+    month = models.DateField()
+    amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'category_name', 'month'],
+                name='unique_budget_override',
+            ),
+            models.CheckConstraint(
+                check=models.Q(amount__isnull=True) | models.Q(amount__gte=0),
+                name='budget_override_amount_gte_0',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.category_name} for {self.month}: {self.amount}"
+
+
+class BudgetSuggestionDismissal(models.Model):
+    """A budget suggestion the user dismissed, so it is not shown again (`key` names the suggestion)."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budget_suggestion_dismissals')
+    key = models.CharField(max_length=120)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'key'], name='unique_budget_suggestion_dismissal'),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}: {self.key}"
 
 
 class ExpenseKeywordHint(models.Model):

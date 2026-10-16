@@ -475,8 +475,9 @@ class TestSmallCharts(AnalyticsBase):
             self.assertAlmostEqual(context['burn_down_projection'][-1], 300.0 + burn_rate * (days - today().day), places=1)
 
     def test_the_budget_line_is_the_monthly_limit_spread_over_the_days(self):
-        Category.objects.filter(user=self.user).update(limit=None)
-        Category.objects.filter(user=self.user, name='Food').update(limit=D('3000'))
+        for cat in Category.objects.filter(user=self.user):
+            cat.limit = D('3000') if cat.name == 'Food' else None
+            cat.save()
         self.expense(10)
         days = calendar.monthrange(today().year, today().month)[1]
         context = self.ctx()

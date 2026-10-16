@@ -1,6 +1,125 @@
 {% extends 'expenses/settings_base.html' %}
-{% load i18n %}
+{% load i18n static %}
+
+{% block extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/budget.css' %}?v=1.0">
+{% endblock %}
 
 {% block settings_content %}
     {% include 'expenses/partials/_budget_dashboard_content.html' %}
+{% endblock %}
+
+{% block modals %}
+    {{ block.super }}
+    <!-- Adjust limit: a centred dialog on desktop, a bottom sheet on phones -->
+    <div class="modal fade bdx-modal" id="bdx-sheet" tabindex="-1" aria-labelledby="bdx-sheet-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content bdx-sheet no-loader" id="bdx-form" method="post" action="#" novalidate>
+                <div class="bdx-sheet-grab" aria-hidden="true"></div>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="bdx-sheet-title">{% trans "Adjust limit" %}</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="bdx-sheet-cat" id="bdx-sheet-cat"></p>
+                    <label class="bdx-label" for="bdx-amount">{% trans "Monthly limit" %}</label>
+                    <div class="bdx-input">
+                        <span class="bdx-input-prefix" id="bdx-symbol">{{ currency_symbol }}</span>
+                        <input id="bdx-amount" type="text" inputmode="decimal" autocomplete="off" aria-describedby="bdx-preview bdx-error">
+                    </div>
+                    <p class="bdx-error" id="bdx-error" role="alert" hidden></p>
+
+                    <fieldset class="bdx-scope">
+                        <legend class="bdx-label">{% trans "Apply to" %}</legend>
+                        <div class="bdx-seg" role="radiogroup" aria-label="{% trans 'Apply to' %}">
+                            <input type="radio" name="bdx-scope" id="bdx-scope-this" value="this_month">
+                            <label for="bdx-scope-this">{% trans "This month only" %}</label>
+                            <input type="radio" name="bdx-scope" id="bdx-scope-every" value="every_month">
+                            <label for="bdx-scope-every">{% trans "Every month" %}</label>
+                        </div>
+                        <p class="bdx-hint" id="bdx-scope-hint" hidden>{% trans "Past months can only be changed for that month." %}</p>
+                    </fieldset>
+
+                    <p class="bdx-preview" id="bdx-preview" aria-live="polite"></p>
+
+                    <details class="bdx-fund" id="bdx-fund">
+                        <summary>{% trans "Fund this from another category" %}</summary>
+                        <label class="bdx-label" for="bdx-fund-from">{% trans "Take the extra from" %}</label>
+                        <select id="bdx-fund-from" class="bdx-select-full"></select>
+                        <p class="bdx-hint" id="bdx-fund-note"></p>
+                    </details>
+                    <button type="button" class="bdx-link bdx-remove" id="bdx-remove">{% trans "Remove limit" %}</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="bdx-btn bdx-btn--ghost" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="bdx-btn bdx-btn--primary" id="bdx-save">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Set all limits (bulk) -->
+    <div class="modal fade bdx-modal" id="bdx-bulk" tabindex="-1" aria-labelledby="bdx-bulk-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <form class="modal-content bdx-sheet no-loader" id="bdx-bulk-form" method="post" action="#" novalidate>
+                <div class="bdx-sheet-grab" aria-hidden="true"></div>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="bdx-bulk-title">{% trans "Set all limits" %}</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="bdx-hint">{% trans "Limits you enter here apply from this month onward. Leave a row blank to keep it without a limit." %}</p>
+                    <div id="bdx-bulk-rows" class="bdx-bulk-rows"></div>
+                    <p class="bdx-error" id="bdx-bulk-error" role="alert" hidden></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="bdx-btn bdx-btn--ghost" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="bdx-btn bdx-btn--primary" id="bdx-bulk-save">{% trans "Save limits" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast (errors with retry, confirmations) -->
+    <div class="bdx-toast" id="bdx-toast" role="status" aria-live="polite" hidden>
+        <span id="bdx-toast-msg"></span>
+        <button type="button" class="bdx-link" id="bdx-toast-action" hidden></button>
+        <button type="button" class="bdx-toast-x" id="bdx-toast-close" aria-label="{% trans 'Dismiss' %}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+    </div>
+
+    <!-- Strings for the script (translated here so there is no second catalog) -->
+    <div id="bdx-i18n" hidden
+         data-api-limit="{% url 'budgets-api-limit' %}"
+         data-api-rebalance="{% url 'budgets-api-rebalance' %}"
+         data-api-reset="{% url 'budgets-api-reset' %}"
+         data-api-dismiss="{% url 'budgets-api-dismiss' %}"
+         data-symbol="{{ currency_symbol }}"
+         data-locale="{% if LANGUAGE_CODE == 'hi' %}hi-IN-u-nu-deva{% elif LANGUAGE_CODE == 'mr' %}mr-IN-u-nu-deva{% elif currency_symbol == '₹' %}en-IN{% else %}en-US{% endif %}"
+         data-title-adjust="{% trans 'Adjust limit' %}"
+         data-title-set="{% trans 'Set limit' %}"
+         data-p-this="{% trans '%(name)s: %(from)s → %(to)s for %(month)s' %}"
+         data-p-every="{% trans '%(name)s: %(from)s → %(to)s from %(month)s onward' %}"
+         data-p-new-this="{% trans '%(name)s: %(to)s for %(month)s' %}"
+         data-p-new-every="{% trans '%(name)s: %(to)s from %(month)s onward' %}"
+         data-p-rm-this="{% trans '%(name)s: no limit for %(month)s' %}"
+         data-p-rm-every="{% trans '%(name)s: no limit from %(month)s onward' %}"
+         data-p-fund="{% trans '%(src)s: %(from)s → %(to)s' %}"
+         data-fund-note="{% trans 'Raise %(name)s by %(amount)s and lower the other category by the same amount.' %}"
+         data-fund-none="{% trans 'No other category has a limit to take from.' %}"
+         data-fund-pick="{% trans 'Choose a category' %}"
+         data-fund-room="{% trans '%(name)s (%(room)s available)' %}"
+         data-e-invalid="{% trans 'Enter a valid amount, for example 5000.' %}"
+         data-e-negative="{% trans 'The limit cannot be negative.' %}"
+         data-e-fund="{% trans 'That category does not have enough room.' %}"
+         data-saved="{% trans 'Limit updated' %}"
+         data-reset-done="{% trans 'Reset to the default limit' %}"
+         data-failed="{% trans 'Could not save that change.' %}"
+         data-offline="{% trans 'You appear to be offline.' %}"
+         data-retry="{% trans 'Retry' %}"
+         data-bulk-saved="{% trans 'Limits saved' %}"
+         data-bulk-partial="{% trans 'Some limits could not be saved. Try again.' %}"
+         data-bulk-label="{% trans 'Limit for %(name)s' %}"
+         data-bulk-empty="{% trans 'Every category already has a limit.' %}"></div>
+    <script src="{% static 'js/budget.js' %}?v=1.0" defer></script>
 {% endblock %}

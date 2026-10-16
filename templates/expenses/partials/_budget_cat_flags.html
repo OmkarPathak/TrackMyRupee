@@ -1,0 +1,12 @@
+{% load i18n %}{% if c.limit_source == 'override' or c.has_future_changes %}
+<div class="bdx-flags">
+    {% if c.limit_source == 'override' %}
+        <span class="bdx-flag"><i class="bi bi-pin-angle-fill" aria-hidden="true"></i> {% trans "Changed for this month" %}</span>
+        <button type="button" class="bdx-link" data-bdx-reset
+                aria-label="{% blocktrans with name=c.name %}Reset {{ name }} to its default limit{% endblocktrans %}">{% trans "Reset to default" %}</button>
+    {% endif %}
+    {% if c.has_future_changes %}
+        <span class="bdx-flag bdx-flag--later" title="{% trans 'A later month has its own limit' %}"><i class="bi bi-calendar-event" aria-hidden="true"></i> {% trans "Changes in a later month" %}</span>
+    {% endif %}
+</div>
+{% endif %}

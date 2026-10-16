@@ -1,6 +1,6 @@
 # Budgets
 
-Set per-category monthly spending limits and get alerted before you overshoot.
+Set a spending limit for each category, see how much you can safely spend today, and get alerted before you overshoot.
 
 ---
 
@@ -12,7 +12,14 @@ Navigate to **Sidebar → Budgets** on desktop, or go to **More → Budgets** fr
 ![The Budgets page](img/budgets-desktop.webp){ loading=lazy }
 
 
-The page shows a **Total Budget Goal** bar at the top, which displays how much of your overall budget envelope has been used. Below that, individual category bars show the spend versus the limit for each category. Status pill counts at the top tell you at a glance how many categories are over budget, at their limit, on track, or have no limit set.
+From top to bottom the page shows:
+
+1. **A header** with the month picker (arrows or the drop-down), the sort menu and **+ New budget**.
+2. **The hero card.** For the current month it shows **Safe to spend today** (what is left of your budget divided by the days left, today included), how you are doing against an even pace, and a ring showing how much of the whole budget is used.
+3. **Status chips**: how many categories are over budget, at their limit, on track, or have no limit.
+4. **Needs attention**, then **On track**, then **No limit set**.
+
+Past months show a **Month summary** instead of a daily amount (there is nothing left to pace). Future months show the **Planned budget** and the limits only.
 
 ### What counts as spending in a category
 
@@ -27,32 +34,47 @@ Loan interest and transfers are not budget spending.
 
 | Number | What it means |
 |---|---|
-| **Total budget** | The limits of all categories that have a limit, added up |
-| **Spent against budget** | Spend in those categories only |
-| **Unbudgeted spend** | Everything else you spent this month: categories with no limit, and expenses whose category no longer exists |
-| **Total spent** | Budgeted and unbudgeted spend together |
-| **vs last month** | Total spent compared with the month before |
+| **Total budget** | The limits of all categories that have a limit, added up. It is never stored separately. |
+| **Spent** | Spend in those categories only |
+| **Not in budget** | Everything else you spent this month: categories with no limit, and expenses whose category no longer exists |
+| **Safe to spend today** | Remaining budget divided by the days left in the month, including today. It is never negative: when nothing is left it shows 0 and says you are over budget. |
+| **Expected pace** | Your total budget spread evenly over the days of the month, up to today |
 
 ---
 
-## 2. Setting a Category Limit
+## 2. Changing a Limit
 
+Limits are **per category and per month**, and they **repeat by default**: a limit applies from the month you set it until you change it.
 
-![Editing a category and its monthly limit](img/set-limit-desktop.webp){ loading=lazy }
+1. Click **Adjust limit** on a card in *Needs attention*, or the **pencil icon** on any category (or **+ Set limit** on a category without one).
+2. Type the new monthly limit.
+3. Choose how far it reaches:
+    - **This month only** changes just the month you are viewing.
+    - **Every month** changes this month and every month after it.
+4. A line under the toggle shows exactly what will happen, for example *Food: ₹5,000 → ₹6,000 for Oct 2026*. Click **Save**.
 
+Adjust limit opens as a dialog on desktop and as a sheet from the bottom on a phone. **Remove limit** works the same way and follows the same choice.
 
-1. Find the category you want to limit in the list.
-2. Click the **pencil (edit) icon** next to the category name.
-3. Enter the monthly limit in your own currency.
-4. Click **Save**.
+!!! info "Past months keep their limit"
+    Changing a limit never rewrites a month that is already over. **Every month** is only offered for the current or a future month. You can still correct a past month with **This month only**.
 
-You can also set a limit when you create a category from the **Categories** page. The progress bar for that category updates immediately to show the new limit against your existing spend for the current period.
+!!! note "A change for one month only"
+    A category changed for just one month shows **Changed for this month** with **Reset to default**. One tap puts it back on the repeating limit. If a later month has its own limit, the card says so.
 
-!!! info "Categories without a limit"
-    If a category has no limit set, it appears in the list but without a progress bar. The budget bar only activates once you set a limit. Leave the limit blank, or enter 0, for no limit. A limit cannot be negative.
+### Funding a higher limit from another category
+
+If you raise a limit, open **Fund this from another category**, pick a category that has room, and the same amount is taken off that one. Your total budget does not change.
+
+### Setting several limits at once
+
+**Set all limits** (in the *No limit set* box) lists every category without a limit so you can fill in several amounts and save them together. They apply from the month you are viewing onward.
+
+### Lowering a limit below what you have spent
+
+This is allowed. The category simply shows as over budget.
 
 !!! note "Renaming and deleting categories"
-    Renaming a category renames it on all your expenses, subscriptions, and quick-add suggestions too, so your history stays in the same bar. If you delete a category, its expenses are kept but no longer belong to any budget, so they show up as unbudgeted spend.
+    Renaming a category renames it on all your expenses, subscriptions and quick-add suggestions too, and its limit history follows it. If you delete a category, its expenses are kept but no longer belong to any budget, so they show up as unbudgeted spend. Its past limits are kept, so earlier months still look the way they did.
 
 ### How many categories you can budget
 
@@ -62,7 +84,7 @@ The number of categories depends on your plan: **Free 5, Plus 15, Pro unlimited*
 
 ## 3. Reading the "Needs Attention" Section
 
-Each category has one of four states, shown by a status pill and the colour of its bar:
+Each category has one of four states, shown by an icon and a label as well as a colour:
 
 | State | When | Colour |
 |---|---|---|
@@ -71,32 +93,28 @@ Each category has one of four states, shown by a status pill and the colour of i
 | **On track** | Under 85 percent of the limit | Green |
 | **No limit** | No limit is set | No bar |
 
-The **Needs Attention** section lists the categories that are over budget or at their limit, with the most urgent first. This is your primary action list for the current cycle. The same 85 percent rule colours the category bars on your Dashboard, and it is also when you get an alert.
+The **Needs attention** section lists the categories that are over budget or at their limit, most urgent first. In **On track**, categories you have spent in come first and untouched ones are shown dimmed; on a phone they are folded behind **Show N more untouched**. The same 85 percent rule colours the category bars on your Dashboard, and it is also when you get an alert.
 
 ### Budget alerts
 
-You get a notification when a category first reaches **85 percent** of its limit ("Budget Alert") and another when it goes **over** ("Budget Exceeded"). Each is sent at most once per category per month. Categories with no limit, and locked categories, never send alerts.
+You get a notification when a category first reaches **85 percent** of its limit ("Budget Alert") and another when it goes **over** ("Budget Exceeded"). Each is sent at most once per category per month, and uses the limit that applies to that month. Categories with no limit, and locked categories, never send alerts.
 
 ### Pace
 
-For the current month, the Total Budget Goal card also shows your **pace**: how your spending so far compares with spending the whole budget evenly across the days of the month. If you are more than 5 percent of your total budget ahead of that even pace, it tells you how much over pace you are. If you are more than 5 percent behind it, it tells you how much under. Otherwise it says you are on track. Past months and months with no budget show no pace.
+For the current month the hero card compares your spending so far with spending the whole budget evenly across the days of the month. If you are more than 5 percent of your total budget ahead of that even pace it tells you how much over pace you are. If you are more than 5 percent behind it, it tells you how much under. Otherwise it says you are on pace.
+
+### Smart move suggestions
+
+When a category has reached its limit and another category has used **under 10 percent of its limit for each of the last three months** (and is still barely used), a **Smart move** banner offers to move some of the unused limit across for this month. **Review suggestion** opens the usual dialog with the numbers filled in. The banner never appears unless your history supports it, and **Dismiss** hides that suggestion for good.
 
 ---
 
-## 4. Adjusting a Limit Mid-Cycle
+## 4. Choosing a Month
 
-You can raise or lower a category limit at any time during the month. Changing the limit does not alter any past transactions. Your existing spend stays as it is; only the percentages recalculate. A category has one limit, which applies to every month: if you change it, past months you look at afterwards are measured against the new limit too.
-
-Use this to course-correct if a limit was set too tightly for an unusual month.
-
----
-
-## 5. Filtering by Period
-
-The Budget page has **month and year** selectors at the top, and a sort menu (most urgent first, by name, by limit, or by amount spent). Use the selectors to view budget adherence for a specific month, and to compare how a category performed across different months. The budget is always one calendar month at a time.
+Use the arrows or the drop-down at the top to move between months. The page updates in place without reloading. The sort menu orders categories by urgency, amount spent, limit or name. The budget is always one calendar month at a time.
 
 !!! example "Real-world use case"
-    Mid-cycle, Pooja notices her Dining Out bar has reached 210 percent of its Rs. 5,000 limit. She has two choices: raise the limit to Rs. 10,000 to match reality for this cycle (useful if she had a special occasion), or commit to cooking at home for the remaining weeks and use the budget bar as a daily check-in. She uses the month selector to check whether last month's Dining Out spend was also over Rs. 5,000 before deciding whether to raise the limit. Because a category has a single limit, she knows that raising it will also change how past months look.
+    Mid-month, Pooja sees her Dining Out card has reached 210 percent of its Rs. 5,000 limit. It is a special month, so she taps **Adjust limit**, enters Rs. 10,000 and keeps **This month only**. Next month Dining Out is back at Rs. 5,000 on its own, and last month still looks exactly as it did. Later she decides the higher amount is the new normal, edits it again and picks **Every month**.
 
 ---
 

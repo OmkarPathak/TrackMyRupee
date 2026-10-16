@@ -65,20 +65,27 @@ def capital_report_name(category, subtype, names: dict) -> str:
 
 
 def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decimal]:
-    """({normalised category name: total}, grand total) in base currency for one month."""
+    """({normalised category name: total}, grand total) in base currency for one month.
+    One query (expenses and budget-counted capital events come back together as a UNION)."""
+    from django.db.models import Value
+
     from .models import CapitalEvent, Expense
 
-    spend: dict = {}
-    for row in (Expense.objects.filter(user=user, date__year=year, date__month=month)
-                .values('category').annotate(total=Sum('base_amount'))):
-        key = normalize_category(row['category'])
-        spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
+    expenses = (Expense.objects.filter(user=user, date__year=year, date__month=month).order_by()
+                .values('category').annotate(subtype=Value(''), total=Sum('base_amount'))
+                .values_list('category', 'subtype', 'total'))
+    events = (CapitalEvent.objects.filter(user=user, date__year=year, date__month=month, exclude_from_budget=False)
+              .order_by().values('category', 'subtype').annotate(total=Sum('base_amount'))
+              .values_list('category', 'subtype', 'total'))
 
-    names = _subtype_names()
-    for row in (CapitalEvent.objects.filter(user=user, date__year=year, date__month=month, exclude_from_budget=False)
-                .values('category', 'subtype').annotate(total=Sum('base_amount'))):
-        key = normalize_category(capital_report_name(row['category'], row['subtype'], names))
-        spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
+    names = None
+    spend: dict = {}
+    for category, subtype, total in expenses.union(events, all=True):
+        if subtype:   # a capital event: reported under its chosen category, else its subtype's name
+            names = names or _subtype_names()
+            category = capital_report_name(category, subtype, names)
+        key = normalize_category(category)
+        spend[key] = spend.get(key, ZERO) + (total or ZERO)
 
     return spend, sum(spend.values(), ZERO)
 
@@ -99,3 +106,47 @@ def bulk_monthly_spend(year: int, month: int) -> dict:
         key = (row['user_id'], normalize_category(capital_report_name(row['category'], row['subtype'], names)))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
     return spend
+
+
+# --- Month maths for the Budget page / API (pure functions, unit-tested) ---------------------
+
+PAST, CURRENT, FUTURE = 'past', 'current', 'future'
+
+
+def month_phase(month_start_date, today) -> str:
+    """'past' | 'current' | 'future' for a month (its 1st) relative to today."""
+    this_month = today.replace(day=1)
+    if month_start_date < this_month:
+        return PAST
+    return CURRENT if month_start_date == this_month else FUTURE
+
+
+def days_in_month(month_start_date) -> int:
+    import calendar
+    return calendar.monthrange(month_start_date.year, month_start_date.month)[1]
+
+
+def days_left(month_start_date, today) -> int:
+    """Days left in the month INCLUDING today (current month); whole month for a future month;
+    0 for a past month."""
+    phase = month_phase(month_start_date, today)
+    if phase == PAST:
+        return 0
+    if phase == FUTURE:
+        return days_in_month(month_start_date)
+    return days_in_month(month_start_date) - today.day + 1
+
+
+def expected_pace(total_limit, day: int, num_days: int) -> Decimal:
+    """What should have been spent by day `day` of `num_days`: total limit x day / num_days."""
+    if not has_limit(total_limit) or num_days <= 0:
+        return ZERO
+    return (Decimal(str(total_limit)) * day / num_days).quantize(Decimal('0.01'))
+
+
+def safe_to_spend_per_day(remaining, left_days: int) -> Decimal:
+    """Remaining budget / days left (incl. today). Never negative; 0 when nothing is left."""
+    remaining = Decimal(str(remaining or 0))
+    if remaining <= 0 or left_days <= 0:
+        return ZERO
+    return (remaining / left_days).quantize(Decimal('0.01'))

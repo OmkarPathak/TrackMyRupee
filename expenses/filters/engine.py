@@ -156,10 +156,11 @@ def apply_filter_config(
                 name_field = 'description'
             prefix = '-' if sort_by == 'name_desc' else ''
             queryset = queryset.order_by(f'{prefix}{name_field}', f'{prefix}id')
-        elif sort_by == 'limit_desc':
-            queryset = queryset.order_by(F('limit').desc(nulls_last=True), 'name', 'id')
-        elif sort_by == 'limit_asc':
-            queryset = queryset.order_by(F('limit').asc(nulls_last=True), 'name', 'id')
+        elif sort_by in ('limit_desc', 'limit_asc'):
+            from expenses.budget_resolver import annotate_current_limit
+            queryset = annotate_current_limit(queryset)
+            limit_order = F('cur_limit').desc(nulls_last=True) if sort_by == 'limit_desc' else F('cur_limit').asc(nulls_last=True)
+            queryset = queryset.order_by(limit_order, 'name', 'id')
         elif sort_by == 'date_desc':
             try:
                 queryset.model._meta.get_field('date')

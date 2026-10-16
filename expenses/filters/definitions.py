@@ -819,11 +819,13 @@ GOAL_DETAIL_FILTERS = FilterSetConfig(
 def filter_category_budget_status(queryset: QuerySet, values: List[str]) -> QuerySet:
     if not values:
         return queryset
+    from expenses.budget_resolver import annotate_current_limit
+
     val = values[0] if isinstance(values, list) else values
     if val == "budgeted":
-        return queryset.filter(limit__isnull=False, limit__gt=0)
+        return annotate_current_limit(queryset).filter(cur_limit__isnull=False, cur_limit__gt=0)
     elif val == "unbudgeted":
-        return queryset.filter(Q(limit__isnull=True) | Q(limit=0))
+        return annotate_current_limit(queryset).filter(Q(cur_limit__isnull=True) | Q(cur_limit=0))
     return queryset
 
 

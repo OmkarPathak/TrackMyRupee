@@ -6,6 +6,7 @@ from .all_transactions import *
 from .alternatives import *
 from .auth import *
 from .capital_events import *
+from .budgets_api import budgets_dismiss_suggestion, budgets_page, budgets_rebalance, budgets_reset, budgets_set_limit
 from .categories import *
 from .composer import *
 from .dashboard import *

@@ -67,8 +67,8 @@
                                         </div>
                                     </td>
                                     <td class="text-end tmr-amount">
-                                        {% if category.limit %}
-                                            {{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}
+                                        {% if category.cur_limit %}
+                                            {{ currency_symbol }}{{ category.cur_limit|floatformat:2|translate_digits }}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
@@ -85,7 +85,7 @@
                                                             data-url="{% url 'category-edit' category.uuid %}"
                                                             data-name="{{ category.name }}"
                                                             data-icon="{{ category.icon }}"
-                                                            data-limit="{{ category.limit|default_if_none:'' }}">
+                                                            data-limit="{{ category.cur_limit|default_if_none:'' }}">
                                                         <i class="bi bi-pencil-square text-primary"></i>
                                                         <span>{% trans "Edit" %}</span>
                                                     </button>
@@ -141,8 +141,8 @@
 
                                 <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
                                     <div class="fw-bold text-body-emphasis mb-1" style="font-size: 0.95rem; line-height: 1.2;">
-                                        {% if category.limit %}
-                                            {{ currency_symbol }}{{ category.limit|floatformat:2|translate_digits }}
+                                        {% if category.cur_limit %}
+                                            {{ currency_symbol }}{{ category.cur_limit|floatformat:2|translate_digits }}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
@@ -161,7 +161,7 @@
                                                     data-url="{% url 'category-edit' category.uuid %}"
                                                     data-name="{{ category.name }}"
                                                     data-icon="{{ category.icon }}"
-                                                    data-limit="{{ category.limit|default_if_none:'' }}">
+                                                    data-limit="{{ category.cur_limit|default_if_none:'' }}">
                                                 <i class="bi bi-pencil-square text-primary"></i>
                                                 <span>{% trans "Edit" %}</span>
                                             </button>

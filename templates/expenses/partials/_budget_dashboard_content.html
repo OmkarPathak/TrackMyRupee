@@ -1,517 +1,300 @@
-{% load i18n digit_filters %}
+{% load i18n digit_filters %}{% with cs=currency_symbol %}
+<div id="budget-shell" class="bdx fade-in pb-4"
+     data-url="{{ request.get_full_path }}"
+     data-month="{{ page.month }}"
+     data-month-label="{{ month_start|date:'M Y'|translate_digits }}"
+     data-phase="{{ page.phase }}"
+     data-every-month="{% if every_month_allowed %}1{% else %}0{% endif %}"
+     data-collapsed="1"
+     aria-busy="false">
 
-<div id="budget-shell" class="fade-in pb-4">
-    <!-- Header Controls -->
-    <!-- Header Controls -->
-    <div class="d-flex flex-row justify-content-between align-items-center mb-3 gap-2">
+    <!-- Header: title, month picker, sort, + New budget -->
+    <header class="bdx-header">
         <div class="d-flex align-items-center gap-2">
-            <h1 class="h3 mb-0 fw-bold text-body">{% trans "Budget" %}</h1>
-            <button class="info-hint" 
-                    data-bs-toggle="collapse" 
-                    data-bs-target="#guideBudgets" 
-                    aria-expanded="false" 
-                    aria-label="{% trans 'How it works' %}"
-                    title="{% trans 'How it works' %}">
+            <h1 class="bdx-title">{% trans "Budget" %}</h1>
+            <button class="info-hint" data-bs-toggle="collapse" data-bs-target="#guideBudgets" aria-expanded="false"
+                    aria-label="{% trans 'How it works' %}" title="{% trans 'How it works' %}">
                 <i class="bi bi-info-circle" aria-hidden="true"></i>
             </button>
         </div>
-        
-        <div class="d-flex align-items-center gap-2">
-            <!-- Mobile Filter Toggle Button (opens Mobile Filter Drawer on < 768px) -->
-            <button class="filter-toggle-btn position-relative d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#budgetFilters" aria-expanded="false" aria-controls="budgetFilters" aria-label="{% trans 'Toggle Filters' %}" title="{% trans 'Toggle Filters' %}">
-                <i class="bi bi-funnel" aria-hidden="true"></i>
-            </button>
-
-            <!-- Desktop Header Filter Form (Visible on desktop >= 768px) -->
-            <form method="get" id="desktopBudgetFilterForm" class="d-none d-md-flex align-items-center gap-2 flex-nowrap">
-                <div class="budget-select-wrapper">
-                    <select name="sort" 
-                            aria-label="{% trans 'Sort budgets' %}"
-                            class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
-                            style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
-                            hx-get="{% url 'budget' %}" 
-                            hx-target="#budget-shell" 
-                            hx-swap="outerHTML show:none" 
-                            hx-push-url="true" 
-                            hx-indicator="#global-progress-bar"
-                            hx-trigger="change"
-                            hx-include="#desktopBudgetFilterForm select">
-                        <option value="urgent" {% if current_sort == 'urgent' %}selected{% endif %}>{% trans "Sort: urgent" %}</option>
-                        <option value="spent" {% if current_sort == 'spent' %}selected{% endif %}>{% trans "Sort: spent" %}</option>
-                        <option value="limit" {% if current_sort == 'limit' %}selected{% endif %}>{% trans "Sort: limit" %}</option>
-                        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>{% trans "Sort: name" %}</option>
-                    </select>
-                </div>
-                <div class="budget-select-wrapper">
-                    <select name="month" 
-                            aria-label="{% trans 'Filter by month' %}"
-                            class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
-                            style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
-                            hx-get="{% url 'budget' %}" 
-                            hx-target="#budget-shell" 
-                            hx-swap="outerHTML show:none" 
-                            hx-push-url="true" 
-                            hx-indicator="#global-progress-bar"
-                            hx-trigger="change"
-                            hx-include="#desktopBudgetFilterForm select">
-                        {% for m_num, m_name in months %}
-                            <option value="{{ m_num }}" {% if m_num == current_month %}selected{% endif %}>
-                                {{ m_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="budget-select-wrapper">
-                    <select name="year" 
-                            aria-label="{% trans 'Filter by year' %}"
-                            class="form-select bg-body rounded-3 shadow-none fw-medium text-secondary px-3"
-                            style="font-size: 0.85rem; height: 36px; border-color: var(--bs-border-color) !important;"
-                            hx-get="{% url 'budget' %}" 
-                            hx-target="#budget-shell" 
-                            hx-swap="outerHTML show:none" 
-                            hx-push-url="true" 
-                            hx-indicator="#global-progress-bar"
-                            hx-trigger="change"
-                            hx-include="#desktopBudgetFilterForm select">
-                        {% for y in years %}
-                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>
-                                {{ y|translate_digits }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Mobile Filter Form Collapse Target (Borrowed by Mobile Filter Drawer on mobile) -->
-    <div class="collapse d-md-none" id="budgetFilters">
-        <form method="get" id="budgetFilterForm" class="mb-4 bg-body p-4 rounded-4 border" style="border-color: rgba(0,0,0,0.08) !important;" hx-get="{% url 'budget' %}" hx-target="#budget-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-            <div class="row g-4">
-                <div class="col-12">
-                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Sort By" %}</label>
-                    <select name="sort" class="form-select">
-                        <option value="urgent" {% if current_sort == 'urgent' %}selected{% endif %}>{% trans "Sort: urgent" %}</option>
-                        <option value="spent" {% if current_sort == 'spent' %}selected{% endif %}>{% trans "Sort: spent" %}</option>
-                        <option value="limit" {% if current_sort == 'limit' %}selected{% endif %}>{% trans "Sort: limit" %}</option>
-                        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>{% trans "Sort: name" %}</option>
-                    </select>
-                </div>
-                <div class="col-12">
-                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Month" %}</label>
-                    <select name="month" class="form-select">
-                        {% for m_num, m_name in months %}
-                            <option value="{{ m_num }}" {% if m_num == current_month %}selected{% endif %}>
-                                {{ m_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12">
-                    <label class="form-label small text-muted fw-semibold mb-2">{% trans "Year" %}</label>
-                    <select name="year" class="form-select">
-                        {% for y in years %}
-                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>
-                                {{ y|translate_digits }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12 d-flex justify-content-end mt-4">
-                    <button type="submit" class="btn btn-primary btn-sm px-4 me-2">{% trans "Apply" %}</button>
-                    <button type="button" class="btn btn-outline-secondary fw-medium btn-sm px-4" hx-get="{% url 'budget' %}" hx-params="none" hx-target="#budget-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">{% trans "Reset" %}</button>
-                </div>
+        <div class="bdx-controls">
+            <div class="bdx-month" role="group" aria-label="{% trans 'Choose month' %}">
+                <a class="bdx-iconbtn" href="{% url 'budget' %}?month={{ prev_month.month }}&amp;year={{ prev_month.year }}&amp;sort={{ current_sort }}"
+                   hx-get="{% url 'budget' %}?month={{ prev_month.month }}&amp;year={{ prev_month.year }}&amp;sort={{ current_sort }}"
+                   hx-target="#budget-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#budget-shell"
+                   aria-label="{% trans 'Previous month' %}" title="{% trans 'Previous month' %}">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </a>
+                <select id="bdx-month-select" class="bdx-pill bdx-select" aria-label="{% trans 'Month' %}"
+                        hx-get="{% url 'budget' %}" hx-trigger="change" hx-target="#budget-shell" hx-swap="outerHTML show:none"
+                        hx-push-url="true" hx-indicator="#budget-shell"
+                        hx-vals="js:{month: event.target.selectedOptions[0].dataset.month, year: event.target.selectedOptions[0].dataset.year, sort: '{{ current_sort }}'}">
+                    {% for opt in month_options %}
+                        <option value="{{ opt.value }}" data-month="{{ opt.month }}" data-year="{{ opt.year }}" {% if opt.selected %}selected{% endif %}>{{ opt.label|translate_digits }}</option>
+                    {% endfor %}
+                </select>
+                <a class="bdx-iconbtn" href="{% url 'budget' %}?month={{ next_month.month }}&amp;year={{ next_month.year }}&amp;sort={{ current_sort }}"
+                   hx-get="{% url 'budget' %}?month={{ next_month.month }}&amp;year={{ next_month.year }}&amp;sort={{ current_sort }}"
+                   hx-target="#budget-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#budget-shell"
+                   aria-label="{% trans 'Next month' %}" title="{% trans 'Next month' %}">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </a>
             </div>
-        </form>
-    </div>
+            <select class="bdx-pill bdx-select bdx-sort" aria-label="{% trans 'Sort budgets' %}" name="sort"
+                    hx-get="{% url 'budget' %}?month={{ current_month }}&amp;year={{ current_year }}" hx-trigger="change"
+                    hx-target="#budget-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#budget-shell">
+                <option value="urgent" {% if current_sort == 'urgent' %}selected{% endif %}>{% trans "Sort: urgent" %}</option>
+                <option value="spent" {% if current_sort == 'spent' %}selected{% endif %}>{% trans "Sort: spent" %}</option>
+                <option value="limit" {% if current_sort == 'limit' %}selected{% endif %}>{% trans "Sort: limit" %}</option>
+                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>{% trans "Sort: name" %}</option>
+            </select>
+            {% if can_add_category %}
+                <a class="bdx-btn bdx-btn--primary" href="{% url 'category-create' %}?next={% url 'budget' %}">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans "New budget" %}
+                </a>
+            {% else %}
+                <a class="bdx-btn bdx-btn--primary" href="{% url 'pricing' %}">
+                    <i class="bi bi-lock-fill" aria-hidden="true"></i> {% trans "Upgrade for more" %}
+                </a>
+            {% endif %}
+        </div>
+    </header>
 
     {% include 'partials/guide_budgets.html' %}
 
-    {% if budget_data %}
-        <!-- Overall Hero Summary Card -->
-        <div class="card rounded-4 mb-3 bg-body hero-budget-card">
-            <div class="card-body p-3 p-sm-4">
-                <!-- Header text label -->
-                <div class="mb-2">
-                    <span class="text-uppercase fw-bold text-muted small tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.05em;">{% trans "TOTAL BUDGET GOAL" %}</span>
-                </div>
+    <!-- Loading skeleton (shown while a month is being fetched) -->
+    <div class="bdx-skel" aria-hidden="true">
+        <div class="bdx-skel-block" style="height: 220px"></div>
+        <div class="bdx-skel-block" style="height: 36px; width: 60%"></div>
+        <div class="bdx-skel-block" style="height: 140px"></div>
+    </div>
 
-                <!-- Main Amount Display -->
-                <div class="d-flex align-items-center mb-3 flex-wrap gap-2">
-                    <span class="text-body-emphasis" style="font-size: clamp(2.2rem, 8vw, 3rem); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 800;">
-                        {{ currency_symbol }}{{ budgeted_spent|compact_amount:currency_symbol|translate_digits }}
-                    </span>
-                    <span class="fs-5 text-muted fw-normal">
-                        / {{ currency_symbol }}{{ total_budget|compact_amount:currency_symbol|translate_digits }}
-                    </span>
-
-                    {% if spent_mom_pct is not None %}
-                        <span class="badge rounded-pill {% if spent_mom_pct > 0 %}bg-danger-subtle text-danger{% else %}bg-success-subtle text-success{% endif %} px-2.5 py-1 ms-1 small fw-semibold d-inline-flex align-items-center gap-1">
-                            <i class="bi bi-arrow-{% if spent_mom_pct > 0 %}up{% else %}down{% endif %}"></i>
-                            {{ spent_mom_pct_abs|floatformat:1|translate_digits }}%
-                        </span>
-                    {% endif %}
-                </div>
-
-                <!-- Hero Progress Bar -->
-                <div class="progress mb-2" style="height: 10px; border-radius: 6px; background-color: var(--bs-secondary-bg);">
-                    <div class="progress-bar {% if actual_total_percentage > 100 %}bg-danger{% elif actual_total_percentage >= warning_percent %}bg-warning{% else %}bg-success{% endif %}" 
-                          role="progressbar" 
-                          aria-label="{% trans 'Total budget used' %}"
-                          style="width: {{ total_percentage }}%; border-radius: 6px;" 
-                          aria-valuenow="{{ total_percentage }}" 
-                          aria-valuemin="0" 
-                          aria-valuemax="100">
-                    </div>
-                </div>
-
-                <!-- Sub-bar text info: % used on left, remaining/over on right (Properly padded!) -->
-                <div class="d-flex justify-content-between align-items-center mb-2 small">
-                    <span class="text-muted me-2">{% blocktrans with percent=actual_total_percentage|floatformat:1|translate_digits %}{{ percent }}% used{% endblocktrans %}</span>
-                    <span class="fw-bold text-body">
-                        {% if budgeted_spent > total_budget %}
-                            {% blocktrans with amount=over_budget_amount|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}Over by {{ currency }}{{ amount }}{% endblocktrans %}
-                        {% else %}
-                            {% blocktrans with amount=total_remaining|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}{{ currency }}{{ amount }} remaining{% endblocktrans %}
-                        {% endif %}
-                    </span>
-                </div>
-
-                {% if unbudgeted_spent > 0 %}
-                <div class="text-muted small mb-2" style="font-size: 0.8rem;">
-                    {% blocktrans with amount=unbudgeted_spent|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}Not in budget: {{ currency }}{{ amount }}{% endblocktrans %}
-                </div>
-                {% endif %}
-
-                {% if pace_state and total_budget > 0 and pace_state != 'completed' %}
-                <div class="d-flex align-items-center gap-1 small mb-3 text-secondary" style="font-size: 0.8rem;">
-                    <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>
-                    {% if pace_state == 'ahead' %}
-                        <span class="text-warning-emphasis">
-                            {% blocktrans with amount=pace_delta_abs|compact_amount:currency_symbol|translate_digits currency=currency_symbol day=days_elapsed|translate_digits %}Pacing: {{ currency }}{{ amount }} over expected pace for day {{ day }}{% endblocktrans %}
-                        </span>
-                    {% elif pace_state == 'under' %}
-                        <span class="text-success">
-                            {% blocktrans with amount=pace_delta_abs|compact_amount:currency_symbol|translate_digits currency=currency_symbol day=days_elapsed|translate_digits %}Pacing: {{ currency }}{{ amount }} under expected pace for day {{ day }}{% endblocktrans %}
-                        </span>
-                    {% else %}
-                        <span class="text-muted">
-                            {% blocktrans with day=days_elapsed|translate_digits %}Pacing: On track for day {{ day }}{% endblocktrans %}
-                        </span>
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <!-- Status Badges Pills -->
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span class="status-pill pill-over">
-                        {% blocktrans count count=over_budget_count %}{{ count }} over budget{% plural %}{{ count }} over budget{% endblocktrans %}
-                    </span>
-                    <span class="status-pill pill-limit">
-                        {% blocktrans count count=at_limit_count %}{{ count }} at limit{% plural %}{{ count }} at limit{% endblocktrans %}
-                    </span>
-                    <span class="status-pill pill-ontrack">
-                        {% blocktrans count count=on_track_count %}{{ count }} on track{% plural %}{{ count }} on track{% endblocktrans %}
-                    </span>
-                    <span class="status-pill pill-nolimit">
-                        {% blocktrans count count=no_limit_count %}{{ count }} no limit set{% plural %}{{ count }} no limit set{% endblocktrans %}
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 1: Needs Attention -->
-        {% if needs_attention %}
-        <div class="mb-4">
-            <p class="fw-bold mb-3 text-body">{% trans "Needs attention" %}</p>
-            <div class="row g-3">
-                {% for data in needs_attention %}
-                <div class="col-12 col-md-6">
-                    <div class="card rounded-4 h-100 category-card card-status-{{ data.status }}">
-                        <div class="card-body p-3 p-sm-4 d-flex flex-column justify-content-between">
-                            <div>
-                                <!-- Header: Icon, Category Name, Edit Pencil & Percentage -->
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <a href="{% url 'expense-list' %}?category={{ data.category.name|urlencode }}&month={{ current_month }}&year={{ current_year }}" 
-                                           class="d-flex align-items-center gap-2 text-decoration-none category-title-link">
-                                            <i class="bi {{ data.category.icon }} text-body"></i>
-                                            <span class="text-body">{{ data.category.name }}</span>
-                                        </a>
-                                        <a href="{% url 'category-edit' data.category.uuid %}?next={{ request.path }}" 
-                                           class="text-muted small text-decoration-none opacity-50 opacity-100-hover ms-1" 
-                                           title="{% trans 'Edit Category' %}"
-                                           aria-label="{% trans 'Edit Category' %}: {{ data.category.name }}">
-                                            <i class="bi bi-pencil-square" style="font-size: 0.85rem;" aria-hidden="true"></i>
-                                        </a>
-                                    </div>
-                                    <span class="fw-bold fs-6 cat-pct">
-                                        {{ data.actual_percentage|floatformat:0|translate_digits }}%
-                                    </span>
-                                </div>
-
-                                <!-- Progress Line -->
-                                <div class="progress my-2" style="height: 8px; border-radius: 4px; background-color: var(--bs-secondary-bg);">
-                                    <div class="progress-bar cat-bar" 
-                                         role="progressbar" 
-                                         aria-label="{{ data.category.name }}"
-                                         style="width: {{ data.percentage }}%; border-radius: 4px;" 
-                                         aria-valuenow="{{ data.percentage }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Footer: Spent text & Over/Remaining text -->
-                            <div class="d-flex justify-content-between align-items-center small mt-1">
-                                <span class="text-muted me-2">
-                                    {% if data.spent == data.limit %}
-                                        {% trans "Limit reached" %}
-                                    {% else %}
-                                        {% blocktrans with spent=data.spent|compact_amount:currency_symbol|translate_digits limit=data.limit|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}Spent {{ currency }}{{ spent }} of {{ currency }}{{ limit }}{% endblocktrans %}
-                                    {% endif %}
-                                </span>
-                                <span class="text-body">
-                                    {% if data.spent > data.limit %}
-                                        +{{ currency_symbol }}{{ data.over_budget|compact_amount:currency_symbol|translate_digits }} over
-                                    {% else %}
-                                        {{ currency_symbol }}{{ data.remaining|compact_amount:currency_symbol|translate_digits }} left
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Section 2: On Track -->
-        {% if on_track %}
-        <div class="mb-4">
-            <p class="fw-bold mb-3 text-body">{% trans "On track" %}</p>
-            <div class="row g-3">
-                {% for data in on_track %}
-                <div class="col-12 col-md-6">
-                    <div class="card rounded-4 h-100 category-card card-status-ontrack">
-                        <div class="card-body p-3 p-sm-4 d-flex flex-column justify-content-between">
-                            <div>
-                                <!-- Header: Icon, Category Name, Edit Pencil & Percentage -->
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <a href="{% url 'expense-list' %}?category={{ data.category.name|urlencode }}&month={{ current_month }}&year={{ current_year }}" 
-                                           class="d-flex align-items-center gap-2 text-decoration-none category-title-link">
-                                            <i class="bi {{ data.category.icon }} fs-5 cat-icon"></i>
-                                            <span class="text-body">{{ data.category.name }}</span>
-                                        </a>
-                                        <a href="{% url 'category-edit' data.category.uuid %}?next={{ request.path }}" 
-                                           class="text-muted small text-decoration-none opacity-50 opacity-100-hover ms-1" 
-                                           title="{% trans 'Edit Category' %}"
-                                           aria-label="{% trans 'Edit Category' %}: {{ data.category.name }}">
-                                            <i class="bi bi-pencil-square" style="font-size: 0.85rem;" aria-hidden="true"></i>
-                                        </a>
-                                    </div>
-                                    <span class="fw-bold fs-6 text-success">
-                                        {{ data.actual_percentage|floatformat:0|translate_digits }}%
-                                    </span>
-                                </div>
-
-                                <!-- Progress Line -->
-                                <div class="progress my-2" style="height: 8px; border-radius: 4px; background-color: var(--bs-secondary-bg);">
-                                    <div class="progress-bar bg-success" 
-                                         role="progressbar" 
-                                         aria-label="{{ data.category.name }}"
-                                         style="width: {{ data.percentage }}%; border-radius: 4px;" 
-                                         aria-valuenow="{{ data.percentage }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Footer: Spent text & Left text -->
-                            <div class="d-flex justify-content-between align-items-center small mt-1">
-                                <span class="text-muted me-2">
-                                    {% if data.spent > 0 %}
-                                        {% blocktrans with spent=data.spent|compact_amount:currency_symbol|translate_digits limit=data.limit|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}Spent {{ currency }}{{ spent }} of {{ currency }}{{ limit }}{% endblocktrans %}
-                                    {% else %}
-                                        {% blocktrans with limit=data.limit|compact_amount:currency_symbol|translate_digits currency=currency_symbol %}Spent {{ currency }}0 of {{ currency }}{{ limit }}{% endblocktrans %}
-                                    {% endif %}
-                                </span>
-                                <span class="text-muted fw-semibold">
-                                    {% if data.spent == 0 %}
-                                        {{ currency_symbol }}{{ data.limit|compact_amount:currency_symbol|translate_digits }} left
-                                    {% else %}
-                                        {% blocktrans with left_pct=data.left_percentage|floatformat:0|translate_digits %}{{ left_pct }}% left{% endblocktrans %}
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Section 3: No Limit Set -->
-        {% if no_limit %}
-        <div class="mb-4">
-            <div class="card rounded-4 overflow-hidden">
-                <div class="card-header bg-body border-0 p-3 p-sm-4 d-flex justify-content-between align-items-center cursor-pointer no-limit-header" 
-                     data-bs-toggle="collapse" 
-                     data-bs-target="#noLimitCollapse" 
-                     aria-expanded="true"
-                     role="button">
-                    <p class="fw-bold mb-0 text-body">
-                        {% trans "No limit set" %}
-                        <span class="text-muted fw-normal fs-6 ms-1">· {{ no_limit_count }} {% trans "categories" %}</span>
-                    </p>
-                    <button class="btn btn-sm rounded-circle p-1 text-muted border-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" type="button" aria-label="{% trans 'Toggle no limit categories' %}" aria-hidden="true" tabindex="-1">
-                        <i class="bi bi-chevron-down collapse-icon" aria-hidden="true"></i>
-                    </button>
-                </div>
-                <div class="collapse show" id="noLimitCollapse">
-                    <div class="card-body p-0 border-top border-secondary-subtle">
-                        <div class="list-group list-group-flush rounded-bottom-4">
-                            {% for data in no_limit %}
-                            <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-3 px-sm-4 py-3 border-secondary-subtle">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="bi {{ data.category.icon }} fs-5 text-muted"></i>
-                                    <span class="fw-semibold text-body">{{ data.category.name }}</span>
-                                </div>
-                                <a href="{% url 'category-edit' data.category.uuid %}?next={{ request.path }}" class="btn btn-sm btn-link text-primary text-decoration-none fw-semibold">
-                                    {% trans "Set limit" %}
-                                </a>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
+    <div class="bdx-body">
+    {% if not page.categories %}
+        <!-- Empty state: no categories -->
+        <section class="bdx-card bdx-empty">
+            <i class="bi bi-piggy-bank" aria-hidden="true"></i>
+            <h2>{% trans "No budgets yet" %}</h2>
+            <p>{% trans "Create a category and give it a monthly limit to see how much you can safely spend each day." %}</p>
+            {% if can_add_category %}
+                <a class="bdx-btn bdx-btn--primary" href="{% url 'category-create' %}?next={% url 'budget' %}">{% trans "Create your first budget" %}</a>
+            {% endif %}
+        </section>
     {% else %}
-        <!-- Empty State -->
-        <div class="card rounded-4 text-center py-5 my-4 bg-body">
-            <div class="card-body p-4">
-                <i class="bi bi-inbox text-muted display-4"></i>
-                <div class="h5 fw-bold text-body mt-3">{% trans "No categories found" %}</div>
-                <p class="text-muted mb-4">{% trans "Start by adding some categories to your settings." %}</p>
-                <a href="{% url 'category-create' %}" class="btn btn-primary rounded-pill px-4">
-                    <i class="bi bi-plus-lg me-1"></i> {% trans "Add Category" %}
-                </a>
+
+        <!-- Hero card -->
+        {% if not has_any_limit %}
+        <section class="bdx-card bdx-empty">
+            <i class="bi bi-sliders" aria-hidden="true"></i>
+            <h2>{% blocktrans with month=month_start|date:'F Y'|translate_digits %}No limits set for {{ month }}{% endblocktrans %}</h2>
+            <p>{% trans "Set a limit for each category and we will show your safe-to-spend amount for today." %}</p>
+            <button type="button" class="bdx-btn bdx-btn--primary" data-bdx-bulk>{% trans "Set limits" %}</button>
+        </section>
+        {% else %}
+        <section class="bdx-card bdx-hero" aria-labelledby="bdx-hero-label">
+            <div class="bdx-hero-main">
+                {% if page.phase == 'current' %}
+                    <p id="bdx-hero-label" class="bdx-eyebrow">{% trans "Safe to spend today" %}</p>
+                    <p class="bdx-big">
+                        <span class="bdx-amount">{{ cs }}{{ page.safe_to_spend_per_day|ind_comma:cs|translate_digits }}</span>
+                        <span class="bdx-big-unit">{% blocktrans with days=page.days_left|translate_digits %}per day · {{ days }} days to go{% endblocktrans %}</span>
+                    </p>
+                    {% if page.state == 'over_budget' %}
+                        <p class="bdx-note bdx-note--over"><i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                            {% blocktrans with amount=page.over_by|ind_comma:cs|translate_digits %}Over budget by {{ cs }}{{ amount }}. Nothing is left to spend safely this month.{% endblocktrans %}</p>
+                    {% else %}
+                        <p class="bdx-note">
+                            {% if page.pace_state == 'under' %}
+                                {% blocktrans with amount=page.pace_delta|ind_comma:cs|translate_digits day=today_day|translate_digits free=page.remaining|ind_comma:cs|translate_digits total=page.total|ind_comma:cs|translate_digits %}You're <strong class="bdx-good">{{ cs }}{{ amount }} under</strong> expected pace for day {{ day }}. {{ cs }}{{ free }} of your {{ cs }}{{ total }} budget is still free.{% endblocktrans %}
+                            {% elif page.pace_state == 'ahead' %}
+                                {% blocktrans with amount=pace_abs|ind_comma:cs|translate_digits day=today_day|translate_digits free=page.remaining|ind_comma:cs|translate_digits total=page.total|ind_comma:cs|translate_digits %}You're <strong class="bdx-warn">{{ cs }}{{ amount }} over</strong> expected pace for day {{ day }}. {{ cs }}{{ free }} of your {{ cs }}{{ total }} budget is still free.{% endblocktrans %}
+                            {% else %}
+                                {% blocktrans with day=today_day|translate_digits free=page.remaining|ind_comma:cs|translate_digits total=page.total|ind_comma:cs|translate_digits %}You're on pace for day {{ day }}. {{ cs }}{{ free }} of your {{ cs }}{{ total }} budget is still free.{% endblocktrans %}
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                {% elif page.phase == 'past' %}
+                    <p id="bdx-hero-label" class="bdx-eyebrow">{% trans "Month summary" %}</p>
+                    <p class="bdx-big">
+                        <span class="bdx-amount">{{ cs }}{{ page.spent|ind_comma:cs|translate_digits }}</span>
+                        <span class="bdx-big-unit">{% blocktrans with total=page.total|ind_comma:cs|translate_digits %}spent of {{ cs }}{{ total }}{% endblocktrans %}</span>
+                    </p>
+                    <p class="bdx-note {% if page.state == 'over_budget' %}bdx-note--over{% endif %}">
+                        {% if page.state == 'over_budget' %}<i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                            {% blocktrans with amount=page.over_by|ind_comma:cs|translate_digits %}You went over budget by {{ cs }}{{ amount }}.{% endblocktrans %}
+                        {% else %}<i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                            {% blocktrans with amount=page.remaining|ind_comma:cs|translate_digits %}You stayed within budget with {{ cs }}{{ amount }} to spare.{% endblocktrans %}
+                        {% endif %}
+                    </p>
+                {% else %}
+                    <p id="bdx-hero-label" class="bdx-eyebrow">{% trans "Planned budget" %}</p>
+                    <p class="bdx-big">
+                        <span class="bdx-amount">{{ cs }}{{ page.total|ind_comma:cs|translate_digits }}</span>
+                        <span class="bdx-big-unit">{% trans "planned for this month" %}</span>
+                    </p>
+                    <p class="bdx-note">{% trans "Spending for this month hasn't started yet. Adjust limits any time before it begins." %}</p>
+                {% endif %}
+
+                {% if page.phase != 'future' %}
+                <div class="bdx-pace" role="img"
+                     aria-label="{% blocktrans with pct=page.percent|default:0|floatformat:0|translate_digits %}{{ pct }}% of the budget used{% endblocktrans %}">
+                    <div class="bdx-pace-track">
+                        <div class="bdx-pace-fill {% if page.state == 'over_budget' %}is-over{% endif %}" style="width: {% if page.percent > 100 %}100{% else %}{{ page.percent|default:0|stringformat:'.1f' }}{% endif %}%"></div>
+                        {% if page.phase == 'current' and page.expected_pace is not None %}
+                            <div class="bdx-pace-marker" style="left: {{ pace_marker_pct|stringformat:'.1f' }}%" title="{% trans 'Expected pace' %}"></div>
+                        {% endif %}
+                    </div>
+                    <div class="bdx-pace-legend">
+                        <span>{% blocktrans with spent=page.spent|ind_comma:cs|translate_digits pct=page.percent|default:0|floatformat:1|translate_digits %}{{ cs }}{{ spent }} spent · {{ pct }}%{% endblocktrans %}</span>
+                        {% if page.phase == 'current' %}<span class="bdx-pace-exp">{% blocktrans with amount=page.expected_pace|ind_comma:cs|translate_digits %}Expected pace · {{ cs }}{{ amount }}{% endblocktrans %}</span>{% endif %}
+                        <span>{{ cs }}{{ page.total|ind_comma:cs|translate_digits }}</span>
+                    </div>
+                </div>
+                {% if page.phase == 'current' and not page.spent and not page.unbudgeted_spent %}
+                    <p class="bdx-hint bdx-unbudgeted">{% trans "No spending recorded yet this month. Your full budget is available." %}</p>
+                {% endif %}
+                {% if page.unbudgeted_spent %}
+                    <p class="bdx-hint bdx-unbudgeted">{% blocktrans with amount=page.unbudgeted_spent|ind_comma:cs|translate_digits %}Not in budget: {{ cs }}{{ amount }}{% endblocktrans %}</p>
+                {% endif %}
+                {% endif %}
             </div>
-        </div>
+
+            {% if page.phase != 'future' %}
+            <div class="bdx-ring" role="img" aria-label="{% blocktrans with pct=page.percent|default:0|floatformat:0|translate_digits %}{{ pct }}% of budget used{% endblocktrans %}">
+                <svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" focusable="false">
+                    <circle cx="60" cy="60" r="52" class="bdx-ring-track"></circle>
+                    <circle cx="60" cy="60" r="52" class="bdx-ring-arc {% if page.state == 'over_budget' %}is-over{% endif %}" pathLength="100"
+                            stroke-dasharray="{% if page.percent > 100 %}100{% else %}{{ page.percent|default:0|stringformat:'.1f' }}{% endif %} 100"></circle>
+                </svg>
+                <div class="bdx-ring-label"><strong>{{ page.percent|default:0|floatformat:0|translate_digits }}%</strong><span>{% trans "of budget used" %}</span></div>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Status chips: icon + text so status is never colour alone -->
+        <ul class="bdx-chips" aria-label="{% trans 'Budget status summary' %}">
+            <li class="bdx-chip bdx-chip--over"><i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i><strong>{{ page.counts.over|translate_digits }}</strong> {% trans "over budget" %}</li>
+            <li class="bdx-chip bdx-chip--limit"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><strong>{{ page.counts.at_limit|translate_digits }}</strong> {% trans "at limit" %}</li>
+            <li class="bdx-chip bdx-chip--ok"><i class="bi bi-check-circle-fill" aria-hidden="true"></i><strong>{{ page.counts.on_track|translate_digits }}</strong> {% trans "on track" %}</li>
+            <li class="bdx-chip bdx-chip--none"><i class="bi bi-dash-circle" aria-hidden="true"></i><strong>{{ page.counts.no_limit|translate_digits }}</strong> {% trans "no limit set" %}</li>
+        </ul>
+        {% endif %}
+
+        <!-- Needs attention -->
+        {% if needs_attention %}
+        <section aria-labelledby="bdx-attn">
+            <h2 id="bdx-attn" class="bdx-h2">{% trans "Needs attention" %}</h2>
+            <div class="bdx-grid bdx-grid--2">
+                {% for c in needs_attention %}
+                <article class="bdx-card bdx-cat bdx-cat--{{ c.status }}" data-bdx-cat data-id="{{ c.id }}" data-name="{{ c.name }}"
+                         data-limit="{{ c.limit|default_if_none:'' }}" data-spent="{{ c.spent }}" data-source="{{ c.limit_source }}">
+                    <div class="bdx-cat-head">
+                        <span class="bdx-avatar" aria-hidden="true">{{ c.name|slice:":1"|upper }}</span>
+                        <h3 class="bdx-cat-name">{{ c.name }}</h3>
+                        <span class="bdx-badge bdx-badge--{{ c.status }}">
+                            {% if c.status == 'over' %}<i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>{% else %}<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>{% endif %}
+                            {% blocktrans with pct=c.percent|floatformat:0|translate_digits %}{{ pct }}% used{% endblocktrans %}
+                        </span>
+                    </div>
+                    <div class="bdx-bar" role="progressbar" aria-label="{{ c.name }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{% if c.percent > 100 %}100{% else %}{{ c.percent|floatformat:0 }}{% endif %}">
+                        <span class="bdx-bar-fill bdx-bar-fill--{{ c.status }}" style="width: {% if c.percent > 100 %}100{% else %}{{ c.percent|stringformat:'.1f' }}{% endif %}%"></span>
+                    </div>
+                    <div class="bdx-cat-foot">
+                        <span class="bdx-cat-meta" data-bdx-meta>
+                            {% if c.status == 'over' %}{% blocktrans with amount=c.over_by|ind_comma:cs|translate_digits %}Over by {{ cs }}{{ amount }}{% endblocktrans %}
+                            {% else %}{% blocktrans with amount=c.remaining|ind_comma:cs|translate_digits %}Limit reached · {{ cs }}{{ amount }} left{% endblocktrans %}{% endif %}
+                        </span>
+                        <button type="button" class="bdx-btn bdx-btn--dark" data-bdx-adjust data-scope="this_month"
+                                aria-label="{% blocktrans with name=c.name %}Adjust limit for {{ name }}{% endblocktrans %}">{% trans "Adjust limit" %}</button>
+                    </div>
+                    {% include 'expenses/partials/_budget_cat_flags.html' %}
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Smart suggestion: only when the history supports it -->
+        {% if suggestion %}
+        <aside class="bdx-suggest" role="note" aria-label="{% trans 'Budget suggestion' %}" data-bdx-suggestion data-key="{{ suggestion.key }}">
+            <i class="bi bi-lightbulb-fill" aria-hidden="true"></i>
+            <p>
+                <strong>{% trans "Smart move:" %}</strong>
+                {% blocktrans with donor=suggestion.donor_name needy=suggestion.needy_name months=suggestion.months|translate_digits untouched=suggestion.donor_untouched|ind_comma:cs|translate_digits amount=suggestion.amount|ind_comma:cs|translate_digits %}{{ donor }} has used under 10% of its limit for {{ months }} months ({{ cs }}{{ untouched }} untouched) while {{ needy }} has reached its limit. Move {{ cs }}{{ amount }} to {{ needy }} for this month?{% endblocktrans %}
+            </p>
+            <div class="bdx-suggest-actions">
+                <button type="button" class="bdx-btn bdx-btn--primary" data-bdx-suggest
+                        data-needy="{{ suggestion.needy_id }}" data-donor="{{ suggestion.donor_id }}" data-amount="{{ suggestion.amount }}">{% trans "Review suggestion" %}</button>
+                <button type="button" class="bdx-iconbtn" data-bdx-dismiss aria-label="{% trans 'Dismiss suggestion' %}" title="{% trans 'Dismiss' %}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- On track -->
+        {% if on_track %}
+        <section aria-labelledby="bdx-ontrack">
+            <div class="bdx-h2-row">
+                <h2 id="bdx-ontrack" class="bdx-h2">{% trans "On track" %}</h2>
+                <span class="bdx-hint">{% trans "Showing categories with activity first" %}</span>
+            </div>
+            <div class="bdx-grid bdx-grid--3">
+                {% for c in on_track %}
+                <article class="bdx-card bdx-cat bdx-cat--ontrack {% if not c.spent %}bdx-cat--untouched{% endif %}" data-bdx-cat data-id="{{ c.id }}"
+                         data-name="{{ c.name }}" data-limit="{{ c.limit|default_if_none:'' }}" data-spent="{{ c.spent }}" data-source="{{ c.limit_source }}">
+                    <div class="bdx-cat-head">
+                        <span class="bdx-avatar" aria-hidden="true">{{ c.name|slice:":1"|upper }}</span>
+                        <h3 class="bdx-cat-name">{{ c.name }}</h3>
+                        <span class="bdx-pct">{{ c.percent|floatformat:0|translate_digits }}%</span>
+                        <button type="button" class="bdx-iconbtn bdx-edit" data-bdx-edit data-scope="every_month"
+                                aria-label="{% blocktrans with name=c.name %}Edit limit for {{ name }}{% endblocktrans %}" title="{% trans 'Edit limit' %}">
+                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="bdx-bar" role="progressbar" aria-label="{{ c.name }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ c.percent|floatformat:0 }}">
+                        <span class="bdx-bar-fill bdx-bar-fill--ontrack" style="width: {{ c.percent|stringformat:'.1f' }}%"></span>
+                    </div>
+                    <div class="bdx-cat-foot">
+                        <span class="bdx-cat-meta" data-bdx-meta>{% blocktrans with spent=c.spent|ind_comma:cs|translate_digits limit=c.limit|ind_comma:cs|translate_digits %}{{ cs }}{{ spent }} of {{ cs }}{{ limit }}{% endblocktrans %}</span>
+                        <strong class="bdx-left" data-bdx-left>
+                            {% if c.spent %}{% blocktrans with amount=c.remaining|ind_comma:cs|translate_digits %}{{ cs }}{{ amount }} left{% endblocktrans %}{% else %}{% blocktrans with amount=c.remaining|ind_comma:cs|translate_digits %}{{ cs }}{{ amount }} free{% endblocktrans %}{% endif %}
+                        </strong>
+                    </div>
+                    {% include 'expenses/partials/_budget_cat_flags.html' %}
+                </article>
+                {% endfor %}
+            </div>
+            {% if untouched_count %}
+            <button type="button" class="bdx-btn bdx-btn--ghost bdx-untouched-toggle" data-bdx-untouched aria-expanded="false"
+                    data-show="{% blocktrans with n=untouched_count|translate_digits %}Show {{ n }} more untouched{% endblocktrans %}"
+                    data-hide="{% trans 'Hide untouched' %}">
+                {% blocktrans with n=untouched_count|translate_digits %}Show {{ n }} more untouched{% endblocktrans %}
+            </button>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- No limit set -->
+        {% if no_limit and has_any_limit %}
+        <section class="bdx-nolimit" aria-labelledby="bdx-nolimit">
+            <div class="bdx-nolimit-head">
+                <h2 id="bdx-nolimit" class="bdx-h2">{% trans "No limit set" %} <span class="bdx-hint">· {% blocktrans with n=no_limit|length|translate_digits %}{{ n }} categories spend freely{% endblocktrans %}</span></h2>
+                <button type="button" class="bdx-btn bdx-btn--primary" data-bdx-bulk>{% trans "Set all limits" %}</button>
+            </div>
+            <div class="bdx-chiprow">
+                {% for c in no_limit %}
+                <button type="button" class="bdx-setchip" data-bdx-cat data-bdx-edit data-scope="every_month" data-id="{{ c.id }}"
+                        data-name="{{ c.name }}" data-limit="" data-spent="{{ c.spent }}" data-source="{{ c.limit_source }}"
+                        aria-label="{% blocktrans with name=c.name %}Set a limit for {{ name }}{% endblocktrans %}">
+                    {{ c.name }} <span class="bdx-setchip-plus"><i class="bi bi-plus" aria-hidden="true"></i>{% trans "Set limit" %}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Data for the bulk sheet and the fund-from list -->
+        {{ page.categories|json_script:"bdx-data" }}
     {% endif %}
+    </div>
 </div>
-
-<style>
-    /* Status Pill Badges */
-    .status-pill {
-        font-size: 0.78rem;
-        font-weight: 600;
-        padding: 0.35rem 0.75rem;
-        border-radius: 50px;
-        display: inline-flex;
-        align-items: center;
-        line-height: 1.2;
-        transition: all 0.2s ease;
-    }
-
-    /* Light Theme Pills */
-    .pill-over {
-        background-color: rgba(224, 92, 69, 0.12);
-        color: #c0392b;
-    }
-    .pill-limit {
-        background-color: rgba(212, 131, 26, 0.12);
-        color: #b45309;
-    }
-    .pill-ontrack {
-        background-color: rgba(29, 158, 117, 0.12);
-        color: #03543f;
-    }
-    .pill-nolimit {
-        background-color: rgba(108, 117, 125, 0.12);
-        color: #4b5563;
-    }
-
-    /* Dark Theme Pills */
-    [data-bs-theme="dark"] .pill-over {
-        background-color: rgba(244, 156, 140, 0.18);
-        color: #f49c8c;
-    }
-    [data-bs-theme="dark"] .pill-limit {
-        background-color: rgba(244, 180, 78, 0.18);
-        color: #f4b44e;
-    }
-    [data-bs-theme="dark"] .pill-ontrack {
-        background-color: rgba(93, 202, 165, 0.18);
-        color: #5dcaa5;
-    }
-    [data-bs-theme="dark"] .pill-nolimit {
-        background-color: rgba(255, 255, 255, 0.08);
-        color: #a0a09c;
-    }
-
-    /* Needs Attention Category Card Styling */
-    .card-status-over .cat-icon,
-    .card-status-over .cat-name,
-    .card-status-over .cat-pct,
-    .card-status-over .cat-right-text {
-        color: var(--color-danger-text) !important;
-    }
-    .card-status-over .cat-bar {
-        background-color: var(--color-danger) !important;
-    }
-
-    .card-status-limit .cat-icon,
-    .card-status-limit .cat-name,
-    .card-status-limit .cat-pct,
-    .card-status-limit .cat-right-text {
-        color: var(--color-warning-text) !important;
-    }
-    .card-status-limit .cat-bar {
-        background-color: var(--color-warning) !important;
-    }
-
-    /* On Track Category Card Styling */
-    .card-status-ontrack .cat-icon {
-        color: var(--bs-body-color);
-    }
-    .card-status-ontrack .cat-pct {
-        color: var(--color-success-text) !important;
-    }
-
-    /* Category title hover */
-    .category-title-link {
-        transition: opacity 0.15s ease;
-    }
-    .category-title-link:hover {
-        opacity: 0.8;
-    }
-
-    /* Hover effects for category cards */
-    .category-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .category-card:hover {
-        transform: translateY(-2px);
-    }
-
-    /* Accordion icon rotation */
-    .collapse-icon {
-        transition: transform 0.2s ease;
-    }
-    .no-limit-header[aria-expanded="true"] .collapse-icon {
-        transform: rotate(180deg);
-    }
-
-    .cursor-pointer {
-        cursor: pointer;
-    }
-</style>
+{% endwith %}

@@ -9,6 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
@@ -124,8 +125,38 @@ def _loan_rows(user):
 
 
 def _category_rows(user):
+    from ..budget_resolver import effective_limits_by_name
+    from ..budgets import has_limit, normalize_category
+
+    limits = effective_limits_by_name(user, timezone.localdate())
     for c in Category.objects.filter(user=user).order_by('name'):
-        yield [c.name, c.limit if c.limit is not None else '']
+        limit = limits.get(normalize_category(c.name))
+        yield [c.name, limit if has_limit(limit) else '']
+
+
+def _budget_limit_rows(user):
+    """One row per month and category from the first limit ever set to this month (plus any later
+    month with an override or a scheduled change): the limit that applied, and why."""
+    from ..budget_resolver import effective_limits_range_by_name, month_start
+    from ..budgets import has_limit
+    from ..models import BudgetLimitVersion, BudgetMonthOverride
+
+    firsts = list(BudgetLimitVersion.objects.filter(user=user).order_by('effective_from')
+                  .values_list('effective_from', flat=True)[:1])
+    if not firsts:
+        return
+    this_month = month_start(timezone.localdate())
+    overrides = {(n, m) for n, m in BudgetMonthOverride.objects.filter(user=user)
+                 .values_list('category_name', 'month')}
+    last = max([this_month] + [m for _, m in overrides]
+               + list(BudgetLimitVersion.objects.filter(user=user).values_list('effective_from', flat=True)))
+    display = {c.name.strip().lower(): c.name for c in Category.objects.filter(user=user)}
+    for month, limits in sorted(effective_limits_range_by_name(user, firsts[0], last).items()):
+        for name in sorted(limits):
+            limit = limits[name]
+            if has_limit(limit):
+                yield [month.strftime('%Y-%m'), display.get(name, name), limit,
+                       'override' if (name, month) in overrides else 'default']
 
 
 # entity name (the form's checkbox value) -> (file name, header, rows)
@@ -153,6 +184,7 @@ EXPORTS = {
                        _capital_event_rows),
     'loans': ('loans.csv', ['Name', 'Type', 'Principal', 'Currency', 'Start Date', 'Months', 'Active'], _loan_rows),
     'categories': ('categories.csv', ['Category', 'Monthly Budget'], _category_rows),
+    'budget_limits': ('budget_limits.csv', ['Month', 'Category', 'Limit', 'Source'], _budget_limit_rows),
 }
 
 

@@ -45,9 +45,7 @@ from ..budgets import (
     BUDGET_WARNING_PERCENT,
     budget_status,
     capital_report_name,
-    monthly_spend_by_category,
     normalize_category,
-    percent_used,
 )
 from ..savings import (
     calculate_savings,
@@ -531,37 +529,57 @@ def home_view(request):
     ]
     category_data.sort(key=lambda x: x['total'], reverse=True)
 
-    # Determine the budget scaling factor for the filtered period
+    # Determine the budget scaling factor for the filtered period, and which months (and what share
+    # of each) the period covers so limits can be looked up per month (budget_resolver.period_limits)
+    from ..budget_resolver import month_start as _month_start, month_weights_for_range
+    budget_month_weights = None
     if time_period in ('this_month', 'last_month'):
         period_budget_factor = 1.0
+        budget_month_weights = [(date(int(selected_years[0]), int(selected_months[0]), 1), 1.0)] if (selected_years and selected_months) else None
     elif effective_start_date and effective_end_date:
         period_budget_factor = calculate_budget_period_factor(effective_start_date, effective_end_date)
+        budget_month_weights = month_weights_for_range(effective_start_date, effective_end_date)
     elif time_period == 'all':
         earliest_expense_date = expenses.order_by('date').values_list('date', flat=True).first()
         period_start = earliest_expense_date or today
         period_budget_factor = calculate_budget_period_factor(period_start, today)
+        budget_month_weights = month_weights_for_range(period_start, today)
         if period_budget_factor < 1.0:
             period_budget_factor = 1.0
+            budget_month_weights = [(_month_start(today), 1.0)]
     elif time_period == 'custom' and not (effective_start_date or effective_end_date):
         if selected_years and selected_months:
             period_budget_factor = float(len(selected_years) * len(selected_months))
+            budget_month_weights = [(date(int(y), int(m), 1), 1.0) for y in selected_years for m in selected_months]
         elif selected_years:
             period_budget_factor = float(len(selected_years) * 12.0)
+            budget_month_weights = [(date(int(y), m, 1), 1.0) for y in selected_years for m in range(1, 13)]
         elif selected_months:
             period_budget_factor = float(len(selected_months))
+            budget_month_weights = [(date(today.year, int(m), 1), 1.0) for m in selected_months]
         else:
             period_budget_factor = 1.0
     elif effective_start_date and not effective_end_date:
         period_budget_factor = calculate_budget_period_factor(effective_start_date, today)
+        budget_month_weights = month_weights_for_range(effective_start_date, today)
     elif effective_end_date and not effective_start_date:
         earliest_expense_date = expenses.order_by('date').values_list('date', flat=True).first()
         period_start = earliest_expense_date or effective_end_date
         period_budget_factor = calculate_budget_period_factor(period_start, effective_end_date)
+        budget_month_weights = month_weights_for_range(period_start, effective_end_date)
     else:
         period_budget_factor = 1.0
 
     if period_budget_factor <= 0:
         period_budget_factor = 1.0
+    if not budget_month_weights:
+        budget_month_weights = [(_month_start(today), 1.0)]
+
+    # Limits come from the versioned budget tables. Only categories the plan allows are budgeted.
+    from ..budget_resolver import period_limits, plan_allowed_categories
+    budget_categories = plan_allowed_categories(request.user, user_categories.values())
+    period_limit_map, monthly_limit_map = period_limits(
+        request.user, budget_month_weights, period_budget_factor, budget_categories)
 
     # Compute limits and usage per category for chart display
     category_limits = []
@@ -572,8 +590,9 @@ def home_view(request):
         cat_name = item['category']
         cat_obj = user_categories.get(cat_name)
         
-        raw_limit = float(cat_obj.limit) if (cat_obj and cat_obj.limit) else None
-        limit = round(raw_limit * period_budget_factor, 2) if raw_limit is not None else None
+        cat_key = normalize_category(cat_name)
+        raw_limit = float(monthly_limit_map[cat_key]) if monthly_limit_map.get(cat_key) is not None else None
+        limit = round(period_limit_map[cat_key], 2) if period_limit_map.get(cat_key) is not None else None
         
         used_percent = round((item['total'] / limit * 100), 1) if limit else None
         
@@ -595,8 +614,19 @@ def home_view(request):
             'projected_percent': projected_percent,
         })
     
-    total_monthly_budget = sum([float(c.limit) for c in user_categories.values() if c.limit])
-    total_period_budget = round(total_monthly_budget * period_budget_factor, 2)
+    seen_budget_names = set()
+    total_monthly_budget = 0.0
+    total_period_budget_raw = 0.0
+    for c in budget_categories:
+        key = normalize_category(c.name)
+        if key in seen_budget_names:
+            continue
+        seen_budget_names.add(key)
+        if monthly_limit_map.get(key) is not None:
+            total_monthly_budget += float(monthly_limit_map[key])
+        if period_limit_map.get(key) is not None:
+            total_period_budget_raw += period_limit_map[key]
+    total_period_budget = round(total_period_budget_raw, 2)
     
     # Sort category data by total descending (already done at line 148, but reinforcing logic)
     category_data.sort(key=lambda x: x['total'], reverse=True)
@@ -1456,7 +1486,7 @@ def home_view(request):
     # 1. Budget Warnings (High Priority)
 
     over_budget_cats = [c for c in category_limits if c['used_percent'] is not None and c['used_percent'] > 100]
-    near_budget_cats = [c for c in category_limits if c['used_percent'] is not None and 90 <= c['used_percent'] <= 100]
+    near_budget_cats = [c for c in category_limits if c['status'] == 'limit']   # 85%+ like the Budget page
     
     # Check savings rate for "Softener" context
     savings_rate_alert = float(current_savings.rate)
@@ -3135,8 +3165,9 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             
             daily_map = {item['date__day']: float(item['total']) for item in daily_spending}
             
-            total_monthly_limit = Category.objects.filter(user=user).aggregate(Sum('limit'))['limit__sum'] or 0
-            total_monthly_limit = float(total_monthly_limit)
+            from ..budget_resolver import plan_allowed_categories, total_budget as resolve_total_budget
+            total_monthly_limit = float(resolve_total_budget(
+                user, today.replace(day=1), plan_allowed_categories(user)))
             
             cumulative = 0
             this_month_projection = [None] * days_in_month
@@ -3199,225 +3230,66 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         return context
 
 
-BUDGET_PACE_BAND_PERCENT = Decimal('0.05')
-
-
-def calculate_budget_pacing(total_budget, budgeted_spent, year, month, today=None):
-    if today is None:
-        today = date.today()
-    days_in_month = calendar.monthrange(year, month)[1]
-    view_date = date(year, month, 1)
-    current_month_date = date(today.year, today.month, 1)
-
-    total_budget_dec = Decimal(str(total_budget or 0))
-    budgeted_spent_dec = Decimal(str(budgeted_spent or 0))
-
-    if view_date > current_month_date:
-        days_elapsed = 0
-        pace_state = None
-    elif view_date < current_month_date:
-        days_elapsed = days_in_month
-        pace_state = 'completed'
-    else:
-        days_elapsed = min(today.day, days_in_month)
-        pace_state = 'on_track'
-
-    expected_spent_to_date = (
-        (total_budget_dec * Decimal(days_elapsed) / Decimal(days_in_month)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        if total_budget_dec > 0 else Decimal('0.00')
-    )
-    pace_delta = budgeted_spent_dec - expected_spent_to_date
-    projected_month_end = (
-        ((budgeted_spent_dec / Decimal(days_elapsed)) * Decimal(days_in_month)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        if days_elapsed > 0 else Decimal('0.00')
-    )
-
-    if total_budget_dec == 0 or pace_state in (None, 'completed'):
-        if total_budget_dec == 0:
-            pace_state = None
-    else:
-        pace_band = total_budget_dec * BUDGET_PACE_BAND_PERCENT
-        if pace_delta > pace_band:
-            pace_state = 'ahead'
-        elif pace_delta < -pace_band:
-            pace_state = 'under'
-        else:
-            pace_state = 'on_track'
-
-    return {
-        'days_elapsed': days_elapsed,
-        'days_in_month': days_in_month,
-        'expected_spent_to_date': expected_spent_to_date,
-        'pace_delta': pace_delta,
-        'pace_delta_abs': abs(pace_delta),
-        'projected_month_end': projected_month_end,
-        'pace_state': pace_state,
-    }
-
-
 class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
+    """The Budget page. Everything shown comes from one payload (expenses.budget_page); the month
+    picker and sort swap `#budget-shell` over htmx, and limit edits go through api/budgets/."""
     template_name = 'expenses/budget_dashboard.html'
     htmx_template_name = 'expenses/partials/_budget_dashboard_content.html'
-    
+
     def get_context_data(self, **kwargs):
+        from ..budget_page import build_budget_page
+
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        today = date.today()
-        
-        month_param = self.request.GET.get('month')
-        year_param = self.request.GET.get('year')
-        sort_param = self.request.GET.get('sort', 'urgent')
-        
+        today = timezone.localdate()
         month, year = parse_month_year(self.request, today=today)
-        
-        # Ensure context variables for filters are correct
-        context['current_month'] = month
-        context['current_year'] = year
-        context['current_sort'] = sort_param
+        sort_param = self.request.GET.get('sort', 'urgent')
+        if sort_param not in ('urgent', 'spent', 'limit', 'name'):
+            sort_param = 'urgent'
 
-        is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
-        is_default_view = not month_param and not year_param and sort_param == 'urgent'
-        budget_cache_key = f'budget_dashboard_{user.id}' if (is_default_view and not is_testing) else None
-        if budget_cache_key:
-            cached_ctx = cache.get(budget_cache_key)
-            if cached_ctx is not None:
-                context.update(cached_ctx)
-                return context
-        budget_data = []
-        categories = Category.objects.filter(user=user).order_by('id')
-        # Plan lock: only the first N categories are usable (same rule as the expense form,
-        # the category editor and the budget alerts); the rest are not part of the budget.
-        category_limit = get_limit(user.profile.active_tier, 'budget_categories')
-        if category_limit != -1:
-            categories = categories[:category_limit]
+        month_start = date(year, month, 1)
+        page = build_budget_page(user, month_start, today, sort_param)
+        page['unbudgeted_spent'] = page['unbudgeted_spent'] or 0
 
-        total_budget = Decimal('0')
-        budgeted_spent = Decimal('0')
+        # Month picker: a rolling window around today plus whatever month is being viewed
+        this_month = today.replace(day=1)
+        window = {this_month.replace(year=this_month.year + (this_month.month + k - 1) // 12,
+                                     month=(this_month.month + k - 1) % 12 + 1) for k in range(-12, 7)}
+        window.add(month_start)
+        month_options = [{'value': d.strftime('%Y-%m'), 'month': d.month, 'year': d.year,
+                          'label': date(d.year, d.month, 1).strftime('%B %Y'), 'selected': d == month_start}
+                         for d in sorted(window)]
 
-        # Spend per category (expenses + capital events that count towards budgets) and the grand
-        # total for the month. Single definition in expenses/budgets.py.
-        cat_spend_map, grand_total_spent = monthly_spend_by_category(user, year, month)
+        suggestion = None
+        if page['phase'] == 'current':
+            from ..budget_suggestions import find_suggestion
+            suggestion = find_suggestion(user, month_start, page['categories'])
 
-        over_budget_count = 0
-        at_limit_count = 0
-        on_track_count = 0
-        no_limit_count = 0
-
-        for category in categories:
-            spent = Decimal(str(cat_spend_map.get(normalize_category(category.name), 0)))
-
-            percentage = percent_used(spent, category.limit)
-
-            status = budget_status(spent, category.limit)
-            if status == 'over':
-                over_budget_count += 1
-            elif status == 'limit':
-                at_limit_count += 1
-            elif status == 'ontrack':
-                on_track_count += 1
-            else:
-                no_limit_count += 1
-
-            remaining = (category.limit - spent) if category.limit and spent <= category.limit else Decimal('0')
-            left_percentage = max(0.0, 100.0 - percentage) if category.limit and category.limit > 0 else 0
-
-            budget_data.append({
-                'category': category,
-                'spent': spent,
-                'limit': category.limit,
-                'percentage': min(percentage, 100),
-                'actual_percentage': percentage,
-                'remaining': remaining,
-                'over_budget': (spent - category.limit) if category.limit and spent > category.limit else Decimal('0'),
-                'left_percentage': left_percentage,
-                'status': status
-            })
-            
-            if category.limit and category.limit > 0:
-                total_budget += category.limit
-                budgeted_spent += spent
-
-        unbudgeted_spent = max(grand_total_spent - budgeted_spent, Decimal('0'))
-
-        # Sorting logic
-        if sort_param == 'name':
-            budget_data.sort(key=lambda x: x['category'].name.lower())
-        elif sort_param == 'limit':
-            budget_data.sort(key=lambda x: (x['limit'] or Decimal('0')), reverse=True)
-        elif sort_param == 'spent':
-            budget_data.sort(key=lambda x: float(x['spent']), reverse=True)
-        else:  # 'urgent' default
-            status_order = {'over': 0, 'limit': 1, 'ontrack': 2, 'nolimit': 3}
-            budget_data.sort(key=lambda x: (status_order[x['status']], -x['actual_percentage']))
-
-        needs_attention = [item for item in budget_data if item['status'] in ('over', 'limit')]
-        on_track = [item for item in budget_data if item['status'] == 'ontrack']
-        no_limit = [item for item in budget_data if item['status'] == 'nolimit']
-
-        # MoM Calculation for Budget Dashboard
-        if month == 1:
-            prev_month = 12
-            prev_year = year - 1
-        else:
-            prev_month = month - 1
-            prev_year = year
-
-        _, prev_spent = monthly_spend_by_category(user, prev_year, prev_month)
-
-        spent_mom_pct = None
-        spent_mom_pct_abs = None
-        if prev_spent > 0:
-            spent_mom_pct = float((grand_total_spent - prev_spent) / prev_spent * 100)
-            spent_mom_pct_abs = abs(spent_mom_pct)
-
-        currency_symbol = user.profile.currency if hasattr(user, 'profile') and user.profile.currency else '₹'
-
-        pacing_data = calculate_budget_pacing(total_budget, budgeted_spent, year, month, today=today)
-
-        total_remaining = (total_budget - budgeted_spent) if total_budget > budgeted_spent else Decimal('0')
-        over_budget_amount = (budgeted_spent - total_budget) if budgeted_spent > total_budget else Decimal('0')
-        total_percentage = min((float(budgeted_spent) / float(total_budget) * 100), 100.0) if total_budget > 0 else 0.0
-        actual_total_percentage = (float(budgeted_spent) / float(total_budget) * 100) if total_budget > 0 else 0.0
-
-        res_dict = {
-            'budget_data': budget_data,
-            'needs_attention': needs_attention,
-            'on_track': on_track,
-            'no_limit': no_limit,
-            'over_budget_count': over_budget_count,
-            'at_limit_count': at_limit_count,
-            'on_track_count': on_track_count,
-            'no_limit_count': no_limit_count,
-            'total_budget': total_budget,
-            'total_spent': grand_total_spent,
-            'budgeted_spent': budgeted_spent,
-            'unbudgeted_spent': unbudgeted_spent,
-            'total_remaining': total_remaining,
-            'over_budget_amount': over_budget_amount,
-            'total_percentage': total_percentage,
-            'actual_total_percentage': actual_total_percentage,
-            'spent_mom_pct': spent_mom_pct,
-            'spent_mom_pct_abs': spent_mom_pct_abs,
-            'days_elapsed': pacing_data['days_elapsed'],
-            'days_in_month': pacing_data['days_in_month'],
-            'expected_spent_to_date': pacing_data['expected_spent_to_date'],
-            'pace_delta': pacing_data['pace_delta'],
-            'pace_delta_abs': pacing_data['pace_delta_abs'],
-            'projected_month_end': pacing_data['projected_month_end'],
-            'pace_state': pacing_data['pace_state'],
-            'month_name': date(year, month, 1).strftime('%B'),
-            'short_month_name': date(year, month, 1).strftime('%b'),
-            'currency_symbol': currency_symbol,
-            'warning_percent': BUDGET_WARNING_PERCENT,
+        profile = getattr(user, 'profile', None)
+        context.update({
+            'page': page,
+            'suggestion': suggestion,
+            'phase': page['phase'],
+            'month_options': month_options,
+            'month_start': month_start,
+            'prev_month': (month_start - timedelta(days=1)).replace(day=1),
+            'next_month': (month_start + timedelta(days=31)).replace(day=1),
             'current_month': month,
             'current_year': year,
             'current_sort': sort_param,
-            'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
-            'years': range(today.year - 2, today.year + 2),
-        }
-        if budget_cache_key:
-            cache.set(budget_cache_key, res_dict, 300)
-        context.update(res_dict)
+            'currency_symbol': profile.currency if profile and profile.currency else '₹',
+            'warning_percent': BUDGET_WARNING_PERCENT,
+            'can_add_category': profile.can_add_category() if profile else False,
+            'every_month_allowed': month_start >= today.replace(day=1),
+            'needs_attention': [r for r in page['categories'] if r['status'] in ('over', 'limit')],
+            'on_track': [r for r in page['categories'] if r['status'] == 'ontrack'],
+            'no_limit': [r for r in page['categories'] if r['status'] == 'nolimit'],
+            'untouched_count': sum(1 for r in page['categories'] if r['status'] == 'ontrack' and not r['spent']),
+            'has_any_limit': page['total'] > 0,
+            'today_day': today.day,
+            'pace_abs': abs(page['pace_delta'] or 0),
+            'pace_marker_pct': min(100.0, (page['expected_pace'] or 0) / page['total'] * 100) if page['total'] else 0,
+        })
         return context
 
 

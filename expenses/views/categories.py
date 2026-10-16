@@ -51,7 +51,8 @@ class CategoryListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             return redirect(target_url)
 
     def get_queryset(self):
-        base_qs = Category.objects.filter(user=self.request.user)
+        from ..budget_resolver import annotate_current_limit
+        base_qs = annotate_current_limit(Category.objects.filter(user=self.request.user))
         queryset, self.applied_state = apply_filter_config(base_qs, self.request, CATEGORY_LIST_FILTERS)
         return queryset
 
