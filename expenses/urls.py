@@ -19,6 +19,7 @@ urlpatterns = [
     path('budget/', views.BudgetDashboardView.as_view(), name='budget'),
     path('api/budgets/', views.budgets_page, name='budgets-api'),
     path('api/budgets/limit/', views.budgets_set_limit, name='budgets-api-limit'),
+    path('api/budgets/limits/', views.budgets_set_limits, name='budgets-api-limits'),
     path('api/budgets/rebalance/', views.budgets_rebalance, name='budgets-api-rebalance'),
     path('api/budgets/reset/', views.budgets_reset, name='budgets-api-reset'),
     path('api/budgets/suggestion/', views.budgets_suggestion_fragment, name='budgets-api-suggestion'),

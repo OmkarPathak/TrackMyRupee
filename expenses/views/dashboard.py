@@ -3272,6 +3272,8 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         # the Smart move banner needs three months of history, so the page asks for it after it paints
         from ..budget_suggestions import may_have_suggestion
         suggestion_wanted = page['phase'] == 'current' and may_have_suggestion(page['categories'])
+        if suggestion_wanted:
+            cache.set(f'budget_suggestion_rows_{user.id}', page['categories'], 60)   # the banner reuses them
 
         # search and Status narrow the list; the hero, chips and totals stay about the whole month
         wanted_status = set(state['filters'].get('status', []))

@@ -523,3 +523,85 @@ class NewBudgetDialogTests(Base):
         resp = self.client.get(reverse('budget'))
         self.assertFalse(resp.context['new_budget_possible'])
         self.assertContains(resp, reverse('pricing'))
+
+
+class BulkLimitsApiTests(Base):
+    """PUT api/budgets/limits/ sets several limits atomically."""
+
+    def test_sets_many_in_one_request(self):
+        resp = self.put({'month': ym(CUR), 'scope': 'every_month',
+                         'limits': [{'category_id': self.fun.id, 'amount': 700},
+                                    {'category_id': self.fuel.id, 'amount': 2500}]}, 'budgets-api-limits')
+        self.assertEqual(resp.status_code, 200)
+        rows = self.rows(resp)
+        self.assertEqual(rows['Fun']['limit'], 700.0)
+        self.assertEqual(rows['Fuel']['limit'], 2500.0)
+
+    def test_one_bad_row_rolls_everything_back(self):
+        resp = self.put({'month': ym(CUR), 'scope': 'this_month',
+                         'limits': [{'category_id': self.fun.id, 'amount': 700},
+                                    {'category_id': self.fuel.id, 'amount': -5}]}, 'budgets-api-limits')
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json()['code'], 'invalid_amount')
+        self.assertEqual(self.rows(self.get(month=ym(CUR)))['Fun']['limit'], None)
+
+    def test_rejects_empty_duplicates_and_other_users_categories(self):
+        url = 'budgets-api-limits'
+        self.assertEqual(self.put({'month': ym(CUR), 'scope': 'this_month', 'limits': []}, url).status_code, 400)
+        dup = [{'category_id': self.fun.id, 'amount': 1}, {'category_id': self.fun.id, 'amount': 2}]
+        self.assertEqual(self.put({'month': ym(CUR), 'scope': 'this_month', 'limits': dup}, url).json()['code'],
+                         'duplicate_category')
+        other = self.make_user('someone-else')
+        theirs = Category.objects.create(user=other, name='Theirs')
+        resp = self.put({'month': ym(CUR), 'scope': 'this_month',
+                         'limits': [{'category_id': theirs.id, 'amount': 5}]}, url)
+        self.assertEqual(resp.status_code, 404)
+
+    def test_requires_login(self):
+        self.client.logout()
+        self.assertEqual(self.put({'month': ym(CUR), 'limits': []}, 'budgets-api-limits').status_code, 401)
+
+
+class SuggestionHousekeepingTests(Base):
+    def test_dismissing_prunes_old_and_caps_rows(self):
+        from expenses.models import BudgetSuggestionDismissal as D_
+        old = add_months(CUR, -6)
+        D_.objects.create(user=self.user, key=f'move:1:2:{ym(old)}')
+        keep = D_.objects.create(user=self.user, key=f'move:1:3:{ym(PREV)}')
+        key = f'move:{self.food.id}:{self.fuel.id}:{ym(CUR)}'
+        resp = self.post({'key': key}, 'budgets-api-dismiss')
+        self.assertEqual(resp.status_code, 200)
+        keys = set(D_.objects.filter(user=self.user).values_list('key', flat=True))
+        self.assertEqual(keys, {keep.key, key})
+
+    def test_fragment_reuses_cached_rows(self):
+        cache.set(f'budget_suggestion_rows_{self.user.id}', [], 60)
+        with CaptureQueriesContext(connection) as ctx:
+            resp = self.client.get(reverse('budgets-api-suggestion'), {'month': ym(CUR)})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content, b'')
+        self.assertFalse([q for q in ctx.captured_queries if 'expenses_expense' in q['sql']])
+
+    def test_limit_write_drops_the_cached_rows(self):
+        cache.set(f'budget_suggestion_rows_{self.user.id}', [{'x': 1}], 60)
+        self.put({'category_id': self.fun.id, 'month': ym(CUR), 'amount': 50, 'scope': 'this_month'})
+        self.assertIsNone(cache.get(f'budget_suggestion_rows_{self.user.id}'))
+
+
+class CategoryFormPlanLockTests(TestCase):
+    def test_locked_category_limit_cannot_change_but_rename_works(self):
+        from expenses.forms import CategoryForm
+        user = User.objects.create_user('lockform', 'lockform@example.com', 'pw')
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.tier = 'FREE'
+        profile.save()
+        Category.objects.filter(user=user).delete()
+        from finance_tracker.plans import get_limit
+        cap = get_limit('FREE', 'budget_categories')
+        cats = [Category.objects.create(user=user, name=f'C{i}') for i in range(cap + 1)]
+        locked = cats[-1]
+        bad = CategoryForm({'name': 'C-locked', 'icon': '', 'limit': '900'}, instance=Category.objects.get(pk=locked.pk))
+        self.assertFalse(bad.is_valid())
+        self.assertIn('limit', bad.errors)
+        ok = CategoryForm({'name': 'Renamed', 'icon': '', 'limit': ''}, instance=Category.objects.get(pk=locked.pk))
+        self.assertTrue(ok.is_valid(), ok.errors)

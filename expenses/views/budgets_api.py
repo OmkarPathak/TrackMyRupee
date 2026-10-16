@@ -2,6 +2,7 @@
 
   GET  api/budgets/?month=YYYY-MM[&sort=urgent|name|limit|spent]   the month's page payload
   PUT  api/budgets/limit/      {category_id, month, amount|null, scope: this_month|every_month}
+  PUT  api/budgets/limits/     {month, scope, limits: [{category_id, amount}]}   several at once, all or nothing
   POST api/budgets/rebalance/  {month, scope, moves: [{from_category, to_category, amount}]}
   POST api/budgets/reset/      {category_id, month}   drop a one-month override
   POST api/budgets/suggestion/dismiss/  {key}   stop showing a suggestion to this user
@@ -16,6 +17,7 @@ import re
 from datetime import date
 from functools import wraps
 
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -127,6 +129,24 @@ def budgets_set_limit(request):
 
 
 @api_login_required
+@require_http_methods(['PUT'])
+@_guarded
+def budgets_set_limits(request):
+    data = _body(request)
+    month = _required_month(data)
+    raw = data.get('limits')
+    if not isinstance(raw, list) or not raw or len(raw) > 200:
+        raise writes.BudgetError('no_limits', _('Enter at least one limit.'))
+    items = []
+    for row in raw:
+        if not isinstance(row, dict):
+            raise writes.BudgetError('invalid_amount', _('Enter a valid amount.'))
+        items.append({'category': _category(request.user, row.get('category_id')), 'amount': _amount(row)})
+    writes.set_limits(request.user, month, data.get('scope'), items, actor=request.user)
+    return _page(request, month)
+
+
+@api_login_required
 @require_http_methods(['POST'])
 @_guarded
 def budgets_reset(request):
@@ -170,6 +190,7 @@ def budgets_dismiss_suggestion(request):
     if not isinstance(key, str) or not re.match(r'^move:\d+:\d+:\d{4}-\d{2}$', key):
         raise ValueError(_('Unknown suggestion.'))
     BudgetSuggestionDismissal.objects.get_or_create(user=request.user, key=key)
+    BudgetSuggestionDismissal.prune(request.user)
     return JsonResponse({'success': True})
 
 
@@ -188,8 +209,12 @@ def budgets_suggestion_fragment(request):
     month = _parse_month(request.GET.get('month'), today)
     if month != today.replace(day=1):
         return HttpResponse('')
-    page = build_budget_page(request.user, month, today)
-    suggestion = find_suggestion(request.user, month, page['categories'])
+    rows_key = f'budget_suggestion_rows_{request.user.id}'
+    rows = cache.get(rows_key)
+    if rows is None:        # the page just built these; reuse them instead of recomputing the month
+        rows = build_budget_page(request.user, month, today)['categories']
+        cache.set(rows_key, rows, 60)
+    suggestion = find_suggestion(request.user, month, rows)
     if not suggestion:
         return HttpResponse('')
     profile = getattr(request.user, 'profile', None)

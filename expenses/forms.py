@@ -855,8 +855,13 @@ class CategoryForm(SearchableSelectFormMixin, forms.ModelForm):
             return None
         if limit < 0:
             raise forms.ValidationError(_('The monthly limit cannot be negative. Leave it blank for no limit.'))
-        # A limit of 0 means "no limit" everywhere else (budget page, filters, alerts)
-        return limit or None
+        limit = limit or None       # 0 means "no limit" everywhere else (budget page, filters, alerts)
+        # A category locked by the plan can be renamed but its limit cannot be changed
+        if self.instance.pk and limit != getattr(self.instance, '_orig_limit', limit):
+            from .budget_resolver import plan_allowed_category_ids
+            if self.instance.pk not in plan_allowed_category_ids(self.instance.user):
+                raise forms.ValidationError(_('This category is locked on your plan, so its limit cannot be changed.'))
+        return limit
 
 class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     # Optional: Link to a Loan record (used for LOAN_OUTSTANDING strategy)

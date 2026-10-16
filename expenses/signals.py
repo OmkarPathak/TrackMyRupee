@@ -255,6 +255,7 @@ def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwarg
             f'recurring_processed_{user_id}_{today}',
             f'account_net_worth_{user_id}',
             f'budget_dashboard_{user_id}',
+            f'budget_suggestion_rows_{user_id}',
             f'analytics_default_data_{user_id}',
             f'category_icon_map_{user_id}',
         ])

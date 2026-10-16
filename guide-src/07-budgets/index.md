@@ -67,7 +67,7 @@ If you raise a limit, open **Fund this from another category**, pick a category 
 
 ### Setting several limits at once
 
-**Set all limits** (in the *No limit set* box) lists every category without a limit so you can fill in several amounts and save them together. They apply from the month you are viewing onward.
+**Set all limits** (in the *No limit set* box) lists every category without a limit so you can fill in several amounts and save them together in one go: if any amount is invalid, nothing is saved, so you never end up with half the limits set. They apply from the month you are viewing onward.
 
 ### Lowering a limit below what you have spent
 
@@ -78,7 +78,7 @@ This is allowed. The category simply shows as over budget.
 
 ### How many categories you can budget
 
-The number of categories depends on your plan: **Free 5, Plus 15, Pro unlimited**. On Free and Plus, your oldest categories up to that number are usable. Any extra ones are locked: you cannot edit them, they are not offered when you add an expense, they do not appear on the Budget page, and they send no alerts.
+The number of categories depends on your plan: **Free 5, Plus 15, Pro unlimited**. On Free and Plus, your oldest categories up to that number are usable. Any extra ones are locked: you cannot change their limits (not even from the category form), they are not offered when you add an expense, they do not appear on the Budget page, and they send no alerts.
 
 ---
 

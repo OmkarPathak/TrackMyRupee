@@ -102,6 +102,26 @@ def set_limit(user, category, month, amount, scope, actor=None):
     return resolver.effective_limit(user, category, month)
 
 
+def set_limits(user, month, scope, items, actor=None):
+    """Set several categories' limits in one transaction (the bulk dialog). `items`: [{'category':
+    Category, 'amount': value}]. All or nothing: one bad row rolls the lot back. Returns {id: limit}."""
+    month_ = resolver.month_start(month)
+    if not items:
+        raise BudgetError('no_limits', _('Enter at least one limit.'))
+    with transaction.atomic():
+        allowed_ids = set(resolver.plan_allowed_category_ids(user))      # once, not per row
+        seen = set()
+        for item in items:
+            cat = item['category']
+            if cat.id in seen:
+                raise BudgetError('duplicate_category', _('Each category can appear only once.'))
+            seen.add(cat.id)
+            month_ = _check(user, cat, month_, scope, allowed_ids)
+            _write(user, cat, month_, _clean_amount(item['amount']), scope, actor)
+    _invalidate(user)
+    return {item['category'].id: _clean_amount(item['amount']) for item in items}
+
+
 def reset_override(user, category, month):
     """Drop the one-month override so the month follows the recurring limit again."""
     from .models import BudgetMonthOverride
@@ -179,5 +199,5 @@ def rename_category_history(user, old_name, new_name, category=None):
 
 def _invalidate(user):
     from django.core.cache import cache
-    cache.delete_many([f'budget_dashboard_{user.id}', f'home_default_data_{user.id}',
+    cache.delete_many([f'budget_dashboard_{user.id}', f'budget_suggestion_rows_{user.id}', f'home_default_data_{user.id}',
                        f'analytics_default_data_{user.id}'])

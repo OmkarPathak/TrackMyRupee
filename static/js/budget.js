@@ -239,26 +239,27 @@
         var inputs = Array.prototype.slice.call(document.querySelectorAll('#bdx-bulk-rows input'));
         var el = shell(), month = el.getAttribute('data-month');
         var scope = el.getAttribute('data-every-month') === '1' ? 'every_month' : 'this_month';
-        var jobs = [], bad = false;
+        var limits = [], bad = false;
         inputs.forEach(function (i) {
             var v = parseAmount(i.value);
             if (v === null) return;
             if (Number.isNaN(v) || v < 0) { bad = true; i.setAttribute('aria-invalid', 'true'); return; }
             i.removeAttribute('aria-invalid');
-            jobs.push({ category_id: parseInt(i.getAttribute('data-id'), 10), month: month, amount: v, scope: scope });
+            limits.push({ category_id: parseInt(i.getAttribute('data-id'), 10), amount: v });
         });
         var err = $('#bdx-bulk-error');
         if (bad) { err.textContent = T().eInvalid; err.hidden = false; return; }
-        if (!jobs.length) { window.bootstrap.Modal.getOrCreateInstance($('#bdx-bulk')).hide(); return; }
-        $('#bdx-bulk-save').disabled = true;
-        var failed = 0;
-        jobs.reduce(function (chain, job) {
-            return chain.then(function () { return api(T().apiLimit, 'PUT', job); }).catch(function () { failed += 1; });
-        }, Promise.resolve()).then(function () {
-            $('#bdx-bulk-save').disabled = false;
-            if (failed) { err.textContent = T().bulkPartial; err.hidden = false; refresh(); return; }
+        if (!limits.length) { window.bootstrap.Modal.getOrCreateInstance($('#bdx-bulk')).hide(); return; }
+        // one request, all or nothing, so a failure never leaves half the limits saved
+        var save = $('#bdx-bulk-save');
+        save.disabled = true;
+        api(T().apiLimits, 'PUT', { month: month, scope: scope, limits: limits }).then(function () {
+            save.disabled = false;
             window.bootstrap.Modal.getOrCreateInstance($('#bdx-bulk')).hide();
             toast(T().bulkSaved); refresh();
+        }).catch(function (e) {
+            save.disabled = false;
+            err.textContent = e.message || T().bulkPartial; err.hidden = false;
         });
     }
 

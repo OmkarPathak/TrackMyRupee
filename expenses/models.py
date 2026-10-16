@@ -950,8 +950,26 @@ class BudgetSuggestionDismissal(models.Model):
             models.UniqueConstraint(fields=['user', 'key'], name='unique_budget_suggestion_dismissal'),
         ]
 
+    KEEP_MONTHS = 3
+    KEEP_MAX = 100
+
     def __str__(self):
         return f"{self.user_id}: {self.key}"
+
+    @classmethod
+    def prune(cls, user):
+        """Keys name a month and only matter while that month is current, so drop old ones (and cap the
+        total) to keep the table from growing for ever."""
+        today = timezone.localdate()
+        idx = today.year * 12 + today.month - 1 - cls.KEEP_MONTHS
+        cutoff = f"{idx // 12}-{idx % 12 + 1:02d}"
+        rows = cls.objects.filter(user=user)
+        stale = [pk for pk, key in rows.values_list('pk', 'key') if key.rsplit(':', 1)[-1] < cutoff]
+        if stale:
+            cls.objects.filter(pk__in=stale).delete()
+        extra = list(cls.objects.filter(user=user).order_by('-created_at', '-pk').values_list('pk', flat=True)[cls.KEEP_MAX:])
+        if extra:
+            cls.objects.filter(pk__in=extra).delete()
 
 
 class ExpenseKeywordHint(models.Model):
