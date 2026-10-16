@@ -6,21 +6,22 @@
      data-phase="{{ page.phase }}"
      data-every-month="{% if every_month_allowed %}1{% else %}0{% endif %}"
      data-collapsed="1"
+     data-can-add="{% if can_add_category %}1{% else %}0{% endif %}"
      aria-busy="false">
 
     <!-- Header: title, month picker, sort, + New budget -->
     <header class="bdx-header">
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-1">
             <h1 class="bdx-title">{% trans "Budget" %}</h1>
             <button class="info-hint" data-bs-toggle="collapse" data-bs-target="#guideBudgets" aria-expanded="false"
                     aria-label="{% trans 'How it works' %}" title="{% trans 'How it works' %}">
                 <i class="bi bi-info-circle" aria-hidden="true"></i>
             </button>
         </div>
-        {% if can_add_category %}
-            <a href="{% url 'category-create' %}?next={% url 'budget' %}" class="btn btn-primary btn-sm">
+        {% if new_budget_possible %}
+            <button type="button" class="btn btn-primary btn-sm" data-bdx-new>
                 <i class="bi bi-plus-lg me-1"></i> {% trans "New budget" %}
-            </a>
+            </button>
         {% else %}
             <a class="btn btn-primary btn-sm" href="{% url 'pricing' %}">
                 <i class="bi bi-lock-fill me-1" aria-hidden="true"></i> {% trans "Upgrade for more" %}
@@ -53,7 +54,7 @@
             <h2>{% trans "No budgets yet" %}</h2>
             <p>{% trans "Create a category and give it a monthly limit to see how much you can safely spend each day." %}</p>
             {% if can_add_category %}
-                <a class="btn btn-primary btn-sm" href="{% url 'category-create' %}?next={% url 'budget' %}">{% trans "Create your first budget" %}</a>
+                <button type="button" class="btn btn-primary btn-sm" data-bdx-new>{% trans "Create your first budget" %}</button>
             {% endif %}
         </section>
     {% else %}
@@ -135,15 +136,30 @@
                 {% endif %}
             </div>
 
+            {% if page.phase != 'future' %}
+            <div class="bdx-ring" role="img" aria-label="{% blocktrans with pct=page.percent|default:0|floatformat:0|translate_digits %}{{ pct }}% of budget used{% endblocktrans %}">
+                <svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" focusable="false">
+                    <circle cx="60" cy="60" r="52" class="bdx-ring-track"></circle>
+                    <circle cx="60" cy="60" r="52" class="bdx-ring-arc {% if page.state == 'over_budget' %}is-over{% endif %}" pathLength="100"
+                            stroke-dasharray="{% if page.percent > 100 %}100{% else %}{{ page.percent|default:0|stringformat:'.1f' }}{% endif %} 100"></circle>
+                </svg>
+                <div class="bdx-ring-label"><strong>{{ page.percent|default:0|floatformat:0|translate_digits }}%</strong><span>{% trans "of budget used" %}</span></div>
+            </div>
+            {% endif %}
         </section>
 
         <!-- Status chips: icon + text so status is never colour alone -->
-        <ul class="bdx-chips" aria-label="{% trans 'Budget status summary' %}">
-            <li class="bdx-chip bdx-chip--over"><i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i><strong>{{ page.counts.over|translate_digits }}</strong> {% trans "over budget" %}</li>
-            <li class="bdx-chip bdx-chip--limit"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><strong>{{ page.counts.at_limit|translate_digits }}</strong> {% trans "at limit" %}</li>
-            <li class="bdx-chip bdx-chip--ok"><i class="bi bi-check-circle-fill" aria-hidden="true"></i><strong>{{ page.counts.on_track|translate_digits }}</strong> {% trans "on track" %}</li>
-            <li class="bdx-chip bdx-chip--none"><i class="bi bi-dash-circle" aria-hidden="true"></i><strong>{{ page.counts.no_limit|translate_digits }}</strong> {% trans "no limit set" %}</li>
-        </ul>
+        <div class="bdx-chips" role="group" aria-label="{% trans 'Filter categories by status' %}">
+            {% for t in status_tiles %}
+            <button type="button" class="bdx-chip bdx-chip--{{ t.css }}{% if t.active %} is-active{% endif %}"
+                    hx-get="{{ t.url }}" hx-target="#budget-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#budget-shell"
+                    aria-pressed="{% if t.active %}true{% else %}false{% endif %}">
+                <i class="bi {{ t.icon }}" aria-hidden="true"></i>
+                <span class="bdx-chip-label">{{ t.label }}</span>
+                <span class="bdx-chip-count">{{ t.count|translate_digits }}</span>
+            </button>
+            {% endfor %}
+        </div>
         {% endif %}
 
         <!-- Needs attention -->
@@ -170,7 +186,7 @@
                             {% if c.status == 'over' %}{% blocktrans with amount=c.over_by|ind_comma:cs|translate_digits %}Over by {{ cs }}{{ amount }}{% endblocktrans %}
                             {% else %}{% blocktrans with amount=c.remaining|ind_comma:cs|translate_digits %}Limit reached · {{ cs }}{{ amount }} left{% endblocktrans %}{% endif %}
                         </span>
-                        <button type="button" class="bdx-btn bdx-btn--soft" data-bdx-adjust data-scope="this_month"
+                        <button type="button" class="bdx-link" data-bdx-adjust data-scope="this_month"
                                 aria-label="{% blocktrans with name=c.name %}Adjust limit for {{ name }}{% endblocktrans %}">{% trans "Adjust limit" %}</button>
                     </div>
                     {% include 'expenses/partials/_budget_cat_flags.html' %}
@@ -180,21 +196,8 @@
         </section>
         {% endif %}
 
-        <!-- Smart suggestion: only when the history supports it -->
-        {% if suggestion %}
-        <aside class="bdx-suggest" role="note" aria-label="{% trans 'Budget suggestion' %}" data-bdx-suggestion data-key="{{ suggestion.key }}">
-            <i class="bi bi-lightbulb-fill" aria-hidden="true"></i>
-            <p>
-                <strong>{% trans "Smart move:" %}</strong>
-                {% blocktrans with donor=suggestion.donor_name needy=suggestion.needy_name months=suggestion.months|translate_digits untouched=suggestion.donor_untouched|ind_comma:cs|translate_digits amount=suggestion.amount|ind_comma:cs|translate_digits %}{{ donor }} has used under 10% of its limit for {{ months }} months ({{ cs }}{{ untouched }} untouched) while {{ needy }} has reached its limit. Move {{ cs }}{{ amount }} to {{ needy }} for this month?{% endblocktrans %}
-            </p>
-            <div class="bdx-suggest-actions">
-                <button type="button" class="bdx-btn bdx-btn--soft" data-bdx-suggest
-                        data-needy="{{ suggestion.needy_id }}" data-donor="{{ suggestion.donor_id }}" data-amount="{{ suggestion.amount }}">{% trans "Review suggestion" %}</button>
-                <button type="button" class="bdx-iconbtn" data-bdx-dismiss aria-label="{% trans 'Dismiss suggestion' %}" title="{% trans 'Dismiss' %}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
-            </div>
-        </aside>
-        {% endif %}
+        <!-- Smart suggestion: fetched after the page paints, and only when the history supports it -->
+        {% if suggestion_url %}<div id="bdx-suggest-slot" hx-get="{{ suggestion_url }}" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
 
         <!-- On track -->
         {% if on_track %}

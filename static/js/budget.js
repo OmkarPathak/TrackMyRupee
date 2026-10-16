@@ -221,10 +221,10 @@
             var row = document.createElement('div'); row.className = 'bdx-bulk-row';
             var label = document.createElement('label'); label.className = 'bdx-bulk-name'; label.textContent = r.name;
             label.setAttribute('for', 'bdx-bulk-' + r.id);
-            var wrap = document.createElement('div'); wrap.className = 'bdx-amountbox bdx-amountbox--sm';
-            var sym = document.createElement('span'); sym.className = 'bdx-amountbox-sym'; sym.textContent = t.symbol || '';
+            var wrap = document.createElement('div'); wrap.className = 'input-group';
+            var sym = document.createElement('span'); sym.className = 'input-group-text'; sym.textContent = t.symbol || '';
             wrap.appendChild(sym);
-            var input = document.createElement('input'); input.type = 'text'; input.inputMode = 'decimal';
+            var input = document.createElement('input'); input.type = 'text'; input.className = 'form-control'; input.inputMode = 'decimal';
             input.id = 'bdx-bulk-' + r.id; input.setAttribute('data-id', r.id);
             input.setAttribute('aria-label', fmt(t.bulkLabel, { name: r.name }));
             wrap.appendChild(input); row.appendChild(label); row.appendChild(wrap); box.appendChild(row);
@@ -262,6 +262,63 @@
         });
     }
 
+
+    /* ---- New budget: pick a category without a limit, or create one ---- */
+    var created = null;     // a category created by a failed attempt, reused on retry
+    function currentRows() {
+        try { return JSON.parse($('#bdx-data').textContent) || []; } catch (e) { return []; }
+    }
+    function newScope() { var r = $('input[name="bdx-new-scope"]:checked'); return r ? r.value : 'every_month'; }
+    function newError(text) { var b = $('#bdx-new-error'); b.textContent = text || ''; b.hidden = !text; }
+
+    function openNew() {
+        var t = T(), el = shell(), canAdd = el.getAttribute('data-can-add') === '1';
+        created = null;
+        var select = $('#bdx-new-cat'); select.innerHTML = '';
+        var free = currentRows().filter(function (r) { return !(r.limit > 0); });
+        if (free.length) {
+            var pick = document.createElement('option'); pick.value = ''; pick.textContent = t.nPick; select.appendChild(pick);
+            free.forEach(function (r) { var o = document.createElement('option'); o.value = r.id; o.textContent = r.name; select.appendChild(o); });
+        }
+        if (canAdd) { var n = document.createElement('option'); n.value = '__new__'; n.textContent = t.nNewOption; select.appendChild(n); }
+        select.value = free.length ? '' : '__new__';
+        $('#bdx-new-name').value = ''; $('#bdx-new-amount').value = ''; newError('');
+        toggleNewName();
+        var everyOk = el.getAttribute('data-every-month') === '1';
+        $('#bdx-new-scope-every').disabled = !everyOk;
+        (everyOk ? $('#bdx-new-scope-every') : $('#bdx-new-scope-this')).checked = true;
+        window.bootstrap.Modal.getOrCreateInstance($('#bdx-new')).show();
+    }
+    function toggleNewName() {
+        var isNew = $('#bdx-new-cat').value === '__new__';
+        $('#bdx-new-name-wrap').hidden = !isNew;
+    }
+    function submitNew(event) {
+        event.preventDefault();
+        var t = T(), choice = $('#bdx-new-cat').value, name = $('#bdx-new-name').value.trim();
+        var amount = parseAmount($('#bdx-new-amount').value);
+        if (!choice) { newError(t.nPickRequired); return; }
+        if (choice === '__new__' && !name) { newError(t.nNameRequired); return; }
+        if (amount === null) { newError(t.nAmountRequired); return; }
+        if (Number.isNaN(amount) || amount < 0) { newError(t.eInvalid); return; }
+        newError('');
+        var scope = newScope(), month = shell().getAttribute('data-month'), save = $('#bdx-new-save');
+        save.disabled = true;
+        var step1 = created ? Promise.resolve(created)
+            : (choice === '__new__'
+                ? api(t.apiCategory, 'POST', { name: name }).then(function (d) { created = d.id; return d.id; })
+                : Promise.resolve(parseInt(choice, 10)));
+        step1.then(function (id) {
+            return api(t.apiLimit, 'PUT', { category_id: id, month: month, amount: amount, scope: scope });
+        }).then(function () {
+            window.bootstrap.Modal.getOrCreateInstance($('#bdx-new')).hide();
+            toast(t.nAdded); refresh();
+        }).catch(function (err) {
+            save.disabled = false;
+            newError(created && !(err && err.code === 'plan_locked') ? t.nLimitFailed : (err.message || t.failed));
+        });
+    }
+
     /* ---- smart suggestion ---- */
     function reviewSuggestion(button) {
         var card = document.querySelector('[data-bdx-cat][data-id="' + button.getAttribute('data-needy') + '"]');
@@ -289,6 +346,7 @@
         if (suggest) { e.preventDefault(); reviewSuggestion(suggest); return; }
         var dismiss = t.closest('[data-bdx-dismiss]');
         if (dismiss) { e.preventDefault(); dismissSuggestion(dismiss); return; }
+        if (t.closest('[data-bdx-new]')) { e.preventDefault(); openNew(); return; }
         var reset = t.closest('[data-bdx-reset]');
         if (reset) { e.preventDefault(); resetOverride(reset); return; }
         if (t.closest('[data-bdx-bulk]')) { e.preventDefault(); openBulk(); return; }
@@ -313,10 +371,15 @@
     document.addEventListener('submit', function (e) {
         if (e.target.id === 'bdx-form') submitSheet(e);
         else if (e.target.id === 'bdx-bulk-form') submitBulk(e);
+        else if (e.target.id === 'bdx-new-form') submitNew(e);
     }, true);
+    document.addEventListener('change', function (e) {
+        if (e.target.id === 'bdx-new-cat') toggleNewName();
+    });
     document.addEventListener('shown.bs.modal', function (e) {
         if (e.target.id === 'bdx-sheet') { var a = $('#bdx-amount'); a.focus(); a.select(); }
         else if (e.target.id === 'bdx-bulk') { var i = document.querySelector('#bdx-bulk-rows input'); if (i) i.focus(); }
+        else if (e.target.id === 'bdx-new') { var f = $('#bdx-new-cat').value === '__new__' ? $('#bdx-new-name') : $('#bdx-new-cat'); f.focus(); }
     });
     document.addEventListener('htmx:beforeRequest', function (e) {
         if (e.target && e.target.id === 'budget-shell') e.target.setAttribute('aria-busy', 'true');

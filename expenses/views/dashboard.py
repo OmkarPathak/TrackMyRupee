@@ -3269,10 +3269,9 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         page = build_budget_page(user, month_start, today, sort_param)
         page['unbudgeted_spent'] = page['unbudgeted_spent'] or 0
 
-        suggestion = None
-        if page['phase'] == 'current':
-            from ..budget_suggestions import find_suggestion
-            suggestion = find_suggestion(user, month_start, page['categories'])
+        # the Smart move banner needs three months of history, so the page asks for it after it paints
+        from ..budget_suggestions import may_have_suggestion
+        suggestion_wanted = page['phase'] == 'current' and may_have_suggestion(page['categories'])
 
         # search and Status narrow the list; the hero, chips and totals stay about the whole month
         wanted_status = set(state['filters'].get('status', []))
@@ -3287,10 +3286,33 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         else:
             rows = all_rows
 
+        # the status summary doubles as quick filters: one click sets the toolbar's Status filter,
+        # a second click on the same one clears it
+        only = list(wanted_status) if len(wanted_status) == 1 else []
+        counts = page['counts']
+        status_tiles = []
+        for key, count_key, css, icon, label in (
+            ('over', 'over', 'over', 'bi-exclamation-octagon-fill', _('over budget')),
+            ('limit', 'at_limit', 'limit', 'bi-exclamation-triangle-fill', _('at limit')),
+            ('ontrack', 'on_track', 'ok', 'bi-check-circle-fill', _('on track')),
+            ('nolimit', 'no_limit', 'none', 'bi-dash-circle', _('no limit set')),
+        ):
+            params = self.request.GET.copy()
+            params.pop('status', None)
+            active = only == [key]
+            if not active:
+                params['status'] = key
+            query = params.urlencode()
+            status_tiles.append({
+                'key': key, 'count': counts[count_key], 'css': css, 'icon': icon, 'label': label,
+                'active': active, 'url': self.request.path + (f'?{query}' if query else ''),
+            })
+
         profile = getattr(user, 'profile', None)
         context.update({
             'page': page,
-            'suggestion': suggestion,
+            'status_tiles': status_tiles,
+            'suggestion_url': (reverse('budgets-api-suggestion') + f'?month={month_start:%Y-%m}') if suggestion_wanted else '',
             'phase': page['phase'],
             'filter_config': BUDGET_FILTERS,
             'applied_state': state,
@@ -3302,6 +3324,8 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             'currency_symbol': profile.currency if profile and profile.currency else '₹',
             'warning_percent': BUDGET_WARNING_PERCENT,
             'can_add_category': profile.can_add_category() if profile else False,
+            'new_budget_possible': (profile.can_add_category() if profile else False)
+                                   or any(r['limit'] is None for r in all_rows),
             'every_month_allowed': month_start >= today.replace(day=1),
             'rows': rows,
             'needs_attention': [r for r in rows if r['status'] in ('over', 'limit')],

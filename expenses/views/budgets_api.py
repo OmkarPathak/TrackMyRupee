@@ -171,3 +171,29 @@ def budgets_dismiss_suggestion(request):
         raise ValueError(_('Unknown suggestion.'))
     BudgetSuggestionDismissal.objects.get_or_create(user=request.user, key=key)
     return JsonResponse({'success': True})
+
+
+@api_login_required
+@require_http_methods(['GET'])
+@_guarded
+def budgets_suggestion_fragment(request):
+    """The "Smart move" banner as an HTML fragment. The page loads it after it has painted, because it
+    needs three months of history that the page itself does not."""
+    from django.http import HttpResponse
+    from django.template.loader import render_to_string
+
+    from ..budget_suggestions import find_suggestion
+
+    today = timezone.localdate()
+    month = _parse_month(request.GET.get('month'), today)
+    if month != today.replace(day=1):
+        return HttpResponse('')
+    page = build_budget_page(request.user, month, today)
+    suggestion = find_suggestion(request.user, month, page['categories'])
+    if not suggestion:
+        return HttpResponse('')
+    profile = getattr(request.user, 'profile', None)
+    return HttpResponse(render_to_string('expenses/partials/_budget_suggestion.html', {
+        'suggestion': suggestion,
+        'currency_symbol': profile.currency if profile and profile.currency else '₹',
+    }, request=request))

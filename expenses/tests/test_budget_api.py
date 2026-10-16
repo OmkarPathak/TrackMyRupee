@@ -466,3 +466,60 @@ class TranslationTests(Base):
         self.assertIn('आज सुरक्षित खर्च', html)
         self.assertIn('मर्यादा बदला', html)
         self.assertIn('data-p-every="%(name)s: %(from)s → %(to)s, %(month)s पासून पुढे"', html)
+
+
+class NewBudgetDialogTests(Base):
+    """"New budget" is a dialog on the page: pick a category without a limit or create one, set the limit."""
+
+    def test_button_opens_the_dialog_instead_of_leaving_the_page(self):
+        html = self.client.get(reverse('budget')).content.decode()
+        self.assertIn('data-bdx-new', html)
+        self.assertIn('id="bdx-new"', html)
+        self.assertIn('id="bdx-new-form"', html)
+        self.assertIn(reverse('category-create-ajax'), html)
+        self.assertNotIn(reverse('category-create') + '?next', html)
+
+    def test_dialog_data_lists_categories_without_a_limit(self):
+        rows = {r['name']: r for r in self.get().json()['categories']}
+        self.assertIsNone(rows['Fun']['limit'])          # offered in the dialog's picker
+        self.assertTrue(rows['Food']['limit'])           # already budgeted, not offered
+
+    def test_create_a_category_then_budget_it_in_one_flow(self):
+        created = self.client.post(reverse('category-create-ajax'), json.dumps({'name': 'Pets'}),
+                                   content_type='application/json').json()
+        self.assertTrue(created['success'])
+        resp = self.put({'category_id': created['id'], 'month': ym(CUR), 'amount': 1800, 'scope': 'every_month'})
+        self.assertEqual(resp.status_code, 200)
+        rows = self.rows(resp)
+        self.assertEqual(rows['Pets']['limit'], 1800.0)
+        self.assertEqual(self.rows(self.get(month=ym(NEXT)))['Pets']['limit'], 1800.0)
+
+    def test_pick_an_existing_category_without_a_limit(self):
+        resp = self.put({'category_id': self.fun.id, 'month': ym(CUR), 'amount': 500, 'scope': 'this_month'})
+        self.assertEqual(self.rows(resp)['Fun']['limit'], 500.0)
+
+    def test_duplicate_name_is_refused_by_the_create_step(self):
+        created = self.client.post(reverse('category-create-ajax'), json.dumps({'name': 'food'}),
+                                   content_type='application/json').json()
+        self.assertFalse(created['success'])
+
+    def test_button_is_still_offered_when_only_the_plan_blocks_new_categories(self):
+        free = self.make_user('free-new', 'FREE')
+        from finance_tracker.plans import get_limit
+        for i in range(get_limit('FREE', 'budget_categories')):
+            Category.objects.create(user=free, name=f'F{i}')          # all five slots used, none has a limit
+        self.client.force_login(free)
+        resp = self.client.get(reverse('budget'))
+        self.assertTrue(resp.context['new_budget_possible'])
+        self.assertContains(resp, 'data-bdx-new')
+        self.assertContains(resp, 'data-can-add="0"')
+
+    def test_upgrade_link_when_nothing_can_be_budgeted_or_created(self):
+        free = self.make_user('free-full', 'FREE')
+        from finance_tracker.plans import get_limit
+        for i in range(get_limit('FREE', 'budget_categories')):
+            Category.objects.create(user=free, name=f'F{i}', limit=D('10'))
+        self.client.force_login(free)
+        resp = self.client.get(reverse('budget'))
+        self.assertFalse(resp.context['new_budget_possible'])
+        self.assertContains(resp, reverse('pricing'))

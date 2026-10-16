@@ -15,7 +15,7 @@ import math
 from decimal import Decimal
 
 from . import budget_resolver as resolver
-from .budgets import has_limit, monthly_spend_by_category, normalize_category
+from .budgets import has_limit, monthly_spend_by_category_months, normalize_category
 
 LOOKBACK_MONTHS = 3
 UNUSED_SHARE = Decimal('0.10')      # "barely used": under 10% of the limit
@@ -43,7 +43,7 @@ def find_suggestion(user, month, rows) -> dict | None:
 
     months = [_add_months(month, -k) for k in range(LOOKBACK_MONTHS, 0, -1)]
     limits = resolver.effective_limits_range_by_name(user, months[0], months[-1])
-    spend = {m: monthly_spend_by_category(user, m.year, m.month)[0] for m in months}
+    spend = monthly_spend_by_category_months(user, months)          # one query for all three months
 
     def barely_used(name):
         key = normalize_category(name)
@@ -74,3 +74,11 @@ def find_suggestion(user, month, rows) -> dict | None:
         'needy_id': target['id'], 'needy_name': target['name'], 'needy_limit': target['limit'],
         'amount': amount, 'months': LOOKBACK_MONTHS,
     }
+
+
+def may_have_suggestion(rows) -> bool:
+    """Cheap check on the page rows: is there a category at its limit AND one barely used this month?
+    Only then is the (slower) history lookup worth doing."""
+    needy = any(r['status'] in ('over', 'limit') and r['limit'] for r in rows)
+    donor = any(r['limit'] and r['status'] == 'ontrack' and (r['spent'] or 0) < r['limit'] * float(UNUSED_SHARE) for r in rows)
+    return needy and donor

@@ -1,15 +1,17 @@
-{% extends 'expenses/settings_base.html' %}
+{% extends 'base.html' %}
 {% load i18n static %}
 
 {% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}">
     <script src="{% static 'js/tmr_filter.js' %}" defer></script>
-    <link rel="stylesheet" href="{% static 'css/budget.css' %}?v=1.0">
+    <link rel="stylesheet" href="{% static 'css/budget.css' %}?v=1.5">
 {% endblock %}
 
-{% block settings_content %}
+{% block content %}
+<div class="fade-in">
     {% include 'expenses/partials/_budget_dashboard_content.html' %}
+</div>
 {% endblock %}
 
 {% block modals %}
@@ -18,7 +20,6 @@
     <div class="modal fade bdx-modal" id="bdx-sheet" tabindex="-1" aria-labelledby="bdx-sheet-title" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form class="modal-content bdx-sheet no-loader" id="bdx-form" method="post" action="#" novalidate>
-                <div class="bdx-sheet-grab" aria-hidden="true"></div>
                 <div class="bdx-sheet-head">
                     <span class="bdx-avatar" id="bdx-sheet-avatar" aria-hidden="true"></span>
                     <div class="bdx-sheet-titles">
@@ -29,9 +30,9 @@
                 </div>
                 <div class="bdx-sheet-body">
                     <label for="bdx-amount" class="form-label">{% trans "Monthly limit" %}</label>
-                    <div class="bdx-amountbox">
-                        <span class="bdx-amountbox-sym" id="bdx-symbol" aria-hidden="true">{{ currency_symbol }}</span>
-                        <input id="bdx-amount" type="text" inputmode="decimal" autocomplete="off" aria-describedby="bdx-preview-box bdx-error">
+                    <div class="input-group">
+                        <span class="input-group-text" id="bdx-symbol" aria-hidden="true">{{ currency_symbol }}</span>
+                        <input id="bdx-amount" type="text" class="form-control" inputmode="decimal" autocomplete="off" aria-describedby="bdx-preview-box bdx-error">
                     </div>
                     <p class="bdx-msg bdx-msg--error" id="bdx-error" role="alert" hidden></p>
 
@@ -62,11 +63,52 @@
         </div>
     </div>
 
+    <!-- New budget: pick a category that has no limit yet, or create one, then set its limit -->
+    <div class="modal fade bdx-modal" id="bdx-new" tabindex="-1" aria-labelledby="bdx-new-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content bdx-sheet no-loader" id="bdx-new-form" method="post" action="#" novalidate>
+                <div class="bdx-sheet-head">
+                    <div class="bdx-sheet-titles">
+                        <h5 class="bdx-sheet-title" id="bdx-new-title">{% trans "New budget" %}</h5>
+                        <p class="bdx-sheet-sub">{% trans "Give a category a monthly limit." %}</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="bdx-sheet-body">
+                    <label for="bdx-new-cat" class="form-label">{% trans "Category" %}</label>
+                    <select id="bdx-new-cat" class="form-select"></select>
+                    <div id="bdx-new-name-wrap" hidden>
+                        <label for="bdx-new-name" class="form-label">{% trans "Category name" %}</label>
+                        <input id="bdx-new-name" type="text" class="form-control" maxlength="255" autocomplete="off" placeholder="{% trans 'e.g. Groceries' %}">
+                    </div>
+
+                    <label for="bdx-new-amount" class="form-label">{% trans "Monthly limit" %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text" aria-hidden="true">{{ currency_symbol }}</span>
+                        <input id="bdx-new-amount" type="text" class="form-control" inputmode="decimal" autocomplete="off" aria-describedby="bdx-new-error">
+                    </div>
+
+                    <fieldset class="bdx-scope">
+                        <legend class="form-label">{% trans "Apply to" %}</legend>
+                        <div class="bdx-opts" role="radiogroup" aria-label="{% trans 'Apply to' %}">
+                            <label class="bdx-opt"><input type="radio" name="bdx-new-scope" id="bdx-new-scope-this" value="this_month"><i class="bi bi-calendar-day" aria-hidden="true"></i><span>{% trans "This month only" %}</span></label>
+                            <label class="bdx-opt"><input type="radio" name="bdx-new-scope" id="bdx-new-scope-every" value="every_month"><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span>{% trans "Every month" %}</span></label>
+                        </div>
+                    </fieldset>
+                    <p class="bdx-msg bdx-msg--error" id="bdx-new-error" role="alert" hidden></p>
+                </div>
+                <div class="bdx-sheet-foot">
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-action-primary" id="bdx-new-save">{% trans "Add budget" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Set all limits (bulk) -->
     <div class="modal fade bdx-modal" id="bdx-bulk" tabindex="-1" aria-labelledby="bdx-bulk-title" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <form class="modal-content bdx-sheet no-loader" id="bdx-bulk-form" method="post" action="#" novalidate>
-                <div class="bdx-sheet-grab" aria-hidden="true"></div>
                 <div class="bdx-sheet-head">
                     <div class="bdx-sheet-titles">
                         <h5 class="bdx-sheet-title" id="bdx-bulk-title">{% trans "Set all limits" %}</h5>
@@ -99,6 +141,14 @@
          data-api-rebalance="{% url 'budgets-api-rebalance' %}"
          data-api-reset="{% url 'budgets-api-reset' %}"
          data-api-dismiss="{% url 'budgets-api-dismiss' %}"
+         data-api-category="{% url 'category-create-ajax' %}"
+         data-n-new-option="{% trans 'New category…' %}"
+         data-n-pick="{% trans 'Choose a category' %}"
+         data-n-name-required="{% trans 'Enter a name for the new category.' %}"
+         data-n-pick-required="{% trans 'Choose a category.' %}"
+         data-n-amount-required="{% trans 'Enter a monthly limit.' %}"
+         data-n-added="{% trans 'Budget added' %}"
+         data-n-limit-failed="{% trans 'The category was created but its limit could not be saved. Try again.' %}"
          data-symbol="{{ currency_symbol }}"
          data-locale="{% if LANGUAGE_CODE == 'hi' %}hi-IN-u-nu-deva{% elif LANGUAGE_CODE == 'mr' %}mr-IN-u-nu-deva{% elif currency_symbol == '₹' %}en-IN{% else %}en-US{% endif %}"
          data-now="{% trans 'Currently %(amount)s' %}"
@@ -128,5 +178,5 @@
          data-bulk-partial="{% trans 'Some limits could not be saved. Try again.' %}"
          data-bulk-label="{% trans 'Limit for %(name)s' %}"
          data-bulk-empty="{% trans 'Every category already has a limit.' %}"></div>
-    <script src="{% static 'js/budget.js' %}?v=1.0" defer></script>
+    <script src="{% static 'js/budget.js' %}?v=1.5" defer></script>
 {% endblock %}

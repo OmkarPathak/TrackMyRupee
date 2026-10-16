@@ -110,3 +110,33 @@ class BudgetFilterTests(Base):
         self.assertEqual(CATEGORY_LIST_FILTERS.date_field, 'date')
         self.assertIsNone(CATEGORY_LIST_FILTERS.time_periods)
         Expense.objects.create(user=self.user, date=TODAY - timedelta(days=1), amount=D('1'), description='x', category='Food', currency='₹')
+
+
+class StatusTileTests(BudgetFilterTests):
+    def tiles(self, **params):
+        return {t['key']: t for t in self.page(**params).context['status_tiles']}
+
+    def test_tiles_show_the_month_counts_and_link_to_the_status_filter(self):
+        tiles = self.tiles()
+        self.assertEqual([tiles[k]['count'] for k in ('over', 'limit', 'ontrack', 'nolimit')], [1, 1, 1, 1])
+        self.assertIn('status=over', tiles['over']['url'])
+        self.assertFalse(any(t['active'] for t in tiles.values()))
+
+    def test_active_tile_links_back_to_the_unfiltered_page(self):
+        tiles = self.tiles(status='over')
+        self.assertTrue(tiles['over']['active'])
+        self.assertNotIn('status=', tiles['over']['url'])
+        self.assertIn('status=limit', tiles['limit']['url'])      # clicking another one switches
+
+    def test_tiles_keep_other_filters(self):
+        tiles = self.tiles(status='over', search='fu', sort='name')
+        self.assertIn('search=fu', tiles['limit']['url'])
+        self.assertIn('sort=name', tiles['limit']['url'])
+
+    def test_tiles_render_as_pressed_buttons_that_swap_the_shell(self):
+        html = self.page(status='over').content.decode()
+        self.assertIn('aria-pressed="true"', html)
+        self.assertIn('hx-target="#budget-shell"', html)
+
+    def test_counts_stay_about_the_whole_month_when_filtered(self):
+        self.assertEqual(self.tiles(status='over')['ontrack']['count'], 1)

@@ -33,7 +33,7 @@ def apply_filter_config(
     from ..views.utils import apply_date_filters
 
     # 1. Date / Time Period Filter
-    if config.supports_time_period:
+    if config.supports_time_period and not config.calendar_months_only:
         explicit_period = any(request.GET.get(k) for k in ('time_period', 'start_date', 'end_date'))
         # apply_date_filters only reads the request, whose own fallback is "this month"; a page whose
         # configured default is "all" must not be narrowed when nobody picked a period.

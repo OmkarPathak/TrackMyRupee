@@ -94,17 +94,32 @@ class SuggestionTests(Base):
         resp = self.client.post(reverse('budgets-api-dismiss'), '{}', content_type='application/json')
         self.assertEqual(resp.status_code, 401)
 
-    def test_page_shows_the_banner_and_only_for_the_current_month(self):
-        page = self.client.get(reverse('budget'))
-        self.assertContains(page, 'data-bdx-suggestion')
-        self.assertContains(page, 'Smart move:')
-        past = self.client.get(reverse('budget'), {'month': months_ago(1).month, 'year': months_ago(1).year})
-        self.assertNotContains(past, 'data-bdx-suggestion')
+    def fragment(self, **params):
+        return self.client.get(reverse('budgets-api-suggestion'), params)
 
-    def test_banner_gone_after_dismissal(self):
+    def test_page_asks_for_the_banner_after_painting_and_the_fragment_has_it(self):
+        page = self.client.get(reverse('budget'))
+        self.assertContains(page, 'id="bdx-suggest-slot"')
+        self.assertContains(page, 'hx-trigger="load"')
+        self.assertNotContains(page, 'data-bdx-suggestion')          # nothing slow happens in the page itself
+        banner = self.fragment(month=f'{CUR:%Y-%m}')
+        self.assertContains(banner, 'data-bdx-suggestion')
+        self.assertContains(banner, 'Smart move:')
+
+    def test_no_slot_when_nothing_could_be_suggested(self):
+        Expense.objects.filter(user=self.user, category='Food').delete()
+        self.assertNotContains(self.client.get(reverse('budget')), 'bdx-suggest-slot')
+
+    def test_fragment_is_empty_for_other_months_and_needs_login(self):
+        self.assertEqual(self.fragment(month=f'{months_ago(1):%Y-%m}').content, b'')
+        self.assertEqual(self.fragment(month='nope').status_code, 400)
+        self.client.logout()
+        self.assertEqual(self.fragment().status_code, 401)
+
+    def test_fragment_gone_after_dismissal(self):
         self.client.post(reverse('budgets-api-dismiss'), json.dumps({'key': self.suggestion()['key']}),
                          content_type='application/json')
-        self.assertNotContains(self.client.get(reverse('budget')), 'data-bdx-suggestion')
+        self.assertEqual(self.fragment(month=f'{CUR:%Y-%m}').content, b'')
 
     def test_no_extra_queries_when_nothing_needs_attention(self):
         from django.db import connection
