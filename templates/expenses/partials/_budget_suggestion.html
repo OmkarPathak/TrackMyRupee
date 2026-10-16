@@ -1,0 +1,14 @@
+{% load i18n digit_filters %}{% with cs=currency_symbol %}
+        <aside class="bdx-suggest" role="note" aria-label="{% trans 'Budget suggestion' %}" data-bdx-suggestion data-key="{{ suggestion.key }}">
+            <i class="bi bi-lightbulb-fill" aria-hidden="true"></i>
+            <p>
+                <strong>{% trans "Smart move:" %}</strong>
+                {% blocktrans with donor=suggestion.donor_name needy=suggestion.needy_name months=suggestion.months|translate_digits untouched=suggestion.donor_untouched|ind_comma:cs|translate_digits amount=suggestion.amount|ind_comma:cs|translate_digits %}{{ donor }} has used under 10% of its limit for {{ months }} months ({{ cs }}{{ untouched }} untouched) while {{ needy }} has reached its limit. Move {{ cs }}{{ amount }} to {{ needy }} for this month?{% endblocktrans %}
+            </p>
+            <div class="bdx-suggest-actions">
+                <button type="button" class="bdx-link bdx-suggest-discard" data-bdx-dismiss aria-label="{% trans 'Dismiss suggestion' %}">{% trans "Discard" %}</button>
+                <button type="button" class="bdx-btn bdx-btn--soft" data-bdx-suggest
+                        data-needy="{{ suggestion.needy_id }}" data-donor="{{ suggestion.donor_id }}" data-amount="{{ suggestion.amount }}">{% trans "Review suggestion" %}</button>
+            </div>
+        </aside>
+{% endwith %}

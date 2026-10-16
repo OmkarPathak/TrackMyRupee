@@ -758,6 +758,7 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated has-sidebar{% endif %} {% if request.user.username == 'demo' %}demo-mode{% endif %}" data-csrf-token="{{ csrf_token }}" hx-headers='js:{"X-CSRFToken": document.body.dataset.csrfToken}'>
+    {% include 'partials/clear_saved_filters.html' %}
     <!-- Instant Progress Bar (Static) -->
     <div id="global-progress-bar" class="htmx-indicator"></div>
 

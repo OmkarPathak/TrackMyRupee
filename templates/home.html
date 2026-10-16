@@ -3632,8 +3632,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Dynamic colors for Budgets - flat solid
             const spentColors = withLimits.map(item => {
-                if (item.total > item.limit) return '#E05C45'; // Coral (Over)
-                if (item.total > item.limit * 0.8) return '#D4831A'; // Amber (Warning)
+                if (item.status === 'over') return '#E05C45'; // Coral (Over)
+                if (item.status === 'limit') return '#D4831A'; // Amber (at limit: 85%+, same rule as the Budget page)
                 return '#1D9E75'; // Brand Teal (Safe)
             });
 

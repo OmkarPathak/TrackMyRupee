@@ -33,12 +33,12 @@ def apply_filter_config(
     from ..views.utils import apply_date_filters
 
     # 1. Date / Time Period Filter
-    if config.supports_time_period:
+    if config.supports_time_period and not config.calendar_months_only:
         explicit_period = any(request.GET.get(k) for k in ('time_period', 'start_date', 'end_date'))
         # apply_date_filters only reads the request, whose own fallback is "this month"; a page whose
         # configured default is "all" must not be narrowed when nobody picked a period.
-        if explicit_period or config.default_time_range != 'all':
-            queryset = apply_date_filters(queryset, request)
+        if config.date_field and (explicit_period or config.default_time_range != 'all'):
+            queryset = apply_date_filters(queryset, request, date_field=config.date_field)
         period = resolve_period(
             user=getattr(request, 'user', None),
             time_period=applied_state['time_period'],
@@ -46,7 +46,7 @@ def apply_filter_config(
             end_date=applied_state['end_date'],
         )
         cycle_ctx = get_cycle_context(user=getattr(request, 'user', None))
-        applied_state['cycle_active'] = cycle_ctx['cycle_active']
+        applied_state['cycle_active'] = cycle_ctx['cycle_active'] and not config.calendar_months_only
         applied_state['salary_date'] = cycle_ctx['salary_date']
         applied_state['cycle_range'] = cycle_ctx['cycle_range']
         applied_state['prev_cycle_range'] = cycle_ctx['prev_cycle_range']
@@ -156,15 +156,18 @@ def apply_filter_config(
                 name_field = 'description'
             prefix = '-' if sort_by == 'name_desc' else ''
             queryset = queryset.order_by(f'{prefix}{name_field}', f'{prefix}id')
-        elif sort_by == 'limit_desc':
-            queryset = queryset.order_by(F('limit').desc(nulls_last=True), 'name', 'id')
-        elif sort_by == 'limit_asc':
-            queryset = queryset.order_by(F('limit').asc(nulls_last=True), 'name', 'id')
+        elif sort_by in ('limit_desc', 'limit_asc'):
+            from expenses.budget_resolver import annotate_current_limit
+            queryset = annotate_current_limit(queryset)
+            limit_order = F('cur_limit').desc(nulls_last=True) if sort_by == 'limit_desc' else F('cur_limit').asc(nulls_last=True)
+            queryset = queryset.order_by(limit_order, 'name', 'id')
         elif sort_by == 'date_desc':
-            try:
-                queryset.model._meta.get_field('date')
+            field_names = {f.name for f in queryset.model._meta.get_fields()}
+            if 'date' in field_names:
                 queryset = queryset.order_by('-date', '-created_at', '-id')
-            except Exception:
+            elif 'created_at' in field_names:
                 queryset = queryset.order_by('-created_at', '-id')
+            else:
+                queryset = queryset.order_by('-id')
 
     return queryset, applied_state

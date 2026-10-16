@@ -3,7 +3,7 @@ category screens, the Budget page and its pacing maths, and the budget alerts.""
 
 import calendar
 import json
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -14,10 +14,11 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.budget_page import PACE_BAND
 from expenses.budgets import (
     BUDGET_WARNING_PERCENT,
-    bulk_monthly_spend,
     budget_status,
+    bulk_monthly_spend,
     has_limit,
     monthly_spend_by_category,
     normalize_category,
@@ -34,7 +35,7 @@ from expenses.models import (
     RecurringTransaction,
     UserProfile,
 )
-from expenses.views.dashboard import BUDGET_PACE_BAND_PERCENT, calculate_budget_pacing
+from expenses.tests.budget_helpers import legacy_page_ctx
 from finance_tracker.plans import get_limit
 
 D = Decimal
@@ -179,7 +180,7 @@ class TestMonthlySpend(BudgetBase):
     def test_query_count_is_constant(self):
         for i in range(5):
             self.spend(f'C{i}', 10)
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(1):      # expenses and capital events come back as one UNION
             monthly_spend_by_category(self.user, today().year, today().month)
         with self.assertNumQueries(2):
             bulk_monthly_spend(today().year, today().month)
@@ -444,7 +445,7 @@ class TestCategoryScreens(BudgetBase):
         self.assertFalse(Category.objects.filter(pk=c.pk).exists())
         self.assertTrue(Expense.objects.filter(pk=e.pk).exists())
         self.assertIn('Category deleted successfully.', self.messages(response))
-        ctx = self.client.get(reverse('budget')).context
+        ctx = legacy_page_ctx(self.client.get(reverse('budget')).context)
         self.assertEqual((ctx['total_spent'], ctx['budgeted_spent'], ctx['unbudgeted_spent']), (D('100'), D('0'), D('100')))
 
     def test_bulk_delete(self):
@@ -483,7 +484,7 @@ class TestBudgetPage(BudgetBase):
     def ctx(self, **params):
         response = self.client.get(self.url, params)
         self.assertEqual(response.status_code, 200)
-        return response.context
+        return legacy_page_ctx(response.context)
 
     def row(self, ctx, name):
         return next(d for d in ctx['budget_data'] if d['category'].name == name)
@@ -548,7 +549,7 @@ class TestBudgetPage(BudgetBase):
         self.assertEqual(ctx['unbudgeted_spent'], D('150'))       # no-limit category + stray spend
         self.assertEqual(ctx['total_remaining'], D('100'))        # B is over its own limit, but the total is not
         self.assertEqual(ctx['over_budget_amount'], D('0'))
-        self.assertAlmostEqual(ctx['actual_total_percentage'], 96.666, places=2)
+        self.assertAlmostEqual(ctx['actual_total_percentage'], 96.7, places=1)   # the payload rounds to 0.1
         self.assertEqual(ctx['total_percentage'], ctx['actual_total_percentage'])
 
     def test_total_over_budget_and_percentage_cap(self):
@@ -633,28 +634,6 @@ class TestBudgetPage(BudgetBase):
         self.spend('Warn', 900)
         self.assertEqual([d['category'].name for d in self.ctx()['budget_data']], ['Over-big', 'Over-small', 'Warn'])
 
-    def test_month_on_month_change(self):
-        self.cat('Food', 5000)
-        last = today().replace(day=1) - timedelta(days=3)
-        self.spend('Food', 1000, when=last)
-        self.spend('Food', 1500)
-        ctx = self.ctx()
-        self.assertEqual((ctx['spent_mom_pct'], ctx['spent_mom_pct_abs']), (50.0, 50.0))
-        self.assertEqual(self.ctx(month=last.month, year=last.year)['spent_mom_pct'], None)   # nothing the month before
-
-    def test_month_on_month_decrease(self):
-        last = today().replace(day=1) - timedelta(days=3)
-        self.spend('Food', 1000, when=last)
-        self.spend('Food', 750)
-        ctx = self.ctx()
-        self.assertEqual((ctx['spent_mom_pct'], ctx['spent_mom_pct_abs']), (-25.0, 25.0))
-
-    def test_budget_capital_events_are_in_the_month_on_month_figure(self):
-        last = today().replace(day=1) - timedelta(days=3)
-        self.event(1000, budget=True, when=last)
-        self.spend('Food', 500)
-        self.assertEqual(self.ctx()['spent_mom_pct'], -50.0)
-
     def test_users_are_isolated(self):
         other = self.make_user('other-bud-page')
         self.cat('Food', 10, user=other)
@@ -680,18 +659,21 @@ class TestBudgetPage(BudgetBase):
             self.cat(f'P{i}', 100)
         self.assertEqual(len(self.ctx()['budget_data']), 20)
 
-    def test_context_carries_the_threshold_and_pickers(self):
-        ctx = self.ctx()
-        self.assertEqual(ctx['warning_percent'], BUDGET_WARNING_PERCENT)
-        self.assertEqual(len(ctx['months']), 12)
-        self.assertIn(today().year, list(ctx['years']))
+    def test_context_carries_the_threshold_and_the_unified_filter_toolbar(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.context['warning_percent'], BUDGET_WARNING_PERCENT)
+        self.assertEqual(response.context['filter_config'].page_key, 'budget')
+        self.assertContains(response, 'tmr-toolbar-container')
+        self.assertContains(response, 'data-page-key="budget"')
 
     def test_total_bar_turns_amber_at_the_warning_level_and_red_when_over(self):
         self.cat('A', 1000)
         self.spend('A', 900)
-        self.assertContains(self.client.get(self.url), 'progress-bar bg-warning')
+        page = self.client.get(self.url)
+        self.assertContains(page, 'bdx-chip--limit')
+        self.assertNotContains(page, 'bdx-pace-fill is-over')
         self.spend('A', 200)
-        self.assertContains(self.client.get(self.url), 'progress-bar bg-danger')
+        self.assertContains(self.client.get(self.url), 'bdx-pace-fill is-over')
 
     def test_htmx_partial(self):
         full = [t.name for t in self.client.get(self.url).templates]
@@ -704,68 +686,6 @@ class TestBudgetPage(BudgetBase):
         self.assertEqual(self.row(self.ctx(), 'Food')['spent'], D('0'))
         self.spend('Food', 300)
         self.assertEqual(self.row(self.ctx(), 'Food')['spent'], D('300'))
-
-
-# ---------------------------------------------------------------------------
-# Pace
-# ---------------------------------------------------------------------------
-class TestBudgetPacing(TestCase):
-    def pace(self, total, spent, year, month, on):
-        return calculate_budget_pacing(D(str(total)), D(str(spent)), year, month, today=on)
-
-    def test_linear_expectation_and_projection(self):
-        p = self.pace(3000, 1500, 2026, 6, date(2026, 6, 15))          # 30-day month, day 15
-        self.assertEqual((p['days_elapsed'], p['days_in_month']), (15, 30))
-        self.assertEqual(p['expected_spent_to_date'], D('1500.00'))
-        self.assertEqual((p['pace_delta'], p['pace_delta_abs']), (D('0.00'), D('0.00')))
-        self.assertEqual(p['projected_month_end'], D('3000.00'))
-        self.assertEqual(p['pace_state'], 'on_track')
-
-    def test_ahead_and_under_use_a_five_percent_band(self):
-        band = D('3000') * BUDGET_PACE_BAND_PERCENT                    # 150
-        self.assertEqual(BUDGET_PACE_BAND_PERCENT, D('0.05'))
-        on = date(2026, 6, 15)
-        self.assertEqual(self.pace(3000, 1500 + band, 2026, 6, on)['pace_state'], 'on_track')       # exactly on the edge
-        self.assertEqual(self.pace(3000, 1500 + band + D('0.01'), 2026, 6, on)['pace_state'], 'ahead')
-        self.assertEqual(self.pace(3000, 1500 - band, 2026, 6, on)['pace_state'], 'on_track')
-        self.assertEqual(self.pace(3000, 1500 - band - D('0.01'), 2026, 6, on)['pace_state'], 'under')
-
-    def test_projection_scales_to_the_month_length(self):
-        p = self.pace(2800, 700, 2026, 2, date(2026, 2, 7))            # 28-day month, day 7
-        self.assertEqual(p['projected_month_end'], D('2800.00'))
-        self.assertEqual(p['expected_spent_to_date'], D('700.00'))
-
-    def test_leap_february(self):
-        self.assertEqual(self.pace(2900, 0, 2028, 2, date(2028, 2, 10))['days_in_month'], 29)
-
-    def test_first_day(self):
-        p = self.pace(3000, 100, 2026, 6, date(2026, 6, 1))
-        self.assertEqual((p['days_elapsed'], p['expected_spent_to_date'], p['projected_month_end']),
-                         (1, D('100.00'), D('3000.00')))
-
-    def test_last_day_of_the_month(self):
-        p = self.pace(3100, 3100, 2026, 7, date(2026, 7, 31))
-        self.assertEqual((p['days_elapsed'], p['expected_spent_to_date'], p['pace_state']), (31, D('3100.00'), 'on_track'))
-
-    def test_past_month_is_completed_with_full_days(self):
-        p = self.pace(3000, 3300, 2026, 5, date(2026, 6, 15))
-        self.assertEqual((p['pace_state'], p['days_elapsed'], p['expected_spent_to_date'], p['projected_month_end']),
-                         ('completed', 31, D('3000.00'), D('3300.00')))
-
-    def test_future_month_has_no_pace(self):
-        p = self.pace(3000, 0, 2026, 9, date(2026, 6, 15))
-        self.assertEqual((p['pace_state'], p['days_elapsed'], p['projected_month_end'], p['expected_spent_to_date']),
-                         (None, 0, D('0.00'), D('0.00')))
-
-    def test_no_budget_means_no_pace_state(self):
-        for on, month in ((date(2026, 6, 15), 6), (date(2026, 6, 15), 5)):
-            p = self.pace(0, 500, 2026, month, on)
-            self.assertIsNone(p['pace_state'])
-            self.assertEqual(p['expected_spent_to_date'], D('0.00'))
-
-    def test_accepts_none_amounts(self):
-        p = calculate_budget_pacing(None, None, 2026, 6, today=date(2026, 6, 15))
-        self.assertIsNone(p['pace_state'])
 
 
 # ---------------------------------------------------------------------------
@@ -863,7 +783,7 @@ class TestBudgetAlerts(BudgetBase):
 class TestBudgetDocs(BudgetBase):
     def test_numbers_quoted_in_the_guide(self):
         self.assertEqual(BUDGET_WARNING_PERCENT, 85)
-        self.assertEqual(BUDGET_PACE_BAND_PERCENT, D('0.05'))
+        self.assertEqual(PACE_BAND, D('0.05'))
         self.assertEqual((get_limit('FREE', 'budget_categories'), get_limit('PLUS', 'budget_categories'),
                           get_limit('PRO', 'budget_categories')), (5, 15, -1))
 

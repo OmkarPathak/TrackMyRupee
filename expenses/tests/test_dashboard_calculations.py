@@ -118,7 +118,9 @@ class TestHeadlineNumbers(DashBase):
 
 class TestCategoriesAndBudgets(DashBase):
     def test_budget_status_and_usage_for_the_month(self):
-        Category.objects.filter(user=self.user, name='Food').update(limit=D('5000'))
+        food = Category.objects.get(user=self.user, name='Food')
+        food.limit = D('5000')
+        food.save()
         self.expense(4500, 'Food')
         row = {c['name']: c for c in self.home()['category_limits']}['Food']
         self.assertEqual((row['limit'], row['used_percent'], row['status']), (5000.0, 90.0, 'limit'))

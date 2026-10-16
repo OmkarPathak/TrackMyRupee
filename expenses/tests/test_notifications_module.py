@@ -288,7 +288,8 @@ class TestBudgetAlerts(NotifBase):
     def setUp(self):
         super().setUp()
         self.cat, _ = Category.objects.get_or_create(user=self.user, name='Food')
-        Category.objects.filter(pk=self.cat.pk).update(limit=D('1000'))
+        self.cat.limit = D('1000')
+        self.cat.save()
 
     def spend(self, amount):
         Expense.objects.create(user=self.user, account=self.bank, amount=D(str(amount)), category='Food',

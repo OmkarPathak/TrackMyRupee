@@ -12,7 +12,7 @@ from django.utils import timezone
 from webpush import send_user_notification
 from webpush.models import PushInformation
 
-from expenses.budgets import budget_status, bulk_monthly_spend, normalize_category, percent_used
+from expenses.budgets import budget_status, bulk_monthly_spend, has_limit, normalize_category, percent_used
 from expenses.models import (
     Account,
     Category,
@@ -37,10 +37,10 @@ class Command(BaseCommand):
         self.active_cc_accounts_by_user = {}
         self.active_goals_by_user = {}
         self.expense_sums = {}
-        self.today = timezone.now().date()
+        self.today = timezone.localdate()
 
     def handle(self, *args, **kwargs):
-        self.today = timezone.now().date()
+        self.today = timezone.localdate()
         self.stdout.write(f"Starting notification run for {self.today}...")
         
         # --- Pre-fetch all necessary data to avoid N+1 queries ---
@@ -57,9 +57,14 @@ class Command(BaseCommand):
         for rt in RecurringTransaction.objects.filter(is_active=True).select_related('physical_asset'):
             self.active_recurring_by_user.setdefault(rt.user_id, []).append(rt)
             
-        # 3. Pre-fetch Categories with Limits
+        # 3. Pre-fetch this month's effective limits (all users, one query) and every user's categories
+        #    (in id order: the plan lock budgets the first N of them, same as the Budget page)
+        from expenses.budget_resolver import bulk_effective_limits_by_name
+        self.limits_by_user_name = {k: v for k, v in bulk_effective_limits_by_name(self.today).items()
+                                    if has_limit(v)}
+        limited_users = {uid for uid, _ in self.limits_by_user_name}
         self.categories_by_user = {}
-        for cat in Category.objects.filter(limit__gt=0):
+        for cat in Category.objects.filter(user_id__in=limited_users).only('id', 'user_id', 'name').order_by('id'):
             self.categories_by_user.setdefault(cat.user_id, []).append(cat)
             
         # 4. Pre-fetch this month's spend per user and category for budget checking
@@ -267,27 +272,27 @@ class Command(BaseCommand):
         profile = user.profile
         limit_count = get_limit(profile.active_tier, 'budget_categories')
         
-        categories_with_limits = self.categories_by_user.get(user.id, [])
-        # Sort to match locking logic
-        categories_with_limits.sort(key=lambda x: (x.id))
-        
+        categories = self.categories_by_user.get(user.id, [])     # already in id order
         if limit_count != -1:
-            categories_with_limits = categories_with_limits[:limit_count]
+            categories = categories[:limit_count]                 # plan lock, as on the Budget page
             
-        for cat in categories_with_limits:
+        for cat in categories:
+            limit = self.limits_by_user_name.get((user.id, normalize_category(cat.name)))
+            if limit is None:
+                continue
             spent = self.expense_sums.get((user.id, normalize_category(cat.name)), 0)
-            status = budget_status(spent, cat.limit)
+            status = budget_status(spent, limit)
 
             if status == 'over':
                 slug = f"budget-exceeded-{cat.id}-{self.today.year}-{self.today.month}"
                 title = f"Budget Exceeded: {cat.name}"
-                message = f"You have exceeded your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{cat.limit})"
+                message = f"You have exceeded your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{limit})"
                 link = f"/expenses/?category={cat.name}"
                 self._create_notification(user, title, message, 'ANALYTICS', slug=slug, link=link)
             elif status == 'limit':
                 slug = f"budget-warning-{cat.id}-{self.today.year}-{self.today.month}"
                 title = f"Budget Alert: {cat.name}"
-                message = f"You have used {percent_used(spent, cat.limit):.0f}% of your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{cat.limit})"
+                message = f"You have used {percent_used(spent, limit):.0f}% of your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{limit})"
                 link = f"/expenses/?category={cat.name}"
                 self._create_notification(user, title, message, 'ANALYTICS', slug=slug, link=link)
 

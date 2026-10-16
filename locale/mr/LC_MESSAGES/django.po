@@ -6179,7 +6179,7 @@ msgstr "मर्यादा सेट केलेली नाही"
 
 #: templates/expenses/budget_dashboard.html:148
 msgid "Set limit"
-msgstr ""
+msgstr "मर्यादा सेट करा"
 
 #: templates/expenses/budget_dashboard.html:157
 msgid "No categories found. Start by adding some categories to your settings."
@@ -6299,7 +6299,7 @@ msgstr ""
 #: templates/expenses/income_form.html:125
 #: templates/expenses/recurring_transaction_form.html:168
 msgid "Save"
-msgstr ""
+msgstr "जतन करा"
 
 #: templates/expenses/category_list.html:8
 #: templates/expenses/settings_base.html:36
@@ -6975,7 +6975,7 @@ msgstr ""
 #: templates/expenses/goal_detail.html:473
 #: templates/expenses/settings_home.html:522
 msgid "Close"
-msgstr ""
+msgstr "बंद करा"
 
 #: templates/expenses/goal_detail.html:498
 #, fuzzy
@@ -7630,7 +7630,7 @@ msgstr "बदल जतन करा"
 #: templates/expenses/payment_history.html:86
 #: templates/expenses/recurring_transaction_manage.html:32
 msgid "Status"
-msgstr ""
+msgstr "स्थिती"
 
 #: templates/expenses/payment_history.html:87
 msgid "Order ID"
@@ -13432,3 +13432,446 @@ msgstr "श्रेणी तयार करा \"{name}\""
 #~ "\n"
 #~ "                                नियमित बॅकअप आणि सुरक्षा मुल्यांकन.\n"
 #~ "                                "
+
+# Budget page (versioned limits)
+msgid "Enter a valid amount."
+msgstr "वैध रक्कम टाका."
+
+msgid "The limit cannot be negative."
+msgstr "मर्यादा ऋण असू शकत नाही."
+
+msgid "That amount is too large."
+msgstr "ही रक्कम खूप मोठी आहे."
+
+msgid "Category not found."
+msgstr "श्रेणी सापडली नाही."
+
+msgid "Choose \"This month only\" or \"Every month\"."
+msgstr "\"फक्त या महिन्यासाठी\" किंवा \"प्रत्येक महिन्यासाठी\" निवडा."
+
+msgid "This category is locked on your plan."
+msgstr "ही श्रेणी तुमच्या प्लॅनमध्ये लॉक आहे."
+
+msgid "\"Every month\" can only be set for the current or a future month."
+msgstr "\"प्रत्येक महिन्यासाठी\" फक्त चालू किंवा पुढील महिन्यासाठी सेट करता येते."
+
+msgid "Choose at least one move."
+msgstr "किमान एक बदल निवडा."
+
+msgid "Each move needs two different categories and an amount above zero."
+msgstr "प्रत्येक बदलासाठी दोन वेगळ्या श्रेणी आणि शून्यापेक्षा जास्त रक्कम लागते."
+
+#, python-format
+msgid "%(name)s has no limit to move from."
+msgstr "%(name)s मध्ये हलवण्यासाठी कोणतीही मर्यादा नाही."
+
+#, python-format
+msgid "%(name)s has already spent more than its limit would be after this move."
+msgstr "या बदलानंतर %(name)s ची मर्यादा आधीच झालेल्या खर्चापेक्षा कमी होईल."
+
+msgid "Please sign in."
+msgstr "कृपया साइन इन करा."
+
+msgid "Month must look like 2026-10."
+msgstr "महिना 2026-10 सारखा असावा."
+
+msgid "Send a JSON body."
+msgstr "JSON बॉडी पाठवा."
+
+msgid "Send a JSON object."
+msgstr "JSON ऑब्जेक्ट पाठवा."
+
+msgid "Enter an amount, or null to remove the limit."
+msgstr "रक्कम टाका, किंवा मर्यादा काढण्यासाठी null पाठवा."
+
+msgid "Each move needs two categories and an amount."
+msgstr "प्रत्येक बदलासाठी दोन श्रेणी आणि एक रक्कम लागते."
+
+msgid "Unknown suggestion."
+msgstr "अज्ञात सूचना."
+
+msgid "Adjust limit"
+msgstr "मर्यादा बदला"
+
+msgid "Monthly limit"
+msgstr "मासिक मर्यादा"
+
+msgid "Apply to"
+msgstr "लागू करा"
+
+msgid "This month only"
+msgstr "फक्त या महिन्यासाठी"
+
+msgid "Every month"
+msgstr "प्रत्येक महिन्यासाठी"
+
+msgid "Past months can only be changed for that month."
+msgstr "मागील महिने फक्त त्याच महिन्यासाठी बदलता येतात."
+
+msgid "Fund this from another category"
+msgstr "ही रक्कम दुसऱ्या श्रेणीतून घ्या"
+
+msgid "Take the extra from"
+msgstr "अतिरिक्त रक्कम येथून घ्या"
+
+msgid "Remove limit"
+msgstr "मर्यादा काढा"
+
+msgid "Set all limits"
+msgstr "सर्व मर्यादा सेट करा"
+
+msgid "Limits you enter here apply from this month onward. Leave a row blank to keep it without a limit."
+msgstr "येथे दिलेल्या मर्यादा या महिन्यापासून पुढे लागू होतील. मर्यादा नको असल्यास ओळ रिकामी ठेवा."
+
+msgid "Save limits"
+msgstr "मर्यादा जतन करा"
+
+msgid "Dismiss"
+msgstr "बंद करा"
+
+#, python-format
+msgid "%%(name)s: %%(from)s → %%(to)s for %%(month)s"
+msgstr "%%(name)s: %%(from)s → %%(to)s, %%(month)s साठी"
+
+#, python-format
+msgid "%%(name)s: %%(from)s → %%(to)s from %%(month)s onward"
+msgstr "%%(name)s: %%(from)s → %%(to)s, %%(month)s पासून पुढे"
+
+#, python-format
+msgid "%%(name)s: %%(to)s for %%(month)s"
+msgstr "%%(name)s: %%(to)s, %%(month)s साठी"
+
+#, python-format
+msgid "%%(name)s: %%(to)s from %%(month)s onward"
+msgstr "%%(name)s: %%(to)s, %%(month)s पासून पुढे"
+
+#, python-format
+msgid "%%(name)s: no limit for %%(month)s"
+msgstr "%%(name)s: %%(month)s साठी मर्यादा नाही"
+
+#, python-format
+msgid "%%(name)s: no limit from %%(month)s onward"
+msgstr "%%(name)s: %%(month)s पासून पुढे मर्यादा नाही"
+
+#, python-format
+msgid "%%(src)s: %%(from)s → %%(to)s"
+msgstr "%%(src)s: %%(from)s → %%(to)s"
+
+#, python-format
+msgid "Raise %%(name)s by %%(amount)s and lower the other category by the same amount."
+msgstr "%%(name)s %%(amount)s ने वाढवा आणि दुसरी श्रेणी तेवढीच कमी करा."
+
+msgid "No other category has a limit to take from."
+msgstr "घेण्यासाठी इतर कोणत्याही श्रेणीत मर्यादा नाही."
+
+msgid "Choose a category"
+msgstr "श्रेणी निवडा"
+
+#, python-format
+msgid "%%(name)s (%%(room)s available)"
+msgstr "%%(name)s (%%(room)s उपलब्ध)"
+
+msgid "Enter a valid amount, for example 5000."
+msgstr "वैध रक्कम टाका, उदा. 5000."
+
+msgid "That category does not have enough room."
+msgstr "त्या श्रेणीत पुरेशी जागा नाही."
+
+msgid "Limit updated"
+msgstr "मर्यादा अपडेट झाली"
+
+msgid "Reset to the default limit"
+msgstr "डिफॉल्ट मर्यादेवर परत आणले"
+
+msgid "Could not save that change."
+msgstr "तो बदल जतन करता आला नाही."
+
+msgid "You appear to be offline."
+msgstr "तुम्ही ऑफलाइन दिसत आहात."
+
+msgid "Retry"
+msgstr "पुन्हा प्रयत्न करा"
+
+msgid "Limits saved"
+msgstr "मर्यादा जतन केल्या"
+
+msgid "Some limits could not be saved. Try again."
+msgstr "काही मर्यादा जतन करता आल्या नाहीत. पुन्हा प्रयत्न करा."
+
+#, python-format
+msgid "Limit for %%(name)s"
+msgstr "%%(name)s ची मर्यादा"
+
+msgid "Every category already has a limit."
+msgstr "प्रत्येक श्रेणीला आधीच मर्यादा आहे."
+
+msgid "Categories and Budgets"
+msgstr "श्रेणी आणि बजेट"
+
+msgid "Your categories and monthly budget limits"
+msgstr "तुमच्या श्रेणी आणि मासिक बजेट मर्यादा"
+
+msgid "Budget history"
+msgstr "बजेट इतिहास"
+
+msgid "The budget limit that applied to each category, month by month"
+msgstr "प्रत्येक श्रेणीला महिन्यागणिक लागू असलेली बजेट मर्यादा"
+
+msgid "Changed for this month"
+msgstr "या महिन्यासाठी बदललेले"
+
+#, python-format
+msgid "Reset %(name)s to its default limit"
+msgstr "%(name)s ला त्याच्या डिफॉल्ट मर्यादेवर परत आणा"
+
+msgid "Reset to default"
+msgstr "डिफॉल्टवर परत आणा"
+
+msgid "A later month has its own limit"
+msgstr "पुढील एका महिन्याची स्वतःची मर्यादा आहे"
+
+msgid "Changes in a later month"
+msgstr "पुढील महिन्यात बदल"
+
+msgid "Choose month"
+msgstr "महिना निवडा"
+
+msgid "Previous month"
+msgstr "मागील महिना"
+
+msgid "Next month"
+msgstr "पुढील महिना"
+
+msgid "Sort budgets"
+msgstr "बजेट क्रमवारी लावा"
+
+msgid "Sort: urgent"
+msgstr "क्रम: तातडीचे आधी"
+
+msgid "Sort: spent"
+msgstr "क्रम: खर्च"
+
+msgid "Sort: limit"
+msgstr "क्रम: मर्यादा"
+
+msgid "Sort: name"
+msgstr "क्रम: नाव"
+
+msgid "New budget"
+msgstr "नवीन बजेट"
+
+msgid "Upgrade for more"
+msgstr "अधिकसाठी अपग्रेड करा"
+
+msgid "No budgets yet"
+msgstr "अजून बजेट नाही"
+
+msgid "Create a category and give it a monthly limit to see how much you can safely spend each day."
+msgstr "एक श्रेणी तयार करा आणि तिला मासिक मर्यादा द्या, म्हणजे दररोज किती सुरक्षित खर्च करता येईल ते दिसेल."
+
+msgid "Create your first budget"
+msgstr "तुमचे पहिले बजेट तयार करा"
+
+#, python-format
+msgid "No limits set for %(month)s"
+msgstr "%(month)s साठी कोणतीही मर्यादा सेट नाही"
+
+msgid "Set a limit for each category and we will show your safe-to-spend amount for today."
+msgstr "प्रत्येक श्रेणीची मर्यादा सेट करा, आम्ही आजची सुरक्षित खर्च रक्कम दाखवू."
+
+msgid "Set limits"
+msgstr "मर्यादा सेट करा"
+
+msgid "Safe to spend today"
+msgstr "आज सुरक्षित खर्च"
+
+#, python-format
+msgid "per day · %(days)s days to go"
+msgstr "प्रति दिवस · %(days)s दिवस बाकी"
+
+#, python-format
+msgid "Over budget by %(cs)s%(amount)s. Nothing is left to spend safely this month."
+msgstr "बजेटपेक्षा %(cs)s%(amount)s जास्त. या महिन्यात सुरक्षित खर्चासाठी काही उरले नाही."
+
+#, python-format
+msgid "You're <strong class=\"bdx-good\">%(cs)s%(amount)s under</strong> expected pace for day %(day)s. %(cs)s%(free)s of your %(cs)s%(total)s budget is still free."
+msgstr "दिवस %(day)s च्या अपेक्षित गतीपेक्षा तुम्ही <strong class=\"bdx-good\">%(cs)s%(amount)s कमी</strong> आहात. तुमच्या %(cs)s%(total)s बजेटपैकी %(cs)s%(free)s अजून बाकी आहे."
+
+#, python-format
+msgid "You're <strong class=\"bdx-warn\">%(cs)s%(amount)s over</strong> expected pace for day %(day)s. %(cs)s%(free)s of your %(cs)s%(total)s budget is still free."
+msgstr "दिवस %(day)s च्या अपेक्षित गतीपेक्षा तुम्ही <strong class=\"bdx-warn\">%(cs)s%(amount)s जास्त</strong> आहात. तुमच्या %(cs)s%(total)s बजेटपैकी %(cs)s%(free)s अजून बाकी आहे."
+
+#, python-format
+msgid "You're on pace for day %(day)s. %(cs)s%(free)s of your %(cs)s%(total)s budget is still free."
+msgstr "तुम्ही दिवस %(day)s च्या गतीवर आहात. तुमच्या %(cs)s%(total)s बजेटपैकी %(cs)s%(free)s अजून बाकी आहे."
+
+msgid "Month summary"
+msgstr "महिन्याचा सारांश"
+
+#, python-format
+msgid "spent of %(cs)s%(total)s"
+msgstr "%(cs)s%(total)s पैकी खर्च"
+
+#, python-format
+msgid "You went over budget by %(cs)s%(amount)s."
+msgstr "तुम्ही बजेटपेक्षा %(cs)s%(amount)s ने जास्त खर्च केला."
+
+#, python-format
+msgid "You stayed within budget with %(cs)s%(amount)s to spare."
+msgstr "तुम्ही बजेटमध्ये राहिलात आणि %(cs)s%(amount)s वाचले."
+
+msgid "Planned budget"
+msgstr "नियोजित बजेट"
+
+msgid "planned for this month"
+msgstr "या महिन्यासाठी नियोजित"
+
+msgid "Spending for this month hasn't started yet. Adjust limits any time before it begins."
+msgstr "या महिन्याचा खर्च अजून सुरू झालेला नाही. सुरू होण्यापूर्वी केव्हाही मर्यादा बदला."
+
+#, python-format
+msgid "%(pct)s%% of the budget used"
+msgstr "बजेटचा %(pct)s%% वापर झाला"
+
+msgid "Expected pace"
+msgstr "अपेक्षित गती"
+
+#, python-format
+msgid "%(cs)s%(spent)s spent · %(pct)s%%"
+msgstr "%(cs)s%(spent)s खर्च · %(pct)s%%"
+
+#, python-format
+msgid "Expected pace · %(cs)s%(amount)s"
+msgstr "अपेक्षित गती · %(cs)s%(amount)s"
+
+msgid "No spending recorded yet this month. Your full budget is available."
+msgstr "या महिन्यात अजून खर्च नोंदवलेला नाही. तुमचे संपूर्ण बजेट उपलब्ध आहे."
+
+#, python-format
+msgid "Not in budget: %(cs)s%(amount)s"
+msgstr "बजेटमध्ये नाही: %(cs)s%(amount)s"
+
+#, python-format
+msgid "%(pct)s%% of budget used"
+msgstr "बजेटचा %(pct)s%% वापर झाला"
+
+msgid "of budget used"
+msgstr "बजेट वापरले"
+
+msgid "Budget status summary"
+msgstr "बजेट स्थिती सारांश"
+
+msgid "over budget"
+msgstr "बजेटच्या वर"
+
+msgid "at limit"
+msgstr "मर्यादेवर"
+
+msgid "on track"
+msgstr "योग्य मार्गावर"
+
+msgid "no limit set"
+msgstr "मर्यादा नाही"
+
+#, python-format
+msgid "%(pct)s%% used"
+msgstr "%(pct)s%% वापर"
+
+#, python-format
+msgid "Over by %(cs)s%(amount)s"
+msgstr "%(cs)s%(amount)s जास्त"
+
+#, python-format
+msgid "Limit reached · %(cs)s%(amount)s left"
+msgstr "मर्यादा पूर्ण · %(cs)s%(amount)s बाकी"
+
+#, python-format
+msgid "Adjust limit for %(name)s"
+msgstr "%(name)s ची मर्यादा बदला"
+
+msgid "Budget suggestion"
+msgstr "बजेट सूचना"
+
+msgid "Smart move:"
+msgstr "स्मार्ट पाऊल:"
+
+#, python-format
+msgid "%(donor)s has used under 10%% of its limit for %(months)s months (%(cs)s%(untouched)s untouched) while %(needy)s has reached its limit. Move %(cs)s%(amount)s to %(needy)s for this month?"
+msgstr "%(donor)s ने %(months)s महिन्यांपासून आपल्या मर्यादेचा 10%% पेक्षा कमी वापर केला आहे (%(cs)s%(untouched)s न वापरलेले), तर %(needy)s ची मर्यादा संपली आहे. या महिन्यासाठी %(cs)s%(amount)s %(needy)s मध्ये हलवायचे?"
+
+msgid "Review suggestion"
+msgstr "सूचना पहा"
+
+msgid "Dismiss suggestion"
+msgstr "सूचना बंद करा"
+
+msgid "Showing categories with activity first"
+msgstr "हालचाल असलेल्या श्रेणी आधी दाखवल्या आहेत"
+
+#, python-format
+msgid "Edit limit for %(name)s"
+msgstr "%(name)s ची मर्यादा संपादित करा"
+
+msgid "Edit limit"
+msgstr "मर्यादा संपादित करा"
+
+#, python-format
+msgid "%(cs)s%(spent)s of %(cs)s%(limit)s"
+msgstr "%(cs)s%(limit)s पैकी %(cs)s%(spent)s"
+
+#, python-format
+msgid "%(cs)s%(amount)s left"
+msgstr "%(cs)s%(amount)s बाकी"
+
+#, python-format
+msgid "%(cs)s%(amount)s free"
+msgstr "%(cs)s%(amount)s मोकळे"
+
+#, python-format
+msgid "Show %(n)s more untouched"
+msgstr "आणखी %(n)s न वापरलेल्या श्रेणी दाखवा"
+
+msgid "Hide untouched"
+msgstr "न वापरलेल्या श्रेणी लपवा"
+
+#, python-format
+msgid "%(n)s categories spend freely"
+msgstr "%(n)s श्रेणींमध्ये मुक्त खर्च"
+
+#, python-format
+msgid "Set a limit for %(name)s"
+msgstr "%(name)s ची मर्यादा सेट करा"
+
+msgid "Need help planning category budgets?"
+msgstr "श्रेणी बजेटचे नियोजन करण्यासाठी मदत हवी?"
+
+msgid "View Budgets Tutorial"
+msgstr "बजेट ट्यूटोरियल पहा"
+
+#, python-format
+msgid "Currently %%(amount)s"
+msgstr "सध्या %%(amount)s"
+
+msgid "No limit yet"
+msgstr "अजून मर्यादा नाही"
+
+msgid "Most urgent"
+msgstr "सर्वात तातडीचे"
+
+msgid "Amount spent"
+msgstr "खर्च केलेली रक्कम"
+
+msgid "Limit, highest"
+msgstr "मर्यादा, सर्वाधिक"
+
+msgid "Name, A to Z"
+msgstr "नाव, A ते Z"
+
+msgid "At limit"
+msgstr "मर्यादेवर"
+
+msgid "No categories match"
+msgstr "कोणतीही श्रेणी जुळत नाही"
+
+msgid "Try a different search or clear the filters above."
+msgstr "वेगळा शोध वापरून पहा किंवा वरील फिल्टर काढा."

@@ -129,7 +129,9 @@ def get_user_account_types(user=None, q: Optional[str] = None) -> List[Dict[str,
 
     if user and user.is_authenticated:
         from ..models import Account
-        used_codes = set(Account.objects.filter(user=user).values_list('account_type', flat=True).distinct())
+        # Only what the list can actually show: archived accounts (kept for history) would otherwise
+        # offer types the visible list has none of
+        used_codes = set(Account.objects.filter(user=user, is_active=True).values_list('account_type', flat=True).distinct())
         types = [(code, flat_choices.get(code, code)) for code in used_codes if code]
     else:
         types = list(flat_choices.items())
@@ -817,11 +819,13 @@ GOAL_DETAIL_FILTERS = FilterSetConfig(
 def filter_category_budget_status(queryset: QuerySet, values: List[str]) -> QuerySet:
     if not values:
         return queryset
+    from expenses.budget_resolver import annotate_current_limit
+
     val = values[0] if isinstance(values, list) else values
     if val == "budgeted":
-        return queryset.filter(limit__isnull=False, limit__gt=0)
+        return annotate_current_limit(queryset).filter(cur_limit__isnull=False, cur_limit__gt=0)
     elif val == "unbudgeted":
-        return queryset.filter(Q(limit__isnull=True) | Q(limit=0))
+        return annotate_current_limit(queryset).filter(Q(cur_limit__isnull=True) | Q(cur_limit=0))
     return queryset
 
 
@@ -854,4 +858,45 @@ CATEGORY_LIST_FILTERS = FilterSetConfig(
 )
 
 CATEGORY_FILTERS = CATEGORY_LIST_FILTERS
+
+
+def filter_budget_status(queryset: QuerySet, values: List[str]) -> QuerySet:
+    """Status depends on the month's spend, so the Budget view narrows its rows by it after the
+    payload is built; the category queryset (search) is left alone."""
+    return queryset
+
+
+BUDGET_FILTERS = FilterSetConfig(
+    page_key="budget",
+    filters=[
+        FilterDef(
+            key="status",
+            label="Status",
+            type="multi_select",
+            source="static",
+            options=[
+                {"value": "over", "label": "Over budget"},
+                {"value": "limit", "label": "At limit"},
+                {"value": "ontrack", "label": "On track"},
+                {"value": "nolimit", "label": "No limit set"},
+            ],
+            custom_filter_fn=filter_budget_status,
+        ),
+    ],
+    sort_options=[
+        {"key": "urgent", "label": "Most urgent"},
+        {"key": "spent", "label": "Amount spent"},
+        {"key": "limit", "label": "Limit, highest"},
+        {"key": "name", "label": "Name, A to Z"},
+    ],
+    default_sort="urgent",
+    default_time_range="this_month",
+    supports_time_period=True,
+    time_periods=["this_month", "last_month", "custom"],
+    date_field=None,
+    calendar_months_only=True,
+    supports_search=True,
+    search_placeholder="Search categories...",
+    search_field="name",
+)
 

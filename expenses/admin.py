@@ -98,7 +98,17 @@ class EmailLogAdmin(DemoExcludeMixin, admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(DemoExcludeMixin, admin.ModelAdmin):
-    list_display = ('name', 'limit', 'user')
+    list_display = ('name', 'current_limit', 'user')
+    exclude = ('limit',)    # legacy mirror; limits are managed on the Budget page / category form
+
+    @admin.display(description='Limit this month')
+    def current_limit(self, obj):
+        return getattr(obj, 'cur_limit', None)
+
+    def get_queryset(self, request):
+        from .budget_resolver import annotate_current_limit
+        return annotate_current_limit(super().get_queryset(request))
+
     list_select_related = ('user',)
     list_filter = ('user',)
     search_fields = ('name',)

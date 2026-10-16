@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from expenses.tests.budget_helpers import backdate_limits
 from expenses.models import Account, Category, Expense
 from expenses.periods import calculate_budget_period_factor
 
@@ -79,6 +80,7 @@ class DashboardBudgetPeriodScalingTest(TestCase):
 
         self.client = Client()
         self.client.force_login(self.user)
+        backdate_limits(self.user)   # these limits have always applied
 
     def test_this_month_budget_limit_is_monthly(self):
         today = date.today()

@@ -829,6 +829,17 @@ class CategoryForm(SearchableSelectFormMixin, forms.ModelForm):
             'limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # The limit shown (and compared on save) is this month's effective limit, not the legacy column.
+        if self.instance.pk and 'limit' in self.fields:
+            from .budget_resolver import effective_limit
+            from .budgets import has_limit
+            current = effective_limit(self.instance.user, self.instance, timezone.localdate())
+            current = current if has_limit(current) else None
+            self.instance.limit = self.instance._orig_limit = current
+            self.initial['limit'] = current
+
     def clean_name(self):
         name = self.cleaned_data.get('name', '').strip()
         if not name:

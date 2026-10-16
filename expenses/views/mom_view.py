@@ -187,9 +187,16 @@ def mom_analysis_view(request):
         if has_m1 and has_m2 and has_m3:
             has_enough_creep_data = True
             
-            from ..models import Category
+            from datetime import timedelta as _td
+
+            from ..budget_resolver import effective_limits_by_name, plan_allowed_categories
+            from ..budgets import has_limit, normalize_category
             all_cats = set(m3_totals.keys())
-            cat_limits = {c.name: float(c.limit) for c in Category.objects.filter(user=user) if c.limit}
+            # The warning is about NEXT month, so compare with the limit that will apply then
+            allowed_names = {normalize_category(c.name) for c in plan_allowed_categories(user)}
+            next_month = (m3_start.replace(day=28) + _td(days=4)).replace(day=1)
+            cat_limits = {name: float(v) for name, v in effective_limits_by_name(user, next_month).items()
+                          if name in allowed_names and has_limit(v)}
             
             for cat in all_cats:
                 e1 = m1_totals.get(cat, 0.0)
@@ -201,7 +208,7 @@ def mom_analysis_view(request):
                     g23 = (e3 - e2) / e2
                     avg_growth = (g12 + g23) / 2
                     pct_str = f"+{int(round(avg_growth * 100))}%"
-                    limit = cat_limits.get(cat)
+                    limit = cat_limits.get(normalize_category(cat))
                     
                     if limit:
                         projected = e3 * (1 + avg_growth)

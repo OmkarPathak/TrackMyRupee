@@ -4,10 +4,12 @@ from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
+from django.db.models.functions import Lower, Trim
 
 from django.utils import timezone
 
 from expenses.models import (
+    BudgetLimitVersion,
     CapitalEvent,
     Category,
     Expense,
@@ -134,7 +136,10 @@ class Command(BaseCommand):
             | Q(has_recurring_name_link=True)
             | Q(has_capital_event_link=True)
             | Q(has_hint_link=True)
-            | Q(limit__isnull=False)      # a budget is something the user set up
+            | Q(Exists(                 # a budget is something the user set up
+                BudgetLimitVersion.objects.filter(
+                    user_id=OuterRef("user_id"), category_name=Lower(Trim(OuterRef("name"))), amount__gt=0)
+            ))
         )
         for alias in annotations.keys():
             if alias in {
