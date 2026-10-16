@@ -7644,7 +7644,7 @@ msgstr "परिवर्तन सहेजें"
 #: templates/expenses/payment_history.html:86
 #: templates/expenses/recurring_transaction_manage.html:32
 msgid "Status"
-msgstr ""
+msgstr "स्थिति"
 
 #: templates/expenses/payment_history.html:87
 msgid "Order ID"
@@ -13827,3 +13827,31 @@ msgstr "श्रेणी बजट की योजना बनाने म�
 
 msgid "View Budgets Tutorial"
 msgstr "बजट ट्यूटोरियल देखें"
+
+#, python-format
+msgid "Currently %%(amount)s"
+msgstr "अभी %%(amount)s"
+
+msgid "No limit yet"
+msgstr "अभी कोई सीमा नहीं"
+
+msgid "Most urgent"
+msgstr "सबसे ज़रूरी"
+
+msgid "Amount spent"
+msgstr "खर्च की राशि"
+
+msgid "Limit, highest"
+msgstr "सीमा, सबसे अधिक"
+
+msgid "Name, A to Z"
+msgstr "नाम, A से Z"
+
+msgid "At limit"
+msgstr "सीमा पर"
+
+msgid "No categories match"
+msgstr "कोई श्रेणी मेल नहीं खाती"
+
+msgid "Try a different search or clear the filters above."
+msgstr "कोई दूसरी खोज आज़माएँ या ऊपर के फ़िल्टर हटाएँ।"

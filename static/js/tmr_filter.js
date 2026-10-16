@@ -1215,6 +1215,12 @@ class TMRFilterSystem {
     `;
 
     this.openPopover(anchorEl, html, (popover) => {
+      // pages like Budget only make sense for some periods (config.time_periods)
+      if (Array.isArray(this.config.time_periods)) {
+        popover.querySelectorAll('.tmr-popover-item[data-time-key]').forEach((li) => {
+          if (!this.config.time_periods.includes(li.dataset.timeKey)) li.remove();
+        });
+      }
       const customDrawer = popover.querySelector('#tmr-custom-date-drawer');
       const startInput = popover.querySelector('.tmr-custom-start');
       const endInput = popover.querySelector('.tmr-custom-end');

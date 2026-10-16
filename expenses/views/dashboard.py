@@ -3231,49 +3231,71 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
 
 
 class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
-    """The Budget page. Everything shown comes from one payload (expenses.budget_page); the month
-    picker and sort swap `#budget-shell` over htmx, and limit edits go through api/budgets/."""
+    """The Budget page. Everything shown comes from one payload (expenses.budget_page). It uses the
+    app's unified filter toolbar: the time-period menu picks the month, search and Status narrow the
+    categories, Sort orders them. The shell is swapped over htmx; limit edits go through api/budgets/."""
     template_name = 'expenses/budget_dashboard.html'
     htmx_template_name = 'expenses/partials/_budget_dashboard_content.html'
 
     def get_context_data(self, **kwargs):
         from ..budget_page import build_budget_page
+        from ..filters.definitions import BUDGET_FILTERS
+        from ..filters.engine import apply_filter_config
+        from ..periods import resolve_period
 
         context = super().get_context_data(**kwargs)
         user = self.request.user
         today = timezone.localdate()
-        month, year = parse_month_year(self.request, today=today)
-        sort_param = self.request.GET.get('sort', 'urgent')
-        if sort_param not in ('urgent', 'spent', 'limit', 'name'):
-            sort_param = 'urgent'
 
-        month_start = date(year, month, 1)
+        # Which month: the filter toolbar's time period (calendar months only), or ?month=&year=
+        # (older links and the month tests).
+        matched, state = apply_filter_config(Category.objects.filter(user=user), self.request, BUDGET_FILTERS)
+        if self.request.GET.get('month') or self.request.GET.get('year'):
+            month, year = parse_month_year(self.request, today=today)
+            month_start = date(year, month, 1)
+        else:
+            key = state['time_period']
+            if key in ('last_month', 'calendar_last_month'):
+                month_start = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
+            elif key == 'custom':
+                period = resolve_period(user=user, time_period='custom', start_date=state['start_date'],
+                                        end_date=state['end_date'], today=today)
+                month_start = (period.end or period.start or today).replace(day=1)
+            else:
+                month_start = today.replace(day=1)
+            month, year = month_start.month, month_start.year
+
+        sort_param = state['sort'] if state['sort'] in ('urgent', 'spent', 'limit', 'name') else 'urgent'
         page = build_budget_page(user, month_start, today, sort_param)
         page['unbudgeted_spent'] = page['unbudgeted_spent'] or 0
-
-        # Month picker: a rolling window around today plus whatever month is being viewed
-        this_month = today.replace(day=1)
-        window = {this_month.replace(year=this_month.year + (this_month.month + k - 1) // 12,
-                                     month=(this_month.month + k - 1) % 12 + 1) for k in range(-12, 7)}
-        window.add(month_start)
-        month_options = [{'value': d.strftime('%Y-%m'), 'month': d.month, 'year': d.year,
-                          'label': date(d.year, d.month, 1).strftime('%B %Y'), 'selected': d == month_start}
-                         for d in sorted(window)]
 
         suggestion = None
         if page['phase'] == 'current':
             from ..budget_suggestions import find_suggestion
             suggestion = find_suggestion(user, month_start, page['categories'])
 
+        # search and Status narrow the list; the hero, chips and totals stay about the whole month
+        wanted_status = set(state['filters'].get('status', []))
+        search = state['search']
+        filters_active = bool(search or wanted_status)
+        all_rows = page['categories']
+        if filters_active:
+            visible_ids = set(matched.values_list('id', flat=True)) if search else None
+            rows = [r for r in all_rows
+                    if (visible_ids is None or r['id'] in visible_ids)
+                    and (not wanted_status or r['status'] in wanted_status)]
+        else:
+            rows = all_rows
+
         profile = getattr(user, 'profile', None)
         context.update({
             'page': page,
             'suggestion': suggestion,
             'phase': page['phase'],
-            'month_options': month_options,
+            'filter_config': BUDGET_FILTERS,
+            'applied_state': state,
+            'filters_active': filters_active,
             'month_start': month_start,
-            'prev_month': (month_start - timedelta(days=1)).replace(day=1),
-            'next_month': (month_start + timedelta(days=31)).replace(day=1),
             'current_month': month,
             'current_year': year,
             'current_sort': sort_param,
@@ -3281,10 +3303,11 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             'warning_percent': BUDGET_WARNING_PERCENT,
             'can_add_category': profile.can_add_category() if profile else False,
             'every_month_allowed': month_start >= today.replace(day=1),
-            'needs_attention': [r for r in page['categories'] if r['status'] in ('over', 'limit')],
-            'on_track': [r for r in page['categories'] if r['status'] == 'ontrack'],
-            'no_limit': [r for r in page['categories'] if r['status'] == 'nolimit'],
-            'untouched_count': sum(1 for r in page['categories'] if r['status'] == 'ontrack' and not r['spent']),
+            'rows': rows,
+            'needs_attention': [r for r in rows if r['status'] in ('over', 'limit')],
+            'on_track': [r for r in rows if r['status'] == 'ontrack'],
+            'no_limit': [r for r in rows if r['status'] == 'nolimit'],
+            'untouched_count': sum(1 for r in rows if r['status'] == 'ontrack' and not r['spent']),
             'has_any_limit': page['total'] > 0,
             'today_day': today.day,
             'pace_abs': abs(page['pace_delta'] or 0),

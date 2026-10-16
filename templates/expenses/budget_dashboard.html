@@ -3,6 +3,8 @@
 
 {% block extra_head %}
     {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}">
+    <script src="{% static 'js/tmr_filter.js' %}" defer></script>
     <link rel="stylesheet" href="{% static 'css/budget.css' %}?v=1.0">
 {% endblock %}
 
@@ -12,48 +14,49 @@
 
 {% block modals %}
     {{ block.super }}
-    <!-- Adjust limit: a centred dialog on desktop, a bottom sheet on phones -->
+    <!-- Adjust limit: a centred dialog on desktop, a bottom sheet on phones. Same look as the expense composer. -->
     <div class="modal fade bdx-modal" id="bdx-sheet" tabindex="-1" aria-labelledby="bdx-sheet-title" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form class="modal-content bdx-sheet no-loader" id="bdx-form" method="post" action="#" novalidate>
                 <div class="bdx-sheet-grab" aria-hidden="true"></div>
-                <div class="modal-header">
-                    <h2 class="modal-title" id="bdx-sheet-title">{% trans "Adjust limit" %}</h2>
+                <div class="bdx-sheet-head">
+                    <span class="bdx-avatar" id="bdx-sheet-avatar" aria-hidden="true"></span>
+                    <div class="bdx-sheet-titles">
+                        <h5 class="bdx-sheet-title" id="bdx-sheet-title">{% trans "Adjust limit" %}</h5>
+                        <p class="bdx-sheet-sub"><span id="bdx-sheet-cat"></span> <span class="bdx-tag" id="bdx-sheet-now"></span></p>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="bdx-sheet-cat" id="bdx-sheet-cat"></p>
-                    <label class="bdx-label" for="bdx-amount">{% trans "Monthly limit" %}</label>
-                    <div class="bdx-input">
-                        <span class="bdx-input-prefix" id="bdx-symbol">{{ currency_symbol }}</span>
-                        <input id="bdx-amount" type="text" inputmode="decimal" autocomplete="off" aria-describedby="bdx-preview bdx-error">
+                <div class="bdx-sheet-body">
+                    <label for="bdx-amount" class="form-label">{% trans "Monthly limit" %}</label>
+                    <div class="bdx-amountbox">
+                        <span class="bdx-amountbox-sym" id="bdx-symbol" aria-hidden="true">{{ currency_symbol }}</span>
+                        <input id="bdx-amount" type="text" inputmode="decimal" autocomplete="off" aria-describedby="bdx-preview-box bdx-error">
                     </div>
-                    <p class="bdx-error" id="bdx-error" role="alert" hidden></p>
+                    <p class="bdx-msg bdx-msg--error" id="bdx-error" role="alert" hidden></p>
 
                     <fieldset class="bdx-scope">
-                        <legend class="bdx-label">{% trans "Apply to" %}</legend>
-                        <div class="bdx-seg" role="radiogroup" aria-label="{% trans 'Apply to' %}">
-                            <input type="radio" name="bdx-scope" id="bdx-scope-this" value="this_month">
-                            <label for="bdx-scope-this">{% trans "This month only" %}</label>
-                            <input type="radio" name="bdx-scope" id="bdx-scope-every" value="every_month">
-                            <label for="bdx-scope-every">{% trans "Every month" %}</label>
+                        <legend class="form-label">{% trans "Apply to" %}</legend>
+                        <div class="bdx-opts" role="radiogroup" aria-label="{% trans 'Apply to' %}">
+                            <label class="bdx-opt"><input type="radio" name="bdx-scope" id="bdx-scope-this" value="this_month"><i class="bi bi-calendar-day" aria-hidden="true"></i><span>{% trans "This month only" %}</span></label>
+                            <label class="bdx-opt"><input type="radio" name="bdx-scope" id="bdx-scope-every" value="every_month"><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span>{% trans "Every month" %}</span></label>
                         </div>
-                        <p class="bdx-hint" id="bdx-scope-hint" hidden>{% trans "Past months can only be changed for that month." %}</p>
+                        <p class="bdx-msg" id="bdx-scope-hint" hidden>{% trans "Past months can only be changed for that month." %}</p>
                     </fieldset>
 
-                    <p class="bdx-preview" id="bdx-preview" aria-live="polite"></p>
+                    <div class="bdx-notice" id="bdx-preview-box"><i class="bi bi-info-circle-fill" aria-hidden="true"></i><span id="bdx-preview" aria-live="polite"></span></div>
 
                     <details class="bdx-fund" id="bdx-fund">
-                        <summary>{% trans "Fund this from another category" %}</summary>
-                        <label class="bdx-label" for="bdx-fund-from">{% trans "Take the extra from" %}</label>
-                        <select id="bdx-fund-from" class="bdx-select-full"></select>
-                        <p class="bdx-hint" id="bdx-fund-note"></p>
+                        <summary><i class="bi bi-arrow-left-right" aria-hidden="true"></i> {% trans "Fund this from another category" %}</summary>
+                        <label class="form-label" for="bdx-fund-from">{% trans "Take the extra from" %}</label>
+                        <select id="bdx-fund-from" class="form-select"></select>
+                        <p class="bdx-msg" id="bdx-fund-note"></p>
                     </details>
-                    <button type="button" class="bdx-link bdx-remove" id="bdx-remove">{% trans "Remove limit" %}</button>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="bdx-btn bdx-btn--ghost" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="bdx-btn bdx-btn--primary" id="bdx-save">{% trans "Save" %}</button>
+                <div class="bdx-sheet-foot">
+                    <button type="button" class="bdx-linkbtn bdx-linkbtn--danger" id="bdx-remove"><i class="bi bi-trash3" aria-hidden="true"></i> {% trans "Remove limit" %}</button>
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-action-primary" id="bdx-save">{% trans "Save" %}</button>
                 </div>
             </form>
         </div>
@@ -64,18 +67,20 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <form class="modal-content bdx-sheet no-loader" id="bdx-bulk-form" method="post" action="#" novalidate>
                 <div class="bdx-sheet-grab" aria-hidden="true"></div>
-                <div class="modal-header">
-                    <h2 class="modal-title" id="bdx-bulk-title">{% trans "Set all limits" %}</h2>
+                <div class="bdx-sheet-head">
+                    <div class="bdx-sheet-titles">
+                        <h5 class="bdx-sheet-title" id="bdx-bulk-title">{% trans "Set all limits" %}</h5>
+                        <p class="bdx-sheet-sub">{% trans "Limits you enter here apply from this month onward. Leave a row blank to keep it without a limit." %}</p>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="bdx-hint">{% trans "Limits you enter here apply from this month onward. Leave a row blank to keep it without a limit." %}</p>
+                <div class="bdx-sheet-body">
                     <div id="bdx-bulk-rows" class="bdx-bulk-rows"></div>
-                    <p class="bdx-error" id="bdx-bulk-error" role="alert" hidden></p>
+                    <p class="bdx-msg bdx-msg--error" id="bdx-bulk-error" role="alert" hidden></p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="bdx-btn bdx-btn--ghost" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="bdx-btn bdx-btn--primary" id="bdx-bulk-save">{% trans "Save limits" %}</button>
+                <div class="bdx-sheet-foot">
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-action-primary" id="bdx-bulk-save">{% trans "Save limits" %}</button>
                 </div>
             </form>
         </div>
@@ -96,6 +101,8 @@
          data-api-dismiss="{% url 'budgets-api-dismiss' %}"
          data-symbol="{{ currency_symbol }}"
          data-locale="{% if LANGUAGE_CODE == 'hi' %}hi-IN-u-nu-deva{% elif LANGUAGE_CODE == 'mr' %}mr-IN-u-nu-deva{% elif currency_symbol == '₹' %}en-IN{% else %}en-US{% endif %}"
+         data-now="{% trans 'Currently %(amount)s' %}"
+         data-now-none="{% trans 'No limit yet' %}"
          data-title-adjust="{% trans 'Adjust limit' %}"
          data-title-set="{% trans 'Set limit' %}"
          data-p-this="{% trans '%(name)s: %(from)s → %(to)s for %(month)s' %}"

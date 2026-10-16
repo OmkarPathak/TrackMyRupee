@@ -859,3 +859,44 @@ CATEGORY_LIST_FILTERS = FilterSetConfig(
 
 CATEGORY_FILTERS = CATEGORY_LIST_FILTERS
 
+
+def filter_budget_status(queryset: QuerySet, values: List[str]) -> QuerySet:
+    """Status depends on the month's spend, so the Budget view narrows its rows by it after the
+    payload is built; the category queryset (search) is left alone."""
+    return queryset
+
+
+BUDGET_FILTERS = FilterSetConfig(
+    page_key="budget",
+    filters=[
+        FilterDef(
+            key="status",
+            label="Status",
+            type="multi_select",
+            source="static",
+            options=[
+                {"value": "over", "label": "Over budget"},
+                {"value": "limit", "label": "At limit"},
+                {"value": "ontrack", "label": "On track"},
+                {"value": "nolimit", "label": "No limit set"},
+            ],
+            custom_filter_fn=filter_budget_status,
+        ),
+    ],
+    sort_options=[
+        {"key": "urgent", "label": "Most urgent"},
+        {"key": "spent", "label": "Amount spent"},
+        {"key": "limit", "label": "Limit, highest"},
+        {"key": "name", "label": "Name, A to Z"},
+    ],
+    default_sort="urgent",
+    default_time_range="this_month",
+    supports_time_period=True,
+    time_periods=["this_month", "last_month", "custom"],
+    date_field=None,
+    calendar_months_only=True,
+    supports_search=True,
+    search_placeholder="Search categories...",
+    search_field="name",
+)
+

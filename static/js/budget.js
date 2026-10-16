@@ -94,6 +94,8 @@
         state.every = el.getAttribute('data-every-month') === '1';
         $('#bdx-sheet-title').textContent = data.limit === null ? t.titleSet : t.titleAdjust;
         $('#bdx-sheet-cat').textContent = data.name;
+        $('#bdx-sheet-avatar').textContent = data.name.charAt(0).toUpperCase();
+        $('#bdx-sheet-now').textContent = data.limit === null ? t.nowNone : fmt(t.now, { amount: money(data.limit) });
         $('#bdx-amount').value = data.limit === null ? '' : String(data.limit);
         $('#bdx-error').hidden = true;
         $('#bdx-remove').hidden = data.limit === null;
@@ -217,9 +219,11 @@
         if (!rows.length) { box.textContent = t.bulkEmpty; }
         rows.forEach(function (r) {
             var row = document.createElement('div'); row.className = 'bdx-bulk-row';
-            var label = document.createElement('label'); label.className = 'bdx-cat-name'; label.textContent = r.name;
+            var label = document.createElement('label'); label.className = 'bdx-bulk-name'; label.textContent = r.name;
             label.setAttribute('for', 'bdx-bulk-' + r.id);
-            var wrap = document.createElement('div'); wrap.className = 'bdx-input';
+            var wrap = document.createElement('div'); wrap.className = 'bdx-amountbox bdx-amountbox--sm';
+            var sym = document.createElement('span'); sym.className = 'bdx-amountbox-sym'; sym.textContent = t.symbol || '';
+            wrap.appendChild(sym);
             var input = document.createElement('input'); input.type = 'text'; input.inputMode = 'decimal';
             input.id = 'bdx-bulk-' + r.id; input.setAttribute('data-id', r.id);
             input.setAttribute('aria-label', fmt(t.bulkLabel, { name: r.name }));

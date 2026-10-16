@@ -85,6 +85,11 @@ class FilterSetConfig:
     supports_time_period: bool = True
     supports_sort: bool = True
     external_chip_row: bool = False
+    # Pages that are not lists of dated rows (the Budget page) can narrow the time-period menu to the
+    # periods that make sense, skip the queryset date filter, and ignore the salary cycle.
+    time_periods: Optional[List[str]] = None
+    date_field: Optional[str] = 'date'
+    calendar_months_only: bool = False
 
     def get_filter(self, key: str) -> Optional[FilterDef]:
         for f in self.filters:
@@ -100,6 +105,7 @@ class FilterSetConfig:
             'supports_time_period': self.supports_time_period,
             'supports_sort': self.supports_sort,
             'external_chip_row': self.external_chip_row,
+            'time_periods': self.time_periods,
             'default_time_range': self.default_time_range,
             'default_sort': self.default_sort,
             'sort_options': self.sort_options,

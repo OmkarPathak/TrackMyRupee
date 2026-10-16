@@ -659,12 +659,12 @@ class TestBudgetPage(BudgetBase):
             self.cat(f'P{i}', 100)
         self.assertEqual(len(self.ctx()['budget_data']), 20)
 
-    def test_context_carries_the_threshold_and_pickers(self):
+    def test_context_carries_the_threshold_and_the_unified_filter_toolbar(self):
         response = self.client.get(self.url)
         self.assertEqual(response.context['warning_percent'], BUDGET_WARNING_PERCENT)
-        options = response.context['month_options']
-        self.assertEqual(sum(1 for o in options if o['selected']), 1)
-        self.assertIn(today().strftime('%Y-%m'), [o['value'] for o in options])
+        self.assertEqual(response.context['filter_config'].page_key, 'budget')
+        self.assertContains(response, 'tmr-toolbar-container')
+        self.assertContains(response, 'data-page-key="budget"')
 
     def test_total_bar_turns_amber_at_the_warning_level_and_red_when_over(self):
         self.cat('A', 1000)
