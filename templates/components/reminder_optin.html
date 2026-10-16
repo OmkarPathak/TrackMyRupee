@@ -5,7 +5,7 @@
   Hidden until the script has looked at this browser, so nothing flashes.
 {% endcomment %}
 <div data-reminder-optin data-variant="{{ variant|default:'card' }}" hidden
-     class="tmr-reminder {% if variant == 'settings' %}tmr-reminder--plain{% else %}tmr-reminder--card card shadow-sm border-0 rounded-4 p-3{% endif %}">
+     class="tmr-reminder {% if variant == 'settings' %}tmr-reminder--plain{% else %}tmr-reminder--card card shadow-sm border-0 rounded-4 p-3{% endif %} mb-4">
 
     <div data-reminder-when="ask" hidden class="d-flex align-items-center gap-3 flex-wrap">
         <span class="tmr-reminder-icon rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" aria-hidden="true"><i class="bi bi-bell-fill fs-4"></i></span>
