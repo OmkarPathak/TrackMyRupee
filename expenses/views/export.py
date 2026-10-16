@@ -1,7 +1,7 @@
 import csv
 import io
 import zipfile
-from datetime import datetime
+from datetime import date, datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -148,8 +148,9 @@ def _budget_limit_rows(user):
     this_month = month_start(timezone.localdate())
     overrides = {(n, m) for n, m in BudgetMonthOverride.objects.filter(user=user)
                  .values_list('category_name', 'month')}
-    last = max([this_month] + [m for _, m in overrides]
-               + list(BudgetLimitVersion.objects.filter(user=user).values_list('effective_from', flat=True)))
+    horizon = date(this_month.year + 2, this_month.month, 1)       # scheduled changes beyond 2 years are not expanded
+    last = min(horizon, max([this_month] + [m for _, m in overrides]
+                            + list(BudgetLimitVersion.objects.filter(user=user).values_list('effective_from', flat=True))))
     display = {c.name.strip().lower(): c.name for c in Category.objects.filter(user=user)}
     for month, limits in sorted(effective_limits_range_by_name(user, firsts[0], last).items()):
         for name in sorted(limits):

@@ -55,12 +55,12 @@ def _clean_amount(amount):
     return value
 
 
-def _check(user, category, month, scope):
+def _check(user, category, month, scope, allowed_ids=None):
     if category.user_id != user.id:
         raise BudgetNotFound('not_found', _('Category not found.'))
     if scope not in SCOPES:
         raise BudgetError('invalid_scope', _('Choose "This month only" or "Every month".'))
-    if category.id not in resolver.plan_allowed_category_ids(user):
+    if category.id not in (allowed_ids if allowed_ids is not None else resolver.plan_allowed_category_ids(user)):
         raise BudgetPlanLocked('plan_locked', _('This category is locked on your plan.'))
     month = resolver.month_start(month)
     if scope == EVERY_MONTH and month < timezone.localdate().replace(day=1):
@@ -123,6 +123,7 @@ def rebalance(user, month, scope, moves, actor=None):
     with transaction.atomic():
         limits = resolver.effective_limits_by_name(user, month_)
         spend, _total = monthly_spend_by_category(user, month_.year, month_.month)
+        allowed_ids = set(resolver.plan_allowed_category_ids(user))      # once, not per move
         new_limits: dict[int, tuple] = {}
         for mv in moves:
             src, dst = mv['from_category'], mv['to_category']
@@ -130,7 +131,7 @@ def rebalance(user, month, scope, moves, actor=None):
             if src.id == dst.id or not move or move <= 0:
                 raise BudgetError('invalid_move', _('Each move needs two different categories and an amount above zero.'))
             for cat in (src, dst):
-                _check(user, cat, month_, scope)
+                _check(user, cat, month_, scope, allowed_ids)
             cur_src = new_limits.get(src.id, (src, limits.get(normalize_category(src.name))))[1]
             if not has_limit(cur_src):
                 raise BudgetError('source_no_limit', _('%(name)s has no limit to move from.') % {'name': src.name})

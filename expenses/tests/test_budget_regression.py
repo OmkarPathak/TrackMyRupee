@@ -301,3 +301,59 @@ class NoDirectReadsTest(TestCase):
                 if pattern.search(line):
                     offenders.append(f'{rel}:{n}: {line.strip()}')
         self.assertEqual(offenders, [])
+
+
+class AuditFollowUpTests(TestCase):
+    """Fixes from the budgeting audit."""
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        self.user = get_user_model().objects.create_user('bud_audit', 'bud_audit@example.com', 'pw12345!x')
+
+    def test_saving_a_category_loaded_without_its_limit_does_not_touch_budgets(self):
+        from expenses.models import BudgetLimitVersion, BudgetMonthOverride, Category
+        cat = Category.objects.create(user=self.user, name='Travel', limit=5000)
+        BudgetMonthOverride.objects.create(user=self.user, category=cat, category_name='travel',
+                                           month=BudgetLimitVersion.objects.get(category_name='travel').effective_from,
+                                           amount=9000)
+        partial = Category.objects.only('id', 'user_id', 'name', 'icon').get(pk=cat.pk)
+        partial.icon = 'bi-airplane'
+        partial.save()
+        self.assertEqual(BudgetMonthOverride.objects.filter(user=self.user, category_name='travel').count(), 1)
+
+    def test_month_spend_uses_a_date_range(self):
+        from datetime import date
+        from decimal import Decimal
+
+        from expenses.budgets import monthly_spend_by_category
+        from expenses.models import Account, Category, Expense
+        acc = Account.objects.create(user=self.user, name='A', account_type='CASH_WALLET', balance=0)
+        Category.objects.get_or_create(user=self.user, name='Food')
+        for d in (date(2026, 2, 28), date(2026, 3, 1), date(2026, 3, 31), date(2026, 4, 1)):
+            Expense.objects.create(user=self.user, date=d, amount=Decimal('10'), category='Food', account=acc)
+        spend, total = monthly_spend_by_category(self.user, 2026, 3)
+        self.assertEqual(total, Decimal('20'))
+        spend_dec, _ = monthly_spend_by_category(self.user, 2026, 12)
+        self.assertEqual(spend_dec, {})
+
+    def test_rebalance_checks_the_plan_once(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from django.utils import timezone
+
+        from expenses import budget_writes as writes
+        from expenses.models import Category
+        profile = self.user.profile
+        profile.tier, profile.is_lifetime = 'PRO', True
+        profile.save()
+        a = Category.objects.create(user=self.user, name='A1', limit=1000)
+        b = Category.objects.create(user=self.user, name='B1')
+        c = Category.objects.create(user=self.user, name='C1')
+        month = timezone.localdate().replace(day=1)
+        with CaptureQueriesContext(connection) as many:
+            writes.rebalance(self.user, month, 'this_month', [
+                {'from_category': a, 'to_category': b, 'amount': 100},
+                {'from_category': a, 'to_category': c, 'amount': 100},
+            ])
+        category_lookups = [q for q in many.captured_queries if 'FROM "expenses_category"' in q['sql'] and 'ORDER BY' in q['sql']]
+        self.assertLessEqual(len(category_lookups), 1)

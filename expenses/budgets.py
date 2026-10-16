@@ -64,6 +64,12 @@ def capital_report_name(category, subtype, names: dict) -> str:
     return category or names.get(subtype, subtype)
 
 
+def _month_bounds(year: int, month: int):
+    """(first day of the month, first day of the next month)."""
+    from datetime import date
+    return date(year, month, 1), date(year + (month == 12), month % 12 + 1, 1)
+
+
 def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decimal]:
     """({normalised category name: total}, grand total) in base currency for one month.
     One query (expenses and budget-counted capital events come back together as a UNION)."""
@@ -71,10 +77,11 @@ def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decima
 
     from .models import CapitalEvent, Expense
 
-    expenses = (Expense.objects.filter(user=user, date__year=year, date__month=month).order_by()
+    first, after = _month_bounds(year, month)   # a date range, not year/month lookups, so the date index applies
+    expenses = (Expense.objects.filter(user=user, date__gte=first, date__lt=after).order_by()
                 .values('category').annotate(subtype=Value(''), total=Sum('base_amount'))
                 .values_list('category', 'subtype', 'total'))
-    events = (CapitalEvent.objects.filter(user=user, date__year=year, date__month=month, exclude_from_budget=False)
+    events = (CapitalEvent.objects.filter(user=user, date__gte=first, date__lt=after, exclude_from_budget=False)
               .order_by().values('category', 'subtype').annotate(total=Sum('base_amount'))
               .values_list('category', 'subtype', 'total'))
 
@@ -130,13 +137,14 @@ def bulk_monthly_spend(year: int, month: int) -> dict:
     from .models import CapitalEvent, Expense
 
     spend: dict = {}
-    for row in (Expense.objects.filter(date__year=year, date__month=month)
+    first, after = _month_bounds(year, month)
+    for row in (Expense.objects.filter(date__gte=first, date__lt=after)
                 .values('user_id', 'category').annotate(total=Sum('base_amount'))):
         key = (row['user_id'], normalize_category(row['category']))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
 
     names = _subtype_names()
-    for row in (CapitalEvent.objects.filter(date__year=year, date__month=month, exclude_from_budget=False)
+    for row in (CapitalEvent.objects.filter(date__gte=first, date__lt=after, exclude_from_budget=False)
                 .values('user_id', 'category', 'subtype').annotate(total=Sum('base_amount'))):
         key = (row['user_id'], normalize_category(capital_report_name(row['category'], row['subtype'], names)))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)

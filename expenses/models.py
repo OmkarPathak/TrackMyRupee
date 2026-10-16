@@ -820,6 +820,9 @@ class Expense(models.Model):
     def __str__(self):
         return f"{self.date} - {self.description} - {self.amount}"
 
+_NOT_LOADED = object()
+
+
 class Category(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -831,7 +834,8 @@ class Category(models.Model):
     @classmethod
     def from_db(cls, db, field_names, values):
         instance = super().from_db(db, field_names, values)
-        instance._orig_limit = instance.__dict__.get('limit')
+        # a field that was not loaded (.only()/.defer()) has no original to compare with
+        instance._orig_limit = instance.__dict__['limit'] if 'limit' in instance.__dict__ else _NOT_LOADED
         instance._orig_name = instance.__dict__.get('name')
         return instance
 
@@ -849,10 +853,11 @@ class Category(models.Model):
         if not is_new and orig_name and orig_name.strip().lower() != self.name.lower():
             from .budget_writes import rename_category_history
             rename_category_history(self.user, orig_name, self.name, self)
-        if is_new or self.limit != orig_limit:
+        limit_changed = ('limit' in self.__dict__) if orig_limit is _NOT_LOADED else (self.limit != orig_limit)
+        if is_new or limit_changed:
             from .budget_writes import sync_legacy_limit
             sync_legacy_limit(self)
-        self._orig_limit, self._orig_name = self.limit, self.name
+        self._orig_limit, self._orig_name = self.__dict__.get('limit', _NOT_LOADED), self.name
 
     def delete(self, *args, **kwargs):
         user_id = self.user_id
