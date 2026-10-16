@@ -5,7 +5,8 @@
 > `scripts/capture_guide_screenshots.mjs` from the demo account. Start the app
 > (`python manage.py runserver 8000`), then run `node scripts/capture_guide_screenshots.mjs`
 > (all shots) or `node scripts/capture_guide_screenshots.mjs accounts-list` (shots whose file name contains
-> the text). It needs Google Chrome and Node 22+. The list below is the older capture checklist.
+> the text). It needs Google Chrome and Node 22+. The guide uses desktop screenshots only, so the older
+> checklist below (with its mobile shots) is no longer a to-do list; it only records which screens the guide covers.
 
 > **Note on 00-philosophy:** The Philosophy page (guide root `00-philosophy.md`) has no
 > dedicated screenshot folder. Its screenshot placeholders point into `01-getting-started/`

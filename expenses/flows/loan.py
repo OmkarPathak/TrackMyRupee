@@ -113,6 +113,14 @@ class NewLoanFlow(Flow):
         'mid_tenure': FlowAddon('mid_tenure', _('Mid-Tenure Entry'), ['opening_paid_principal', 'first_emi_date']),
         'down_payment': FlowAddon('down_payment', _('Down Payment'), ['down_payment_amount', 'down_payment_account', 'custom_note']),
     }
+    conditional_fields = {
+        'payment_account': 'create_repayment_schedule', 'repayment_amount': 'create_repayment_schedule',
+        'repayment_frequency': 'create_repayment_schedule', 'repayment_start_date': 'create_repayment_schedule',
+        'repayment_is_active': 'create_repayment_schedule',
+        'opening_paid_principal': 'mid_tenure', 'first_emi_date': 'mid_tenure',
+        'down_payment_amount': 'include_down_payment', 'down_payment_account': 'include_down_payment',
+        'custom_note': 'include_down_payment',
+    }
     wizard_steps = [
         FlowWizardStep('loan_basics', _('Loan Basics'), ['loan_type', 'repayment_type', 'name', 'principal', 'annual_rate', 'tenure_months', 'start_date'], _('Core loan details for principal, rate, and tenure.')),
         FlowWizardStep('loan_repayment', _('Repayment Schedule'), ['create_repayment_schedule', 'payment_account', 'repayment_amount', 'repayment_frequency', 'repayment_start_date', 'create_historical_entries', 'repayment_is_active'], _('Control if and how recurring loan repayments should be created.')),

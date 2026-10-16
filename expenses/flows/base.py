@@ -130,6 +130,9 @@ class Flow:
     addons: ClassVar[dict[str, FlowAddon]] = {}
     wizard_steps: ClassVar[list[FlowWizardStep]] = []
     form_class: ClassVar[type | None] = None
+    # field -> the tickbox that switches it on; the form hides such a field while the box is off, so the
+    # review screen must not list it either
+    conditional_fields: ClassVar[dict[str, str]] = {}
 
     def derive(self, cleaned_data) -> dict:
         return dict(cleaned_data)
@@ -580,6 +583,9 @@ class Flow:
             for field_name in step.fields:
                 field = form.fields.get(field_name)
                 if not field:
+                    continue
+                controller = self.conditional_fields.get(field_name)
+                if controller and not cleaned_data.get(controller):
                     continue
                 value = cleaned_data.get(field_name)
                 if value in (None, '', []):

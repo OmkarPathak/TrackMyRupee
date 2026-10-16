@@ -86,6 +86,9 @@ class CarFlow(Flow):
         'recurring_transactions': RecurringTransaction,
     }
     form_class = CarFlowForm
+    conditional_fields = {
+        'loan_name': 'financed', 'annual_rate': 'financed', 'tenure_months': 'financed', 'loan_start_date': 'financed',
+    }
     wizard_steps = [
         FlowWizardStep('car_basics', _('Car Details'), ['name', 'purchase_price', 'acquisition_date', 'from_account', 'is_pinned', 'custom_note'], _('Basic vehicle information and purchase account.')),
         FlowWizardStep('car_financing', _('Financing'), ['financed', 'loan_name', 'annual_rate', 'tenure_months', 'loan_start_date', 'create_historical_entries'], _('Loan details if the car was financed.')),

@@ -2474,3 +2474,33 @@ class TestFlowLimitMessagingAndUI(TestCase):
 
 
 
+
+
+class ReviewHidesSwitchedOffFieldsTest(TestCase):
+    """The review screen lists only what the form showed: fields behind an unticked box are left out."""
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        self.user = get_user_model().objects.create_user('rvw', 'rvw@example.com', 'pw12345!x')
+        self.client.force_login(self.user)
+        from expenses.models import Account
+        self.bank = Account.objects.create(user=self.user, name='Main Bank', account_type='SAVINGS_ACCOUNT', balance=100000)
+
+    def review(self, data):
+        response = self.client.post('/flows/loan/preview/', data)
+        self.assertEqual(response.status_code, 200)
+        return response.content.decode()
+
+    def loan_data(self, **extra):
+        data = {'loan_type': 'HOME_LOAN', 'repayment_type': 'EMI', 'name': 'Flat', 'principal': '4000000',
+                'annual_rate': '8.5', 'tenure_months': '240', 'start_date': '2026-10-01',
+                'down_payment_account': self.bank.pk}
+        data.update(extra)
+        return data
+
+    def test_down_payment_account_is_not_listed_without_a_down_payment(self):
+        self.assertNotIn('Down Payment Account', self.review(self.loan_data()))
+
+    def test_down_payment_account_is_listed_when_ticked(self):
+        html = self.review(self.loan_data(include_down_payment='on', down_payment_amount='500000'))
+        self.assertIn('Down Payment Account', html)
