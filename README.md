@@ -31,7 +31,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 - **🌍 Global Ready**: Multi-currency support with live exchange rates and interfaces in English, Hindi and Marathi.
 - **🛡️ Your Data, Your Control**: Export your entire history anytime, or self-host. Deleting your account removes your data from the live database; see the Privacy Policy for backups and payment records.
 
-![Budget Dashboard: TrackMyRupee](static/img/desktop.png)
+![Dashboard: TrackMyRupee](static/img/desktop.webp)
 
 ---
 

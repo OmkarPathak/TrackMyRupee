@@ -1,13 +1,13 @@
     <script>
         // Saved list filters belong to whoever was signed in: drop them on a signed-out page and whenever the
-        // signed-in person changes, so the next user (or the next login) starts from a clean list.
+        // signed-in person changes, so the next user (or the next login) starts from a clean list and sees the announcement again.
         (function () {
             try {
                 var uid = "{{ user.id|default:'' }}";
                 var wipe = function (store) {
                     for (var i = store.length - 1; i >= 0; i--) {
                         var key = store.key(i);
-                        if (key && key.indexOf('tmr_filters:') === 0) store.removeItem(key);
+                        if (key && (key.indexOf('tmr_filters:') === 0 || key.indexOf('announcement_seen_') === 0)) store.removeItem(key);
                     }
                 };
                 var owner = sessionStorage.getItem('tmr_filters_owner');

@@ -2781,7 +2781,7 @@
             <div class="modal-footer announcement-modal-footer p-3 px-4 justify-content-end gap-2 border-0">
                 <button type="button" class="btn btn-outline-secondary rounded-3 px-4 fw-medium" data-bs-dismiss="modal" onclick="dismissAnnouncement('{{ active_announcement.id }}')">Dismiss</button>
                 {% if active_announcement.cta_link %}
-                    <a href="{{ active_announcement.cta_link }}" class="btn btn-success rounded-3 px-4 fw-semibold d-inline-flex align-items-center gap-1">
+                    <a href="{{ active_announcement.cta_link }}" onclick="dismissAnnouncement('{{ active_announcement.id }}')" class="btn btn-success rounded-3 px-4 fw-semibold d-inline-flex align-items-center gap-1">
                         <span>{{ active_announcement.cta_text|default:"Try it now" }}</span>
                         <i class="bi bi-arrow-right"></i>
                     </a>
@@ -2801,10 +2801,14 @@
         const announcementId = '{{ active_announcement.id }}';
         if (!announcementId) return;
 
-        if (localStorage.getItem('dismissed_announcement_' + announcementId)) {
-            console.log('[TrackMyRupee Announcement] Modal skipped because announcement ID ' + announcementId + ' was previously dismissed in local storage.');
-            return;
-        }
+        // Show once per app session (a login, a fresh tab, or opening the PWA), not on every page:
+        // sessionStorage is per tab/window and is empty on each of those. Dismiss, or following the
+        // button, hides it for good.
+        try {
+            if (localStorage.getItem('dismissed_announcement_' + announcementId)) return;
+            if (sessionStorage.getItem('announcement_seen_' + announcementId)) return;
+            sessionStorage.setItem('announcement_seen_' + announcementId, '1');
+        } catch (e) {}
 
         const modalEl = document.getElementById('announcementModal');
         if (!modalEl) return;

@@ -291,3 +291,21 @@ class FeatureAnnouncementTests(TestCase):
         self.assertContains(response, "Active")
 
 
+
+
+class AnnouncementShownOncePerSessionTests(TestCase):
+    def test_modal_script_is_guarded_by_session_storage_and_cta_dismisses(self):
+        from django.contrib.auth import get_user_model
+        from django.core.cache import cache
+
+        from expenses.models import Announcement
+        cache.clear()
+        user = get_user_model().objects.create_user('ann_once', 'ann_once@example.com', 'pw12345!x')
+        profile = user.profile
+        profile.has_seen_tutorial = profile.consent_granted = True
+        profile.save()
+        ann = Announcement.objects.create(title='New', body='Hi', show_modal=True, cta_link='/flows/')
+        self.client.force_login(user)
+        html = self.client.get('/dashboard/').content.decode()
+        self.assertIn(f"announcement_seen_' + announcementId", html)
+        self.assertIn(f"onclick=\"dismissAnnouncement('{ann.id}')\" class=\"btn btn-success", html)
