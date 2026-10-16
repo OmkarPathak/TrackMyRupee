@@ -129,7 +129,9 @@ def get_user_account_types(user=None, q: Optional[str] = None) -> List[Dict[str,
 
     if user and user.is_authenticated:
         from ..models import Account
-        used_codes = set(Account.objects.filter(user=user).values_list('account_type', flat=True).distinct())
+        # Only what the list can actually show: archived accounts (kept for history) would otherwise
+        # offer types the visible list has none of
+        used_codes = set(Account.objects.filter(user=user, is_active=True).values_list('account_type', flat=True).distinct())
         types = [(code, flat_choices.get(code, code)) for code in used_codes if code]
     else:
         types = list(flat_choices.items())

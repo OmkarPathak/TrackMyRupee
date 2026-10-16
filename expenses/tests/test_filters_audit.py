@@ -257,3 +257,27 @@ class ListPageTests(Base):
         r = self.client.get(reverse('export-expenses'), {'category': 'Food'})
         rows = list(csv.reader(io.StringIO(r.content.decode('utf-8-sig'))))
         self.assertEqual([row[1] for row in rows[1:]], ['keep'])
+
+
+class AccountTypeOptionsTest(TestCase):
+    def test_only_types_of_active_accounts_are_offered(self):
+        from django.contrib.auth import get_user_model
+
+        from expenses.filters.definitions import get_user_account_types
+        from expenses.models import Account
+        user = get_user_model().objects.create_user('opt1', 'opt1@example.com', 'pw12345!x')
+        Account.objects.create(user=user, name='Bank', account_type='SAVINGS_ACCOUNT', balance=1)
+        Account.objects.create(user=user, name='Old card', account_type='CREDIT_CARD', balance=0, is_active=False)
+        values = {o['value'] for o in get_user_account_types(user=user)}
+        self.assertIn('SAVINGS_ACCOUNT', values)
+        self.assertNotIn('CREDIT_CARD', values)
+        self.assertFalse([v for v in values if 'CREDIT' in v])   # no group for what is not on the list
+
+
+class SavedFilterClearingTest(TestCase):
+    def test_every_page_carries_the_clearing_script(self):
+        from django.urls import reverse
+        for name in ('landing', 'contact', 'about', 'account_login'):
+            html = self.client.get(reverse(name)).content.decode()
+            self.assertIn("tmr_filters:", html, name)
+            self.assertIn('var uid = ""', html, name)  # signed out: everything is wiped

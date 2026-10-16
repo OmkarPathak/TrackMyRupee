@@ -59,6 +59,7 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100 {% if user.is_authenticated %}is-authenticated has-sidebar{% endif %}">
+{% include 'partials/clear_saved_filters.html' %}
     {% if user.is_authenticated %}
         {% include 'components/sidebar.html' %}
     {% endif %}
