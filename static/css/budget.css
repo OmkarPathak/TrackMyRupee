@@ -275,10 +275,13 @@
 
 /* hero: one number, one bar. The ring repeated the bar, so it is gone. */
 .bdx-hero { grid-template-columns: 1fr auto; gap: 32px; padding: 28px 32px; box-shadow: none; }
-.bdx-ring { width: 148px; height: 148px; margin-right: 8px; }
+.bdx-ring { width: 176px; height: 176px; margin-right: 8px; }
+.bdx-ring-track, .bdx-ring-arc { stroke-width: 11; }
+.bdx-ring-label strong { font-size: 1.9rem; }
+.bdx-ring-label span { font-size: .72rem; }
 .bdx-pace { max-width: 760px; }
 .bdx-eyebrow { font-weight: 600; letter-spacing: .06em; }
-.bdx-amount { font-weight: 600; }
+.bdx-amount { font-weight: 800; letter-spacing: -.04em; }
 .bdx-note { color: var(--bdx-muted); max-width: 60ch; margin-bottom: 20px; }
 .bdx-note strong { font-weight: 600; }
 .bdx-pace-legend { margin-top: 8px; }
@@ -404,3 +407,8 @@
 #bdx-bulk input:focus, #bdx-bulk input:focus-visible, #bdx-new input:focus, #bdx-new input:focus-visible, #bdx-new select:focus, #bdx-new select:focus-visible {
     outline: none !important; outline-offset: 0 !important; box-shadow: none !important;
 }
+
+/* the header button matches the other pages' action buttons (Expenses, Accounts) */
+.bdx-header .header-action-btn { height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px !important; transition: all .2s ease; border: 1px solid var(--bs-border-color); background: transparent; text-decoration: none; padding: 0 .75rem; font-size: .875rem; color: var(--bs-body-color); cursor: pointer; }
+.bdx-header .header-action-btn:hover { opacity: .9; }
+.bdx-header .header-action-btn.btn-primary, [data-bs-theme="dark"] .bdx-header .header-action-btn.btn-primary { background-color: var(--color-secondary, #0F7657) !important; border-color: var(--color-secondary, #0F7657) !important; color: #fff !important; }

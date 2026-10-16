@@ -98,9 +98,8 @@ def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decima
 
 
 def monthly_spend_by_category_months(user, months) -> dict:
-    """{month (1st): {normalised category name: total}} for several months in ONE query
+    """{month (1st): {normalised category name: total}} for several months in two queries
     (same attribution rules as monthly_spend_by_category)."""
-    from django.db.models import Value
     from django.db.models.functions import TruncMonth
 
     from .models import CapitalEvent, Expense
@@ -110,25 +109,32 @@ def monthly_spend_by_category_months(user, months) -> dict:
         return {}
     first, last = months[0], months[-1]
     end = last.replace(year=last.year + (last.month == 12), month=last.month % 12 + 1)
+    # Two plain queries, not a UNION: the halves would put the month column in different positions
+    # (annotations follow model fields in the SELECT), which Postgres refuses to union.
     expenses = (Expense.objects.filter(user=user, date__gte=first, date__lt=end).order_by()
                 .annotate(m=TruncMonth('date')).values('m', 'category')
-                .annotate(subtype=Value(''), total=Sum('base_amount'))
-                .values_list('m', 'category', 'subtype', 'total'))
+                .annotate(total=Sum('base_amount')))
     events = (CapitalEvent.objects.filter(user=user, date__gte=first, date__lt=end, exclude_from_budget=False)
               .order_by().annotate(m=TruncMonth('date')).values('m', 'category', 'subtype')
-              .annotate(total=Sum('base_amount'))
-              .values_list('m', 'category', 'subtype', 'total'))
+              .annotate(total=Sum('base_amount')))
     names = None
     out = {m: {} for m in months}
-    for month, category, subtype, total in expenses.union(events, all=True):
+
+    def add(month, category, subtype, total):
+        nonlocal names
         month = month.date() if hasattr(month, 'date') else month
         if month not in out:
-            continue
+            return
         if subtype:
             names = names or _subtype_names()
             category = capital_report_name(category, subtype, names)
         key = normalize_category(category)
         out[month][key] = out[month].get(key, ZERO) + (total or ZERO)
+
+    for row in expenses:
+        add(row['m'], row['category'], '', row['total'])
+    for row in events:
+        add(row['m'], row['category'], row['subtype'], row['total'])
     return out
 
 

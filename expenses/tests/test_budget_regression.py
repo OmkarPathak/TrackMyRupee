@@ -357,3 +357,34 @@ class AuditFollowUpTests(TestCase):
             ])
         category_lookups = [q for q in many.captured_queries if 'FROM "expenses_category"' in q['sql'] and 'ORDER BY' in q['sql']]
         self.assertLessEqual(len(category_lookups), 1)
+
+
+class SpendByMonthsPostgresSafeTests(TestCase):
+    """The multi-month spend query once UNIONed expenses with capital events, putting the month column in
+    a different position in each half; Postgres refused it ("UNION types timestamp with time zone and
+    character varying cannot be matched") while SQLite let it through."""
+
+    def test_expenses_and_capital_events_over_several_months(self):
+        from datetime import date
+        from decimal import Decimal
+
+        from django.contrib.auth import get_user_model
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        from expenses.budgets import monthly_spend_by_category_months
+        from expenses.models import Account, CapitalEvent, Category, Expense
+        user = get_user_model().objects.create_user('pg_safe', 'pg_safe@example.com', 'pw12345!x')
+        acc = Account.objects.create(user=user, name='A', account_type='CASH_WALLET', balance=0)
+        Category.objects.get_or_create(user=user, name='Food')
+        Expense.objects.create(user=user, date=date(2026, 8, 5), amount=Decimal('100'), category='Food', account=acc)
+        Expense.objects.create(user=user, date=date(2026, 9, 5), amount=Decimal('40'), category='Food', account=acc)
+        CapitalEvent.objects.create(user=user, account=acc, date=date(2026, 9, 9), amount=Decimal('500'),
+                                    subtype='GADGET', category='Food', exclude_from_budget=False)
+        months = [date(2026, 8, 1), date(2026, 9, 1), date(2026, 10, 1)]
+        with CaptureQueriesContext(connection) as ctx:
+            spend = monthly_spend_by_category_months(user, months)
+        self.assertEqual(spend[months[0]]['food'], Decimal('100'))
+        self.assertEqual(spend[months[1]]['food'], Decimal('540'))
+        self.assertEqual(spend[months[2]], {})
+        self.assertFalse([q for q in ctx.captured_queries if ' UNION ' in q['sql']])

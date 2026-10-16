@@ -19,12 +19,13 @@
             </button>
         </div>
         {% if new_budget_possible %}
-            <button type="button" class="btn btn-primary btn-sm" data-bdx-new>
-                <i class="bi bi-plus-lg me-1"></i> {% trans "New budget" %}
+            <button type="button" class="header-action-btn btn-primary d-inline-flex align-items-center gap-1 text-nowrap" data-bdx-new>
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <span>{% trans "New" %}<span class="d-none d-sm-inline"> {% trans "budget" %}</span></span>
             </button>
         {% else %}
-            <a class="btn btn-primary btn-sm" href="{% url 'pricing' %}">
-                <i class="bi bi-lock-fill me-1" aria-hidden="true"></i> {% trans "Upgrade for more" %}
+            <a class="header-action-btn btn-primary d-inline-flex align-items-center gap-1 text-nowrap" href="{% url 'pricing' %}">
+                <i class="bi bi-lock-fill" aria-hidden="true"></i> {% trans "Upgrade for more" %}
             </a>
         {% endif %}
     </header>
