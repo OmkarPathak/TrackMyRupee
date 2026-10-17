@@ -611,6 +611,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="3. Account Types Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#insurance-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Insurance Policies
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1198,6 +1213,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="3. Account Types Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#insurance-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Insurance Policies
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1385,8 +1415,12 @@
 <td>Real estate, vehicle, or other asset</td>
 </tr>
 <tr>
-<td>Insurance</td>
-<td>Life or endowment policy</td>
+<td>Life Insurance</td>
+<td>Life, endowment or term policy</td>
+</tr>
+<tr>
+<td>Health / Medical Insurance</td>
+<td>Health cover</td>
 </tr>
 </tbody>
 </table>
@@ -1410,6 +1444,18 @@
 - <strong>Email Digest</strong>: Included in daily financial digest emails for Plus and Pro tier subscribers.</p>
 </div>
 <hr />
+<h3 id="insurance-policies">Insurance Policies<a class="headerlink" href="#insurance-policies" title="Permanent link">&para;</a></h3>
+<p>An insurance account holds the details of one policy. When you create it, choose a <strong>Policy type</strong>:</p>
+<ul>
+<li><strong>Savings / endowment</strong> (pays back on maturity): premiums paid so far count as the policy's value.</li>
+<li><strong>Pure protection</strong> (term, health): worth nothing in net worth. The account shows <strong>Premiums Paid</strong> instead of a balance, with the note that it is not counted in your net worth. A new Health / Medical Insurance account starts as pure protection and a Life Insurance account as savings, and you can change it.</li>
+</ul>
+<p>On the account's page you also see the policy number, sum assured, start date, policy type, premium and frequency, the <strong>next premium</strong> date and the account it is <strong>paid from</strong>. If any of your accounts has a policy number, the Accounts list gets a <strong>Policy number</strong> column.</p>
+<p>Premiums are posted as expenses tied to the policy, from the <strong>premium payment account</strong> you pick, on the schedule you choose. If the policy started in the past, switch on <strong>Create past premium records</strong> to add the premiums that fell due since the start date. Left off, only upcoming premiums are scheduled and the premium day of the policy is kept.</p>
+<div class="admonition warning">
+<p class="admonition-title">Do not record a premium twice</p>
+<p>Premiums paid so far are the premium expenses linked to the policy <strong>plus</strong> money moved into the policy account. If you pay a premium through the schedule and also transfer the same money into the policy account, it is counted twice. Use one or the other.</p>
+</div>
 <h2 id="4-editing-account-details-and-balance">4. Editing Account Details and Balance<a class="headerlink" href="#4-editing-account-details-and-balance" title="Permanent link">&para;</a></h2>
 <p>Click any account row to open its detail page. Use the pencil (edit) icon to update the Account Name, Initial Balance, or any type-specific fields.</p>
 <p><strong>Deleting an account does not erase anything.</strong> It marks the account inactive: it disappears from the list, from transaction pickers and from net worth, but every expense, income, transfer and other row you posted to it stays in place, and you can still open its history. To see deleted accounts, open the <strong>Inactive</strong> view on the Accounts page.</p>
@@ -1475,7 +1521,8 @@
 <li><strong>Fixed Deposits and other deposit accounts</strong>: principal plus accrued interest</li>
 <li><strong>Mutual Funds and Demat</strong>: latest value of each holding, plus any cash in the account that is not invested</li>
 <li><strong>Physical Assets</strong>: latest valuation, or the purchase cost if you have not valued it yet</li>
-<li><strong>Insurance</strong>: latest surrender value, or zero if none is recorded (the premium you paid is never counted)</li>
+<li><strong>Insurance (savings / endowment)</strong>: the latest surrender value if you have recorded one, otherwise the premiums you have paid so far (premium expenses linked to the policy plus any money you moved into the policy account)</li>
+<li><strong>Insurance (pure protection, term and health)</strong>: zero. The cover pays nothing back, so premiums are a cost and never count as an asset</li>
 <li><strong>Credit Cards</strong>: the balance owed is subtracted. A card in credit (you overpaid) adds to your net worth instead</li>
 <li><strong>Loans</strong>: the outstanding principal, which is the amount borrowed minus the principal you repaid, minus prepayments and down payments, minus any principal you had already paid before you started tracking. A loan linked to a loan account is counted once through that account, and an active loan with no loan account is subtracted directly. A fully paid-off loan counts as zero</li>
 <li><strong>Goals</strong>: money moved into a goal leaves your account but is still yours, so it is added back and net worth does not drop when you save towards a goal</li>
