@@ -37,9 +37,9 @@
     </div>
 
     {% if pending_count %}
-    <div class="alert alert-warning small d-flex align-items-start gap-2" role="status">
-        <i class="bi bi-hourglass-split mt-1" aria-hidden="true"></i>
-        <div>{% blocktrans count counter=pending_count with amount=pending_amount|ind_comma:holding.currency %}One purchase of {{ amount }} is waiting for its NAV. Its units are added as soon as the NAV is published.{% plural %}{{ counter }} purchases ({{ amount }}) are waiting for their NAV. Their units are added as soon as it is published.{% endblocktrans %}</div>
+    <div class="alert alert-warning small d-flex align-items-center gap-2 mb-3" role="status">
+        <i class="bi bi-hourglass-split flex-shrink-0" aria-hidden="true"></i>
+        <div>{% blocktrans count counter=pending_count with amount=pending_amount|ind_comma:holding.currency cur=holding.currency %}One purchase of {{ cur }}{{ amount }} is waiting for its NAV. Its units are added as soon as the NAV is published.{% plural %}{{ counter }} purchases ({{ cur }}{{ amount }}) are waiting for their NAV. Their units are added as soon as it is published.{% endblocktrans %}</div>
     </div>
     {% endif %}
     {% if has_estimates %}
@@ -48,24 +48,24 @@
 
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">
-            <div class="hd-stat shadow-sm h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08);">
+            <div class="hd-stat h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08);">
                 <div class="hd-label">{% trans "Current value" %}</div>
                 <div class="fs-3 fw-bold text-success">{{ holding.currency }}{{ value|ind_comma:holding.currency|translate_digits }}</div>
                 <div class="small text-muted">
                     {{ holding.units|floatformat:'-4'|translate_digits }} {% trans "units" %}
-                    {% if valuation and valuation.unit_nav %}&middot; {% trans "NAV" %} {{ holding.currency }}{{ valuation.unit_nav|translate_digits }}{% endif %}
+                    {% if valuation and valuation.unit_nav %}&middot; {% trans "NAV" %} {{ holding.currency }}{{ valuation.unit_nav|floatformat:"-4"|translate_digits }}{% endif %}
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-4">
-            <div class="hd-stat shadow-sm h-100 bg-body-tertiary">
+            <div class="hd-stat h-100 bg-body-tertiary">
                 <div class="hd-label">{% trans "Invested" %}</div>
                 <div class="fs-4 fw-bold text-body-emphasis">{{ holding.currency }}{{ cost|ind_comma:holding.currency|translate_digits }}</div>
                 <div class="small text-muted">{% trans "Avg cost" %} {{ holding.currency }}{{ holding.avg_cost|floatformat:2|translate_digits }}</div>
             </div>
         </div>
         <div class="col-6 col-md-4">
-            <div class="hd-stat shadow-sm h-100 bg-body-tertiary">
+            <div class="hd-stat h-100 bg-body-tertiary">
                 <div class="hd-label">{% trans "Gain / loss" %}</div>
                 <div class="fs-4 fw-bold {% if gain >= 0 %}text-success{% else %}text-danger{% endif %}">
                     {% if gain >= 0 %}+{% endif %}{{ holding.currency }}{{ gain|ind_comma:holding.currency|translate_digits }}
@@ -76,10 +76,8 @@
         </div>
     </div>
 
+    <h2 class="h5 fw-bold mt-5 mb-3">{% trans "Purchases" %}</h2>
     <div class="card rounded-4 border-0 shadow-sm">
-        <div class="card-header bg-transparent border-0 p-3 p-md-4">
-            <h2 class="h5 mb-0 fw-bold">{% trans "Purchases" %}</h2>
-        </div>
         <div class="card-body p-0">
             {% if transactions %}
             <div class="table-responsive d-none d-md-block">
