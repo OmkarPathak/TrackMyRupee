@@ -1313,6 +1313,12 @@
 <li><strong>Account</strong>: The account to debit (for expenses) or credit (for income). Required for every type except transfers, which use From and To accounts. Schedules saved before this rule without an account keep running and can be edited as they are.</li>
 <li><strong>From Account</strong> and <strong>To Account</strong>: For transfers, the account the money leaves and the account it arrives in. They must be different.</li>
 <li><strong>Category</strong> (expenses) or <strong>Source</strong> (income): Required for those types. A recurring income whose source matches one of the income source types (for example <em>Rental Income</em>) is posted with that source type; any other source is posted as <em>Other</em>.</li>
+<li><strong>Buy funds each time</strong> (transfers into a Mutual Fund, Demat, ETF, SGB, ULIP or Gold account): split each instalment between funds. Click <strong>Add fund</strong> for every fund, pick it from the account's funds (or <strong>New fund…</strong> and search for a mutual fund) and enter how much of the instalment goes to it. For a ₹45,000 SIP you can enter ₹15,000 for each of three funds. Every time the transfer is posted, each row becomes a purchase of its fund, tied to that transfer and priced from the NAV (see <a href="../02-accounts/holdings/#which-nav-a-purchase-gets">Which NAV a Purchase Gets</a>). What the rows leave out stays as cash in the account.<ul>
+<li>A new fund starts with no units and gets its first on the first instalment. A fund can appear only once, and the rows cannot add up to more than the instalment.</li>
+<li>Only instalments posted from now on are recorded: transfers already made are left as they are. Changing the rows later affects future instalments only.</li>
+<li>The two accounts must be in the same currency. If the NAV of one fund cannot be looked up, that fund's purchase is skipped and the others still go through.</li>
+</ul>
+</li>
 <li><strong>Loan</strong>: For loan repayments, pick the loan. The amount you enter is paid every time, and the app splits each payment into interest and principal for you. When the loan is paid off, the schedule ends by itself.</li>
 <li><strong>Active Subscription</strong>: Untick it to pause the subscription (see below).</li>
 </ul>

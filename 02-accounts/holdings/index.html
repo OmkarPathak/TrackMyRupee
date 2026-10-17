@@ -693,9 +693,54 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#buying-more-editing-and-the-purchase-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      Buying More, Editing and the Purchase History
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pricing-a-stock-etf-or-gold-holding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pricing a Stock, ETF or Gold Holding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#automatic-daily-nav-updates" class="md-nav__link">
     <span class="md-ellipsis">
       Automatic Daily NAV Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-nav-a-purchase-gets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Which NAV a Purchase Gets
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cash-in-an-investment-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cash in an Investment Account
     </span>
   </a>
   
@@ -1268,9 +1313,54 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#buying-more-editing-and-the-purchase-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      Buying More, Editing and the Purchase History
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pricing-a-stock-etf-or-gold-holding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pricing a Stock, ETF or Gold Holding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#automatic-daily-nav-updates" class="md-nav__link">
     <span class="md-ellipsis">
       Automatic Daily NAV Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-nav-a-purchase-gets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Which NAV a Purchase Gets
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cash-in-an-investment-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cash in an Investment Account
     </span>
   </a>
   
@@ -1319,7 +1409,7 @@
 <hr />
 <h2 id="1-overview-and-navigation">1. Overview and Navigation<a class="headerlink" href="#1-overview-and-navigation" title="Permanent link">&para;</a></h2>
 <p>Access your portfolio via <strong>Sidebar → Net Worth → Holdings</strong> on desktop or via <strong>More → Holdings</strong> on mobile (URL: <code>/holdings/</code>).</p>
-<p>The Holdings page provides a consolidated dashboard of all active investments across your mutual fund, investment, NPS, PF, and brokerage accounts.</p>
+<p>The Holdings page provides a consolidated dashboard of all active investments across your Mutual Fund, Demat, ETF, SGB, ULIP and Gold accounts. These are the accounts valued from their holdings, so they are the only ones that accept a holding. NPS, PPF, EPF and fixed or recurring deposits are valued from their own balance and interest, and holdings on them would never count in net worth.</p>
 <hr />
 <h2 id="2-how-nav-calculations-and-portfolio-metrics-work">2. How NAV Calculations and Portfolio Metrics Work<a class="headerlink" href="#2-how-nav-calculations-and-portfolio-metrics-work" title="Permanent link">&para;</a></h2>
 <p>TrackMyRupee uses a multi-tiered valuation engine to calculate your real-time investment net worth accurately.</p>
@@ -1328,6 +1418,7 @@
 <ol>
 <li><strong>Live Daily NAV</strong>: Fetched automatically from official AMFI (Association of Mutual Funds in India) and <code>MFapi.in</code> live feeds using the fund's 6-digit AMFI scheme code.</li>
 <li><strong>Cached NAV Fallback</strong>: If the live API is temporarily unreachable, TrackMyRupee retrieves the latest cached NAV from the local fund cache.</li>
+<li><strong>Your Own Price</strong>: A holding with no scheme code (a stock, an ETF or gold) has no feed, so you set its price yourself with <strong>Update value</strong> (see section 4). It is used until you enter a newer one.</li>
 <li><strong>Cost Basis Fallback</strong>: If no NAV cache exists yet (for example, a newly added holding), the valuation falls back to your purchase cost basis (Units x Average Cost).</li>
 </ol>
 <p>A holding priced from a NAV is always worth <strong>the units you hold now × the latest NAV</strong>, so correcting the number of units changes its value straight away instead of waiting for the next price update. A value you entered yourself as a total is used as you entered it. When you look at net worth on a past date, each holding uses the value recorded on or before that date.</p>
@@ -1344,7 +1435,7 @@
 <p>$<span class="arithmatex">\(\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}\)</span>$</p>
 <div class="admonition note">
 <p class="admonition-title">Correction applied</p>
-<p>Before this fix (August 2026), transferred cash could be double-counted after the related holding was logged. This has been corrected by netting uninvested cash against active holdings cost basis.</p>
+<p>Before this fix (August 2026), transferred cash could be double-counted after the related holding was logged. This has been corrected by netting uninvested cash against active holdings cost basis. Selling a holding now puts its proceeds in as cash and records the profit or loss in the account (see Selling below), so a sold holding no longer brings its old cost back as cash.</p>
 </div>
 <ul>
 <li><strong>Total Cost Basis</strong></li>
@@ -1370,6 +1461,7 @@
 <li>Set <strong>From Account</strong> to your liquid bank account (for example, HDFC Salary Account).</li>
 <li>Set <strong>To Account</strong> to your investment account (for example, Mutual Funds / Zerodha Coin).</li>
 <li>Set <strong>Frequency</strong> to <code>Monthly</code> and select your SIP start date.</li>
+<li>Under <strong>Buy funds each time</strong>, add a row for every fund the instalment buys and the amount for it, for example ₹15,000 into each of three funds from a ₹45,000 SIP. Every instalment is then recorded as a purchase of each fund, priced from its NAV, so each fund's page shows the SIP instalment by instalment. Leave it empty to record only the transfer.</li>
 <li>Click <strong>Save Subscription</strong>.</li>
 </ol>
 <div class="admonition info">
@@ -1382,23 +1474,80 @@
 <h3 id="adding-and-removing-holdings">Adding and Removing Holdings<a class="headerlink" href="#adding-and-removing-holdings" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Go to <strong>Holdings</strong> (<code>/holdings/</code>) or your account detail page.</li>
-<li>Click <strong>Add Holding</strong> and enter the fund name (pick it from the search so its scheme code is filled in), your <strong>Units</strong> and your <strong>Avg Cost</strong> per unit. Both must be greater than zero. If you leave the scheme code blank, TrackMyRupee tries to find it from the name.</li>
+<li>Click <strong>Add Holding</strong>, pick one of your holdings accounts, and enter the name, your <strong>Units</strong> and your <strong>Avg Cost</strong> per unit. Both must be greater than zero. For a mutual fund, pick it from the search so its scheme code is filled in; if you leave the code blank, TrackMyRupee tries to find it from the name. A stock or ETF name is never matched to a fund, so it stays without a scheme code and you price it yourself.</li>
 <li>The cost basis is calculated immediately:
    $<span class="arithmatex">\(\text{Cost Basis} = \text{Units} \times \text{Avg Cost}\)</span>$</li>
 </ol>
-<p>A holding cannot be edited in place. When more units are allocated, remove the old holding and add it again with the new cumulative units and average cost. <strong>Delete</strong> only hides the holding (it stops counting in the portfolio), it does not touch your account balance.</p>
+<h3 id="buying-more-editing-and-the-purchase-history">Buying More, Editing and the Purchase History<a class="headerlink" href="#buying-more-editing-and-the-purchase-history" title="Permanent link">&para;</a></h3>
+<p>Click a holding's name (or <strong>Purchases</strong> in its three-dot menu) to open its page. It shows the value, the amount invested, the gain, and every purchase that built the holding up.</p>
+<ul>
+<li><strong>Buy more</strong>: enter the date and any two of <strong>Units</strong>, <strong>Price / unit</strong> and <strong>Amount</strong>; the third is filled in. To tie the purchase to money you moved, pick the transfer in <strong>Paid by transfer</strong> (only transfers into this account with money left to allocate are listed).</li>
+<li><strong>Edit</strong> or <strong>Delete</strong> a purchase from its three-dot menu. The holding's units and average cost are worked out again from the purchases (a weighted average), so you never calculate them by hand. A holding keeps at least one purchase; to drop the whole holding, delete it from the Holdings page.</li>
+<li><strong>Rename</strong> the holding with the pencil next to its name.</li>
+</ul>
+<p>You can also allocate a transfer to funds straight from the transfer form; see <a href="../../06-transfers/#allocating-a-transfer-to-funds">Transfers</a>. Holdings added before purchases were recorded show an <strong>opening position</strong> that becomes the first purchase when you buy more. <strong>Delete</strong> on the Holdings page only hides the holding (it stops counting in the portfolio), it does not touch your account balance.</p>
 <p>The totals at the top of the Holdings page are in your own currency: a holding in another currency is converted at the latest exchange rate before it is added in.</p>
+<h3 id="pricing-a-stock-etf-or-gold-holding">Pricing a Stock, ETF or Gold Holding<a class="headerlink" href="#pricing-a-stock-etf-or-gold-holding" title="Permanent link">&para;</a></h3>
+<p>A holding without a scheme code has no daily NAV. Open its three-dot menu, choose <strong>Update value</strong>, enter the <strong>current price per unit</strong> and the date, and save. The value is your units × that price, so adding units later keeps it right. Entering a price again for the same date replaces it, and the latest date is the one that counts. Holdings priced from the NAV feed use <strong>Refresh NAV</strong> instead.</p>
 <h3 id="automatic-daily-nav-updates">Automatic Daily NAV Updates<a class="headerlink" href="#automatic-daily-nav-updates" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Automatic background sync</strong>: TrackMyRupee runs daily background jobs that pull updated NAVs after Indian market closing hours (approximately 11 PM IST).</li>
 <li><strong>Manual instant refresh</strong>: Click the <strong>Refresh NAV</strong> icon next to any holding row to trigger an immediate live fetch.</li>
 <li><strong>External cron integration</strong>: Set up a free cron job at <a href="https://cron-job.org">cron-job.org</a> targeting <code>/api/cron/sync-nav/</code> (GET or POST) with the header <code>X-Cron-Secret: &lt;YOUR_CRON_SECRET&gt;</code> (a <code>?secret=</code> query parameter only works if <code>CRON_ALLOW_QUERY_SECRET=true</code> is set) for guaranteed daily automated syncing.</li>
 </ul>
+<h3 id="which-nav-a-purchase-gets">Which NAV a Purchase Gets<a class="headerlink" href="#which-nav-a-purchase-gets" title="Permanent link">&para;</a></h3>
+<p>A mutual fund prices a purchase at a NAV that depends on when your money reaches the fund, not on the day you click. If you enter only the <strong>Amount</strong> (in <strong>Buy more</strong>, or in <strong>Allocate to funds</strong> on a transfer), TrackMyRupee works the units out for you:</p>
+<table>
+<thead>
+<tr>
+<th>Money reaches the fund</th>
+<th>Priced at</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Before <strong>3 PM</strong> on a business day (equity, hybrid and debt funds)</td>
+<td>that day's NAV</td>
+</tr>
+<tr>
+<td>After 3 PM, or on a weekend or market holiday</td>
+<td>the next business day's NAV</td>
+</tr>
+<tr>
+<td>Before <strong>1:30 PM</strong> (liquid and overnight funds)</td>
+<td>the NAV of the business day before</td>
+</tr>
+<tr>
+<td>After 1:30 PM (liquid and overnight funds)</td>
+<td>that day's NAV</td>
+</tr>
+</tbody>
+</table>
+<p>Then <strong>0.005% stamp duty</strong> is taken off the amount and the rest is divided by the NAV, with units rounded to three decimals. For example, ₹10,000 at a NAV of ₹50 buys (10,000 - 0.50) / 50 = <strong>199.990 units</strong>.</p>
+<ul>
+<li>Choose <strong>Before the cut-off</strong> or <strong>After the cut-off</strong> to say when the money reached the fund. It defaults to before.</li>
+<li>A NAV is published in the evening, so a purchase made today (or on a weekend) is priced at a NAV that does not exist yet. It shows <strong>Waiting for NAV</strong> and its units are filled in automatically once the NAV is published. It does not count in the holding's units or value until then, so the money still shows as uninvested cash in the account.</li>
+<li>Units worked out this way are marked <strong>Estimated</strong>. Your fund house's statement is the final word: the cut-off depends on when the money was actually credited, and a holiday we do not know about can shift the day. Edit the purchase and enter the units from your statement to confirm it. Editing with only the amount prices it from the NAV again.</li>
+<li>If you enter the units yourself, nothing is estimated and the purchase is <strong>Confirmed</strong>.</li>
+<li>Stocks, ETFs and gold have no NAV feed, so they always need units.</li>
+</ul>
+<h3 id="selling">Selling<a class="headerlink" href="#selling" title="Permanent link">&para;</a></h3>
+<p>Open the holding and click <strong>Sell</strong>. Enter the date and any two of <strong>Units</strong> sold, <strong>Price / unit</strong> and the <strong>Amount</strong> you received; the third is filled in. You cannot sell more units than you held on that date.</p>
+<ul>
+<li><strong>The money stays in the account as cash.</strong> It shows up as <strong>Uninvested cash</strong> on the account page and on the Holdings page, ready to be transferred out or reinvested. Move it to your bank with a normal <a href="../../06-transfers/">transfer</a>.</li>
+<li><strong>The profit or loss is recorded for you.</strong> The average cost of the units you sold is taken off what you received. A profit is added to the account as <strong>Investment Returns</strong> income, and a loss as a capital event, both on the date of the sale, so your net worth keeps the gain after the units are gone. A sale at your average cost records nothing.</li>
+<li>The units and average cost of what is left are worked out again. Selling every unit closes the holding and removes it from the list.</li>
+<li>Editing or deleting a sale updates or removes its profit or loss entry. Changing an earlier purchase's price also changes the profit of the sales after it.</li>
+<li>Exit loads, brokerage and tax are not calculated: enter the amount you actually received.</li>
+</ul>
+<h3 id="cash-in-an-investment-account">Cash in an Investment Account<a class="headerlink" href="#cash-in-an-investment-account" title="Permanent link">&para;</a></h3>
+<p>The page of an investment account shows <strong>Invested in holdings</strong> (what its holdings cost) and <strong>Uninvested cash</strong> (the money in the account that no holding accounts for: a transfer you have not allocated yet, or the proceeds of a sale). The Holdings page adds the same cash for all your investment accounts under <strong>Cash in your investment accounts</strong>, so portfolio value plus cash matches what these accounts add to your net worth.</p>
+<p>If the holdings cost <strong>more</strong> than the money recorded in the account, you will see a warning that a transfer into it may be missing: record that transfer so the account is not understated.</p>
 <hr />
 <h2 id="5-responsive-interface-features">5. Responsive Interface Features<a class="headerlink" href="#5-responsive-interface-features" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Desktop view</strong>: Full multi-column table displaying Fund Name, Account, Units, Average Cost, Current Valuation, NAV, and action buttons.</li>
-<li><strong>Mobile view</strong>: Single-card list with touch-friendly controls. Long scheme names such as "Parag Parikh Liquid Fund - Direct Plan - Growth" wrap onto multiple lines without clipping. Tap the three-dot menu on any holding row to Refresh NAV or Delete Holding.</li>
+<li><strong>Mobile view</strong>: Single-card list with touch-friendly controls. Long scheme names such as "Parag Parikh Liquid Fund - Direct Plan - Growth" wrap onto multiple lines without clipping. Tap the three-dot menu on any holding row to Refresh NAV (fund holdings), Update value (holdings priced by hand) or Delete Holding.</li>
 </ul>
 <hr />
 <h2 id="related-links">Related Links<a class="headerlink" href="#related-links" title="Permanent link">&para;</a></h2>
