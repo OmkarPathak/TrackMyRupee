@@ -4299,3 +4299,12 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
     display: inline-flex; align-items: center; justify-content: center;
     width: 24px; font-size: 1.15rem; flex-shrink: 0;
 }
+
+/* An open three-dot (or any) dropdown menu sits above the floating bottom navigation and its + button on phones,
+   so the last items are never hidden behind them. Pages that set their own lower z-index on menus are covered
+   by the higher specificity. */
+@media (max-width: 991.98px) {
+  body .dropdown-menu.show {
+    z-index: 1095 !important;
+  }
+}

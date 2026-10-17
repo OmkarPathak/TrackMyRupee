@@ -1408,6 +1408,38 @@
         })()
     </script>
 
+    <script>
+    // On phones the floating bottom navigation and its + button cover the bottom of the screen. Tell every
+    // dropdown to keep that strip free, so a menu opened near the bottom opens upwards instead of under it.
+    (function () {
+        const phone = window.matchMedia('(max-width: 991.98px)');
+        document.addEventListener('show.bs.dropdown', function (event) {
+            if (!phone.matches || !window.bootstrap) return;
+            const instance = bootstrap.Dropdown.getInstance(event.target);
+            if (!instance || instance._navClearance) return;
+            instance._navClearance = true;
+            const own = instance._config.popperConfig;
+            instance._config.popperConfig = function () {
+                const args = Array.prototype.slice.call(arguments);
+                const custom = typeof own === 'function' ? own.apply(null, args) : (own || {});
+                try {
+                    // Bootstrap passes the default Popper config (as the only argument in 5.3.3)
+                    const defaults = args.find(function (a) { return a && a.modifiers; });
+                    if (!defaults) return custom;
+                    const base = Object.assign({}, defaults, custom);
+                    const keep = (base.modifiers || []).filter(function (m) { return m.name !== 'flip' && m.name !== 'preventOverflow'; });
+                    const overflow = (defaults.modifiers.find(function (m) { return m.name === 'preventOverflow'; }) || {}).options || {};
+                    keep.push({ name: 'flip', options: { padding: { top: 8, bottom: 96 } } });
+                    keep.push({ name: 'preventOverflow', options: Object.assign({}, overflow, { padding: { top: 8, bottom: 96 } }) });
+                    return Object.assign({}, base, { modifiers: keep });
+                } catch (e) {
+                    return custom;          // never let this stop a menu from opening
+                }
+            };
+        });
+    })();
+    </script>
+
     <!-- Django Messages Toast Container -->
     <div id="django-messages-toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11000;">
         {% if messages %}
