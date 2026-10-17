@@ -59,7 +59,12 @@ $$\text{Accrued Value} = 98,000 + 5,000 = 1,03,000$$
 
 ## 3. Insurance-Specific Note
 
-For insurance accounts, if no surrender value is recorded yet, both views can show **Rs. 0** by design. This avoids a misleading impression that paid premium always equals current realizable value, which is usually not true for fresh or early-stage policies.
+Insurance accounts depend on the **policy type**:
+
+- **Savings / endowment**: both views show the premiums paid so far (premium expenses linked to the policy plus money moved into the policy account), because you cannot enter a surrender value in the app. If a surrender value has been recorded, Accrued shows that value instead.
+- **Pure protection (term, health)**: both views show **Rs. 0**. The cover pays nothing back, so premiums are a cost, not an asset. The account page shows the premiums you have paid for reference.
+
+Premiums paid are counted as of the date you view, so looking at a past date leaves out later premiums.
 
 ---
 

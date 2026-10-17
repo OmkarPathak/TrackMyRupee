@@ -470,34 +470,58 @@ def is_protection_policy(account: Account) -> bool:
     return bool(asset and getattr(asset, 'policy_type', 'SAVINGS') == 'PROTECTION')
 
 
-def get_premiums_paid(account: Account, ledger_balance: Decimal | None = None) -> Decimal:
-    """What has gone into the policy, in the account's currency: premium expenses linked to the
-    policy plus money transferred into the account (its ledger balance, when positive)."""
+def premiums_paid_by_asset(asset_ids, as_of: date | None = None) -> dict:
+    """Premium expenses linked to each policy, ONE query for any number of policies.
+    Returns {asset_id: {currency: Decimal}}; ``as_of`` leaves out premiums dated after it."""
     from .models import Expense
+
+    ids = [i for i in set(asset_ids) if i]
+    if not ids:
+        return {}
+    rows = Expense.objects.filter(linked_physical_asset_id__in=ids)
+    if as_of is not None:
+        rows = rows.filter(date__lte=as_of)
+    out: dict = {}
+    for row in rows.values('linked_physical_asset_id', 'currency').annotate(total=Sum('amount')):
+        out.setdefault(row['linked_physical_asset_id'], {})[row['currency']] = row['total'] or Decimal('0.00')
+    return out
+
+
+def get_premiums_paid(account: Account, ledger_balance: Decimal | None = None,
+                      by_asset: dict | None = None, as_of: date | None = None) -> Decimal:
+    """What has gone into the policy, in the account's currency: premium expenses linked to the
+    policy plus money transferred into the account (its ledger balance, when positive).
+
+    Pass ``by_asset`` (from premiums_paid_by_asset) when valuing many policies so no query runs per
+    account. A premium paid from the policy account itself lowers its balance and is not added back."""
     from .utils import get_exchange_rate
 
     total = Decimal('0.00')
-    if account.linked_physical_asset_id and account.linked_physical_asset:
-        for exp in Expense.objects.filter(linked_physical_asset=account.linked_physical_asset):
-            amt = exp.amount
-            if exp.currency and exp.currency != account.currency:
-                amt = (amt * get_exchange_rate(exp.currency, account.currency)).quantize(Decimal('0.01'))
-            total += amt
+    asset_id = account.linked_physical_asset_id
+    if asset_id:
+        if by_asset is None:
+            by_asset = premiums_paid_by_asset([asset_id], as_of=as_of)
+        for currency, amount in by_asset.get(asset_id, {}).items():
+            if currency and currency != account.currency:
+                amount = (amount * get_exchange_rate(currency, account.currency)).quantize(Decimal('0.01'))
+            total += amount
     if ledger_balance is not None and Decimal(str(ledger_balance)) > 0:
         total += Decimal(str(ledger_balance))
     return total.quantize(Decimal('0.01'))
 
 
-def get_baseline_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
+def get_baseline_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None,
+                                     by_asset: dict | None = None) -> Decimal | None:
     """SPEC §2.6 INSURANCE_SURRENDER Baseline = premiums paid (0 for pure protection cover)."""
     if is_protection_policy(account):
         return Decimal('0.00')
     if not account.linked_physical_asset_id or not account.linked_physical_asset:
         return Decimal('0.00')
-    return get_premiums_paid(account, ledger_balance)
+    return get_premiums_paid(account, ledger_balance, by_asset=by_asset)
 
 
-def get_current_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
+def get_current_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None,
+                                    by_asset: dict | None = None) -> Decimal:
     """
     SPEC §2.6 INSURANCE_SURRENDER Current Value:
     - Pure protection (term / health): always 0.00.
@@ -508,7 +532,7 @@ def get_current_insurance_surrender(account: Account, ledger_balance: Decimal | 
 
     if is_protection_policy(account):
         return Decimal('0.00')
-    fallback = get_premiums_paid(account, ledger_balance)
+    fallback = get_premiums_paid(account, ledger_balance, by_asset=by_asset)
     if not account.linked_physical_asset_id or not account.linked_physical_asset:
         return fallback
 

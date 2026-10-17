@@ -70,7 +70,8 @@ Account names must be unique among your active accounts (capital letters do not 
 | Credit Card | Credit card (tracked as a liability) |
 | Loan Account | Linked to a loan for repayment tracking |
 | Physical Asset | Real estate, vehicle, or other asset |
-| Insurance | Life or endowment policy |
+| Life Insurance | Life, endowment or term policy |
+| Health / Medical Insurance | Health cover |
 
 !!! info "Note on Recurring Deposits (RD)"
     RD valuation is not treated like a single lump-sum FD from day one. Each installment accrues from its own deposit date, and only installments that were actually posted are counted. If a month is skipped, that installment is not assumed automatically.
@@ -88,6 +89,20 @@ Account names must be unique among your active accounts (capital letters do not 
     - **Email Digest**: Included in daily financial digest emails for Plus and Pro tier subscribers.
 
 ---
+
+### Insurance Policies
+
+An insurance account holds the details of one policy. When you create it, choose a **Policy type**:
+
+- **Savings / endowment** (pays back on maturity): premiums paid so far count as the policy's value.
+- **Pure protection** (term, health): worth nothing in net worth. The account shows **Premiums Paid** instead of a balance, with the note that it is not counted in your net worth. A new Health / Medical Insurance account starts as pure protection and a Life Insurance account as savings, and you can change it.
+
+On the account's page you also see the policy number, sum assured, start date, policy type, premium and frequency, the **next premium** date and the account it is **paid from**. If any of your accounts has a policy number, the Accounts list gets a **Policy number** column.
+
+Premiums are posted as expenses tied to the policy, from the **premium payment account** you pick, on the schedule you choose. If the policy started in the past, switch on **Create past premium records** to add the premiums that fell due since the start date. Left off, only upcoming premiums are scheduled and the premium day of the policy is kept.
+
+!!! warning "Do not record a premium twice"
+    Premiums paid so far are the premium expenses linked to the policy **plus** money moved into the policy account. If you pay a premium through the schedule and also transfer the same money into the policy account, it is counted twice. Use one or the other.
 
 ## 4. Editing Account Details and Balance
 
@@ -145,7 +160,8 @@ The same toolbar as the other list pages sits above the table:
 - **Fixed Deposits and other deposit accounts**: principal plus accrued interest
 - **Mutual Funds and Demat**: latest value of each holding, plus any cash in the account that is not invested
 - **Physical Assets**: latest valuation, or the purchase cost if you have not valued it yet
-- **Insurance**: latest surrender value, or zero if none is recorded (the premium you paid is never counted)
+- **Insurance (savings / endowment)**: the latest surrender value if you have recorded one, otherwise the premiums you have paid so far (premium expenses linked to the policy plus any money you moved into the policy account)
+- **Insurance (pure protection, term and health)**: zero. The cover pays nothing back, so premiums are a cost and never count as an asset
 - **Credit Cards**: the balance owed is subtracted. A card in credit (you overpaid) adds to your net worth instead
 - **Loans**: the outstanding principal, which is the amount borrowed minus the principal you repaid, minus prepayments and down payments, minus any principal you had already paid before you started tracking. A loan linked to a loan account is counted once through that account, and an active loan with no loan account is subtracted directly. A fully paid-off loan counts as zero
 - **Goals**: money moved into a goal leaves your account but is still yours, so it is added back and net worth does not drop when you save towards a goal

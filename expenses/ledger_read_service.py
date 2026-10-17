@@ -638,6 +638,7 @@ class LedgerReadService:
         holding_vals_by_account: dict = {}   # {account_id: list of {value, currency}}
         asset_val_map: dict = {}             # {asset_id: Decimal value}
         loan_outstanding_map: dict = {}      # {loan_id: Decimal outstanding}
+        premiums_map: dict = {}              # {asset_id: {currency: Decimal}}
 
         if extended:
             # Q4: latest holding valuations (all accounts, one query)
@@ -664,6 +665,16 @@ class LedgerReadService:
             ]
             if physical_asset_ids:
                 asset_val_map = cls._fetch_latest_asset_valuations(physical_asset_ids, as_of=as_of_cut)
+
+            # Q5b: premiums paid per savings policy (one query for all policies)
+            from .account_valuation import is_protection_policy, premiums_paid_by_asset
+            premium_asset_ids = [
+                a.linked_physical_asset_id for a in accounts
+                if strategy_for(a.account_type) == STRATEGY.INSURANCE_SURRENDER
+                and a.linked_physical_asset_id is not None and not is_protection_policy(a)
+            ]
+            if premium_asset_ids:
+                premiums_map = premiums_paid_by_asset(premium_asset_ids, as_of=as_of_cut)
 
             # Q6: loan outstanding (one query per strategy)
             loan_account_ids = [
@@ -861,11 +872,13 @@ class LedgerReadService:
                         # No surrender value recorded (users cannot enter one; the form seeds 0.00):
                         # the premiums paid so far, matching the account detail page.
                         account_value = FXService.convert_using_map(
-                            get_premiums_paid(account, ledger_bal), account.currency, fx_map
+                            get_premiums_paid(account, ledger_bal, by_asset=premiums_map), account.currency, fx_map
                         )
                 else:
                     from .account_valuation import get_baseline_insurance_surrender
-                    native_val = get_baseline_insurance_surrender(account, ledger_balance=ledger_bal) or Decimal("0.00")
+                    native_val = get_baseline_insurance_surrender(
+                        account, ledger_balance=ledger_bal, by_asset=premiums_map
+                    ) or Decimal("0.00")
                     account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
 
             elif strategy == STRATEGY.REVOLVING_CREDIT:

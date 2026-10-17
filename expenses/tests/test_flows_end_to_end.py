@@ -799,6 +799,13 @@ class TestInsuranceFlowEndToEnd(FlowTestBase):
                          ('INSURANCE_PREMIUM', asset, self.cash, Decimal('12000.00'), 'YEARLY', date(2026, 10, 1)))
         self.assertEqual(rt.description, 'Term Plan premium')
 
+    def test_policy_type_defaults_to_protection_and_can_be_savings(self):
+        result = self.run_flow('insurance', self.payload(name='Default Cover'))
+        self.assertEqual(self.one(result, PhysicalAsset).policy_type, 'PROTECTION')
+        result = self.run_flow('insurance', self.payload(name='Endowment', policy_type='SAVINGS'))
+        self.assertEqual(self.one(result, PhysicalAsset).policy_type, 'SAVINGS')
+        self.assertErrorOn('insurance', self.payload(policy_type='WHOLE'), 'policy_type')
+
     def test_each_premium_frequency_maps_to_the_matching_schedule(self):
         mapping = {'ANNUAL': 'YEARLY', 'SEMI_ANNUAL': 'SEMIANNUALLY', 'QUARTERLY': 'QUARTERLY', 'MONTHLY': 'MONTHLY'}
         for index, (premium, recurring) in enumerate(mapping.items()):

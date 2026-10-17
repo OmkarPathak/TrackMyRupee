@@ -76,10 +76,8 @@ const shots = [
   { file: '03-transactions-expenses/img/large-amount-desktop.webp', url: '/expenses/add/', before: `${TYPE_INTO_COMPOSER('sofa 150000')}
       await new Promise(r => setTimeout(r, 1200));
       document.getElementById('tmr-add').click();`, wait: 1800 },
-  { file: '07-budgets/img/set-limit-desktop.webp', url: '/category/list/', before: `
-      const row = [...document.querySelectorAll('[data-url]')].find(el => /\\/category\\/[^/]+\\/edit\\//.test(el.dataset.url) && el.closest('tr, .card, li, div').textContent.includes('Dining Out'))
-        || [...document.querySelectorAll('[data-url]')].find(el => /\\/category\\/[^/]+\\/edit\\//.test(el.dataset.url));
-      location.href = row.dataset.url;`, wait: 1800 },
+  { file: '07-budgets/img/set-limit-desktop.webp', url: '/budget/', before: `
+      document.querySelector('[data-bdx-adjust]').click();`, wait: 1400 },
   { file: '05-transactions-recurring/img/subscription-step1-desktop.webp', url: '/recurring/create/', before: SUBSCRIPTION_STEP(1), clipTo: '#subscriptionForm', clipClosest: '.card-body' },
   { file: '05-transactions-recurring/img/subscription-step2-desktop.webp', url: '/recurring/create/', before: SUBSCRIPTION_STEP(2), clipTo: '#subscriptionForm', clipClosest: '.card-body' },
   { file: '05-transactions-recurring/img/subscription-step3-desktop.webp', url: '/recurring/create/', before: SUBSCRIPTION_STEP(3), clipTo: '#subscriptionForm', clipClosest: '.card-body' },

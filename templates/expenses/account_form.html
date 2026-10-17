@@ -242,6 +242,8 @@
                         const policyType = document.getElementById('{{ form.policy_type.id_for_label }}');
                         if (policyType && (e.target.value === 'HEALTH_INSURANCE' || e.target.value === 'LIFE_INSURANCE')) {
                             policyType.value = e.target.value === 'HEALTH_INSURANCE' ? 'PROTECTION' : 'SAVINGS';
+                            // The styled select shows its own label; tell it the value changed
+                            policyType.dispatchEvent(new Event('change', { bubbles: true }));
                         }
                         {% endif %}
                     }

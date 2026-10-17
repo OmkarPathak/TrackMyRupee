@@ -55,6 +55,10 @@ Limits are **per category and per month**, and they **repeat by default**: a lim
 
 Adjust limit opens as a dialog on desktop and as a sheet from the bottom on a phone. **Remove limit** works the same way and follows the same choice.
 
+
+![The Adjust limit dialog](img/set-limit-desktop.webp){ loading=lazy }
+
+
 !!! info "Past months keep their limit"
     Changing a limit never rewrites a month that is already over. **Every month** is only offered for the current or a future month. You can still correct a past month with **This month only**.
 

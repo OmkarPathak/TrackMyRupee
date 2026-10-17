@@ -161,6 +161,7 @@ Use it for term life, health, or any policy with a recurring premium. It takes a
 | Field | What to enter |
 |---|---|
 | **Name** | The policy or plan name, such as "HDFC Click 2 Protect". |
+| **Policy type** | **Pure protection** (term, health) is the default: it is worth nothing in net worth and its premiums are a cost. Choose **Savings / endowment** only if the policy pays back on maturity: its premiums paid then count as its value. |
 | **Policy number** | Optional, but handy to have in one place. |
 | **Sum assured** | Optional. The coverage amount. |
 

@@ -24,9 +24,16 @@ from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..account_types import STRATEGY, deposit_codes, strategy_for
-from ..account_valuation import get_baseline, get_current, get_interest_summary
+from ..account_valuation import (
+    get_baseline,
+    get_current,
+    get_current_insurance_surrender,
+    get_interest_summary,
+    get_premiums_paid,
+    is_protection_policy,
+    premiums_paid_by_asset,
+)
 from ..forms import AccountForm, TransferForm
-from ..account_valuation import get_current_insurance_surrender, get_premiums_paid, is_protection_policy
 from ..ledger_read_service import LedgerReadService, _compute_deposit_value
 from ..models import (
     Account,
@@ -709,9 +716,10 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         protection = [a for a in rows if is_protection_policy(a)]
         if protection:
             ledger = LedgerReadService.get_account_balances(protection)
+            by_asset = premiums_paid_by_asset([a.linked_physical_asset_id for a in protection])
             for a in protection:
                 a.is_protection = True
-                a.premiums_paid = get_premiums_paid(a, ledger.get(a.id, a.balance))
+                a.premiums_paid = get_premiums_paid(a, ledger.get(a.id, a.balance), by_asset=by_asset)
         context['display_accounts'] = rows
         context['show_policy_column'] = any(
             getattr(r.linked_physical_asset, 'policy_number', None) for r in rows
@@ -1237,8 +1245,9 @@ class AccountDetailView(LoginRequiredMixin, View):
         if strategy_for(account.account_type) == STRATEGY.INSURANCE_SURRENDER and account.is_active:
             ledger_balance = Decimal(str(account.display_balance))
             account.is_protection = is_protection_policy(account)
-            account.premiums_paid = get_premiums_paid(account, ledger_balance)
-            account.display_balance = get_current_insurance_surrender(account, ledger_balance=ledger_balance)
+            by_asset = premiums_paid_by_asset([account.linked_physical_asset_id])
+            account.premiums_paid = get_premiums_paid(account, ledger_balance, by_asset=by_asset)
+            account.display_balance = get_current_insurance_surrender(account, ledger_balance=ledger_balance, by_asset=by_asset)
 
         search_query = request.GET.get('search') or request.GET.get('q', '').strip()
         time_period = request.GET.get('time_period', 'all')

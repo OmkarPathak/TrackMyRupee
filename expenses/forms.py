@@ -1303,7 +1303,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                 'VEHICLE' if account.account_type == 'VEHICLE' else 'INSURANCE'
                             )
                             acq_cost = self.cleaned_data.get('acquisition_cost')
-                            acq_date = self.cleaned_data.get('acquisition_date') or date.today()
+                            acq_date = self.cleaned_data.get('acquisition_date') or timezone.localdate()
 
                             asset = PhysicalAsset.objects.create(
                                 user=self.user,
@@ -1333,7 +1333,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                 )
                             elif strategy == STRATEGY.INSURANCE_SURRENDER:
                                 # SPEC §2.6: Initial AssetValuation for insurance defaults to 0.00 (NOT premium_amount)
-                                policy_start = self.cleaned_data.get('policy_start_date') or date.today()
+                                policy_start = self.cleaned_data.get('policy_start_date') or timezone.localdate()
                                 AssetValuation.objects.create(
                                     asset=asset,
                                     value=Decimal('0.00'),
@@ -1423,7 +1423,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                 )
                             if not self.cleaned_data.get('create_historical_premiums') and not rt.last_processed_date:
                                 # Keep the premium day of the policy but schedule only upcoming premiums
-                                rt.last_processed_date = self._latest_premium_due_on_or_before(rt, date.today())
+                                rt.last_processed_date = self._latest_premium_due_on_or_before(rt, timezone.localdate())
                             rt.save()
                             from .views.mixins import (
                                 process_user_recurring_transactions,
@@ -1444,11 +1444,12 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         if rt.start_date > today:
             return None
         last = rt.start_date
-        while True:
+        for _i in range(1200):       # 100 years of monthly premiums; a stop against any frequency that never advances
             nxt = RecurringTransaction.get_next_date(last, rt.frequency, rt.start_date)
             if nxt > today:
                 return last
             last = nxt
+        return last
 
     def _record_maturity_income(self, account):
         if not account.is_active:
