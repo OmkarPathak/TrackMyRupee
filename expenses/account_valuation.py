@@ -489,17 +489,19 @@ def get_current_insurance_surrender(account: Account, ledger_balance: Decimal | 
     """
     SPEC §2.6 INSURANCE_SURRENDER Current Value:
     - Latest AssetValuation value if any exists.
-    - CRITICAL: Falls back to 0.00 when no valuation exists (NEVER baseline/acquisition cost).
+    - Falls back to the ledger balance (what was paid in) when no surrender value is recorded
+      or it is 0.00 (the form seeds 0.00); 0.00 when no ledger balance is given.
     """
     from .utils import get_exchange_rate
 
+    fallback = Decimal(str(ledger_balance)).quantize(Decimal('0.01')) if ledger_balance is not None else Decimal('0.00')
     if not account.linked_physical_asset_id or not account.linked_physical_asset:
-        return Decimal('0.00')
+        return fallback
 
     asset = account.linked_physical_asset
     latest_val = asset.valuations.order_by('-as_of_date', '-created_at').first()
-    if not latest_val:
-        return Decimal('0.00')
+    if not latest_val or not latest_val.value:
+        return fallback
 
     val = latest_val.value
     if asset.currency and asset.currency != account.currency:
@@ -554,7 +556,7 @@ def get_current(account: Account, ledger_balance: Decimal | None = None, today: 
     elif strategy == STRATEGY.PHYSICAL_VALUATION:
         return get_current_physical_valuation(account)
     elif strategy == STRATEGY.INSURANCE_SURRENDER:
-        return get_current_insurance_surrender(account)
+        return get_current_insurance_surrender(account, ledger_balance=ledger_balance, today=today)
     return get_current_balance(account)
 
 

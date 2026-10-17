@@ -843,8 +843,8 @@ class LedgerReadService:
             elif strategy == STRATEGY.INSURANCE_SURRENDER:
                 if is_accrued:
                     asset_id = account.linked_physical_asset_id
-                    if asset_id and asset_id in asset_val_map:
-                        asset_native_val = asset_val_map[asset_id]
+                    asset_native_val = asset_val_map.get(asset_id) if asset_id else None
+                    if asset_native_val:
                         asset_ccy = (
                             account.linked_physical_asset.currency
                             if account.linked_physical_asset is not None
@@ -854,8 +854,11 @@ class LedgerReadService:
                             asset_native_val, asset_ccy, fx_map
                         )
                     else:
-                        # SPEC §2.6: Insurance MUST fall back to 0.00 when no valuation exists, NEVER acquisition_cost
-                        account_value = Decimal("0.00")
+                        # No surrender value recorded (users cannot enter one; the form seeds 0.00):
+                        # show what has been paid in, matching the account detail page.
+                        account_value = FXService.convert_using_map(
+                            ledger_bal, account.currency, fx_map
+                        )
                 else:
                     from .account_valuation import get_baseline_insurance_surrender
                     native_val = get_baseline_insurance_surrender(account, ledger_balance=ledger_bal) or Decimal("0.00")

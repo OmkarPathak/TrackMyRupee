@@ -659,6 +659,20 @@
                                             <div class="text-danger small mt-1">{{ form.premium_payment_account.errors|first }}</div>
                                         {% endif %}
                                     </div>
+
+                                    <div class="col-12" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('create_historical_premiums')" x-cloak>
+                                        <div class="form-check form-switch m-0 d-flex justify-content-between align-items-start gap-3 ps-0">
+                                            <div>
+                                                <label class="form-check-label fw-semibold cursor-pointer d-block mb-1" for="{{ form.create_historical_premiums.id_for_label }}">
+                                                    {{ form.create_historical_premiums.label }}
+                                                </label>
+                                                <div class="form-text mt-0">{{ form.create_historical_premiums.help_text }}</div>
+                                            </div>
+                                            <div>
+                                                {{ form.create_historical_premiums }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

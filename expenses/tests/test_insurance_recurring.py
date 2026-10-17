@@ -381,6 +381,7 @@ class InsuranceRecurringTransactionTests(TestCase):
             'premium_frequency': 'ANNUAL',
             'policy_start_date': past_start.strftime('%Y-%m-%d'),
             'premium_payment_account': self.payment_account.id,
+            'create_historical_premiums': 'on',
         }
 
         form = AccountForm(data=form_data, user=self.user)

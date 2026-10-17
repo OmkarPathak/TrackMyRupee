@@ -211,3 +211,20 @@ class TestRemainingOptimizations(TestCase):
         in_view = {a.name: a.in_view for a in response.context['display_accounts']}
         self.assertTrue(in_view['HDFC Bank'])
         self.assertFalse(in_view['ICICI Bank'])
+
+    def test_account_list_shows_policy_number_column_only_when_present(self):
+        from expenses.models import PhysicalAsset
+
+        Account.objects.create(user=self.user, name='HDFC Bank', account_type='SAVINGS_ACCOUNT', balance=Decimal('100.00'))
+        response = self.client.get(reverse('account-list'))
+        self.assertFalse(response.context['show_policy_column'])
+        self.assertNotContains(response, 'Policy number')
+
+        asset = PhysicalAsset.objects.create(user=self.user, name='LIC 1', asset_class='INSURANCE', policy_number='POL-998877')
+        Account.objects.create(
+            user=self.user, name='LIC 1', account_type='INSURANCE', balance=Decimal('0.00'), linked_physical_asset=asset
+        )
+        response = self.client.get(reverse('account-list'))
+        self.assertTrue(response.context['show_policy_column'])
+        self.assertContains(response, 'Policy number')
+        self.assertContains(response, 'POL-998877')

@@ -36,6 +36,7 @@ from ..models import (
     Holding,
     Income,
     LoanRepayment,
+    RecurringTransaction,
     Transfer,
     _run_ledger_shadow,
 )
@@ -139,7 +140,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
         filtered_ids = list(queryset.values_list('id', flat=True))
         account_list = list(
-            Account.objects.select_related('user')
+            Account.objects.select_related('user', 'linked_physical_asset')
             .filter(user=self.request.user, is_active=is_active)
             .order_by('-is_pinned', 'created_at', 'id')
         )
@@ -704,6 +705,9 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         for row in rows:
             row.is_last_in_view = row.in_view and row.view_position == position - 1
         context['display_accounts'] = rows
+        context['show_policy_column'] = any(
+            getattr(r.linked_physical_asset, 'policy_number', None) for r in rows
+        )
         context['display_count'] = position
         context['view_type'] = selected_type if selected_type in {t['type'] for t in tiles} else ''
         context['sort_label'] = {
@@ -1501,8 +1505,18 @@ class AccountDetailView(LoginRequiredMixin, View):
         if selected_amounts:
             applied_filters['amount_range'] = selected_amounts
 
+        policy = account.linked_physical_asset if strategy_for(account.account_type) == STRATEGY.INSURANCE_SURRENDER else None
+        premium_schedule = None
+        if policy:
+            premium_schedule = (
+                RecurringTransaction.objects.filter(physical_asset=policy, transaction_type='INSURANCE_PREMIUM', is_active=True)
+                .select_related('account').first()
+            )
+
         context = {
             'account': account,
+            'policy': policy,
+            'premium_schedule': premium_schedule,
             'can_reconcile': account.is_active and is_reconcilable(account) and request.user.username != 'demo',
             'money_in': money_in,
             'money_out': money_out,

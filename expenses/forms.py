@@ -1022,6 +1022,14 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-select searchable-select'}),
     )
 
+    create_historical_premiums = forms.BooleanField(
+        required=False,
+        label=_('Create past premium records'),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text=_('When the policy start date is in the past, also record the premiums that fell due since then. '
+                    'If off, only upcoming premiums are scheduled.'),
+    )
+
     class Meta:
         model = Account
         fields = [
@@ -1031,7 +1039,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
             'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
             'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
-            'premium_payment_account',
+            'premium_payment_account', 'create_historical_premiums',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
@@ -1385,9 +1393,8 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                 rt.start_date = policy_start
                                 rt.description = description
                                 rt.is_active = True
-                                rt.save()
                             else:
-                                RecurringTransaction.objects.create(
+                                rt = RecurringTransaction(
                                     user=self.user,
                                     transaction_type='INSURANCE_PREMIUM',
                                     physical_asset=asset,
@@ -1398,6 +1405,10 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                     description=description,
                                     is_active=True,
                                 )
+                            if not self.cleaned_data.get('create_historical_premiums') and not rt.last_processed_date:
+                                # Keep the premium day of the policy but schedule only upcoming premiums
+                                rt.last_processed_date = self._latest_premium_due_on_or_before(rt, date.today())
+                            rt.save()
                             from .views.mixins import (
                                 process_user_recurring_transactions,
                             )
@@ -1410,6 +1421,18 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 if self.cleaned_data.get('record_maturity_income'):
                     self._record_maturity_income(account)
         return account
+
+    @staticmethod
+    def _latest_premium_due_on_or_before(rt, today):
+        """Last scheduled date up to ``today`` (None if the schedule starts after it)."""
+        if rt.start_date > today:
+            return None
+        last = rt.start_date
+        while True:
+            nxt = RecurringTransaction.get_next_date(last, rt.frequency, rt.start_date)
+            if nxt > today:
+                return last
+            last = nxt
 
     def _record_maturity_income(self, account):
         if not account.is_active:

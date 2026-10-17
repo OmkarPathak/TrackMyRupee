@@ -218,6 +218,29 @@
                                 </div>
                             {% endif %}
                         </div>
+                    {% elif policy %}
+                        <div class="pt-2" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
+                            <div class="d-flex flex-wrap align-items-center gap-x-3 gap-2 text-body-secondary" style="font-size: 0.82rem; column-gap: 1.25rem !important;">
+                                {% if policy.policy_number %}
+                                    <div><span>{% trans "Policy No:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.policy_number }}</span></div>
+                                {% endif %}
+                                {% if policy.sum_assured %}
+                                    <div><span>{% trans "Sum Assured:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.currency }}{{ policy.sum_assured|ind_comma:policy.currency|translate_digits }}</span></div>
+                                {% endif %}
+                                {% if policy.policy_start_date %}
+                                    <div><span>{% trans "Started:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.policy_start_date|date:"d M Y" }}</span></div>
+                                {% endif %}
+                                {% if policy.premium_amount %}
+                                    <div><span>{% trans "Premium:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.currency }}{{ policy.premium_amount|ind_comma:policy.currency|translate_digits }}{% if policy.premium_frequency %} / {{ policy.get_premium_frequency_display }}{% endif %}</span></div>
+                                {% endif %}
+                                {% if premium_schedule and premium_schedule.next_due_date %}
+                                    <div><span>{% trans "Next Premium:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ premium_schedule.next_due_date|date:"d M Y" }}</span></div>
+                                {% endif %}
+                                {% if premium_schedule and premium_schedule.account %}
+                                    <div><span>{% trans "Paid From:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ premium_schedule.account.name }}</span></div>
+                                {% endif %}
+                            </div>
+                        </div>
                     {% elif account.is_deposit_type or account.has_accrued_value or account.deposit_rate or account.deposit_maturity_date %}
                         <div class="pt-2" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 text-body-secondary" style="font-size: 0.82rem;">

@@ -288,6 +288,7 @@ FIELD_GROUPS_BY_STRATEGY: dict[STRATEGY, list[str]] = {
         'policy_start_date',
         'sum_assured',
         'premium_payment_account',
+        'create_historical_premiums',
     ],
 }
 

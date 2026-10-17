@@ -131,8 +131,12 @@
     .acx-list { padding: 0; }
     .acx-list-head, .acx-row { display: grid; align-items: center; gap: .75rem; padding: .85rem 1.25rem; grid-template-columns: minmax(0, 1fr) auto auto; }
     @media (min-width: 768px) { .acx-list-head, .acx-row { grid-template-columns: minmax(0, 1fr) 190px 170px 32px; gap: 1rem; } }
+    @media (min-width: 768px) { .acx-has-policy .acx-list-head, .acx-has-policy .acx-row { grid-template-columns: minmax(0, 1fr) 160px 190px 170px 32px; } }
+    .acx-policy { font-size: .8rem; color: var(--acx-muted); overflow-wrap: anywhere; }
     .acx-list-head { font-size: .7rem; letter-spacing: .08em; font-weight: 700; color: var(--acx-muted); text-transform: uppercase; border-bottom: 1px solid var(--acx-line); padding-top: .9rem; padding-bottom: .7rem; }
     .acx-list-head > :nth-child(3) { text-align: right; }
+    .acx-has-policy .acx-list-head > :nth-child(3) { text-align: left; }
+    .acx-has-policy .acx-list-head > :nth-child(4) { text-align: right; }
     @media (max-width: 767.98px) { .acx-list-head { display: none; } .acx-row { padding: .8rem 1rem; } }
     .acx-row { border-bottom: 1px solid var(--acx-line); transition: background-color .12s; }
     .acx-row:hover { background: var(--acx-soft); }
@@ -396,9 +400,10 @@
 
 <!-- ACCOUNT LIST -->
 {% if overall_count %}
-<section class="acx-card acx-list" aria-label="{% trans 'Accounts' %}">
+<section class="acx-card acx-list{% if show_policy_column %} acx-has-policy{% endif %}" aria-label="{% trans 'Accounts' %}">
     <div class="acx-list-head" aria-hidden="true">
         <span>{% trans "Account" %}</span>
+        {% if show_policy_column %}<span class="acx-hide-mobile">{% trans "Policy number" %}</span>{% endif %}
         <span>{% trans "Last updated" %}</span>
         <span>{% trans "Balance" %}</span>
         <span></span>
@@ -434,6 +439,9 @@
                     {% if account.next_billing_date %}<span class="acx-sep"></span>{% trans "Next Bill on: " %}{{ account.next_billing_date|date:"d M" }}{% endif %}
 
                 </div>
+                {% if account.linked_physical_asset.policy_number %}
+                <div class="acx-sub acx-only-mobile">{% trans "Policy no." %} {{ account.linked_physical_asset.policy_number }}</div>
+                {% endif %}
                 {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit %}
                 <div class="acx-sub">
                     {% if account.has_credit_limit %}
@@ -465,6 +473,11 @@
                 </div>
                 {% endif %}
             </div>
+
+            {% if show_policy_column %}
+            <!-- Policy number (tablet and up; phones show it under the name) -->
+            <div class="acx-policy acx-hide-mobile">{{ account.linked_physical_asset.policy_number|default:"—" }}</div>
+            {% endif %}
 
             <!-- Last updated (tablet and up) -->
             <div class="acx-updated acx-hide-mobile">

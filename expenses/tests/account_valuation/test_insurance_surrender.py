@@ -46,10 +46,16 @@ class InsuranceSurrenderTestCase(TestCase):
             linked_physical_asset=self.policy,
         )
 
-    def test_insurance_fallback_is_zero_when_no_valuation_exists(self):
-        """SPEC §2.6 CRITICAL REQUIREMENT: Insurance MUST fall back to 0.00, NEVER baseline or acquisition cost."""
+    def test_insurance_fallback_is_zero_when_no_valuation_and_no_ledger_balance(self):
+        """No surrender value and no ledger balance given: 0.00, never baseline or acquisition cost."""
         current = get_current(self.account)
         self.assertEqual(current, Decimal("0.00"))
+
+    def test_insurance_falls_back_to_ledger_balance_without_surrender_value(self):
+        """Users cannot enter a surrender value, so money paid in (ledger balance) is shown, also over a seeded 0.00."""
+        self.assertEqual(get_current(self.account, ledger_balance=Decimal("26224.00")), Decimal("26224.00"))
+        AssetValuation.objects.create(asset=self.policy, value=Decimal("0.00"), as_of_date=date(2023, 12, 1))
+        self.assertEqual(get_current(self.account, ledger_balance=Decimal("26224.00")), Decimal("26224.00"))
 
     def test_insurance_baseline_sums_linked_premium_expenses(self):
         """Baseline sums Expense rows tagged with linked_physical_asset=policy."""
@@ -163,3 +169,54 @@ class InsuranceSurrenderTestCase(TestCase):
         self.assertEqual(asset.policy_number, 'AXIS-9999')
         self.assertEqual(asset.premium_amount, Decimal('36000.00'))
         self.assertEqual(PhysicalAsset.objects.filter(user=self.user, asset_class='INSURANCE').count(), initial_asset_count)
+
+
+class InsuranceHistoricalPremiumsTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="histins", password="password")
+        UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
+        self.bank = Account.objects.create(user=self.user, name="Bank", account_type="SAVINGS_ACCOUNT", balance=Decimal("500000.00"))
+
+    def _create(self, historical):
+        from datetime import timedelta
+        start = date.today().replace(year=date.today().year - 2) - timedelta(days=10)
+        data = {
+            'name': 'LIC', 'account_type': 'LIFE_INSURANCE', 'currency': '₹', 'balance': '0.00',
+            'create_new_asset': 'CREATE_NEW', 'asset_name': 'LIC Plan', 'policy_number': 'P1',
+            'premium_amount': '1000.00', 'premium_frequency': 'ANNUAL', 'policy_start_date': start.isoformat(),
+            'sum_assured': '100000.00', 'premium_payment_account': self.bank.pk,
+        }
+        if historical:
+            data['create_historical_premiums'] = 'on'
+        form = AccountForm(data=data, user=self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+        return form.save(), start
+
+    def test_without_checkbox_only_future_premium_is_scheduled(self):
+        account, start = self._create(historical=False)
+        rt = account.linked_physical_asset.recurring_schedules.get()
+        self.assertGreater(rt.next_due_date, date.today())
+        self.assertEqual(rt.start_date, start)
+        self.assertEqual(Expense.objects.filter(account=self.bank).count(), 0)
+
+    def test_with_checkbox_past_premiums_are_recorded(self):
+        account, _ = self._create(historical=True)
+        self.assertGreaterEqual(Expense.objects.filter(account=self.bank).count(), 2)
+
+
+class InsuranceDetailPageTestCase(TestCase):
+    def test_detail_page_shows_policy_details(self):
+        from django.urls import reverse
+        user = User.objects.create_user(username="detailins", password="password")
+        UserProfile.objects.get_or_create(user=user, defaults={'currency': '₹'})
+        policy = PhysicalAsset.objects.create(
+            user=user, name="LIC Plan", asset_class="INSURANCE", policy_number="POL-4242",
+            premium_amount=Decimal("26224.00"), premium_frequency="ANNUAL",
+            policy_start_date=date(2020, 11, 11), sum_assured=Decimal("500000.00"), currency="₹",
+        )
+        account = Account.objects.create(user=user, name="LIC", account_type="LIFE_INSURANCE", currency="₹", linked_physical_asset=policy)
+        self.client.force_login(user)
+        response = self.client.get(reverse('account-detail', args=[account.uuid]))
+        self.assertEqual(response.status_code, 200)
+        for text in ('POL-4242', '5,00,000', '11 Nov 2020', '26,224', 'Annual'):
+            self.assertContains(response, text)
