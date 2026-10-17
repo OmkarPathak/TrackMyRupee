@@ -46,6 +46,7 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
             'from_account',
             'to_account',
             'loan',
+            'fund',
         )
         if self.filter_expenses_only:
             base_qs = base_qs.filter(transaction_type__in=['EXPENSE', 'TRANSFER', 'LOAN', 'CAPITAL'])

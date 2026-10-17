@@ -75,7 +75,8 @@ A **Systematic Investment Plan (SIP)** involves transferring a fixed amount regu
 5. Set **From Account** to your liquid bank account (for example, HDFC Salary Account).
 6. Set **To Account** to your investment account (for example, Mutual Funds / Zerodha Coin).
 7. Set **Frequency** to `Monthly` and select your SIP start date.
-8. Click **Save Subscription**.
+8. Under **Fund**, pick the fund each instalment buys (or search for a new one). Every instalment is then recorded as a purchase of that fund, priced from its NAV, so the fund's page shows the SIP instalment by instalment. Leave it empty to record only the transfer.
+9. Click **Save Subscription**.
 
 !!! info "How SIP transfers affect your balance"
   On each scheduled date, TrackMyRupee automatically logs an Internal Transfer. Money leaves your bank account and enters your Mutual Fund account as ledger cash. Net worth does not change because the money is still in your own accounts. Once you log the resulting holding, that invested portion is counted through the holding value instead of separate cash. Any amount not yet allocated to a logged holding continues to appear as pending uninvested cash.

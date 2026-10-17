@@ -340,6 +340,24 @@
                                 {% endif %}
                             </div>
 
+                            <div class="col-12" id="fundGroup" style="display: none;">
+                                <div class="border rounded-3 p-3">
+                                    <div class="fw-bold">{% trans "Buy a fund each time (SIP)" %} <span class="text-muted fw-normal small">({% trans "optional" %})</span></div>
+                                    <div class="small text-muted mb-2">{% trans "Each instalment is recorded as a purchase of the fund, priced from its NAV (money reaching the fund before the 3 PM cut-off, less 0.005% stamp duty). New instalments only: past transfers are left as they are." %}</div>
+                                    <label class="form-label small fw-bold mb-1" for="{{ form.fund.id_for_label }}">{% trans "Fund" %}</label>
+                                    {{ form.fund }}
+                                    {% if form.fund.errors %}<div class="text-danger small">{{ form.fund.errors|first }}</div>{% endif %}
+                                    <div class="position-relative mt-2">
+                                        <label class="form-label small fw-bold mb-1" for="{{ form.new_fund_name.id_for_label }}">{% trans "Or add a new fund" %}</label>
+                                        {{ form.new_fund_name }}
+                                        {{ form.new_fund_scheme_code }}
+                                        <div id="newFundSuggestions" class="dropdown-menu shadow w-100 mt-1 overflow-auto" style="max-height: 220px; display: none; z-index: 1070;"></div>
+                                        {% if form.new_fund_name.errors %}<div class="text-danger small">{{ form.new_fund_name.errors|first }}</div>{% endif %}
+                                        <div class="form-text">{% trans "Search and pick a mutual fund so its NAV can be tracked." %}</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="col-12 col-md-6" id="categoryGroup">
                                 <label class="form-label fw-bold" for="{{ form.category.id_for_label }}">{% trans "Category" %}</label>
                                 {{ form.category }}
@@ -659,5 +677,80 @@
             });
         });
     });
+</script>
+
+{{ form.holdings_account_ids|json_script:"fund-accounts" }}
+<script>
+    // Buy a fund each time: only for a recurring transfer into an investment account
+    (function () {
+        const group = document.getElementById('fundGroup');
+        if (!group) return;
+        const typeSelect = document.querySelector('[name="transaction_type"]');
+        const toSelect = document.querySelector('[name="to_account"]');
+        const fundSelect = document.querySelector('[name="fund"]');
+        const nameInput = document.querySelector('[name="new_fund_name"]');
+        const codeInput = document.querySelector('[name="new_fund_scheme_code"]');
+        const box = document.getElementById('newFundSuggestions');
+        const allFunds = fundSelect ? Array.from(fundSelect.options).map(function (o) { return o.cloneNode(true); }) : [];
+        const accounts = (JSON.parse(document.getElementById('fund-accounts').textContent) || []).map(String);
+        const esc = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        function sync() {
+            const show = typeSelect && typeSelect.value === 'TRANSFER' && toSelect && accounts.includes(String(toSelect.value));
+            group.style.display = show ? 'block' : 'none';
+            if (!fundSelect) return;
+            // The styled select lists whatever options exist when it opens, so keep only this account's funds
+            const account = String(toSelect ? toSelect.value : '');
+            const keep = fundSelect.value;
+            fundSelect.innerHTML = '';
+            allFunds.forEach(function (opt) {
+                if (!opt.value || opt.dataset.account === account) fundSelect.appendChild(opt.cloneNode(true));
+            });
+            fundSelect.value = Array.from(fundSelect.options).some(function (o) { return o.value === keep; }) ? keep : '';
+            fundSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (typeSelect) typeSelect.addEventListener('change', sync);
+        if (toSelect) toSelect.addEventListener('change', sync);
+
+        let timer = null;
+        if (nameInput) {
+            nameInput.addEventListener('input', function () {
+                if (codeInput) codeInput.value = '';
+                const q = nameInput.value.trim();
+                if (q.length < 2) { box.style.display = 'none'; return; }
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    fetch('/api/amfi-schemes/search/?q=' + encodeURIComponent(q))
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            const results = data.results || [];
+                            if (!results.length) { box.style.display = 'none'; return; }
+                            box.innerHTML = results.map(function (it) {
+                                return '<a class="dropdown-item py-2 px-3 border-bottom text-wrap" style="cursor:pointer" data-code="' + esc(it.scheme_code) + '" data-name="' + esc(it.scheme_name) + '">' +
+                                    '<div class="fw-semibold small lh-sm">' + esc(it.scheme_name) + '</div><div class="text-muted" style="font-size:.72rem">Code: ' + esc(it.scheme_code) + '</div></a>';
+                            }).join('');
+                            box.style.display = 'block';
+                        })
+                        .catch(function () { box.style.display = 'none'; });
+                }, 300);
+            });
+            box.addEventListener('click', function (e) {
+                const a = e.target.closest('a[data-code]');
+                if (!a) return;
+                nameInput.value = a.dataset.name;
+                codeInput.value = a.dataset.code;
+                if (fundSelect) fundSelect.value = '';
+                box.style.display = 'none';
+            });
+            document.addEventListener('click', function (e) {
+                if (!nameInput.contains(e.target) && !box.contains(e.target)) box.style.display = 'none';
+            });
+        }
+        if (fundSelect) fundSelect.addEventListener('change', function () {
+            if (fundSelect.value && nameInput) { nameInput.value = ''; if (codeInput) codeInput.value = ''; }
+        });
+        document.addEventListener('DOMContentLoaded', sync);
+        sync();
+    })();
 </script>
 {% endblock %}

@@ -72,7 +72,7 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
     profile = user.profile
     recurring_txs = (
         RecurringTransaction.objects.filter(user=user, is_active=True)
-        .select_related('account', 'from_account', 'to_account', 'loan')
+        .select_related('account', 'from_account', 'to_account', 'loan', 'fund')
         .order_by('created_at', 'id')
     )
     
@@ -213,6 +213,9 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                             )
                             new_transfer.save()
                             posted_successfully = True
+                            if rt.fund_id:
+                                from ..holdings_service import record_instalment
+                                record_instalment(rt, new_transfer)
                         except Exception as e:
                             logger.error("Recurring transfer posting failed for rt %s on %s", rt.id, current_date, exc_info=e)
                             break 

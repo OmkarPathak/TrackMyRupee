@@ -1519,6 +1519,9 @@ class RecurringTransaction(models.Model):
     # Transfer-specific fields
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_out', verbose_name=_('From Account'))
     to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_in', verbose_name=_('To Account'))
+    # A recurring transfer into an investment account can buy a fund each time (a SIP): every instalment is
+    # recorded as a purchase of this holding, priced from the NAV (holdings_service)
+    fund = models.ForeignKey('Holding', on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers', verbose_name=_('Fund'))
 
     frequency = models.CharField(max_length=15, choices=FREQUENCY_CHOICES, verbose_name=_('Frequency'))
     start_date = models.DateField(verbose_name=_('Start Date'))

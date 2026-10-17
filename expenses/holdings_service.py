@@ -406,3 +406,37 @@ def allocate_transfer(transfer, rows):
                 created.append(holding)
                 purchases.append(holding.transactions.get(transfer=transfer))
     return purchases, created
+
+
+def create_empty_holding(account, *, name, scheme_code='', isin=''):
+    """A holding with no purchases yet, for a SIP whose first instalment has not been posted. Its first
+    purchase makes it real; until then it has no units and no cost."""
+    from .models import Holding
+
+    name = (name or '').strip()
+    if not name:
+        raise HoldingError(_('Holding name is required.'))
+    if account.account_type not in holdings_codes():
+        raise HoldingError(_('Holdings can only be added to Mutual Fund, Demat, ETF, SGB, ULIP or Gold accounts.'))
+    return Holding.objects.create(
+        account=account, instrument_name=name[:255], instrument_type=instrument_type_for(account),
+        units=Decimal('0'), avg_cost=None, currency=account.currency, scheme_code=(scheme_code or '').strip() or None,
+        isin=(isin or '').strip() or None, is_active=True,
+    )
+
+
+def record_instalment(recurring, transfer):
+    """Buy the fund a recurring transfer is assigned to with this instalment. The transfer is already posted, so
+    a purchase that cannot be recorded is logged and skipped rather than undoing it. Returns the purchase or None."""
+    import logging
+
+    fund = recurring.fund
+    if fund is None or not fund.is_active or fund.account_id != transfer.to_account_id:
+        return None
+    try:
+        return add_purchase(fund, date=transfer.date, amount=transfer.amount, transfer=transfer,
+                            note=(recurring.description or '')[:120])
+    except Exception as exc:        # a NAV lookup that fails must never undo the transfer
+        logging.getLogger(__name__).warning("SIP instalment of recurring %s on %s not recorded: %s",
+                                            recurring.pk, transfer.date, exc, exc_info=not isinstance(exc, HoldingError))
+        return None

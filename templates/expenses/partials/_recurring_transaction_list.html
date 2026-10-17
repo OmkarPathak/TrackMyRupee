@@ -188,7 +188,7 @@
                                             {% if sub.transaction_type == 'INCOME' %}
                                                 <span class="badge-soft badge-soft-success fw-semibold">{% trans "Income" %}</span>
                                             {% elif sub.transaction_type == 'TRANSFER' %}
-                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>
+                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>{% if sub.fund %}<span class="small text-muted ms-1 text-nowrap"><i class="bi bi-pie-chart me-1" aria-hidden="true"></i>{{ sub.fund.instrument_name }}</span>{% endif %}
                                             {% elif sub.transaction_type == 'CAPITAL' %}
                                                 <span class="badge-soft badge-soft-warning fw-semibold">{% trans "Capital Event" %}</span>
                                             {% else %}
@@ -396,7 +396,7 @@
                                             {% if sub.transaction_type == 'INCOME' %}
                                                 <span class="badge-soft badge-soft-success fw-semibold">{% trans "Income" %}</span>
                                             {% elif sub.transaction_type == 'TRANSFER' %}
-                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>
+                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>{% if sub.fund %}<span class="small text-muted ms-1 text-nowrap"><i class="bi bi-pie-chart me-1" aria-hidden="true"></i>{{ sub.fund.instrument_name }}</span>{% endif %}
                                             {% elif sub.transaction_type == 'CAPITAL' %}
                                                 <span class="badge-soft badge-soft-warning fw-semibold">{% trans "Capital Event" %}</span>
                                             {% else %}
@@ -576,7 +576,7 @@
                                             {% if sub.transaction_type == 'INCOME' %}
                                                 <span class="badge-soft badge-soft-success fw-semibold">{% trans "Income" %}</span>
                                             {% elif sub.transaction_type == 'TRANSFER' %}
-                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>
+                                                <span class="badge-soft badge-soft-info fw-semibold">{% trans "Transfer" %}</span>{% if sub.fund %}<span class="small text-muted ms-1 text-nowrap"><i class="bi bi-pie-chart me-1" aria-hidden="true"></i>{{ sub.fund.instrument_name }}</span>{% endif %}
                                             {% elif sub.transaction_type == 'CAPITAL' %}
                                                 <span class="badge-soft badge-soft-warning fw-semibold">{% trans "Capital Event" %}</span>
                                             {% else %}
