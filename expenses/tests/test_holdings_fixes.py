@@ -226,3 +226,64 @@ class ManualValuationTests(HoldingsBase):
         self.assertContains(response, reverse('holding-valuation', args=[self.stock.pk]))
         self.assertContains(response, 'Update value')
         self.assertContains(response, 'Refresh NAV')
+
+
+class AccountRefreshNavTests(HoldingsBase):
+    """One Refresh NAV button on the account page, for all the funds in it."""
+
+    def setUp(self):
+        super().setUp()
+        self.mf = self.account('MUTUAL_FUND', 'Funds')
+        for name, code in (('A', '111'), ('B', '222'), ('C', '333'), ('A again', '111')):
+            self.holding(self.mf, instrument_name=name, scheme_code=code, instrument_type='MF')
+        self.url = reverse('account-detail', args=[self.mf.uuid])
+        self.refresh = reverse('refresh-account-navs', args=[self.mf.uuid])
+
+    def test_the_page_has_one_refresh_button_however_many_funds(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, f'action="{self.refresh}"', count=1)
+        self.assertNotRegex(response.content.decode(), r'/holdings/\d+/refresh-nav/')      # no per-fund buttons any more
+
+    def test_no_button_without_funds_that_have_a_feed(self):
+        stock = self.account('DEMAT', 'Demat')
+        self.holding(stock)
+        self.assertNotContains(self.client.get(reverse('account-detail', args=[stock.uuid])), 'refresh-nav')
+
+    def test_removed_funds_do_not_count(self):
+        Holding.objects.filter(account=self.mf).update(is_active=False)
+        self.assertNotContains(self.client.get(self.url), self.refresh)
+
+    def test_refreshing_fetches_each_scheme_once_and_says_so(self):
+        with patch('expenses.nav_provider.NAVFetchService.fetch_scheme', return_value=(None, True)) as fetch:
+            response = self.client.post(self.refresh)
+        self.assertRedirects(response, self.url, fetch_redirect_response=False)
+        self.assertEqual(sorted(c.args[0] for c in fetch.call_args_list), ['111', '222', '333'])
+        self.assertTrue(all(c.kwargs.get('force') for c in fetch.call_args_list))
+        messages = [str(m) for m in response.wsgi_request._messages]
+        self.assertIn('NAV updated for 3 funds.', messages)
+
+    def test_a_partial_failure_is_reported(self):
+        with patch('expenses.nav_provider.NAVFetchService.fetch_scheme',
+                   side_effect=lambda code, force=False: (None, code != '222')):
+            response = self.client.post(self.refresh)
+        messages = [str(m) for m in response.wsgi_request._messages]
+        self.assertTrue(any('2 of 3 funds' in m for m in messages), messages)
+
+    def test_needs_post_and_the_owner(self):
+        self.assertEqual(self.client.get(self.refresh).status_code, 405)
+        other = User.objects.create_user(username='someone', password='password')
+        self.client.force_login(other)
+        self.assertEqual(self.client.post(self.refresh).status_code, 404)
+
+    def test_an_account_with_nothing_to_refresh_just_says_so(self):
+        empty = self.account('MUTUAL_FUND', 'Empty')
+        with patch('expenses.nav_provider.NAVFetchService.fetch_scheme') as fetch:
+            response = self.client.post(reverse('refresh-account-navs', args=[empty.uuid]))
+        fetch.assert_not_called()
+        self.assertEqual(response.status_code, 302)
+
+    def test_messages_show_as_toasts_only_not_as_alerts_on_the_page(self):
+        with patch('expenses.nav_provider.NAVFetchService.fetch_scheme', return_value=(None, True)):
+            response = self.client.post(self.refresh, follow=True)
+        self.assertContains(response, 'NAV updated for 3 funds.', count=1)       # the toast, once
+        self.assertNotContains(response, 'alert-dismissible')

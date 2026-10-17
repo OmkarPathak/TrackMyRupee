@@ -1593,6 +1593,10 @@ class AccountDetailView(LoginRequiredMixin, View):
 
         context = {
             'account': account,
+            'has_nav_funds': (
+                strategy_for(account.account_type) == STRATEGY.HOLDINGS and account.is_active
+                and account.holdings.filter(is_active=True).exclude(scheme_code__isnull=True).exclude(scheme_code='').exists()
+            ),
             'policy': policy,
             'premium_schedule': premium_schedule,
             'can_reconcile': account.is_active and is_reconcilable(account) and request.user.username != 'demo',
@@ -2003,6 +2007,33 @@ def refresh_holding_nav(request, pk):
             )
             
     return redirect('account-detail', pk=holding.account.pk)
+
+
+@require_POST
+def refresh_account_navs(request, pk):
+    """"Refresh NAV" for every fund in an account at once (the one button on the account page)."""
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+
+    from ..models import Holding
+    from ..nav_provider import NAVFetchService
+
+    account = get_object_by_uuid_or_pk(Account, pk, user=request.user)
+    codes = sorted(set(
+        Holding.objects.filter(account=account, is_active=True).exclude(scheme_code__isnull=True)
+        .exclude(scheme_code='').values_list('scheme_code', flat=True)))
+    if not codes:
+        messages.warning(request, _("No fund in this account has a scheme code to refresh."))
+    else:
+        service = NAVFetchService()
+        done = sum(1 for code in codes if service.fetch_scheme(code, force=True)[1])
+        if done == len(codes):
+            messages.success(request, ngettext("NAV updated for %(n)d fund.", "NAV updated for %(n)d funds.", done) % {'n': done})
+            ph_capture(request.user, 'account_nav_refreshed', {'funds': done})
+        else:
+            messages.warning(request, _("NAV updated for %(done)d of %(total)d funds. The rest keep their last value.") % {
+                'done': done, 'total': len(codes)})
+    return redirect('account-detail', pk=account.uuid)
 
 
 def holding_create_view(request, pk=None):

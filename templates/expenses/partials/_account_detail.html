@@ -89,15 +89,6 @@
             });
         }
     </script>
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <!-- Top Summary Banner -->
     <div class="row g-3 mb-2 mb-md-4 align-items-stretch">
         <!-- Hero Metrics Header -->
@@ -145,17 +136,13 @@
                                         <i class="bi bi-pencil" aria-hidden="true"></i>
                                     </button>
                                 {% endif %}
-                                {% if account.holdings.exists %}
-                                    {% for h in account.holdings.all %}
-                                        {% if h.scheme_code and h.is_active %}
-                                            <form method="post" action="{% url 'refresh-holding-nav' h.pk %}" class="d-inline">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV' %}" aria-label="{% trans 'Refresh NAV' %}">
-                                                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    {% endfor %}
+                                {% if has_nav_funds %}
+                                    <form method="post" action="{% url 'refresh-account-navs' account.uuid %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm hero-action-btn" data-bs-toggle="tooltip" title="{% trans 'Refresh NAV of all funds' %}" aria-label="{% trans 'Refresh NAV of all funds' %}">
+                                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
                                 {% endif %}
                             </div>
                         </div>
@@ -340,7 +327,7 @@
                             <col style="width: 134px">
                             <col style="width: 148px">
                             <col>
-                            <col style="width: 200px">
+                            <col style="width: 250px">
                             <col style="width: 150px">
                             <col style="width: 92px">
                         </colgroup>
@@ -371,7 +358,7 @@
                                 </td>
                                 <td>
                                     {% if item.row_badge %}
-                                    <span class="badge-soft badge-soft-{{ item.row_badge_variant }} text-nowrap d-inline-block text-truncate" style="max-width: 260px;" title="{{ item.row_badge }}">
+                                    <span class="badge-soft badge-soft-{{ item.row_badge_variant }} text-nowrap d-inline-block text-truncate" title="{{ item.row_badge }}">
                                         {% if item.transaction_type == 'EXPENSE' %}<i class="bi {% category_icon item.category user %} me-1"></i>{% elif item.transaction_type == 'INCOME' %}<i class="bi bi-wallet2 me-1"></i>{% elif item.row_kind == 'transfer' %}<i class="bi bi-arrow-left-right me-1"></i>{% elif item.row_kind == 'savings' %}<i class="bi bi-piggy-bank me-1"></i>{% elif item.row_kind == 'loan' %}<i class="bi bi-shield-lock me-1"></i>{% else %}<i class="bi bi-flag me-1"></i>{% endif %}{{ item.row_badge }}
                                     </span>
                                     {% endif %}

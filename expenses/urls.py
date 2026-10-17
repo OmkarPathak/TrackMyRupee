@@ -73,6 +73,7 @@ urlpatterns = [
     path('holdings/add/', views.holding_create_view, name='holding-create-global'),
     path('holdings/<int:pk>/refresh-nav/', views.refresh_holding_nav, name='refresh-holding-nav'),
     path('accounts/<uuid_or_int:pk>/holdings/add/', views.holding_create_view, name='holding-create'),
+    path('accounts/<uuid_or_int:pk>/refresh-nav/', views.refresh_account_navs, name='refresh-account-navs'),
     path('holdings/<int:pk>/delete/', views.holding_delete_view, name='holding-delete'),
     path('holdings/<int:pk>/valuation/', views.holding_valuation_view, name='holding-valuation'),
     path('holdings/<int:pk>/', views.HoldingDetailView.as_view(), name='holding-detail'),
