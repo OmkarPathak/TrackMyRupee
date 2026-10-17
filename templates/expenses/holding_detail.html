@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load i18n humanize currency_filters digit_filters expense_extras %}
+
+{% block content %}
+<style>
+    .table-responsive .dropdown-menu { z-index: 1065 !important; }
+    .hd-stat { border-radius: 1rem; padding: 1rem 1.1rem; }
+    .hd-stat .hd-label { text-transform: uppercase; font-size: .72rem; letter-spacing: .8px; font-weight: 700; color: var(--bs-secondary-color); margin-bottom: .25rem; }
+</style>
+<div>
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+        <div class="min-w-0">
+            <a href="{% url 'holding-list' %}" class="small text-decoration-none text-body-secondary"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "All holdings" %}</a>
+            <h1 class="h3 fw-bold mb-1 mt-1 d-flex align-items-center gap-2">
+                <span class="text-break">{{ holding.instrument_name }}</span>
+                <button type="button" class="btn btn-link p-0 text-body-secondary" data-bs-toggle="modal" data-bs-target="#renameHoldingModal" aria-label="{% trans 'Rename holding' %}" title="{% trans 'Rename holding' %}">
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                </button>
+            </h1>
+            <p class="text-muted small mb-0">
+                <a href="{% url 'account-detail' account.uuid %}" class="text-decoration-none">{{ account.name }}</a>
+                {% if holding.scheme_code %}<span class="badge bg-secondary-subtle text-secondary border ms-1" style="font-size: .7rem;">AMFI {{ holding.scheme_code }}</span>{% endif %}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            {% if not has_feed %}
+            <button type="button" class="btn btn-action-outline" data-bs-toggle="modal" data-bs-target="#holdingValueModal"
+                    data-url="{% url 'holding-valuation' holding.pk %}" data-name="{{ holding.instrument_name }}">
+                <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>{% trans "Update value" %}
+            </button>
+            {% endif %}
+            <button type="button" class="btn btn-primary rounded-pill px-3 fw-semibold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#purchaseModal"
+                    data-mode="add" data-url="{% url 'holding-buy' holding.pk %}">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i><span>{% trans "Buy more" %}</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="hd-stat shadow-sm h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08);">
+                <div class="hd-label">{% trans "Current value" %}</div>
+                <div class="fs-3 fw-bold text-success">{{ holding.currency }}{{ value|ind_comma:holding.currency|translate_digits }}</div>
+                <div class="small text-muted">
+                    {{ holding.units|floatformat:'-4'|translate_digits }} {% trans "units" %}
+                    {% if valuation and valuation.unit_nav %}&middot; {% trans "NAV" %} {{ holding.currency }}{{ valuation.unit_nav|translate_digits }}{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="hd-stat shadow-sm h-100 bg-body-tertiary">
+                <div class="hd-label">{% trans "Invested" %}</div>
+                <div class="fs-4 fw-bold text-body-emphasis">{{ holding.currency }}{{ cost|ind_comma:holding.currency|translate_digits }}</div>
+                <div class="small text-muted">{% trans "Avg cost" %} {{ holding.currency }}{{ holding.avg_cost|floatformat:2|translate_digits }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="hd-stat shadow-sm h-100 bg-body-tertiary">
+                <div class="hd-label">{% trans "Gain / loss" %}</div>
+                <div class="fs-4 fw-bold {% if gain >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {% if gain >= 0 %}+{% endif %}{{ holding.currency }}{{ gain|ind_comma:holding.currency|translate_digits }}
+                    <span class="fs-6 fw-semibold ms-1">({{ gain_pct|translate_digits }}%)</span>
+                </div>
+                <div class="small text-muted">{% trans "Value minus invested" %}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card rounded-4 border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 p-3 p-md-4">
+            <h2 class="h5 mb-0 fw-bold">{% trans "Purchases" %}</h2>
+        </div>
+        <div class="card-body p-0">
+            {% if transactions %}
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0 tmr-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th class="text-end">{% trans "Units" %}</th>
+                            <th class="text-end">{% trans "Price" %}</th>
+                            <th class="text-end">{% trans "Amount" %}</th>
+                            <th>{% trans "Paid by" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in transactions %}
+                        <tr>
+                            <td class="ps-4 text-nowrap">{{ tx.date|date:"d M Y"|translate_digits }}</td>
+                            <td class="text-end tmr-amount">{{ tx.units|floatformat:'-4'|translate_digits }}</td>
+                            <td class="text-end tmr-amount">{{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}</td>
+                            <td class="text-end tmr-amount fw-semibold">{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</td>
+                            <td class="small">
+                                {% if tx.transfer %}
+                                    <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
+                                {% else %}
+                                    <span class="text-muted">{{ tx.note|default:"-" }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                {% include 'expenses/partials/_holding_purchase_actions.html' %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-md-none">
+                {% for tx in transactions %}
+                <div class="p-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-semibold">{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</div>
+                            <div class="small text-muted">{{ tx.date|date:"d M Y"|translate_digits }} &middot; {{ tx.units|floatformat:'-4'|translate_digits }} {% trans "units" %} @ {{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}</div>
+                            <div class="small mt-1">
+                                {% if tx.transfer %}
+                                    <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
+                                {% elif tx.note %}<span class="text-muted">{{ tx.note }}</span>{% endif %}
+                            </div>
+                        </div>
+                        {% include 'expenses/partials/_holding_purchase_actions.html' %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% elif opening_only %}
+            <div class="p-4 text-body-secondary">
+                {% blocktrans with units=holding.units|floatformat:'-4' avg=holding.avg_cost|floatformat:2 %}This holding was added with {{ units }} units at an average cost of {{ avg }}. Use <strong>Buy more</strong> to record further purchases; this opening position is kept as the first one.{% endblocktrans %}
+            </div>
+            {% else %}
+            <div class="p-5 text-center text-muted">{% trans "No purchases recorded yet." %}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{{ block.super }}
+<!-- Add / edit a purchase -->
+<div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <form method="POST" id="purchaseForm" action="">
+                {% csrf_token %}
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold" id="purchaseModalLabel">{% trans "Buy more" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="purchaseDate">{% trans "Date" %}</label>
+                        <input type="date" name="date" id="purchaseDate" class="form-control rounded-3" max="{{ today|date:'Y-m-d' }}">
+                    </div>
+                    <div class="row g-2 mb-1">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold" for="purchaseUnits">{% trans "Units" %}</label>
+                            <input type="number" step="0.000001" min="0" name="units" id="purchaseUnits" class="form-control rounded-3" data-calc>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold" for="purchasePrice">{% trans "Price / unit" %}</label>
+                            <input type="number" step="0.000001" min="0" name="price" id="purchasePrice" class="form-control rounded-3" data-calc>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold" for="purchaseAmount">{% trans "Amount" %}</label>
+                            <input type="number" step="0.01" min="0" name="amount" id="purchaseAmount" class="form-control rounded-3" data-calc>
+                        </div>
+                    </div>
+                    <div class="form-text small text-muted mb-3">{% trans "Enter any two; the third is worked out." %}</div>
+                    <div class="mb-3" id="purchaseFunding">
+                        <label class="form-label fw-semibold" for="purchaseTransfer">{% trans "Paid by transfer (optional)" %}</label>
+                        <select name="transfer" id="purchaseTransfer" class="form-select rounded-3">
+                            <option value="">{% trans "Not linked to a transfer" %}</option>
+                            {% for f in funding %}
+                                <option value="{{ f.transfer.uuid }}">{{ f.transfer.date|date:"d M Y" }} &middot; {% blocktrans with name=f.transfer.from_account.name %}from {{ name }}{% endblocktrans %} &middot; {{ holding.currency }}{{ f.left|ind_comma:holding.currency }} {% trans "left" %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-semibold" for="purchaseNote">{% trans "Note (optional)" %}</label>
+                        <input type="text" name="note" id="purchaseNote" maxlength="120" class="form-control rounded-3">
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-2 pb-3">
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-action-primary">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Rename -->
+<div class="modal fade" id="renameHoldingModal" tabindex="-1" aria-labelledby="renameHoldingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <form method="POST" action="{% url 'holding-rename' holding.pk %}">
+                {% csrf_token %}
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold" id="renameHoldingModalLabel">{% trans "Rename holding" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" name="instrument_name" value="{{ holding.instrument_name }}" maxlength="255" class="form-control rounded-3" required aria-label="{% trans 'Holding name' %}">
+                </div>
+                <div class="modal-footer border-top-0 pt-2 pb-3">
+                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-action-primary">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if not has_feed %}
+{% include 'expenses/partials/_holding_value_modal.html' %}
+{% endif %}
+
+<script>
+    (function () {
+        const modal = document.getElementById('purchaseModal');
+        if (!modal) return;
+        const $ = (id) => document.getElementById(id);
+        const calc = { units: $('purchaseUnits'), price: $('purchasePrice'), amount: $('purchaseAmount') };
+        let touched = [];
+        const num = (el) => { const v = parseFloat(el.value); return isFinite(v) && v > 0 ? v : null; };
+        const round = (v, d) => String(Math.round(v * Math.pow(10, d)) / Math.pow(10, d));
+        function fill() {
+            if (touched.length < 2) return;
+            const target = ['units', 'price', 'amount'].find((k) => !touched.includes(k));
+            const u = num(calc.units), p = num(calc.price), a = num(calc.amount);
+            if (target === 'amount' && u && p) calc.amount.value = round(u * p, 2);
+            else if (target === 'units' && a && p) calc.units.value = round(a / p, 6);
+            else if (target === 'price' && a && u) calc.price.value = round(a / u, 6);
+        }
+        Object.entries(calc).forEach(([key, el]) => el.addEventListener('input', () => {
+            touched = touched.filter((k) => k !== key).concat(key).slice(-2);
+            fill();
+        }));
+        modal.addEventListener('show.bs.modal', function (event) {
+            const t = event.relatedTarget;
+            if (!t) return;
+            const edit = t.dataset.mode === 'edit';
+            $('purchaseForm').action = t.dataset.url;
+            $('purchaseModalLabel').textContent = edit ? '{% trans "Edit purchase" %}' : '{% trans "Buy more" %}';
+            $('purchaseFunding').style.display = edit ? 'none' : '';
+            $('purchaseTransfer').value = '';
+            $('purchaseDate').value = t.dataset.date || '{{ today|date:"Y-m-d" }}';
+            calc.units.value = t.dataset.units || '';
+            calc.price.value = t.dataset.price || '';
+            calc.amount.value = t.dataset.amount || '';
+            $('purchaseNote').value = t.dataset.note || '';
+            touched = edit ? ['units', 'amount'] : [];
+        });
+    })();
+</script>
+{% endblock %}

@@ -1491,8 +1491,13 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
             'client_dedup_key': forms.HiddenInput(),
         }
 
+    # JSON built by the page: how much of a transfer into an investment account went to which fund
+    allocations = forms.CharField(required=False, widget=forms.HiddenInput())
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        self.user = user
+        self.allocation_rows = []
         super().__init__(*args, **kwargs)
 
         if not self.is_bound and not self.instance.pk:
@@ -1523,7 +1528,29 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
         if amount is not None and amount <= 0:
             raise forms.ValidationError(_("Transfer amount must be greater than zero."))
 
+        self._clean_allocations(cleaned_data, from_account, to_account, amount)
         return cleaned_data
+
+    def _clean_allocations(self, cleaned_data, from_account, to_account, amount):
+        from .holdings_service import HoldingError, parse_allocations
+
+        existing = self.instance.holding_allocations.all() if self.instance.pk else []
+        if existing:
+            allocated = sum(tx.amount for tx in existing)
+            if to_account is not None and to_account.pk != self.instance.to_account_id:
+                raise forms.ValidationError(_("This transfer is allocated to funds. Remove those purchases before changing the account it went into."))
+            if amount is not None and amount < allocated:
+                raise forms.ValidationError(_("This transfer is allocated to funds for more than that amount. Remove or reduce those purchases first."))
+        raw = cleaned_data.get('allocations')
+        if not raw or not self.user or from_account is None or to_account is None or amount is None:
+            return
+        try:
+            self.allocation_rows = parse_allocations(
+                raw, user=self.user, to_account=to_account, from_currency=from_account.currency,
+                transfer_amount=amount, transfer=self.instance if self.instance.pk else None,
+            )
+        except HoldingError as exc:
+            raise forms.ValidationError(str(exc)) from None
 
 class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:

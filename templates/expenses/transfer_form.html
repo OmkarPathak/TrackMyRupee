@@ -67,6 +67,31 @@
                                 <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
                             {% endif %}
                         </div>
+
+                        <!-- Allocate to funds (only for a transfer into a Mutual Fund / Demat / ETF / SGB / ULIP / Gold account) -->
+                        <div class="col-12 mb-3 d-none" id="allocSection">
+                            <div class="border rounded-3 p-3">
+                                <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                                    <div>
+                                        <div class="fw-semibold">{% trans "Allocate to funds" %} <span class="text-muted fw-normal small">({% trans "optional" %})</span></div>
+                                        <div class="small text-muted">{% trans "Say how much went into each fund. What you leave out stays as uninvested cash in the account." %}</div>
+                                    </div>
+                                    <button type="button" class="btn btn-action-outline btn-sm text-nowrap" id="allocAdd"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% trans "Add fund" %}</button>
+                                </div>
+                                {% if existing_allocations %}
+                                <ul class="list-unstyled small mb-2">
+                                    {% for tx in existing_allocations %}
+                                    <li class="d-flex justify-content-between border-bottom py-1">
+                                        <a href="{% url 'holding-detail' tx.holding_id %}" class="text-decoration-none text-truncate me-2">{{ tx.holding.instrument_name }}</a>
+                                        <span class="text-nowrap">{{ tx.holding.currency }}{{ tx.amount }} &middot; {{ tx.units }} {% trans "units" %}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                <div id="allocRows"></div>
+                                <div class="small text-muted mt-2 d-none" id="allocSummary"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 mt-4">
@@ -218,5 +243,107 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+</script>
+
+{{ allocation_data|json_script:"allocation-data" }}
+<script>
+(function() {
+    const dataEl = document.getElementById('allocation-data');
+    const section = document.getElementById('allocSection');
+    if (!dataEl || !section) return;
+    const accounts = JSON.parse(dataEl.textContent || '{}');
+    const rowsBox = document.getElementById('allocRows');
+    const summary = document.getElementById('allocSummary');
+    const hidden = document.getElementById('id_allocations');
+    const toSelect = document.querySelector('select[name="to_account"]');
+    const amountInput = document.querySelector('input[name="amount"]');
+    const form = section.closest('form');
+    const NEW = 'new';
+
+    function currentAccount() { return toSelect ? accounts[toSelect.value] : null; }
+
+    function addRow(prefill) {
+        const acct = currentAccount();
+        if (!acct) return;
+        prefill = prefill || {};
+        const row = document.createElement('div');
+        row.className = 'row g-2 align-items-end mb-2 alloc-row';
+        const opts = acct.holdings.map(h => '<option value="' + h.id + '">' + h.name.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</option>').join('');
+        row.innerHTML =
+            '<div class="col-12 col-md-5"><label class="form-label small text-muted fw-bold mb-1">{% trans "Fund" %}</label>' +
+            '<select class="form-select form-select-sm" data-f="holding">' + opts + '<option value="' + NEW + '">{% trans "New fund…" %}</option></select>' +
+            '<input type="text" class="form-control form-control-sm mt-1 d-none" data-f="name" placeholder="{% trans "Fund or stock name" %}" maxlength="255"></div>' +
+            '<div class="col-5 col-md-3"><label class="form-label small text-muted fw-bold mb-1">{% trans "Amount" %}</label>' +
+            '<input type="number" class="form-control form-control-sm" data-f="amount" step="0.01" min="0"></div>' +
+            '<div class="col-5 col-md-3"><label class="form-label small text-muted fw-bold mb-1">{% trans "Units" %}</label>' +
+            '<input type="number" class="form-control form-control-sm" data-f="units" step="0.000001" min="0"></div>' +
+            '<div class="col-2 col-md-1 text-end"><button type="button" class="btn btn-link text-danger p-0" data-f="remove" aria-label="{% trans "Remove" %}"><i class="bi bi-x-lg"></i></button></div>';
+        rowsBox.appendChild(row);
+        const sel = row.querySelector('[data-f=holding]');
+        const name = row.querySelector('[data-f=name]');
+        function syncName() { name.classList.toggle('d-none', sel.value !== NEW); }
+        if (prefill.holding_id && prefill.holding_id !== NEW) sel.value = String(prefill.holding_id);
+        else if (prefill.name || !acct.holdings.length) sel.value = NEW;
+        if (!acct.holdings.length) sel.value = NEW;
+        name.value = prefill.name || '';
+        row.querySelector('[data-f=amount]').value = prefill.amount || '';
+        row.querySelector('[data-f=units]').value = prefill.units || '';
+        syncName();
+        sel.addEventListener('change', syncName);
+        row.querySelector('[data-f=remove]').addEventListener('click', function() { row.remove(); refresh(); });
+        row.addEventListener('input', refresh);
+        refresh();
+    }
+
+    function collect() {
+        return Array.from(rowsBox.querySelectorAll('.alloc-row')).map(function(row) {
+            const v = row.querySelector('[data-f=holding]').value;
+            return {
+                holding_id: v === NEW ? null : Number(v),
+                name: row.querySelector('[data-f=name]').value.trim(),
+                amount: row.querySelector('[data-f=amount]').value,
+                units: row.querySelector('[data-f=units]').value
+            };
+        }).filter(r => r.amount || r.units || r.name);
+    }
+
+    function refresh() {
+        const rows = collect();
+        hidden.value = rows.length ? JSON.stringify(rows) : '';
+        const total = rows.reduce((t, r) => t + (parseFloat(r.amount) || 0), 0);
+        const transfer = parseFloat(amountInput && amountInput.value) || 0;
+        const acct = currentAccount();
+        summary.classList.toggle('d-none', !rows.length);
+        if (rows.length && acct) {
+            const left = transfer - total;
+            summary.textContent = acct.currency + total.toFixed(2) + ' {% trans "allocated of" %} ' + acct.currency + transfer.toFixed(2) +
+                ' · ' + (left >= 0 ? acct.currency + left.toFixed(2) + ' {% trans "stays as cash" %}' : '{% trans "more than the transfer" %}');
+            summary.classList.toggle('text-danger', left < 0);
+            summary.classList.toggle('text-muted', left >= 0);
+        }
+    }
+
+    function sync() {
+        const acct = currentAccount();
+        section.classList.toggle('d-none', !acct);
+        if (!acct) { rowsBox.innerHTML = ''; refresh(); }
+        else if (!rowsBox.children.length) { /* rows are added on demand */ }
+    }
+
+    let lastAccount = toSelect ? toSelect.value : null;
+    if (toSelect) toSelect.addEventListener('change', function() {
+        if (toSelect.value !== lastAccount) { rowsBox.innerHTML = ''; lastAccount = toSelect.value; }
+        sync(); refresh();
+    });
+    if (amountInput) amountInput.addEventListener('input', refresh);
+    document.getElementById('allocAdd').addEventListener('click', function() { addRow(); });
+
+    // Re-draw rows after a failed submit
+    if (hidden && hidden.value) {
+        try { JSON.parse(hidden.value).forEach(addRow); } catch (e) { hidden.value = ''; }
+    }
+    sync();
+    if (form) form.addEventListener('submit', refresh);
+})();
 </script>
 {% endblock %}

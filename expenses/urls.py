@@ -75,6 +75,11 @@ urlpatterns = [
     path('accounts/<uuid_or_int:pk>/holdings/add/', views.holding_create_view, name='holding-create'),
     path('holdings/<int:pk>/delete/', views.holding_delete_view, name='holding-delete'),
     path('holdings/<int:pk>/valuation/', views.holding_valuation_view, name='holding-valuation'),
+    path('holdings/<int:pk>/', views.HoldingDetailView.as_view(), name='holding-detail'),
+    path('holdings/<int:pk>/buy/', views.holding_buy_view, name='holding-buy'),
+    path('holdings/<int:pk>/rename/', views.holding_rename_view, name='holding-rename'),
+    path('holdings/purchases/<int:pk>/edit/', views.holding_purchase_edit_view, name='holding-purchase-edit'),
+    path('holdings/purchases/<int:pk>/delete/', views.holding_purchase_delete_view, name='holding-purchase-delete'),
     
     # Transfers
     path('transfers/', views.TransferListView.as_view(), name='transfer-list'), 

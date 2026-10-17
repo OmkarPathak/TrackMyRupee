@@ -39,6 +39,15 @@ Complete the following fields:
 
 Click **Execute Transfer** to save.
 
+### Allocating a transfer to funds
+
+When the **To Account** is a Mutual Fund, Demat, ETF, SGB, ULIP or Gold account, an **Allocate to funds** section appears. Click **Add fund** for each fund the money went into, pick the fund (or **New fund…** and type its name), and enter the **Amount** and the **Units** you were allotted. The price per unit is worked out for you. A line under the rows shows how much is allocated and how much stays as cash.
+
+- The funds can add up to the transfer or to less; what you leave out stays as uninvested cash in the account.
+- Each row becomes a purchase on that fund's page (**Holdings → the fund → Purchases**), tied to this transfer, so you can always see how much of it went where. The transfer list shows the funds under the description.
+- It works for transfers between accounts in the same currency. You can add more rows later by editing the transfer. Deleting the transfer removes its purchases.
+- A transfer that has been allocated cannot be moved to another account, or reduced below the amount allocated, until you remove those purchases.
+
 ---
 
 ## 4. What Happens After a Transfer
@@ -85,7 +94,7 @@ For automated monthly investments such as a Systematic Investment Plan (SIP), se
 !!! tip "Prefer a guided form?"
     The [I started a SIP](../13-tmr-flows/savings-and-investments.md#i-started-a-sip) Flow does all of the above, and creates the investment account too, from one short form.
 
-Every month, money automatically moves from your bank account balance into your Mutual Fund account's cash pool. You can then update your mutual fund holdings under [Holdings and Portfolio](../02-accounts/holdings.md).
+Every month, money automatically moves from your bank account balance into your Mutual Fund account's cash pool. Record which fund each instalment bought under [Holdings and Portfolio](../02-accounts/holdings.md): open the fund, choose **Buy more**, and pick the instalment in **Paid by transfer**.
 
 !!! example "Real-world use case"
     After checking the Trends page and finding that Rs. 80,000 has been sitting idle in his SBI Savings Account for three cycles, Arjun decides to sweep Rs. 25,000 into his Mutual Funds account each month. He sets up the transfer via Add → Internal Transfer, From Account: SBI Savings, To Account: Mutual Funds, Amount: 25,000, and clicks Execute Transfer. His Accounts page immediately shows SBI balance down by Rs. 25,000 and Mutual Funds up by Rs. 25,000. His net worth is unchanged but his asset allocation is now working harder.

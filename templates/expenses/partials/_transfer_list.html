@@ -88,6 +88,7 @@
                             </td>
                             <td>
                                 <div class="tmr-truncate" title="{{ transfer.description|default:'' }}">{{ transfer.description|default:"-" }}</div>
+                                {% if transfer.holding_allocations.all %}<div class="small text-muted tmr-truncate"><i class="bi bi-pie-chart me-1" aria-hidden="true"></i>{% for tx in transfer.holding_allocations.all %}{{ tx.holding.instrument_name }} {{ tx.holding.currency }}{{ tx.amount|ind_comma:tx.holding.currency|translate_digits }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>{% endif %}
                             </td>
                             <td class="text-end fw-bold tmr-amount amount-transfer">
                                 {{ transfer.from_account.currency }}{{ transfer.amount|ind_comma:transfer.from_account.currency|translate_digits }}
@@ -129,6 +130,7 @@
                         <div class="category-icon-container" style="width: 40px; height: 40px; font-size: 1rem;"><i class="bi bi-arrow-left-right"></i></div>
                         <div class="flex-grow-1 min-width-0">
                             <div class="fw-semibold mb-1 text-truncate" style="font-size: 0.93rem;">{{ transfer.description|default:_("Transfer") }}</div>
+                            {% if transfer.holding_allocations.all %}<div class="small text-muted mb-1"><i class="bi bi-pie-chart me-1" aria-hidden="true"></i>{% for tx in transfer.holding_allocations.all %}{{ tx.holding.instrument_name }} {{ tx.holding.currency }}{{ tx.amount|ind_comma:tx.holding.currency|translate_digits }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>{% endif %}
                             <div class="text-muted text-truncate" style="font-size: 0.72rem;">
                                 {{ transfer.from_account.name }} <i class="bi bi-arrow-right mx-1"></i> {{ transfer.to_account.name }}
                             </div>

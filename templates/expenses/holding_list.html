@@ -78,7 +78,7 @@
                             {% for h in holdings %}
                                 <tr>
                                     <td class="ps-4">
-                                        <div class="fw-bold text-body-emphasis tmr-truncate" title="{{ h.instrument_name }}">{{ h.instrument_name }}</div>
+                                        <a href="{% url 'holding-detail' h.pk %}" class="fw-bold text-body-emphasis text-decoration-none tmr-truncate d-block" title="{{ h.instrument_name }}">{{ h.instrument_name }}</a>
                                         {% if h.scheme_code %}
                                             <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.7rem;">AMFI Code: {{ h.scheme_code }}</span>
                                         {% endif %}
@@ -116,6 +116,7 @@
                                                 <span class="visually-hidden">{% trans "Holding actions" %}</span>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                                <li><a class="dropdown-item py-2" href="{% url 'holding-detail' h.pk %}"><i class="bi bi-list-ul me-2" aria-hidden="true"></i>{% trans "Purchases" %}</a></li>
                                                 {% if h.scheme_code %}
                                                 <li>
                                                     <form method="post" action="{% url 'refresh-holding-nav' h.pk %}">
@@ -159,7 +160,7 @@
                             <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                 <div class="d-flex align-items-start gap-2.5 min-w-0 flex-grow-1">
                                     <div class="min-w-0 flex-grow-1">
-                                        <div class="fw-bold text-body-emphasis text-wrap" style="font-size: 0.92rem; line-height: 1.3;">{{ h.instrument_name }}</div>
+                                        <a href="{% url 'holding-detail' h.pk %}" class="fw-bold text-body-emphasis text-wrap text-decoration-none d-block" style="font-size: 0.92rem; line-height: 1.3;">{{ h.instrument_name }}</a>
                                         <div class="small text-muted mt-0.5" style="font-size: 0.78rem;">{{ h.account.name }}</div>
                                         {% if h.scheme_code %}
                                             <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.68rem;">AMFI: {{ h.scheme_code }}</span>
@@ -174,6 +175,7 @@
                                         <span class="visually-hidden">{% trans "Holding actions" %}</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-1">
+                                        <li><a class="dropdown-item py-2 px-3 small" href="{% url 'holding-detail' h.pk %}"><i class="bi bi-list-ul me-2"></i>{% trans "Purchases" %}</a></li>
                                         {% if h.scheme_code %}
                                             <li>
                                                 <form method="post" action="{% url 'refresh-holding-nav' h.pk %}">
@@ -394,54 +396,5 @@
     })();
 </script>
 {% endif %}
-<!-- Modal for updating the price of a holding without an AMFI feed -->
-<div class="modal fade" id="holdingValueModal" tabindex="-1" aria-labelledby="holdingValueModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <form method="POST" id="holdingValueForm" action="">
-                {% csrf_token %}
-                <div class="modal-header border-bottom">
-                    <h5 class="modal-title fw-bold" id="holdingValueModalLabel">{% trans "Update value" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="small text-muted mb-3" id="holdingValueName"></p>
-                    <div class="row g-2 mb-2">
-                        <div class="col-7">
-                            <label class="form-label fw-semibold" for="holdingValuePrice">{% trans "Current price per unit" %}</label>
-                            <input type="number" step="0.000001" min="0.000001" name="unit_price" id="holdingValuePrice" class="form-control rounded-3" required>
-                        </div>
-                        <div class="col-5">
-                            <label class="form-label fw-semibold" for="holdingValueDate">{% trans "As of" %}</label>
-                            <input type="date" name="as_of_date" id="holdingValueDate" class="form-control rounded-3">
-                        </div>
-                    </div>
-                    <div class="form-text small text-muted">{% trans "The value is your units multiplied by this price, so it stays right if you add units later." %}</div>
-                </div>
-                <div class="modal-footer border-top-0 pt-2 pb-3">
-                    <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-action-primary">{% trans "Save" %}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<script>
-    (function () {
-        const modal = document.getElementById('holdingValueModal');
-        if (!modal) return;
-        modal.addEventListener('show.bs.modal', function (event) {
-            const trigger = event.relatedTarget;
-            if (!trigger) return;
-            document.getElementById('holdingValueForm').action = trigger.dataset.url;
-            document.getElementById('holdingValueName').textContent = trigger.dataset.name || '';
-            document.getElementById('holdingValuePrice').value = '';
-            const date = document.getElementById('holdingValueDate');
-            const today = new Date();
-            const iso = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-            date.max = iso;
-            date.value = iso;
-        });
-    })();
-</script>
+{% include 'expenses/partials/_holding_value_modal.html' %}
 {% endblock %}

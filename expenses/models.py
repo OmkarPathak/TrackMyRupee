@@ -2944,7 +2944,7 @@ class Holding(models.Model):
     ]
     instrument_type = models.CharField(max_length=20, choices=INSTRUMENT_TYPES, default='OTHER')
     units = models.DecimalField(max_digits=15, decimal_places=6, null=True, blank=True)
-    avg_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    avg_cost = models.DecimalField(max_digits=18, decimal_places=6, null=True, blank=True)
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹')
     is_active = models.BooleanField(default=True)
     scheme_code = models.CharField(max_length=50, null=True, blank=True, db_index=True)
@@ -2967,6 +2967,34 @@ class Holding(models.Model):
 
     def __str__(self):
         return f"{self.instrument_name} in {self.account.name}"
+
+
+class HoldingTransaction(models.Model):
+    """One purchase (or sale) of a holding. The holding's units and average cost are always worked out from
+    these rows (see holdings_service.recompute), so how much went into each fund is never a guess.
+
+    A purchase may be tied to the Transfer that funded it; deleting that transfer removes the purchase."""
+    BUY = 'BUY'
+    SELL = 'SELL'
+    KIND_CHOICES = [(BUY, 'Buy'), (SELL, 'Sell')]
+
+    holding = models.ForeignKey(Holding, on_delete=models.CASCADE, related_name='transactions')
+    kind = models.CharField(max_length=4, choices=KIND_CHOICES, default=BUY)
+    date = models.DateField(default=timezone.localdate)
+    units = models.DecimalField(max_digits=15, decimal_places=6)
+    price = models.DecimalField(max_digits=18, decimal_places=6, help_text='Price per unit')
+    amount = models.DecimalField(max_digits=15, decimal_places=2, help_text='Money in (buy) or out (sell)')
+    transfer = models.ForeignKey('Transfer', null=True, blank=True, on_delete=models.CASCADE,
+                                 related_name='holding_allocations')
+    note = models.CharField(max_length=120, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'id']
+        indexes = [models.Index(fields=['holding', 'date'], name='holdtx_holding_date_idx')]
+
+    def __str__(self):
+        return f"{self.kind} {self.units} of {self.holding.instrument_name} on {self.date}"
 
 
 class Valuation(models.Model):

@@ -965,7 +965,53 @@ class AccountQuickCreateView(LoginRequiredMixin, View):
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
 
-class TransferCreateView(LoginRequiredMixin, CreateView):
+class TransferAllocationMixin:
+    """"Allocate to funds" on the transfer form: how much of a transfer into an investment account went to
+    which fund. The purchases are saved with the transfer, or not at all."""
+
+    def get_context_data(self, **kwargs):
+        from ..account_types import holdings_codes
+        from ..models import Holding
+
+        ctx = super().get_context_data(**kwargs)
+        accounts = {}
+        for h in (Holding.objects.filter(account__user=self.request.user, is_active=True,
+                                         account__account_type__in=holdings_codes(), account__is_active=True)
+                  .select_related('account').order_by('instrument_name')):
+            entry = accounts.setdefault(str(h.account_id), {'currency': h.account.currency, 'holdings': []})
+            entry['holdings'].append({'id': h.pk, 'name': h.instrument_name})
+        for a in Account.objects.filter(user=self.request.user, is_active=True,
+                                        account_type__in=holdings_codes()):
+            accounts.setdefault(str(a.pk), {'currency': a.currency, 'holdings': []})
+        ctx['allocation_data'] = accounts
+        ctx['existing_allocations'] = (
+            list(self.object.holding_allocations.select_related('holding').order_by('date', 'id'))
+            if getattr(self, 'object', None) and self.object.pk else []
+        )
+        return ctx
+
+    def save_with_allocations(self, form, save):
+        """Run ``save`` (the parent's form_valid) and record the allocation rows in one transaction."""
+        from .. import holdings_service as hs
+        from ..nav_provider import NAVFetchService
+
+        with transaction.atomic():
+            response = save()
+            new_holdings = []
+            if form.allocation_rows:
+                _purchases, new_holdings = hs.allocate_transfer(self.object, form.allocation_rows)
+        for holding in new_holdings:
+            if holding.scheme_code:
+                NAVFetchService().fetch_scheme(holding.scheme_code, force=True)
+        if form.allocation_rows:
+            messages.success(self.request, ngettext(
+                "%(n)d fund updated from this transfer.", "%(n)d funds updated from this transfer.",
+                len(form.allocation_rows)) % {'n': len(form.allocation_rows)})
+            ph_capture(self.request.user, 'transfer_allocated', {'funds': len(form.allocation_rows)})
+        return response
+
+
+class TransferCreateView(TransferAllocationMixin, LoginRequiredMixin, CreateView):
     model = Transfer
     form_class = TransferForm
     template_name = 'expenses/transfer_form.html'
@@ -1010,13 +1056,17 @@ class TransferCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
 
+        from ..holdings_service import HoldingError
         try:
-            response = super().form_valid(form)
+            response = self.save_with_allocations(form, lambda: super(TransferCreateView, self).form_valid(form))
             messages.success(self.request, _("Transfer completed successfully!"))
             ph_capture(self.request.user, 'transfer_created', {'currency': getattr(self.object, 'currency', ''), 'is_cross_currency': bool(getattr(self.object, 'exchange_rate', None) and self.object.exchange_rate != 1)})
             return response
         except IntegrityError:
             messages.error(self.request, _("Duplicate transfer found! This transfer has already been completed."))
+            return self.form_invalid(form)
+        except HoldingError as exc:
+            messages.error(self.request, str(exc))
             return self.form_invalid(form)
         except (RuntimeError, ValidationError):
             messages.error(self.request, _("Unable to complete transfer because currency conversion failed or transfer data is invalid."))
@@ -1030,7 +1080,7 @@ class TransferListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTr
     paginate_by = 20
 
     def get_queryset(self):
-        base_qs = Transfer.objects.filter(user=self.request.user).select_related('from_account', 'to_account')
+        base_qs = Transfer.objects.filter(user=self.request.user).select_related('from_account', 'to_account').prefetch_related('holding_allocations__holding')
         queryset, self.applied_state = apply_filter_config(base_qs, self.request, TRANSFER_FILTERS)
         return queryset
 
@@ -1044,7 +1094,7 @@ class TransferListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTr
         ctx['search_query'] = self.applied_state.get('search', '')
         return ctx
 
-class TransferUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
+class TransferUpdateView(TransferAllocationMixin, LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Transfer
     form_class = TransferForm
     template_name = 'expenses/transfer_form.html'
@@ -1065,11 +1115,15 @@ class TransferUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
         return Transfer.objects.filter(user=self.request.user)
 
     def form_valid(self, form):
+        from ..holdings_service import HoldingError
         try:
-            response = super().form_valid(form)
+            response = self.save_with_allocations(form, lambda: super(TransferUpdateView, self).form_valid(form))
             messages.success(self.request, _("Transfer updated successfully!"))
             ph_capture(self.request.user, 'transfer_updated', {})
             return response
+        except HoldingError as exc:
+            messages.error(self.request, str(exc))
+            return self.form_invalid(form)
         except (RuntimeError, ValidationError):
             messages.error(self.request, _("Unable to update transfer because currency conversion failed or transfer data is invalid."))
             return self.form_invalid(form)
@@ -1951,22 +2005,14 @@ def refresh_holding_nav(request, pk):
     return redirect('account-detail', pk=holding.account.pk)
 
 
-_HOLDING_INSTRUMENT_TYPES = {
-    'MUTUAL_FUND': 'MF', 'INVESTMENT': 'MF', 'ULIP': 'MF',
-    'DEMAT': 'STOCK', 'ETF': 'STOCK',
-}
-
-
 def holding_create_view(request, pk=None):
     """
-    Creates a new Holding under an account.
+    Creates a new Holding (with its first purchase) under an account.
     """
     if not request.user.is_authenticated:
         return redirect('account_login')
-        
-    from decimal import InvalidOperation
 
-    from ..models import AMFIScheme, Holding
+    from .. import holdings_service as hs
     from ..nav_provider import NAVFetchService
 
     next_url = get_safe_redirect_url(
@@ -1975,78 +2021,32 @@ def holding_create_view(request, pk=None):
         reverse_lazy('holding-list'),
     )
     account_id = pk or request.POST.get('account_id')
-    
+
     if not account_id:
         messages.error(request, _("Please select an investment account."))
         return redirect(next_url)
 
     account = get_object_by_uuid_or_pk(Account, account_id, user=request.user)
     if request.method == 'POST':
-        if account.account_type not in holdings_codes():
-            messages.error(request, _("Holdings can only be added to Mutual Fund, Demat, ETF, SGB, ULIP or Gold accounts."))
-            return redirect(next_url)
         name = request.POST.get('instrument_name', '').strip()
-        scheme_code = request.POST.get('scheme_code', '').strip()
-        isin = request.POST.get('isin', '').strip()
-        units_str = request.POST.get('units', '0')
-        avg_cost_str = request.POST.get('avg_cost', '0')
-        
         if not name:
             messages.error(request, _("Holding name is required."))
             return redirect(next_url)
-
-        instrument_type = _HOLDING_INSTRUMENT_TYPES.get(account.account_type, 'OTHER')
-
-        # Smart Auto-Resolution: if scheme_code is blank, search by fund name (mutual funds only: a stock's
-        # name must never be matched to a fund)
-        if not scheme_code and name and instrument_type == 'MF':
-            local_match = AMFIScheme.objects.filter(scheme_name__icontains=name).first()
-            if local_match:
-                scheme_code = local_match.scheme_code
-            else:
-                try:
-                    import urllib.parse
-
-                    import requests
-                    encoded_q = urllib.parse.quote(name)
-                    url = f"https://api.mfapi.in/mf/search?q={encoded_q}"
-                    resp = requests.get(url, headers={'User-Agent': 'TrackMyRupee/1.0'}, timeout=5)
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        if data:
-                            scheme_code = str(data[0].get('schemeCode'))
-                except Exception:
-                    pass
-
         try:
-            units = Decimal(units_str)
-            avg_cost = Decimal(avg_cost_str)
-        except (ValueError, InvalidOperation):
-            messages.error(request, _("Invalid units or purchase price format."))
+            holding = hs.create_holding(
+                account, name=name, units=request.POST.get('units'), price=request.POST.get('avg_cost'),
+                date=parse_date(request.POST.get('date', '').strip() or ''),
+                scheme_code=request.POST.get('scheme_code', ''), isin=request.POST.get('isin', ''),
+            )
+        except hs.HoldingError as exc:
+            messages.error(request, str(exc))
             return redirect(next_url)
-            
-        if units <= Decimal('0') or avg_cost <= Decimal('0'):
-            messages.error(request, _("Units and average price must be greater than zero."))
-            return redirect(next_url)
-            
-        holding = Holding.objects.create(
-            account=account,
-            instrument_name=name,
-            instrument_type=instrument_type,
-            units=units,
-            avg_cost=avg_cost,
-            currency=account.currency,
-            scheme_code=scheme_code or None,
-            isin=isin or None,
-            is_active=True,
-        )
-        
-        if scheme_code:
-            service = NAVFetchService()
-            service.fetch_scheme(scheme_code, force=True)
-            
+
+        if holding.scheme_code:
+            NAVFetchService().fetch_scheme(holding.scheme_code, force=True)
+
         messages.success(request, _("Holding '%(name)s' added successfully.") % {'name': name})
-        ph_capture(request.user, 'holding_created', {'has_scheme_code': bool(holding.scheme_code if hasattr(holding, 'scheme_code') else False)})
+        ph_capture(request.user, 'holding_created', {'has_scheme_code': bool(holding.scheme_code)})
     return redirect(next_url)
 
 
@@ -2117,6 +2117,143 @@ def holding_valuation_view(request, pk):
     messages.success(request, _("Value updated for '%(name)s'.") % {'name': holding.instrument_name})
     ph_capture(request.user, 'holding_valued_manually', {})
     return redirect(next_url)
+
+
+def _holding_for(request, pk):
+    from django.shortcuts import get_object_or_404
+
+    from ..models import Holding
+
+    return get_object_or_404(Holding.objects.select_related('account'), pk=pk, account__user=request.user,
+                             is_active=True)
+
+
+def _holding_detail_url(holding):
+    return reverse('holding-detail', args=[holding.pk])
+
+
+class HoldingDetailView(LoginRequiredMixin, View):
+    """One holding: what it is worth, and every purchase that built it up."""
+
+    def get(self, request, pk):
+        from .. import holdings_service as hs
+        from ..models import Transfer
+
+        holding = _holding_for(request, pk)
+        account = holding.account
+        transactions = list(holding.transactions.select_related('transfer__from_account').order_by('-date', '-id'))
+        latest = holding.valuations.first()
+        units = holding.units or Decimal('0')
+        value = latest.value_for(units) if latest else holding.cost_basis
+        cost = holding.cost_basis
+        gain = value - cost
+        funding = []
+        for t in (Transfer.objects.filter(user=request.user, to_account=account)
+                  .select_related('from_account').order_by('-date', '-id')[:25]):
+            if t.from_account.currency != account.currency:
+                continue
+            left = hs.unallocated_amount(t)
+            if left > 0:
+                funding.append({'transfer': t, 'left': left})
+        return render(request, 'expenses/holding_detail.html', {
+            'holding': holding, 'account': account, 'transactions': transactions,
+            'opening_only': not transactions and units > 0,
+            'valuation': latest, 'value': value, 'cost': cost, 'gain': gain,
+            'gain_pct': ((gain / cost) * Decimal('100')).quantize(Decimal('0.1')) if cost > 0 else Decimal('0.0'),
+            'funding': funding, 'today': timezone.localdate(),
+            'has_feed': bool(holding.scheme_code),
+        })
+
+
+def _post_purchase_fields(request):
+    return dict(
+        date=parse_date(request.POST.get('date', '').strip() or ''),
+        units=request.POST.get('units'), price=request.POST.get('price'), amount=request.POST.get('amount'),
+    )
+
+
+@require_POST
+def holding_buy_view(request, pk):
+    """Buy more of a holding, optionally paid for by a transfer into its account."""
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+
+    from .. import holdings_service as hs
+    from ..models import Transfer
+
+    holding = _holding_for(request, pk)
+    transfer = None
+    ref = request.POST.get('transfer', '').strip()
+    if ref:
+        transfer = get_object_by_uuid_or_pk(Transfer, ref, user=request.user)
+    try:
+        hs.add_purchase(holding, transfer=transfer, note=request.POST.get('note', '').strip(),
+                        **_post_purchase_fields(request))
+    except hs.HoldingError as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, _("Purchase added to '%(name)s'.") % {'name': holding.instrument_name})
+        ph_capture(request.user, 'holding_purchase_added', {'from_transfer': bool(transfer)})
+    return redirect(_holding_detail_url(holding))
+
+
+@require_POST
+def holding_purchase_edit_view(request, pk):
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+
+    from django.shortcuts import get_object_or_404
+
+    from .. import holdings_service as hs
+    from ..models import HoldingTransaction
+
+    tx = get_object_or_404(HoldingTransaction.objects.select_related('holding__account', 'transfer__from_account'),
+                           pk=pk, holding__account__user=request.user, holding__is_active=True)
+    try:
+        hs.update_purchase(tx, note=request.POST.get('note', '').strip(), **_post_purchase_fields(request))
+    except hs.HoldingError as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, _("Purchase updated."))
+    return redirect(_holding_detail_url(tx.holding))
+
+
+@require_POST
+def holding_purchase_delete_view(request, pk):
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+
+    from django.shortcuts import get_object_or_404
+
+    from .. import holdings_service as hs
+    from ..models import HoldingTransaction
+
+    tx = get_object_or_404(HoldingTransaction.objects.select_related('holding__account'),
+                           pk=pk, holding__account__user=request.user, holding__is_active=True)
+    holding = tx.holding
+    try:
+        hs.delete_purchase(tx)
+    except hs.HoldingError as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, _("Purchase removed."))
+    return redirect(_holding_detail_url(holding))
+
+
+@require_POST
+def holding_rename_view(request, pk):
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+
+    holding = _holding_for(request, pk)
+    name = request.POST.get('instrument_name', '').strip()
+    if not name:
+        messages.error(request, _("Holding name is required."))
+    else:
+        holding.instrument_name = name[:255]
+        holding.save(update_fields=['instrument_name', 'updated_at'])
+        messages.success(request, _("Holding renamed."))
+    return redirect(_holding_detail_url(holding))
 
 
 class HoldingsListView(LoginRequiredMixin, ListView):

@@ -17,6 +17,7 @@ from .models import (
     Expense,
     GoalContribution,
     Holding,
+    HoldingTransaction,
     Income,
     Loan,
     LoanInterestRate,
@@ -331,3 +332,18 @@ def clear_interest_summary_cache(sender, instance, **kwargs):
     reflected at once, not after the summary's five-minute cache runs out."""
     if getattr(instance, 'user_id', None):
         cache.delete(f'interest_summary_{instance.user_id}_None_None')
+
+
+@receiver(post_save, sender=HoldingTransaction)
+def recompute_holding_after_purchase_saved(sender, instance, **kwargs):
+    """A holding's units and average cost always follow its purchases."""
+    if kwargs.get('raw', False):
+        return
+    from .holdings_service import recompute
+    recompute(instance.holding_id)
+
+
+@receiver(post_delete, sender=HoldingTransaction)
+def recompute_holding_after_purchase_deleted(sender, instance, **kwargs):
+    from .holdings_service import recompute
+    recompute(instance.holding_id, removed=True)

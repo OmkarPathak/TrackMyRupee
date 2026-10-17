@@ -93,7 +93,15 @@ As your SIP executes or when you make lump-sum investments, your holdings update
 3. The cost basis is calculated immediately:
    $$\text{Cost Basis} = \text{Units} \times \text{Avg Cost}$$
 
-A holding cannot be edited in place. When more units are allocated, remove the old holding and add it again with the new cumulative units and average cost. **Delete** only hides the holding (it stops counting in the portfolio), it does not touch your account balance.
+### Buying More, Editing and the Purchase History
+
+Click a holding's name (or **Purchases** in its three-dot menu) to open its page. It shows the value, the amount invested, the gain, and every purchase that built the holding up.
+
+- **Buy more**: enter the date and any two of **Units**, **Price / unit** and **Amount**; the third is filled in. To tie the purchase to money you moved, pick the transfer in **Paid by transfer** (only transfers into this account with money left to allocate are listed).
+- **Edit** or **Delete** a purchase from its three-dot menu. The holding's units and average cost are worked out again from the purchases (a weighted average), so you never calculate them by hand. A holding keeps at least one purchase; to drop the whole holding, delete it from the Holdings page.
+- **Rename** the holding with the pencil next to its name.
+
+You can also allocate a transfer to funds straight from the transfer form; see [Transfers](../06-transfers/index.md#allocating-a-transfer-to-funds). Holdings added before purchases were recorded show an **opening position** that becomes the first purchase when you buy more. **Delete** on the Holdings page only hides the holding (it stops counting in the portfolio), it does not touch your account balance.
 
 The totals at the top of the Holdings page are in your own currency: a holding in another currency is converted at the latest exchange rate before it is added in.
 

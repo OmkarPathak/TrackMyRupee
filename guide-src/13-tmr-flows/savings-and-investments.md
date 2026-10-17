@@ -75,7 +75,7 @@ On the Review screen the headline is the monthly amount, followed by a plain-Eng
 ### Watch out for
 
 !!! tip "The fund's actual value"
-    The Flow records the money you put in. To track the actual number of fund units and their current value, add your holdings afterwards. See [Holdings and Mutual Funds](../02-accounts/holdings.md) and [Accrued vs Invested View](../02-accounts/accrued-vs-invested.md).
+    The Flow records the money you put in. To track the actual number of fund units and their current value, add your holdings afterwards, and tie each instalment to the fund it bought with **Buy more → Paid by transfer**. See [Holdings and Mutual Funds](../02-accounts/holdings.md) and [Accrued vs Invested View](../02-accounts/accrued-vs-invested.md).
 
 !!! warning "SIP and RD are not the same thing"
     A SIP's value moves with the market. An RD's value grows at a fixed rate. If you pick RD, fill in the second step, or the interest will not be tracked.
