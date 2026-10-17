@@ -41,7 +41,7 @@ Click **Execute Transfer** to save.
 
 ### Allocating a transfer to funds
 
-When the **To Account** is a Mutual Fund, Demat, ETF, SGB, ULIP or Gold account, an **Allocate to funds** section appears. Click **Add fund** for each fund the money went into, pick the fund (or **New fund…** and type its name), and enter the **Amount** and the **Units** you were allotted. The price per unit is worked out for you. A line under the rows shows how much is allocated and how much stays as cash.
+When the **To Account** is a Mutual Fund, Demat, ETF, SGB, ULIP or Gold account, an **Allocate to funds** section appears. Click **Add fund** for each fund the money went into, pick the fund (or **New fund…** and type its name), and enter the **Amount** and the **Units** you were allotted. The price per unit is worked out for you. For a mutual fund you can leave the **Units** empty: they are then worked out from the NAV, as described in [Which NAV a Purchase Gets](../02-accounts/holdings.md#which-nav-a-purchase-gets). A line under the rows shows how much is allocated and how much stays as cash.
 
 - The funds can add up to the transfer or to less; what you leave out stays as uninvested cash in the account.
 - Each row becomes a purchase on that fund's page (**Holdings → the fund → Purchases**), tied to this transfer, so you can always see how much of it went where. The transfer list shows the funds under the description.

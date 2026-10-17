@@ -26,6 +26,7 @@ from .models import (
     FXRate,
     GoalContribution,
     Holding,
+    MarketHoliday,
     Income,
     JournalEntry,
     JournalLine,
@@ -360,6 +361,14 @@ class FXRateAdmin(admin.ModelAdmin):
 class AssetValuationAdmin(admin.ModelAdmin):
     list_display = ('asset', 'value', 'as_of_date', 'source')
     list_filter = ('as_of_date',)
+
+@admin.register(MarketHoliday)
+class MarketHolidayAdmin(admin.ModelAdmin):
+    """Movable market / AMC holidays (Holi, Diwali, Eid...): days with no NAV, used to predict which day a
+    purchase is priced at. Weekends and fixed-date holidays are already known."""
+    list_display = ('date', 'name')
+    ordering = ('date',)
+
 
 @admin.register(Holding)
 class HoldingAdmin(admin.ModelAdmin):

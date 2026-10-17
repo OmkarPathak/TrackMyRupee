@@ -2141,7 +2141,11 @@ class HoldingDetailView(LoginRequiredMixin, View):
 
         holding = _holding_for(request, pk)
         account = holding.account
+        if holding.scheme_code and holding.transactions.filter(status='PENDING').exists():
+            hs.resolve_pending(holding=holding)       # the NAV may have been published since
+            holding.refresh_from_db()
         transactions = list(holding.transactions.select_related('transfer__from_account').order_by('-date', '-id'))
+        pending = [tx for tx in transactions if tx.status == 'PENDING']
         latest = holding.valuations.first()
         units = holding.units or Decimal('0')
         value = latest.value_for(units) if latest else holding.cost_basis
@@ -2162,13 +2166,17 @@ class HoldingDetailView(LoginRequiredMixin, View):
             'gain_pct': ((gain / cost) * Decimal('100')).quantize(Decimal('0.1')) if cost > 0 else Decimal('0.0'),
             'funding': funding, 'today': timezone.localdate(),
             'has_feed': bool(holding.scheme_code),
+            'pending_count': len(pending), 'pending_amount': sum((tx.amount for tx in pending), Decimal('0')),
+            'has_estimates': any(tx.status == 'ESTIMATED' for tx in transactions),
         })
 
 
-def _post_purchase_fields(request):
+def _post_purchase_fields(request, keep_cutoff=False):
+    cutoff = request.POST.get('cutoff')
     return dict(
         date=parse_date(request.POST.get('date', '').strip() or ''),
         units=request.POST.get('units'), price=request.POST.get('price'), amount=request.POST.get('amount'),
+        before_cutoff=(None if keep_cutoff and cutoff is None else cutoff != 'after'),
     )
 
 
@@ -2210,7 +2218,7 @@ def holding_purchase_edit_view(request, pk):
     tx = get_object_or_404(HoldingTransaction.objects.select_related('holding__account', 'transfer__from_account'),
                            pk=pk, holding__account__user=request.user, holding__is_active=True)
     try:
-        hs.update_purchase(tx, note=request.POST.get('note', '').strip(), **_post_purchase_fields(request))
+        hs.update_purchase(tx, note=request.POST.get('note', '').strip(), **_post_purchase_fields(request, keep_cutoff=True))
     except hs.HoldingError as exc:
         messages.error(request, str(exc))
     else:

@@ -4,7 +4,7 @@ import json
 import logging
 import time
 import urllib.request
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import F
@@ -78,6 +78,65 @@ class MFAPIProvider(BaseNAVProvider):
         except Exception as e:
             logger.warning("MFapi.in parsing failed for scheme %s: %s", scheme_code, e)
             return None
+
+
+def fetch_scheme_history(scheme_code: str) -> list[tuple[date, Decimal]] | None:
+    """Every published NAV of a scheme from MFapi.in, newest first: [(date, nav)]. None if it cannot be had."""
+    url = f"https://api.mfapi.in/mf/{str(scheme_code).strip()}"
+    try:
+        import requests
+        resp = requests.get(url, headers={'User-Agent': 'TrackMyRupee-NAVFetcher/1.0'}, timeout=10)
+        if resp.status_code != 200:
+            return None
+        payload = resp.json()
+    except Exception as exc:
+        logger.warning("MFapi.in history fetch failed for scheme %s: %s", scheme_code, exc)
+        return None
+    rows = []
+    for item in payload.get('data') or []:
+        try:
+            rows.append((datetime.strptime(item['date'], '%d-%m-%Y').date(), Decimal(str(item['nav']))))
+        except (KeyError, ValueError, InvalidOperation):
+            continue
+    return rows or None
+
+
+def nav_on_or_after(scheme_code: str, target: date, *, fetch: bool = True) -> tuple[date, Decimal] | None:
+    """The first NAV published on or after ``target`` as (nav_date, nav); None while it is not published yet
+    (or cannot be found). History is fetched from MFapi.in when ours does not reach back to ``target``, or
+    when the date is newer than anything we hold and we have not looked in the last hour."""
+    from .models import FundNAVHistory
+
+    scheme_code = str(scheme_code).strip()
+    cache, _ = FundNAVCache.objects.get_or_create(scheme_code=scheme_code)
+    now = timezone.now()
+
+    def lookup():
+        row = (FundNAVHistory.objects.filter(scheme_code=scheme_code, nav_date__gte=target)
+               .order_by('nav_date').first())
+        # a row a week or more past the target means days are missing from our history, not that nothing was published
+        if row and (row.nav_date - target).days <= 7 and cache.history_from and cache.history_from <= target:
+            return row.nav_date, row.nav
+        return None
+
+    found = lookup()
+    if found or not fetch:
+        return found
+    recently_looked = cache.history_synced_at and (now - cache.history_synced_at).total_seconds() < 3600
+    if recently_looked and cache.history_from and cache.history_from <= target:
+        return None
+    history = fetch_scheme_history(scheme_code)
+    if not history:
+        return None
+    keep_from = min(target, timezone.localdate()) - timedelta(days=31)
+    FundNAVHistory.objects.bulk_create(
+        [FundNAVHistory(scheme_code=scheme_code, nav_date=d, nav=n) for d, n in history if d >= keep_from],
+        ignore_conflicts=True,
+    )
+    cache.history_from = min(keep_from, cache.history_from) if cache.history_from else keep_from
+    cache.history_synced_at = now
+    cache.save(update_fields=['history_from', 'history_synced_at'])
+    return lookup()
 
 
 class AMFIProvider(BaseNAVProvider):
@@ -209,6 +268,9 @@ class NAVFetchService:
             cache.consecutive_failure_count = 0
             cache.save()
 
+            from .models import FundNAVHistory
+            FundNAVHistory.objects.update_or_create(scheme_code=scheme_code, nav_date=nav_date, defaults={'nav': nav})
+
             # Upsert Valuation rows for all active Holdings of this scheme_code (SPEC §3a point 4)
             active_holdings = Holding.objects.filter(scheme_code=scheme_code, is_active=True)
             for h in active_holdings:
@@ -225,6 +287,11 @@ class NAVFetchService:
                         'unit_nav': nav,
                     }
                 )
+            try:
+                from .holdings_service import resolve_pending
+                resolve_pending(scheme_code=scheme_code)
+            except Exception:
+                logger.exception("Resolving pending purchases failed for scheme %s", scheme_code)
             return (cache, True)
         else:
             # Persistent failure recording

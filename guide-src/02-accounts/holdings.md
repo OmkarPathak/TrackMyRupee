@@ -115,6 +115,25 @@ A holding without a scheme code has no daily NAV. Open its three-dot menu, choos
 - **Manual instant refresh**: Click the **Refresh NAV** icon next to any holding row to trigger an immediate live fetch.
 - **External cron integration**: Set up a free cron job at [cron-job.org](https://cron-job.org) targeting `/api/cron/sync-nav/` (GET or POST) with the header `X-Cron-Secret: <YOUR_CRON_SECRET>` (a `?secret=` query parameter only works if `CRON_ALLOW_QUERY_SECRET=true` is set) for guaranteed daily automated syncing.
 
+### Which NAV a Purchase Gets
+
+A mutual fund prices a purchase at a NAV that depends on when your money reaches the fund, not on the day you click. If you enter only the **Amount** (in **Buy more**, or in **Allocate to funds** on a transfer), TrackMyRupee works the units out for you:
+
+| Money reaches the fund | Priced at |
+|---|---|
+| Before **3 PM** on a business day (equity, hybrid and debt funds) | that day's NAV |
+| After 3 PM, or on a weekend or market holiday | the next business day's NAV |
+| Before **1:30 PM** (liquid and overnight funds) | the NAV of the business day before |
+| After 1:30 PM (liquid and overnight funds) | that day's NAV |
+
+Then **0.005% stamp duty** is taken off the amount and the rest is divided by the NAV, with units rounded to three decimals. For example, ₹10,000 at a NAV of ₹50 buys (10,000 - 0.50) / 50 = **199.990 units**.
+
+- Choose **Before the cut-off** or **After the cut-off** to say when the money reached the fund. It defaults to before.
+- A NAV is published in the evening, so a purchase made today (or on a weekend) is priced at a NAV that does not exist yet. It shows **Waiting for NAV** and its units are filled in automatically once the NAV is published. It does not count in the holding's units or value until then, so the money still shows as uninvested cash in the account.
+- Units worked out this way are marked **Estimated**. Your fund house's statement is the final word: the cut-off depends on when the money was actually credited, and a holiday we do not know about can shift the day. Edit the purchase and enter the units from your statement to confirm it. Editing with only the amount prices it from the NAV again.
+- If you enter the units yourself, nothing is estimated and the purchase is **Confirmed**.
+- Stocks, ETFs and gold have no NAV feed, so they always need units.
+
 ---
 
 ## 5. Responsive Interface Features

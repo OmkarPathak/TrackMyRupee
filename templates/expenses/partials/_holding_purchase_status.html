@@ -1,0 +1,6 @@
+{% load i18n %}
+{% if tx.status == 'PENDING' %}
+    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-1" title="{% blocktrans with d=tx.nav_date|date:'d M Y' %}Priced at the NAV of {{ d }} once it is published{% endblocktrans %}">{% trans "Waiting for NAV" %}</span>
+{% elif tx.status == 'ESTIMATED' %}
+    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle ms-1" title="{% blocktrans with d=tx.nav_date|date:'d M Y' duty=tx.stamp_duty %}NAV of {{ d }}, after {{ duty }} stamp duty. Edit to confirm with your statement.{% endblocktrans %}">{% trans "Estimated" %}</span>
+{% endif %}

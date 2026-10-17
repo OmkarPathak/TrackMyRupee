@@ -36,6 +36,16 @@
         </div>
     </div>
 
+    {% if pending_count %}
+    <div class="alert alert-warning small d-flex align-items-start gap-2" role="status">
+        <i class="bi bi-hourglass-split mt-1" aria-hidden="true"></i>
+        <div>{% blocktrans count counter=pending_count with amount=pending_amount|ind_comma:holding.currency %}One purchase of {{ amount }} is waiting for its NAV. Its units are added as soon as the NAV is published.{% plural %}{{ counter }} purchases ({{ amount }}) are waiting for their NAV. Their units are added as soon as it is published.{% endblocktrans %}</div>
+    </div>
+    {% endif %}
+    {% if has_estimates %}
+    <div class="small text-muted mb-3"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{% trans "Estimated units use the NAV the AMFI cut-off rules give, minus 0.005% stamp duty. Compare them with your statement and edit a purchase to confirm it." %}</div>
+    {% endif %}
+
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">
             <div class="hd-stat shadow-sm h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08);">
@@ -88,8 +98,8 @@
                         {% for tx in transactions %}
                         <tr>
                             <td class="ps-4 text-nowrap">{{ tx.date|date:"d M Y"|translate_digits }}</td>
-                            <td class="text-end tmr-amount">{{ tx.units|floatformat:'-4'|translate_digits }}</td>
-                            <td class="text-end tmr-amount">{{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}</td>
+                            <td class="text-end tmr-amount">{% if tx.units is None %}&mdash;{% else %}{{ tx.units|floatformat:'-4'|translate_digits }}{% endif %}{% include 'expenses/partials/_holding_purchase_status.html' %}</td>
+                            <td class="text-end tmr-amount">{% if tx.price is None %}&mdash;{% else %}{{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}</td>
                             <td class="text-end tmr-amount fw-semibold">{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</td>
                             <td class="small">
                                 {% if tx.transfer %}
@@ -112,7 +122,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="fw-semibold">{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</div>
-                            <div class="small text-muted">{{ tx.date|date:"d M Y"|translate_digits }} &middot; {{ tx.units|floatformat:'-4'|translate_digits }} {% trans "units" %} @ {{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}</div>
+                            <div class="small text-muted">{{ tx.date|date:"d M Y"|translate_digits }}{% if tx.units is None %} &middot; {% trans "waiting for NAV" %}{% else %} &middot; {{ tx.units|floatformat:'-4'|translate_digits }} {% trans "units" %} @ {{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}{% include 'expenses/partials/_holding_purchase_status.html' %}</div>
                             <div class="small mt-1">
                                 {% if tx.transfer %}
                                     <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
@@ -167,7 +177,20 @@
                             <input type="number" step="0.01" min="0" name="amount" id="purchaseAmount" class="form-control rounded-3" data-calc>
                         </div>
                     </div>
-                    <div class="form-text small text-muted mb-3">{% trans "Enter any two; the third is worked out." %}</div>
+                    <div class="form-text small text-muted mb-3">
+                        {% trans "Enter any two; the third is worked out." %}
+                        {% if has_feed %}{% trans "For a mutual fund you can enter only the amount: the units are then worked out from the NAV." %}{% endif %}
+                    </div>
+                    {% if has_feed %}
+                    <div class="mb-3" id="purchaseCutoffBox">
+                        <label class="form-label fw-semibold" for="purchaseCutoff">{% trans "Money reached the fund" %}</label>
+                        <select name="cutoff" id="purchaseCutoff" class="form-select rounded-3">
+                            <option value="before">{% trans "Before the cut-off (3 PM, 1:30 PM for liquid funds)" %}</option>
+                            <option value="after">{% trans "After the cut-off" %}</option>
+                        </select>
+                        <div class="form-text small text-muted">{% trans "Only used when you enter just the amount." %}</div>
+                    </div>
+                    {% endif %}
                     <div class="mb-3" id="purchaseFunding">
                         <label class="form-label fw-semibold" for="purchaseTransfer">{% trans "Paid by transfer (optional)" %}</label>
                         <select name="transfer" id="purchaseTransfer" class="form-select rounded-3">
@@ -251,6 +274,7 @@
             calc.price.value = t.dataset.price || '';
             calc.amount.value = t.dataset.amount || '';
             $('purchaseNote').value = t.dataset.note || '';
+            if ($('purchaseCutoff')) $('purchaseCutoff').value = t.dataset.cutoff === 'after' ? 'after' : 'before';
             touched = edit ? ['units', 'amount'] : [];
         });
     })();

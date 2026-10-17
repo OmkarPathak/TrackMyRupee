@@ -89,6 +89,14 @@
                                 </ul>
                                 {% endif %}
                                 <div id="allocRows"></div>
+                                <div class="mt-2 d-none" id="allocCutoffBox">
+                                    <label class="form-label small text-muted fw-bold mb-1" for="allocCutoff">{% trans "If you leave the units empty (mutual funds): money reached the fund" %}</label>
+                                    <select id="allocCutoff" class="form-select form-select-sm">
+                                        <option value="before">{% trans "Before the cut-off (3 PM, 1:30 PM for liquid funds)" %}</option>
+                                        <option value="after">{% trans "After the cut-off" %}</option>
+                                    </select>
+                                    <div class="form-text small">{% trans "Units are then worked out from the NAV the AMFI rules give, minus 0.005% stamp duty. They are marked Estimated until you confirm them from your statement." %}</div>
+                                </div>
                                 <div class="small text-muted mt-2 d-none" id="allocSummary"></div>
                             </div>
                         </div>
@@ -276,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '<div class="col-5 col-md-3"><label class="form-label small text-muted fw-bold mb-1">{% trans "Amount" %}</label>' +
             '<input type="number" class="form-control form-control-sm" data-f="amount" step="0.01" min="0"></div>' +
             '<div class="col-5 col-md-3"><label class="form-label small text-muted fw-bold mb-1">{% trans "Units" %}</label>' +
-            '<input type="number" class="form-control form-control-sm" data-f="units" step="0.000001" min="0"></div>' +
+            '<input type="number" class="form-control form-control-sm" data-f="units" step="0.000001" min="0" placeholder="{% trans "from NAV" %}"></div>' +
             '<div class="col-2 col-md-1 text-end"><button type="button" class="btn btn-link text-danger p-0" data-f="remove" aria-label="{% trans "Remove" %}"><i class="bi bi-x-lg"></i></button></div>';
         rowsBox.appendChild(row);
         const sel = row.querySelector('[data-f=holding]');
@@ -302,7 +310,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 holding_id: v === NEW ? null : Number(v),
                 name: row.querySelector('[data-f=name]').value.trim(),
                 amount: row.querySelector('[data-f=amount]').value,
-                units: row.querySelector('[data-f=units]').value
+                units: row.querySelector('[data-f=units]').value,
+                cutoff: document.getElementById('allocCutoff').value
             };
         }).filter(r => r.amount || r.units || r.name);
     }
@@ -310,6 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function refresh() {
         const rows = collect();
         hidden.value = rows.length ? JSON.stringify(rows) : '';
+        document.getElementById('allocCutoffBox').classList.toggle('d-none', !rows.length);
         const total = rows.reduce((t, r) => t + (parseFloat(r.amount) || 0), 0);
         const transfer = parseFloat(amountInput && amountInput.value) || 0;
         const acct = currentAccount();
@@ -340,9 +350,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Re-draw rows after a failed submit
     if (hidden && hidden.value) {
-        try { JSON.parse(hidden.value).forEach(addRow); } catch (e) { hidden.value = ''; }
+        try {
+            const saved = JSON.parse(hidden.value);
+            if (saved.length && saved[0].cutoff) document.getElementById('allocCutoff').value = saved[0].cutoff;
+            saved.forEach(addRow);
+        } catch (e) { hidden.value = ''; }
     }
     sync();
+    document.getElementById('allocCutoff').addEventListener('change', refresh);
     if (form) form.addEventListener('submit', refresh);
 })();
 </script>

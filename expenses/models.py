@@ -2981,9 +2981,18 @@ class HoldingTransaction(models.Model):
     holding = models.ForeignKey(Holding, on_delete=models.CASCADE, related_name='transactions')
     kind = models.CharField(max_length=4, choices=KIND_CHOICES, default=BUY)
     date = models.DateField(default=timezone.localdate)
-    units = models.DecimalField(max_digits=15, decimal_places=6)
-    price = models.DecimalField(max_digits=18, decimal_places=6, help_text='Price per unit')
+    units = models.DecimalField(max_digits=15, decimal_places=6, null=True, blank=True,
+                                help_text='Empty while waiting for the NAV')
+    price = models.DecimalField(max_digits=18, decimal_places=6, null=True, blank=True,
+                                help_text='Price (NAV) per unit')
     amount = models.DecimalField(max_digits=15, decimal_places=2, help_text='Money in (buy) or out (sell)')
+    CONFIRMED, ESTIMATED, PENDING = 'CONFIRMED', 'ESTIMATED', 'PENDING'
+    STATUS_CHOICES = [(CONFIRMED, 'Confirmed'), (ESTIMATED, 'Estimated from the NAV'),
+                      (PENDING, 'Waiting for the NAV')]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=CONFIRMED)
+    nav_date = models.DateField(null=True, blank=True, help_text='Date of the NAV the units were priced at')
+    stamp_duty = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    before_cutoff = models.BooleanField(default=True, help_text='Money reached the fund before the cut-off time')
     transfer = models.ForeignKey('Transfer', null=True, blank=True, on_delete=models.CASCADE,
                                  related_name='holding_allocations')
     note = models.CharField(max_length=120, blank=True, default='')
@@ -3025,6 +3034,33 @@ class Valuation(models.Model):
         return f"{self.holding.instrument_name} - {self.value} on {self.as_of_date}"
 
 
+class MarketHoliday(models.Model):
+    """A day with no NAV and no allotment (a market or AMC holiday that is not a weekend or a fixed-date
+    holiday already known to nav_rules). Maintained in the admin."""
+    date = models.DateField(unique=True)
+    name = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        ordering = ['date']
+
+    def __str__(self):
+        return f"{self.date} {self.name}".strip()
+
+
+class FundNAVHistory(models.Model):
+    """Published NAV of a scheme on a date, kept so a purchase can be priced at the right day's NAV."""
+    scheme_code = models.CharField(max_length=50, db_index=True)
+    nav_date = models.DateField()
+    nav = models.DecimalField(max_digits=18, decimal_places=6)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['scheme_code', 'nav_date'], name='fund_nav_history_unique')]
+        indexes = [models.Index(fields=['scheme_code', 'nav_date'], name='fund_nav_hist_lookup_idx')]
+
+    def __str__(self):
+        return f"{self.scheme_code} {self.nav_date} {self.nav}"
+
+
 class FundNAVCache(models.Model):
     """
     SPEC §3a: Explicitly justified model to deduplicate NAV fetches across users.
@@ -3038,6 +3074,8 @@ class FundNAVCache(models.Model):
     last_fetch_attempt_at = models.DateTimeField(null=True, blank=True)
     last_fetch_error = models.TextField(null=True, blank=True)
     consecutive_failure_count = models.IntegerField(default=0)
+    history_from = models.DateField(null=True, blank=True, help_text='FundNAVHistory is complete from this date')
+    history_synced_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

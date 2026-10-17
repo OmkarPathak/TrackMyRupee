@@ -10,8 +10,9 @@
             <button type="button" class="dropdown-item py-2 border-0 bg-transparent w-100 text-start"
                     data-bs-toggle="modal" data-bs-target="#purchaseModal" data-mode="edit"
                     data-url="{% url 'holding-purchase-edit' tx.pk %}" data-date="{{ tx.date|date:'Y-m-d' }}"
-                    data-units="{{ tx.units|unlocalize }}" data-price="{{ tx.price|unlocalize }}"
-                    data-amount="{{ tx.amount|unlocalize }}" data-note="{{ tx.note }}">
+                    data-units="{% if tx.units is not None %}{{ tx.units|unlocalize }}{% endif %}" data-price="{% if tx.price is not None %}{{ tx.price|unlocalize }}{% endif %}"
+                    data-amount="{{ tx.amount|unlocalize }}" data-note="{{ tx.note }}"
+                    data-cutoff="{% if tx.before_cutoff %}before{% else %}after{% endif %}">
                 <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>{% trans "Edit" %}
             </button>
         </li>

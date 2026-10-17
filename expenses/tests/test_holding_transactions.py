@@ -230,8 +230,10 @@ class AllocateOnTransferFormTests(Base):
 
     def test_bad_rows_are_refused(self):
         a = self.fund('Alpha')
+        nofeed = Holding.objects.create(account=self.funds, instrument_name='No Feed', units=D('1'),
+                                        avg_cost=D('10'), currency='₹')
         for rows in ([{'holding_id': a.pk, 'amount': '0', 'units': '1'}],
-                     [{'holding_id': a.pk, 'amount': '100'}],
+                     [{'holding_id': nofeed.pk, 'amount': '100'}],
                      [{'holding_id': None, 'name': '', 'amount': '100', 'units': '1'}],
                      [{'holding_id': 999999, 'amount': '100', 'units': '1'}],
                      ['junk']):

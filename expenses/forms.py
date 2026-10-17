@@ -1548,6 +1548,7 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
             self.allocation_rows = parse_allocations(
                 raw, user=self.user, to_account=to_account, from_currency=from_account.currency,
                 transfer_amount=amount, transfer=self.instance if self.instance.pk else None,
+                order_date=cleaned_data.get('date'),
             )
         except HoldingError as exc:
             raise forms.ValidationError(str(exc)) from None
