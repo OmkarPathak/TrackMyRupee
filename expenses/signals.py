@@ -16,6 +16,7 @@ from .models import (
     Category,
     Expense,
     GoalContribution,
+    Holding,
     Income,
     Loan,
     LoanInterestRate,
@@ -26,6 +27,7 @@ from .models import (
     SavingsGoal,
     Transfer,
     UserProfile,
+    Valuation,
 )
 from .posthog_utils import ph_capture, ph_identify
 from .services import FinancialService, LoanService
@@ -215,6 +217,16 @@ def _dashboard_cache_user_id(instance):
             return instance.loan.user_id
         except Exception:
             return None
+    if isinstance(instance, Holding):
+        try:
+            return instance.account.user_id
+        except Exception:
+            return None
+    if isinstance(instance, Valuation):
+        try:
+            return instance.holding.account.user_id
+        except Exception:
+            return None
     if isinstance(instance, GoalContribution):
         try:
             return instance.goal.user_id
@@ -277,6 +289,8 @@ _DASHBOARD_CACHE_MODELS = (
     Loan,
     LoanInterestRate,
     UserProfile,
+    Holding,
+    Valuation,
 )
 for _model in _DASHBOARD_CACHE_MODELS:
     post_save.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_save_{_model.__name__}')

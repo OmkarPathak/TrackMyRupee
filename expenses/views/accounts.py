@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
@@ -23,7 +24,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
-from ..account_types import STRATEGY, deposit_codes, strategy_for
+from ..account_types import STRATEGY, deposit_codes, holdings_codes, strategy_for
 from ..account_valuation import (
     get_baseline,
     get_current,
@@ -1950,6 +1951,12 @@ def refresh_holding_nav(request, pk):
     return redirect('account-detail', pk=holding.account.pk)
 
 
+_HOLDING_INSTRUMENT_TYPES = {
+    'MUTUAL_FUND': 'MF', 'INVESTMENT': 'MF', 'ULIP': 'MF',
+    'DEMAT': 'STOCK', 'ETF': 'STOCK',
+}
+
+
 def holding_create_view(request, pk=None):
     """
     Creates a new Holding under an account.
@@ -1975,6 +1982,9 @@ def holding_create_view(request, pk=None):
 
     account = get_object_by_uuid_or_pk(Account, account_id, user=request.user)
     if request.method == 'POST':
+        if account.account_type not in holdings_codes():
+            messages.error(request, _("Holdings can only be added to Mutual Fund, Demat, ETF, SGB, ULIP or Gold accounts."))
+            return redirect(next_url)
         name = request.POST.get('instrument_name', '').strip()
         scheme_code = request.POST.get('scheme_code', '').strip()
         isin = request.POST.get('isin', '').strip()
@@ -1985,8 +1995,11 @@ def holding_create_view(request, pk=None):
             messages.error(request, _("Holding name is required."))
             return redirect(next_url)
 
-        # Smart Auto-Resolution: if scheme_code is blank, search by fund name
-        if not scheme_code and name:
+        instrument_type = _HOLDING_INSTRUMENT_TYPES.get(account.account_type, 'OTHER')
+
+        # Smart Auto-Resolution: if scheme_code is blank, search by fund name (mutual funds only: a stock's
+        # name must never be matched to a fund)
+        if not scheme_code and name and instrument_type == 'MF':
             local_match = AMFIScheme.objects.filter(scheme_name__icontains=name).first()
             if local_match:
                 scheme_code = local_match.scheme_code
@@ -2019,7 +2032,7 @@ def holding_create_view(request, pk=None):
         holding = Holding.objects.create(
             account=account,
             instrument_name=name,
-            instrument_type='MF' if account.account_type in ('MUTUAL_FUND', 'INVESTMENT') else 'OTHER',
+            instrument_type=instrument_type,
             units=units,
             avg_cost=avg_cost,
             currency=account.currency,
@@ -2060,6 +2073,49 @@ def holding_delete_view(request, pk):
         request.POST.get('next') or request.GET.get('next') or request.META.get('HTTP_REFERER'),
         reverse_lazy('holding-list'),
     )
+    return redirect(next_url)
+
+
+@require_POST
+def holding_valuation_view(request, pk):
+    """Record today's price for a holding that has no AMFI feed (a stock, gold, an ETF). The value follows the
+    units held, like a NAV does, so topping up the units later does not leave the old total in place."""
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+
+    from decimal import InvalidOperation
+
+    from django.shortcuts import get_object_or_404
+
+    from ..models import Holding, Valuation
+
+    holding = get_object_or_404(Holding, pk=pk, account__user=request.user, is_active=True)
+    next_url = get_safe_redirect_url(
+        request, request.POST.get('next') or request.META.get('HTTP_REFERER'), reverse_lazy('holding-list'),
+    )
+    if holding.scheme_code:
+        messages.error(request, _("This holding is priced from the AMFI NAV feed. Use Refresh NAV instead."))
+        return redirect(next_url)
+    try:
+        price = Decimal(request.POST.get('unit_price', '').strip())
+        if not price.is_finite() or price <= 0 or price >= Decimal('10') ** 9:
+            raise InvalidOperation
+        price = price.quantize(Decimal('0.000001'))
+    except (InvalidOperation, ValueError):
+        messages.error(request, _("Enter a price greater than zero."))
+        return redirect(next_url)
+    today = timezone.localdate()
+    as_of = parse_date(request.POST.get('as_of_date', '').strip() or '') or today
+    if as_of > today:
+        messages.error(request, _("The date cannot be in the future."))
+        return redirect(next_url)
+    units = holding.units or Decimal('0')
+    Valuation.objects.update_or_create(
+        holding=holding, as_of_date=as_of, source='MANUAL',
+        defaults={'unit_nav': price, 'value': (units * price).quantize(Decimal('0.01'))},
+    )
+    messages.success(request, _("Value updated for '%(name)s'.") % {'name': holding.instrument_name})
+    ph_capture(request.user, 'holding_valued_manually', {})
     return redirect(next_url)
 
 
@@ -2113,6 +2169,6 @@ class HoldingsListView(LoginRequiredMixin, ListView):
         context['user_accounts'] = Account.objects.filter(
             user=self.request.user,
             is_active=True,
-            account_type__in=['MUTUAL_FUND', 'INVESTMENT', 'STOCKS', 'OTHER_ASSETS', 'NPS', 'PF', 'GOLD', 'SAVINGS']
-        )
+            account_type__in=holdings_codes(),
+        ).order_by('name')
         return context

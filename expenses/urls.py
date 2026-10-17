@@ -74,6 +74,7 @@ urlpatterns = [
     path('holdings/<int:pk>/refresh-nav/', views.refresh_holding_nav, name='refresh-holding-nav'),
     path('accounts/<uuid_or_int:pk>/holdings/add/', views.holding_create_view, name='holding-create'),
     path('holdings/<int:pk>/delete/', views.holding_delete_view, name='holding-delete'),
+    path('holdings/<int:pk>/valuation/', views.holding_valuation_view, name='holding-valuation'),
     
     # Transfers
     path('transfers/', views.TransferListView.as_view(), name='transfer-list'), 

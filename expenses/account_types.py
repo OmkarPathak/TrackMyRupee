@@ -163,6 +163,15 @@ def deposit_codes() -> frozenset[str]:
     )
 
 
+def holdings_codes() -> frozenset[str]:
+    """account_type codes valued from their holdings (mutual funds, demat, ETF, SGB, ULIP, gold).
+    Holdings only count in net worth on these accounts, so they are the only ones that accept them."""
+    return frozenset(
+        code for code, (kind, strategy) in ACCOUNT_TYPE_META.items()
+        if strategy == STRATEGY.HOLDINGS
+    )
+
+
 def investment_codes() -> frozenset[str]:
     """
     Return all account_type codes classified as market-linked investments or fixed deposits/schemes.

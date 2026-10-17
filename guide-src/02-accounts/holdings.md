@@ -12,7 +12,7 @@ Track your mutual funds, stocks, and asset valuations in real time with automate
 
 Access your portfolio via **Sidebar → Net Worth → Holdings** on desktop or via **More → Holdings** on mobile (URL: `/holdings/`).
 
-The Holdings page provides a consolidated dashboard of all active investments across your mutual fund, investment, NPS, PF, and brokerage accounts.
+The Holdings page provides a consolidated dashboard of all active investments across your Mutual Fund, Demat, ETF, SGB, ULIP and Gold accounts. These are the accounts valued from their holdings, so they are the only ones that accept a holding. NPS, PPF, EPF and fixed or recurring deposits are valued from their own balance and interest, and holdings on them would never count in net worth.
 
 ---
 
@@ -26,7 +26,8 @@ For any active holding, the current unit value is resolved using the following o
 
 1. **Live Daily NAV**: Fetched automatically from official AMFI (Association of Mutual Funds in India) and `MFapi.in` live feeds using the fund's 6-digit AMFI scheme code.
 2. **Cached NAV Fallback**: If the live API is temporarily unreachable, TrackMyRupee retrieves the latest cached NAV from the local fund cache.
-3. **Cost Basis Fallback**: If no NAV cache exists yet (for example, a newly added holding), the valuation falls back to your purchase cost basis (Units x Average Cost).
+3. **Your Own Price**: A holding with no scheme code (a stock, an ETF or gold) has no feed, so you set its price yourself with **Update value** (see section 4). It is used until you enter a newer one.
+4. **Cost Basis Fallback**: If no NAV cache exists yet (for example, a newly added holding), the valuation falls back to your purchase cost basis (Units x Average Cost).
 
 A holding priced from a NAV is always worth **the units you hold now × the latest NAV**, so correcting the number of units changes its value straight away instead of waiting for the next price update. A value you entered yourself as a total is used as you entered it. When you look at net worth on a past date, each holding uses the value recorded on or before that date.
 
@@ -88,13 +89,17 @@ As your SIP executes or when you make lump-sum investments, your holdings update
 ### Adding and Removing Holdings
 
 1. Go to **Holdings** (`/holdings/`) or your account detail page.
-2. Click **Add Holding** and enter the fund name (pick it from the search so its scheme code is filled in), your **Units** and your **Avg Cost** per unit. Both must be greater than zero. If you leave the scheme code blank, TrackMyRupee tries to find it from the name.
+2. Click **Add Holding**, pick one of your holdings accounts, and enter the name, your **Units** and your **Avg Cost** per unit. Both must be greater than zero. For a mutual fund, pick it from the search so its scheme code is filled in; if you leave the code blank, TrackMyRupee tries to find it from the name. A stock or ETF name is never matched to a fund, so it stays without a scheme code and you price it yourself.
 3. The cost basis is calculated immediately:
    $$\text{Cost Basis} = \text{Units} \times \text{Avg Cost}$$
 
 A holding cannot be edited in place. When more units are allocated, remove the old holding and add it again with the new cumulative units and average cost. **Delete** only hides the holding (it stops counting in the portfolio), it does not touch your account balance.
 
 The totals at the top of the Holdings page are in your own currency: a holding in another currency is converted at the latest exchange rate before it is added in.
+
+### Pricing a Stock, ETF or Gold Holding
+
+A holding without a scheme code has no daily NAV. Open its three-dot menu, choose **Update value**, enter the **current price per unit** and the date, and save. The value is your units × that price, so adding units later keeps it right. Entering a price again for the same date replaces it, and the latest date is the one that counts. Holdings priced from the NAV feed use **Refresh NAV** instead.
 
 ### Automatic Daily NAV Updates
 
@@ -107,7 +112,7 @@ The totals at the top of the Holdings page are in your own currency: a holding i
 ## 5. Responsive Interface Features
 
 - **Desktop view**: Full multi-column table displaying Fund Name, Account, Units, Average Cost, Current Valuation, NAV, and action buttons.
-- **Mobile view**: Single-card list with touch-friendly controls. Long scheme names such as "Parag Parikh Liquid Fund - Direct Plan - Growth" wrap onto multiple lines without clipping. Tap the three-dot menu on any holding row to Refresh NAV or Delete Holding.
+- **Mobile view**: Single-card list with touch-friendly controls. Long scheme names such as "Parag Parikh Liquid Fund - Direct Plan - Growth" wrap onto multiple lines without clipping. Tap the three-dot menu on any holding row to Refresh NAV (fund holdings), Update value (holdings priced by hand) or Delete Holding.
 
 ---
 
