@@ -179,11 +179,12 @@ class TestValuedAccounts(NetWorthBase):
         AssetValuation.objects.create(asset=asset, value=D('4500000'), as_of_date=today())
         self.assertEqual(self.nw()[0], D('4500000.00'))
 
-    def test_insurance_without_valuation_counts_zero(self):
+    def test_insurance_without_valuation_counts_ledger_balance(self):
+        # No surrender value can be entered, so the money paid in (ledger balance) is what counts
         asset = PhysicalAsset.objects.create(user=self.user, name='Term', asset_class='INSURANCE',
                                              acquisition_cost=D('0'), currency='₹', is_active=True)
         self.account('Term', 'LIFE_INSURANCE', '18500', linked_physical_asset=asset)
-        self.assertEqual(self.nw()[0], D('0.00'))
+        self.assertEqual(self.nw()[0], D('18500.00'))
 
 
 class TestFilters(NetWorthBase):

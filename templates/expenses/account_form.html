@@ -238,6 +238,12 @@
                 document.addEventListener('change', (e) => {
                     if (e.target && (e.target.name === 'account_type' || e.target.id === 'id_account_type')) {
                         this.accountType = e.target.value;
+                        {% if not form.instance.pk %}
+                        const policyType = document.getElementById('{{ form.policy_type.id_for_label }}');
+                        if (policyType && (e.target.value === 'HEALTH_INSURANCE' || e.target.value === 'LIFE_INSURANCE')) {
+                            policyType.value = e.target.value === 'HEALTH_INSURANCE' ? 'PROTECTION' : 'SAVINGS';
+                        }
+                        {% endif %}
                     }
                     if (e.target && e.target.id && e.target.id.startsWith('id_deposit_')) {
                         this.updateDepositInputs();
@@ -610,6 +616,15 @@
                                     </div>
 
                                     <!-- Insurance Policy Specific Fields (Life Insurance) -->
+                                    <div class="col-12" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('policy_type')" x-cloak>
+                                        <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.policy_type.id_for_label }}">{% trans "Policy Type" %}</label>
+                                        {{ form.policy_type }}
+                                        <div class="form-text">{{ form.policy_type.help_text }}</div>
+                                        {% if form.policy_type.errors %}
+                                            <div class="text-danger small mt-1">{{ form.policy_type.errors|first }}</div>
+                                        {% endif %}
+                                    </div>
+
                                     <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('policy_number')" x-cloak>
                                         <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.policy_number.id_for_label }}">{% trans "Policy Number" %}</label>
                                         {{ form.policy_number }}

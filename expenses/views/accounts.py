@@ -26,6 +26,7 @@ from finance_tracker.plans import get_limit
 from ..account_types import STRATEGY, deposit_codes, strategy_for
 from ..account_valuation import get_baseline, get_current, get_interest_summary
 from ..forms import AccountForm, TransferForm
+from ..account_valuation import get_current_insurance_surrender, get_premiums_paid, is_protection_policy
 from ..ledger_read_service import LedgerReadService, _compute_deposit_value
 from ..models import (
     Account,
@@ -232,6 +233,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 native = Decimal(str(account.balance))
                 base_value = native * rate
             account.display_balance = native
+            account.is_protection = False
 
             # Compute accrued value for fixed-income / deposit accounts
             if account.account_type in _deposit_codes:
@@ -704,6 +706,12 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 position += 1
         for row in rows:
             row.is_last_in_view = row.in_view and row.view_position == position - 1
+        protection = [a for a in rows if is_protection_policy(a)]
+        if protection:
+            ledger = LedgerReadService.get_account_balances(protection)
+            for a in protection:
+                a.is_protection = True
+                a.premiums_paid = get_premiums_paid(a, ledger.get(a.id, a.balance))
         context['display_accounts'] = rows
         context['show_policy_column'] = any(
             getattr(r.linked_physical_asset, 'policy_number', None) for r in rows
@@ -1225,6 +1233,12 @@ class AccountDetailView(LoginRequiredMixin, View):
         else:
             account.has_accrued_value = False
             account.has_maturity_value = False
+
+        if strategy_for(account.account_type) == STRATEGY.INSURANCE_SURRENDER and account.is_active:
+            ledger_balance = Decimal(str(account.display_balance))
+            account.is_protection = is_protection_policy(account)
+            account.premiums_paid = get_premiums_paid(account, ledger_balance)
+            account.display_balance = get_current_insurance_surrender(account, ledger_balance=ledger_balance)
 
         search_query = request.GET.get('search') or request.GET.get('q', '').strip()
         time_period = request.GET.get('time_period', 'all')

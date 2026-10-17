@@ -220,3 +220,65 @@ class InsuranceDetailPageTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         for text in ('POL-4242', '5,00,000', '11 Nov 2020', '26,224', 'Annual'):
             self.assertContains(response, text)
+
+
+class InsurancePolicyTypeTestCase(TestCase):
+    def setUp(self):
+        from expenses.ledger_read_service import LedgerReadService
+        self.nw = LedgerReadService.get_net_worth
+        self.user = User.objects.create_user(username="ptype", password="password")
+        UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})
+        self.bank = Account.objects.create(user=self.user, name="Bank", account_type="SAVINGS_ACCOUNT", balance=Decimal("100000.00"))
+
+    def _policy(self, name, policy_type=None, balance='0.00'):
+        kwargs = {'policy_type': policy_type} if policy_type else {}
+        asset = PhysicalAsset.objects.create(user=self.user, name=name, asset_class="INSURANCE", currency="₹", **kwargs)
+        account = Account.objects.create(
+            user=self.user, name=name, account_type="LIFE_INSURANCE", currency="₹",
+            balance=Decimal(balance), linked_physical_asset=asset,
+        )
+        return account, asset
+
+    def test_existing_policies_default_to_savings(self):
+        _, asset = self._policy("Old")
+        self.assertEqual(asset.policy_type, 'SAVINGS')
+
+    def test_protection_is_worth_nothing_but_savings_counts_premiums_paid(self):
+        savings, s_asset = self._policy("Endowment", balance='20000.00')
+        protection, p_asset = self._policy("Term", 'PROTECTION', balance='30000.00')
+        Expense.objects.create(user=self.user, account=self.bank, amount=Decimal("5000.00"), currency="₹",
+                               category="Insurance", linked_physical_asset=s_asset, date=date.today())
+        Expense.objects.create(user=self.user, account=self.bank, amount=Decimal("7000.00"), currency="₹",
+                               category="Insurance", linked_physical_asset=p_asset, date=date.today())
+        _, balances = self.nw(self.user)
+        self.assertEqual(Decimal(str(balances[savings.id])), Decimal("25000.00"))
+        self.assertEqual(Decimal(str(balances[protection.id])), Decimal("0.00"))
+
+    def test_list_and_detail_show_premiums_paid_for_protection(self):
+        from django.urls import reverse
+        protection, p_asset = self._policy("Term", 'PROTECTION', balance='30000.00')
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('account-list'))
+        row = next(a for a in response.context['display_accounts'] if a.id == protection.id)
+        self.assertTrue(row.is_protection)
+        self.assertEqual(row.premiums_paid, Decimal("30000.00"))
+        self.assertContains(response, 'premiums paid')
+        detail = self.client.get(reverse('account-detail', args=[protection.uuid]))
+        self.assertContains(detail, 'Premiums Paid')
+        self.assertContains(detail, 'not counted in your net worth')
+
+    def test_recurring_premium_expenses_are_linked_to_the_policy(self):
+        account, asset = self._policy("Linked")
+        form_data = {
+            'name': 'New', 'account_type': 'HEALTH_INSURANCE', 'currency': '₹', 'balance': '0.00',
+            'create_new_asset': 'CREATE_NEW', 'asset_name': 'Health', 'policy_number': 'H1',
+            'premium_amount': '1000.00', 'premium_frequency': 'ANNUAL',
+            'policy_start_date': date.today().isoformat(), 'premium_payment_account': self.bank.pk,
+            'create_historical_premiums': 'on',
+        }
+        form = AccountForm(data=form_data, user=self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+        created = form.save()
+        # Health cover defaults to protection when the type is not sent
+        self.assertEqual(created.linked_physical_asset.policy_type, 'PROTECTION')
+        self.assertEqual(Expense.objects.filter(linked_physical_asset=created.linked_physical_asset).count(), 1)

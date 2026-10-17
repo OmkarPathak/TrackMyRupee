@@ -3070,6 +3070,15 @@ class PhysicalAsset(models.Model):
         verbose_name=_('Premium Frequency'),
     )
     policy_start_date = models.DateField(null=True, blank=True, verbose_name=_('Policy Start Date'))
+    POLICY_TYPE_CHOICES = [
+        ('SAVINGS', _('Savings / endowment (pays back on maturity)')),
+        ('PROTECTION', _('Pure protection (term / health, no payout)')),
+    ]
+    policy_type = models.CharField(
+        max_length=12, choices=POLICY_TYPE_CHOICES, default='SAVINGS',
+        verbose_name=_('Policy Type'),
+        help_text=_('Savings policies count the premiums paid as their value; pure protection policies are worth nothing.'),
+    )
     sum_assured = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Sum Assured'))
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

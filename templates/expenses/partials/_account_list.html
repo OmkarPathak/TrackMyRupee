@@ -497,7 +497,9 @@
 
             <!-- Balance -->
             <div class="acx-balance {% if account.display_balance < 0 %}is-negative{% endif %}">
-                {% if account.has_accrued_value %}
+                {% if account.is_protection %}
+                    {{ account.currency }}{{ account.premiums_paid|ind_comma:account.currency|translate_digits }}<small>{% trans "premiums paid" %}</small>
+                {% elif account.has_accrued_value %}
                     {% if account.accrued_value < 0 %}&minus;{% endif %}{{ account.currency }}{{ account.accrued_value|abs_val|ind_comma:account.currency|translate_digits }}
                 {% else %}
                     {% if account.display_balance < 0 %}&minus;{% endif %}{{ account.currency }}{{ account.display_balance|abs_val|ind_comma:account.currency|translate_digits }}

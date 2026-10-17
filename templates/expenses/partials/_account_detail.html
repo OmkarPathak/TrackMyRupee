@@ -164,19 +164,25 @@
                     <!-- Middle Row: Current Balance & Transaction Count -->
                     <div class="my-auto">
                         <div class="d-flex align-items-center justify-content-between mb-1">
-                            <div class="fw-semibold text-uppercase text-body-secondary" style="font-size: 0.65rem; letter-spacing: 0.10em;">{% trans "Current Balance" %}</div>
+                            <div class="fw-semibold text-uppercase text-body-secondary" style="font-size: 0.65rem; letter-spacing: 0.10em;">{% if account.is_protection %}{% trans "Premiums Paid" %}{% else %}{% trans "Current Balance" %}{% endif %}</div>
                             <span class="badge bg-body-tertiary text-body-secondary border rounded-pill px-2.5 py-1 small fw-normal">
                                 <i class="bi bi-receipt me-1"></i><span class="fw-semibold text-body-emphasis">{{ total_transactions|translate_digits }}</span> {% blocktrans count counter=total_transactions %}transaction{% plural %}transactions{% endblocktrans %}
                             </span>
                         </div>
                         <div class="text-body-emphasis" style="font-size: clamp(2rem, 6vw, 2.75rem); letter-spacing: -0.03em; line-height: 1.1; font-variant-numeric: tabular-nums; font-weight: 800;">
-                            {% if account.has_accrued_value %}
+                            {% if account.is_protection %}
+                                {{ currency_symbol }}{{ account.premiums_paid|ind_comma:currency_symbol|translate_digits }}
+                            {% elif account.has_accrued_value %}
                                 {{ currency_symbol }}{{ account.accrued_value|ind_comma:currency_symbol|translate_digits }}
                             {% else %}
                                 {{ currency_symbol }}{{ account.display_balance|ind_comma:currency_symbol|translate_digits }}
                             {% endif %}
                         </div>
                     </div>
+
+                    {% if account.is_protection %}
+                        <div class="text-body-secondary mb-2" style="font-size: 0.78rem;">{% trans "Pure protection cover: not counted in your net worth." %}</div>
+                    {% endif %}
 
                     <!-- Bottom Specs Bar: Context-Specific Info -->
                     {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit or account.next_billing_date %}
@@ -230,6 +236,7 @@
                                 {% if policy.policy_start_date %}
                                     <div><span>{% trans "Started:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.policy_start_date|date:"d M Y" }}</span></div>
                                 {% endif %}
+                                <div><span>{% trans "Type:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.get_policy_type_display }}</span></div>
                                 {% if policy.premium_amount %}
                                     <div><span>{% trans "Premium:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.currency }}{{ policy.premium_amount|ind_comma:policy.currency|translate_digits }}{% if policy.premium_frequency %} / {{ policy.get_premium_frequency_display }}{% endif %}</span></div>
                                 {% endif %}

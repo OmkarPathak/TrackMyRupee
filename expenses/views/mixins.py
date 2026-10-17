@@ -183,6 +183,7 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                                 description=description, payment_method=rt.payment_method or 'OTHER',
                                 exchange_rate=exchange_rate, base_amount=base_amount,
                                 account=rt.account,
+                                linked_physical_asset=rt.physical_asset if rt.transaction_type == 'INSURANCE_PREMIUM' else None,
                             ).save()
                             posted_successfully = True
                         except Exception as exc:

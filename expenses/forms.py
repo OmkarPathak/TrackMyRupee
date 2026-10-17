@@ -1022,6 +1022,15 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-select searchable-select'}),
     )
 
+    policy_type = forms.ChoiceField(
+        choices=PhysicalAsset.POLICY_TYPE_CHOICES,
+        initial='SAVINGS',
+        required=False,
+        label=_('Policy Type'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text=_('Savings policies count the premiums paid as their value. Pure protection (term, health) '
+                    'is worth nothing: premiums are a cost.'),
+    )
     create_historical_premiums = forms.BooleanField(
         required=False,
         label=_('Create past premium records'),
@@ -1039,7 +1048,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
             'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
             'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
-            'premium_payment_account', 'create_historical_premiums',
+            'premium_payment_account', 'create_historical_premiums', 'policy_type',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
@@ -1100,6 +1109,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 self.initial['linked_physical_asset'] = asset
                 self.initial['asset_name'] = asset.name
                 self.initial['policy_number'] = asset.policy_number
+                self.initial['policy_type'] = asset.policy_type
                 self.initial['policy_start_date'] = asset.policy_start_date
                 self.initial['sum_assured'] = asset.sum_assured
                 self.initial['premium_amount'] = asset.premium_amount
@@ -1307,6 +1317,9 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                                 premium_frequency=self.cleaned_data.get('premium_frequency') or 'ANNUAL',
                                 policy_start_date=self.cleaned_data.get('policy_start_date'),
                                 sum_assured=self.cleaned_data.get('sum_assured'),
+                                policy_type=self.cleaned_data.get('policy_type') or (
+                                    'PROTECTION' if account.account_type == 'HEALTH_INSURANCE' else 'SAVINGS'
+                                ),
                             )
                             account.linked_physical_asset = asset
 
@@ -1356,6 +1369,9 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                             if 'policy_start_date' in self.cleaned_data and self.cleaned_data.get('policy_start_date'):
                                 asset.policy_start_date = self.cleaned_data.get('policy_start_date')
                                 update_fields.append('policy_start_date')
+                            if self.cleaned_data.get('policy_type') and self.cleaned_data.get('policy_type') != asset.policy_type:
+                                asset.policy_type = self.cleaned_data.get('policy_type')
+                                update_fields.append('policy_type')
                             if 'sum_assured' in self.cleaned_data and self.cleaned_data.get('sum_assured') is not None:
                                 asset.sum_assured = self.cleaned_data.get('sum_assured')
                                 update_fields.append('sum_assured')

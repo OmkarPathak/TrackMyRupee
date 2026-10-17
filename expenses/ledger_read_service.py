@@ -841,7 +841,11 @@ class LedgerReadService:
                     account_value = FXService.convert_using_map(native_val, account.currency, fx_map)
 
             elif strategy == STRATEGY.INSURANCE_SURRENDER:
-                if is_accrued:
+                from .account_valuation import get_premiums_paid, is_protection_policy
+                if is_protection_policy(account):
+                    # Term / health cover pays nothing back: premiums are a cost, not an asset
+                    account_value = Decimal("0.00")
+                elif is_accrued:
                     asset_id = account.linked_physical_asset_id
                     asset_native_val = asset_val_map.get(asset_id) if asset_id else None
                     if asset_native_val:
@@ -855,9 +859,9 @@ class LedgerReadService:
                         )
                     else:
                         # No surrender value recorded (users cannot enter one; the form seeds 0.00):
-                        # show what has been paid in, matching the account detail page.
+                        # the premiums paid so far, matching the account detail page.
                         account_value = FXService.convert_using_map(
-                            ledger_bal, account.currency, fx_map
+                            get_premiums_paid(account, ledger_bal), account.currency, fx_map
                         )
                 else:
                     from .account_valuation import get_baseline_insurance_surrender

@@ -464,37 +464,51 @@ def get_current_physical_valuation(account: Account, ledger_balance: Decimal | N
     return val.quantize(Decimal('0.01'))
 
 
-def get_baseline_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
-    """SPEC §2.6 INSURANCE_SURRENDER Baseline = sum of linked premium Expense rows."""
+def is_protection_policy(account: Account) -> bool:
+    """Term / health cover: premiums are a cost, the policy itself is worth nothing."""
+    asset = account.linked_physical_asset if account.linked_physical_asset_id else None
+    return bool(asset and getattr(asset, 'policy_type', 'SAVINGS') == 'PROTECTION')
+
+
+def get_premiums_paid(account: Account, ledger_balance: Decimal | None = None) -> Decimal:
+    """What has gone into the policy, in the account's currency: premium expenses linked to the
+    policy plus money transferred into the account (its ledger balance, when positive)."""
     from .models import Expense
     from .utils import get_exchange_rate
 
+    total = Decimal('0.00')
+    if account.linked_physical_asset_id and account.linked_physical_asset:
+        for exp in Expense.objects.filter(linked_physical_asset=account.linked_physical_asset):
+            amt = exp.amount
+            if exp.currency and exp.currency != account.currency:
+                amt = (amt * get_exchange_rate(exp.currency, account.currency)).quantize(Decimal('0.01'))
+            total += amt
+    if ledger_balance is not None and Decimal(str(ledger_balance)) > 0:
+        total += Decimal(str(ledger_balance))
+    return total.quantize(Decimal('0.01'))
+
+
+def get_baseline_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
+    """SPEC §2.6 INSURANCE_SURRENDER Baseline = premiums paid (0 for pure protection cover)."""
+    if is_protection_policy(account):
+        return Decimal('0.00')
     if not account.linked_physical_asset_id or not account.linked_physical_asset:
         return Decimal('0.00')
-
-    asset = account.linked_physical_asset
-    expenses = Expense.objects.filter(linked_physical_asset=asset)
-    total_premiums = Decimal('0.00')
-    for exp in expenses:
-        amt = exp.amount
-        if exp.currency and exp.currency != account.currency:
-            rate = get_exchange_rate(exp.currency, account.currency)
-            amt = (amt * rate).quantize(Decimal('0.01'))
-        total_premiums += amt
-
-    return total_premiums.quantize(Decimal('0.01'))
+    return get_premiums_paid(account, ledger_balance)
 
 
 def get_current_insurance_surrender(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
     """
     SPEC §2.6 INSURANCE_SURRENDER Current Value:
-    - Latest AssetValuation value if any exists.
-    - Falls back to the ledger balance (what was paid in) when no surrender value is recorded
-      or it is 0.00 (the form seeds 0.00); 0.00 when no ledger balance is given.
+    - Pure protection (term / health): always 0.00.
+    - Latest AssetValuation value when one above 0.00 is recorded.
+    - Otherwise the premiums paid so far (users cannot enter a surrender value and the form seeds 0.00).
     """
     from .utils import get_exchange_rate
 
-    fallback = Decimal(str(ledger_balance)).quantize(Decimal('0.01')) if ledger_balance is not None else Decimal('0.00')
+    if is_protection_policy(account):
+        return Decimal('0.00')
+    fallback = get_premiums_paid(account, ledger_balance)
     if not account.linked_physical_asset_id or not account.linked_physical_asset:
         return fallback
 
@@ -536,7 +550,7 @@ def get_baseline(account: Account, ledger_balance: Decimal | None = None, today:
     elif strategy == STRATEGY.PHYSICAL_VALUATION:
         return get_baseline_physical_valuation(account)
     elif strategy == STRATEGY.INSURANCE_SURRENDER:
-        return get_baseline_insurance_surrender(account)
+        return get_baseline_insurance_surrender(account, ledger_balance=ledger_balance, today=today)
     return None
 
 
