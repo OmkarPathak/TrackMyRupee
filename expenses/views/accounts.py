@@ -2168,6 +2168,9 @@ def _holding_detail_url(holding):
     return reverse('holding-detail', args=[holding.pk])
 
 
+HOLDING_HISTORY_PAGE_SIZE = 15
+
+
 class HoldingDetailView(LoginRequiredMixin, View):
     """One holding: what it is worth, and every purchase that built it up."""
 
@@ -2180,9 +2183,15 @@ class HoldingDetailView(LoginRequiredMixin, View):
         if holding.scheme_code and holding.transactions.filter(status='PENDING').exists():
             hs.resolve_pending(holding=holding)       # the NAV may have been published since
             holding.refresh_from_db()
-        transactions = list(holding.transactions.select_related(
-            'transfer__from_account', 'realized_income', 'realized_loss').order_by('-date', '-id'))
-        pending = [tx for tx in transactions if tx.status == 'PENDING']
+        history = holding.transactions.all()
+        paginator = Paginator(
+            history.select_related('transfer__from_account', 'realized_income', 'realized_loss').order_by('-date', '-id'),
+            HOLDING_HISTORY_PAGE_SIZE)
+        page_obj = paginator.get_page(request.GET.get('page'))
+        transactions = list(page_obj.object_list)
+        pending = history.filter(status='PENDING').aggregate(n=Count('id'), total=Sum('amount'))
+        sales = history.filter(kind='SELL').aggregate(gain=Sum('realized_income__amount'), loss=Sum('realized_loss__amount'),
+                                                      n=Count('id'))
         latest = holding.valuations.first()
         units = holding.units or Decimal('0')
         value = latest.value_for(units) if latest else holding.cost_basis
@@ -2198,17 +2207,16 @@ class HoldingDetailView(LoginRequiredMixin, View):
                 funding.append({'transfer': t, 'left': left})
         return render(request, 'expenses/holding_detail.html', {
             'holding': holding, 'account': account, 'transactions': transactions,
-            'opening_only': not transactions and units > 0,
+            'page_obj': page_obj, 'is_paginated': paginator.num_pages > 1, 'tx_total': paginator.count,
+            'opening_only': not paginator.count and units > 0,
             'valuation': latest, 'value': value, 'cost': cost, 'gain': gain,
             'gain_pct': ((gain / cost) * Decimal('100')).quantize(Decimal('0.1')) if cost > 0 else Decimal('0.0'),
             'funding': funding, 'today': timezone.localdate(),
             'has_feed': bool(holding.scheme_code),
-            'pending_count': len(pending), 'pending_amount': sum((tx.amount for tx in pending), Decimal('0')),
-            'has_estimates': any(tx.status == 'ESTIMATED' for tx in transactions),
-            'realized': sum(((tx.realized_income.amount if tx.realized_income_id else Decimal('0'))
-                             - (tx.realized_loss.amount if tx.realized_loss_id else Decimal('0'))
-                             for tx in transactions if tx.kind == 'SELL'), Decimal('0')),
-            'has_sales': any(tx.kind == 'SELL' for tx in transactions),
+            'pending_count': pending['n'], 'pending_amount': pending['total'] or Decimal('0'),
+            'has_estimates': history.filter(status='ESTIMATED').exists(),
+            'realized': (sales['gain'] or Decimal('0')) - (sales['loss'] or Decimal('0')),
+            'has_sales': bool(sales['n']),
         })
 
 

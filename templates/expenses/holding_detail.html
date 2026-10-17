@@ -3,8 +3,13 @@
 
 {% block content %}
 <style>
-    .table-responsive .dropdown-menu { z-index: 1065 !important; }
     .hd-stat { border-radius: 1rem; padding: 1rem 1.1rem; }
+    /* the same icon tile as the transaction lists (their styles live in each list page, so it is repeated here) */
+    .category-icon-container {
+        width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; line-height: 1; flex-shrink: 0; border-radius: 12px; background-color: var(--bs-tertiary-bg);
+    }
+    .category-icon-container > i { display: block; line-height: 1; }
     .hd-stat .hd-label { text-transform: uppercase; font-size: .72rem; letter-spacing: .8px; font-weight: 700; color: var(--bs-secondary-color); margin-bottom: .25rem; }
 </style>
 <div>
@@ -80,75 +85,77 @@
         </div>
     </div>
 
-    <h2 class="h5 fw-bold mt-5 mb-3">{% trans "Purchases" %}</h2>
-    <div class="card rounded-4 border-0 shadow-sm">
-        <div class="card-body p-0">
-            {% if transactions %}
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover align-middle mb-0 tmr-table">
-                    <thead>
-                        <tr>
-                            <th class="ps-4">{% trans "Date" %}</th>
-                            <th class="text-end">{% trans "Units" %}</th>
-                            <th class="text-end">{% trans "Price" %}</th>
-                            <th class="text-end">{% trans "Amount" %}</th>
-                            <th>{% trans "Paid by" %}</th>
-                            <th class="text-end pe-4">{% trans "Actions" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for tx in transactions %}
-                        <tr>
-                            <td class="ps-4 text-nowrap">{{ tx.date|date:"d M Y"|translate_digits }}</td>
-                            <td class="text-end tmr-amount">{% if tx.kind == 'SELL' %}<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle me-1">{% trans "Sold" %}</span>{% endif %}{% if tx.units is None %}&mdash;{% else %}{{ tx.units|floatformat:'-4'|translate_digits }}{% endif %}{% include 'expenses/partials/_holding_purchase_status.html' %}</td>
-                            <td class="text-end tmr-amount">{% if tx.price is None %}&mdash;{% else %}{{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}</td>
-                            <td class="text-end tmr-amount fw-semibold">{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</td>
-                            <td class="small">
-                                {% if tx.kind == 'SELL' %}
-                                    {% include 'expenses/partials/_holding_sale_result.html' %}
-                                {% elif tx.transfer %}
-                                    <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
-                                {% else %}
-                                    <span class="text-muted">{{ tx.note|default:"-" }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end pe-4">
-                                {% include 'expenses/partials/_holding_purchase_actions.html' %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="d-md-none">
-                {% for tx in transactions %}
-                <div class="p-3 {% if not forloop.last %}border-bottom{% endif %}">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="fw-semibold">{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</div>
-                            <div class="small text-muted">{{ tx.date|date:"d M Y"|translate_digits }}{% if tx.kind == 'SELL' %} &middot; {% trans "Sold" %}{% endif %}{% if tx.units is None %} &middot; {% trans "waiting for NAV" %}{% else %} &middot; {{ tx.units|floatformat:'-4'|translate_digits }} {% trans "units" %} @ {{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}{% include 'expenses/partials/_holding_purchase_status.html' %}</div>
-                            <div class="small mt-1">
-                                {% if tx.kind == 'SELL' %}
-                                    {% include 'expenses/partials/_holding_sale_result.html' %}
-                                {% elif tx.transfer %}
-                                    <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
-                                {% elif tx.note %}<span class="text-muted">{{ tx.note }}</span>{% endif %}
+    <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mt-5 mb-3">
+        <h2 class="h5 fw-bold mb-0">{% trans "Purchases and sales" %}</h2>
+        {% if tx_total %}<div class="small text-muted">{{ tx_total|translate_digits }} {% blocktrans count counter=tx_total %}entry{% plural %}entries{% endblocktrans %}</div>{% endif %}
+    </div>
+
+    {% if transactions %}
+        {% regroup transactions by date as tx_by_date %}
+        {% for group in tx_by_date %}
+        <div class="mb-3">
+            <div class="text-body-secondary fw-semibold small px-1 mb-2">{{ group.grouper|date:"d M, Y"|translate_digits }}</div>
+            {% for tx in group.list %}
+            <div class="card expense-card rounded-4 border-0 mb-2" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="category-icon-container flex-shrink-0" style="width: 40px; height: 40px; font-size: 1rem;">
+                            <i class="bi {% if tx.kind == 'SELL' %}bi-box-arrow-up-right{% else %}bi-plus-circle{% endif %}" aria-hidden="true"></i>
+                        </div>
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="fw-semibold mb-1" style="font-size: 0.93rem;">
+                                {% if tx.kind == 'SELL' %}{% trans "Sold" %}{% else %}{% trans "Bought" %}{% endif %}
+                                {% if tx.units is None %}{% else %}{{ tx.units|floatformat:'-4'|translate_digits }} {% trans "units" %}{% endif %}
+                                {% include 'expenses/partials/_holding_purchase_status.html' %}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.72rem;">
+                                {% if tx.units is None %}{% trans "Waiting for NAV" %}{% else %}@ {{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}
+                                {% if tx.kind == 'SELL' %}&middot; {% include 'expenses/partials/_holding_sale_result.html' %}
+                                {% elif tx.transfer %}&middot; <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
+                                {% elif tx.note %}&middot; {{ tx.note }}{% endif %}
                             </div>
                         </div>
-                        {% include 'expenses/partials/_holding_purchase_actions.html' %}
+                        <div class="text-end d-flex align-items-center gap-2">
+                            <div class="fw-bold {% if tx.kind == 'SELL' %}text-danger{% else %}text-body-emphasis{% endif %}">{% if tx.kind == 'SELL' %}&minus;{% endif %}{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</div>
+                            {% include 'expenses/partials/_holding_purchase_actions.html' %}
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-            {% elif opening_only %}
-            <div class="p-4 text-body-secondary">
-                {% blocktrans with units=holding.units|floatformat:'-4' avg=holding.avg_cost|floatformat:2 %}This holding was added with {{ units }} units at an average cost of {{ avg }}. Use <strong>Buy more</strong> to record further purchases; this opening position is kept as the first one.{% endblocktrans %}
-            </div>
-            {% else %}
-            <div class="p-5 text-center text-muted">{% trans "No purchases recorded yet." %}</div>
-            {% endif %}
+            {% endfor %}
         </div>
-    </div>
+        {% endfor %}
+
+        {% if is_paginated %}
+        <nav aria-label="{% trans 'Purchases pagination' %}" class="mt-3">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="{% trans 'Previous' %}"><span aria-hidden="true">&laquo;</span></a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num|translate_digits }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num|translate_digits }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="{% trans 'Next' %}"><span aria-hidden="true">&raquo;</span></a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    {% elif opening_only %}
+        <div class="card rounded-4 border-0 shadow-sm p-4 text-body-secondary">
+            {% blocktrans with units=holding.units|floatformat:'-4' avg=holding.avg_cost|floatformat:2 %}This holding was added with {{ units }} units at an average cost of {{ avg }}. Use <strong>Buy more</strong> to record further purchases; this opening position is kept as the first one.{% endblocktrans %}
+        </div>
+    {% else %}
+        <div class="card rounded-4 border-0 shadow-sm p-5 text-center text-muted">{% trans "No purchases recorded yet." %}</div>
+    {% endif %}
 </div>
 {% endblock %}
 

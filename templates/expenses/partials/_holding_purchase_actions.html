@@ -16,7 +16,7 @@
                 <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>{% trans "Edit" %}
             </button>
         </li>
-        {% if transactions|length > 1 %}
+        {% if tx_total > 1 %}
         <li>
             <button type="button" class="dropdown-item py-2 text-danger border-0 bg-transparent w-100 text-start"
                     data-bs-toggle="modal" data-bs-target="#deleteModal"

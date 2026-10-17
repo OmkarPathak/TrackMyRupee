@@ -319,3 +319,52 @@ class CashSummaryTests(Base):
     def test_other_accounts_have_no_cash_summary(self):
         response = self.client.get(reverse('account-detail', args=[self.bank.uuid]))
         self.assertIsNone(response.context['cash_summary'])
+
+
+class HistoryPaginationTests(Base):
+    def test_history_is_cards_paginated_with_totals_from_the_whole_history(self):
+        for i in range(20):
+            hs.add_purchase(self.fund, units='1', price='1000', date=self.today - timedelta(days=i + 1), note=f'n{i}')
+        self.sell(units='2', amount='2600')
+        url = reverse('holding-detail', args=[self.fund.pk])
+        first = self.client.get(url)
+        self.assertEqual(len(first.context['transactions']), 15)
+        self.assertEqual((first.context['tx_total'], first.context['is_paginated']), (22, True))
+        self.assertContains(first, 'card expense-card', count=15)
+        self.assertContains(first, '?page=2')
+        self.assertEqual(first.context['realized'], D('600.00'))        # the sale is on page 1 but counted regardless
+        second = self.client.get(url + '?page=2')
+        self.assertEqual(len(second.context['transactions']), 7)
+        self.assertEqual(second.context['realized'], D('600.00'))
+        self.assertTrue(second.context['has_sales'])
+
+    def test_a_bad_page_number_falls_back_to_a_real_page(self):
+        url = reverse('holding-detail', args=[self.fund.pk])
+        for page in ('abc', '99', '-1'):
+            self.assertEqual(self.client.get(url, {'page': page}).status_code, 200)
+
+    def test_one_page_has_no_pager(self):
+        self.assertFalse(self.client.get(reverse('holding-detail', args=[self.fund.pk])).context['is_paginated'])
+
+    def test_the_icon_tile_is_styled_on_this_page(self):
+        self.assertContains(self.client.get(reverse('holding-detail', args=[self.fund.pk])),
+                            'justify-content: center')
+
+    def test_pending_banner_counts_all_pages(self):
+        for i in range(17):
+            HoldingTransaction.objects.create(holding=self.fund, kind='BUY', date=self.today - timedelta(days=i + 1),
+                                              units=None, price=None, amount=D('100'), status='PENDING')
+        response = self.client.get(reverse('holding-detail', args=[self.fund.pk]) + '?page=2')
+        self.assertEqual((response.context['pending_count'], response.context['pending_amount']), (17, D('1700.00')))
+
+    def test_page_queries_do_not_grow_with_history(self):
+        url = reverse('holding-detail', args=[self.fund.pk])
+        self.client.get(url)
+        with CaptureQueriesContext(connection) as few:
+            self.client.get(url)
+        for i in range(30):
+            hs.add_purchase(self.fund, units='1', price='1000', date=self.today - timedelta(days=i + 1))
+        self.client.get(url)
+        with CaptureQueriesContext(connection) as many:
+            self.client.get(url)
+        self.assertEqual(len(many), len(few))
