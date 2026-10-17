@@ -6,13 +6,13 @@
     <div class="col-md-6">
         <div class="card shadow-lg border-0">
             <div class="card-header bg-danger text-white fw-bold py-3">
-                <h1 class="h5 mb-0 text-white fw-bold">Confirm Deletion</h1>
+                <h1 class="h5 mb-0 text-white fw-bold">{% trans "Confirm Deletion" %}</h1>
             </div>
             <div class="card-body p-4">
-                <p>Are you sure you want to delete the category <strong>"{{ object.name }}"</strong>?</p>
+                <p>{% blocktrans with name=object.name %}Are you sure you want to delete the category <strong>"{{ name }}"</strong>?{% endblocktrans %}</p>
                 <div class="alert alert-warning">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    Existing expenses with this category will NOT be deleted, but they will no longer be associated with a valid category in your settings.
+                    {% trans "Existing expenses with this category will NOT be deleted, but they will no longer be associated with a valid category in your settings." %}
                 </div>
                 
                 <form method="post">

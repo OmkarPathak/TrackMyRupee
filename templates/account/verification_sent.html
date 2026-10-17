@@ -16,31 +16,31 @@
                     </div>
                 </div>
                 
-                <h2 class="fw-bold mb-3">Check Your Inbox!</h2>
+                <h2 class="fw-bold mb-3">{% trans "Check Your Inbox!" %}</h2>
                 
                 <p class="text-muted mb-4">
-                    We've sent a verification email to: <br>
+                    {% trans "We've sent a verification email to:" %} <br>
                     <strong>{{ email|default:"your inbox" }}</strong>
                 </p>
                 
                 <p class="small text-muted mb-5">
-                    Please click the link in that email to verify your account and start tracking your finances.
-                    The link will expire in 3 days.
+                    {% trans "Please click the link in that email to verify your account and start tracking your finances.
+                    The link will expire in 3 days." %}
                 </p>
 
                 <div class="d-grid gap-2">
                     <a href="{% url 'account_login' %}" class="btn btn-outline-primary rounded-pill fw-bold">
-                        Back to Login
+                        {% trans "Back to Login" %}
                     </a>
                 </div>
                 
                 <p class="mt-4 mb-0 small text-muted">
-                    Didn't receive the email? <a href="#" id="resend-link" class="text-primary text-decoration-none">Resend Email</a>
+                    {% trans "Didn't receive the email?" %} <a href="#" id="resend-link" class="text-primary text-decoration-none">{% trans "Resend Email" %}</a>
                 </p>
             </div>
             
             <div class="card-footer bg-light border-0 py-3 text-center">
-                <small class="text-muted">Need help? <a href="{% url 'contact' %}" class="text-secondary">Contact Support</a></small>
+                <small class="text-muted">{% trans "Need help?" %} <a href="{% url 'contact' %}" class="text-secondary">{% trans "Contact Support" %}</a></small>
             </div>
         </div>
     </div>
@@ -53,17 +53,17 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">Resend Verification</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold">{% trans "Resend Verification" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <div class="modal-body pb-4">
-                <p class="text-muted small mb-3">Please enter the email address you signed up with:</p>
-                <input type="email" id="manualEmailInput" class="form-control" placeholder="name@example.com">
+                <p class="text-muted small mb-3">{% trans "Please enter the email address you signed up with:" %}</p>
+                <input type="email" id="manualEmailInput" class="form-control" placeholder="{% trans "name@example.com" %}">
                 <div id="modalError" class="text-danger small mt-2 d-none"></div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="confirmResendBtn" class="btn btn-primary">Send Email</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" id="confirmResendBtn" class="btn btn-primary">{% trans "Send Email" %}</button>
             </div>
         </div>
     </div>
@@ -122,7 +122,7 @@
                      // Triggered directly, but failed (e.g. wrong email inferred)
                      // Fallback to modal!
                      modal.show();
-                     modalError.textContent = "Could not identify email completely. Please enter it manually.";
+                     modalError.textContent = "{% trans "Could not identify email completely. Please enter it manually." as js_msg %}{{ js_msg|escapejs }}";
                      modalError.classList.remove('d-none');
                      
                      resendLink.textContent = originalText;
@@ -162,7 +162,7 @@
         confirmBtn.addEventListener('click', function() {
             const email = emailInput.value.trim();
             if (!email) {
-                modalError.textContent = "Please enter an email address.";
+                modalError.textContent = "{% trans "Please enter an email address." as js_msg %}{{ js_msg|escapejs }}";
                 modalError.classList.remove('d-none');
                 return;
             }

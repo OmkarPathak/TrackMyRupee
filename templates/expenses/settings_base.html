@@ -41,11 +41,11 @@
                 <div class="d-flex align-items-center">
                     <i class="bi bi-balloon-heart-fill fs-3 me-3 text-success"></i>
                     <div>
-                        <h5 class="alert-heading fw-bold mb-1">Upgrade Successful!</h5>
-                        <p class="mb-0">Thank you for supporting TrackMyRupee. You now have access to all {{ user.profile.get_tier_display }} features.</p>
+                        <h5 class="alert-heading fw-bold mb-1">{% trans "Upgrade Successful!" %}</h5>
+                        <p class="mb-0">{% blocktrans with tier=user.profile.get_tier_display %}Thank you for supporting TrackMyRupee. You now have access to all {{ tier }} features.{% endblocktrans %}</p>
                     </div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans "Close" %}"></button>
             </div>
             {% endif %}
 

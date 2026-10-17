@@ -1,27 +1,28 @@
 {% extends 'base.html' %}
 
+{% load i18n %}
 {% block content %}
 <div class="row justify-content-center fade-in">
     <div class="col-md-6 col-lg-5">
         <div class="card shadow-lg border-0 mt-5">
             <div class="card-header bg-danger text-white fw-bold py-3">
-                <i class="bi bi-exclamation-octagon-fill me-2"></i> Delete Your Account
+                <i class="bi bi-exclamation-octagon-fill me-2"></i> {% trans "Delete Your Account" %}
             </div>
             <div class="card-body p-4 text-center">
                 <div class="mb-4">
                     <i class="bi bi-person-x-fill text-danger display-1 opacity-25"></i>
                 </div>
                 
-                <h3 class="h4 fw-bold mb-3">Are you absolutely sure?</h3>
+                <h3 class="h4 fw-bold mb-3">{% trans "Are you absolutely sure?" %}</h3>
                 <p class="text-muted mb-4">
-                    This action is permanent and cannot be undone. You will lose access to all your recorded expenses, income, budgets, and subscriptions.
+                    {% trans "This action is permanent and cannot be undone. You will lose access to all your recorded expenses, income, budgets, and subscriptions." %}
                 </p>
 
                 <div class="alert alert-danger text-start">
                     <ul class="mb-0 small">
-                        <li>All financial records will be deleted from our live database (see the Privacy Policy for what we keep).</li>
-                        <li>Account settings and preferences will be removed.</li>
-                        <li>Access to dashboard and analytics will be revoked.</li>
+                        <li>{% trans "All financial records will be deleted from our live database (see the Privacy Policy for what we keep)." %}</li>
+                        <li>{% trans "Account settings and preferences will be removed." %}</li>
+                        <li>{% trans "Access to dashboard and analytics will be revoked." %}</li>
                     </ul>
                 </div>
                 
@@ -29,10 +30,10 @@
                     {% csrf_token %}
                     <div class="d-flex justify-content-center gap-2 mt-4">
                         <a href="{% url 'settings-home' %}" class="btn btn-outline-secondary px-2 w-50 text-nowrap">
-                            Cancel
+                            {% trans "Cancel" %}
                         </a>
                         <button type="submit" class="btn btn-danger px-2 fw-bold w-50 text-nowrap">
-                            Delete Account
+                            {% trans "Delete Account" %}
                         </button>
                     </div>
                 </form>

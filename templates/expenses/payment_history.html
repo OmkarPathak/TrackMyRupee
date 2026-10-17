@@ -98,7 +98,7 @@
                                 <div class="d-flex flex-column">
                                     <span class="fw-bold">{{ payment.tier }} {{ payment.duration|title }}</span>
                                     {% if payment.payment_id %}
-                                        <span class="text-muted" style="font-size: 0.7rem;">PID: {{ payment.payment_id }}</span>
+                                        <span class="text-muted" style="font-size: 0.7rem;">{% trans "PID:" %} {{ payment.payment_id }}</span>
                                     {% endif %}
                                 </div>
                             </td>
@@ -137,7 +137,7 @@
     <!-- Pagination -->
     {% if is_paginated %}
     <div class="mt-4">
-        <nav aria-label="Page navigation">
+        <nav aria-label="{% trans "Page navigation" %}">
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                     <li class="page-item">

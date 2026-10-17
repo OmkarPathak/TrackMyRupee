@@ -669,7 +669,7 @@ async function startPayment(planType) {
         
     } catch (e) {
         console.error(e);
-        alert('Something went wrong. Please try again.');
+        alert("{% trans "Something went wrong. Please try again." as js_msg %}{{ js_msg|escapejs }}");
     }
 }
 </script>

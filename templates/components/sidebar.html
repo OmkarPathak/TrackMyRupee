@@ -291,9 +291,9 @@
                     <span class="input-group-text bg-transparent border-0 pe-2 text-secondary">
                         <i class="bi bi-search fs-5"></i>
                     </span>
-                    <input type="text" id="pageSearchInput" class="form-control bg-transparent border-0 shadow-none ps-1 fs-6" placeholder="{% trans 'Find a page...' %}" autocomplete="off" aria-label="Search pages">
+                    <input type="text" id="pageSearchInput" class="form-control bg-transparent border-0 shadow-none ps-1 fs-6" placeholder="{% trans 'Find a page...' %}" autocomplete="off" aria-label="{% trans "Search pages" %}">
                 </div>
-                <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <div class="modal-body p-2" style="max-height: 380px; overflow-y: auto;" id="pageSearchResults">
                 <div class="text-uppercase text-muted fw-bold px-3 py-2" style="font-size: 0.68rem; letter-spacing: 0.05em;">{% trans "Navigation Links" %}</div>

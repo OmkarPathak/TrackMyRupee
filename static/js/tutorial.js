@@ -2,25 +2,25 @@
 const driver = window.driver?.js?.driver || window.driver;
 
 const desktopSteps = [
-    { element: '#tour-income-card', popover: { title: 'Financial Overview', description: 'Track your Income and Expenses here to see your monthly growth.', side: "bottom", align: 'start' } },
-    { element: '#tour-budget-card', popover: { title: 'Budget Limits', description: 'Visual bars help you stay within your category limits.', side: "top", align: 'start' } },
-    { element: '#nav-expenses', popover: { title: 'Transaction List', description: 'View and manage your detailed transaction history here.', side: "bottom", align: 'start' } },
-    { element: '#global-fab', popover: { title: 'Quick Actions', description: 'Click (+) to instantly add a new Income or Expense.', side: "top", align: 'end' } },
+    { element: '#tour-income-card', popover: { title: gettext('Financial Overview'), description: gettext('Track your Income and Expenses here to see your monthly growth.'), side: "bottom", align: 'start' } },
+    { element: '#tour-budget-card', popover: { title: gettext('Budget Limits'), description: gettext('Visual bars help you stay within your category limits.'), side: "top", align: 'start' } },
+    { element: '#nav-expenses', popover: { title: gettext('Transaction List'), description: gettext('View and manage your detailed transaction history here.'), side: "bottom", align: 'start' } },
+    { element: '#global-fab', popover: { title: gettext('Quick Actions'), description: gettext('Click (+) to instantly add a new Income or Expense.'), side: "top", align: 'end' } },
 ];
 
 const mobileSteps = [
-    { element: '.navbar-toggler', popover: { title: 'Menu & Settings', description: 'Access your Settings, Theme, and other options here.', side: "bottom", align: 'end' } },
-    { element: '#tour-income-card', popover: { title: 'Income', description: 'Track your total monthly income.', side: "bottom", align: 'center' } },
-    { element: '#tour-expenses-card', popover: { title: 'Expenses', description: 'Monitor your total monthly spending.', side: "bottom", align: 'center' } },
-    { element: '#global-fab', popover: { title: 'Add New', description: 'Tap (+) to record a transaction.', side: "top", align: 'end' } },
+    { element: '.navbar-toggler', popover: { title: gettext('Menu & Settings'), description: gettext('Access your Settings, Theme, and other options here.'), side: "bottom", align: 'end' } },
+    { element: '#tour-income-card', popover: { title: gettext('Income'), description: gettext('Track your total monthly income.'), side: "bottom", align: 'center' } },
+    { element: '#tour-expenses-card', popover: { title: gettext('Expenses'), description: gettext('Monitor your total monthly spending.'), side: "bottom", align: 'center' } },
+    { element: '#global-fab', popover: { title: gettext('Add New'), description: gettext('Tap (+) to record a transaction.'), side: "top", align: 'end' } },
 ];
 
 const isMobile = window.innerWidth < 768; // Bootstrap md breakpoint
 
 const onboardingSteps = [
-    { element: '#hero-card', popover: { title: 'Welcome Aboard! 🚀', description: 'This is your starting point. Since you are new, we have simplified things for you.', side: "top", align: 'center' } },
-    { element: '#hero-income-btn', popover: { title: 'Record Income', description: 'Got your salary? Click here to add your first income entry.', side: "bottom", align: 'start' } },
-    { element: '#hero-expense-btn', popover: { title: 'Add Expense', description: 'Spent money on coffee? Click here to log your first expense.', side: "bottom", align: 'end' } },
+    { element: '#hero-card', popover: { title: gettext('Welcome Aboard! 🚀'), description: gettext('This is your starting point. Since you are new, we have simplified things for you.'), side: "top", align: 'center' } },
+    { element: '#hero-income-btn', popover: { title: gettext('Record Income'), description: gettext('Got your salary? Click here to add your first income entry.'), side: "bottom", align: 'start' } },
+    { element: '#hero-expense-btn', popover: { title: gettext('Add Expense'), description: gettext('Spent money on coffee? Click here to log your first expense.'), side: "bottom", align: 'end' } },
 ];
 
 // Global instance to hold the driver
@@ -61,8 +61,8 @@ function startTour(mode = 'standard') {
         steps.push({ 
             element: '#installAppBtn', 
             popover: { 
-                title: 'Install App 📲', 
-                description: 'Add TrackMyRupee to your home screen for a fast, native app experience.', 
+                title: gettext('Install App 📲'), 
+                description: gettext('Add TrackMyRupee to your home screen for a fast, native app experience.'), 
                 side: "bottom", 
                 align: 'end' 
             } 

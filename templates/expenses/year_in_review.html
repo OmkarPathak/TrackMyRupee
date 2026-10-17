@@ -193,9 +193,9 @@
 
 {% if not review_data.has_data %}
 <div class="yir-slide active yir-bg-1">
-    <h1 class="yir-title">We don't have enough data for {{ year }}.</h1>
-    <p class="yir-text">Start tracking this year to see your insights next year!</p>
-    <a href="{% url 'home' %}" class="btn btn-light rounded-pill px-4 py-2 mt-4 fw-bold interactive-element">Back to Dashboard</a>
+    <h1 class="yir-title">{% blocktrans %}We don't have enough data for {{ year }}.{% endblocktrans %}</h1>
+    <p class="yir-text">{% trans "Start tracking this year to see your insights next year!" %}</p>
+    <a href="{% url 'home' %}" class="btn btn-light rounded-pill px-4 py-2 mt-4 fw-bold interactive-element">{% trans "Back to Dashboard" %}</a>
 </div>
 {% else %}
 
@@ -216,24 +216,24 @@
 <!-- Slide 1: Intro -->
 <div class="yir-slide active yir-bg-1" id="slide-0">
     <p class="yir-text mb-0">TrackMyRupee</p>
-    <h1 class="yir-title">Your {{ year }}<br>Wrapped</h1>
-    <p class="yir-text mt-3">Ready to see how you spent your time... and money?</p>
-    <p class="text-white-50 mt-5 small"><i class="bi bi-hand-index-thumb"></i> Tap right to continue</p>
+    <h1 class="yir-title">{% blocktrans %}Your {{ year }}{% endblocktrans %}<br>{% trans "Wrapped" %}</h1>
+    <p class="yir-text mt-3">{% trans "Ready to see how you spent your time... and money?" %}</p>
+    <p class="text-white-50 mt-5 small"><i class="bi bi-hand-index-thumb"></i> {% trans "Tap right to continue" %}</p>
 </div>
 
 <!-- Slide 2: The Big Numbers -->
 <div class="yir-slide yir-bg-2" id="slide-1">
-    <h1 class="yir-title">The Big Picture</h1>
-    <p class="yir-text">Your total tracked earnings:</p>
+    <h1 class="yir-title">{% trans "The Big Picture" %}</h1>
+    <p class="yir-text">{% trans "Your total tracked earnings:" %}</p>
     <span class="yir-highlight" style="color: #1d9e75; -webkit-text-fill-color: #1d9e75;">{{ currency_symbol }}{{ review_data.total_earned|humanize_currency:currency_symbol|translate_digits }}</span>
-    <p class="yir-text mt-2">and tracked {{ review_data.transaction_count|translate_digits }} expenses totaling</p>
+    <p class="yir-text mt-2">{% blocktrans with n=review_data.transaction_count|translate_digits %}and tracked {{ n }} expenses totaling{% endblocktrans %}</p>
     <span class="yir-highlight" style="color: #E05C45; -webkit-text-fill-color: #E05C45;">{{ currency_symbol }}{{ review_data.total_spent|humanize_currency:currency_symbol|translate_digits }}</span>
 </div>
 
 <!-- Slide 3: Top Categories -->
 <div class="yir-slide yir-bg-3" id="slide-2">
-    <h1 class="yir-title">Where did it go?</h1>
-    <p class="yir-text mb-4">Your top 3 spending categories this year:</p>
+    <h1 class="yir-title">{% trans "Where did it go?" %}</h1>
+    <p class="yir-text mb-4">{% trans "Your top 3 spending categories this year:" %}</p>
     
     <div class="d-flex flex-column gap-3 w-100 align-items-center mb-4" style="max-width: 400px; pointer-events: none;">
         {% for cat in review_data.top_categories %}
@@ -242,17 +242,17 @@
             <span class="fs-5">{{ currency_symbol }}{{ cat.total|humanize_currency:currency_symbol|translate_digits }}</span>
         </div>
         {% empty %}
-        <p>No categories tracked.</p>
+        <p>{% trans "No categories tracked." %}</p>
         {% endfor %}
     </div>
 </div>
 
 <!-- Slide 4: Wealth Growth -->
 <div class="yir-slide yir-bg-4" id="slide-3">
-    <h1 class="yir-title">Wealth Growth</h1>
-    <p class="yir-text">You weren't just spending. You were growing.</p>
+    <h1 class="yir-title">{% trans "Wealth Growth" %}</h1>
+    <p class="yir-text">{% trans "You weren't just spending. You were growing." %}</p>
     <span class="yir-highlight text-white">{{ currency_symbol }}{{ review_data.total_invested|humanize_currency:currency_symbol|translate_digits }}</span>
-    <p class="yir-text mt-0">invested in Mutual Funds, FDs, and SIPs.</p>
+    <p class="yir-text mt-0">{% trans "invested in Mutual Funds, FDs, and SIPs." %}</p>
     <div class="text-white opacity-75 mt-4">
         <i class="bi bi-rocket-takeoff-fill display-4"></i>
     </div>
@@ -260,17 +260,17 @@
 
 <!-- Slide 5: Peaks and Valleys -->
 <div class="yir-slide yir-bg-5" id="slide-4">
-    <h1 class="yir-title">Peaks and Valleys</h1>
+    <h1 class="yir-title">{% trans "Peaks and Valleys" %}</h1>
     {% if review_data.highest_month %}
-    <p class="yir-text">You really let loose in</p>
+    <p class="yir-text">{% trans "You really let loose in" %}</p>
     <span class="yir-highlight text-white" style="-webkit-text-fill-color: white;">{{ review_data.highest_month.name }}</span>
-    <p class="yir-text mt-0">spending {{ currency_symbol }}{{ review_data.highest_month.total|humanize_currency:currency_symbol|translate_digits }}</p>
+    <p class="yir-text mt-0">{% blocktrans with amount=review_data.highest_month.total|humanize_currency:currency_symbol|translate_digits cur=currency_symbol %}spending {{ cur }}{{ amount }}{% endblocktrans %}</p>
     {% endif %}
     
     <div class="my-3 border-top w-25 border-white opacity-50"></div>
     
     {% if review_data.lowest_month %}
-    <p class="yir-text">But you were a savings master in</p>
+    <p class="yir-text">{% trans "But you were a savings master in" %}</p>
     <span class="yir-highlight text-white" style="-webkit-text-fill-color: white;">{{ review_data.lowest_month.name }}</span>
     {% endif %}
 </div>
@@ -279,32 +279,32 @@
 <div class="yir-slide yir-bg-6" id="slide-5">
     <div id="share-card" class="interactive-element" style="border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(145deg, #1a1a18, #000);">
         <h3 class="fw-bold mb-0">My {{ year }} Wrapped</h3>
-        <p class="text-white-50 small mb-4">Tracked on TrackMyRupee</p>
+        <p class="text-white-50 small mb-4">{% trans "Tracked on TrackMyRupee" %}</p>
         
         <div class="row g-3 mb-4">
             <div class="col-6">
-                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Total Earned</small>
+                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">{% trans "Total Earned" %}</small>
                 <span class="fs-5 fw-bold" style="color: #1d9e75;">{{ currency_symbol }}{{ review_data.total_earned|humanize_currency:currency_symbol|translate_digits }}</span>
             </div>
             <div class="col-6">
-                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Net Wealth Growth</small>
+                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">{% trans "Net Wealth Growth" %}</small>
                 <span class="fs-5 fw-bold" style="color: #f4a261;">{{ currency_symbol }}{{ review_data.total_invested|humanize_currency:currency_symbol|translate_digits }}</span>
             </div>
             <div class="col-12 mt-3">
-                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Biggest Purchase</small>
+                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">{% trans "Biggest Purchase" %}</small>
                 <div class="d-flex align-items-center gap-2 mt-1">
                     <span class="fs-5 fw-bold">{{ review_data.biggest_expense.amount|humanize_currency:currency_symbol|translate_digits|truncatechars:15 }}</span>
                     <span class="text-white-50 small text-truncate">on {{ review_data.biggest_expense.description|truncatechars:15 }}</span>
                 </div>
             </div>
             <div class="col-12 mt-3">
-                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Total Expenses</small>
+                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">{% trans "Total Expenses" %}</small>
                 <span class="fs-5 fw-bold" style="color: #e05c45;">{{ currency_symbol }}{{ review_data.total_spent|humanize_currency:currency_symbol|translate_digits }}</span>
             </div>
             {% if review_data.goals_completed > 0 %}
             <div class="col-12 mt-2">
                 <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2 fw-bold" style="font-size: 0.75rem;">
-                    <i class="bi bi-trophy-fill me-1"></i> Crushed {{ review_data.goals_completed|translate_digits }} Goals!
+                    <i class="bi bi-trophy-fill me-1"></i> {% blocktrans with n=review_data.goals_completed|translate_digits %}Crushed {{ n }} Goals!{% endblocktrans %}
                 </span>
             </div>
             {% endif %}
@@ -318,10 +318,10 @@
     <!-- Action Buttons -->
     <div class="mt-5 d-flex gap-3 interactive-element" data-html2canvas-ignore="true">
         <button id="download-btn" class="btn btn-light rounded-pill px-4 py-2 fw-bold">
-            <i class="bi bi-download me-2"></i> Save to Gallery
+            <i class="bi bi-download me-2"></i> {% trans "Save to Gallery" %}
         </button>
         <a href="{% url 'home' %}" onclick="if(document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); return false; }" class="btn btn-outline-light rounded-pill px-4 py-2 fw-bold">
-            Exit
+            {% trans "Exit" %}
         </a>
     </div>
 </div>

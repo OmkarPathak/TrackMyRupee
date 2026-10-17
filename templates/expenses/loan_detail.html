@@ -291,7 +291,7 @@
              hx-swap="innerHTML">
             <div class="text-center py-5 text-muted">
                 <div class="spinner-border text-primary mb-2" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden">{% trans "Loading..." %}</span>
                 </div>
                 <p class="small mb-0">{% trans "Loading Amortization Schedule..." %}</p>
             </div>
@@ -304,7 +304,7 @@
              hx-swap="innerHTML">
             <div class="text-center py-5 text-muted">
                 <div class="spinner-border text-primary mb-2" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden">{% trans "Loading..." %}</span>
                 </div>
                 <p class="small mb-0">{% trans "Loading Repayment History..." %}</p>
             </div>
@@ -321,7 +321,7 @@
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 p-4 pb-0">
                     <h5 class="modal-title fw-bold">{% trans "Record Repayment" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
                 </div>
                 <form action="{% url 'loan-repayment-create' loan.uuid %}" method="post">
                     {% csrf_token %}
@@ -379,7 +379,7 @@
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 p-4 pb-0">
                     <h5 class="modal-title fw-bold">{% trans "Update Interest Rate" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
                 </div>
                 <form action="{% url 'loan-rate-update' loan.uuid %}" method="post">
                     {% csrf_token %}

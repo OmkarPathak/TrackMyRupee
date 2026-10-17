@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -138,7 +139,7 @@
         <!-- Header -->
         <div class="email-header">
             <a href="https://trackmyrupee.com" class="brand-name">TrackMyRupee</a>
-            <div class="brand-subtitle">Master Your Money</div>
+            <div class="brand-subtitle">{% trans "Master Your Money" %}</div>
         </div>
 
         <!-- Main Content -->
@@ -152,9 +153,9 @@
             <p class="footer-text">
                 &copy; {% now "Y" %} TrackMyRupee. All rights reserved.<br>
                 You received this email because you signed up for TrackMyRupee.<br>
-                <a href="https://trackmyrupee.com/privacy-policy/" class="footer-link">Privacy Policy</a> • 
-                <a href="https://trackmyrupee.com/terms-of-service/" class="footer-link">Terms of Service</a> •
-                <a href="https://trackmyrupee.com/settings/profile/" class="footer-link">Unsubscribe</a>
+                <a href="https://trackmyrupee.com/privacy-policy/" class="footer-link">{% trans "Privacy Policy" %}</a> • 
+                <a href="https://trackmyrupee.com/terms-of-service/" class="footer-link">{% trans "Terms of Service" %}</a> •
+                <a href="https://trackmyrupee.com/settings/profile/" class="footer-link">{% trans "Unsubscribe" %}</a>
             </p>
         </div>
     </div>

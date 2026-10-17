@@ -87,7 +87,7 @@
 
     <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mt-5 mb-3">
         <h2 class="h5 fw-bold mb-0">{% trans "Purchases and sales" %}</h2>
-        {% if tx_total %}<div class="small text-muted">{{ tx_total|translate_digits }} {% blocktrans count counter=tx_total %}entry{% plural %}entries{% endblocktrans %}</div>{% endif %}
+        {% if tx_total %}<div class="small text-muted">{% blocktrans count counter=tx_total %}{{ counter }} entry{% plural %}{{ counter }} entries{% endblocktrans %}</div>{% endif %}
     </div>
 
     {% if transactions %}

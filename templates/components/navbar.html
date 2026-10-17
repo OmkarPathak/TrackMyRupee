@@ -16,7 +16,7 @@
                       id="notification-badge-mobile"
                       style="top: 5px; right: -5px; font-size: 0.65rem; padding: 0.25em 0.4em;">
                     {% if unread_notifications_count > 9 %}9+{% else %}{{ unread_notifications_count }}{% endif %}
-                    <span class="visually-hidden">New alerts</span>
+                    <span class="visually-hidden">{% trans "New alerts" %}</span>
                 </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0" style="width: 300px; max-height: 80vh; overflow-y: auto;">
@@ -43,7 +43,7 @@
                                     <div>
                                         <p class="mb-0 small fw-bold text-wrap {% if not notification.is_read %}text-primary{% endif %}" style="line-height: 1.2;">{{ notification.title }}</p>
                                         <small class="text-muted d-block text-wrap" style="font-size: 0.7rem;">{{ notification.message|truncatechars:60 }}</small>
-                                        <small class="text-body-tertiary" style="font-size: 0.65rem;">{{ notification.created_at|timesince }} ago</small>
+                                        <small class="text-body-tertiary" style="font-size: 0.65rem;">{% blocktrans with ago=notification.created_at|timesince %}{{ ago }} ago{% endblocktrans %}</small>
                                     </div>
                                 </div>
                             </a>
@@ -58,7 +58,7 @@
             </ul>
         </div>
 
-        <button class="navbar-toggler border-0 shadow-none d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler border-0 shadow-none d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="{% trans "Toggle navigation" %}">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -132,7 +132,7 @@
                               id="notification-badge"
                               style="top: 5px; right: -5px; font-size: 0.65rem; padding: 0.25em 0.4em;">
                             {% if unread_notifications_count > 9 %}9+{% else %}{{ unread_notifications_count }}{% endif %}
-                            <span class="visually-hidden">New alerts</span>
+                            <span class="visually-hidden">{% trans "New alerts" %}</span>
                         </span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0" style="width: 320px; max-height: 480px; overflow-y: auto;">
@@ -159,7 +159,7 @@
                                             <div>
                                                 <p class="mb-0 small fw-bold text-wrap {% if not notification.is_read %}text-primary{% endif %}" style="line-height: 1.2;">{{ notification.title }}</p>
                                                 <small class="text-muted d-block text-wrap" style="font-size: 0.7rem;">{{ notification.message|truncatechars:60 }}</small>
-                                                <small class="text-body-tertiary" style="font-size: 0.65rem;">{{ notification.created_at|timesince }} ago</small>
+                                                <small class="text-body-tertiary" style="font-size: 0.65rem;">{% blocktrans with ago=notification.created_at|timesince %}{{ ago }} ago{% endblocktrans %}</small>
                                             </div>
                                         </div>
                                     </a>
@@ -287,7 +287,7 @@
             <i class="bi bi-plus-circle-fill fs-4 text-primary"></i>
             <h5 class="offcanvas-title fw-bold mb-0" id="addActionsSheetLabel">{% trans "Add New" %}</h5>
         </div>
-        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">
+        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="{% trans "Close" %}">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
@@ -350,7 +350,7 @@
             <img src="{% static 'img/logo.svg' %}" alt="" aria-hidden="true" width="28" height="28" class="rounded-2">
             <h5 class="offcanvas-title fw-bold mb-0" id="moreMenuSheetLabel">TrackMyRupee</h5>
         </div>
-        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">
+        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="{% trans "Close" %}">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
@@ -515,7 +515,7 @@
                         <i class="bi bi-bell-fill text-warning mb-1" style="font-size: 1.5rem;"></i>
                         {% if has_unread_notifications %}
                             <span class="position-absolute top-0 start-50 translate-middle p-1 bg-danger border border-light rounded-circle" style="margin-top: 10px; margin-left: 10px;">
-                                <span class="visually-hidden">New alerts</span>
+                                <span class="visually-hidden">{% trans "New alerts" %}</span>
                             </span>
                         {% endif %}
                         <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Alerts" %}</span>
@@ -567,7 +567,7 @@
             </button>
             <h5 class="offcanvas-title fw-bold mb-0" id="supportLegalSheetLabel">{% trans "Support & Legal" %}</h5>
         </div>
-        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">
+        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="{% trans "Close" %}">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>

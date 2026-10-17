@@ -74,11 +74,11 @@
             {% if show_year_in_review %}
             <div class="mb-4 p-3 bg-body-secondary rounded border border-primary border-opacity-25 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
                 <div>
-                    <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-stars me-2"></i>Year in Review</h6>
-                    <p class="small text-muted mb-0">Replay your {{ year_in_review_year }} financial journey any time.</p>
+                    <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-stars me-2"></i>{% trans "Year in Review" %}</h6>
+                    <p class="small text-muted mb-0">{% blocktrans with year=year_in_review_year %}Replay your {{ year }} financial journey any time.{% endblocktrans %}</p>
                 </div>
                 <div>
-                    <a href="{% url 'year_in_review' year_in_review_year %}" class="btn btn-sm btn-outline-primary rounded-pill text-nowrap">View Wrapped</a>
+                    <a href="{% url 'year_in_review' year_in_review_year %}" class="btn btn-sm btn-outline-primary rounded-pill text-nowrap">{% trans "View Wrapped" %}</a>
                 </div>
             </div>
             {% endif %}

@@ -23,6 +23,7 @@ from django.http import HttpResponse
 from django.urls import include, path
 from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
+from django.views.i18n import JavaScriptCatalog
 from django.views.generic.base import RedirectView
 
 from blog.sitemap import BlogSitemap
@@ -94,6 +95,7 @@ from django.views.generic import RedirectView, TemplateView
 from django.views.decorators.cache import never_cache
 
 urlpatterns = [
+    path('jsi18n/', JavaScriptCatalog.as_view(domain='djangojs'), name='javascript-catalog'),
     path('auth/login/', RedirectView.as_view(pattern_name='account_login', permanent=True)), # Redirect legacy login
     path('accounts/', include('allauth.urls')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

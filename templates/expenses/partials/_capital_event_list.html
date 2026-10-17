@@ -252,11 +252,11 @@
         <!-- Pagination -->
         {% if is_paginated %}
         <div class="card-footer bg-transparent py-3 border-top">
-            <nav aria-label="Capital event pagination">
+            <nav aria-label="{% trans "Capital event pagination" %}">
                 <ul class="pagination justify-content-center mb-0">
                     {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <button type="button" class="page-link" hx-get="{% url 'capital-event-list' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Previous">
+                            <button type="button" class="page-link" hx-get="{% url 'capital-event-list' %}?{% url_replace page=page_obj.previous_page_number %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="{% trans "Previous" %}">
                                 <span aria-hidden="true">&laquo;</span>
                             </button>
                         </li>
@@ -278,7 +278,7 @@
 
                     {% if page_obj.has_next %}
                         <li class="page-item">
-                            <button type="button" class="page-link" hx-get="{% url 'capital-event-list' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="Next">
+                            <button type="button" class="page-link" hx-get="{% url 'capital-event-list' %}?{% url_replace page=page_obj.next_page_number %}" hx-target="#capital-event-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar" aria-label="{% trans "Next" %}">
                                 <span aria-hidden="true">&raquo;</span>
                             </button>
                         </li>

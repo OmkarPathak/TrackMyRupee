@@ -4,7 +4,7 @@
 {% block content %}
 <div class="row justify-content-center fade-in">
     <div class="col-lg-10 col-xl-8">
-        <nav aria-label="breadcrumb" class="mb-3">
+        <nav aria-label="{% trans "breadcrumb" %}" class="mb-3">
             <a href="{% url 'account-detail' account.uuid %}" class="text-decoration-none small">
                 <i class="bi bi-arrow-left me-1"></i>{{ account.name }}
             </a>

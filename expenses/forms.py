@@ -609,7 +609,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
 class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
     SALARY_DATE_CHOICES = [(i, str(i)) for i in range(1, 32)]
     
-    auth_email = forms.EmailField(required=True, label='Email Address')
+    auth_email = forms.EmailField(required=True, label=_('Email Address'))
     first_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     daily_reminder = forms.BooleanField(required=False, label=_('Daily Expense Reminder'), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
@@ -655,7 +655,7 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
             or EmailAddress.objects.filter(email__iexact=email).exclude(user_id=self.instance.id).exists()
         )
         if taken:
-            raise forms.ValidationError("Email already assigned to another account.")
+            raise forms.ValidationError(_("Email already assigned to another account."))
         return email
 
     @property

@@ -11,6 +11,7 @@ from django.core.cache import cache
 from django.core.management import call_command
 from django.http import JsonResponse
 from django.shortcuts import redirect, resolve_url
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.generic import ListView
@@ -116,7 +117,7 @@ def mark_notifications_read(request):
         from django.core.cache import cache
         from ..context_processors import global_badge_data_cache_key
         cache.delete(global_badge_data_cache_key(request.user.id))
-        messages.success(request, "All notifications marked as read.")
+        messages.success(request, _("All notifications marked as read."))
         return redirect('notification-list')
     return redirect('notification-list')
 
@@ -167,7 +168,7 @@ def notification_redirect(request, pk):
         safe_link = get_safe_redirect_url(request, resolved_url, resolve_url('notification-list'))
         return redirect(safe_link)
     except Notification.DoesNotExist:
-        messages.error(request, "Notification not found.")
+        messages.error(request, _("Notification not found."))
         return redirect('notification-list')
 
 @csrf_exempt

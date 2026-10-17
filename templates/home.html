@@ -3,12 +3,12 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=2.2">
-    <script src="{% static 'js/tmr_filter.js' %}?v=1.9" defer></script>
+    <script src="{% static 'js/tmr_filter.js' %}?v=2.0" defer></script>
     {% if show_tutorial %}
     {# Product tour assets only ship when the tour will actually start (new users / ?tour=true). #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
-    <script defer src="{% static 'js/tutorial.js' %}"></script>
+    <script defer src="{% static 'js/tutorial.js' %}?v=1.1"></script>
     {% endif %}
     <script>
         window.tutorialCompleteUrl = "{% url 'complete-tutorial' %}";
@@ -899,7 +899,7 @@
 <!-- PWA Promotion Card (Mobile Only, Non-Standalone) -->
 <div id="pwa-promo-card" class="card shadow-sm border-0 rounded-4 mb-2 mt-4 overflow-hidden nw-animate-in d-md-none" style="display: none !important; background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05)); border: 1px solid rgba(29, 158, 117, 0.2) !important;">
     <div class="card-body p-3 d-flex align-items-center gap-3 position-relative" style="padding-right: 2.75rem !important;">
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" style="font-size: 0.75rem; min-width: 28px; min-height: 28px;" onclick="dismissPwaPromo()" aria-label="Close"></button>
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" style="font-size: 0.75rem; min-width: 28px; min-height: 28px;" onclick="dismissPwaPromo()" aria-label="{% trans "Close" %}"></button>
         <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
             <i class="bi bi-bell-fill fs-4"></i>
         </div>
@@ -1242,7 +1242,7 @@
     <div class="alert alert-primary border-0 shadow-sm d-flex flex-column flex-sm-row align-items-sm-center justify-content-between fade-in mb-4 gap-3 position-relative pe-5" role="alert" style="background-color: rgba(29, 158, 117, 0.06);">
         
         <!-- Dismiss Button -->
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 mt-2 me-2" id="dismiss-yir-btn" aria-label="Close" style="font-size: 0.75rem;"></button>
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 mt-2 me-2" id="dismiss-yir-btn" aria-label="{% trans "Close" %}" style="font-size: 0.75rem;"></button>
 
         <div class="d-flex align-items-center gap-3">
             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
@@ -1824,7 +1824,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="insights-indicators">
                             {% for insight in smart_bullet_insights %}
                                 {% if forloop.counter0|divisibleby:3 %}
-                                    <button class="indicator-dot {% if forloop.first %}active{% endif %}" aria-label="Go to slide"></button>
+                                    <button class="indicator-dot {% if forloop.first %}active{% endif %}" aria-label="{% trans "Go to slide" %}"></button>
                                 {% endif %}
                             {% endfor %}
                         </div>

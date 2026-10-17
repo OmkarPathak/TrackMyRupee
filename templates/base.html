@@ -3,6 +3,7 @@
 <html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
 
 <head>
+    <script src="{% url 'javascript-catalog' %}"></script>
     <script>
         // Analytics must never compete with the app for the connection or the main thread (this matters
         // most on a cold PWA launch over mobile data), so third-party scripts are injected only after the
@@ -390,7 +391,7 @@
                         currentBtn.disabled = true;
 
                         if (Notification.permission === 'denied') {
-                            alert('Notifications are blocked. Please enable them in your browser settings.');
+                            alert("{% trans "Notifications are blocked. Please enable them in your browser settings." as js_msg %}{{ js_msg|escapejs }}");
                             currentBtn.innerHTML = originalContent;
                             currentBtn.disabled = false;
                             return;
@@ -467,9 +468,9 @@
                         }).catch(function (e) {
                             console.error('Subscription failed', e);
                             if (Notification.permission === 'granted' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
-                                alert('To enable notifications on iOS, please "Add to Home Screen" first.');
+                                alert("{% trans "To enable notifications on iOS, please tap ‘Add to Home Screen’ first." as js_msg %}{{ js_msg|escapejs }}");
                             } else {
-                                alert('Push subscription failed. Please ensure you are using a supported browser over HTTPS.');
+                                alert("{% trans "Push subscription failed. Please ensure you are using a supported browser over HTTPS." as js_msg %}{{ js_msg|escapejs }}");
                             }
                             btn.disabled = false;
                             btn.innerHTML = 'Failed';
@@ -825,24 +826,24 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
                 </div>
                 <div class="modal-body text-center pt-0 pb-4">
                     <div class="mb-3 text-primary">
                         <i class="bi bi-apple display-1"></i>
                     </div>
-                    <h5 class="fw-bold mb-3">Install TrackMyRupee</h5>
-                    <p class="text-muted mb-4">Install this app on your iPhone for the best experience.</p>
+                    <h5 class="fw-bold mb-3">{% trans "Install TrackMyRupee" %}</h5>
+                    <p class="text-muted mb-4">{% trans "Install this app on your iPhone for the best experience." %}</p>
 
                     <div
                         class="d-flex align-items-center justify-content-center gap-2 mb-3 text-start bg-body-tertiary p-3 rounded">
                         <i class="bi bi-share fs-4 text-primary"></i>
-                        <span>1. Tap the <strong>Share</strong> button</span>
+                        <span>1. Tap the <strong>{% trans "Share" %}</strong> button</span>
                     </div>
                     <div
                         class="d-flex align-items-center justify-content-center gap-2 text-start bg-body-tertiary p-3 rounded">
                         <i class="bi bi-plus-square fs-4 text-primary"></i>
-                        <span>2. Scroll down and tap <strong>Add to Home Screen</strong></span>
+                        <span>2. Scroll down and tap <strong>{% trans "Add to Home Screen" %}</strong></span>
                     </div>
                 </div>
             </div>
@@ -856,15 +857,15 @@
         style="display: none; z-index: 10000; width: 90%; max-width: 400px;">
         <div class="d-flex align-items-center gap-3">
             <div class="d-flex align-items-center flex-grow-1">
-                <img src="{% static 'img/pwa-icon-512.png' %}" alt="App Icon" class="rounded me-3" width="40"
+                <img src="{% static 'img/pwa-icon-512.png' %}" alt="{% trans "App Icon" %}" class="rounded me-3" width="40"
                     height="40">
                 <div>
-                    <h6 class="mb-0 fw-bold">Get Daily Reminders</h6>
-                    <small class="text-muted">Install to never miss an expense</small>
+                    <h6 class="mb-0 fw-bold">{% trans "Get Daily Reminders" %}</h6>
+                    <small class="text-muted">{% trans "Install to never miss an expense" %}</small>
                 </div>
             </div>
-            <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">Enable</button>
-            <button id="installAppBtn" class="btn btn-primary btn-sm rounded-pill px-3">Install</button>
+            <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">{% trans "Enable" %}</button>
+            <button id="installAppBtn" class="btn btn-primary btn-sm rounded-pill px-3">{% trans "Install" %}</button>
             <button type="button" class="btn-close" onclick="dismissPWAInstall()" aria-label="{% trans 'Close' %}"></button>
         </div>
     </div>
@@ -1457,7 +1458,7 @@
                         {% endif %}
                         {{ message }}
                     </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{% trans "Close" %}"></button>
                 </div>
             </div>
             {% endfor %}
@@ -2200,7 +2201,7 @@
     {% include 'components/cookie_consent.html' %}
 
     {% block scripts %}{% endblock %}
-    <script defer src="{% static 'js/sidebar.js' %}?v=1.2"></script>
+    <script defer src="{% static 'js/sidebar.js' %}?v=1.3"></script>
     {% block extra_body %}{% endblock %}
 
     {% if user.is_authenticated %}
@@ -2210,7 +2211,7 @@
             <div class="modal-content border-0 shadow rounded-4">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold" id="cancelSubscriptionModalLabel">{% trans "Cancel Subscription?" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
                 </div>
                 <div class="modal-body py-4 text-center">
                     <div class="mb-4">
@@ -2258,7 +2259,7 @@
             }
         } catch (e) {
             console.error(e);
-            alert('Request failed');
+            alert("{% trans "Request failed" as js_msg %}{{ js_msg|escapejs }}");
             btn.disabled = false;
             btn.innerHTML = originalText;
         }
@@ -2794,7 +2795,7 @@
                 <div class="pe-4">
                     <h4 class="modal-title fw-bold m-0" id="announcementModalLabel">{{ active_announcement.title }}</h4>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="dismissAnnouncement('{{ active_announcement.id }}')"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}" onclick="dismissAnnouncement('{{ active_announcement.id }}')"></button>
             </div>
 
             <!-- Modal Body -->
@@ -2811,7 +2812,7 @@
 
             <!-- Distinct Footer with Right-Aligned Dismiss & Action Buttons -->
             <div class="modal-footer announcement-modal-footer p-3 px-4 justify-content-end gap-2 border-0">
-                <button type="button" class="btn btn-outline-secondary rounded-3 px-4 fw-medium" data-bs-dismiss="modal" onclick="dismissAnnouncement('{{ active_announcement.id }}')">Dismiss</button>
+                <button type="button" class="btn btn-outline-secondary rounded-3 px-4 fw-medium" data-bs-dismiss="modal" onclick="dismissAnnouncement('{{ active_announcement.id }}')">{% trans "Dismiss" %}</button>
                 {% if active_announcement.cta_link %}
                     <a href="{{ active_announcement.cta_link }}" onclick="dismissAnnouncement('{{ active_announcement.id }}')" class="btn btn-success rounded-3 px-4 fw-semibold d-inline-flex align-items-center gap-1">
                         <span>{{ active_announcement.cta_text|default:"Try it now" }}</span>

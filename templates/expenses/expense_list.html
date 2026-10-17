@@ -3,7 +3,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=2.2">
-    <script src="{% static 'js/tmr_filter.js' %}?v=1.5" defer></script>
+    <script src="{% static 'js/tmr_filter.js' %}?v=2.0" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -276,7 +276,7 @@
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <span>{% trans "Confirm Bulk Delete" %}</span>
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
                 </div>
                 <div class="modal-body py-3">
                     {% trans "Are you sure you want to delete the selected expenses? This action cannot be undone." %}
@@ -298,7 +298,7 @@
 
                     <div class="modal-header border-bottom-0 pb-0">
                         <h5 class="modal-title fw-bold">{% trans "Bulk Edit Expenses" %}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
                     </div>
                     <div class="modal-body text-start py-3">
                         <p class="small text-muted mb-3">{% trans "Select the fields you want to update for all selected records. Leave blank to keep existing values." %}</p>

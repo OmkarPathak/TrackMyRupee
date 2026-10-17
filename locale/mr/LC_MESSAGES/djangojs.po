@@ -1,0 +1,265 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: TrackMyRupee\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-17 10:49+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: TrackMyRupee\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: mr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: static/js/sidebar.js:18 static/js/sidebar.js:19 static/js/sidebar.js:40
+#: static/js/sidebar.js:41
+msgid "Expand sidebar"
+msgstr "साइडबार उघडा"
+
+#: static/js/sidebar.js:27 static/js/sidebar.js:28 static/js/sidebar.js:49
+#: static/js/sidebar.js:50
+msgid "Collapse sidebar"
+msgstr "साइडबार बंद करा"
+
+#: static/js/tmr_filter.js:351 static/js/tmr_filter.js:1278
+#: static/js/tmr_filter.js:1279
+msgid "Salary Cycle"
+msgstr "पगार चक्र"
+
+#: static/js/tmr_filter.js:354 static/js/tmr_filter.js:1283
+#: static/js/tmr_filter.js:1284
+msgid "Previous Cycle"
+msgstr "मागील चक्र"
+
+#: static/js/tmr_filter.js:357 static/js/tmr_filter.js:1288
+#: static/js/tmr_filter.js:1289
+msgid "Calendar Month"
+msgstr "कॅलेंडर महिना"
+
+#: static/js/tmr_filter.js:363 static/js/tmr_filter.js:1042
+#: static/js/tmr_filter.js:1122 static/js/tmr_filter.js:1299
+msgid "This month"
+msgstr "या महिन्यात"
+
+#: static/js/tmr_filter.js:365 static/js/tmr_filter.js:1135
+#: static/js/tmr_filter.js:1301
+msgid "Last month"
+msgstr "मागील महिना"
+
+#: static/js/tmr_filter.js:369 static/js/tmr_filter.js:1068
+#: static/js/tmr_filter.js:1161 static/js/tmr_filter.js:1293
+#: static/js/tmr_filter.js:1305
+msgid "This year"
+msgstr "या वर्षी"
+
+#: static/js/tmr_filter.js:371 static/js/tmr_filter.js:1081
+#: static/js/tmr_filter.js:1174 static/js/tmr_filter.js:1295
+#: static/js/tmr_filter.js:1307
+msgid "All time"
+msgstr "संपूर्ण कालावधी"
+
+#: static/js/tmr_filter.js:378
+msgid "Time period"
+msgstr "कालावधी"
+
+#: static/js/tmr_filter.js:478
+msgid "Clear all"
+msgstr "सर्व काढा"
+
+#: static/js/tmr_filter.js:646
+msgid "Search filters..."
+msgstr "फिल्टर शोधा..."
+
+#: static/js/tmr_filter.js:716 static/js/tmr_filter.js:731
+#, javascript-format
+msgid "Search %s..."
+msgstr "%s शोधा..."
+
+#: static/js/tmr_filter.js:718
+msgid "Loading options..."
+msgstr "पर्याय लोड होत आहेत..."
+
+#: static/js/tmr_filter.js:737
+msgid "Clear"
+msgstr "काढा"
+
+#: static/js/tmr_filter.js:738
+msgid "Done"
+msgstr "झाले"
+
+#: static/js/tmr_filter.js:820
+msgid "Inactive"
+msgstr "निष्क्रिय"
+
+#: static/js/tmr_filter.js:916 static/js/tmr_filter.js:1094
+#: static/js/tmr_filter.js:1186
+msgid "Custom range"
+msgstr "सानुकूल कालावधी"
+
+#: static/js/tmr_filter.js:983
+msgid "SALARY CYCLE"
+msgstr "पगार चक्र"
+
+#: static/js/tmr_filter.js:985
+msgid "Edit salary date in settings"
+msgstr "सेटिंग्जमध्ये पगाराची तारीख बदला"
+
+#: static/js/tmr_filter.js:1004
+msgid "Current cycle"
+msgstr "सध्याचे चक्र"
+
+#: static/js/tmr_filter.js:1018
+msgid "Previous cycle"
+msgstr "मागील चक्र"
+
+#: static/js/tmr_filter.js:1030
+msgid "CALENDAR"
+msgstr "कॅलेंडर"
+
+#: static/js/tmr_filter.js:1055 static/js/tmr_filter.js:1148
+msgid "Last 3 months"
+msgstr "मागील 3 महिने"
+
+#: static/js/tmr_filter.js:1083 static/js/tmr_filter.js:1176
+msgid "Every transaction"
+msgstr "प्रत्येक व्यवहार"
+
+#: static/js/tmr_filter.js:1105
+msgid "TIME PERIOD"
+msgstr "कालावधी"
+
+#: static/js/tmr_filter.js:1107
+msgid "Set salary payday in settings"
+msgstr "सेटिंग्जमध्ये पगाराचा दिवस ठरवा"
+
+#: static/js/tmr_filter.js:1108
+msgid "Set Payday"
+msgstr "पगाराचा दिवस ठरवा"
+
+#: static/js/tmr_filter.js:1202
+msgid "From"
+msgstr "पासून"
+
+#: static/js/tmr_filter.js:1211
+msgid "Cancel"
+msgstr "रद्द करा"
+
+#: static/js/tmr_filter.js:1212
+msgid "Apply"
+msgstr "लागू करा"
+
+#: static/js/tmr_filter.js:1400
+msgid "Amount, highest"
+msgstr "रक्कम, सर्वाधिक"
+
+#: static/js/tmr_filter.js:1401
+msgid "Amount, lowest"
+msgstr "रक्कम, सर्वात कमी"
+
+#: static/js/tutorial.js:5
+msgid "Financial Overview"
+msgstr "आर्थिक आढावा"
+
+#: static/js/tutorial.js:5
+msgid "Track your Income and Expenses here to see your monthly growth."
+msgstr "तुमचे उत्पन्न आणि खर्च येथे ट्रॅक करा आणि तुमची मासिक प्रगती पहा."
+
+#: static/js/tutorial.js:6
+msgid "Budget Limits"
+msgstr "बजेट मर्यादा"
+
+#: static/js/tutorial.js:6
+msgid "Visual bars help you stay within your category limits."
+msgstr "या पट्ट्या तुम्हाला तुमच्या श्रेणीच्या मर्यादेत राहण्यास मदत करतात."
+
+#: static/js/tutorial.js:7
+msgid "Transaction List"
+msgstr "व्यवहार यादी"
+
+#: static/js/tutorial.js:7
+msgid "View and manage your detailed transaction history here."
+msgstr "तुमचा संपूर्ण व्यवहार इतिहास येथे पहा आणि सांभाळा."
+
+#: static/js/tutorial.js:8
+msgid "Quick Actions"
+msgstr "जलद कृती"
+
+#: static/js/tutorial.js:8
+msgid "Click (+) to instantly add a new Income or Expense."
+msgstr "नवीन उत्पन्न किंवा खर्च लगेच जोडण्यासाठी (+) दाबा."
+
+#: static/js/tutorial.js:12
+msgid "Menu & Settings"
+msgstr "मेनू आणि सेटिंग्ज"
+
+#: static/js/tutorial.js:12
+msgid "Access your Settings, Theme, and other options here."
+msgstr "तुमची सेटिंग्ज, थीम आणि इतर पर्याय येथे पहा."
+
+#: static/js/tutorial.js:13
+msgid "Income"
+msgstr "उत्पन्न"
+
+#: static/js/tutorial.js:13
+msgid "Track your total monthly income."
+msgstr "तुमचे एकूण मासिक उत्पन्न पहा."
+
+#: static/js/tutorial.js:14
+msgid "Expenses"
+msgstr "खर्च"
+
+#: static/js/tutorial.js:14
+msgid "Monitor your total monthly spending."
+msgstr "तुमचा एकूण मासिक खर्च पहा."
+
+#: static/js/tutorial.js:15
+msgid "Add New"
+msgstr "नवीन जोडा"
+
+#: static/js/tutorial.js:15
+msgid "Tap (+) to record a transaction."
+msgstr "व्यवहार नोंदवण्यासाठी (+) दाबा."
+
+#: static/js/tutorial.js:21
+msgid "Welcome Aboard! 🚀"
+msgstr "स्वागत आहे! 🚀"
+
+#: static/js/tutorial.js:21
+msgid ""
+"This is your starting point. Since you are new, we have simplified things "
+"for you."
+msgstr ""
+"येथून सुरुवात होते. तुम्ही नवीन आहात, म्हणून आम्ही गोष्टी तुमच्यासाठी सोप्या"
+" ठेवल्या आहेत."
+
+#: static/js/tutorial.js:22
+msgid "Record Income"
+msgstr "उत्पन्न नोंदवा"
+
+#: static/js/tutorial.js:22
+msgid "Got your salary? Click here to add your first income entry."
+msgstr "पगार मिळाला? तुमची पहिली उत्पन्नाची नोंद करण्यासाठी येथे दाबा."
+
+#: static/js/tutorial.js:23
+msgid "Add Expense"
+msgstr "खर्च जोडा"
+
+#: static/js/tutorial.js:23
+msgid "Spent money on coffee? Click here to log your first expense."
+msgstr "कॉफीवर पैसे खर्च केले? तुमचा पहिला खर्च नोंदवण्यासाठी येथे दाबा."
+
+#: static/js/tutorial.js:64
+msgid "Install App 📲"
+msgstr "ॲप इन्स्टॉल करा 📲"
+
+#: static/js/tutorial.js:65
+msgid ""
+"Add TrackMyRupee to your home screen for a fast, native app experience."
+msgstr "जलद, ॲपसारख्या अनुभवासाठी TrackMyRupee तुमच्या होम स्क्रीनवर जोडा."

@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}Toasts for Django messages queued by an HTMX request: the list partial replaces only the list, so the messages are swapped into the page's toast container out-of-band.{% endcomment %}
 {% if messages and request.META.HTTP_HX_REQUEST or messages and request.headers.hx_request %}
 <div id="django-messages-toast-container" hx-swap-oob="beforeend">
@@ -15,7 +16,7 @@
                 {% endif %}
                 {{ message }}
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{% trans "Close" %}"></button>
         </div>
     </div>
     {% endfor %}

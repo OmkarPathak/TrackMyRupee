@@ -938,17 +938,17 @@
                         <div class="understood-amt" id="resAmount">₹450</div>
                     </div>
                     <div class="understood-tags">
-                        <span class="understood-tag" id="resCategoryTag">Food & Dining</span>
+                        <span class="understood-tag" id="resCategoryTag">{% trans "Food & Dining" %}</span>
                         <span class="understood-tag" id="resAccountTag">SBI</span>
-                        <span class="understood-tag" id="resDateTag">Today</span>
+                        <span class="understood-tag" id="resDateTag">{% trans "Today" %}</span>
                     </div>
                     <button type="button" class="understood-edit-link" id="editParsedLink">{% trans "Edit" %}</button>
                     
                     <!-- Inline edit fields (hidden by default) -->
                     <div id="inlineEditBox" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--tmr-border);">
                         <div class="form-group mb-2">
-                            <input type="text" class="quick-add-input mb-2" id="editDescInput" placeholder="Description">
-                            <input type="text" inputmode="numeric" class="quick-add-input mb-2" id="editAmountInput" placeholder="Amount">
+                            <input type="text" class="quick-add-input mb-2" id="editDescInput" placeholder="{% trans "Description" %}">
+                            <input type="text" inputmode="numeric" class="quick-add-input mb-2" id="editAmountInput" placeholder="{% trans "Amount" %}">
                             <select class="quick-add-input mb-2" id="editCategorySelect">
                                 {% for cat in categories %}
                                 <option value="{{ cat }}">{{ cat }}</option>
@@ -984,7 +984,7 @@
 
                 {% include 'components/reminder_optin.html' with variant='onboarding' %}
 
-                <div class="checklist-section-title" id="checklistHeader">NEXT STEPS · 1 OF 6 DONE</div>
+                <div class="checklist-section-title" id="checklistHeader">{% trans "NEXT STEPS · 1 OF 6 DONE" %}</div>
                 <div class="checklist-progress-bar">
                     <div class="checklist-progress-fill" id="checklistProgressFill" style="width: 16%;"></div>
                 </div>

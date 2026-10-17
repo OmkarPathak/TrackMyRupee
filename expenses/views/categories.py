@@ -205,7 +205,7 @@ class CategoryUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
             ph_capture(self.request.user, 'category_updated', {})
             return response
         except IntegrityError:
-            messages.error(self.request, "This category already exists.")
+            messages.error(self.request, _("This category already exists."))
             return self.form_invalid(form)
 
 class CategoryDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):

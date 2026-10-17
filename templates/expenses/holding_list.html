@@ -102,7 +102,7 @@
                                     <td class="ps-4">
                                         <a href="{% url 'holding-detail' h.pk %}" class="fw-bold text-body-emphasis text-decoration-none tmr-truncate d-block" title="{{ h.instrument_name }}">{{ h.instrument_name }}</a>
                                         {% if h.scheme_code %}
-                                            <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.7rem;">AMFI Code: {{ h.scheme_code }}</span>
+                                            <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.7rem;">{% trans "AMFI Code:" %} {{ h.scheme_code }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -117,7 +117,7 @@
                                             {% if val %}
                                                 <span class="fw-bold text-success">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</span>
                                                 {% if val.unit_nav %}
-                                                    <div class="small text-muted" style="font-size: 0.75rem;">NAV: {{ h.currency }}{{ val.unit_nav|translate_digits }}</div>
+                                                    <div class="small text-muted" style="font-size: 0.75rem;">{% trans "NAV:" %} {{ h.currency }}{{ val.unit_nav|translate_digits }}</div>
                                                 {% endif %}
                                             {% else %}
                                                 <span class="fw-bold text-body-emphasis">{{ h.currency }}{{ h.cost_basis|ind_comma:h.currency|translate_digits }}</span>
@@ -232,14 +232,14 @@
                             <div class="d-flex align-items-end justify-content-between pt-2 border-top mt-1" style="font-size: 0.82rem;">
                                 <div class="text-body-secondary">
                                     <div><span class="fw-semibold text-body-emphasis">{{ h.units|ind_comma|translate_digits }}</span> {% trans "units" %}</div>
-                                    <div class="small opacity-75">Avg: {{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</div>
+                                    <div class="small opacity-75">{% trans "Avg:" %} {{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</div>
                                 </div>
                                 <div class="text-end">
                                     {% with val=h.valuations.all.0 %}
                                         {% if val %}
                                             <div class="fw-bold text-success fs-6">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</div>
                                             {% if val.unit_nav %}
-                                                <div class="small text-muted" style="font-size: 0.72rem;">NAV: {{ h.currency }}{{ val.unit_nav|translate_digits }}</div>
+                                                <div class="small text-muted" style="font-size: 0.72rem;">{% trans "NAV:" %} {{ h.currency }}{{ val.unit_nav|translate_digits }}</div>
                                             {% endif %}
                                         {% else %}
                                             <div class="fw-bold text-body-emphasis fs-6">{{ h.currency }}{{ h.cost_basis|ind_comma:h.currency|translate_digits }}</div>
@@ -282,7 +282,7 @@
                 {% csrf_token %}
                 <div class="modal-header border-bottom">
                     <h5 class="modal-title fw-bold" id="addHoldingModalLabel">{% trans "Add Investment / Holding" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">

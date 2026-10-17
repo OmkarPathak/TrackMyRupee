@@ -3,7 +3,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=2.2">
-    <script src="{% static 'js/tmr_filter.js' %}?v=1.5" defer></script>
+    <script src="{% static 'js/tmr_filter.js' %}?v=2.0" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -167,7 +167,7 @@
                 </div>
                 <h3 class="fw-bold mb-3" id="limitReachedModalLabel">{% trans "Subscription Limit Reached" %}</h3>
                 <p class="text-muted mb-4">
-                    You have reached the free limit of <strong>{{ limit }}</strong> subscriptions for your current plan. Upgrade to unlock more slots and keep your finances on track.
+                    {% blocktrans %}You have reached the free limit of <strong>{{ limit }}</strong> subscriptions for your current plan. Upgrade to unlock more slots and keep your finances on track.{% endblocktrans %}
                 </p>
                 <div class="d-grid gap-2">
                     <a href="{% url 'pricing' %}" class="btn btn-primary btn-lg rounded-pill fw-bold">

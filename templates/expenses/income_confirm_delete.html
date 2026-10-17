@@ -9,9 +9,9 @@
                 <div class="mb-3 text-warning">
                     <i class="bi bi-exclamation-circle display-1"></i>
                 </div>
-                <h1 class="h4 card-title fw-bold mb-3">Delete Income?</h1>
+                <h1 class="h4 card-title fw-bold mb-3">{% trans "Delete Income?" %}</h1>
                 <p class="text-muted mb-4">
-                    Are you sure you want to delete this income record?<br>
+                    {% trans "Are you sure you want to delete this income record?" %}<br>
                     <strong>{{ object.source }} - {{ currency_symbol }}{{ object.amount }} on {{ object.date }}</strong>
                 </p>
                 
