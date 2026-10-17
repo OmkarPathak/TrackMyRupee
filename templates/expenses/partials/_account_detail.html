@@ -371,7 +371,7 @@
                                 </td>
                                 <td>
                                     {% if item.row_badge %}
-                                    <span class="badge-soft badge-soft-{{ item.row_badge_variant }} text-nowrap d-inline-block text-truncate" style="max-width: 190px;" title="{{ item.row_badge }}">
+                                    <span class="badge-soft badge-soft-{{ item.row_badge_variant }} text-nowrap d-inline-block text-truncate" style="max-width: 260px;" title="{{ item.row_badge }}">
                                         {% if item.transaction_type == 'EXPENSE' %}<i class="bi {% category_icon item.category user %} me-1"></i>{% elif item.transaction_type == 'INCOME' %}<i class="bi bi-wallet2 me-1"></i>{% elif item.row_kind == 'transfer' %}<i class="bi bi-arrow-left-right me-1"></i>{% elif item.row_kind == 'savings' %}<i class="bi bi-piggy-bank me-1"></i>{% elif item.row_kind == 'loan' %}<i class="bi bi-shield-lock me-1"></i>{% else %}<i class="bi bi-flag me-1"></i>{% endif %}{{ item.row_badge }}
                                     </span>
                                     {% endif %}
