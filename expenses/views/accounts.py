@@ -31,6 +31,7 @@ from ..account_valuation import (
     get_current_insurance_surrender,
     get_interest_summary,
     get_premiums_paid,
+    holdings_cash_summary,
     is_protection_policy,
     premiums_paid_by_asset,
 )
@@ -1593,6 +1594,10 @@ class AccountDetailView(LoginRequiredMixin, View):
 
         context = {
             'account': account,
+            'cash_summary': (
+                holdings_cash_summary([account]).get(account.id)
+                if strategy_for(account.account_type) == STRATEGY.HOLDINGS and account.is_active else None
+            ),
             'has_nav_funds': (
                 strategy_for(account.account_type) == STRATEGY.HOLDINGS and account.is_active
                 and account.holdings.filter(is_active=True).exclude(scheme_code__isnull=True).exclude(scheme_code='').exists()
@@ -2175,7 +2180,8 @@ class HoldingDetailView(LoginRequiredMixin, View):
         if holding.scheme_code and holding.transactions.filter(status='PENDING').exists():
             hs.resolve_pending(holding=holding)       # the NAV may have been published since
             holding.refresh_from_db()
-        transactions = list(holding.transactions.select_related('transfer__from_account').order_by('-date', '-id'))
+        transactions = list(holding.transactions.select_related(
+            'transfer__from_account', 'realized_income', 'realized_loss').order_by('-date', '-id'))
         pending = [tx for tx in transactions if tx.status == 'PENDING']
         latest = holding.valuations.first()
         units = holding.units or Decimal('0')
@@ -2199,6 +2205,10 @@ class HoldingDetailView(LoginRequiredMixin, View):
             'has_feed': bool(holding.scheme_code),
             'pending_count': len(pending), 'pending_amount': sum((tx.amount for tx in pending), Decimal('0')),
             'has_estimates': any(tx.status == 'ESTIMATED' for tx in transactions),
+            'realized': sum(((tx.realized_income.amount if tx.realized_income_id else Decimal('0'))
+                             - (tx.realized_loss.amount if tx.realized_loss_id else Decimal('0'))
+                             for tx in transactions if tx.kind == 'SELL'), Decimal('0')),
+            'has_sales': any(tx.kind == 'SELL' for tx in transactions),
         })
 
 
@@ -2234,6 +2244,40 @@ def holding_buy_view(request, pk):
         messages.success(request, _("Purchase added to '%(name)s'.") % {'name': holding.instrument_name})
         ph_capture(request.user, 'holding_purchase_added', {'from_transfer': bool(transfer)})
     return redirect(_holding_detail_url(holding))
+
+
+@require_POST
+def holding_sell_view(request, pk):
+    """Sell units of a holding: the money stays in the account as cash, the profit or loss goes in its ledger."""
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+
+    from .. import holdings_service as hs
+
+    holding = _holding_for(request, pk)
+    fields = _post_purchase_fields(request)
+    fields.pop('before_cutoff', None)
+    try:
+        tx = hs.add_sale(holding, note=request.POST.get('note', '').strip(), **fields)
+    except hs.HoldingError as exc:
+        messages.error(request, str(exc))
+        return redirect(_holding_detail_url(holding))
+    tx.refresh_from_db()
+    cur = holding.currency
+    if tx.realized_income_id:
+        result = _("a profit of %(amount)s is recorded as Investment Returns income") % {
+            'amount': f'{cur}{tx.realized_income.amount:,.2f}'}
+    elif tx.realized_loss_id:
+        result = _("a loss of %(amount)s is recorded as a capital event") % {'amount': f'{cur}{tx.realized_loss.amount:,.2f}'}
+    else:
+        result = _("it sold at your average cost, so no profit or loss is recorded")
+    messages.success(request, _("Sold from '%(name)s': %(amount)s is now cash in %(account)s, and %(result)s.") % {
+        'name': holding.instrument_name, 'amount': f'{cur}{tx.amount:,.2f}', 'account': holding.account.name,
+        'result': result})
+    ph_capture(request.user, 'holding_sold', {})
+    holding.refresh_from_db()
+    # a fully sold holding leaves the list; go back to the list rather than to a page that no longer exists
+    return redirect(_holding_detail_url(holding) if holding.is_active else reverse('holding-list'))
 
 
 @require_POST
@@ -2342,6 +2386,18 @@ class HoldingsListView(LoginRequiredMixin, ListView):
         context['unrealized_gain'] = unrealized_gain
         context['gain_pct'] = gain_pct
         context['user_currency'] = self.request.user.profile.currency
+        cash_accounts = list(Account.objects.filter(
+            user=self.request.user, is_active=True, account_type__in=holdings_codes()).order_by('name'))
+        cash = holdings_cash_summary(cash_accounts)
+        cash_rows, total_cash = [], Decimal('0.00')
+        for acct in cash_accounts:
+            info = cash[acct.id]
+            if info['uninvested'] or info['shortfall']:
+                cash_rows.append({'account': acct, **info})
+            total_cash += to_user_currency(info['uninvested'], acct.currency)
+        context['cash_rows'] = cash_rows
+        context['total_cash'] = total_cash
+        context['total_with_cash'] = total_valuation + total_cash
         context['user_accounts'] = Account.objects.filter(
             user=self.request.user,
             is_active=True,

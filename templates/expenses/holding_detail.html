@@ -29,6 +29,10 @@
                 <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>{% trans "Update value" %}
             </button>
             {% endif %}
+            <button type="button" class="btn btn-action-outline" data-bs-toggle="modal" data-bs-target="#purchaseModal"
+                    data-mode="sell" data-url="{% url 'holding-sell' holding.pk %}">
+                <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{% trans "Sell" %}
+            </button>
             <button type="button" class="btn btn-primary rounded-pill px-3 fw-semibold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#purchaseModal"
                     data-mode="add" data-url="{% url 'holding-buy' holding.pk %}">
                 <i class="bi bi-plus-lg" aria-hidden="true"></i><span>{% trans "Buy more" %}</span>
@@ -71,7 +75,7 @@
                     {% if gain >= 0 %}+{% endif %}{{ holding.currency }}{{ gain|ind_comma:holding.currency|translate_digits }}
                     <span class="fs-6 fw-semibold ms-1">({{ gain_pct|translate_digits }}%)</span>
                 </div>
-                <div class="small text-muted">{% trans "Value minus invested" %}</div>
+                <div class="small text-muted">{% if has_sales %}{% trans "Realised from sales" %}: {% if realized >= 0 %}+{% endif %}{{ holding.currency }}{{ realized|ind_comma:holding.currency|translate_digits }}{% else %}{% trans "Value minus invested" %}{% endif %}</div>
             </div>
         </div>
     </div>
@@ -96,11 +100,13 @@
                         {% for tx in transactions %}
                         <tr>
                             <td class="ps-4 text-nowrap">{{ tx.date|date:"d M Y"|translate_digits }}</td>
-                            <td class="text-end tmr-amount">{% if tx.units is None %}&mdash;{% else %}{{ tx.units|floatformat:'-4'|translate_digits }}{% endif %}{% include 'expenses/partials/_holding_purchase_status.html' %}</td>
+                            <td class="text-end tmr-amount">{% if tx.kind == 'SELL' %}<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle me-1">{% trans "Sold" %}</span>{% endif %}{% if tx.units is None %}&mdash;{% else %}{{ tx.units|floatformat:'-4'|translate_digits }}{% endif %}{% include 'expenses/partials/_holding_purchase_status.html' %}</td>
                             <td class="text-end tmr-amount">{% if tx.price is None %}&mdash;{% else %}{{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}</td>
                             <td class="text-end tmr-amount fw-semibold">{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</td>
                             <td class="small">
-                                {% if tx.transfer %}
+                                {% if tx.kind == 'SELL' %}
+                                    {% include 'expenses/partials/_holding_sale_result.html' %}
+                                {% elif tx.transfer %}
                                     <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
                                 {% else %}
                                     <span class="text-muted">{{ tx.note|default:"-" }}</span>
@@ -120,9 +126,11 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="fw-semibold">{{ holding.currency }}{{ tx.amount|ind_comma:holding.currency|translate_digits }}</div>
-                            <div class="small text-muted">{{ tx.date|date:"d M Y"|translate_digits }}{% if tx.units is None %} &middot; {% trans "waiting for NAV" %}{% else %} &middot; {{ tx.units|floatformat:'-4'|translate_digits }} {% trans "units" %} @ {{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}{% include 'expenses/partials/_holding_purchase_status.html' %}</div>
+                            <div class="small text-muted">{{ tx.date|date:"d M Y"|translate_digits }}{% if tx.kind == 'SELL' %} &middot; {% trans "Sold" %}{% endif %}{% if tx.units is None %} &middot; {% trans "waiting for NAV" %}{% else %} &middot; {{ tx.units|floatformat:'-4'|translate_digits }} {% trans "units" %} @ {{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}{% include 'expenses/partials/_holding_purchase_status.html' %}</div>
                             <div class="small mt-1">
-                                {% if tx.transfer %}
+                                {% if tx.kind == 'SELL' %}
+                                    {% include 'expenses/partials/_holding_sale_result.html' %}
+                                {% elif tx.transfer %}
                                     <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
                                 {% elif tx.note %}<span class="text-muted">{{ tx.note }}</span>{% endif %}
                             </div>
@@ -175,7 +183,7 @@
                             <input type="number" step="0.01" min="0" name="amount" id="purchaseAmount" class="form-control rounded-3" data-calc>
                         </div>
                     </div>
-                    <div class="form-text small text-muted mb-3">
+                    <div class="form-text small text-muted mb-3" id="purchaseHint" data-buy="{% trans 'Enter any two; the third is worked out.' %}{% if has_feed %} {% trans 'For a mutual fund you can enter only the amount: the units are then worked out from the NAV.' %}{% endif %}">
                         {% trans "Enter any two; the third is worked out." %}
                         {% if has_feed %}{% trans "For a mutual fund you can enter only the amount: the units are then worked out from the NAV." %}{% endif %}
                     </div>
@@ -263,9 +271,14 @@
             const t = event.relatedTarget;
             if (!t) return;
             const edit = t.dataset.mode === 'edit';
+            const sell = t.dataset.mode === 'sell' || t.dataset.kind === 'SELL';
             $('purchaseForm').action = t.dataset.url;
-            $('purchaseModalLabel').textContent = edit ? '{% trans "Edit purchase" %}' : '{% trans "Buy more" %}';
-            $('purchaseFunding').style.display = edit ? 'none' : '';
+            $('purchaseModalLabel').textContent = sell ? (edit ? '{% trans "Edit sale" %}' : '{% trans "Sell" %}')
+                                                       : (edit ? '{% trans "Edit purchase" %}' : '{% trans "Buy more" %}');
+            $('purchaseFunding').style.display = (edit || sell) ? 'none' : '';
+            if ($('purchaseCutoffBox')) $('purchaseCutoffBox').style.display = sell ? 'none' : '';
+            $('purchaseHint').textContent = sell ? '{% trans "Enter any two of units sold, price per unit and the amount you received." %}'
+                                                 : $('purchaseHint').dataset.buy;
             $('purchaseTransfer').value = '';
             $('purchaseDate').value = t.dataset.date || '{{ today|date:"Y-m-d" }}';
             calc.units.value = t.dataset.units || '';

@@ -235,6 +235,16 @@
                                 {% endif %}
                             </div>
                         </div>
+                    {% elif cash_summary and cash_summary.ledger or cash_summary and cash_summary.cost %}
+                        <div class="pt-2" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
+                            <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary" style="font-size: 0.82rem; column-gap: 1.25rem !important;">
+                                <div><span>{% trans "Invested in holdings:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ account.currency }}{{ cash_summary.cost|ind_comma:account.currency|translate_digits }}</span></div>
+                                <div><span>{% trans "Uninvested cash:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ account.currency }}{{ cash_summary.uninvested|ind_comma:account.currency|translate_digits }}</span></div>
+                            </div>
+                            {% if cash_summary.shortfall %}
+                                <div class="small text-warning-emphasis mt-1"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{% blocktrans with amount=cash_summary.shortfall|ind_comma:account.currency cur=account.currency %}Your holdings cost {{ cur }}{{ amount }} more than the money recorded in this account. A transfer into it may be missing.{% endblocktrans %}</div>
+                            {% endif %}
+                        </div>
                     {% elif account.is_deposit_type or account.has_accrued_value or account.deposit_rate or account.deposit_maturity_date %}
                         <div class="pt-2" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 text-body-secondary" style="font-size: 0.82rem;">

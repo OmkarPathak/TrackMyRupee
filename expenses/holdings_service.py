@@ -132,9 +132,10 @@ def _check_transfer(holding, transfer, amount, exclude_id=None):
 
 
 def recompute(holding_id, removed=False):
-    """Set a holding's units and average cost from its purchases (weighted-average cost). Called whenever a
-    purchase is saved or deleted. With no purchases left (``removed``: its last one just went) the holding
-    is closed. A sale that brings the units to zero closes it too."""
+    """Set a holding's units and average cost from its purchases and sales (weighted-average cost), and keep the
+    ledger entry of each sale's profit or loss in step. Called whenever a purchase is saved or deleted. With no
+    rows left (``removed``: its last one just went) the holding is closed. A sale that brings the units to zero
+    closes it too."""
     from .models import Holding, HoldingTransaction
     from .signals import invalidate_dashboard_cache
 
@@ -142,7 +143,8 @@ def recompute(holding_id, removed=False):
     if holding is None:
         return
     rows = list(HoldingTransaction.objects.filter(holding_id=holding_id, units__isnull=False)
-                .order_by('date', 'id').values('kind', 'units', 'amount'))
+                .order_by('date', 'id').values('id', 'kind', 'date', 'units', 'amount',
+                                               'realized_income_id', 'realized_loss_id'))
     if not rows:
         if removed and not HoldingTransaction.objects.filter(holding_id=holding_id).exists():
             Holding.objects.filter(pk=holding_id).update(units=Decimal('0'), avg_cost=None, is_active=False,
@@ -152,10 +154,13 @@ def recompute(holding_id, removed=False):
     units, cost = Decimal('0'), Decimal('0')
     for row in rows:
         if row['kind'] == 'SELL':
-            if units > 0:
-                sold = min(row['units'], units)
-                cost -= cost / units * sold
-                units -= sold
+            sold = min(row['units'], units) if units > 0 else Decimal('0')
+            cost_out = cost / units * sold if units > 0 else Decimal('0')
+            # what came in minus what the sold units cost; a sale of more than was held is counted as held
+            proceeds = row['amount'] * (sold / row['units']) if row['units'] else Decimal('0')
+            cost -= cost_out
+            units -= sold
+            _sync_realized(holding, row, (proceeds - cost_out).quantize(D2))
         else:
             units += row['units']
             cost += row['amount']
@@ -166,6 +171,86 @@ def recompute(holding_id, removed=False):
         changes['is_active'] = False
     Holding.objects.filter(pk=holding_id).update(**changes)
     invalidate_dashboard_cache(user_id=holding.account.user_id)
+
+
+def _sync_realized(holding, row, realized):
+    """Make the account's ledger carry the profit or loss of one sale: Investment Returns income for a profit, a
+    capital event for a loss, nothing for break-even. What already exists is updated, never duplicated."""
+    from .models import CapitalEvent, HoldingTransaction, Income
+
+    account = holding.account
+    name = holding.instrument_name
+    income = Income.objects.filter(pk=row['realized_income_id']).first() if row['realized_income_id'] else None
+    event = CapitalEvent.objects.filter(pk=row['realized_loss_id']).first() if row['realized_loss_id'] else None
+    if realized > 0:
+        if event:
+            event.delete()
+            event = None
+        if income is None:
+            income = Income.objects.create(
+                user_id=account.user_id, date=row['date'], amount=realized, account=account, currency=account.currency,
+                source='Investment Returns', source_type='Investment Returns',
+                description=_('Profit on selling %(name)s') % {'name': name})
+        elif income.amount != realized or income.date != row['date']:
+            income.amount, income.date = realized, row['date']
+            income.save()
+    elif realized < 0:
+        if income:
+            income.delete()
+            income = None
+        loss = -realized
+        if event is None:
+            event = CapitalEvent.objects.create(
+                user_id=account.user_id, date=row['date'], amount=loss, account=account, currency=account.currency,
+                subtype='other', note=_('Loss on selling %(name)s') % {'name': name})
+        elif event.amount != loss or event.date != row['date']:
+            event.amount, event.date = loss, row['date']
+            event.save()
+    else:
+        if income:
+            income.delete()
+            income = None
+        if event:
+            event.delete()
+            event = None
+    wanted = (income.pk if income else None, event.pk if event else None)
+    if wanted != (row['realized_income_id'], row['realized_loss_id']):
+        HoldingTransaction.objects.filter(pk=row['id']).update(realized_income_id=wanted[0], realized_loss_id=wanted[1])
+
+
+def remove_realized(tx):
+    """Take a sale's profit or loss out of the account's ledger (the links are read fresh from the database)."""
+    from .models import CapitalEvent, HoldingTransaction, Income
+
+    links = HoldingTransaction.objects.filter(pk=tx.pk).values('realized_income_id', 'realized_loss_id').first()
+    if not links:
+        return
+    for model, key in ((Income, 'realized_income_id'), (CapitalEvent, 'realized_loss_id')):
+        if links[key]:
+            for linked in model.objects.filter(pk=links[key]):
+                try:
+                    linked.delete()
+                except Exception:       # the account itself may be going away
+                    pass
+
+
+def _check_units_never_negative(holding, *, replace=None, drop_id=None, add=None):
+    """Raise unless the holding's purchases and sales, in date order, never sell more than is held at that point.
+    ``replace`` = (id, date, kind, units) swaps one row; ``add`` = (date, kind, units) is a row not saved yet."""
+    from .models import HoldingTransaction
+
+    rows = [(r['date'], r['id'], r['kind'], r['units'])
+            for r in HoldingTransaction.objects.filter(holding=holding, units__isnull=False).values('id', 'kind', 'date', 'units')
+            if r['id'] != drop_id and not (replace and r['id'] == replace[0])]
+    if replace:
+        rows.append((replace[1], replace[0], replace[2], replace[3]))
+    if add:
+        rows.append((add[0], 10 ** 12, add[1], add[2]))
+    held = Decimal('0')
+    for _date, _id, kind, units in sorted(rows, key=lambda r: (r[0], r[1])):
+        held += units if kind == 'BUY' else -units
+        if held < Decimal('-0.0000005'):
+            raise HoldingError(_('You cannot sell more units than you hold on that date.'))
 
 
 def ensure_opening(holding):
@@ -234,7 +319,7 @@ def resolve_pending(*, scheme_code=None, holding=None, fetch=True):
             continue
         tx.units, tx.price, tx.nav_date, tx.stamp_duty = terms['units'], terms['price'], terms['nav_date'], terms['stamp_duty']
         tx.status = 'ESTIMATED'
-        tx.save()
+        tx.save(update_fields=['units', 'price', 'nav_date', 'stamp_duty', 'status'])
         done += 1
     return done
 
@@ -256,6 +341,7 @@ def add_purchase(holding, *, date=None, units=None, price=None, amount=None, tra
     with transaction.atomic():
         _check_transfer(holding, transfer, a)
         ensure_opening(holding)
+        _check_units_never_negative(holding, add=(date, 'BUY', u if u is not None else Decimal('0')))
         return HoldingTransaction.objects.create(
             holding=holding, kind='BUY', date=date, units=u, price=p, amount=a, transfer=transfer,
             note=(note or '')[:120], **extra,
@@ -263,12 +349,13 @@ def add_purchase(holding, *, date=None, units=None, price=None, amount=None, tra
 
 
 def update_purchase(tx, *, date=None, units=None, price=None, amount=None, note=None, before_cutoff=None):
-    """Change a purchase. Giving units (or a price) confirms it as you know it from your statement; giving only
-    the amount prices it from the NAV again."""
+    """Change a purchase or a sale. For a purchase, giving units (or a price) confirms it as you know it from
+    your statement; giving only the amount prices it from the NAV again. A sale always needs two of units,
+    price and amount."""
     date = _check_date(date or tx.date)
     cutoff = tx.before_cutoff if before_cutoff is None else before_cutoff
     changes = {}
-    if wants_estimate(units, price, amount):
+    if tx.kind == 'BUY' and wants_estimate(units, price, amount):
         est = estimate_purchase_terms(tx.holding.scheme_code, tx.holding.instrument_name, date, amount, cutoff)
         u, p, a = est['units'], est['price'], est['amount']
         changes = {'status': est['status'], 'nav_date': est['nav_date'], 'stamp_duty': est['stamp_duty']}
@@ -276,20 +363,40 @@ def update_purchase(tx, *, date=None, units=None, price=None, amount=None, note=
         u, p, a = derive_purchase(units, price, amount)
         changes = {'status': 'CONFIRMED'}
     with transaction.atomic():
-        _check_transfer(tx.holding, tx.transfer, a, exclude_id=tx.pk)
+        if tx.kind == 'BUY':
+            _check_transfer(tx.holding, tx.transfer, a, exclude_id=tx.pk)
+        _check_units_never_negative(tx.holding, replace=(tx.pk, date, tx.kind, u if u is not None else Decimal('0')))
         tx.date, tx.units, tx.price, tx.amount, tx.before_cutoff = date, u, p, a, cutoff
         for key, value in changes.items():
             setattr(tx, key, value)
         if note is not None:
             tx.note = note[:120]
-        tx.save()
+        # not the realised profit/loss links: recompute owns them, and a stale copy here would orphan them
+        tx.save(update_fields=['date', 'units', 'price', 'amount', 'before_cutoff', 'status', 'nav_date',
+                               'stamp_duty', 'note'])
     return tx
+
+
+def add_sale(holding, *, date=None, units=None, price=None, amount=None, note=''):
+    """Sell units of a holding. Needs two of units, price per unit and amount received. The money becomes cash
+    in the same account; the profit or loss against the average cost is recorded in the account's ledger."""
+    from .models import HoldingTransaction
+
+    u, p, a = derive_purchase(units, price, amount)
+    date = _check_date(date)
+    with transaction.atomic():
+        ensure_opening(holding)
+        _check_units_never_negative(holding, add=(date, 'SELL', u))
+        return HoldingTransaction.objects.create(
+            holding=holding, kind='SELL', date=date, units=u, price=p, amount=a, note=(note or '')[:120])
 
 
 def delete_purchase(tx):
     """Remove one purchase. A holding keeps at least one; to drop the holding itself, remove the holding."""
     if tx.holding.transactions.count() <= 1:
         raise HoldingError(_('A holding needs at least one purchase. Remove the holding instead.'))
+    if tx.kind == 'BUY' and tx.units is not None:
+        _check_units_never_negative(tx.holding, drop_id=tx.pk)       # a later sale may depend on it
     tx.delete()
 
 

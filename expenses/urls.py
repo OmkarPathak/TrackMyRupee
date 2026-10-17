@@ -79,6 +79,7 @@ urlpatterns = [
     path('holdings/<int:pk>/', views.HoldingDetailView.as_view(), name='holding-detail'),
     path('holdings/<int:pk>/buy/', views.holding_buy_view, name='holding-buy'),
     path('holdings/<int:pk>/rename/', views.holding_rename_view, name='holding-rename'),
+    path('holdings/<int:pk>/sell/', views.holding_sell_view, name='holding-sell'),
     path('holdings/purchases/<int:pk>/edit/', views.holding_purchase_edit_view, name='holding-purchase-edit'),
     path('holdings/purchases/<int:pk>/delete/', views.holding_purchase_delete_view, name='holding-purchase-delete'),
     

@@ -311,6 +311,38 @@ def get_baseline_holdings(account: Account, ledger_balance: Decimal | None = Non
     return baseline_total.quantize(Decimal('0.01'))
 
 
+def holdings_cash_summary(accounts) -> dict:
+    """What an investment account holds besides its holdings, for several accounts with one ledger read and one
+    holdings read: {account_id: {'ledger', 'cost', 'uninvested', 'shortfall'}}, in each account's currency.
+
+    ``uninvested`` is the money in the account that no holding accounts for (ledger balance minus the cost of the
+    holdings), the cash waiting to be invested or left over from a sale. ``shortfall`` is the opposite: the holdings
+    cost more than the money recorded in the account, usually because a transfer into it was never recorded."""
+    from .ledger_read_service import LedgerReadService
+    from .models import Holding
+    from .utils import get_exchange_rate
+
+    accounts = list(accounts)
+    if not accounts:
+        return {}
+    ledger = LedgerReadService.get_account_balances(accounts)
+    currency = {a.id: a.currency for a in accounts}
+    cost = {a.id: Decimal('0.00') for a in accounts}
+    for h in (Holding.objects.filter(account_id__in=list(currency), is_active=True)
+              .values('account_id', 'currency', 'units', 'avg_cost')):
+        value = ((h['units'] or Decimal('0')) * (h['avg_cost'] or Decimal('0'))).quantize(Decimal('0.01'))
+        if h['currency'] and h['currency'] != currency[h['account_id']]:
+            value = (value * get_exchange_rate(h['currency'], currency[h['account_id']])).quantize(Decimal('0.01'))
+        cost[h['account_id']] += value
+    out = {}
+    for a in accounts:
+        bal = Decimal(str(ledger.get(a.id, a.balance)))
+        gap = bal - cost[a.id]
+        out[a.id] = {'ledger': bal, 'cost': cost[a.id], 'uninvested': max(Decimal('0.00'), gap),
+                     'shortfall': max(Decimal('0.00'), -gap)}
+    return out
+
+
 def get_current_holdings(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
     """
     SPEC §2.2 HOLDINGS Current Value:
@@ -356,9 +388,8 @@ def get_current_holdings(account: Account, ledger_balance: Decimal | None = None
         holdings_total += val
         cost_basis_total += cost_val
 
-    # Net uninvested cash: max(0, ledger_balance - cost_basis_total)
-    # Known limitation: redemptions aren't modeled as ledger-posting events,
-    # so fully redeemed holdings return cost basis to uninvested cash approximation.
+    # Net uninvested cash: max(0, ledger_balance - cost_basis_total). A sale puts its proceeds in as cash and
+    # records its profit or loss in the ledger (holdings_service), so what is left here is real cash.
     uninvested_cash = max(Decimal('0.00'), ledger_bal - cost_basis_total)
     return (holdings_total + uninvested_cash).quantize(Decimal('0.01'))
 

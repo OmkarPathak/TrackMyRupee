@@ -1,0 +1,5 @@
+{% load i18n currency_filters digit_filters %}
+{% if tx.realized_income_id %}<span class="text-success fw-semibold">{% trans "Profit" %} +{{ holding.currency }}{{ tx.realized_income.amount|ind_comma:holding.currency|translate_digits }}</span>
+{% elif tx.realized_loss_id %}<span class="text-danger fw-semibold">{% trans "Loss" %} &minus;{{ holding.currency }}{{ tx.realized_loss.amount|ind_comma:holding.currency|translate_digits }}</span>
+{% else %}<span class="text-muted">{% trans "At average cost" %}</span>{% endif %}
+{% if tx.note %}<span class="text-muted">&middot; {{ tx.note }}</span>{% endif %}

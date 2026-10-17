@@ -12,7 +12,7 @@
                     data-url="{% url 'holding-purchase-edit' tx.pk %}" data-date="{{ tx.date|date:'Y-m-d' }}"
                     data-units="{% if tx.units is not None %}{{ tx.units|unlocalize }}{% endif %}" data-price="{% if tx.price is not None %}{{ tx.price|unlocalize }}{% endif %}"
                     data-amount="{{ tx.amount|unlocalize }}" data-note="{{ tx.note }}"
-                    data-cutoff="{% if tx.before_cutoff %}before{% else %}after{% endif %}">
+                    data-cutoff="{% if tx.before_cutoff %}before{% else %}after{% endif %}" data-kind="{{ tx.kind }}">
                 <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>{% trans "Edit" %}
             </button>
         </li>

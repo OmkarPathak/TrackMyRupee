@@ -53,6 +53,28 @@
         </div>
     </div>
 
+    {% if cash_rows %}
+    <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-4" id="uninvestedCash">
+        <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
+            <h2 class="h6 fw-bold mb-0">{% trans "Cash in your investment accounts" %}</h2>
+            {% if total_cash %}<div class="fw-bold">{{ user_currency }}{{ total_cash|ind_comma:user_currency|translate_digits }}</div>{% endif %}
+        </div>
+        <ul class="list-unstyled small mb-2">
+            {% for row in cash_rows %}
+            <li class="d-flex justify-content-between align-items-start gap-3 py-1 {% if not forloop.last %}border-bottom{% endif %}">
+                <a href="{% url 'account-detail' row.account.uuid %}" class="text-decoration-none">{{ row.account.name }}</a>
+                {% if row.shortfall %}
+                    <span class="text-warning-emphasis text-end"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{% blocktrans with amount=row.shortfall|ind_comma:row.account.currency cur=row.account.currency %}Holdings cost {{ cur }}{{ amount }} more than the money recorded in this account. A transfer into it may be missing.{% endblocktrans %}</span>
+                {% else %}
+                    <span class="fw-semibold text-nowrap">{{ row.account.currency }}{{ row.uninvested|ind_comma:row.account.currency|translate_digits }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="small text-muted">{% blocktrans with total=total_with_cash|ind_comma:user_currency cur=user_currency %}Together with your holdings that is {{ cur }}{{ total }}, the figure these accounts add to your net worth.{% endblocktrans %}</div>
+    </div>
+    {% endif %}
+
     <!-- Main Holdings Card Container -->
     <div class="card rounded-4 border-0 shadow-sm" style="border: 1px solid rgba(0,0,0,0.07) !important;">
         <div class="card-header bg-transparent border-0 p-3 p-md-4 d-flex align-items-center justify-content-between">

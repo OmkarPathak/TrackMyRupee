@@ -2996,6 +2996,11 @@ class HoldingTransaction(models.Model):
     transfer = models.ForeignKey('Transfer', null=True, blank=True, on_delete=models.CASCADE,
                                  related_name='holding_allocations')
     note = models.CharField(max_length=120, blank=True, default='')
+    # A sale turns a holding into cash. The ledger of the account only knows money in and out, so the profit (or
+    # loss) of the sale is recorded in it too: as Investment Returns income, or as a capital event. They are kept
+    # in step with the sale by holdings_service.recompute and removed with it.
+    realized_income = models.OneToOneField('Income', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    realized_loss = models.OneToOneField('CapitalEvent', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

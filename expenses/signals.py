@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db.backends.signals import connection_created
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
@@ -341,6 +341,15 @@ def recompute_holding_after_purchase_saved(sender, instance, **kwargs):
         return
     from .holdings_service import recompute
     recompute(instance.holding_id)
+
+
+@receiver(pre_delete, sender=HoldingTransaction)
+def remove_sale_profit_before_delete(sender, instance, **kwargs):
+    """The profit or loss a sale recorded in the ledger leaves with it. Done while the row still exists, because
+    the copy being deleted may be an older one that does not know the links recompute has set since."""
+    if instance.kind == 'SELL':
+        from .holdings_service import remove_realized
+        remove_realized(instance)
 
 
 @receiver(post_delete, sender=HoldingTransaction)

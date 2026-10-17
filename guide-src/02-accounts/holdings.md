@@ -46,7 +46,7 @@ A holding priced from a NAV is always worth **the units you hold now × the late
   $$\text{Total Account Balance} = \sum \left( \text{Units}_i \times \text{Latest Unit NAV}_i \right) + \text{Uninvested Cash}$$
 
 !!! note "Correction applied"
-    Before this fix (August 2026), transferred cash could be double-counted after the related holding was logged. This has been corrected by netting uninvested cash against active holdings cost basis.
+    Before this fix (August 2026), transferred cash could be double-counted after the related holding was logged. This has been corrected by netting uninvested cash against active holdings cost basis. Selling a holding now puts its proceeds in as cash and records the profit or loss in the account (see Selling below), so a sold holding no longer brings its old cost back as cash.
 
 - **Total Cost Basis**
 
@@ -134,6 +134,22 @@ Then **0.005% stamp duty** is taken off the amount and the rest is divided by th
 - Units worked out this way are marked **Estimated**. Your fund house's statement is the final word: the cut-off depends on when the money was actually credited, and a holiday we do not know about can shift the day. Edit the purchase and enter the units from your statement to confirm it. Editing with only the amount prices it from the NAV again.
 - If you enter the units yourself, nothing is estimated and the purchase is **Confirmed**.
 - Stocks, ETFs and gold have no NAV feed, so they always need units.
+
+### Selling
+
+Open the holding and click **Sell**. Enter the date and any two of **Units** sold, **Price / unit** and the **Amount** you received; the third is filled in. You cannot sell more units than you held on that date.
+
+- **The money stays in the account as cash.** It shows up as **Uninvested cash** on the account page and on the Holdings page, ready to be transferred out or reinvested. Move it to your bank with a normal [transfer](../06-transfers/index.md).
+- **The profit or loss is recorded for you.** The average cost of the units you sold is taken off what you received. A profit is added to the account as **Investment Returns** income, and a loss as a capital event, both on the date of the sale, so your net worth keeps the gain after the units are gone. A sale at your average cost records nothing.
+- The units and average cost of what is left are worked out again. Selling every unit closes the holding and removes it from the list.
+- Editing or deleting a sale updates or removes its profit or loss entry. Changing an earlier purchase's price also changes the profit of the sales after it.
+- Exit loads, brokerage and tax are not calculated: enter the amount you actually received.
+
+### Cash in an Investment Account
+
+The page of an investment account shows **Invested in holdings** (what its holdings cost) and **Uninvested cash** (the money in the account that no holding accounts for: a transfer you have not allocated yet, or the proceeds of a sale). The Holdings page adds the same cash for all your investment accounts under **Cash in your investment accounts**, so portfolio value plus cash matches what these accounts add to your net worth.
+
+If the holdings cost **more** than the money recorded in the account, you will see a warning that a transfer into it may be missing: record that transfer so the account is not understated.
 
 ---
 
