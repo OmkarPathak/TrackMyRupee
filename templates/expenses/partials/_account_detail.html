@@ -2,6 +2,16 @@
 
 <div id="account-detail-shell">
     <style>
+        /* Policy / cash details under the balance: label over value in two columns on phones, one wrapping row from tablet up */
+        .acd-specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1rem; font-size: .82rem; }
+        .acd-specs > div { min-width: 0; }
+        .acd-specs > div > span:first-child { display: block; font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; color: var(--bs-secondary-color); margin-bottom: .1rem; }
+        .acd-specs > div > span + span { margin-left: 0 !important; display: block; overflow-wrap: anywhere; line-height: 1.25; }
+        @media (min-width: 768px) {
+            .acd-specs { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; }
+            .acd-specs > div > span:first-child { display: inline; font-size: inherit; letter-spacing: 0; text-transform: none; margin-bottom: 0; }
+            .acd-specs > div > span + span { display: inline; margin-left: .25rem !important; }
+        }
         .hero-action-btn {
             width: 34px;
             height: 34px;
@@ -213,7 +223,7 @@
                         </div>
                     {% elif policy %}
                         <div class="pt-2" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
-                            <div class="d-flex flex-wrap align-items-center gap-x-3 gap-2 text-body-secondary" style="font-size: 0.82rem; column-gap: 1.25rem !important;">
+                            <div class="acd-specs text-body-secondary">
                                 {% if policy.policy_number %}
                                     <div><span>{% trans "Policy No:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.policy_number }}</span></div>
                                 {% endif %}
@@ -223,7 +233,7 @@
                                 {% if policy.policy_start_date %}
                                     <div><span>{% trans "Started:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.policy_start_date|date:"d M Y" }}</span></div>
                                 {% endif %}
-                                <div><span>{% trans "Type:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.get_policy_type_display }}</span></div>
+                                <div><span>{% trans "Type:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{% if policy.policy_type == 'PROTECTION' %}{% trans "Pure protection" %}{% else %}{% trans "Savings / endowment" %}{% endif %}</span></div>
                                 {% if policy.premium_amount %}
                                     <div><span>{% trans "Premium:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ policy.currency }}{{ policy.premium_amount|ind_comma:policy.currency|translate_digits }}{% if policy.premium_frequency %} / {{ policy.get_premium_frequency_display }}{% endif %}</span></div>
                                 {% endif %}
@@ -237,7 +247,7 @@
                         </div>
                     {% elif cash_summary and cash_summary.ledger or cash_summary and cash_summary.cost %}
                         <div class="pt-2" style="border-top: 1px solid rgba(128, 128, 128, 0.12) !important;">
-                            <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary" style="font-size: 0.82rem; column-gap: 1.25rem !important;">
+                            <div class="acd-specs text-body-secondary">
                                 <div><span>{% trans "Invested in holdings:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ account.currency }}{{ cash_summary.cost|ind_comma:account.currency|translate_digits }}</span></div>
                                 <div><span>{% trans "Uninvested cash:" %}</span><span class="fw-semibold text-body-emphasis ms-1">{{ account.currency }}{{ cash_summary.uninvested|ind_comma:account.currency|translate_digits }}</span></div>
                             </div>
@@ -431,8 +441,8 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty-state-container py-5">
-            <div class="mb-4">
+        <div class="empty-state-container d-flex flex-column align-items-center justify-content-center text-center py-5" style="min-height: 340px;">
+            <div class="mb-4 d-flex justify-content-center" style="max-width: 260px; width: 100%;">
                 {% include 'illustrations/empty_generic.svg' %}
             </div>
             <div class="h4 fw-bold text-body-emphasis">
