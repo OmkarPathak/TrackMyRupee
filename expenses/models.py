@@ -1519,9 +1519,6 @@ class RecurringTransaction(models.Model):
     # Transfer-specific fields
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_out', verbose_name=_('From Account'))
     to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers_in', verbose_name=_('To Account'))
-    # A recurring transfer into an investment account can buy a fund each time (a SIP): every instalment is
-    # recorded as a purchase of this holding, priced from the NAV (holdings_service)
-    fund = models.ForeignKey('Holding', on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_transfers', verbose_name=_('Fund'))
 
     frequency = models.CharField(max_length=15, choices=FREQUENCY_CHOICES, verbose_name=_('Frequency'))
     start_date = models.DateField(verbose_name=_('Start Date'))
@@ -3035,6 +3032,21 @@ class Valuation(models.Model):
 
     def __str__(self):
         return f"{self.holding.instrument_name} - {self.value} on {self.as_of_date}"
+
+
+class RecurringFundSplit(models.Model):
+    """How much of a recurring transfer into an investment account buys each fund (a SIP split). Every time the
+    transfer is posted, each row becomes a purchase of its fund; what the rows leave out stays as cash."""
+    recurring = models.ForeignKey('RecurringTransaction', on_delete=models.CASCADE, related_name='fund_splits')
+    holding = models.ForeignKey(Holding, on_delete=models.CASCADE, related_name='recurring_splits')
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+
+    class Meta:
+        ordering = ['id']
+        constraints = [models.UniqueConstraint(fields=['recurring', 'holding'], name='recurring_fund_split_unique')]
+
+    def __str__(self):
+        return f"{self.holding.instrument_name}: {self.amount}"
 
 
 class MarketHoliday(models.Model):

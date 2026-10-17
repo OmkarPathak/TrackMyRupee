@@ -75,7 +75,7 @@ A **Systematic Investment Plan (SIP)** involves transferring a fixed amount regu
 5. Set **From Account** to your liquid bank account (for example, HDFC Salary Account).
 6. Set **To Account** to your investment account (for example, Mutual Funds / Zerodha Coin).
 7. Set **Frequency** to `Monthly` and select your SIP start date.
-8. Under **Fund**, pick the fund each instalment buys (or search for a new one). Every instalment is then recorded as a purchase of that fund, priced from its NAV, so the fund's page shows the SIP instalment by instalment. Leave it empty to record only the transfer.
+8. Under **Buy funds each time**, add a row for every fund the instalment buys and the amount for it, for example ₹15,000 into each of three funds from a ₹45,000 SIP. Every instalment is then recorded as a purchase of each fund, priced from its NAV, so each fund's page shows the SIP instalment by instalment. Leave it empty to record only the transfer.
 9. Click **Save Subscription**.
 
 !!! info "How SIP transfers affect your balance"

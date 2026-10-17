@@ -300,30 +300,10 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         if original and new_type and new_type != original and self.instance.source in ('', original):
             self.instance.source = new_type
 
-class FundSelect(forms.Select):
-    """A select of holdings that tags each option with its account, so the page can show only the funds of the
-    account the money goes into."""
-
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
-        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
-        instance = getattr(value, 'instance', None)
-        if instance is not None:
-            option['attrs']['data-account'] = str(instance.account_id)
-        return option
-
-
 class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
-    fund = forms.ModelChoiceField(
-        queryset=Holding.objects.none(), required=False, label=_('Fund'),
-        widget=FundSelect(attrs={'class': 'form-select'}), empty_label=_('No specific fund'),
-        help_text=_('Each instalment is recorded as a purchase of this fund, priced from its NAV.'),
-    )
-    new_fund_name = forms.CharField(
-        required=False, max_length=255, label=_('Or add a new fund'),
-        widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off',
-                                      'placeholder': _('Type a fund name to search')}),
-    )
-    new_fund_scheme_code = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+    # JSON built by the page: which funds a recurring transfer into an investment account buys, and how much
+    # of each instalment goes to each. Left out of the POST altogether = keep the current split.
+    fund_splits = forms.CharField(required=False, widget=forms.HiddenInput())
     create_historical_entries = forms.BooleanField(
         required=False,
         initial=False,
@@ -338,7 +318,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                   'from_account', 'to_account',
                   'frequency', 'start_date', 'end_date', 'is_last_day_of_month', 'is_last_working_day',
                   'description', 'is_active', 'payment_method',
-                  'capital_subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth', 'fund']
+                  'capital_subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth']
         widgets = {
             'transaction_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleFields()'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -385,18 +365,18 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         self.fields['capital_subtype'].required = False
 
         from .account_types import holdings_codes
-        self.holdings_account_ids = []
+        # {account id: [{'id', 'name'}]} for the accounts that take funds: what the split rows can pick from
+        self.fund_data = {}
+        self.split_rows = None
         if user:
-            self.fields['fund'].queryset = (
-                Holding.objects.filter(account__user=user, is_active=True, account__is_active=True,
-                                       account__account_type__in=holdings_codes())
-                .exclude(scheme_code__isnull=True).exclude(scheme_code='')
-                .select_related('account').order_by('instrument_name')
-            )
-            self.holdings_account_ids = list(
-                Account.objects.filter(user=user, is_active=True, account_type__in=holdings_codes())
-                .values_list('id', flat=True))
-        self.fields['fund'].label_from_instance = lambda h: f'{h.instrument_name} ({h.account.name})'
+            for acct_id in (Account.objects.filter(user=user, is_active=True, account_type__in=holdings_codes())
+                            .values_list('id', flat=True)):
+                self.fund_data[str(acct_id)] = []
+            for h in (Holding.objects.filter(account__user=user, is_active=True, account__is_active=True,
+                                             account__account_type__in=holdings_codes())
+                      .exclude(scheme_code__isnull=True).exclude(scheme_code='').order_by('instrument_name')):
+                self.fund_data.setdefault(str(h.account_id), []).append({'id': h.pk, 'name': h.instrument_name})
+        self.fields['fund_splits'].initial = self._initial_splits_json()
 
         if user:
             self.fields['currency'].initial = user.profile.currency
@@ -492,7 +472,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             if from_account and to_account and from_account == to_account:
                 self.add_error('to_account', _('Source and destination accounts must be different.'))
 
-        self._clean_fund(cleaned_data, transaction_type)
+        self._clean_splits(cleaned_data, transaction_type)
 
         if transaction_type == 'LOAN':
             account = cleaned_data.get('account')
@@ -556,42 +536,39 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
 
         return cleaned_data
 
-    def _clean_fund(self, cleaned_data, transaction_type):
-        """A recurring transfer into an investment account may buy a fund each time (a SIP)."""
-        from .account_types import holdings_codes
-        from .holdings_service import resolve_scheme_code
+    def _initial_splits_json(self):
+        import json
+        if not (self.instance and self.instance.pk):
+            return ''
+        rows = [{'holding_id': sp.holding_id, 'amount': str(sp.amount)} for sp in self.instance.fund_splits.all()]
+        return json.dumps(rows) if rows else ''
 
-        self.new_fund = None
-        fund, new_name = cleaned_data.get('fund'), (cleaned_data.get('new_fund_name') or '').strip()
-        if transaction_type != 'TRANSFER' or not (fund or new_name):
-            cleaned_data['fund'] = None
+    def _clean_splits(self, cleaned_data, transaction_type):
+        """A recurring transfer into an investment account may buy funds each time (a SIP split)."""
+        from .holdings_service import HoldingError, parse_fund_splits
+
+        self.split_rows = None
+        existing = self.instance.fund_splits.all() if self.instance and self.instance.pk else []
+        if transaction_type != 'TRANSFER':
+            self.split_rows = []                      # other types carry no funds
+            return
+        amount = cleaned_data.get('amount')
+        if 'fund_splits' not in self.data:            # the page did not send it: keep what is there
+            if existing and amount is not None and sum(sp.amount for sp in existing) > amount:
+                self.add_error('amount', _('The funds assigned to this transfer add up to more than this amount. Reduce them first.'))
             return
         from_account, to_account = cleaned_data.get('from_account'), cleaned_data.get('to_account')
-        if not to_account or not from_account:
-            return                                  # the transfer's own errors are already reported
-        if to_account.account_type not in holdings_codes():
-            self.add_error('fund', _('Funds can only be assigned when the money goes into a Mutual Fund, Demat, ETF, SGB, ULIP or Gold account.'))
-            return
-        if from_account.currency != to_account.currency:
-            self.add_error('fund', _('A transfer between accounts in different currencies cannot be assigned to a fund.'))
-            return
-        if new_name:
-            code = (cleaned_data.get('new_fund_scheme_code') or '').strip() or resolve_scheme_code(new_name, 'MF')
-            if not code:
-                self.add_error('new_fund_name', _('Pick the fund from the search results so its NAV can be tracked.'))
-                return
-            self.new_fund = {'account': to_account, 'name': new_name, 'scheme_code': code}
-            cleaned_data['fund'] = None
-        elif fund.account_id != to_account.pk:
-            self.add_error('fund', _('That fund is not in the account the money goes into.'))
+        if amount is None or not from_account or not to_account:
+            return                                    # the transfer's own errors are already reported
+        try:
+            self.split_rows = parse_fund_splits(
+                cleaned_data.get('fund_splits'), user=self.user, from_account=from_account, to_account=to_account,
+                amount=amount, recurring=self.instance if self.instance.pk else None)
+        except HoldingError as exc:
+            self.add_error('fund_splits', str(exc))
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        if getattr(self, 'new_fund', None):
-            from .holdings_service import create_empty_holding
-            instance.fund = create_empty_holding(**self.new_fund)
-        elif self.cleaned_data.get('transaction_type') != 'TRANSFER':
-            instance.fund = None
         create_historical = self.cleaned_data.get('create_historical_entries', False)
         today = timezone.localdate()
         if instance.pk:
@@ -621,6 +598,9 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         if commit:
             instance.save()
             self.save_m2m()
+            if self.split_rows is not None:
+                from .holdings_service import apply_fund_splits
+                apply_fund_splits(instance, self.split_rows)
             if create_historical and instance.user:
                 from .views.mixins import process_user_recurring_transactions
                 process_user_recurring_transactions(instance.user, force=True)

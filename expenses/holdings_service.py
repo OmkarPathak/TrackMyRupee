@@ -425,18 +425,90 @@ def create_empty_holding(account, *, name, scheme_code='', isin=''):
     )
 
 
+def parse_fund_splits(raw, *, user, from_account, to_account, amount, recurring=None):
+    """Validate the 'buy these funds each time' rows posted with a recurring transfer: [{"holding_id": 3 | null,
+    "name": "", "scheme_code": "", "amount": "15000"}]. Returns cleaned rows [{'holding', 'name', 'scheme_code',
+    'amount'}] (empty list = no split); raises HoldingError. Nothing is created here."""
+    from .models import Holding
+
+    if raw in (None, '', '[]'):
+        return []
+    try:
+        data = json.loads(raw)
+    except (TypeError, ValueError):
+        raise HoldingError(_('The fund split could not be read. Please try again.')) from None
+    if not isinstance(data, list) or not data:
+        return []
+    if len(data) > MAX_ALLOCATION_ROWS:
+        raise HoldingError(_('You can split a transfer between at most %(n)d funds.') % {'n': MAX_ALLOCATION_ROWS})
+    if to_account is None or from_account is None or to_account.user_id != user.id \
+            or to_account.account_type not in holdings_codes():
+        raise HoldingError(_('Funds can only be assigned when the money goes into a Mutual Fund, Demat, ETF, SGB, ULIP or Gold account.'))
+    if from_account.currency != to_account.currency:
+        raise HoldingError(_('A transfer between accounts in different currencies cannot be assigned to a fund.'))
+    rows, seen, total = [], set(), Decimal('0')
+    for item in data:
+        if not isinstance(item, dict):
+            raise HoldingError(_('The fund split could not be read. Please try again.'))
+        part = _positive(item.get('amount'), _('Amount'))
+        if part is None:
+            raise HoldingError(_('Enter an amount for every fund.'))
+        part = part.quantize(D2)
+        holding, name, code = None, (item.get('name') or '').strip(), (item.get('scheme_code') or '').strip()
+        if item.get('holding_id') not in (None, '', 'new'):
+            try:
+                holding = Holding.objects.get(pk=int(item['holding_id']), account=to_account, is_active=True)
+            except (Holding.DoesNotExist, ValueError, TypeError):
+                raise HoldingError(_('Choose a fund from the account the money goes into.')) from None
+            if not holding.scheme_code:
+                raise HoldingError(_('%(name)s has no NAV feed, so it cannot be bought from a schedule.') % {'name': holding.instrument_name})
+            key = ('h', holding.pk)
+        else:
+            if not name:
+                raise HoldingError(_('Choose a fund or enter the name of a new one.'))
+            code = code or resolve_scheme_code(name, 'MF')
+            if not code:
+                raise HoldingError(_('Pick %(name)s from the search results so its NAV can be tracked.') % {'name': name})
+            key = ('c', code)
+        if key in seen:
+            raise HoldingError(_('Each fund can appear only once.'))
+        seen.add(key)
+        total += part
+        rows.append({'holding': holding, 'name': name, 'scheme_code': code, 'amount': part})
+    if total > amount:
+        raise HoldingError(_('The funds add up to more than the transfer (%(total)s of %(left)s).') % {
+            'total': f'{to_account.currency}{total:,.2f}', 'left': f'{to_account.currency}{amount:,.2f}'})
+    return rows
+
+
+def apply_fund_splits(recurring, rows):
+    """Replace a recurring transfer's fund split with the cleaned rows; new funds are created empty."""
+    from .models import RecurringFundSplit
+
+    with transaction.atomic():
+        recurring.fund_splits.all().delete()
+        for row in rows:
+            holding = row['holding'] or create_empty_holding(
+                recurring.to_account, name=row['name'], scheme_code=row['scheme_code'])
+            RecurringFundSplit.objects.create(recurring=recurring, holding=holding, amount=row['amount'])
+
+
 def record_instalment(recurring, transfer):
-    """Buy the fund a recurring transfer is assigned to with this instalment. The transfer is already posted, so
-    a purchase that cannot be recorded is logged and skipped rather than undoing it. Returns the purchase or None."""
+    """Buy each fund of a recurring transfer's split with this instalment. The transfer is already posted, so a
+    purchase that cannot be recorded is logged and skipped rather than undoing it; the other funds still go
+    through. Returns the purchases made."""
     import logging
 
-    fund = recurring.fund
-    if fund is None or not fund.is_active or fund.account_id != transfer.to_account_id:
-        return None
-    try:
-        return add_purchase(fund, date=transfer.date, amount=transfer.amount, transfer=transfer,
-                            note=(recurring.description or '')[:120])
-    except Exception as exc:        # a NAV lookup that fails must never undo the transfer
-        logging.getLogger(__name__).warning("SIP instalment of recurring %s on %s not recorded: %s",
-                                            recurring.pk, transfer.date, exc, exc_info=not isinstance(exc, HoldingError))
-        return None
+    made = []
+    for split in recurring.fund_splits.all():
+        fund = split.holding
+        if not fund.is_active or fund.account_id != transfer.to_account_id:
+            continue
+        try:
+            made.append(add_purchase(fund, date=transfer.date, amount=split.amount, transfer=transfer,
+                                     note=(recurring.description or '')[:120]))
+        except Exception as exc:        # a NAV lookup that fails must never undo the transfer
+            logging.getLogger(__name__).warning(
+                "SIP instalment of recurring %s on %s for %s not recorded: %s", recurring.pk, transfer.date,
+                fund.pk, exc, exc_info=not isinstance(exc, HoldingError))
+    return made

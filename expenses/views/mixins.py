@@ -72,7 +72,8 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
     profile = user.profile
     recurring_txs = (
         RecurringTransaction.objects.filter(user=user, is_active=True)
-        .select_related('account', 'from_account', 'to_account', 'loan', 'fund')
+        .select_related('account', 'from_account', 'to_account', 'loan')
+        .prefetch_related('fund_splits__holding')
         .order_by('created_at', 'id')
     )
     
@@ -213,7 +214,7 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                             )
                             new_transfer.save()
                             posted_successfully = True
-                            if rt.fund_id:
+                            if rt.fund_splits.all():
                                 from ..holdings_service import record_instalment
                                 record_instalment(rt, new_transfer)
                         except Exception as e:

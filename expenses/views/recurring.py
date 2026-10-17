@@ -46,8 +46,7 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
             'from_account',
             'to_account',
             'loan',
-            'fund',
-        )
+        ).prefetch_related('fund_splits__holding')
         if self.filter_expenses_only:
             base_qs = base_qs.filter(transaction_type__in=['EXPENSE', 'TRANSFER', 'LOAN', 'CAPITAL'])
         base_qs = base_qs.order_by('-created_at')
