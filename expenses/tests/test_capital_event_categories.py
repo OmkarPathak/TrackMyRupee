@@ -217,7 +217,7 @@ class PlaceholderAndLayoutTests(Base):
         self.assertNotIn('No category', html)
 
     def test_searchable_select_skips_empty_options_and_can_clear_when_it_has_a_placeholder(self):
-        html = self.client.get(reverse('capital-event-create')).content.decode()
+        html = self.client.get(reverse('capital-event-create')).content.decode() + open('static/js/app_base.js', encoding='utf-8').read()
         self.assertIn('dataset.placeholder', html)
         self.assertIn('searchable-select-clear', html)
         self.assertIn("(placeholder || opt.text.trim() === '---------')", html)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TrackMyRupee\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 10:49+0530\n"
+"POT-Creation-Date: 2026-10-17 19:45+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: TrackMyRupee\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,32 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: static/js/app_base.js:315 static/js/tmr_filter.js:737
+msgid "Clear"
+msgstr "हटाएं"
+
+#: static/js/app_base.js:329 static/js/app_base.js:571
+msgid "Select..."
+msgstr "चुनें..."
+
+#: static/js/app_base.js:350 static/js/app_base.js:548
+#| msgid "Search %s..."
+msgid "Search..."
+msgstr "खोजें..."
+
+#: static/js/app_base.js:428 static/js/app_base.js:629
+msgid "No matches"
+msgstr "कोई मेल नहीं मिला"
+
+#: static/js/app_base.js:556
+#| msgid "Clear all"
+msgid "Select all"
+msgstr "सभी चुनें"
+
+#: static/js/app_base.js:557 static/js/tmr_filter.js:478
+msgid "Clear all"
+msgstr "सभी हटाएं"
 
 #: static/js/sidebar.js:18 static/js/sidebar.js:19 static/js/sidebar.js:40
 #: static/js/sidebar.js:41
@@ -69,10 +95,6 @@ msgstr "सभी समय"
 msgid "Time period"
 msgstr "समय अवधि"
 
-#: static/js/tmr_filter.js:478
-msgid "Clear all"
-msgstr "सभी हटाएं"
-
 #: static/js/tmr_filter.js:646
 msgid "Search filters..."
 msgstr "फ़िल्टर खोजें..."
@@ -85,10 +107,6 @@ msgstr "%s खोजें..."
 #: static/js/tmr_filter.js:718
 msgid "Loading options..."
 msgstr "विकल्प लोड हो रहे हैं..."
-
-#: static/js/tmr_filter.js:737
-msgid "Clear"
-msgstr "हटाएं"
 
 #: static/js/tmr_filter.js:738
 msgid "Done"

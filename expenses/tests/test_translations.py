@@ -147,6 +147,12 @@ class TranslatedPagesTests(TestCase):
         for lang, expected in (('hi', 'लागू करें'), ('mr', 'लागू करा')):
             self.profile.language = lang
             self.profile.save()
-            response = self.client.get(reverse('javascript-catalog'))
+            response = self.client.get(reverse('tmr-javascript-catalog'))
             self.assertEqual(response.status_code, 200)
             self.assertTrue(expected.encode('unicode_escape').decode() in response.content.decode())      # the catalogue is JS-escaped
+
+    def test_the_catalogue_is_requested_per_language_and_cached_by_the_browser(self):
+        page = self.client.get(self.pages()[0]).content.decode()
+        self.assertIn('src="/jsi18n/?l=', page)
+        response = self.client.get('/jsi18n/?l=en')
+        self.assertIn('max-age=86400', response['Cache-Control'])

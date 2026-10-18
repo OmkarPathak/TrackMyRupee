@@ -92,10 +92,11 @@ def security_txt(request):
 from django.conf.urls.static import static
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView, TemplateView
-from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import cache_control, never_cache
 
 urlpatterns = [
-    path('jsi18n/', JavaScriptCatalog.as_view(domain='djangojs'), name='javascript-catalog'),
+    # Cached by the browser for a day; the page requests it as /jsi18n/?l=<language>, so a language switch is a new URL.
+    path('jsi18n/', cache_control(public=True, max_age=86400)(JavaScriptCatalog.as_view(domain='djangojs')), name='tmr-javascript-catalog'),
     path('auth/login/', RedirectView.as_view(pattern_name='account_login', permanent=True)), # Redirect legacy login
     path('accounts/', include('allauth.urls')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

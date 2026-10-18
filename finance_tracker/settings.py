@@ -123,6 +123,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.gzip.GZipMiddleware', # Compress responses (~230KB HTML -> ~25KB); must stay high in the stack
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'finance_tracker.html_compact.CompactHtmlMiddleware',  # strips template indentation (~40% of page bytes); must stay below GZip
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',

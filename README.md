@@ -12,7 +12,7 @@ Unlike traditional finance apps, TrackMyRupee **does not** read your SMS, **does
 ![Stars](https://img.shields.io/github/stars/omkarpathak/trackmyrupee?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
 ![Forks](https://img.shields.io/github/forks/omkarpathak/trackmyrupee?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
 ![Django](https://img.shields.io/badge/Django-4.2-green?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
-![License](https://img.shields.io/badge/license-MIT-blue?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
 ![Privacy First](https://img.shields.io/badge/Privacy-First-brightgreen?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
 
 </div>
@@ -173,4 +173,4 @@ Found a bug? Have a feature request? Feel free to **[Open an Issue](https://gith
 ---
 
 ## 📜 License
-Licensed under the **MIT License**. Your money, your data, your code.
+Licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See [LICENSE](LICENSE). Your money, your data, your code.

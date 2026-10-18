@@ -37,11 +37,11 @@
 .cal-nav-btn i { display: block; line-height: 1; font-size: 1rem; width: 1em; height: 1em; text-align: center; }
 .cal-nav-btn i::before { display: block; line-height: 1; vertical-align: 0; }
 .cal-nav-btn:hover { border-color: var(--cal-ink); }
-.cal-btn-ink {
+.cal .cal-btn-ink {   /* `.cal` raises specificity above the global dark-mode `a` colour rule */
   background: var(--cal-ink); color: var(--cal-on-ink); border: 0; border-radius: .75rem;
   padding: .45rem 1rem; font-weight: 700; font-size: .9rem; text-decoration: none; white-space: nowrap;
 }
-.cal-btn-ink:hover { color: var(--cal-on-ink); opacity: .9; }
+.cal .cal-btn-ink:hover { color: var(--cal-on-ink); opacity: .9; }
 
 /* ── Legend ─────────────────────────────────────────────────────────── */
 .cal-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem 1rem; font-size: .75rem; color: var(--bs-secondary-color); margin-bottom: .5rem; }

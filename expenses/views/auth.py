@@ -40,6 +40,7 @@ from ..cache_utils import anonymous_cache_page
 
 logger = logging.getLogger(__name__)
 
+from ..public_features import feature_categories
 from ..models import (
     CURRENCY_CHOICES,
     Account,
@@ -410,101 +411,7 @@ class FeaturesPageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Feature categories for better navigation
-        context['features'] = [
-            {
-                'id': 'insights',
-                'title': 'Smart Tracking & Insights',
-                'description': 'Understand your spending patterns with AI-powered analytics.',
-                'items': [
-                    {
-                        'title': 'Beautiful Bento Dashboard',
-                        'desc': 'Your financial life summarized in a modern, glanceable bento grid. Everything from net worth to monthly cash flow in one stunning view.'
-                    },
-                    {
-                        'title': 'Spot spending leaks before they become habits',
-                        'desc': 'AI categorises your trends and shows exactly which buckets are growing month over month.'
-                    },
-                    {
-                        'title': 'Your month starts when your salary hits',
-                        'desc': 'Not on the 1st. TrackMyRupee follows your actual salary cycle - month-end crunches and all, enabling smart salary-cycle budgeting that fits your real income pattern.'
-                    },
-                    {
-                        'title': 'Watch your net worth grow',
-                        'desc': 'One real-time number across savings, SIPs, and credit cards. Includes automatic SIP tracking to monitor your mutual fund investments and watch your trajectory grow.'
-                    },
-                ]
-            },
-            {
-                'id': 'planning',
-                'title': 'Planning & Goals',
-                'description': 'Plan ahead and achieve your financial milestones.',
-                'items': [
-                    {
-                        'title': 'Set recurring expenses once, forget them forever.',
-                        'desc': 'Set up your SIPs, rent, and subscriptions once. Only log what changes, takes 30 seconds a day.'
-                    },
-                    {
-                        'title': 'See exactly when you\'ll hit your goals',
-                        'desc': 'Set a savings target and get a projected date based on your real saving pace - not guesswork.'
-                    },
-                    {
-                        'title': 'Loan Manager with EMI Calculator',
-                        'desc': 'Plan before you borrow. Preview your monthly EMI instantly. Track multiple loans, manage floating rates, and visualize your amortization schedule.'
-                    },
-                    {
-                        'title': 'Smart Budgets & Spending Limits',
-                        'desc': 'Set monthly category budgets and get real-time alerts when you\'re approaching limits. Visual progress bars show exactly how much you\'ve spent vs your plan.'
-                    },
-                ]
-            },
-            {
-                'id': 'trust',
-                'title': 'Trust & Control',
-                'description': 'Your data is yours. Export it anytime, delete your account whenever you like, and track expenses manually without SMS access or bank logins.',
-                'items': [
-                    {
-                        'title': 'Your data is never locked in',
-                        'desc': 'Export your full transaction history to CSV anytime. Track expenses without granting SMS access or bank logins.'
-                    },
-                    {
-                        'title': 'Balanced Double-Entry Ledger',
-                        'desc': 'Double-entry accounting. Every transaction is recorded twice to ensure data integrity. Auto-reconciliation detects discrepancies and keeps your records spotless.'
-                    },
-                    {
-                        'title': 'Extended Account Types',
-                        'desc': 'Track Savings, Cash, Credit Cards, Loans, and Investments independently. Includes manual valuation updates for hard-to-track assets like real estate.'
-                    }
-                ]
-            },
-            {
-                'id': 'experience',
-                'title': 'Global & Mobile',
-                'description': 'Works everywhere, feels natural in your language.',
-                'items': [
-                    {
-                        'title': 'Advanced Transaction Filters',
-                        'desc': 'Find any transaction instantly. Sift through your ledger by custom date ranges, multiple categories, specific accounts, and payment methods.'
-                    },
-                    {
-                        'title': 'Track in your own language',
-                        'desc': 'Fully translated in English, Hindi, and Marathi - finance that feels natural to read.'
-                    },
-                    {
-                        'title': 'Multi-currency Ready',
-                        'desc': 'Track USD, EUR, or any currency alongside ₹. Useful if you travel, freelance, or hold foreign investments.'
-                    },
-                    {
-                        'title': 'Feels like an app. No install required.',
-                        'desc': 'Save it to your home screen (PWA). Works offline for reading, feels as fast as a native app, takes 0MB storage.'
-                    },
-                    {
-                        'title': 'Year in Review & Monthly Reports',
-                        'desc': 'Automated financial storytelling. Get your annual spending wrap-up and monthly summaries delivered to your inbox. Understand your money habits at a glance.'
-                    },
-                ]
-            },
-        ]
+        context['features'] = feature_categories()
         return context
 
 

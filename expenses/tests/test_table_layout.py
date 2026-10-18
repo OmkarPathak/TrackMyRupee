@@ -207,7 +207,8 @@ class LoaderFeedbackTests(TestCase):
         self.user = User.objects.create_user('ld_user', 'ld@example.com', 'pw')
         UserProfile.objects.filter(user=self.user).update(consent_granted=True, has_seen_tutorial=True)
         self.client.force_login(self.user)
-        self.html = self.client.get(reverse('account-list')).content.decode()
+        # The loader/progress-bar behaviour lives in the deferred base script, not inline in the page.
+        self.html = self.client.get(reverse('account-list')).content.decode() + open('static/js/app_base.js', encoding='utf-8').read()
 
     def test_there_is_a_fallback_when_the_skeleton_script_is_not_loaded_yet(self):
         self.assertIn('tmr-fallback-loader', self.html)

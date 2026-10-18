@@ -6,8 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% trans "All Features" %} - TrackMyRupee</title>
-    <meta name="description" content="TrackMyRupee features: salary-cycle tracking, net worth across all accounts, loan EMI calculator, double-entry ledger, goals, and smart budgets. Privacy-first. No SMS. No bank login.">
-    <meta name="keywords" content="TrackMyRupee features, personal finance app India, EMI calculator, budget tracker, double entry ledger, expense tracker India, net worth tracker, money management app">
+    <meta name="description" content="Everything TrackMyRupee does: type-it-like-a-message expense logging, salary-cycle months, net worth across Indian accounts, mutual fund holdings with daily NAV, SIPs, loans and EMI calculator, budgets, goals and reminders. Privacy-first. No SMS. No bank login.">
+    <meta name="keywords" content="TrackMyRupee features, personal finance app India, expense tracker India, net worth tracker, mutual fund tracker, SIP tracker, EMI calculator, budget tracker, double entry ledger, salary cycle budget, FD PPF EPF NPS tracker">
     <meta name="author" content="Omkar Pathak">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -22,7 +22,7 @@
     <meta property="og:site_name" content="TrackMyRupee">
     <meta property="og:url" content="https://trackmyrupee.com/features/">
     <meta property="og:title" content="All Features - TrackMyRupee">
-    <meta property="og:description" content="Explore all TrackMyRupee features including EMI calculator, smart budgets, net worth tracking, and double-entry ledger.">
+    <meta property="og:description" content="Explore everything TrackMyRupee does: fast expense logging, net worth, mutual fund holdings with daily NAV, SIPs, loans, budgets, goals and reminders.">
     <meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -45,7 +45,7 @@
         "@type": "CollectionPage",
         "name": "TrackMyRupee Features",
         "url": "https://trackmyrupee.com/features/",
-        "description": "Comprehensive features of TrackMyRupee including EMI calculator, smart budgets, reports, and privacy-first personal finance tools.",
+        "description": "Every feature of TrackMyRupee: expense logging, net worth across Indian accounts, mutual fund holdings, SIPs, loans, budgets, goals and privacy-first personal finance tools.",
         "inLanguage": "en-IN",
         "isPartOf": {
             "@type": "WebSite",
@@ -288,6 +288,95 @@
             margin-bottom: 0;
         }
         
+        /* TRUST PILLS */
+        .trust-pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 auto 28px; max-width: 900px; }
+        .trust-pills span {
+            display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--tmr-ink-900);
+            background: white; border: 1px solid var(--tmr-surface-3); border-radius: 99px; padding: 6px 14px;
+        }
+
+        /* LIVE DEMO */
+        .demo-card {
+            max-width: 640px; margin: 0 auto; text-align: left; background: white;
+            border: 1px solid var(--tmr-surface-3); border-radius: 16px; padding: 20px;
+            box-shadow: 0 12px 40px rgba(15,110,86,.10);
+        }
+        .demo-label { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tmr-teal-600); margin-bottom: 10px; }
+        .demo-input {
+            display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 14px;
+            border: 1.5px solid var(--tmr-teal-400); border-radius: 12px; background: var(--tmr-ink-50);
+            font-size: 16px; font-weight: 500; color: var(--tmr-ink-900); overflow: hidden; white-space: nowrap;
+        }
+        .demo-input .demo-caret { width: 2px; height: 18px; background: var(--tmr-teal-400); animation: caret-blink 1s steps(1) infinite; flex: none; }
+        .demo-chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 68px; margin-top: 14px; align-content: flex-start; }
+        .demo-chip {
+            display: inline-flex; flex-direction: column; background: var(--tmr-teal-50); border-radius: 10px;
+            padding: 6px 12px; opacity: 0; transform: translateY(6px) scale(.96);
+            animation: chip-in .35s ease forwards;
+        }
+        .demo-chip small { font-size: 11px; font-weight: 600; color: var(--tmr-ink-600); text-transform: uppercase; letter-spacing: .04em; }
+        .demo-chip b { font-size: 15px; color: var(--tmr-teal-600); }
+        @keyframes caret-blink { 50% { opacity: 0; } }
+        @keyframes chip-in { to { opacity: 1; transform: none; } }
+
+        /* STICKY NAV + SEARCH */
+        .features-bar {
+            position: sticky; top: 65px; z-index: 90; background: rgba(250,249,246,.94);
+            backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+        }
+        .features-bar-inner { max-width: 1200px; margin: 0 auto; padding: 10px 5%; display: flex; gap: 12px; align-items: center; }
+        .features-jump { display: flex; gap: 8px; overflow-x: auto; flex: 1; scrollbar-width: none; padding: 2px 0; }
+        .features-jump::-webkit-scrollbar { display: none; }
+        .features-jump { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); padding-right: 28px; }
+        .features-jump a {
+            flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;
+            color: var(--tmr-ink-600); background: white; border: 1px solid var(--tmr-surface-3);
+            border-radius: 99px; padding: 6px 14px; transition: all .2s;
+        }
+        .features-jump a:hover { border-color: var(--tmr-teal-400); color: var(--tmr-teal-600); }
+        .features-jump a.active { background: var(--tmr-teal-400); border-color: var(--tmr-teal-400); color: white; }
+        .feature-search {
+            flex: none; width: 220px; font: inherit; font-size: 14px; padding: 7px 14px;
+            border: 1px solid var(--tmr-surface-3); border-radius: 99px; background: white; color: var(--tmr-ink-900);
+        }
+        .feature-search:focus { outline: 2px solid var(--tmr-teal-400); outline-offset: 1px; }
+        .feature-category { scroll-margin-top: 150px; }
+        .no-match { display: none; text-align: center; color: var(--tmr-ink-600); padding: 40px 0; font-size: 16px; }
+
+        /* CARDS */
+        .category-header h2 { display: flex; align-items: center; gap: 12px; }
+        .category-emoji { font-size: 30px; line-height: 1; }
+        .feature-icon {
+            width: 46px; height: 46px; border-radius: 12px; background: var(--tmr-teal-50);
+            display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 14px;
+            transition: transform .25s ease;
+        }
+        .feature-item:hover .feature-icon { transform: scale(1.12) rotate(-4deg); }
+        html.js .feature-item.reveal { opacity: 0; transform: translateY(18px); transition: opacity .5s ease, transform .5s ease, border-color .2s, box-shadow .2s; }
+        html.js .feature-item.reveal.in { opacity: 1; transform: none; }
+        .feature-item.hidden, .feature-category.hidden { display: none; }
+
+        @media (prefers-reduced-motion: reduce) {
+            html.js .feature-item.reveal { opacity: 1; transform: none; transition: none; }
+            .demo-input .demo-caret { animation: none; }
+            .demo-chip { animation: none; opacity: 1; transform: none; }
+            .feature-item:hover .feature-icon { transform: none; }
+            html { scroll-behavior: auto; }
+        }
+        @media (max-width: 768px) {
+            .feature-search { width: 130px; }
+            .demo-input { font-size: 15px; }
+            .features-bar { top: 61px; }
+        }
+        .cta-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+        .btn-secondary-cta {
+            background: transparent; color: var(--tmr-teal-600) !important;
+            border: 1px solid var(--tmr-teal-400); padding: 12px 28px; border-radius: 8px;
+            font-size: 15px; font-weight: 700; text-decoration: none; display: inline-block;
+            transition: background .2s;
+        }
+        .btn-secondary-cta:hover { background: white; }
+
         /* CTA SECTION */
         .cta-final {
             text-align: center;
@@ -358,32 +447,103 @@
                 padding: 40px 5%;
             }
         }
+
+        /* HERO: copy on the left, live demo on the right (desktop); stacked and centred below 992px */
+        .hero-grid { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+        @media (min-width: 992px) {
+            .features-header { text-align: left; padding: 56px 0 52px; }
+            .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+            .features-header h1 { font-size: clamp(36px, 4.4vw, 52px); }
+            .features-header p { margin: 0 0 22px; max-width: 540px; font-size: 18px; }
+            .trust-pills { justify-content: flex-start; margin: 0; }
+            .demo-card { margin: 0; max-width: none; }
+        }
+
+        /* SMALL SCREENS: smaller type, tighter spacing. Placed last so it beats the earlier responsive rules. */
+        @media (max-width: 576px) {
+            .features-header { padding: 26px 0 22px; }
+            .features-header h1 { font-size: 28px; margin-bottom: 8px; }
+            .features-header p { font-size: 14px; margin-bottom: 14px; }
+            .trust-pills { gap: 6px; margin-bottom: 16px; }
+            .trust-pills span { font-size: 11.5px; padding: 4px 10px; gap: 4px; }
+            .demo-card { padding: 12px; border-radius: 12px; }
+            .demo-label { font-size: 10.5px; margin-bottom: 8px; }
+            .demo-input { min-height: 40px; padding: 0 12px; font-size: 14px; border-radius: 10px; }
+            .demo-input .demo-caret { height: 16px; }
+            .demo-chips { gap: 6px; min-height: 58px; margin-top: 10px; }
+            .demo-chip { padding: 4px 9px; border-radius: 8px; }
+            .demo-chip small { font-size: 9.5px; }
+            .demo-chip b { font-size: 12.5px; }
+            .features-bar { top: 68px; }
+            .features-bar-inner { padding: 8px 4%; gap: 8px; }
+            .features-jump a { font-size: 12px; padding: 5px 11px; }
+            .feature-search { width: 104px; font-size: 13px; padding: 6px 12px; }
+            .features-content { padding: 24px 5% 40px; }
+            .feature-category { margin-bottom: 40px; scroll-margin-top: 150px; }
+            .category-header { margin-bottom: 20px; padding-left: 14px; }
+            .category-header h2 { font-size: 20px; gap: 8px; }
+            .category-emoji { font-size: 22px; }
+            .category-header p { font-size: 14px; }
+            .features-grid { gap: 12px; }
+            .feature-item { padding: 16px; border-radius: 10px; }
+            .feature-icon { width: 38px; height: 38px; font-size: 20px; margin-bottom: 10px; border-radius: 10px; }
+            .feature-item h3 { font-size: 16px; margin-bottom: 6px; }
+            .feature-item p { font-size: 13.5px; line-height: 1.55; }
+            .cta-final { padding: 32px 5%; margin: 40px 0 0; }
+            .cta-final h2 { font-size: 20px; margin-bottom: 16px; }
+            .btn-primary-cta, .btn-secondary-cta { padding: 10px 22px; font-size: 14px; }
+        }
     </style>
 </head>
 <body>
+<script>document.documentElement.classList.add('js');</script>
 {% include 'partials/clear_saved_filters.html' %}
     <!-- NAV -->
     {% include "components/public_navbar.html" with is_landing=False %}
     
     <!-- HEADER -->
     <header class="features-header">
-        <div style="max-width: 1200px; margin: 0 auto; padding: 0 5%;">
+        <div class="hero-grid">
+          <div class="hero-copy">
             <h1>{% trans "All Features" %}</h1>
             <p>{% trans "Comprehensive tools designed to transform your personal finance." %}</p>
+            <div class="trust-pills">
+                <span>🔒 {% trans "No SMS access" %}</span>
+                <span>🏦 {% trans "No bank login" %}</span>
+                <span>🗣️ English · हिन्दी · मराठी</span>
+                <span>🆓 {% trans "Free plan never expires" %}</span>
+            </div>
+          </div>
+            <div class="demo-card" aria-live="off">
+                <div class="demo-label">⌨️ {% trans "Type it like a message" %}</div>
+                <div class="demo-input" id="demo-input" aria-label="{% trans 'Example of typing an expense' %}"><span id="demo-text"></span><span class="demo-caret"></span></div>
+                <div class="demo-chips" id="demo-chips"></div>
+            </div>
         </div>
     </header>
     
+    <!-- STICKY CATEGORY BAR + SEARCH -->
+    <div class="features-bar">
+        <div class="features-bar-inner">
+            <nav class="features-jump" id="features-jump" aria-label="{% trans 'Feature categories' %}">
+                {% for category in features %}<a href="#{{ category.id }}" data-target="{{ category.id }}">{{ category.icon }} {{ category.title }}</a>{% endfor %}
+            </nav>
+            <input type="search" class="feature-search" id="feature-search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search features' %}">
+        </div>
+    </div>
+
     <!-- CONTENT -->
     <main class="features-content" id="main-content">
         {% for category in features %}
-        <section class="feature-category">
+        <section class="feature-category" id="{{ category.id }}">
             <div class="category-header">
-                <h2>{{ category.title }}</h2>
+                <h2><span class="category-emoji" aria-hidden="true">{{ category.icon }}</span>{{ category.title }}</h2>
                 <p>{{ category.description }}</p>
             </div>
             <div class="features-grid">
                 {% for feature in category.items %}
-                <div class="feature-item">
+                <div class="feature-item reveal">
+                    <div class="feature-icon" aria-hidden="true">{{ feature.icon }}</div>
                     <h3>{{ feature.title }}</h3>
                     <p>{{ feature.desc }}</p>
                 </div>
@@ -391,6 +551,16 @@
             </div>
         </section>
         {% endfor %}
+
+        <p class="no-match" id="no-match">{% trans "No feature matches your search." %}</p>
+
+        <section class="cta-final">
+            <h2>{% trans "See where your money goes, without handing over your bank login." %}</h2>
+            <div class="cta-actions">
+                <a href="{% url 'account_signup' %}" class="btn-primary-cta">{% trans "Start Free" %}</a>
+                <a href="{% url 'demo_login' %}" class="btn-secondary-cta">{% trans "Live Demo" %}</a>
+            </div>
+        </section>
     </main>
     
     <!-- FOOTER -->
@@ -408,6 +578,94 @@
         }
         
         document.getElementById('hamburger-btn').addEventListener('click', toggleMenu);
+    </script>
+    <script>
+    (function () {
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // ---- Live demo: a sentence is typed, then the fields it understood appear ----
+        var L = {
+            amount: "{% trans 'Amount' as t %}{{ t|escapejs }}",
+            payment: "{% trans 'Payment method' as t %}{{ t|escapejs }}",
+            date: "{% trans 'Date' as t %}{{ t|escapejs }}",
+            description: "{% trans 'Description' as t %}{{ t|escapejs }}",
+            yesterday: "{% trans 'Yesterday' as t %}{{ t|escapejs }}",
+            cash: "{% trans 'Cash' as t %}{{ t|escapejs }}"
+        };
+        var demos = [
+            { text: 'swiggy 320', chips: [[L.description, 'Swiggy'], [L.amount, '₹320']] },
+            { text: 'uber to airport 450 upi yesterday', chips: [[L.description, 'Uber to airport'], [L.amount, '₹450'], [L.payment, 'UPI'], [L.date, L.yesterday]] },
+            { text: 'rent 1.5k cash 3 oct', chips: [[L.description, 'Rent'], [L.amount, '₹1,500'], [L.payment, L.cash], [L.date, '3 Oct']] }
+        ];
+        var textEl = document.getElementById('demo-text'), chipsEl = document.getElementById('demo-chips');
+        function showChips(d) {
+            chipsEl.innerHTML = '';
+            d.chips.forEach(function (c, i) {
+                var el = document.createElement('div');
+                el.className = 'demo-chip';
+                el.style.animationDelay = (i * 120) + 'ms';
+                var s = document.createElement('small'); s.textContent = c[0];
+                var b = document.createElement('b'); b.textContent = c[1];
+                el.appendChild(s); el.appendChild(b); chipsEl.appendChild(el);
+            });
+        }
+        if (reduce) {
+            textEl.textContent = demos[1].text; showChips(demos[1]);
+        } else {
+            var di = 0;
+            (function run() {
+                var d = demos[di], n = 0;
+                chipsEl.innerHTML = ''; textEl.textContent = '';
+                (function type() {
+                    if (n <= d.text.length) { textEl.textContent = d.text.slice(0, n++); setTimeout(type, 55); }
+                    else { setTimeout(function () { showChips(d); setTimeout(function () { di = (di + 1) % demos.length; run(); }, 3200); }, 350); }
+                })();
+            })();
+        }
+
+        // ---- Cards fade in as they scroll into view ----
+        var cards = document.querySelectorAll('.feature-item.reveal');
+        if ('IntersectionObserver' in window && !reduce) {
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+            }, { rootMargin: '0px 0px -8% 0px' });
+            cards.forEach(function (c, i) { c.style.transitionDelay = ((i % 3) * 80) + 'ms'; io.observe(c); });
+        } else {
+            cards.forEach(function (c) { c.classList.add('in'); });
+        }
+
+        // ---- The category bar highlights the section you are reading ----
+        var links = {};
+        document.querySelectorAll('#features-jump a').forEach(function (a) { links[a.dataset.target] = a; });
+        if ('IntersectionObserver' in window) {
+            var spy = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (!e.isIntersecting) return;
+                    Object.keys(links).forEach(function (k) { links[k].classList.toggle('active', k === e.target.id); });
+                    var a = links[e.target.id];
+                    if (a && a.scrollIntoView) { a.scrollIntoView({ block: 'nearest', inline: 'center' }); }
+                });
+            }, { rootMargin: '-30% 0px -60% 0px' });
+            document.querySelectorAll('.feature-category').forEach(function (s) { spy.observe(s); });
+        }
+
+        // ---- Search ----
+        var search = document.getElementById('feature-search'), noMatch = document.getElementById('no-match');
+        search.addEventListener('input', function () {
+            var q = search.value.trim().toLowerCase(), any = false;
+            document.querySelectorAll('.feature-category').forEach(function (sec) {
+                var shown = 0;
+                sec.querySelectorAll('.feature-item').forEach(function (it) {
+                    var ok = !q || it.textContent.toLowerCase().indexOf(q) !== -1;
+                    it.classList.toggle('hidden', !ok);
+                    if (ok) { shown++; it.classList.add('in'); }
+                });
+                sec.classList.toggle('hidden', shown === 0);
+                if (shown) any = true;
+            });
+            noMatch.style.display = any ? 'none' : 'block';
+        });
+    })();
     </script>
 </body>
 </html>

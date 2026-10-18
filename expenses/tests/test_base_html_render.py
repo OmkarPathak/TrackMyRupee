@@ -22,14 +22,15 @@ class BaseHtmlRenderTest(TestCase):
         content = response.content.decode('utf-8')
 
         # Verify Bootstrap CSS link presence (self-hosted; the JS bundle still comes from the CDN)
-        self.assertIn('vendor/bootstrap/bootstrap.min', content)
+        self.assertIn('vendor/bootstrap/bootstrap.purged.min', content)
         self.assertIn('vendor/bootstrap/bootstrap.bundle.min', content)
 
         # Verify defer on the pinned, self-hosted chart.js and on htmx.org
         self.assertRegex(content, r'<script defer src="/static/vendor/chartjs/chart-4\.4\.7\.umd[^"]*\.js"></script>')
         self.assertRegex(content, r'<script defer src="/static/vendor/htmx/htmx-2\.0\.4\.min[^"]*\.js"></script>')
 
-        # Verify htmx.config wrapped in DOMContentLoaded listener
+        # Verify htmx.config wrapped in DOMContentLoaded listener (inline in the page or in the deferred base script)
+        content += open('static/js/app_base.js', encoding='utf-8').read()
         self.assertIn("document.addEventListener('DOMContentLoaded', function ()", content)
         self.assertIn("htmx.config.defaultFocus = false;", content)
 

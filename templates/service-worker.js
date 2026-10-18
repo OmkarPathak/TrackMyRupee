@@ -1,5 +1,5 @@
 {% load static %}// Updated: 2026-10-10 (navigation preload; precache only what pages actually request, never the dashboard HTML)
-const CACHE_NAME = 'finance-tracker-v38';
+const CACHE_NAME = 'finance-tracker-v39';
 const OFFLINE_URL = '/offline/';
 
 // Precache the offline page and the content-hashed assets every page needs. The pages reference these
@@ -12,7 +12,8 @@ const ASSETS_TO_CACHE = [
   '{% static "css/tmr_filter.css" %}',
   '{% static "js/tmr_filter.js" %}',
   '{% static "icon.svg" %}',
-  '{% static "vendor/bootstrap/bootstrap.min.css" %}',
+  '{% static "vendor/bootstrap/bootstrap.purged.min.css" %}',
+  '{% static "js/app_base.js" %}?v=1.1',
   '{% static "vendor/fonts.css" %}',
   '{% static "vendor/bootstrap-icons/bootstrap-icons.min.css" %}',
   '{% static "vendor/bootstrap-icons/fonts/bootstrap-icons.woff2" %}',

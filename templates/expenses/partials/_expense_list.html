@@ -213,7 +213,8 @@
                 if (!el) return;
                 el.setAttribute('title', message);
                 el.setAttribute('data-bs-original-title', message);
-                const instance = bootstrap.Tooltip.getInstance(el);
+                // Bootstrap is deferred: before it loads there is no tooltip instance to refresh yet.
+                const instance = window.bootstrap ? bootstrap.Tooltip.getInstance(el) : null;
                 if (instance) {
                     instance.setContent({ '.tooltip-inner': message });
                 }
@@ -352,12 +353,16 @@
                 }
             });
 
-            const tooltipTriggerList = [].slice.call(shell.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    boundary: document.body
+            // Bootstrap's bundle is deferred, so on a full page load it does not exist yet while this runs.
+            const initTooltips = function () {
+                [].slice.call(shell.querySelectorAll('[data-bs-toggle="tooltip"]')).forEach(function (tooltipTriggerEl) {
+                    new bootstrap.Tooltip(tooltipTriggerEl, {
+                        boundary: document.body
+                    });
                 });
-            });
+            };
+            if (window.bootstrap) { initTooltips(); }
+            else { document.addEventListener('DOMContentLoaded', initTooltips, { once: true }); }
 
             if (typeof checkDescriptionOverflow === 'function') {
                 checkDescriptionOverflow();

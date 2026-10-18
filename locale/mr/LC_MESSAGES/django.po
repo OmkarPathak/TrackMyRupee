@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TrackMyRupee\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 10:52+0530\n"
+"POT-Creation-Date: 2026-10-17 20:39+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: TrackMyRupee\n"
 "Language-Team: mr\n"
@@ -409,6 +409,7 @@ msgstr ""
 "मर्यादा ओलांडली जाईल (सध्या %(limit)s पैकी %(current)s वापरात आहेत)."
 
 #: expenses/flows/base.py:296 expenses/flows/investment.py:358
+#: templates/partials/guide_accounts.html:52
 #: templates/partials/savings_modal.html:118
 #: templates/partials/savings_modal.html:684
 msgid "Investment"
@@ -450,6 +451,7 @@ msgstr "परतफेडीचे वेळापत्रक"
 #: templates/expenses/expense_list.html:335
 #: templates/expenses/recurring_transaction_form.html:155
 #: templates/expenses/transfer_form.html:142
+#: templates/partials/guide_accounts.html:43
 #: templates/partials/savings_modal.html:106
 msgid "Credit Card"
 msgstr "क्रेडिट कार्ड"
@@ -687,7 +689,7 @@ msgstr "गुंतवणूक"
 #: templates/expenses/loan_detail.html:696
 #: templates/expenses/partials/_account_list.html:408
 #: templates/expenses/partials/_loan_schedule_tab.html:20
-#: templates/home.html:3454 templates/loan_emi_calculator.html:462
+#: templates/home.html:3456 templates/loan_emi_calculator.html:462
 msgid "Balance"
 msgstr "शिल्लक"
 
@@ -771,7 +773,7 @@ msgstr "बॅलन्स, मर्यादा आणि बिलिंग �
 msgid "Card"
 msgstr "कार्ड"
 
-#: expenses/flows/credit_card.py:49 templates/home.html:3699
+#: expenses/flows/credit_card.py:49 templates/home.html:3701
 msgid "Limit"
 msgstr "मर्यादा"
 
@@ -1790,13 +1792,13 @@ msgstr "स्रोताचा प्रकार"
 #: templates/expenses/goal_detail.html:210
 #: templates/expenses/income_list.html:208
 #: templates/expenses/partials/_account_detail.html:358
-#: templates/expenses/partials/_expense_list.html:405
+#: templates/expenses/partials/_expense_list.html:410
 #: templates/expenses/partials/_income_list.html:140
 #: templates/expenses/partials/_recurring_transaction_list.html:554
 #: templates/expenses/partials/_transaction_list.html:204
 #: templates/expenses/partials/_transfer_list.html:67
-#: templates/expenses/payment_history.html:85 templates/landing.html:1759
-#: templates/onboarding.html:950
+#: templates/expenses/payment_history.html:85 templates/features.html:542
+#: templates/landing.html:1759 templates/onboarding.html:950
 msgid "Description"
 msgstr "वर्णन"
 
@@ -2024,9 +2026,9 @@ msgstr "यादीतील रंगांपैकी एक निवडा
 #: templates/expenses/income_list.html:186
 #: templates/expenses/partials/_account_detail.html:363
 #: templates/expenses/partials/_capital_event_list.html:62
-#: templates/expenses/partials/_expense_list.html:411
-#: templates/expenses/partials/_expense_list.html:413
-#: templates/expenses/partials/_expense_list.html:415
+#: templates/expenses/partials/_expense_list.html:416
+#: templates/expenses/partials/_expense_list.html:418
+#: templates/expenses/partials/_expense_list.html:420
 #: templates/expenses/partials/_income_list.html:144
 #: templates/expenses/partials/_income_list.html:146
 #: templates/expenses/partials/_income_list.html:148
@@ -2042,7 +2044,8 @@ msgstr "यादीतील रंगांपैकी एक निवडा
 #: templates/expenses/recurring_transaction_form.html:127
 #: templates/expenses/recurring_transaction_form.html:711
 #: templates/expenses/transfer_confirm_delete.html:31
-#: templates/expenses/transfer_form.html:284 templates/onboarding.html:951
+#: templates/expenses/transfer_form.html:284 templates/features.html:539
+#: templates/onboarding.html:951
 msgid "Amount"
 msgstr "रक्कम"
 
@@ -2430,7 +2433,7 @@ msgstr "कृपया पुनरावृत्तीची वारंव�
 #: templates/expenses/expense_list.html:307
 #: templates/expenses/partials/_category_list.html:138
 #: templates/expenses/partials/_expense_list.html:160
-#: templates/expenses/partials/_expense_list.html:406
+#: templates/expenses/partials/_expense_list.html:411
 #: templates/expenses/partials/_recurring_transaction_list.html:153
 #: templates/expenses/partials/_recurring_transaction_list.html:361
 #: templates/expenses/recurring_transaction_form.html:360
@@ -2940,13 +2943,14 @@ msgstr "अॅपमध्ये ठेवलेली शिल्लक"
 #: templates/expenses/income_list.html:171
 #: templates/expenses/partials/_account_detail.html:356
 #: templates/expenses/partials/_capital_event_list.html:60
-#: templates/expenses/partials/_expense_list.html:404
+#: templates/expenses/partials/_expense_list.html:409
 #: templates/expenses/partials/_income_list.html:138
 #: templates/expenses/partials/_loan_history_tab.html:17
 #: templates/expenses/partials/_transaction_list.html:202
 #: templates/expenses/partials/_transfer_list.html:64
 #: templates/expenses/payment_history.html:84
 #: templates/expenses/transfer_confirm_delete.html:19
+#: templates/features.html:541
 msgid "Date"
 msgstr "दिनांक"
 
@@ -2964,7 +2968,8 @@ msgstr "क्लायंट डुप्लिकेशन की"
 #: templates/expenses/expense_list.html:331
 #: templates/expenses/partials/_account_list.html:309
 #: templates/expenses/recurring_transaction_form.html:151
-#: templates/expenses/transfer_form.html:141 templates/onboarding.html:885
+#: templates/expenses/transfer_form.html:141 templates/features.html:544
+#: templates/onboarding.html:885 templates/partials/guide_accounts.html:34
 #: templates/partials/savings_modal.html:95
 #: templates/partials/savings_modal.html:146
 msgid "Cash"
@@ -2998,7 +3003,7 @@ msgstr "नेटबँकिंग"
 #: templates/expenses/expense_form.html:74
 #: templates/expenses/expense_list.html:317
 #: templates/expenses/partials/_expense_list.html:168
-#: templates/expenses/partials/_expense_list.html:407 templates/home.html:2612
+#: templates/expenses/partials/_expense_list.html:412 templates/home.html:2612
 msgid "Payment Method"
 msgstr "पेमेंट पद्धत"
 
@@ -3023,7 +3028,7 @@ msgstr "मूळ चलनातील रक्कम"
 #: templates/expenses/partials/_account_list.html:405
 #: templates/expenses/partials/_capital_event_list.html:64
 #: templates/expenses/partials/_expense_list.html:176
-#: templates/expenses/partials/_expense_list.html:408
+#: templates/expenses/partials/_expense_list.html:413
 #: templates/expenses/partials/_income_list.html:141
 #: templates/expenses/partials/_loan_history_tab.html:18
 #: templates/expenses/partials/_recurring_transaction_list.html:155
@@ -3357,7 +3362,7 @@ msgstr ""
 msgid "Sum Assured"
 msgstr "विमा रक्कम"
 
-#: expenses/onboarding_v2.py:336 expenses/views/auth.py:214
+#: expenses/onboarding_v2.py:336 expenses/views/auth.py:215
 msgid "Enter an amount greater than zero."
 msgstr "शून्यापेक्षा जास्त रक्कम टाका."
 
@@ -3500,6 +3505,622 @@ msgstr "मुदतपूर्तीचे अंदाज पहा"
 #: expenses/onboarding_v2.py:634
 msgid "Get a target date"
 msgstr "उद्दिष्ट तारीख मिळवा"
+
+#: expenses/public_features.py:38
+msgid "Log money in seconds"
+msgstr "काही सेकंदांत खर्च नोंदवा"
+
+#: expenses/public_features.py:39
+msgid "Type it the way you would text a friend. No bank login, no SMS access."
+msgstr "मित्राला मेसेज करता तसे लिहा. बँक लॉगिन नको, SMS ॲक्सेस नको."
+
+#: expenses/public_features.py:42 templates/features.html:469
+msgid "Type it like a message"
+msgstr "मेसेजसारखे लिहा"
+
+#: expenses/public_features.py:43
+msgid ""
+"Write \"swiggy 320\", \"uber to airport 450 upi yesterday\" or \"laptop bag "
+"2 lakh\". It understands amounts like 1.5k, lakh and crore, dates, UPI, "
+"cards, your account names, and Hindi and Marathi. You check it, then add it."
+" You can also speak it."
+msgstr ""
+"\"swiggy 320\", \"uber to airport 450 upi yesterday\" किंवा \"laptop bag 2 "
+"lakh\" असे लिहा. 1.5k, लाख आणि कोटी यांसारख्या रकमा, तारखा, UPI, कार्ड, "
+"तुमच्या खात्यांची नावे आणि हिंदी व मराठी हे सर्व ते समजून घेते. तुम्ही "
+"तपासता, मग जोडता. तुम्ही बोलूनही नोंदवू शकता."
+
+#: expenses/public_features.py:46
+msgid "Categories that learn your habits"
+msgstr "तुमच्या सवयी शिकणाऱ्या श्रेणी"
+
+#: expenses/public_features.py:47
+msgid ""
+"Your own history and common words like Swiggy, Uber and petrol suggest the "
+"category, and your \"usual\" expenses are one tap away. It all runs inside "
+"the app, and your descriptions are not sent to any third-party service."
+msgstr ""
+"तुमचा स्वतःचा इतिहास आणि Swiggy, Uber, petrol यांसारखे सामान्य शब्द श्रेणी "
+"सुचवतात, आणि तुमचे \"नेहमीचे\" खर्च एका टॅपवर मिळतात. हे सर्व ॲपच्या आतच "
+"चालते, आणि तुमची वर्णने कोणत्याही तिसऱ्या पक्षाच्या सेवेला पाठवली जात नाहीत."
+
+#: expenses/public_features.py:50
+msgid "Expenses, income and transfers"
+msgstr "खर्च, उत्पन्न आणि ट्रान्सफर"
+
+#: expenses/public_features.py:51
+msgid ""
+"Log what you spend and what you earn, and move money between your own "
+"accounts without it counting as spending. Cashback and refunds are kept "
+"apart from income, so your savings rate stays honest."
+msgstr ""
+"तुम्ही काय खर्च करता आणि काय कमावता ते नोंदवा, आणि तुमच्याच खात्यांमध्ये "
+"पैसे हलवा, तो खर्च म्हणून मोजला जाणार नाही. कॅशबॅक आणि रिफंड उत्पन्नापासून "
+"वेगळे ठेवले जातात, त्यामुळे तुमचा बचत दर खरा राहतो."
+
+#: expenses/public_features.py:54
+msgid "Your month starts on salary day"
+msgstr "तुमचा महिना पगाराच्या दिवशी सुरू होतो"
+
+#: expenses/public_features.py:55
+msgid ""
+"Set the day your salary lands and every total, budget and chart follows your"
+" real cycle instead of the calendar month."
+msgstr ""
+"तुमचा पगार जमा होण्याचा दिवस सेट करा, म्हणजे प्रत्येक एकूण रक्कम, बजेट आणि "
+"चार्ट कॅलेंडर महिन्याऐवजी तुमच्या खऱ्या सायकलनुसार चालतात."
+
+#: expenses/public_features.py:58
+msgid "Find anything, fast"
+msgstr "काहीही पटकन शोधा"
+
+#: expenses/public_features.py:59
+msgid ""
+"Filter by period, category, account and payment method, search by "
+"description, and sort. The totals update as you filter. A calendar shows "
+"every day at a glance, with salary days and upcoming payments marked."
+msgstr ""
+"कालावधी, श्रेणी, खाते आणि पेमेंट पद्धतीनुसार फिल्टर करा, वर्णनाने शोधा आणि "
+"क्रमवारी लावा. फिल्टर करताना एकूण रक्कम अपडेट होते. कॅलेंडरमध्ये प्रत्येक "
+"दिवस एका नजरेत दिसतो, पगाराचे दिवस आणि येणारी पेमेंट्स खुणा केलेली असतात."
+
+#: expenses/public_features.py:62
+msgid "Bring your data in, take it out"
+msgstr "तुमचा डेटा आत आणा, बाहेरही घेऊन जा"
+
+#: expenses/public_features.py:63
+msgid ""
+"Import an Excel or CSV file: columns are detected for you, duplicate rows "
+"are skipped and categories are suggested. Export everything to CSV whenever "
+"you like, on every plan."
+msgstr ""
+"Excel किंवा CSV फाइल इम्पोर्ट करा: कॉलम आपोआप ओळखले जातात, दुहेरी ओळी "
+"वगळल्या जातात आणि श्रेणी सुचवल्या जातात. हवे तेव्हा सर्वकाही CSV मध्ये "
+"एक्सपोर्ट करा, प्रत्येक प्लॅनवर."
+
+#: expenses/public_features.py:69
+msgid "Your whole balance sheet"
+msgstr "तुमचे संपूर्ण ताळेबंद"
+
+#: expenses/public_features.py:70
+msgid ""
+"Every account that matters to an Indian household, in one true net worth."
+msgstr ""
+"भारतीय कुटुंबासाठी महत्त्वाची प्रत्येक खाती, एकाच खऱ्या एकूण संपत्तीत."
+
+#: expenses/public_features.py:73
+msgid "Built for Indian accounts"
+msgstr "भारतीय खात्यांसाठी तयार केलेले"
+
+#: expenses/public_features.py:74
+msgid ""
+"Savings, salary and cash, fixed and recurring deposits, PPF, EPF and NPS, "
+"mutual funds, demat, gold and sovereign gold bonds, credit cards, BNPL, "
+"overdraft, loans, real estate, vehicles, and life and health insurance."
+msgstr ""
+"बचत, पगार आणि रोख, मुदत व आवर्ती ठेवी, PPF, EPF आणि NPS, म्युच्युअल फंड, "
+"डिमॅट, सोने आणि सॉव्हरेन गोल्ड बाँड, क्रेडिट कार्ड, BNPL, ओव्हरड्राफ्ट, "
+"कर्जे, स्थावर मालमत्ता, वाहने, आणि जीवन व आरोग्य विमा."
+
+#: expenses/public_features.py:77
+msgid "One real net worth"
+msgstr "एक खरी एकूण संपत्ती"
+
+#: expenses/public_features.py:78
+msgid ""
+"Assets minus what you owe, as one number with its history. Foreign-currency "
+"balances are converted at the day's rate, and a past date uses the rate from"
+" that date."
+msgstr ""
+"मालमत्ता वजा तुमची देणी, एका आकड्यात आणि त्याच्या इतिहासासह. परकीय चलनातील "
+"शिल्लक त्या दिवसाच्या दराने रूपांतरित केली जाते, आणि मागच्या तारखेसाठी त्या "
+"तारखेचा दर वापरला जातो."
+
+#: expenses/public_features.py:81
+msgid "Deposits that accrue like your bank's"
+msgstr "तुमच्या बँकेसारखे वाढणाऱ्या ठेवी"
+
+#: expenses/public_features.py:82
+msgid ""
+"Fixed and recurring deposits earn interest the way a bank counts it, with "
+"each recurring installment accruing from its own date, up to the maturity "
+"amount your bank quotes."
+msgstr ""
+"मुदत आणि आवर्ती ठेवींवर बँक जसे व्याज मोजते तसेच व्याज मिळते, प्रत्येक "
+"आवर्ती हप्ता त्याच्या स्वतःच्या तारखेपासून वाढत जातो, तुमची बँक सांगते त्या "
+"परिपक्वता रकमेपर्यंत."
+
+#: expenses/public_features.py:85
+msgid "Credit cards without surprises"
+msgstr "आश्चर्य नसलेले क्रेडिट कार्ड"
+
+#: expenses/public_features.py:86
+msgid ""
+"See the limit, the credit still available and the next billing date for each"
+" card, BNPL and overdraft account, with a reminder three days before the "
+"bill."
+msgstr ""
+"प्रत्येक कार्ड, BNPL आणि ओव्हरड्राफ्ट खात्यासाठी मर्यादा, अजूनही उपलब्ध "
+"क्रेडिट आणि पुढची बिलिंग तारीख पाहा, बिलाच्या तीन दिवस आधी रिमाइंडरसह."
+
+#: expenses/public_features.py:89
+msgid "Reconcile against your statement"
+msgstr "तुमच्या स्टेटमेंटशी मेळ घाला"
+
+#: expenses/public_features.py:90
+msgid ""
+"Enter the balance on your bank or card statement. The app shows the "
+"difference, points at the likely causes, and can post the adjustment for "
+"you."
+msgstr ""
+"तुमच्या बँक किंवा कार्ड स्टेटमेंटवरील शिल्लक टाका. ॲप फरक दाखवते, संभाव्य "
+"कारणे सुचवते आणि तुमच्यासाठी ॲडजस्टमेंट नोंदवू शकते."
+
+#: expenses/public_features.py:93
+msgid "Insurance and big assets"
+msgstr "विमा आणि मोठी मालमत्ता"
+
+#: expenses/public_features.py:94
+msgid ""
+"Track life and health policies with sum assured, premiums and next due date."
+" A savings policy counts the premiums paid so far, while pure protection "
+"such as term and health cover stays out of your net worth. Property and "
+"vehicle values can be updated as they change."
+msgstr ""
+"विमा रक्कम, प्रीमियम आणि पुढची देय तारीख यासह जीवन आणि आरोग्य पॉलिसी ट्रॅक "
+"करा. बचत पॉलिसीमध्ये आतापर्यंत भरलेले प्रीमियम मोजले जातात, तर टर्म आणि "
+"आरोग्य कव्हरसारखे शुद्ध संरक्षण तुमच्या एकूण संपत्तीबाहेर राहते. मालमत्ता "
+"आणि वाहनांची किंमत बदलेल तशी अपडेट करता येते."
+
+#: expenses/public_features.py:100
+msgid "Investments, fund by fund"
+msgstr "गुंतवणूक, फंडनिहाय"
+
+#: expenses/public_features.py:101
+msgid ""
+"See which fund every rupee went to, priced the way the market prices it."
+msgstr ""
+"प्रत्येक रुपया कोणत्या फंडात गेला ते पाहा, बाजार जसा किंमत ठरवतो तशा किमतीत."
+
+#: expenses/public_features.py:104
+msgid "Holdings inside each account"
+msgstr "प्रत्येक खात्यातील होल्डिंग"
+
+#: expenses/public_features.py:105
+msgid ""
+"Track units, average cost, current value and gain or loss for every fund, "
+"stock, ETF and gold holding, with a full purchase and sale history you can "
+"edit."
+msgstr ""
+"प्रत्येक फंड, स्टॉक, ETF आणि सोन्याच्या होल्डिंगसाठी युनिट, सरासरी खरेदी "
+"किंमत, सध्याचे मूल्य आणि नफा किंवा तोटा ट्रॅक करा, संपादित करता येणाऱ्या "
+"पूर्ण खरेदी आणि विक्री इतिहासासह."
+
+#: expenses/public_features.py:108
+msgid "Daily mutual fund NAVs"
+msgstr "रोजचे म्युच्युअल फंड NAV"
+
+#: expenses/public_features.py:109
+msgid ""
+"Mutual fund NAVs update automatically each day from AMFI. Stocks, ETFs and "
+"gold are priced by you, and the app uses the latest price you gave it."
+msgstr ""
+"म्युच्युअल फंडाचे NAV दररोज AMFI कडून आपोआप अपडेट होतात. स्टॉक, ETF आणि "
+"सोन्याची किंमत तुम्ही देता, आणि ॲप तुम्ही दिलेली ताजी किंमत वापरते."
+
+#: expenses/public_features.py:112
+msgid "Transfers that know where the money went"
+msgstr "पैसे कुठे गेले हे ओळखणारे ट्रान्सफर"
+
+#: expenses/public_features.py:113
+msgid ""
+"When you move money into an investment account, choose which funds it "
+"bought. Every purchase stays linked to that transfer, so \"how much went to "
+"which fund\" always has an answer."
+msgstr ""
+"गुंतवणूक खात्यात पैसे हलवताना त्यातून कोणते फंड घेतले ते निवडा. प्रत्येक "
+"खरेदी त्या ट्रान्सफरशी जोडलेली राहते, म्हणून \"कोणत्या फंडात किती गेले\" "
+"याचे उत्तर नेहमी मिळते."
+
+#: expenses/public_features.py:116
+msgid "NAV by the market's rules"
+msgstr "बाजाराच्या नियमांनुसार NAV"
+
+#: expenses/public_features.py:117
+msgid ""
+"Purchases follow the cut-off times (3 PM, and 1:30 PM for liquid and "
+"overnight funds), roll over weekends and holidays, and deduct the 0.005% "
+"stamp duty. A purchase stays marked as estimated until the NAV is published,"
+" and you can correct the units to match your contract note."
+msgstr ""
+"खरेदी कट-ऑफ वेळा पाळते (दुपारी 3, आणि लिक्विड व ओव्हरनाइट फंडांसाठी दुपारी "
+"1:30), आठवड्याच्या सुट्ट्या आणि सणांच्या सुट्ट्या पुढे ढकलते, आणि 0.005% "
+"मुद्रांक शुल्क वजा करते. NAV प्रसिद्ध होईपर्यंत खरेदी अंदाजित म्हणून खुणा "
+"केलेली राहते, आणि तुमच्या कॉन्ट्रॅक्ट नोटशी जुळवण्यासाठी युनिट दुरुस्त करता "
+"येतात."
+
+#: expenses/public_features.py:120
+msgid "One SIP, several funds"
+msgstr "एक SIP, अनेक फंड"
+
+#: expenses/public_features.py:121
+msgid ""
+"Set up a monthly transfer and split it across funds, for example ₹45,000 as "
+"three ₹15,000 SIPs. Each instalment buys every fund on its own."
+msgstr ""
+"मासिक ट्रान्सफर सेट करा आणि ते अनेक फंडांमध्ये वाटा, उदाहरणार्थ ₹45,000 हे "
+"₹15,000 च्या तीन SIP म्हणून. प्रत्येक हप्ता प्रत्येक फंड स्वतंत्रपणे खरेदी "
+"करतो."
+
+#: expenses/public_features.py:124
+msgid "Selling that keeps the books right"
+msgstr "हिशेब बरोबर ठेवणारी विक्री"
+
+#: expenses/public_features.py:125
+msgid ""
+"Sell units and the proceeds return as cash in the account, with the profit "
+"or loss recorded. Your net worth stays consistent and the account shows any "
+"cash waiting to be reinvested."
+msgstr ""
+"युनिट विका आणि मिळालेली रक्कम खात्यात रोख म्हणून परत येते, नफा किंवा तोटा "
+"नोंदवला जातो. तुमची एकूण संपत्ती सुसंगत राहते आणि पुन्हा गुंतवण्यासाठी "
+"थांबलेली कोणतीही रोख खात्यात दिसते."
+
+#: expenses/public_features.py:131
+msgid "Plan ahead"
+msgstr "पुढचे नियोजन करा"
+
+#: expenses/public_features.py:132
+msgid "Bills, budgets, goals and loans that look after themselves."
+msgstr "बिले, बजेट, उद्दिष्टे आणि कर्जे जी स्वतःची काळजी स्वतः घेतात."
+
+#: expenses/public_features.py:135
+msgid "Set it once, forget it"
+msgstr "एकदा सेट करा, विसरून जा"
+
+#: expenses/public_features.py:136
+msgid ""
+"Rent, salary, subscriptions, SIPs and insurance premiums post by themselves "
+"on their due dates. You get a reminder three days before, and a Renewing "
+"Soon list shows what is coming."
+msgstr ""
+"भाडे, पगार, सबस्क्रिप्शन, SIP आणि विमा प्रीमियम त्यांच्या देय तारखांना आपोआप"
+" नोंदवले जातात. तीन दिवस आधी रिमाइंडर मिळतो, आणि Renewing Soon यादीत काय येत"
+" आहे ते दिसते."
+
+#: expenses/public_features.py:139
+msgid "Budgets that warn you early"
+msgstr "आधीच इशारा देणारे बजेट"
+
+#: expenses/public_features.py:140
+msgid ""
+"Set a monthly limit for each category and see progress bars. You are alerted"
+" when a category reaches its warning level and again when it goes over, and "
+"a Needs Attention list shows what to look at."
+msgstr ""
+"प्रत्येक श्रेणीसाठी मासिक मर्यादा सेट करा आणि प्रोग्रेस बार पाहा. श्रेणी "
+"इशारा पातळीला पोहोचते तेव्हा आणि मर्यादा ओलांडते तेव्हा पुन्हा अलर्ट मिळतो, "
+"आणि Needs Attention यादीत कशाकडे लक्ष द्यायचे ते दिसते."
+
+#: expenses/public_features.py:143
+msgid "Goals with a finish line"
+msgstr "अंतिम रेषा असलेली उद्दिष्टे"
+
+#: expenses/public_features.py:144
+msgid ""
+"Set a target, log what you put towards it, and get a projected date based on"
+" your real pace. You are alerted at 50%, 90% and 100%."
+msgstr ""
+"लक्ष्य ठरवा, त्यासाठी तुम्ही किती बाजूला ठेवता ते नोंदवा, आणि तुमच्या खऱ्या "
+"गतीनुसार अंदाजित तारीख मिळवा. 50%, 90% आणि 100% वर अलर्ट मिळतो."
+
+#: expenses/public_features.py:147
+msgid "Loans and a free EMI calculator"
+msgstr "कर्जे आणि मोफत EMI कॅल्क्युलेटर"
+
+#: expenses/public_features.py:148
+msgid ""
+"Preview an EMI before you borrow. Then track home, car, personal and other "
+"loans with an amortisation schedule, floating-rate changes, repayments and "
+"the remaining principal."
+msgstr ""
+"कर्ज घेण्यापूर्वी EMI चा अंदाज पाहा. मग गृह, कार, वैयक्तिक आणि इतर कर्जे "
+"ट्रॅक करा, परतफेडीचे वेळापत्रक, बदलत्या व्याजदरातील बदल, परतफेडी आणि उरलेली "
+"मुद्दल यांसह."
+
+#: expenses/public_features.py:151
+msgid "Big one-off costs, kept separate"
+msgstr "मोठे एकदाचे खर्च, वेगळे ठेवलेले"
+
+#: expenses/public_features.py:152
+msgid ""
+"Record a wedding, a car down payment or a medical bill as a capital event, "
+"and choose whether it counts towards your averages, so one big month does "
+"not distort your picture."
+msgstr ""
+"लग्न, कारचे डाउन पेमेंट किंवा वैद्यकीय बिल भांडवली घटना म्हणून नोंदवा, आणि "
+"ते तुमच्या सरासरीमध्ये मोजायचे की नाही ते ठरवा, म्हणजे एका मोठ्या "
+"महिन्यामुळे तुमचे चित्र बिघडत नाही."
+
+#: expenses/public_features.py:158
+msgid "Guided setup with TMR Flows"
+msgstr "TMR Flows सह मार्गदर्शित सेटअप"
+
+#: expenses/public_features.py:159
+msgid "Say what happened. The app sets up everything that goes with it."
+msgstr "काय झाले ते सांगा. त्यासोबत लागणारे सर्व काही ॲप सेट करते."
+
+#: expenses/public_features.py:162
+msgid "One short form, everything linked"
+msgstr "एक छोटा फॉर्म, सर्वकाही जोडलेले"
+
+#: expenses/public_features.py:163
+msgid ""
+"Tell it \"I took a loan\", \"I started a new job\", \"I started a SIP\" or "
+"\"I bought gold\". One form creates the account, the schedule and the links,"
+" and a preview lists everything before you confirm."
+msgstr ""
+"\"मी कर्ज घेतले\", \"मी नवीन नोकरी सुरू केली\", \"मी SIP सुरू केली\" किंवा "
+"\"मी सोने घेतले\" असे सांगा. एक फॉर्म खाते, वेळापत्रक आणि जोडण्या तयार करतो,"
+" आणि तुम्ही खात्री करण्यापूर्वी प्रीव्ह्यूमध्ये सर्व काही दिसते."
+
+#: expenses/public_features.py:166
+msgid "A flow for the moments that matter"
+msgstr "महत्त्वाच्या क्षणांसाठी एक फ्लो"
+
+#: expenses/public_features.py:167
+msgid ""
+"Loans and credit cards, salary, rent and insurance, SIPs, FDs, PPF, EPF and "
+"NPS, savings goals, a car and gold. Your progress panel shows which of the "
+"core setups you have done."
+msgstr ""
+"कर्जे आणि क्रेडिट कार्ड, पगार, भाडे आणि विमा, SIP, FD, PPF, EPF आणि NPS, बचत"
+" उद्दिष्टे, कार आणि सोने. तुमच्या प्रोग्रेस पॅनेलमध्ये मुख्य सेटअपपैकी कोणते"
+" तुम्ही पूर्ण केले ते दिसते."
+
+#: expenses/public_features.py:170
+msgid "Safe to get wrong"
+msgstr "चूक झाली तरी सुरक्षित"
+
+#: expenses/public_features.py:171
+msgid ""
+"You review before anything is saved, a flow saves everything or nothing, and"
+" a double-click cannot create things twice. You can switch on historical "
+"entries to fill in the months already gone."
+msgstr ""
+"काहीही सेव्ह होण्यापूर्वी तुम्ही तपासता, फ्लो सर्वकाही सेव्ह करतो किंवा "
+"काहीच नाही, आणि डबल-क्लिकने गोष्टी दोनदा तयार होत नाहीत. निघून गेलेले महिने "
+"भरण्यासाठी तुम्ही जुन्या नोंदी चालू करू शकता."
+
+#: expenses/public_features.py:177
+msgid "Know where you stand"
+msgstr "तुम्ही कुठे आहात ते जाणून घ्या"
+
+#: expenses/public_features.py:178
+msgid "Plain answers from your own numbers."
+msgstr "तुमच्याच आकड्यांतून सोपी उत्तरे."
+
+#: expenses/public_features.py:181
+msgid "A dashboard you can read at a glance"
+msgstr "एका नजरेत वाचता येणारा डॅशबोर्ड"
+
+#: expenses/public_features.py:182
+msgid ""
+"Net worth, cash flow, where the money went and a year-to-date projection, "
+"for any period you choose."
+msgstr ""
+"एकूण संपत्ती, कॅश फ्लो, पैसे कुठे गेले आणि वर्षाच्या सुरुवातीपासूनचा अंदाज, "
+"तुम्ही निवडलेल्या कोणत्याही कालावधीसाठी."
+
+#: expenses/public_features.py:185
+msgid "A financial health score"
+msgstr "आर्थिक आरोग्य स्कोअर"
+
+#: expenses/public_features.py:186
+msgid ""
+"A score out of 100 built from your savings rate, with four checks behind it:"
+" savings rate, spending growth, consistency, and how many months you could "
+"live on your savings."
+msgstr ""
+"तुमच्या बचत दरावर आधारित 100 पैकी स्कोअर, त्यामागे चार तपासण्या: बचत दर, "
+"खर्चातील वाढ, सातत्य आणि तुमच्या बचतीवर तुम्ही किती महिने जगू शकता."
+
+#: expenses/public_features.py:189
+msgid "Trends and month-on-month"
+msgstr "ट्रेंड आणि महिन्यागणिक तुलना"
+
+#: expenses/public_features.py:190
+msgid ""
+"See how each category moves over the year and against last month, so a "
+"growing habit shows up early."
+msgstr ""
+"प्रत्येक श्रेणी वर्षभरात आणि मागच्या महिन्याच्या तुलनेत कशी बदलते ते पाहा, "
+"म्हणजे वाढणारी सवय लवकर दिसते."
+
+#: expenses/public_features.py:193
+msgid "Year in Review and monthly reports"
+msgstr "वर्षाचा आढावा आणि मासिक अहवाल"
+
+#: expenses/public_features.py:194
+msgid ""
+"A yearly wrap-up of what you earned, spent, saved and invested, and a "
+"monthly summary in your inbox."
+msgstr ""
+"तुम्ही काय कमावले, खर्च केले, बचत केली आणि गुंतवले याचा वार्षिक आढावा, आणि "
+"तुमच्या इनबॉक्समध्ये मासिक सारांश."
+
+#: expenses/public_features.py:200
+msgid "Reminders that reach you"
+msgstr "तुमच्यापर्यंत पोहोचणारे रिमाइंडर"
+
+#: expenses/public_features.py:201
+msgid "In the app, as a push notification, or in one daily email."
+msgstr "ॲपमध्ये, पुश नोटिफिकेशन म्हणून किंवा रोजच्या एका ईमेलमध्ये."
+
+#: expenses/public_features.py:204
+msgid "Alerts for what is due"
+msgstr "देय गोष्टींचे अलर्ट"
+
+#: expenses/public_features.py:205
+msgid ""
+"Upcoming bills and premiums, credit card billing dates, budgets nearing or "
+"passing their limit, and goal milestones. Each alert is sent once, so you "
+"are never nagged."
+msgstr ""
+"येणारी बिले आणि प्रीमियम, क्रेडिट कार्ड बिलिंग तारखा, मर्यादेजवळ येणारे "
+"किंवा मर्यादा ओलांडणारे बजेट, आणि उद्दिष्टांचे टप्पे. प्रत्येक अलर्ट एकदाच "
+"पाठवला जातो, त्यामुळे तुम्हाला कधीच त्रास होत नाही."
+
+#: expenses/public_features.py:208
+msgid "A 9 pm nudge to log your day"
+msgstr "तुमचा दिवस नोंदवण्यासाठी रात्री 9 ची आठवण"
+
+#: expenses/public_features.py:209
+msgid ""
+"An optional daily reminder that skips any day you have already added an "
+"expense. It works in the browser without installing anything."
+msgstr ""
+"ऐच्छिक रोजचा रिमाइंडर, ज्या दिवशी तुम्ही आधीच खर्च जोडला आहे तो दिवस वगळला "
+"जातो. काहीही इन्स्टॉल न करता तो ब्राउझरमध्ये चालतो."
+
+#: expenses/public_features.py:215
+msgid "Your data stays yours"
+msgstr "तुमचा डेटा तुमचाच राहतो"
+
+#: expenses/public_features.py:216
+msgid "Privacy by design, not as an afterthought."
+msgstr "सुरुवातीपासूनच गोपनीयता, नंतर सुचलेली गोष्ट म्हणून नव्हे."
+
+#: expenses/public_features.py:219
+msgid "No SMS access, no bank login"
+msgstr "SMS ॲक्सेस नाही, बँक लॉगिन नाही"
+
+#: expenses/public_features.py:220
+msgid ""
+"Every number comes from your own entries, so there is nothing to connect and"
+" no permission to grant."
+msgstr ""
+"प्रत्येक आकडा तुमच्याच नोंदींमधून येतो, त्यामुळे जोडण्यासाठी काही नाही आणि "
+"द्यायला कोणतीही परवानगी नाही."
+
+#: expenses/public_features.py:223
+msgid "A double-entry ledger underneath"
+msgstr "खाली दुहेरी नोंदीची खातेवही"
+
+#: expenses/public_features.py:224
+msgid ""
+"Every transaction is recorded on both sides, so balances always add up and a"
+" mismatch is flagged instead of hidden."
+msgstr ""
+"प्रत्येक व्यवहार दोन्ही बाजूंनी नोंदवला जातो, त्यामुळे शिल्लक नेहमी जुळते "
+"आणि तफावत लपवण्याऐवजी दाखवली जाते."
+
+#: expenses/public_features.py:227
+msgid "Export and delete, any time"
+msgstr "कधीही एक्सपोर्ट करा आणि हटवा"
+
+#: expenses/public_features.py:228
+msgid ""
+"Download your full history to CSV on any plan, and delete your account "
+"whenever you want. When a paid plan ends, nothing is deleted."
+msgstr ""
+"तुमचा पूर्ण इतिहास कोणत्याही प्लॅनवर CSV मध्ये डाउनलोड करा, आणि हवे तेव्हा "
+"तुमचे खाते हटवा. सशुल्क प्लॅन संपला तरी काहीही हटवले जात नाही."
+
+#: expenses/public_features.py:231
+msgid "Open source and self-hostable"
+msgstr "ओपन सोर्स आणि स्वतः होस्ट करता येणारे"
+
+#: expenses/public_features.py:232
+msgid ""
+"The code is public under the AGPL, and you can run the whole app on your own"
+" server with Docker."
+msgstr ""
+"कोड AGPL अंतर्गत सार्वजनिक आहे, आणि तुम्ही संपूर्ण ॲप तुमच्या स्वतःच्या "
+"सर्व्हरवर Docker सह चालवू शकता."
+
+#: expenses/public_features.py:238
+msgid "Works the way you do"
+msgstr "तुमच्या पद्धतीने चालणारे"
+
+#: expenses/public_features.py:239
+msgid "Your language, your device, your currency."
+msgstr "तुमची भाषा, तुमचे डिव्हाइस, तुमचे चलन."
+
+#: expenses/public_features.py:242
+msgid "English, Hindi and Marathi"
+msgstr "इंग्रजी, हिंदी आणि मराठी"
+
+#: expenses/public_features.py:243
+msgid ""
+"The whole app is translated, including Devanagari numerals, so it reads "
+"naturally."
+msgstr ""
+"संपूर्ण ॲपचे भाषांतर केले आहे, देवनागरी अंकांसह, त्यामुळे ते नैसर्गिक वाटते."
+
+#: expenses/public_features.py:246
+msgid "An app with no install"
+msgstr "इन्स्टॉल न करता चालणारे ॲप"
+
+#: expenses/public_features.py:247
+msgid ""
+"Add it to your home screen and it opens like a native app, with offline "
+"reading."
+msgstr "ते होम स्क्रीनवर जोडा आणि ते नेटिव्ह ॲपसारखे उघडते, ऑफलाइन वाचनासह."
+
+#: expenses/public_features.py:250
+msgid "Any currency next to the rupee"
+msgstr "रुपयासोबत कोणतेही चलन"
+
+#: expenses/public_features.py:251
+msgid ""
+"Track USD, EUR or any other currency if you travel, freelance or hold "
+"foreign investments. Rates refresh daily and are saved with each "
+"transaction."
+msgstr ""
+"तुम्ही प्रवास करत असाल, फ्रीलान्स काम करत असाल किंवा परदेशी गुंतवणूक असेल तर"
+" USD, EUR किंवा इतर कोणतेही चलन ट्रॅक करा. दर रोज रिफ्रेश होतात आणि प्रत्येक"
+" व्यवहारासोबत सेव्ह केले जातात."
+
+#: expenses/public_features.py:254
+msgid "Light and dark themes"
+msgstr "लाइट आणि डार्क थीम"
+
+#: expenses/public_features.py:255
+msgid "Follows your device or your choice, on every screen."
+msgstr "तुमच्या डिव्हाइसनुसार किंवा तुमच्या निवडीनुसार, प्रत्येक स्क्रीनवर."
+
+#: expenses/public_features.py:258
+msgid "Try it before you sign up"
+msgstr "साइन अप करण्यापूर्वी करून पाहा"
+
+#: expenses/public_features.py:259
+msgid ""
+"Open the demo with realistic data, no account needed. The Free plan never "
+"expires, and a 7-day Pro trial needs no card."
+msgstr ""
+"खऱ्यासारख्या डेटासह डेमो उघडा, खाते नको. Free प्लॅन कधीच संपत नाही, आणि 7 "
+"दिवसांच्या Pro ट्रायलसाठी कार्ड लागत नाही."
 
 #: expenses/views/accounts.py:305
 msgid "Pinned Accounts"
@@ -4201,15 +4822,15 @@ msgstr "INDmoney ला पर्याय, गोपनीयता"
 msgid "No Gmail or Bank scraping"
 msgstr "Gmail किंवा बँक डेटा स्क्रॅप करण्याचा त्रास नाही"
 
-#: expenses/views/auth.py:261
+#: expenses/views/auth.py:262
 msgid "Unable to save onboarding data. Please check entered values."
 msgstr "ऑनबोर्डिंग डेटा जतन करता आला नाही. कृपया टाकलेली मूल्ये तपासा."
 
-#: expenses/views/auth.py:267 templates/onboarding.html:1449
+#: expenses/views/auth.py:268 templates/onboarding.html:1449
 msgid "Something went wrong, please try again."
 msgstr "काहीतरी चुकले, कृपया पुन्हा प्रयत्न करा."
 
-#: expenses/views/auth.py:578
+#: expenses/views/auth.py:485
 msgid "🚀 Welcome to Demo Mode! Feel free to explore the app."
 msgstr "🚀 डेमो मोडमध्ये तुमचे स्वागत आहे! बिनधास्त ॲप वापरून पहा."
 
@@ -4986,9 +5607,10 @@ msgstr "खर्च"
 
 #: expenses/views/dashboard.py:2127 expenses/views/dashboard.py:2872
 #: templates/expenses/partials/_calendar_content.html:52
-#: templates/home.html:3375 templates/home.html:3449
+#: templates/home.html:3377 templates/home.html:3451
 #: templates/mom_analysis.html:199 templates/mom_analysis.html:210
-#: templates/mom_analysis.html:501 templates/partials/savings_modal.html:39
+#: templates/mom_analysis.html:501 templates/partials/guide_accounts.html:73
+#: templates/partials/savings_modal.html:39
 msgid "Investments"
 msgstr "गुंतवणूक"
 
@@ -5948,15 +6570,15 @@ msgstr "सर्व काही, अमर्यादित"
 msgid "Priority email"
 msgstr "प्राधान्य ईमेल"
 
-#: finance_tracker/settings.py:224
+#: finance_tracker/settings.py:225
 msgid "English"
 msgstr "इंग्रजी"
 
-#: finance_tracker/settings.py:225
+#: finance_tracker/settings.py:226
 msgid "Hindi"
 msgstr "हिंदी"
 
-#: finance_tracker/settings.py:226
+#: finance_tracker/settings.py:227
 msgid "Marathi"
 msgstr "मराठी"
 
@@ -6314,7 +6936,7 @@ msgstr "पडताळणीची पुष्टी करा"
 #: templates/expenses/loan_detail.html:368
 #: templates/expenses/loan_detail.html:398
 #: templates/expenses/loan_form.html:87
-#: templates/expenses/partials/_expense_list.html:343
+#: templates/expenses/partials/_expense_list.html:344
 #: templates/expenses/partials/_holding_value_modal.html:27
 #: templates/expenses/recurring_transaction_confirm_delete.html:19
 #: templates/expenses/recurring_transaction_form.html:429
@@ -6685,8 +7307,8 @@ msgid "Resend Verification"
 msgstr "पडताळणी पुन्हा पाठवा"
 
 #: templates/account/verification_sent.html:57 templates/base.html:829
-#: templates/base.html:869 templates/base.html:966 templates/base.html:1461
-#: templates/base.html:2214 templates/base.html:2798
+#: templates/base.html:869 templates/base.html:966 templates/base.html:1183
+#: templates/base.html:1446 templates/base.html:1683
 #: templates/components/compare_plans_modal.html:6
 #: templates/components/navbar.html:290 templates/components/navbar.html:353
 #: templates/components/navbar.html:570 templates/components/sidebar.html:296
@@ -6935,7 +7557,6 @@ msgid ""
 msgstr "सूचना बंद आहेत. कृपया तुमच्या ब्राउझरच्या सेटिंगमध्ये त्या चालू करा."
 
 #: templates/base.html:471
-#| msgid "To enable notifications on iOS, please \\"
 msgid "To enable notifications on iOS, please tap ‘Add to Home Screen’ first."
 msgstr "iOS वर नोटिफिकेशन सुरू करण्यासाठी आधी ‘Add to Home Screen’ दाबा."
 
@@ -7035,9 +7656,9 @@ msgstr ""
 #: templates/expenses/partials/_category_list.html:35
 #: templates/expenses/partials/_category_list.html:99
 #: templates/expenses/partials/_category_list.html:175
-#: templates/expenses/partials/_expense_list.html:379
-#: templates/expenses/partials/_expense_list.html:471
-#: templates/expenses/partials/_expense_list.html:549
+#: templates/expenses/partials/_expense_list.html:384
+#: templates/expenses/partials/_expense_list.html:476
+#: templates/expenses/partials/_expense_list.html:554
 #: templates/expenses/partials/_holding_purchase_actions.html:25
 #: templates/expenses/partials/_income_list.html:201
 #: templates/expenses/partials/_income_list.html:276
@@ -7070,36 +7691,11 @@ msgstr "हटवा"
 msgid "Start your 7-Day Pro Free Trial? No credit card required."
 msgstr "7 दिवसांचा Pro मोफत ट्रायल सुरू करायचा? क्रेडिट कार्डची गरज नाही."
 
-#: templates/base.html:1532
-msgid "Clear"
-msgstr "साफ करा"
-
-#: templates/base.html:1546 templates/base.html:1789
-msgid "Select..."
-msgstr "निवडा..."
-
-#: templates/base.html:1567 templates/base.html:1766
-#: templates/expenses/partials/_expense_list.html:114
-msgid "Search..."
-msgstr "शोधा..."
-
-#: templates/base.html:1645 templates/base.html:1847
-msgid "No matches"
-msgstr "काहीही जुळले नाही"
-
-#: templates/base.html:1774
-msgid "Select all"
-msgstr "सर्व निवडा"
-
-#: templates/base.html:1775
-msgid "Clear all"
-msgstr "सर्व साफ करा"
-
-#: templates/base.html:2164
+#: templates/base.html:1395
 msgid "Support TrackMyRupee"
 msgstr "TrackMyRupee ला पाठिंबा द्या"
 
-#: templates/base.html:2169
+#: templates/base.html:1400
 msgid ""
 "If TrackMyRupee helped you understand your money better, consider supporting"
 " its development."
@@ -7107,15 +7703,15 @@ msgstr ""
 "जर TrackMyRupee मुळे तुम्हाला तुमचे पैसे अधिक चांगल्या प्रकारे समजून घेण्यास"
 " मदत झाली असेल, तर त्याच्या विकासाला पाठिंबा देण्याचा विचार करा."
 
-#: templates/base.html:2171
+#: templates/base.html:1402
 msgid "Donate Now"
 msgstr "आता दान करा"
 
-#: templates/base.html:2213
+#: templates/base.html:1445
 msgid "Cancel Subscription?"
 msgstr "सबस्क्रिप्शन रद्द करायचे?"
 
-#: templates/base.html:2223
+#: templates/base.html:1455
 #, python-format
 msgid ""
 "\n"
@@ -7126,19 +7722,19 @@ msgstr ""
 "                        तुम्हाला खरोखर रद्द करायचे आहे का? तुमचे सध्याचे चक्र <strong>%(date)s</strong> रोजी संपेपर्यंत तुमची <strong>Pro वैशिष्ट्ये</strong> कायम राहतील.\n"
 "                        "
 
-#: templates/base.html:2229
+#: templates/base.html:1461
 msgid "Keep it"
 msgstr "हे ठेवा"
 
-#: templates/base.html:2230
+#: templates/base.html:1462
 msgid "Yes, Cancel"
 msgstr "हो, रद्द करा"
 
-#: templates/base.html:2262
+#: templates/base.html:1494
 msgid "Request failed"
 msgstr "विनंती अयशस्वी झाली"
 
-#: templates/base.html:2815 templates/expenses/budget_dashboard.html:135
+#: templates/base.html:1700 templates/expenses/budget_dashboard.html:135
 #: templates/expenses/partials/_account_list.html:268 templates/home.html:692
 #: templates/home.html:705
 msgid "Dismiss"
@@ -7404,9 +8000,9 @@ msgstr "पूर्ववत करा"
 #: templates/expenses/partials/_capital_event_list.html:218
 #: templates/expenses/partials/_category_list.html:90
 #: templates/expenses/partials/_category_list.html:166
-#: templates/expenses/partials/_expense_list.html:376
-#: templates/expenses/partials/_expense_list.html:456
-#: templates/expenses/partials/_expense_list.html:534
+#: templates/expenses/partials/_expense_list.html:381
+#: templates/expenses/partials/_expense_list.html:461
+#: templates/expenses/partials/_expense_list.html:539
 #: templates/expenses/partials/_holding_purchase_actions.html:16
 #: templates/expenses/partials/_income_list.html:192
 #: templates/expenses/partials/_income_list.html:268
@@ -7504,6 +8100,7 @@ msgstr "तारीख: {date}"
 
 #: templates/components/expense_composer_card.html:26
 #: templates/components/expense_composer_card.html:131
+#: templates/features.html:543
 msgid "Yesterday"
 msgstr "काल"
 
@@ -7601,6 +8198,7 @@ msgstr "तपासा"
 
 #: templates/components/expense_composer_card.html:53
 #: templates/components/expense_composer_card.html:178
+#: templates/features.html:540
 msgid "Payment method"
 msgstr "पेमेंट पद्धत"
 
@@ -7901,7 +8499,7 @@ msgstr "विश्लेषण"
 #: templates/components/navbar.html:118 templates/components/navbar.html:301
 #: templates/components/sidebar.html:75
 #: templates/expenses/partials/_expense_list.html:57
-#: templates/expenses/partials/_expense_list.html:578
+#: templates/expenses/partials/_expense_list.html:583
 #: templates/expenses/partials/_transaction_list.html:78
 #: templates/expenses/partials/_transaction_list.html:402
 #: templates/home.html:1023 templates/home.html:2041 templates/home.html:2234
@@ -8101,7 +8699,7 @@ msgstr "कर्ज EMI कॅल्क्युलेटर"
 
 #: templates/components/public_footer.html:28
 #: templates/components/public_navbar.html:17
-#: templates/components/public_navbar.html:50
+#: templates/components/public_navbar.html:50 templates/features.html:512
 msgid "Live Demo"
 msgstr "थेट डेमो"
 
@@ -8174,8 +8772,8 @@ msgid "Main navigation"
 msgstr "मुख्य नेव्हिगेशन"
 
 #: templates/components/public_navbar.html:20
-#: templates/components/public_navbar.html:51 templates/landing.html:2473
-#: templates/loan_emi_calculator.html:495
+#: templates/components/public_navbar.html:51 templates/features.html:511
+#: templates/landing.html:2473 templates/loan_emi_calculator.html:495
 msgid "Start Free"
 msgstr "मोफत सुरू करा"
 
@@ -8481,8 +9079,8 @@ msgstr "नेव्हिगेट करा"
 #: templates/components/sidebar.html:495
 #: templates/expenses/category_list.html:249
 #: templates/expenses/partials/_category_list.html:118
-#: templates/expenses/partials/_expense_list.html:343
-#: templates/expenses/partials/_expense_list.html:490
+#: templates/expenses/partials/_expense_list.html:344
+#: templates/expenses/partials/_expense_list.html:495
 msgid "Select"
 msgstr "निवडा"
 
@@ -8979,7 +9577,7 @@ msgstr ""
 #: templates/expenses/holding_detail.html:145
 #: templates/expenses/partials/_capital_event_list.html:281
 #: templates/expenses/partials/_category_list.html:235
-#: templates/expenses/partials/_expense_list.html:619
+#: templates/expenses/partials/_expense_list.html:624
 #: templates/expenses/partials/_income_list.html:351
 #: templates/expenses/partials/_notification_list.html:171
 #: templates/expenses/partials/_transaction_list.html:437
@@ -10253,8 +10851,8 @@ msgstr "बचत"
 
 #: templates/expenses/goal_detail.html:94
 #: templates/expenses/partials/_loan_list_partial.html:216
-#: templates/home.html:3375 templates/home.html:3452 templates/home.html:3652
-#: templates/home.html:3697
+#: templates/home.html:3377 templates/home.html:3454 templates/home.html:3654
+#: templates/home.html:3699 templates/partials/guide_budgets.html:56
 msgid "Remaining"
 msgstr "शिल्लक"
 
@@ -10341,7 +10939,7 @@ msgstr "प्रकार"
 #: templates/expenses/partials/_account_detail.html:368
 #: templates/expenses/partials/_capital_event_list.html:67
 #: templates/expenses/partials/_category_list.html:52
-#: templates/expenses/partials/_expense_list.html:418
+#: templates/expenses/partials/_expense_list.html:423
 #: templates/expenses/partials/_income_list.html:151
 #: templates/expenses/partials/_loan_history_tab.html:20
 #: templates/expenses/partials/_recurring_transaction_list.html:157
@@ -10412,7 +11010,7 @@ msgstr "योगदान पृष्ठसंख्या"
 #: templates/expenses/holding_detail.html:133
 #: templates/expenses/partials/_capital_event_list.html:259
 #: templates/expenses/partials/_category_list.html:213
-#: templates/expenses/partials/_expense_list.html:597
+#: templates/expenses/partials/_expense_list.html:602
 #: templates/expenses/partials/_income_list.html:329
 #: templates/expenses/partials/_notification_list.html:149
 #: templates/expenses/partials/_transaction_list.html:415
@@ -11004,6 +11602,7 @@ msgstr ""
 "घ्यायचे आहे का?"
 
 #: templates/expenses/loan_detail.html:98
+#: templates/partials/guide_loans.html:73
 msgid "View Loans Tutorial"
 msgstr "कर्ज ट्यूटोरियल पहा"
 
@@ -11209,6 +11808,7 @@ msgstr "या तारखेपासून लागू"
 
 #: templates/expenses/loan_detail.html:675
 #: templates/expenses/partials/_loan_schedule_tab.html:56
+#: templates/partials/guide_loans.html:42
 msgid "Remaining Balance"
 msgstr "उर्वरित शिल्लक"
 
@@ -11457,7 +12057,7 @@ msgstr "या खात्याची अजून कोणतीही ह�
 
 #: templates/expenses/partials/_account_detail.html:460
 #: templates/expenses/partials/_capital_event_list.html:310
-#: templates/expenses/partials/_expense_list.html:582
+#: templates/expenses/partials/_expense_list.html:587
 #: templates/expenses/partials/_income_list.html:311
 #: templates/expenses/partials/_transaction_list.html:399
 #: templates/expenses/partials/_transfer_list.html:169
@@ -12164,7 +12764,7 @@ msgstr "सूचना पहा"
 #: templates/expenses/partials/_expense_list.html:15
 #: templates/expenses/partials/_expense_list.html:67
 #: templates/expenses/partials/_transaction_list.html:8
-#: templates/home.html:807 templates/home.html:3201
+#: templates/home.html:807 templates/home.html:3203
 msgid "Previous Month"
 msgstr "मागील महिना"
 
@@ -12367,7 +12967,7 @@ msgid "Categories help you understand your spending habits"
 msgstr "श्रेणी तुम्हाला तुमच्या खर्चाच्या सवयी समजून घेण्यात मदत करतात"
 
 #: templates/expenses/partials/_category_list.html:33
-#: templates/expenses/partials/_expense_list.html:374
+#: templates/expenses/partials/_expense_list.html:379
 msgid "Items Selected"
 msgstr "निवडलेले घटक"
 
@@ -12383,8 +12983,8 @@ msgstr ""
 "लागेल."
 
 #: templates/expenses/partials/_category_list.html:116
-#: templates/expenses/partials/_expense_list.html:487
-#: templates/expenses/partials/_expense_list.html:488
+#: templates/expenses/partials/_expense_list.html:492
+#: templates/expenses/partials/_expense_list.html:493
 msgid "Select All"
 msgstr "सर्व निवडा"
 
@@ -12425,7 +13025,7 @@ msgid "days left in cycle"
 msgstr "चक्रात दिवस बाकी"
 
 #: templates/expenses/partials/_expense_list.html:42
-#: templates/expenses/partials/_expense_list.html:250
+#: templates/expenses/partials/_expense_list.html:251
 msgid "Select at least one expense to edit"
 msgstr "संपादित करण्यासाठी किमान एक खर्च निवडा"
 
@@ -12434,13 +13034,17 @@ msgid "Edit Selected"
 msgstr "निवडलेले संपादित करा"
 
 #: templates/expenses/partials/_expense_list.html:47
-#: templates/expenses/partials/_expense_list.html:256
+#: templates/expenses/partials/_expense_list.html:257
 msgid "Select at least one expense to delete"
 msgstr "हटवण्यासाठी किमान एक खर्च निवडा"
 
 #: templates/expenses/partials/_expense_list.html:111
 msgid "Search"
 msgstr "शोधा"
+
+#: templates/expenses/partials/_expense_list.html:114
+msgid "Search..."
+msgstr "शोधा..."
 
 #: templates/expenses/partials/_expense_list.html:119
 msgid "Sort By"
@@ -12482,73 +13086,73 @@ msgstr "खाती..."
 msgid "Apply"
 msgstr "लागू करा"
 
-#: templates/expenses/partials/_expense_list.html:249
+#: templates/expenses/partials/_expense_list.html:250
 msgid "Edit selected expenses"
 msgstr "निवडलेले खर्च संपादित करा"
 
-#: templates/expenses/partials/_expense_list.html:255
+#: templates/expenses/partials/_expense_list.html:256
 msgid "Delete selected expenses"
 msgstr "निवडलेले खर्च हटवा"
 
-#: templates/expenses/partials/_expense_list.html:324
+#: templates/expenses/partials/_expense_list.html:325
 msgid "Are you sure?"
 msgstr "तुम्हाला खात्री आहे का?"
 
-#: templates/expenses/partials/_expense_list.html:400
-#: templates/expenses/partials/_expense_list.html:401
+#: templates/expenses/partials/_expense_list.html:405
+#: templates/expenses/partials/_expense_list.html:406
 msgid "Select all expenses"
 msgstr "सर्व खर्च निवडा"
 
-#: templates/expenses/partials/_expense_list.html:426
-#: templates/expenses/partials/_expense_list.html:427
-#: templates/expenses/partials/_expense_list.html:504
-#: templates/expenses/partials/_expense_list.html:505
+#: templates/expenses/partials/_expense_list.html:431
+#: templates/expenses/partials/_expense_list.html:432
+#: templates/expenses/partials/_expense_list.html:509
+#: templates/expenses/partials/_expense_list.html:510
 msgid "Select expense"
 msgstr "खर्च निवडा"
 
-#: templates/expenses/partials/_expense_list.html:448
-#: templates/expenses/partials/_expense_list.html:526
+#: templates/expenses/partials/_expense_list.html:453
+#: templates/expenses/partials/_expense_list.html:531
 msgid "Expense actions"
 msgstr "खर्च क्रिया"
 
-#: templates/expenses/partials/_expense_list.html:450
-#: templates/expenses/partials/_expense_list.html:528
+#: templates/expenses/partials/_expense_list.html:455
+#: templates/expenses/partials/_expense_list.html:533
 #: templates/expenses/partials/_transaction_list.html:273
 #: templates/expenses/partials/_transaction_list.html:352
 msgid "Actions for"
 msgstr "क्रिया:"
 
-#: templates/expenses/partials/_expense_list.html:462
-#: templates/expenses/partials/_expense_list.html:540
+#: templates/expenses/partials/_expense_list.html:467
+#: templates/expenses/partials/_expense_list.html:545
 #: templates/expenses/partials/_transaction_list.html:281
 #: templates/expenses/partials/_transaction_list.html:360
 msgid "Are you sure you want to convert this expense into a capital event?"
 msgstr "तुम्हाला खरोखर हा खर्च कॅपिटल इव्हेंटमध्ये बदलायचा आहे का?"
 
-#: templates/expenses/partials/_expense_list.html:464
-#: templates/expenses/partials/_expense_list.html:542
+#: templates/expenses/partials/_expense_list.html:469
+#: templates/expenses/partials/_expense_list.html:547
 #: templates/expenses/partials/_transaction_list.html:282
 #: templates/expenses/partials/_transaction_list.html:361
 msgid "Convert to Capital Event"
 msgstr "कॅपिटल इव्हेंटमध्ये बदला"
 
-#: templates/expenses/partials/_expense_list.html:469
-#: templates/expenses/partials/_expense_list.html:547
+#: templates/expenses/partials/_expense_list.html:474
+#: templates/expenses/partials/_expense_list.html:552
 msgid "Are you sure you want to delete"
 msgstr "तुम्हाला खरोखर हटवायचे आहे का"
 
-#: templates/expenses/partials/_expense_list.html:568
+#: templates/expenses/partials/_expense_list.html:573
 msgid "No Expenses Found"
 msgstr "कोणतेही खर्च सापडले नाहीत"
 
-#: templates/expenses/partials/_expense_list.html:571
+#: templates/expenses/partials/_expense_list.html:576
 msgid ""
 "We couldn't find any expenses matching your filters. Try adjusting your "
 "search criteria."
 msgstr ""
 "तुमच्या फिल्टरशी जुळणारा कोणताही खर्च सापडला नाही. तुमचे शोध निकष बदलून पहा."
 
-#: templates/expenses/partials/_expense_list.html:573
+#: templates/expenses/partials/_expense_list.html:578
 msgid ""
 "You haven't added any expenses yet. Start tracking your spending to get "
 "insights into your finances!"
@@ -12556,7 +13160,7 @@ msgstr ""
 "तुम्ही अजून कोणताही खर्च जोडलेला नाही. तुमच्या आर्थिक स्थितीची माहिती "
 "मिळवण्यासाठी खर्च ट्रॅक करायला सुरुवात करा!"
 
-#: templates/expenses/partials/_expense_list.html:593
+#: templates/expenses/partials/_expense_list.html:598
 msgid "Expense pagination"
 msgstr "खर्च पृष्ठसंख्या"
 
@@ -13947,6 +14551,7 @@ msgid "e.g. HDFC Bank"
 msgstr "उदा. HDFC Bank"
 
 #: templates/expenses/transfer_form.html:140
+#: templates/partials/guide_accounts.html:25
 #: templates/partials/savings_modal.html:83
 msgid "Bank Account"
 msgstr "बँक खाते"
@@ -14122,15 +14727,51 @@ msgstr "%(n)s उद्दिष्टे पूर्ण केली!"
 msgid "Save to Gallery"
 msgstr "गॅलरीत जतन करा"
 
-#: templates/features.html:8 templates/features.html:371
+#: templates/features.html:8 templates/features.html:460
 msgid "All Features"
 msgstr "सर्व वैशिष्ट्ये"
 
-#: templates/features.html:372
+#: templates/features.html:461
 msgid "Comprehensive tools designed to transform your personal finance."
 msgstr ""
 "तुमचे वैयक्तिक आर्थिक नियोजन बदलून टाकण्यासाठी तयार केलेली सर्वसमावेशक "
 "टूल्स."
+
+#: templates/features.html:463
+#| msgid "No SMS access, no bank login"
+msgid "No SMS access"
+msgstr "SMS ॲक्सेस नाही"
+
+#: templates/features.html:464
+#| msgid "No bank logins"
+msgid "No bank login"
+msgstr "बँक लॉगिन नाही"
+
+#: templates/features.html:466
+msgid "Free plan never expires"
+msgstr "मोफत प्लॅन कधीही संपत नाही"
+
+#: templates/features.html:470
+msgid "Example of typing an expense"
+msgstr "खर्च टाइप करण्याचे उदाहरण"
+
+#: templates/features.html:479
+msgid "Feature categories"
+msgstr "वैशिष्ट्यांच्या श्रेणी"
+
+#: templates/features.html:482
+#| msgid "Search pages"
+msgid "Search features"
+msgstr "वैशिष्ट्ये शोधा"
+
+#: templates/features.html:506
+#| msgid "No accounts match your search"
+msgid "No feature matches your search."
+msgstr "तुमच्या शोधाशी जुळणारे कोणतेही वैशिष्ट्य नाही."
+
+#: templates/features.html:509
+msgid "See where your money goes, without handing over your bank login."
+msgstr "तुमचे बँक लॉगिन न देता तुमचे पैसे कुठे जातात ते पाहा."
 
 #: templates/flows/detail.html:173
 msgid "Check everything, then confirm."
@@ -14477,8 +15118,8 @@ msgstr "तुलना नाही"
 msgid "Total expenses recorded within the selected period."
 msgstr "निवडलेल्या कालावधीत नोंदवलेला एकूण खर्च."
 
-#: templates/home.html:1686 templates/home.html:2211 templates/home.html:3646
-#: templates/home.html:3695
+#: templates/home.html:1686 templates/home.html:2211 templates/home.html:3648
+#: templates/home.html:3697
 msgid "Spent"
 msgstr "खर्च केले"
 
@@ -14876,66 +15517,66 @@ msgstr ""
 "तुम्हाला भविष्यातील महिन्यांचे नियोजन करण्यासाठी हे एक सुसंगत खर्चाची पद्धत "
 "गृहीत धरते."
 
-#: templates/home.html:2933
+#: templates/home.html:2935
 msgid "Projected"
 msgstr "अंदाजित"
 
-#: templates/home.html:3172
+#: templates/home.html:3174
 msgid "Capital event"
 msgstr "मोठा भांडवली व्यवहार"
 
-#: templates/home.html:3215
+#: templates/home.html:3217
 msgid "Daily Spend"
 msgstr "दैनिक खर्च"
 
-#: templates/home.html:3231
+#: templates/home.html:3233
 msgid "7-Day Average"
 msgstr "7-दिवसीय सरासरी"
 
-#: templates/home.html:3375 templates/home.html:3446
+#: templates/home.html:3377 templates/home.html:3448
 msgid "Lifestyle"
 msgstr "जीवनशैली"
 
-#: templates/home.html:3454
+#: templates/home.html:3456
 msgid "Unallocated"
 msgstr "न वाटलेले"
 
-#: templates/home.html:3897
+#: templates/home.html:3899
 msgid "Actual Spend"
 msgstr "प्रत्यक्ष खर्च"
 
-#: templates/home.html:3908
+#: templates/home.html:3910
 msgid "Projected Spend"
 msgstr "अंदाजित खर्च"
 
-#: templates/home.html:3966
+#: templates/home.html:3968
 msgid "Scanning transactions..."
 msgstr "व्यवहार स्कॅन होत आहेत..."
 
-#: templates/home.html:3967
+#: templates/home.html:3969
 msgid "Categorizing expenses..."
 msgstr "खर्च श्रेणींमध्ये विभागत आहे..."
 
-#: templates/home.html:3968
+#: templates/home.html:3970
 msgid "Calculating savings rate..."
 msgstr "बचत दराची गणना करत आहे..."
 
-#: templates/home.html:3969
+#: templates/home.html:3971
 msgid "Comparing with past trends..."
 msgstr "भूतकाळातील ट्रेंडशी तुलना करत आहे..."
 
-#: templates/home.html:3970
+#: templates/home.html:3972
 msgid "Generating AI insights..."
 msgstr "एआय इनसाइट्स तयार करत आहे..."
 
-#: templates/home.html:4051
+#: templates/home.html:4053
 msgid ""
 "Sharing engine failed to load. Please check your connection and try again."
 msgstr ""
 "शेअरिंग इंजिन लोड होऊ शकले नाही. कृपया तुमचे कनेक्शन तपासा आणि पुन्हा "
 "प्रयत्न करा."
 
-#: templates/home.html:4057
+#: templates/home.html:4059
 msgid ""
 "I just analyzed where my salary went using TrackMyRupee! 🚀 Check out your "
 "financial story too: "
@@ -14943,7 +15584,7 @@ msgstr ""
 "मी आत्ताच TrackMyRupee वापरून पाहिले की माझा पगार कुठे गेला! 🚀 तुम्हीही "
 "तुमची आर्थिक कहाणी पहा:  "
 
-#: templates/home.html:4098
+#: templates/home.html:4100
 msgid "Loading"
 msgstr "लोड होत आहे"
 
@@ -14992,7 +15633,8 @@ msgstr[1] "%(count)s व्यावसायिकांकडून वाप�
 msgid "and 10 more cities"
 msgstr "आणि आणखी 10 शहरे"
 
-#: templates/landing.html:1627 templates/partials/savings_modal.html:74
+#: templates/landing.html:1627 templates/partials/guide_accounts.html:18
+#: templates/partials/savings_modal.html:74
 msgid "NET WORTH"
 msgstr "एकूण संपत्ती"
 
@@ -15857,7 +16499,8 @@ msgstr ""
 "शिल्लक असलेले खाते जोडा आणि तुमचे पैसे बँक आणि गुंतवणुकीत कसे विभागले आहेत "
 "ते पाहा."
 
-#: templates/mom_analysis.html:177 templates/partials/savings_modal.html:139
+#: templates/mom_analysis.html:177 templates/partials/guide_accounts.html:65
+#: templates/partials/savings_modal.html:139
 msgid "Bank Accounts"
 msgstr "बँक खाती"
 
@@ -16227,13 +16870,328 @@ msgstr "सगळे बरोबर आहे, पूर्ण करा"
 msgid "Go to Dashboard"
 msgstr "डॅशबोर्डवर जा"
 
-#: templates/partials/savings_modal.html:5
-msgid "How It Works"
-msgstr "हे कसे काम करते"
+#: templates/partials/guide_accounts.html:56
+#: templates/partials/savings_modal.html:125
+msgid "Bank + Cash + Investment - Credit Card = Net Worth"
+msgstr "बँक + रोख + गुंतवणूक - क्रेडिट कार्ड = नेट वर्थ"
 
+#: templates/partials/guide_accounts.html:60
+#: templates/partials/savings_modal.html:133
+msgid "Track All Your Money in One Place"
+msgstr "तुमचे सर्व पैसे एकाच ठिकाणी ट्रॅक करा"
+
+#: templates/partials/guide_accounts.html:61
+#: templates/partials/savings_modal.html:134
+msgid ""
+"Create separate accounts for each place your money lives. Your Net Worth is "
+"automatically calculated as the sum of all account balances."
+msgstr ""
+"तुमचे पैसे जिथे जिथे ठेवले आहेत त्यासाठी वेगळे खाते तयार करा. एकूण संपत्ती "
+"सर्व खात्यांच्या शिल्लकेच्या बेरजेतून आपोआप काढली जाते."
+
+#: templates/partials/guide_accounts.html:65
+msgid "Balance updates automatically when you log expenses or income."
+msgstr "खर्च किंवा उत्पन्न नोंदवल्यावर शिल्लक आपोआप अपडेट होते."
+
+#: templates/partials/guide_accounts.html:69
 #: templates/partials/savings_modal.html:34
 msgid "Credit Cards"
 msgstr "क्रेडिट कार्ड"
+
+#: templates/partials/guide_accounts.html:69
+msgid "Balances are treated as debt and subtracted from net worth."
+msgstr "शिल्लक कर्ज म्हणून धरली जाते आणि एकूण संपत्तीतून वजा केली जाते."
+
+#: templates/partials/guide_accounts.html:73
+msgid ""
+"Track portfolios. Fund via Transfers and update balance as value grows."
+msgstr ""
+"पोर्टफोलिओ ट्रॅक करा. ट्रान्सफरद्वारे पैसे भरा आणि मूल्य वाढेल तशी शिल्लक "
+"अपडेट करा."
+
+#: templates/partials/guide_accounts.html:79
+msgid "Need help organizing your accounts?"
+msgstr "तुमची खाती व्यवस्थित करण्यासाठी मदत हवी आहे का?"
+
+#: templates/partials/guide_accounts.html:82
+msgid "View Accounts Tutorial"
+msgstr "खाती ट्यूटोरियल पाहा"
+
+#: templates/partials/guide_budgets.html:54
+msgid "Total Budget"
+msgstr "एकूण बजेट"
+
+#: templates/partials/guide_budgets.html:62
+msgid "Set Spending Limits by Category"
+msgstr "श्रेणीनुसार खर्च मर्यादा सेट करा"
+
+#: templates/partials/guide_budgets.html:63
+msgid ""
+"Budgets help you control spending. Set monthly limits per category and track"
+" how much you've used."
+msgstr ""
+"बजेट तुम्हाला खर्चावर नियंत्रण ठेवायला मदत करते. प्रत्येक श्रेणीसाठी मासिक "
+"मर्यादा सेट करा आणि तुम्ही किती वापरले ते ट्रॅक करा."
+
+#: templates/partials/guide_budgets.html:67
+msgid "Create a Budget"
+msgstr "बजेट तयार करा"
+
+#: templates/partials/guide_budgets.html:67
+msgid "Pick a category and set a monthly spending limit."
+msgstr "श्रेणी निवडा आणि मासिक खर्च मर्यादा सेट करा."
+
+#: templates/partials/guide_budgets.html:71
+msgid "Track Progress"
+msgstr "प्रगती ट्रॅक करा"
+
+#: templates/partials/guide_budgets.html:71
+msgid "Each expense automatically counts toward that category's budget."
+msgstr "प्रत्येक खर्च आपोआप त्या श्रेणीच्या बजेटमध्ये मोजला जातो."
+
+#: templates/partials/guide_budgets.html:75
+msgid "Get Warnings"
+msgstr "इशारे मिळवा"
+
+#: templates/partials/guide_budgets.html:75
+msgid ""
+"Visual indicators show green (on track), yellow (nearing limit), red (over "
+"budget)."
+msgstr ""
+"दृश्य खुणा हिरवा (योग्य मार्गावर), पिवळा (मर्यादेजवळ), लाल (बजेटपेक्षा "
+"जास्त) असे दाखवतात."
+
+#: templates/partials/guide_budgets.html:79
+#: templates/partials/guide_transfers.html:79
+msgid "Tip:"
+msgstr "टीप:"
+
+#: templates/partials/guide_budgets.html:79
+msgid ""
+"Start with 2-3 categories you overspend on. You can always add more later."
+msgstr ""
+"ज्या 2-3 श्रेणींमध्ये तुम्ही जास्त खर्च करता त्यांपासून सुरुवात करा. नंतर "
+"कधीही आणखी जोडता येतात."
+
+#: templates/partials/guide_budgets.html:84
+msgid "Need help planning category budgets?"
+msgstr "श्रेणी बजेट नियोजनासाठी मदत हवी आहे का?"
+
+#: templates/partials/guide_budgets.html:87
+msgid "View Budgets Tutorial"
+msgstr "बजेट ट्यूटोरियल पाहा"
+
+#: templates/partials/guide_loans.html:37
+msgid "Debt Free ✓"
+msgstr "कर्जमुक्त ✓"
+
+#: templates/partials/guide_loans.html:44
+msgid "Estimated Payoff"
+msgstr "अंदाजित फेड"
+
+#: templates/partials/guide_loans.html:50
+msgid "Master Your Debt & Repay Loans Faster"
+msgstr "कर्जावर प्रभुत्व मिळवा आणि लवकर फेडा"
+
+#: templates/partials/guide_loans.html:51
+msgid ""
+"Track your loan balances, visualize repayment progress, and see exactly how "
+"much goes toward principal vs. interest."
+msgstr ""
+"तुमच्या कर्जाची शिल्लक ट्रॅक करा, परतफेडीची प्रगती पाहा, आणि मुद्दल व "
+"व्याजाकडे नेमके किती जाते ते पाहा."
+
+#: templates/partials/guide_loans.html:55
+msgid "Track Loan Amortization"
+msgstr "कर्जाची परतफेड ट्रॅक करा"
+
+#: templates/partials/guide_loans.html:55
+msgid ""
+"View your full payment schedule broken down by principal, interest, and "
+"remaining balance."
+msgstr ""
+"मुद्दल, व्याज आणि उरलेली शिल्लक यांनुसार विभागलेले तुमचे पूर्ण पेमेंट "
+"वेळापत्रक पाहा."
+
+#: templates/partials/guide_loans.html:59
+msgid "Log Repayments & Autopay"
+msgstr "परतफेडी आणि ऑटोपे नोंदवा"
+
+#: templates/partials/guide_loans.html:59
+msgid ""
+"Deduct repayments from your bank accounts. Turn on recurring mode for "
+"automated tracking."
+msgstr ""
+"तुमच्या बँक खात्यांमधून परतफेडी वजा करा. आपोआप ट्रॅकिंगसाठी आवर्ती मोड चालू "
+"करा."
+
+#: templates/partials/guide_loans.html:63
+msgid "Pay Extra & Save Interest"
+msgstr "अधिक भरा आणि व्याज वाचवा"
+
+#: templates/partials/guide_loans.html:63
+msgid ""
+"Simulate extra principal payments to calculate total interest savings and "
+"early payoff date."
+msgstr ""
+"एकूण व्याज बचत आणि लवकर फेडण्याची तारीख काढण्यासाठी अतिरिक्त मुद्दल पेमेंटचा"
+" अंदाज घ्या."
+
+#: templates/partials/guide_loans.html:69
+msgid "Need help setting up your loan?"
+msgstr "तुमचे कर्ज सेट करण्यासाठी मदत हवी आहे का?"
+
+#: templates/partials/guide_recurring.html:18
+msgid "Auto-logged every cycle"
+msgstr "प्रत्येक सायकलला आपोआप नोंदवले"
+
+#: templates/partials/guide_recurring.html:30
+#: templates/partials/guide_recurring.html:39
+#: templates/partials/guide_recurring.html:48
+msgid "Active ●"
+msgstr "सक्रिय ●"
+
+#: templates/partials/guide_recurring.html:53
+msgid "Total Monthly Recurring"
+msgstr "एकूण मासिक आवर्ती"
+
+#: templates/partials/guide_recurring.html:63
+msgid "Automate Recurring Expenses"
+msgstr "आवर्ती खर्च ऑटोमेट करा"
+
+#: templates/partials/guide_recurring.html:64
+msgid ""
+"Set up subscriptions and recurring bills once — they'll be automatically "
+"logged as expenses on schedule."
+msgstr ""
+"सबस्क्रिप्शन आणि आवर्ती बिले एकदा सेट करा, ती वेळापत्रकानुसार खर्च म्हणून "
+"आपोआप नोंदवली जातील."
+
+#: templates/partials/guide_recurring.html:68
+msgid "Add a Subscription"
+msgstr "सबस्क्रिप्शन जोडा"
+
+#: templates/partials/guide_recurring.html:68
+msgid "Enter the name, amount, frequency, and start date."
+msgstr "नाव, रक्कम, वारंवारता आणि सुरू होण्याची तारीख टाका."
+
+#: templates/partials/guide_recurring.html:72
+msgid "Auto-Logging"
+msgstr "ऑटो-लॉगिंग"
+
+#: templates/partials/guide_recurring.html:72
+msgid "Expenses are automatically created on the recurring date each cycle."
+msgstr "प्रत्येक सायकलला आवर्ती तारखेला खर्च आपोआप तयार होतात."
+
+#: templates/partials/guide_recurring.html:76
+msgid "Pause or Cancel"
+msgstr "थांबवा किंवा रद्द करा"
+
+#: templates/partials/guide_recurring.html:76
+msgid "Deactivate anytime — past entries stay, future ones stop."
+msgstr "कधीही निष्क्रिय करा, जुन्या नोंदी राहतात, पुढच्या थांबतात."
+
+#: templates/partials/guide_recurring.html:80
+msgid "Pro Tip:"
+msgstr "Pro टीप:"
+
+#: templates/partials/guide_recurring.html:80
+msgid ""
+"Link recurring items to specific accounts so your balance projections stay "
+"accurate."
+msgstr ""
+"आवर्ती बाबी विशिष्ट खात्यांशी जोडा, म्हणजे तुमचे शिल्लक अंदाज अचूक राहतात."
+
+#: templates/partials/guide_recurring.html:85
+msgid "Need help managing recurring subscriptions?"
+msgstr "आवर्ती सबस्क्रिप्शन व्यवस्थापित करण्यासाठी मदत हवी आहे का?"
+
+#: templates/partials/guide_recurring.html:88
+msgid "View Subscriptions Tutorial"
+msgstr "सबस्क्रिप्शन ट्यूटोरियल पाहा"
+
+#: templates/partials/guide_transfers.html:22
+#: templates/partials/savings_modal.html:191
+msgid "Balance before"
+msgstr "आधीची शिल्लक"
+
+#: templates/partials/guide_transfers.html:43
+#: templates/partials/savings_modal.html:218
+msgid "Balance after"
+msgstr "नंतरची शिल्लक"
+
+#: templates/partials/guide_transfers.html:47
+#: templates/partials/savings_modal.html:224
+msgid "DEBITED"
+msgstr "वजा"
+
+#: templates/partials/guide_transfers.html:52
+#: templates/partials/savings_modal.html:229
+msgid "CREDITED"
+msgstr "जमा"
+
+#: templates/partials/guide_transfers.html:62
+#: templates/partials/savings_modal.html:245
+msgid "Move Money Between Accounts"
+msgstr "खात्यांमध्ये पैसे हलवा"
+
+#: templates/partials/guide_transfers.html:63
+#: templates/partials/savings_modal.html:246
+msgid ""
+"Transfers let you move money between your own accounts without affecting "
+"your expenses or income. Your Net Worth stays unchanged."
+msgstr ""
+"ट्रान्सफरमुळे तुम्ही तुमच्याच खात्यांमध्ये पैसे हलवू शकता, आणि तुमच्या "
+"खर्चावर किंवा उत्पन्नावर कोणताही परिणाम होत नाही. तुमची एकूण संपत्ती तशीच "
+"राहते."
+
+#: templates/partials/guide_transfers.html:67
+#: templates/partials/savings_modal.html:251
+msgid "Select Source & Destination"
+msgstr "स्रोत आणि गंतव्य निवडा"
+
+#: templates/partials/guide_transfers.html:67
+#: templates/partials/savings_modal.html:252
+msgid "Pick which account to send from and which to receive."
+msgstr "कोणत्या खात्यातून पाठवायचे आणि कोणत्यात मिळवायचे ते निवडा."
+
+#: templates/partials/guide_transfers.html:71
+#: templates/partials/savings_modal.html:258
+msgid "Enter Amount"
+msgstr "रक्कम भरा"
+
+#: templates/partials/guide_transfers.html:71
+msgid "Source is debited, destination is credited instantly."
+msgstr "स्रोत खात्यातून रक्कम लगेच वजा होते, आणि लक्ष्य खात्यात जमा होते."
+
+#: templates/partials/guide_transfers.html:75
+#: templates/partials/savings_modal.html:265
+msgid "Not an Expense"
+msgstr "खर्च नाही"
+
+#: templates/partials/guide_transfers.html:75
+msgid "Transfers are NOT recorded as expenses or income."
+msgstr "ट्रान्सफर खर्च किंवा उत्पन्न म्हणून नोंदवले जात नाहीत."
+
+#: templates/partials/guide_transfers.html:79
+msgid ""
+"Use transfers for moving money to investments or paying off credit card "
+"bills."
+msgstr ""
+"गुंतवणुकीत पैसे हलवण्यासाठी किंवा क्रेडिट कार्ड बिले भरण्यासाठी ट्रान्सफर "
+"वापरा."
+
+#: templates/partials/guide_transfers.html:84
+msgid "Need help logging inter-account transfers?"
+msgstr "खात्यांमधील ट्रान्सफर नोंदवण्यासाठी मदत हवी आहे का?"
+
+#: templates/partials/guide_transfers.html:87
+msgid "View Transfers Tutorial"
+msgstr "ट्रान्सफर ट्यूटोरियल पाहा"
+
+#: templates/partials/savings_modal.html:5
+msgid "How It Works"
+msgstr "हे कसे काम करते"
 
 #: templates/partials/savings_modal.html:85
 msgid "PRIMARY"
@@ -16247,25 +17205,9 @@ msgstr "कर्ज"
 msgid "GROWING"
 msgstr "वाढत आहे"
 
-#: templates/partials/savings_modal.html:125
-msgid "Bank + Cash + Investment - Credit Card = Net Worth"
-msgstr "बँक + रोख + गुंतवणूक - क्रेडिट कार्ड = नेट वर्थ"
-
 #: templates/partials/savings_modal.html:131
 msgid "Accounts & Net Worth"
 msgstr "खाती आणि एकूण संपत्ती"
-
-#: templates/partials/savings_modal.html:133
-msgid "Track All Your Money in One Place"
-msgstr "तुमचे सर्व पैसे एकाच ठिकाणी ट्रॅक करा"
-
-#: templates/partials/savings_modal.html:134
-msgid ""
-"Create separate accounts for each place your money lives. Your Net Worth is "
-"automatically calculated as the sum of all account balances."
-msgstr ""
-"तुमचे पैसे जिथे जिथे ठेवले आहेत त्यासाठी वेगळे खाते तयार करा. एकूण संपत्ती "
-"सर्व खात्यांच्या शिल्लकेच्या बेरजेतून आपोआप काढली जाते."
 
 #: templates/partials/savings_modal.html:140
 msgid ""
@@ -16291,47 +17233,6 @@ msgstr ""
 "गुंतवणूक पोर्टफोलिओ आणि क्रेडिट कार्ड जोडा. क्रेडिट कार्डची शिल्लक कर्ज "
 "मानली जाते आणि एकूण संपत्तीतून वजा केली जाते."
 
-#: templates/partials/savings_modal.html:191
-msgid "Balance before"
-msgstr "आधीची शिल्लक"
-
-#: templates/partials/savings_modal.html:218
-msgid "Balance after"
-msgstr "नंतरची शिल्लक"
-
-#: templates/partials/savings_modal.html:224
-msgid "DEBITED"
-msgstr "वजा"
-
-#: templates/partials/savings_modal.html:229
-msgid "CREDITED"
-msgstr "जमा"
-
-#: templates/partials/savings_modal.html:245
-msgid "Move Money Between Accounts"
-msgstr "खात्यांमध्ये पैसे हलवा"
-
-#: templates/partials/savings_modal.html:246
-msgid ""
-"Transfers let you move money between your own accounts without affecting "
-"your expenses or income. Your Net Worth stays unchanged."
-msgstr ""
-"ट्रान्सफरमुळे तुम्ही तुमच्याच खात्यांमध्ये पैसे हलवू शकता, आणि तुमच्या "
-"खर्चावर किंवा उत्पन्नावर कोणताही परिणाम होत नाही. तुमची एकूण संपत्ती तशीच "
-"राहते."
-
-#: templates/partials/savings_modal.html:251
-msgid "Select Source & Destination"
-msgstr "स्रोत आणि गंतव्य निवडा"
-
-#: templates/partials/savings_modal.html:252
-msgid "Pick which account to send from and which to receive."
-msgstr "कोणत्या खात्यातून पाठवायचे आणि कोणत्यात मिळवायचे ते निवडा."
-
-#: templates/partials/savings_modal.html:258
-msgid "Enter Amount"
-msgstr "रक्कम भरा"
-
 #: templates/partials/savings_modal.html:259
 msgid ""
 "Both accounts are updated instantly. Source is debited, destination is "
@@ -16339,10 +17240,6 @@ msgid ""
 msgstr ""
 "दोन्ही खाती लगेच अपडेट होतात. स्रोत खात्यातून रक्कम वजा होते आणि गंतव्य "
 "खात्यात जमा होते."
-
-#: templates/partials/savings_modal.html:265
-msgid "Not an Expense"
-msgstr "खर्च नाही"
 
 #: templates/partials/savings_modal.html:266
 msgid ""

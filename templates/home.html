@@ -2750,6 +2750,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('DOMContentLoaded', function() {
         const charts = window.charts = {}; // Make charts accessible globally for updates on visibility changes
+        // Draw charts at once: the opening animation delays the moment the page looks finished (LCP) and costs frames on low-end phones.
+        if (window.Chart) Chart.defaults.animation = false;
         // Init Bootstrap tooltips safely
         if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
             document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));

@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" href="{% static 'icon.png' %}">
     
     <!-- PWA -->
-    <meta name="theme-color" content="#1D9E75">
+    <meta name="theme-color" content="#0F7657">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="TrackMyRupee">
@@ -118,6 +118,13 @@
             max-width: 450px;
         }
 
+        /* Login and signup use the app's primary action colour (the same green as the primary buttons inside the app). */
+        :root {
+            --auth-primary: var(--color-secondary, #0F7657);
+            --auth-primary-dark: var(--color-secondary-dark, #0A5C42);
+            --auth-primary-rgb: 15, 118, 87;
+        }
+
         /* BRAND MATCHED BUTTON & TYPOGRAPHY STYLES */
         body {
             font-family: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
@@ -150,13 +157,13 @@
             transition: all 0.2s ease;
         }
         .form-control-xl:focus {
-            border-color: var(--tmr-teal-400, #1D9E75);
-            box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.12);
+            border-color: var(--auth-primary);
+            box-shadow: 0 0 0 4px rgba(var(--auth-primary-rgb), 0.15);
             outline: none;
         }
 
         .btn-auth-primary {
-            background-color: #1D9E75;
+            background-color: var(--auth-primary);
             color: #ffffff;
             font-family: 'DM Sans', 'Inter', sans-serif;
             font-weight: 700;
@@ -174,18 +181,18 @@
         .btn-auth-primary:hover,
         .btn-auth-primary:focus,
         .btn-auth-primary:active {
-            background-color: #0F6E56;
+            background-color: var(--auth-primary-dark);
             color: #ffffff;
-            box-shadow: 0 4px 14px rgba(29, 158, 117, 0.25);
+            box-shadow: 0 4px 14px rgba(var(--auth-primary-rgb), 0.3);
             transform: translateY(-1px);
         }
 
         .btn-auth-demo {
-            background-color: var(--tmr-teal-50, #E1F5EE);
-            color: var(--tmr-teal-600, #0F6E56);
+            background-color: rgba(var(--auth-primary-rgb), 0.08);
+            color: var(--auth-primary);
             font-family: 'DM Sans', 'Inter', sans-serif;
             font-weight: 700;
-            border: 1px solid rgba(29, 158, 117, 0.25);
+            border: 1px solid rgba(var(--auth-primary-rgb), 0.3);
             border-radius: 12px;
             padding: 0.85rem 1.25rem;
             font-size: 0.95rem;
@@ -200,9 +207,9 @@
         .btn-auth-demo:hover,
         .btn-auth-demo:focus,
         .btn-auth-demo:active {
-            background-color: rgba(29, 158, 117, 0.18);
-            color: var(--tmr-teal-600, #0F6E56);
-            border-color: var(--tmr-teal-400, #1D9E75);
+            background-color: rgba(var(--auth-primary-rgb), 0.16);
+            color: var(--auth-primary-dark);
+            border-color: var(--auth-primary);
             transform: translateY(-1px);
         }
 
@@ -223,10 +230,28 @@
         }
         .social-btn:hover {
             background: var(--tmr-surface-1, #F4F3EF);
-            border-color: var(--tmr-teal-400, #1D9E75);
+            border-color: var(--auth-primary);
             color: var(--tmr-ink-900, #1a1a18);
             transform: translateY(-1px);
         }
+
+        /* Links, checkboxes, switches and the social icon follow the same colour */
+        .auth-card a:not(.btn-auth-primary):not(.btn-auth-demo):not(.social-btn):not(.btn) {
+            color: var(--auth-primary);
+        }
+        .auth-card a:not(.btn-auth-primary):not(.btn-auth-demo):not(.social-btn):not(.btn):hover {
+            color: var(--auth-primary-dark);
+            text-decoration: underline !important;
+        }
+        .auth-card .form-check-input:checked {
+            background-color: var(--auth-primary);
+            border-color: var(--auth-primary);
+        }
+        .auth-card .form-check-input:focus {
+            border-color: var(--auth-primary);
+            box-shadow: 0 0 0 0.2rem rgba(var(--auth-primary-rgb), 0.2);
+        }
+        .auth-card .social-btn i { color: var(--auth-primary) !important; }
 
         .auth-illustration-wrapper {
             max-width: 420px;
