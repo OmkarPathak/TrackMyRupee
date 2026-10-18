@@ -34,7 +34,7 @@ def _slow_query_threshold_ms():
 def _project_call_site():
     root = str(settings.BASE_DIR)
     for frame in reversed(traceback.extract_stack()):
-        if frame.filename.startswith(root) and '/env/' not in frame.filename and 'server_timing' not in frame.filename:
+        if frame.filename.startswith(root) and 'site-packages' not in frame.filename and 'server_timing' not in frame.filename:
             return f'{os.path.relpath(frame.filename, root)}:{frame.lineno}'
     return '?'
 

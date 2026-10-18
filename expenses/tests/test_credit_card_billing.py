@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -37,7 +37,7 @@ class CreditCardBillingModelTestCase(TestCase):
     def test_next_billing_date_future_same_month(self):
         # Today is 2026-08-10, billing day is 20 -> next billing date is 2026-08-20
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 8, 10, 10, 0, tzinfo=UTC)
             acc = Account.objects.create(
                 user=self.user,
                 name='HDFC Credit Card',
@@ -49,7 +49,7 @@ class CreditCardBillingModelTestCase(TestCase):
     def test_next_billing_date_today(self):
         # Today is 2026-08-20, billing day is 20 -> next billing date is today (2026-08-20)
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 8, 20, 10, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 8, 20, 10, 0, tzinfo=UTC)
             acc = Account.objects.create(
                 user=self.user,
                 name='HDFC Credit Card',
@@ -61,7 +61,7 @@ class CreditCardBillingModelTestCase(TestCase):
     def test_next_billing_date_passed_same_month(self):
         # Today is 2026-08-25, billing day is 20 -> next billing date is next month 2026-09-20
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 8, 25, 10, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 8, 25, 10, 0, tzinfo=UTC)
             acc = Account.objects.create(
                 user=self.user,
                 name='HDFC Credit Card',
@@ -73,7 +73,7 @@ class CreditCardBillingModelTestCase(TestCase):
     def test_next_billing_date_passed_december_rollover(self):
         # Today is 2026-12-25, billing day is 15 -> next billing date is next year 2027-01-15
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 12, 25, 10, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 12, 25, 10, 0, tzinfo=UTC)
             acc = Account.objects.create(
                 user=self.user,
                 name='HDFC Credit Card',
@@ -117,7 +117,7 @@ class CreditCardNotificationCommandTestCase(TestCase):
     def test_send_notifications_reminds_3_days_in_advance(self):
         # Frozen date: 2026-08-20. 3 days in advance = 2026-08-23.
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 8, 20, 9, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 8, 20, 9, 0, tzinfo=UTC)
 
             acc = Account.objects.create(
                 user=self.free_user,
@@ -137,7 +137,7 @@ class CreditCardNotificationCommandTestCase(TestCase):
 
     def test_send_notifications_deduplication_same_run(self):
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 8, 20, 9, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 8, 20, 9, 0, tzinfo=UTC)
 
             acc = Account.objects.create(
                 user=self.free_user,
@@ -156,7 +156,7 @@ class CreditCardNotificationCommandTestCase(TestCase):
 
     def test_send_notifications_tier_gated_email(self):
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 8, 20, 9, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 8, 20, 9, 0, tzinfo=UTC)
 
             # Free user account
             Account.objects.create(
@@ -218,7 +218,7 @@ class CreditCardFormAndTemplateTestCase(TestCase):
     def test_account_list_rendering_badge(self):
         self.client.force_login(self.user)
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 8, 10, 9, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 8, 10, 9, 0, tzinfo=UTC)
             acc = Account.objects.create(
                 user=self.user,
                 name='OneCard Credit Card',
@@ -234,7 +234,7 @@ class CreditCardFormAndTemplateTestCase(TestCase):
     def test_account_detail_rendering(self):
         self.client.force_login(self.user)
         with patch('django.utils.timezone.now') as mock_now:
-            mock_now.return_value = timezone.datetime(2026, 8, 10, 9, 0, tzinfo=timezone.utc)
+            mock_now.return_value = timezone.datetime(2026, 8, 10, 9, 0, tzinfo=UTC)
             acc = Account.objects.create(
                 user=self.user,
                 name='OneCard Credit Card',

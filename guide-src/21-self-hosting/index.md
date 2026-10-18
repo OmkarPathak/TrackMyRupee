@@ -83,7 +83,7 @@ Navigate to `http://localhost:8000` in your browser.
 
 If you prefer to run without Docker, follow these steps.
 
-**Requirements**: Python 3.8 or later, pip
+**Requirements**: Python 3.10 or later, pip
 
 ```bash
 # 1. Clone

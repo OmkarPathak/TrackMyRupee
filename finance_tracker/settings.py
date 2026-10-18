@@ -237,6 +237,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Django 6.0 will default form URL fields to https; opt in now.
+FORMS_URLFIELD_ASSUME_HTTPS = True
+
 DATE_INPUT_FORMATS = [
     '%Y-%m-%d',
     '%d/%m/%Y',
@@ -339,12 +342,13 @@ GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID')
 POSTHOG_API_KEY = os.environ.get('POSTHOG_API_KEY')
 POSTHOG_HOST = os.environ.get('POSTHOG_HOST', 'https://us.i.posthog.com')
 
-ACCOUNT_EMAIL_REQUIRED = True
+# Sign up with email + username; log in with either (allauth >= 65.4 settings).
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
 # A changed email stays pending until its confirmation link is used, then replaces the old one.
 ACCOUNT_CHANGE_EMAIL = True
 # 'demo' is the read-only showcase account (see DemoReadOnlyMiddleware); nobody else may claim it.
 ACCOUNT_USERNAME_BLACKLIST = ['demo']
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_SESSION_REMEMBER = None
 SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False

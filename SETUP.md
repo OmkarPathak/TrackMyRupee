@@ -1,7 +1,7 @@
 
 ## Manual Setup
 
--   Python 3.8+
+-   Python 3.10+ (3.12 recommended, the Docker image uses it)
 -   pip (Python package manager)
 
 1.  **Clone the repository**:

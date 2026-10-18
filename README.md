@@ -131,7 +131,7 @@ Visit: `http://localhost:8000`
 
 ### Manual Setup (Django)
 ```bash
-# Install dependencies (Python 3.11 recommended, the Docker image uses it)
+# Install dependencies (Python 3.12 recommended, the Docker image uses it)
 pip install -r requirements.txt
 
 # Create a .env file with at least:
@@ -153,7 +153,7 @@ python manage.py runserver
 ---
 
 ## 🛠️ Built With
-*   **Backend**: Python 3, Django 4.2
+*   **Backend**: Python 3, Django 5.2
 *   **Database**: PostgreSQL / SQLite
 *   **Frontend**: Server-rendered templates with HTMX, Alpine.js, Bootstrap 5 and Chart.js (all self-hosted)
 *   **Mobile**: Installable PWA and Capacitor wrappers

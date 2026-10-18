@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='transfer',
             constraint=models.CheckConstraint(
-                check=~models.Q(from_account=models.F('to_account')),
+                condition=~models.Q(from_account=models.F('to_account')),
                 name='transfer_accounts_must_differ',
             ),
         ),

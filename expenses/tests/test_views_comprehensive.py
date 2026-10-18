@@ -272,7 +272,7 @@ class AccountCreateViewTest(BaseComprehensiveTest):
         response = self.client.post(reverse('account-create'), data)
         
         self.assertEqual(response.status_code, 200)
-        self.assertFormError(response, 'form', 'name', 'This field is required.')
+        self.assertFormError(response.context['form'], 'name', 'This field is required.')
     
     def test_account_create_sets_user_automatically(self):
         """Test that created account is tied to current user."""
@@ -846,7 +846,7 @@ class RecurringTransactionCreateViewTest(BaseComprehensiveTest):
         response = self.client.post(reverse('recurring-create'), data)
         
         self.assertEqual(response.status_code, 200)
-        self.assertFormError(response, 'form', 'amount', 'This field is required.')
+        self.assertFormError(response.context['form'], 'amount', 'This field is required.')
 
 
 class RecurringTransactionUpdateViewTest(BaseComprehensiveTest):
@@ -1059,7 +1059,7 @@ class LoanCreateViewTest(BaseComprehensiveTest):
         response = self.client.post(reverse('loan-create'), data)
         
         self.assertEqual(response.status_code, 200)
-        self.assertFormError(response, 'form', 'initial_principal', 'This field is required.')
+        self.assertFormError(response.context['form'], 'initial_principal', 'This field is required.')
 
 
 class LoanUpdateViewTest(BaseComprehensiveTest):
@@ -1303,7 +1303,7 @@ class GoalCreateViewTest(BaseComprehensiveTest):
         response = self.client.post(reverse('goal-create'), data)
         
         self.assertEqual(response.status_code, 200)
-        self.assertFormError(response, 'form', 'name', 'This field is required.')
+        self.assertFormError(response.context['form'], 'name', 'This field is required.')
 
 
 class GoalUpdateViewTest(BaseComprehensiveTest):

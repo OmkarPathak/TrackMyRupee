@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import UTC, date, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -156,7 +156,7 @@ class CrossPagePeriodAgreementTests(TestCase):
 
         mock_today = date(2026, 9, 10)
         with patch('django.utils.timezone.localdate', return_value=mock_today):
-            with patch('django.utils.timezone.now', return_value=timezone.datetime(2026, 9, 10, 12, 0, tzinfo=timezone.utc)):
+            with patch('django.utils.timezone.now', return_value=timezone.datetime(2026, 9, 10, 12, 0, tzinfo=UTC)):
                 # Dashboard view
                 dash_resp = self.client.get(reverse('home'), {'time_period': 'this_month'})
                 self.assertEqual(dash_resp.status_code, 200)

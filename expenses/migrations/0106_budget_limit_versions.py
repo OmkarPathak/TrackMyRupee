@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='budgetmonthoverride',
-            constraint=models.CheckConstraint(check=models.Q(('amount__isnull', True), ('amount__gte', 0), _connector='OR'), name='budget_override_amount_gte_0'),
+            constraint=models.CheckConstraint(condition=models.Q(('amount__isnull', True), ('amount__gte', 0), _connector='OR'), name='budget_override_amount_gte_0'),
         ),
         migrations.AddIndex(
             model_name='budgetlimitversion',
@@ -56,6 +56,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='budgetlimitversion',
-            constraint=models.CheckConstraint(check=models.Q(('amount__isnull', True), ('amount__gte', 0), _connector='OR'), name='budget_version_amount_gte_0'),
+            constraint=models.CheckConstraint(condition=models.Q(('amount__isnull', True), ('amount__gte', 0), _connector='OR'), name='budget_version_amount_gte_0'),
         ),
     ]

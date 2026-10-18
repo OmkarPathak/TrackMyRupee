@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from .models import (
     Account,
@@ -401,8 +402,8 @@ class AnnouncementAdmin(DemoExcludeMixin, admin.ModelAdmin):
 
     def is_active_display(self, obj):
         if obj.expires_at and obj.expires_at <= timezone.now():
-            return format_html('<span style="color: #dc3545; font-weight: bold;">Expired</span>')
-        return format_html('<span style="color: #198754; font-weight: bold;">Active</span>')
+            return mark_safe('<span style="color: #dc3545; font-weight: bold;">Expired</span>')
+        return mark_safe('<span style="color: #198754; font-weight: bold;">Active</span>')
     is_active_display.short_description = "Modal Status"
 
     def image_preview(self, obj):

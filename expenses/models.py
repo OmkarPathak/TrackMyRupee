@@ -902,7 +902,7 @@ class BudgetLimitVersion(models.Model):
                 name='unique_budget_version',
             ),
             models.CheckConstraint(
-                check=models.Q(amount__isnull=True) | models.Q(amount__gte=0),
+                condition=models.Q(amount__isnull=True) | models.Q(amount__gte=0),
                 name='budget_version_amount_gte_0',
             ),
         ]
@@ -931,7 +931,7 @@ class BudgetMonthOverride(models.Model):
                 name='unique_budget_override',
             ),
             models.CheckConstraint(
-                check=models.Q(amount__isnull=True) | models.Q(amount__gte=0),
+                condition=models.Q(amount__isnull=True) | models.Q(amount__gte=0),
                 name='budget_override_amount_gte_0',
             ),
         ]
@@ -1454,7 +1454,7 @@ class Transfer(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=~models.Q(from_account=models.F('to_account')),
+                condition=~models.Q(from_account=models.F('to_account')),
                 name='transfer_accounts_must_differ',
             ),
             models.UniqueConstraint(fields=['user', 'client_dedup_key'], name='idx_transfer_client_dedup', condition=models.Q(client_dedup_key__isnull=False)),
