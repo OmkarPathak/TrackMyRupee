@@ -135,3 +135,30 @@ def find_transfer_target(description, accounts: List[AccountNames]) -> Optional[
     if len(matches) > 1 and matches[0][0] == matches[1][0]:
         return None                                 # two accounts fit equally well: do not guess
     return matches[0][1]
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# What kind of income a credit is
+# ---------------------------------------------------------------------------------------------------------------
+
+# Checked in order; the first that matches wins. Names are Income.SOURCE_TYPE_CHOICES keys. Unknown credits are
+# "Other", never "Salary": a wrong guess that books a refund as pay is worse than an honest "Other".
+_INCOME_RULES = [
+    ('Salary', re.compile(r"(?i)\b(salary|sal|payroll|stipend|wages|bonus|incentive)\b")),
+    ('Investment Returns', re.compile(r"(?i)\b(interest|int\.?\s?pd|int\s?credit|dividend|maturity|coupon)\b")),
+    ('Rental Income', re.compile(r"(?i)\b(rental|rent received|rent from)\b")),
+    ('Cashback & Rewards', re.compile(r"(?i)\b(cashback|cash back|rewards?)\b")),
+    ('Refund / Reimbursement', re.compile(r"(?i)\b(refund|reversal|reversed|reimburse\w*|chargeback|credit adjustment)\b")),
+    ('Freelance / Consulting', re.compile(r"(?i)\b(freelance|consulting|consultancy|professional fees?|invoice)\b")),
+    ('Business', re.compile(r"(?i)\b(business)\b")),
+]
+DEFAULT_INCOME_TYPE = 'Other'
+
+
+def guess_income_type(description) -> str:
+    """The Income source type a credit's narration points to, or 'Other'."""
+    text = str(description or '')
+    for source_type, pattern in _INCOME_RULES:
+        if pattern.search(text):
+            return source_type
+    return DEFAULT_INCOME_TYPE

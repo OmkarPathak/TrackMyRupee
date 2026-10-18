@@ -390,10 +390,10 @@ class UploadViewTest(TestCase):
         # (+1 query: the plan's monthly expense cap is counted once before the loop)
         # (+2 queries: the audit-log rows an import now writes, as a typed expense does, and one query that counts
         # the matching expenses already stored. +2 more for the import record that makes it listable and undoable:
-        # created, then updated with the counts. +3 for the lookups that spot a possible duplicate or a transfer
-        # between the person's own accounts: stored expenses nearby, their other accounts, their transfers out.
-        # Still constant however many rows the file has.)
-        with self.assertNumQueries(27):
+        # created, then updated with the counts. +2 for the lookups that spot a possible duplicate or a transfer
+        # between the person's own accounts: their other accounts, their transfers out (the stored expenses nearby
+        # are one query that also yields the exact-match counts). Still constant however many rows the file has.)
+        with self.assertNumQueries(26):
             response = self.client.post(reverse('upload'), {
                 'account': self.account.id,
                 'currency': '₹',

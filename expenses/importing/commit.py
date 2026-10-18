@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 
-from ..models import Account, Expense, FinancialAuditLog
+from ..models import Account, Expense, FinancialAuditLog, Income
 
 
 def save_batch(batch_items, *, account, account_rate, summary):
@@ -57,6 +57,83 @@ def save_batch(batch_items, *, account, account_rate, summary):
     except Exception as error:
         for item in batch_items:
             _record_error(summary, getattr(item, '_row_idx', '?'), str(error))
+
+
+def save_income_batch(batch_items, *, account, account_rate, summary):
+    """Create one batch of income rows atomically, as `Income.save()` would for each: the account is credited, the
+    ledger entry and the audit-log row are written. If the batch trips a unique constraint, the rows are saved one
+    at a time so a single clash costs only that row."""
+    if not batch_items:
+        return
+    try:
+        with transaction.atomic():
+            created = Income.objects.bulk_create(batch_items)
+            summary['income_count'] += len(created)
+            summary['income_total'] += sum(float(i.amount) for i in created)
+
+            if account:
+                total = sum(
+                    (i.amount * account_rate).quantize(Decimal('0.01')) if account_rate != Decimal('1.0') else i.amount
+                    for i in created
+                )
+                locked = Account.objects.select_for_update().get(pk=account.id)
+                locked.balance += total
+                locked.save(update_fields=['balance', 'updated_at'])
+
+            FinancialAuditLog.objects.bulk_create([
+                FinancialAuditLog(
+                    user=i.user, model_name='Income', object_id=i.id, object_uuid=i.uuid, action='CREATE',
+                    diff={'before': None, 'after': {'amount': str(i.amount), 'source': i.source}},
+                )
+                for i in created
+            ])
+
+            if getattr(settings, 'LEDGER_WRITE_ENABLED', False) and account:
+                _post_income_ledger_entries(created)
+    except IntegrityError:
+        for item in batch_items:
+            try:
+                with transaction.atomic():
+                    item.save()
+                    summary['income_count'] += 1
+                    summary['income_total'] += float(item.amount)
+            except IntegrityError:
+                summary['duplicate_count'] += 1
+            except Exception as error:
+                _record_error(summary, getattr(item, '_row_idx', '?'), str(error))
+    except Exception as error:
+        for item in batch_items:
+            _record_error(summary, getattr(item, '_row_idx', '?'), str(error))
+
+
+def _post_income_ledger_entries(created):
+    from ..ledger_service import LedgerPostingService
+    from ..models import _build_ledger_version, _run_ledger_shadow
+
+    for income in created:
+        def post(i=income):
+            LedgerPostingService.shadow_post_income_create(income=i, version_token=_build_ledger_version(i, 'CREATE'))
+
+        _run_ledger_shadow(
+            post,
+            source_type='INCOME',
+            source_id=income.id,
+            action='CREATE',
+            payload={
+                'handler': 'income_create',
+                'version_token': _build_ledger_version(income, 'CREATE'),
+                'income': {
+                    'user_id': income.user_id,
+                    'amount': str(income.amount),
+                    'currency': income.currency,
+                    'source': income.source,
+                    'description': income.description,
+                    'account_id': income.account_id,
+                    'source_id': income.id,
+                },
+                'previous_income': None,
+            },
+        )
 
 
 def _record_error(summary, row, reason):

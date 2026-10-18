@@ -510,6 +510,15 @@
         document.addEventListener('htmx:afterSwap', function(e) {
             initSearchableSelects(e.target);
         });
+        // When a swap replaces an element that kept its id, htmx copies the server's attributes onto it once the
+        // swap has settled. That wipes the display:none the widget put on the original <select>, so both the
+        // original and the widget showed. Hide the originals again.
+        document.addEventListener('htmx:afterSettle', function(e) {
+            var root = e.target && e.target.querySelectorAll ? e.target : document;
+            root.querySelectorAll('select[data-searchable-init], select[data-multi-select-init]').forEach(function(sel) {
+                sel.style.display = 'none';
+            });
+        });
         window.initSearchableSelects = initSearchableSelects;
     })();
     

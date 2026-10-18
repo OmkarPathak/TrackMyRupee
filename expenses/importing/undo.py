@@ -21,8 +21,9 @@ class UndoBusy(Exception):
 
 
 def remaining_items(batch):
-    """What an undo still has to remove: the import's expenses and the transfers it recorded."""
+    """What an undo still has to remove: the import's expenses, income and the transfers it recorded."""
     return (batch.expenses.filter(is_deleted=False).count()
+            + batch.incomes.filter(is_deleted=False).count()
             + batch.transfers.filter(is_deleted=False).count())
 
 
@@ -43,9 +44,10 @@ def undo_batch(batch, budget_seconds=UNDO_BUDGET_SECONDS):
             batch.save(update_fields=['status'])
         deadline = time.monotonic() + budget_seconds
         transfers = batch.transfers.filter(is_deleted=False).select_related('from_account', 'to_account', 'user')
+        incomes = batch.incomes.filter(is_deleted=False).select_related('account', 'user').order_by('id')
         expenses = batch.expenses.filter(is_deleted=False).select_related('account', 'user').order_by('id')
         done = False
-        for queryset in (transfers.order_by('id'), expenses):
+        for queryset in (transfers.order_by('id'), incomes, expenses):
             for item in queryset.iterator(chunk_size=100):
                 item.delete()
                 deleted += 1

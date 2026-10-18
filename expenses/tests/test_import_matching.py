@@ -116,3 +116,33 @@ class TransferTargetTests(SimpleTestCase):
             self.assertTrue(looks_like_transfer(text), text)
         for text in ('ZOMATO', 'Swiggy dinner', '', None):
             self.assertFalse(looks_like_transfer(text), text)
+
+
+class IncomeTypeTests(SimpleTestCase):
+    def test_what_a_credit_most_likely_is(self):
+        from expenses.importing.matching import guess_income_type
+        cases = {
+            'NEFT-ACME CORP-SALARY SEPTEMBER': 'Salary',
+            'NEFT-SAL-ACME LTD': 'Salary',
+            'Diwali bonus credited': 'Salary',
+            'INT.PD:01-07-2026 TO 30-09-2026': 'Investment Returns',
+            'Interest credited on savings': 'Investment Returns',
+            'DIVIDEND HDFCBANK': 'Investment Returns',
+            'Amazon Pay cashback': 'Cashback & Rewards',
+            'REWARDS REDEEMED': 'Cashback & Rewards',
+            'UPI-AMAZON-REFUND ORDER 4412': 'Refund / Reimbursement',
+            'Reversal of failed txn': 'Refund / Reimbursement',
+            'Office expense reimbursement': 'Refund / Reimbursement',
+            'Rent received from tenant': 'Rental Income',
+            'Freelance project payment': 'Freelance / Consulting',
+            'UPI-RAHUL SHARMA-9876@ybl': 'Other',
+            '': 'Other',
+        }
+        for text, expected in cases.items():
+            self.assertEqual(guess_income_type(text), expected, text)
+
+    def test_every_guess_is_a_real_income_type(self):
+        from expenses.importing.matching import _INCOME_RULES, DEFAULT_INCOME_TYPE
+        from expenses.models import Income
+        valid = {value for value, _label in Income.SOURCE_TYPE_CHOICES}
+        self.assertLessEqual({name for name, _p in _INCOME_RULES} | {DEFAULT_INCOME_TYPE}, valid)

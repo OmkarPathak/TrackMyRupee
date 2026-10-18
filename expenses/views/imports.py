@@ -12,14 +12,15 @@ from django.views.decorators.http import require_POST
 
 from ..importing import ImportFileError, ImportOptions, TooManyRows, analyse
 from ..importing.layout import ROLES, column_label
-from ..importing.service import CREDIT_ROW, DUPLICATE, ERROR, EXCLUDED, LIMIT, NEW, POSSIBLE, TRANSFER
+from ..importing.service import CREDIT_ROW, DUPLICATE, ERROR, EXCLUDED, INCOME, LIMIT, NEW, POSSIBLE, TRANSFER
 from ..importing.undo import UndoBusy, remaining_expenses, undo_batch
-from ..models import Account, ImportBatch
+from ..models import Account, ImportBatch, Income
 
 __all__ = ['upload_preview_view', 'import_history_view', 'import_undo_view', 'import_report_view']
 
 MAX_PREVIEW_ROWS = 1000
 _ROW_ID = re.compile(r'^\d{1,3}-\d{1,7}$')
+_TICKABLE = (NEW, EXCLUDED, POSSIBLE, TRANSFER, INCOME)
 _MAPPED_ROLES = ('date', 'description', 'amount', 'debit', 'credit', 'balance', 'category', 'reference')
 
 
@@ -33,10 +34,17 @@ def options_from_post(post):
             columns[role] = int(value)
     sign = post.get('sign_mode') if post.get('sign_mode') in ('positive', 'negative') else 'auto'
     order = post.get('date_order') if post.get('date_order') in ('day', 'month') else 'auto'
+    income_types = {}
+    valid_types = {value for value, _label in Income.SOURCE_TYPE_CHOICES}
+    for name in post:
+        if name.startswith('itype_') and _ROW_ID.match(name[len('itype_'):]) and post.get(name) in valid_types:
+            income_types[name[len('itype_'):]] = post.get(name)
     shown = {s for s in (post.get('shown') or '').split(',') if _ROW_ID.match(s)}
     included = {s for s in post.getlist('include') if _ROW_ID.match(s)}
     excluded = shown - included if shown else set()
-    return ImportOptions(columns=columns, sign_mode=sign, date_order=order), excluded, included, bool(shown)
+    options = ImportOptions(columns=columns, sign_mode=sign, date_order=order,
+                            import_income=post.get('import_income') == '1', income_types=income_types)
+    return options, excluded, included, bool(shown)
 
 
 def _column_roles(layout, options):
@@ -96,11 +104,16 @@ def upload_preview_view(request):
     shown = decisions[:MAX_PREVIEW_ROWS]
     return panel(
         analysis=analysis, upload=upload, rows=shown, truncated=len(decisions) - len(shown),
-        ticked=analysis.count(NEW) + analysis.count(TRANSFER),
-        shown_ids=','.join(d.row_id for d in shown),
+        ticked=analysis.count(NEW) + analysis.count(TRANSFER) + analysis.count(INCOME),
+        income_choices=Income.SOURCE_TYPE_CHOICES,
+        has_money_in=any(d.row.direction == 'credit' for d in decisions),
+        # Only rows that had a tick box are decided by it: a row that gains one on a re-check (money in, once the
+        # income switch is on) must not look unticked just because the earlier preview had nothing to tick.
+        shown_ids=','.join(d.row_id for d in shown if d.status in _TICKABLE),
         counts={'new': analysis.count(NEW), 'duplicate': analysis.count(DUPLICATE), 'credit': analysis.count(CREDIT_ROW),
                 'error': analysis.count(ERROR), 'limit': analysis.count(LIMIT), 'excluded': analysis.count(EXCLUDED),
-                'possible': analysis.count(POSSIBLE), 'transfer': analysis.count(TRANSFER)},
+                'possible': analysis.count(POSSIBLE), 'transfer': analysis.count(TRANSFER),
+                'income': analysis.count(INCOME)},
         notes=[str(_IMPORT_NOTES[n]) for n in analysis.notes],
         roles=roles, column_choices=column_choices, options=options,
         single_amount_column='amount' in layout.columns and 'debit' not in layout.columns and 'credit' not in layout.columns,

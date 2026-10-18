@@ -1,4 +1,4 @@
-"""The expense import: `analyse` reads a file and decides what would happen to every row without writing anything
+"""The statement import: `analyse` reads a file and decides what would happen to every row without writing anything
 (that is the preview), and `commit` writes it and records the import so it can be listed and undone.
 `run_import` is the two together, for a direct import with no preview."""
 import hashlib
@@ -13,11 +13,11 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from ..models import Account, Category, Expense, ImportBatch, Transfer, get_exchange_rate
-from .commit import clear_caches_after_import, save_batch
+from ..models import Account, Category, Expense, ImportBatch, Income, Transfer, get_exchange_rate
+from .commit import clear_caches_after_import, save_batch, save_income_batch
 from .layout import Layout, apply_overrides, data_rows, detect_layout
-from .matching import (DATE_WINDOW_DAYS, Candidate, account_names, best_match, find_transfer_target, looks_like_transfer,
-                       meaningful_tokens)
+from .matching import (DATE_WINDOW_DAYS, Candidate, account_names, best_match, find_transfer_target, guess_income_type,
+                       looks_like_transfer, meaningful_tokens)
 from .parsing import MAX_IMPORT_ROWS, ImportFileError, read_sheets
 from .rows import CREDIT, ParsedRow, assign_directions, date_cells, parse_rows
 from .values import detect_day_first
@@ -26,6 +26,7 @@ BATCH_SIZE = 200
 
 NEW, DUPLICATE, CREDIT_ROW, ERROR, LIMIT, EXCLUDED = 'new', 'duplicate', 'credit', 'error', 'limit', 'excluded'
 POSSIBLE, TRANSFER = 'possible', 'transfer'     # need a person's say-so: shown unticked / shown with its account
+INCOME = 'income'                               # money in, imported as income because the person asked for that
 
 
 class TooManyRows(ImportFileError):
@@ -38,6 +39,8 @@ class ImportOptions:
     columns: Dict[str, int] = field(default_factory=dict)   # role -> column index, -1 meaning "not used"
     sign_mode: str = 'auto'                                 # 'auto', 'positive' or 'negative' (which sign is spending)
     date_order: str = 'auto'                                # 'auto', 'day' or 'month'
+    import_income: bool = False                             # bring money in as income instead of leaving it out
+    income_types: Dict[str, str] = field(default_factory=dict)   # row id -> Income source type chosen by hand
 
 
 @dataclass
@@ -47,8 +50,11 @@ class RowDecision:
     reason: str = ''
     category: str = ''
     expense: Optional[Expense] = None
-    match: str = ''                         # the stored expense a possible duplicate resembles
-    target: Optional[Account] = None        # the own account a transfer row moves money to
+    income: Optional[Income] = None
+    income_type: str = ''
+    match: str = ''                         # the stored row a possible duplicate resembles
+    target: Optional[Account] = None        # the own account a transfer row moves money to (or from, if incoming)
+    incoming: bool = False                  # a transfer INTO the imported account (a credit), not out of it
     apply: bool = False                     # a transfer row that will actually be recorded
     key: str = ''
 
@@ -83,6 +89,10 @@ def normalise_description(text):
     return ' '.join(str(text).lower().split())
 
 
+def _identity(row):
+    return (row.date, row.amount, normalise_description(row.description))
+
+
 def _history_map(user):
     exact, prefix = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
     records = (Expense.objects.filter(user=user).values('description', 'category')
@@ -99,17 +109,6 @@ def _history_map(user):
     return {'exact': {d: pick(c) for d, c in exact.items()}, 'prefix': {w: pick(c) for w, c in prefix.items()}}
 
 
-def _existing_identities(user, account, currency, first_date, last_date):
-    """How many expenses already exist for each (date, amount, description) in the file's date range. A manual
-    entry or an earlier import counts the same, so a re-imported file adds nothing however it was first entered."""
-    rows = (
-        Expense.objects.filter(user=user, is_deleted=False, currency=currency, date__range=(first_date, last_date))
-        .filter(Q(account=account) | Q(account__isnull=True))
-        .values_list('date', 'amount', 'description')
-    )
-    return Counter((d, a, normalise_description(desc)) for d, a, desc in rows)
-
-
 def _key(*parts):
     return hashlib.md5('_'.join(str(p) for p in parts).encode('utf-8')).hexdigest()
 
@@ -119,6 +118,78 @@ def file_digest(uploaded_file):
     digest = hashlib.sha256(uploaded_file.read()).hexdigest()
     uploaded_file.seek(0)
     return digest
+
+
+class _Stored:
+    """What is already stored for one kind of row (expenses, or income), which this file's rows of that kind are
+    compared with: how many identical rows exist (a manual entry or an earlier import counts the same, so a
+    re-imported file adds nothing however it was first entered), and the rest as candidates for a fuzzy match."""
+
+    def __init__(self, model, *, user, account, currency, rows, first, last, prefix=''):
+        window = timedelta(days=DATE_WINDOW_DAYS)
+        self.prefix = (prefix,) if prefix else ()
+        self.keys = set(model.objects.filter(user=user, client_dedup_key__isnull=False, date__range=(first, last))
+                        .values_list('client_dedup_key', flat=True))
+        stored = list(
+            model.objects.filter(user=user, is_deleted=False, currency=currency,
+                                 date__range=(first - window, last + window))
+            .filter(Q(account=account) | Q(account__isnull=True))
+            .values_list('id', 'date', 'amount', 'description'))
+        self.identity = Counter((d, a, normalise_description(desc)) for _pk, d, a, desc in stored if first <= d <= last)
+        # What an exact match already accounts for is not available to a fuzzy one
+        file_counts = Counter(_identity(r) for r in rows if not r.reference)
+        consumed = Counter({k: min(v, self.identity[k]) for k, v in file_counts.items()})
+        self.pool: List[Candidate] = []
+        for pk, date, amount, description in stored:
+            if consumed[(date, amount, normalise_description(description))] > 0:
+                consumed[(date, amount, normalise_description(description))] -= 1
+                continue
+            self.pool.append(Candidate(pk, date, amount, description, meaningful_tokens(description)))
+        self.seen = set()
+        self.occurrences = Counter()
+
+    def judge(self, row, currency):
+        """(the row's dedup key, whether it is already stored)."""
+        identity = _identity(row)
+        if row.reference:
+            key = _key(*self.prefix, 'ref', row.date, row.amount, currency, row.reference)
+            return key, key in self.keys or key in self.seen
+        # Identical rows in one file are separate payments (two ₹50 teas), so they are told apart by how many came
+        # before, and a row is a duplicate only when that many already exist in the database.
+        self.occurrences[identity] += 1
+        duplicate = self.occurrences[identity] <= self.identity[identity]
+        n = self.occurrences[identity]
+        key = _key(*self.prefix, row.date, row.amount, currency, identity[2], n)
+        while key in self.keys or key in self.seen:
+            n += 1
+            key = _key(*self.prefix, row.date, row.amount, currency, identity[2], n)
+        return key, duplicate
+
+    def resembles(self, row):
+        return best_match(row.date, row.amount, meaningful_tokens(row.description), self.pool) if self.pool else None
+
+
+class _TransferPool:
+    """The transfers already recorded out of (or into) the imported account, so a row that is one of them is not
+    recorded again, or counted as spending (or income)."""
+
+    def __init__(self, user, account, *, incoming, first, last):
+        window = timedelta(days=DATE_WINDOW_DAYS)
+        mine, other = ('to_account', 'from_account_id') if incoming else ('from_account', 'to_account_id')
+        self.items = [
+            {'amount': amount, 'date': date, 'other': other_id, 'used': False}
+            for amount, date, other_id in Transfer.objects.filter(
+                user=user, is_deleted=False, date__range=(first - window, last + window), **{mine: account}
+            ).values_list('amount', 'date', other)]
+
+    def take(self, row, target_id):
+        for item in self.items:
+            if (not item['used'] and item['amount'] == row.amount
+                    and abs((item['date'] - row.date).days) <= DATE_WINDOW_DAYS
+                    and (target_id is None or item['other'] == target_id)):
+                item['used'] = True
+                return True
+        return False
 
 
 def analyse(*, user, uploaded_file, file_name, account, currency, predict_category, plan_cap=None,
@@ -171,52 +242,68 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
         used = Expense.objects.filter(user=user, date__year=today.year, date__month=today.month).count()
         remaining_this_month = max(0, plan_cap - used)
 
-    dated = [r.date for r in parsed if r.date and not r.error]
-    existing_keys = set()
-    existing_identity = Counter()
-    pool: List[Candidate] = []
-    transfer_pool = []
+    readable = [r for r in parsed if not r.error]
+    dated = [r.date for r in readable if r.date]
+    spending_rows = [r for r in readable if r.direction != CREDIT]
+    money_in_rows = [r for r in readable if r.direction == CREDIT]
+    expenses = incomes = transfers_out = transfers_in = None
     own_accounts = []
     if dated:
         first, last = min(dated), max(dated)
-        existing_keys = set(
-            Expense.objects.filter(user=user, client_dedup_key__isnull=False, date__range=(first, last))
-            .values_list('client_dedup_key', flat=True))
-        existing_identity = _existing_identities(user, account, currency, first, last)
-        window = timedelta(days=DATE_WINDOW_DAYS)
-        stored = list(
-            Expense.objects.filter(user=user, is_deleted=False, currency=currency,
-                                   date__range=(first - window, last + window))
-            .filter(Q(account=account) | Q(account__isnull=True))
-            .values_list('id', 'date', 'amount', 'description'))
-        # What an exact match already accounts for is not available to a fuzzy one
-        file_counts = Counter(
-            (r.date, r.amount, normalise_description(r.description)) for r in parsed
-            if not r.error and r.direction != CREDIT and not r.reference)
-        consumed = Counter({k: min(v, existing_identity[k]) for k, v in file_counts.items()})
-        for pk, date, amount, description in stored:
-            identity = (date, amount, normalise_description(description))
-            if consumed[identity] > 0:
-                consumed[identity] -= 1
-                continue
-            pool.append(Candidate(pk, date, amount, description, meaningful_tokens(description)))
+        expenses = _Stored(Expense, user=user, account=account, currency=currency, rows=spending_rows,
+                           first=first, last=last)
+        if options.import_income and money_in_rows:
+            incomes = _Stored(Income, user=user, account=account, currency=currency, rows=money_in_rows,
+                              first=first, last=last, prefix='income')
         if account.currency == currency:
             own_accounts = account_names(
                 Account.objects.filter(user=user, is_active=True, currency=currency).exclude(pk=account.pk))
-            transfer_pool = [
-                {'amount': a, 'date': d, 'to': to_id, 'used': False}
-                for a, d, to_id in Transfer.objects.filter(
-                    user=user, is_deleted=False, from_account=account, date__range=(first - window, last + window)
-                ).values_list('amount', 'date', 'to_account_id')]
+            transfers_out = _TransferPool(user, account, incoming=False, first=first, last=last)
+            if incomes is not None:
+                transfers_in = _TransferPool(user, account, incoming=True, first=first, last=last)
     own_by_id = {a.id: a for a in Account.objects.filter(user=user, pk__in=[a.id for a in own_accounts])}
-    seen_keys = set()
-    occurrences = Counter()
 
     history_map = _history_map(user)
     category_names = list(Category.objects.filter(user=user).values_list('name', flat=True))
 
     base_currency = user.profile.currency
     exchange_rate = Decimal('1.0') if currency == base_currency else get_exchange_rate(currency, base_currency)
+
+    def base_amount(row):
+        return row.amount if currency == base_currency else (row.amount * exchange_rate).quantize(Decimal('0.01'))
+
+    def money_in(row, row_id):
+        """A credit the person asked to have imported as income."""
+        source_type = options.income_types.get(row_id) or guess_income_type(row.description)
+        key, duplicate = incomes.judge(row, currency)
+        if duplicate:
+            return RowDecision(row, DUPLICATE, _("Already imported or entered"), income_type=source_type)
+        target_id = find_transfer_target(row.description, own_accounts) if own_accounts else None
+        if transfers_in and (target_id or looks_like_transfer(row.description)) and transfers_in.take(row, target_id):
+            return RowDecision(row, DUPLICATE, _("Already recorded as a transfer"), income_type=source_type)
+        if target_id:
+            target = own_by_id[target_id]
+            if row_id in excluded:
+                return RowDecision(row, EXCLUDED, _("Left out by you"), income_type=source_type, target=target, incoming=True)
+            return RowDecision(
+                row, TRANSFER, _("Looks like a transfer from %(account)s") % {'account': target.name},
+                income_type=source_type, target=target, incoming=True, apply=reviewed,
+                key=_key('transfer', row.date, row.amount, currency, target_id, account.pk, key))
+        resembles = incomes.resembles(row)
+        if resembles:
+            resembles.used = True
+            if row_id not in included:
+                what = f"{resembles.date:%d %b %Y} · {resembles.description[:40]}"
+                return RowDecision(row, POSSIBLE, _("Looks like income you already have: %(what)s") % {'what': what},
+                                   income_type=source_type, match=what)
+        if row_id in excluded:
+            return RowDecision(row, EXCLUDED, _("Left out by you"), income_type=source_type)
+        incomes.seen.add(key)
+        income = Income(
+            user=user, date=row.date, amount=row.amount, base_amount=base_amount(row), exchange_rate=exchange_rate,
+            description=row.description, source=source_type, source_type=source_type, currency=currency,
+            account=account, client_dedup_key=key)
+        return RowDecision(row, INCOME, '', income_type=source_type, income=income)
 
     decisions: List[RowDecision] = []
     for row in parsed:
@@ -225,62 +312,46 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
             decisions.append(RowDecision(row, ERROR, row.error))
             continue
         if row.direction == CREDIT:
-            decisions.append(RowDecision(row, CREDIT_ROW, _("Money coming in, not spending")))
+            if incomes is not None:
+                decisions.append(money_in(row, row_id))
+            else:
+                decisions.append(RowDecision(row, CREDIT_ROW, _("Money coming in, not spending")))
             continue
 
         category = (row.category or predict_category(
             row.description, user=user, history_map=history_map, categories=category_names) or 'Other')[:255]
 
-        identity = (row.date, row.amount, normalise_description(row.description))
-        if row.reference:
-            key = _key('ref', row.date, row.amount, currency, row.reference)
-            duplicate = key in existing_keys or key in seen_keys
-        else:
-            # Identical rows in one file are separate payments (two ₹50 teas), so they are told apart by how
-            # many came before, and a row is a duplicate only when that many already exist in the database.
-            occurrences[identity] += 1
-            duplicate = occurrences[identity] <= existing_identity[identity]
-            n = occurrences[identity]
-            key = _key(row.date, row.amount, currency, identity[2], n)
-            while key in existing_keys or key in seen_keys:
-                n += 1
-                key = _key(row.date, row.amount, currency, identity[2], n)
+        key, duplicate = expenses.judge(row, currency)
         if duplicate:
             decisions.append(RowDecision(row, DUPLICATE, _("Already imported or entered"), category))
             continue
 
         # Money moved between the person's own accounts: a transfer, never an expense
         target_id = find_transfer_target(row.description, own_accounts) if own_accounts else None
-        if transfer_pool and (target_id or looks_like_transfer(row.description)):
-            hit = next((t for t in transfer_pool if not t['used'] and t['amount'] == row.amount
-                        and abs((t['date'] - row.date).days) <= DATE_WINDOW_DAYS
-                        and (target_id is None or t['to'] == target_id)), None)
-            if hit:
-                hit['used'] = True
-                decisions.append(RowDecision(row, DUPLICATE, _("Already recorded as a transfer"), category))
-                continue
+        if transfers_out and (target_id or looks_like_transfer(row.description)) and transfers_out.take(row, target_id):
+            decisions.append(RowDecision(row, DUPLICATE, _("Already recorded as a transfer"), category))
+            continue
         if target_id:
             target = own_by_id[target_id]
-            transfer_key = _key('transfer', row.date, row.amount, currency, account.pk, target_id, key)
             if row_id in excluded:
                 decisions.append(RowDecision(row, EXCLUDED, _("Left out by you"), category, target=target))
             else:
                 reason = _("Looks like a transfer to %(account)s") % {'account': target.name}
-                decisions.append(RowDecision(row, TRANSFER, reason, category, target=target,
-                                             apply=reviewed, key=transfer_key))
+                decisions.append(RowDecision(row, TRANSFER, reason, category, target=target, apply=reviewed,
+                                             key=_key('transfer', row.date, row.amount, currency, account.pk,
+                                                      target_id, key)))
             continue
 
         # Probably an expense that is already there, typed in by hand with other words
-        tokens = meaningful_tokens(row.description)
-        resembles = best_match(row.date, row.amount, tokens, pool) if pool else None
-        if resembles and row_id not in included:
-            resembles.used = True
-            what = f"{resembles.date:%d %b %Y} · {resembles.description[:40]}"
-            decisions.append(RowDecision(row, POSSIBLE, _("Looks like an expense you already have: %(what)s") % {'what': what},
-                                         category, match=what))
-            continue
+        resembles = expenses.resembles(row)
         if resembles:
             resembles.used = True
+            if row_id not in included:
+                what = f"{resembles.date:%d %b %Y} · {resembles.description[:40]}"
+                decisions.append(RowDecision(
+                    row, POSSIBLE, _("Looks like an expense you already have: %(what)s") % {'what': what},
+                    category, match=what))
+                continue
 
         if row_id in excluded:
             decisions.append(RowDecision(row, EXCLUDED, _("Left out by you"), category))
@@ -293,10 +364,9 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
                 continue
             remaining_this_month -= 1
 
-        seen_keys.add(key)
+        expenses.seen.add(key)
         expense = Expense(
-            user=user, date=row.date, amount=row.amount,
-            base_amount=row.amount if currency == base_currency else (row.amount * exchange_rate).quantize(Decimal('0.01')),
+            user=user, date=row.date, amount=row.amount, base_amount=base_amount(row),
             exchange_rate=exchange_rate, description=row.description, category=category,
             currency=currency, account=account, client_dedup_key=key,
         )
@@ -310,9 +380,10 @@ def new_summary(currency):
     return {
         'total_rows': 0,
         'created_count': 0,
+        'income_count': 0,                  # money in, recorded as income
         'transfer_count': 0,                # transfers between own accounts recorded
         'duplicate_count': 0,
-        'possible_skipped': 0,              # looked like an expense already there, and nobody said to import it
+        'possible_skipped': 0,              # looked like something already there, and nobody said to import it
         'transfer_skipped': 0,              # looked like a transfer, and nobody was there to confirm it
         'limit_skipped': 0,
         'credit_skipped': 0,
@@ -320,6 +391,7 @@ def new_summary(currency):
         'error_count': 0,
         'errors': [],                       # the first few, with row numbers (the rest are in the batch's report)
         'total_amount': 0,
+        'income_total': 0,
         'currency_symbol': currency,
         'notes': [],                        # codes the view turns into messages
         'batch_uuid': None,
@@ -336,8 +408,9 @@ def _record_transfers(decisions, *, user, account, batch, summary):
     """Record each confirmed transfer the normal way (Transfer.save posts balances and the ledger)."""
     for decision in decisions:
         row = decision.row
+        source, destination = (decision.target, account) if decision.incoming else (account, decision.target)
         transfer = Transfer(
-            user=user, from_account=account, to_account=decision.target, amount=row.amount, date=row.date,
+            user=user, from_account=source, to_account=destination, amount=row.amount, date=row.date,
             description=row.description[:1000], client_dedup_key=decision.key, import_batch=batch)
         try:
             with transaction.atomic():
@@ -382,23 +455,30 @@ def commit(analysis: Analysis, *, user, account, currency, file_name):
             })
 
     to_write = [d.expense for d in analysis.decisions if d.status == NEW]
+    incomes = [d.income for d in analysis.decisions if d.status == INCOME]
     transfers = [d for d in analysis.decisions if d.status == TRANSFER and d.apply]
     batch = None
-    if to_write or transfers:
+    if to_write or incomes or transfers:
         batch = ImportBatch.objects.create(user=user, account=account, file_name=file_name[:255],
                                            file_hash=analysis.file_hash, currency=currency)
-        for expense in to_write:
-            expense.import_batch = batch
         account_rate = Decimal('1.0')
         if account and currency != account.currency:
             account_rate = get_exchange_rate(currency, account.currency)
+        for expense in to_write:
+            expense.import_batch = batch
         for start in range(0, len(to_write), BATCH_SIZE):
             save_batch(to_write[start:start + BATCH_SIZE], account=account, account_rate=account_rate, summary=summary)
+        for income in incomes:
+            income.import_batch = batch
+        for start in range(0, len(incomes), BATCH_SIZE):
+            save_income_batch(incomes[start:start + BATCH_SIZE], account=account, account_rate=account_rate,
+                              summary=summary)
         _record_transfers(transfers, user=user, account=account, batch=batch, summary=summary)
 
-    if batch and (summary['created_count'] or summary['transfer_count']):
+    if batch and (summary['created_count'] or summary['income_count'] or summary['transfer_count']):
         batch.total_rows = summary['total_rows']
         batch.created_count = summary['created_count']
+        batch.income_count = summary['income_count']
         batch.transfer_count = summary['transfer_count']
         batch.duplicate_count = summary['duplicate_count']
         batch.credit_count = summary['credit_skipped']

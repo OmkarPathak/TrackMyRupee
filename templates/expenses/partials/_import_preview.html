@@ -13,11 +13,25 @@
         <div class="alert alert-warning border-0 small"><i class="bi bi-info-circle me-2"></i>{{ note }}</div>
         {% endfor %}
 
+        {% if has_money_in %}
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="import_income" name="import_income" value="1"
+                   {% if options.import_income %}checked{% endif %}
+                   hx-post="{% url 'upload-preview' %}" hx-encoding="multipart/form-data" hx-trigger="change"
+                   hx-target="#import-preview" hx-swap="innerHTML">
+            <label class="form-check-label fw-semibold" for="import_income">{% trans "Also import money coming in as income" %}</label>
+            <div class="form-text">{% trans "Salary, interest, refunds and the like. Each row gets a source you can change. Money moved from your own accounts is recorded as a transfer instead." %}</div>
+        </div>
+        {% endif %}
+
         <div class="row g-2 mb-3 text-center">
             <div class="col-6 col-md"><div class="p-2 rounded bg-success bg-opacity-10"><div class="small text-success">{% trans "New" %}</div><div class="h5 mb-0 fw-bold text-success">{{ counts.new }}</div></div></div>
             <div class="col-6 col-md"><div class="p-2 rounded bg-warning bg-opacity-10"><div class="small text-warning">{% trans "Duplicates" %}</div><div class="h5 mb-0 fw-bold text-warning">{{ counts.duplicate }}</div></div></div>
             <div class="col-6 col-md"><div class="p-2 rounded bg-info bg-opacity-10"><div class="small text-info">{% trans "Money in" %}</div><div class="h5 mb-0 fw-bold text-info">{{ counts.credit }}</div></div></div>
             <div class="col-6 col-md"><div class="p-2 rounded bg-danger bg-opacity-10"><div class="small text-danger">{% trans "Errors" %}</div><div class="h5 mb-0 fw-bold text-danger">{{ counts.error }}</div></div></div>
+            {% if counts.income %}
+            <div class="col-6 col-md"><div class="p-2 rounded bg-success bg-opacity-10"><div class="small text-success">{% trans "Income" %}</div><div class="h5 mb-0 fw-bold text-success">{{ counts.income }}</div></div></div>
+            {% endif %}
             {% if counts.possible %}
             <div class="col-6 col-md"><div class="p-2 rounded bg-warning bg-opacity-10"><div class="small text-warning">{% trans "Possible duplicates" %}</div><div class="h5 mb-0 fw-bold text-warning">{{ counts.possible }}</div></div></div>
             {% endif %}
@@ -112,8 +126,8 @@
                     {% for d in rows %}
                     <tr class="import-row" data-status="{{ d.status }}">
                         <td>
-                            {% if d.status == 'new' or d.status == 'excluded' or d.status == 'possible' or d.status == 'transfer' %}
-                            <input type="checkbox" class="form-check-input import-include" name="include" value="{{ d.row_id }}" {% if d.status == 'new' or d.status == 'transfer' %}checked{% endif %}
+                            {% if d.status == 'new' or d.status == 'excluded' or d.status == 'possible' or d.status == 'transfer' or d.status == 'income' %}
+                            <input type="checkbox" class="form-check-input import-include" name="include" value="{{ d.row_id }}" {% if d.status == 'new' or d.status == 'transfer' or d.status == 'income' %}checked{% endif %}
                                    aria-label="{% trans 'Import this row' %}">
                             {% endif %}
                         </td>
@@ -127,6 +141,10 @@
                             {% elif d.status == 'duplicate' %}<span class="badge badge-soft badge-soft-warning">{% trans "Duplicate" %}</span>
                             {% elif d.status == 'credit' %}<span class="badge badge-soft badge-soft-info">{% trans "Money in" %}</span>
                             {% elif d.status == 'error' %}<span class="badge badge-soft badge-soft-danger">{% trans "Error" %}</span> <span class="text-danger">{{ d.reason }}</span>
+                            {% elif d.status == 'income' %}<span class="badge badge-soft badge-soft-success">{% trans "Income" %}</span>
+                            <select class="form-select form-select-sm d-inline-block w-auto ms-1" name="itype_{{ d.row_id }}" aria-label="{% trans 'Income source' %}">
+                                {% for value, label in income_choices %}<option value="{{ value }}" {% if value == d.income_type %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                            </select>
                             {% elif d.status == 'possible' %}<span class="badge badge-soft badge-soft-warning">{% trans "Possible duplicate" %}</span> <span class="text-muted">{{ d.match }}</span>
                             {% elif d.status == 'transfer' %}<span class="badge badge-soft badge-soft-info">{% trans "Transfer" %}</span> <span class="text-muted">→ {{ d.target.name }}</span>
                             {% elif d.status == 'limit' %}<span class="badge badge-soft badge-soft-secondary">{% trans "Over plan limit" %}</span>
@@ -147,7 +165,7 @@
         <input type="hidden" name="shown" value="{{ shown_ids }}">
 
         <div class="d-flex flex-wrap gap-2 mt-3">
-            <button type="submit" class="btn btn-primary px-4" id="import-submit" {% if not counts.new and not counts.transfer %}disabled{% endif %}>
+            <button type="submit" class="btn btn-primary px-4" id="import-submit" {% if not ticked %}disabled{% endif %}>
                 <i class="bi bi-check2-circle me-2"></i><span>{% blocktrans with count=ticked %}Import <span id="import-count">{{ count }}</span> rows{% endblocktrans %}</span>
             </button>
         </div>
