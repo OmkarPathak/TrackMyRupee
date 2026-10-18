@@ -1,5 +1,5 @@
 {% extends 'expenses/settings_base.html' %}
-{% load i18n digit_filters %}
+{% load i18n digit_filters static %}
 
 {% block settings_content %}
 <div class="fade-in">
@@ -188,9 +188,17 @@
             </div>
 
             <div class="mb-4">
-                <label for="formFile" class="form-label">{% trans "Excel or CSV File (.xlsx, .xls, .csv)" %}</label>
+                <label for="formFile" class="form-label">{% trans "Statement file (.pdf, .xlsx, .xls, .csv)" %}</label>
                 <input class="form-control" type="file" id="formFile" name="file"
-                    accept=".xlsx, .xls, .csv" required {% if not accounts %}disabled{% endif %}>
+                    data-pdfjs="{% static 'vendor/pdfjs/pdf.min.mjs' %}" data-pdfjs-worker="{% static 'vendor/pdfjs/pdf.worker.min.mjs' %}"
+                    accept=".pdf, .xlsx, .xls, .csv" required {% if not accounts %}disabled{% endif %}>
+                <div id="pdf-import-note" class="form-text text-muted"
+                     data-reading="{% trans 'Reading the PDF on your device…' %}"
+                     data-done="{% trans 'PDF read on your device. Nothing was uploaded. Press Preview to check the rows.' %}"
+                     data-none="{% trans 'No transactions table was found in this PDF. Download the statement as CSV or Excel from your bank instead.' %}"
+                     data-failed="{% trans 'This PDF could not be read. Download the statement as CSV or Excel from your bank instead.' %}"
+                     data-ask="{% trans 'This PDF is password protected. Enter its password (it stays on your device):' %}"
+                     data-wrong="{% trans 'Wrong password. Try again:' %}">{% trans "PDF statements are read on your device; the PDF and its password are never uploaded." %}</div>
             </div>
 
             <div class="d-flex flex-wrap gap-2">
@@ -207,7 +215,9 @@
         </form>
     </div>
     <div class="text-muted small py-3 mt-3">
-        {% trans "Supported formats: .xlsx, .xls, .csv, up to 5 MB and 5,000 rows" %}
+        {% trans "Supported formats: .pdf (read on your device), .xlsx, .xls, .csv, up to 5 MB and 5,000 rows" %}
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/pdf_import.js' %}" defer></script>{% endblock %}

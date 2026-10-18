@@ -156,7 +156,9 @@ def read_upload(request):
         upload.error = _("Please choose a file to upload.")
         return upload
     file_name = (uploaded_file.name or '').lower()
-    if not file_name.endswith(('.xlsx', '.xls', '.csv')):
+    if file_name.endswith('.pdf'):
+        upload.error = _("This PDF could not be read. Download the statement as CSV or Excel from your bank instead.")
+    elif not file_name.endswith(('.xlsx', '.xls', '.csv')):
         upload.error = _("Please upload an Excel (.xlsx) or CSV (.csv) file.")
     elif uploaded_file.size > MAX_IMPORT_BYTES:
         upload.error = _("This file is too large to import (the limit is 5 MB). Split it into smaller files.")
