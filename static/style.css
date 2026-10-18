@@ -1648,11 +1648,15 @@ a.btn-danger:active {
   color: var(--color-success) !important; /* Forest Green for hover/active */
 }
 
-/* Small Buttons height override */
+/* Small Buttons height override.
+   The height is fixed, so the text must be centred in it by line-height rather than by padding: a <button>
+   centres its content by itself, but a link styled as one (<a class="btn btn-sm">) does not, and a
+   btn-action-* class brings its own padding that would push the text off-centre. */
 .btn-sm {
   height: 31px !important;
-  padding-top: 0;
-  padding-bottom: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 29px;
 }
 
 /* Donation Button Styling */
@@ -4307,4 +4311,25 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
   body .dropdown-menu.show {
     z-index: 1095 !important;
   }
+}
+
+
+/* ── Contrast in dark mode ─────────────────────────────────────────────────────────────────────────────────────
+   The semantic colours are light in dark mode, so Bootstrap's white badge text would be almost invisible on them,
+   and the sidebar's hover "+ Add" used the deep light-mode green. */
+[data-bs-theme="dark"] .text-bg-success,
+[data-bs-theme="dark"] .text-bg-danger,
+[data-bs-theme="dark"] .text-bg-warning,
+[data-bs-theme="dark"] .badge.bg-success,
+[data-bs-theme="dark"] .badge.bg-danger,
+[data-bs-theme="dark"] .badge.bg-warning {
+  color: #15201b !important;
+}
+/* the dark-mode info colour is a mid-tone teal, which white text reads best on */
+[data-bs-theme="dark"] .text-bg-info,
+[data-bs-theme="dark"] .badge.bg-info {
+  color: #ffffff !important;
+}
+[data-bs-theme="dark"] .btn-sidebar-add {
+  color: var(--color-success-text, #5DCAA5) !important;
 }
