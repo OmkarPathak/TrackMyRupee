@@ -332,7 +332,9 @@ class UploadViewTest(TestCase):
         self.assertEqual(expense.amount, Decimal('2439.79'))
         self.assertEqual(expense.date, date(2026, 4, 1))
 
-    def test_upload_mixed_duplicates_and_within_file_duplicates(self):
+    def test_upload_mixed_duplicates_and_identical_rows_in_one_file(self):
+        # A row already in the database is skipped. Identical rows within ONE file are separate payments (two
+        # teas the same day), so they are all kept.
         import hashlib
         raw_str = f"2025-01-01_100_₹_Existing Expense_Food"
         dedup_key = hashlib.md5(raw_str.encode('utf-8')).hexdigest()
@@ -365,11 +367,11 @@ class UploadViewTest(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         results = response.context['results']
-        self.assertEqual(results['created_count'], 2)
-        self.assertEqual(results['duplicate_count'], 2)
+        self.assertEqual(results['created_count'], 3)
+        self.assertEqual(results['duplicate_count'], 1)
         self.assertEqual(results['error_count'], 0)
         self.assertEqual(results['total_rows'], 4)
-        self.assertEqual(Expense.objects.count(), 3)
+        self.assertEqual(Expense.objects.count(), 4)
 
     @override_settings(LEDGER_WRITE_ENABLED=False)
     def test_upload_50_rows_query_count_bulk_efficiency(self):
@@ -386,7 +388,9 @@ class UploadViewTest(TestCase):
         # With pre-fetching and bulk_create, it executes in only 12 queries, plus 6 to rebuild
         # global_badge_data (the upload saves the Account, which invalidates that cache).
         # (+1 query: the plan's monthly expense cap is counted once before the loop)
-        with self.assertNumQueries(20):   # one more than before: the user's category names, to match predictions
+        # (+2 queries: the audit-log rows an import now writes, as a typed expense does, and one query that counts
+        # the matching expenses already stored. Still constant however many rows the file has.)
+        with self.assertNumQueries(22):
             response = self.client.post(reverse('upload'), {
                 'account': self.account.id,
                 'currency': '₹',

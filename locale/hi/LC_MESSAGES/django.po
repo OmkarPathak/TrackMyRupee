@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TrackMyRupee\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 20:39+0530\n"
+"POT-Creation-Date: 2026-10-18 14:41+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: TrackMyRupee\n"
 "Language-Team: hi\n"
@@ -1790,7 +1790,7 @@ msgstr "स्रोत का प्रकार"
 #: templates/expenses/partials/_recurring_transaction_list.html:554
 #: templates/expenses/partials/_transaction_list.html:204
 #: templates/expenses/partials/_transfer_list.html:67
-#: templates/expenses/payment_history.html:85 templates/features.html:542
+#: templates/expenses/payment_history.html:85 templates/features.html:591
 #: templates/landing.html:1759 templates/onboarding.html:950
 msgid "Description"
 msgstr "विवरण"
@@ -2036,7 +2036,7 @@ msgstr "सूची में दिए गए रंगों में से
 #: templates/expenses/recurring_transaction_form.html:127
 #: templates/expenses/recurring_transaction_form.html:711
 #: templates/expenses/transfer_confirm_delete.html:31
-#: templates/expenses/transfer_form.html:284 templates/features.html:539
+#: templates/expenses/transfer_form.html:284 templates/features.html:588
 #: templates/onboarding.html:951
 msgid "Amount"
 msgstr "मूल्य"
@@ -2665,6 +2665,52 @@ msgstr "खोज परिणामों में से %(name)s चुन�
 msgid "Each fund can appear only once."
 msgstr "हर फंड केवल एक बार आ सकता है।"
 
+#: expenses/importing/parsing.py:96
+msgid "Failed to parse XLS as HTML table: "
+msgstr "XLS को HTML टेबल के रूप में पढ़ने में विफल: "
+
+#: expenses/importing/parsing.py:101
+msgid "Failed to parse XLS as CSV: "
+msgstr "XLS को CSV के रूप में पढ़ने में विफल: "
+
+#: expenses/importing/parsing.py:105
+msgid ""
+"This file appears to be in the older Excel (.xls) format, which is not "
+"supported directly. Please open it in Microsoft Excel, Google Sheets, or "
+"LibreOffice and save it as a newer .xlsx format, then try uploading again."
+msgstr ""
+"यह फ़ाइल पुराने Excel (.xls) प्रारूप में लगती है, जो सीधे समर्थित नहीं है। "
+"कृपया इसे Microsoft Excel, Google Sheets या LibreOffice में खोलकर नए .xlsx "
+"प्रारूप में सहेजें, फिर दोबारा अपलोड करें।"
+
+#: expenses/importing/rows.py:93
+msgid "Both a debit and a credit amount"
+msgstr "डेबिट और क्रेडिट, दोनों राशियाँ दी गई हैं"
+
+#: expenses/importing/rows.py:107
+msgid "Invalid amount format: "
+msgstr "राशि का प्रारूप अमान्य है: "
+
+#: expenses/importing/rows.py:118
+msgid "Invalid date format: "
+msgstr "तारीख का प्रारूप अमान्य है: "
+
+#: expenses/importing/rows.py:120
+msgid "Amount is too large: "
+msgstr "राशि बहुत बड़ी है: "
+
+#: expenses/importing/rows.py:125
+msgid "Missing description"
+msgstr "विवरण नहीं है"
+
+#: expenses/importing/service.py:87
+msgid ""
+"This file has more than 5,000 rows. Split it into smaller files and import "
+"them one at a time."
+msgstr ""
+"इस फ़ाइल में 5,000 से ज़्यादा पंक्तियाँ हैं। इसे छोटी फ़ाइलों में बाँटें और "
+"एक-एक करके इम्पोर्ट करें।"
+
 #: expenses/management/commands/send_monthly_report.py:203
 #, python-brace-format
 msgid ""
@@ -2939,7 +2985,7 @@ msgstr "ऐप में रखा गया बैलेंस"
 #: templates/expenses/partials/_transfer_list.html:64
 #: templates/expenses/payment_history.html:84
 #: templates/expenses/transfer_confirm_delete.html:19
-#: templates/features.html:541
+#: templates/features.html:590
 msgid "Date"
 msgstr "दिनांक"
 
@@ -2957,7 +3003,7 @@ msgstr "क्लाइंट डुप्लिकेशन कुंजी"
 #: templates/expenses/expense_list.html:331
 #: templates/expenses/partials/_account_list.html:309
 #: templates/expenses/recurring_transaction_form.html:151
-#: templates/expenses/transfer_form.html:141 templates/features.html:544
+#: templates/expenses/transfer_form.html:141 templates/features.html:593
 #: templates/onboarding.html:885 templates/partials/guide_accounts.html:34
 #: templates/partials/savings_modal.html:95
 #: templates/partials/savings_modal.html:146
@@ -3504,7 +3550,7 @@ msgstr ""
 "इसे ऐसे लिखें जैसे किसी दोस्त को मैसेज कर रहे हों। न बैंक लॉगिन, न SMS "
 "एक्सेस।"
 
-#: expenses/public_features.py:42 templates/features.html:469
+#: expenses/public_features.py:42 templates/features.html:518
 msgid "Type it like a message"
 msgstr "मैसेज की तरह लिखें"
 
@@ -6166,11 +6212,35 @@ msgstr "ब्याज दर अपडेट करने में त्र�
 msgid "Repayment deleted successfully."
 msgstr "भुगतान सफलतापूर्वक हटा दिया गया।"
 
-#: expenses/views/misc.py:168
+#: expenses/views/misc.py:129
+msgid ""
+"This file has a single amount column with both positive and negative values,"
+" so positive amounts were treated as expenses and negative ones were skipped"
+" as credits. If that is the wrong way round, delete these expenses and "
+"import again with a Debit/Credit or Balance column."
+msgstr ""
+"इस फ़ाइल में एक ही राशि कॉलम है जिसमें धनात्मक और ऋणात्मक दोनों मान हैं, "
+"इसलिए धनात्मक राशियों को खर्च माना गया और ऋणात्मक राशियों को क्रेडिट मानकर "
+"छोड़ दिया गया। अगर यह उल्टा है, तो ये खर्च हटाएँ और डेबिट/क्रेडिट या शेष "
+"कॉलम के साथ दोबारा इम्पोर्ट करें।"
+
+#: expenses/views/misc.py:133
+msgid ""
+"This file has a single amount column with both positive and negative values,"
+" so negative amounts were treated as expenses and positive ones were skipped"
+" as credits. If that is the wrong way round, delete these expenses and "
+"import again with a Debit/Credit or Balance column."
+msgstr ""
+"इस फ़ाइल में एक ही राशि कॉलम है जिसमें धनात्मक और ऋणात्मक दोनों मान हैं, "
+"इसलिए ऋणात्मक राशियों को खर्च माना गया और धनात्मक राशियों को क्रेडिट मानकर "
+"छोड़ दिया गया। अगर यह उल्टा है, तो ये खर्च हटाएँ और डेबिट/क्रेडिट या शेष "
+"कॉलम के साथ दोबारा इम्पोर्ट करें।"
+
+#: expenses/views/misc.py:165
 msgid "Please upload an Excel (.xlsx) or CSV (.csv) file."
 msgstr "कृपया Excel (.xlsx) या CSV (.csv) फ़ाइल अपलोड करें।"
 
-#: expenses/views/misc.py:170
+#: expenses/views/misc.py:167
 msgid ""
 "This file is too large to import (the limit is 5 MB). Split it into smaller "
 "files."
@@ -6178,90 +6248,44 @@ msgstr ""
 "यह फ़ाइल इम्पोर्ट करने के लिए बहुत बड़ी है (सीमा 5 MB है)। इसे छोटी फ़ाइलों "
 "में बाँटें।"
 
-#: expenses/views/misc.py:172
+#: expenses/views/misc.py:169
 msgid "This spreadsheet is too large to import. Split it into smaller files."
 msgstr ""
 "यह स्प्रेडशीट इम्पोर्ट करने के लिए बहुत बड़ी है। इसे छोटी फ़ाइलों में "
 "बाँटें।"
 
-#: expenses/views/misc.py:179
+#: expenses/views/misc.py:174
 msgid "Please create an account before importing expenses."
 msgstr "खर्च इम्पोर्ट करने से पहले कृपया एक खाता बनाएँ।"
 
-#: expenses/views/misc.py:191
+#: expenses/views/misc.py:179
 msgid ""
 "Selected account is invalid. Please choose one of your active accounts."
 msgstr "चुना गया खाता अमान्य है। कृपया अपने सक्रिय खातों में से कोई एक चुनें।"
 
-#: expenses/views/misc.py:203
+#: expenses/views/misc.py:185
 msgid ""
 "An import is already running. Wait for it to finish, then upload again."
 msgstr ""
 "एक इम्पोर्ट पहले से चल रहा है। उसके पूरा होने तक इंतज़ार करें, फिर दोबारा "
 "अपलोड करें।"
 
-#: expenses/views/misc.py:373
-msgid "Failed to parse XLS as HTML table: "
-msgstr "XLS को HTML टेबल के रूप में पढ़ने में विफल: "
-
-#: expenses/views/misc.py:382
-msgid "Failed to parse XLS as CSV: "
-msgstr "XLS को CSV के रूप में पढ़ने में विफल: "
-
-#: expenses/views/misc.py:386
-msgid ""
-"This file appears to be in the older Excel (.xls) format, which is not "
-"supported directly. Please open it in Microsoft Excel, Google Sheets, or "
-"LibreOffice and save it as a newer .xlsx format, then try uploading again."
-msgstr ""
-"यह फ़ाइल पुराने Excel (.xls) प्रारूप में लगती है, जो सीधे समर्थित नहीं है। "
-"कृपया इसे Microsoft Excel, Google Sheets या LibreOffice में खोलकर नए .xlsx "
-"प्रारूप में सहेजें, फिर दोबारा अपलोड करें।"
-
-#: expenses/views/misc.py:445
-msgid ""
-"This file has more than 5,000 rows. Split it into smaller files and import "
-"them one at a time."
-msgstr ""
-"इस फ़ाइल में 5,000 से ज़्यादा पंक्तियाँ हैं। इसे छोटी फ़ाइलों में बाँटें और "
-"एक-एक करके इम्पोर्ट करें।"
-
-#: expenses/views/misc.py:448
+#: expenses/views/misc.py:203
 msgid ""
 "Could not detect required columns (Date, Amount, Description). Please check "
 "your file."
 msgstr ""
 "ज़रूरी कॉलम (Date, Amount, Description) नहीं मिले। कृपया अपनी फ़ाइल जाँचें।"
 
-#: expenses/views/misc.py:594
-msgid "Missing required columns in row"
-msgstr "पंक्ति में ज़रूरी कॉलम नहीं हैं"
-
-#: expenses/views/misc.py:603
-msgid "Invalid date format: "
-msgstr "तारीख का प्रारूप अमान्य है: "
-
-#: expenses/views/misc.py:609 expenses/views/misc.py:612
-msgid "Invalid amount format: "
-msgstr "राशि का प्रारूप अमान्य है: "
-
-#: expenses/views/misc.py:618
-msgid "Amount is too large: "
-msgstr "राशि बहुत बड़ी है: "
-
-#: expenses/views/misc.py:622
-msgid "Missing description"
-msgstr "विवरण नहीं है"
-
-#: expenses/views/misc.py:699
+#: expenses/views/misc.py:209
 msgid "Processing complete! See summary below."
 msgstr "प्रोसेसिंग पूरी हुई! नीचे सारांश देखें।"
 
-#: expenses/views/misc.py:707
+#: expenses/views/misc.py:217
 msgid "Processing complete. No new expenses were added."
 msgstr "प्रोसेसिंग पूरी हुई। कोई नया खर्च नहीं जोड़ा गया।"
 
-#: expenses/views/misc.py:712
+#: expenses/views/misc.py:224
 msgid ""
 "We could not read this file. Check that it is a valid Excel or CSV file with"
 " Date, Amount and Description columns, then try again."
@@ -6269,27 +6293,27 @@ msgstr ""
 "हम इस फ़ाइल को पढ़ नहीं सके। जाँचें कि यह Date, Amount और Description कॉलम "
 "वाली मान्य Excel या CSV फ़ाइल है, फिर दोबारा कोशिश करें।"
 
-#: expenses/views/misc.py:735
+#: expenses/views/misc.py:241
 msgid "AI Insights is a paid feature."
 msgstr "AI इनसाइट्स एक सशुल्क सुविधा है।"
 
-#: expenses/views/misc.py:763
+#: expenses/views/misc.py:269
 msgid "Your message has been sent!"
 msgstr "आपका संदेश भेज दिया गया है!"
 
-#: expenses/views/misc.py:769
+#: expenses/views/misc.py:275
 msgid "Submission limit reached."
 msgstr "सबमिशन की सीमा पूरी हो गई है।"
 
-#: expenses/views/misc.py:774
+#: expenses/views/misc.py:280
 msgid "Your message was flagged as potential spam."
 msgstr "आपके संदेश को संभावित स्पैम के रूप में चिह्नित किया गया।"
 
-#: expenses/views/misc.py:778
+#: expenses/views/misc.py:284
 msgid "Please use a permanent email address."
 msgstr "कृपया स्थायी ईमेल पता इस्तेमाल करें।"
 
-#: expenses/views/misc.py:782
+#: expenses/views/misc.py:288
 msgid ""
 "We couldn't send your message right now. Please email us directly or try "
 "again later."
@@ -6297,28 +6321,28 @@ msgstr ""
 "हम अभी आपका संदेश नहीं भेज सके। कृपया हमें सीधे ईमेल करें या बाद में फिर "
 "कोशिश करें।"
 
-#: expenses/views/misc.py:785
+#: expenses/views/misc.py:291
 msgid "Your message has been sent! We'll get back to you shortly."
 msgstr "आपका संदेश भेज दिया गया है! हम जल्द ही आपसे संपर्क करेंगे।"
 
-#: expenses/views/misc.py:899
+#: expenses/views/misc.py:405
 msgid "Thank you for your consent. You can now use TrackMyRupee."
 msgstr "आपकी सहमति के लिए धन्यवाद। अब आप TrackMyRupee इस्तेमाल कर सकते हैं।"
 
-#: expenses/views/misc.py:903
+#: expenses/views/misc.py:409
 msgid ""
 "You must confirm that you are 18 years of age or older to use TrackMyRupee."
 msgstr ""
 "TrackMyRupee इस्तेमाल करने के लिए कृपया पुष्टि करें कि आपकी उम्र 18 वर्ष या "
 "उससे अधिक है।"
 
-#: expenses/views/misc.py:905
+#: expenses/views/misc.py:411
 msgid "You must agree to all data collection terms to use TrackMyRupee."
 msgstr ""
 "TrackMyRupee इस्तेमाल करने के लिए आपको डेटा संग्रह की सभी शर्तों से सहमत "
 "होना होगा।"
 
-#: expenses/views/misc.py:908 templates/expenses/dpdp_consent.html:4
+#: expenses/views/misc.py:414 templates/expenses/dpdp_consent.html:4
 #: templates/expenses/dpdp_consent.html:11
 msgid "Data Consent Required"
 msgstr "डेटा सहमति आवश्यक है"
@@ -6685,11 +6709,11 @@ msgstr "कोई सवाल है या बस नमस्ते कहन
 msgid "Get in Touch"
 msgstr "संपर्क करें"
 
-#: templates/account/auth_base.html:331
+#: templates/account/auth_base.html:356
 msgid "Never worry about money again."
 msgstr "पैसों की चिंता अब नहीं।"
 
-#: templates/account/auth_base.html:335
+#: templates/account/auth_base.html:360
 msgid ""
 "Turn your transactions into a clear financial story. Track exactly where "
 "every rupee goes."
@@ -6697,11 +6721,11 @@ msgstr ""
 "अपने लेन-देन को एक साफ़ वित्तीय कहानी में बदलें। जानें कि हर रुपया कहाँ जाता"
 " है।"
 
-#: templates/account/auth_base.html:345
+#: templates/account/auth_base.html:370
 msgid "Trusted by 500+ professionals across India"
 msgstr "भारत भर के 500+ प्रोफेशनल्स का भरोसा"
 
-#: templates/account/auth_base.html:354
+#: templates/account/auth_base.html:379
 msgid "Back to Site"
 msgstr "साइट पर वापस"
 
@@ -8078,7 +8102,7 @@ msgstr "तारीख: {date}"
 
 #: templates/components/expense_composer_card.html:26
 #: templates/components/expense_composer_card.html:131
-#: templates/features.html:543
+#: templates/features.html:592
 msgid "Yesterday"
 msgstr "कल"
 
@@ -8175,7 +8199,7 @@ msgstr "जाँचें"
 
 #: templates/components/expense_composer_card.html:53
 #: templates/components/expense_composer_card.html:178
-#: templates/features.html:540
+#: templates/features.html:589
 msgid "Payment method"
 msgstr "भुगतान का तरीका"
 
@@ -8676,7 +8700,7 @@ msgstr "लोन EMI कैलकुलेटर"
 
 #: templates/components/public_footer.html:28
 #: templates/components/public_navbar.html:17
-#: templates/components/public_navbar.html:50 templates/features.html:512
+#: templates/components/public_navbar.html:50 templates/features.html:561
 msgid "Live Demo"
 msgstr "लाइव डेमो"
 
@@ -8749,7 +8773,7 @@ msgid "Main navigation"
 msgstr "मुख्य नेविगेशन"
 
 #: templates/components/public_navbar.html:20
-#: templates/components/public_navbar.html:51 templates/features.html:511
+#: templates/components/public_navbar.html:51 templates/features.html:560
 #: templates/landing.html:2473 templates/loan_emi_calculator.html:495
 msgid "Start Free"
 msgstr "मुफ़्त शुरू करें"
@@ -13016,6 +13040,7 @@ msgid "Search"
 msgstr "खोजें"
 
 #: templates/expenses/partials/_expense_list.html:114
+#: templates/features.html:531
 msgid "Search..."
 msgstr "खोजें..."
 
@@ -14691,47 +14716,43 @@ msgstr "%(n)s लक्ष्य पूरे किए!"
 msgid "Save to Gallery"
 msgstr "गैलरी में सहेजें"
 
-#: templates/features.html:8 templates/features.html:460
+#: templates/features.html:8 templates/features.html:508
 msgid "All Features"
 msgstr "सभी सुविधाएँ"
 
-#: templates/features.html:461
+#: templates/features.html:509
 msgid "Comprehensive tools designed to transform your personal finance."
 msgstr "आपके निजी वित्त को बेहतर बनाने के लिए तैयार किए गए पूरे टूल्स।"
 
-#: templates/features.html:463
-#| msgid "No SMS access, no bank login"
+#: templates/features.html:511
 msgid "No SMS access"
 msgstr "SMS एक्सेस नहीं"
 
-#: templates/features.html:464
-#| msgid "No bank logins"
+#: templates/features.html:512
 msgid "No bank login"
 msgstr "बैंक लॉगिन नहीं"
 
-#: templates/features.html:466
+#: templates/features.html:514
 msgid "Free plan never expires"
 msgstr "मुफ़्त प्लान कभी समाप्त नहीं होता"
 
-#: templates/features.html:470
+#: templates/features.html:519
 msgid "Example of typing an expense"
 msgstr "खर्च टाइप करने का उदाहरण"
 
-#: templates/features.html:479
+#: templates/features.html:528
 msgid "Feature categories"
 msgstr "फ़ीचर की श्रेणियाँ"
 
-#: templates/features.html:482
-#| msgid "Search pages"
+#: templates/features.html:531
 msgid "Search features"
 msgstr "सुविधाएँ खोजें"
 
-#: templates/features.html:506
-#| msgid "No accounts match your search"
+#: templates/features.html:555
 msgid "No feature matches your search."
 msgstr "आपकी खोज से कोई सुविधा मेल नहीं खाती।"
 
-#: templates/features.html:509
+#: templates/features.html:558
 msgid "See where your money goes, without handing over your bank login."
 msgstr "बैंक लॉगिन दिए बिना देखें कि आपका पैसा कहाँ जाता है।"
 
@@ -19063,21 +19084,29 @@ msgstr "डुप्लिकेट"
 
 #: templates/upload.html:60
 #, python-format
+#| msgid ""
+#| "%(count)s rows were left out because they have the opposite sign to most of "
+#| "your amounts (credits, salary or refunds in a bank statement), so they are "
+#| "not spending."
 msgid ""
-"%(count)s rows were left out because they have the opposite sign to most of "
-"your amounts (credits, salary or refunds in a bank statement), so they are "
-"not spending."
+"%(count)s rows were left out because they are money coming in (credits, "
+"salary or refunds in a bank statement), not spending."
 msgstr ""
-"%(count)s पंक्तियाँ छोड़ दी गईं क्योंकि उनका चिह्न आपकी अधिकतर राशियों के "
-"उलट है (बैंक स्टेटमेंट में क्रेडिट, वेतन या रिफ़ंड), इसलिए वे खर्च नहीं हैं।"
+"%(count)s पंक्तियाँ छोड़ दी गईं क्योंकि वे आने वाला पैसा हैं (बैंक स्टेटमेंट"
+" में क्रेडिट, वेतन या रिफ़ंड), खर्च नहीं।"
 
 #: templates/upload.html:66
+#| msgid ""
+#| "Duplicates are rows already imported before, or repeated identically (same "
+#| "date, amount and description) earlier in this file."
 msgid ""
-"Duplicates are rows already imported before, or repeated identically (same "
-"date, amount and description) earlier in this file."
+"Duplicates are rows you already have, imported or typed in, with the same "
+"date, amount and description, or a reference number that appears twice in "
+"this file."
 msgstr ""
-"डुप्लिकेट वे पंक्तियाँ हैं जो पहले इम्पोर्ट की जा चुकी हैं, या इसी फ़ाइल में"
-" पहले ठीक उसी रूप में (वही तारीख, राशि और विवरण) दोहराई गई हैं।"
+"डुप्लिकेट वे पंक्तियाँ हैं जो आपके पास पहले से हैं, चाहे इम्पोर्ट की गई हों "
+"या हाथ से दर्ज की गई हों, और जिनकी तारीख, राशि और विवरण वही हैं, या जिनका "
+"संदर्भ नंबर इस फ़ाइल में दो बार आया है।"
 
 #: templates/upload.html:72
 #, python-format

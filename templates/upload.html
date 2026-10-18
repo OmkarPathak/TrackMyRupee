@@ -57,13 +57,13 @@
                     {% if results.credit_skipped %}
                     <div class="col-12">
                         <div class="alert alert-info mb-0 small">
-                            {% blocktrans with count=results.credit_skipped %}{{ count }} rows were left out because they have the opposite sign to most of your amounts (credits, salary or refunds in a bank statement), so they are not spending.{% endblocktrans %}
+                            {% blocktrans with count=results.credit_skipped %}{{ count }} rows were left out because they are money coming in (credits, salary or refunds in a bank statement), not spending.{% endblocktrans %}
                         </div>
                     </div>
                     {% endif %}
                     {% if results.duplicate_count %}
                     <div class="col-12">
-                        <div class="text-muted small">{% trans "Duplicates are rows already imported before, or repeated identically (same date, amount and description) earlier in this file." %}</div>
+                        <div class="text-muted small">{% trans "Duplicates are rows you already have, imported or typed in, with the same date, amount and description, or a reference number that appears twice in this file." %}</div>
                     </div>
                     {% endif %}
                     {% if results.limit_skipped %}
