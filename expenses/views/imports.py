@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 
 from ..importing import ImportFileError, ImportOptions, TooManyRows, analyse
 from ..importing.layout import ROLES, column_label
-from ..importing.service import CREDIT_ROW, DUPLICATE, ERROR, EXCLUDED, LIMIT, NEW
+from ..importing.service import CREDIT_ROW, DUPLICATE, ERROR, EXCLUDED, LIMIT, NEW, POSSIBLE, TRANSFER
 from ..importing.undo import UndoBusy, remaining_expenses, undo_batch
 from ..models import Account, ImportBatch
 
@@ -24,7 +24,8 @@ _MAPPED_ROLES = ('date', 'description', 'amount', 'debit', 'credit', 'balance', 
 
 
 def options_from_post(post):
-    """What the person chose in the preview, as ImportOptions, plus the rows they unticked."""
+    """What the person chose in the preview: ImportOptions, the rows they unticked, the rows they ticked (that is
+    what imports a possible duplicate) and whether they saw a preview at all."""
     columns = {}
     for role in _MAPPED_ROLES:
         value = (post.get(f'map_{role}') or '').strip()
@@ -35,7 +36,7 @@ def options_from_post(post):
     shown = {s for s in (post.get('shown') or '').split(',') if _ROW_ID.match(s)}
     included = {s for s in post.getlist('include') if _ROW_ID.match(s)}
     excluded = shown - included if shown else set()
-    return ImportOptions(columns=columns, sign_mode=sign, date_order=order), excluded
+    return ImportOptions(columns=columns, sign_mode=sign, date_order=order), excluded, included, bool(shown)
 
 
 def _column_roles(layout, options):
@@ -69,7 +70,7 @@ def upload_preview_view(request):
     if upload.error:
         return panel(error=upload.error)
 
-    options, excluded = options_from_post(request.POST)
+    options, excluded, included, _reviewed = options_from_post(request.POST)
     lock = f'expense_import_lock_{request.user.id}'
     if cache.get(lock):
         return panel(error=_("An import is already running. Wait for it to finish, then upload again."))
@@ -78,7 +79,7 @@ def upload_preview_view(request):
             user=request.user, uploaded_file=upload.file, file_name=upload.file_name, account=upload.account,
             currency=upload.currency, predict_category=predict_category_ai,
             plan_cap=_plan_limit(request.user.profile.active_tier, 'expenses_per_month'),
-            max_rows=MAX_IMPORT_ROWS, options=options, excluded=excluded)
+            max_rows=MAX_IMPORT_ROWS, options=options, excluded=excluded, included=included, reviewed=True)
     except ImportFileError as error:
         return panel(error=str(error))
     except Exception:
@@ -95,9 +96,11 @@ def upload_preview_view(request):
     shown = decisions[:MAX_PREVIEW_ROWS]
     return panel(
         analysis=analysis, upload=upload, rows=shown, truncated=len(decisions) - len(shown),
+        ticked=analysis.count(NEW) + analysis.count(TRANSFER),
         shown_ids=','.join(d.row_id for d in shown),
         counts={'new': analysis.count(NEW), 'duplicate': analysis.count(DUPLICATE), 'credit': analysis.count(CREDIT_ROW),
-                'error': analysis.count(ERROR), 'limit': analysis.count(LIMIT), 'excluded': analysis.count(EXCLUDED)},
+                'error': analysis.count(ERROR), 'limit': analysis.count(LIMIT), 'excluded': analysis.count(EXCLUDED),
+                'possible': analysis.count(POSSIBLE), 'transfer': analysis.count(TRANSFER)},
         notes=[str(_IMPORT_NOTES[n]) for n in analysis.notes],
         roles=roles, column_choices=column_choices, options=options,
         single_amount_column='amount' in layout.columns and 'debit' not in layout.columns and 'credit' not in layout.columns,
@@ -141,7 +144,8 @@ def import_report_view(request, uuid):
     batch = get_object_or_404(ImportBatch, uuid=uuid, user=request.user)
     if not batch.report:
         raise Http404
-    status_names = {ERROR: _('Error'), DUPLICATE: _('Duplicate'), CREDIT_ROW: _('Money in'), LIMIT: _('Over plan limit')}
+    status_names = {ERROR: _('Error'), DUPLICATE: _('Duplicate'), CREDIT_ROW: _('Money in'), LIMIT: _('Over plan limit'),
+                    POSSIBLE: _('Possible duplicate'), TRANSFER: _('Transfer')}
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="skipped-rows-{batch.created_at:%Y%m%d-%H%M}.csv"'
     response.write('﻿')                          # so Excel opens it as UTF-8

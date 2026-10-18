@@ -18,10 +18,24 @@
             <div class="col-6 col-md"><div class="p-2 rounded bg-warning bg-opacity-10"><div class="small text-warning">{% trans "Duplicates" %}</div><div class="h5 mb-0 fw-bold text-warning">{{ counts.duplicate }}</div></div></div>
             <div class="col-6 col-md"><div class="p-2 rounded bg-info bg-opacity-10"><div class="small text-info">{% trans "Money in" %}</div><div class="h5 mb-0 fw-bold text-info">{{ counts.credit }}</div></div></div>
             <div class="col-6 col-md"><div class="p-2 rounded bg-danger bg-opacity-10"><div class="small text-danger">{% trans "Errors" %}</div><div class="h5 mb-0 fw-bold text-danger">{{ counts.error }}</div></div></div>
+            {% if counts.possible %}
+            <div class="col-6 col-md"><div class="p-2 rounded bg-warning bg-opacity-10"><div class="small text-warning">{% trans "Possible duplicates" %}</div><div class="h5 mb-0 fw-bold text-warning">{{ counts.possible }}</div></div></div>
+            {% endif %}
+            {% if counts.transfer %}
+            <div class="col-6 col-md"><div class="p-2 rounded bg-primary bg-opacity-10"><div class="small text-primary">{% trans "Transfers" %}</div><div class="h5 mb-0 fw-bold text-primary">{{ counts.transfer }}</div></div></div>
+            {% endif %}
             {% if counts.limit or counts.excluded %}
             <div class="col-6 col-md"><div class="p-2 rounded bg-secondary bg-opacity-10"><div class="small text-secondary">{% trans "Left out" %}</div><div class="h5 mb-0 fw-bold text-secondary">{{ counts.limit|add:counts.excluded }}</div></div></div>
             {% endif %}
         </div>
+
+        {% if counts.possible or counts.transfer %}
+        <div class="alert alert-info border-0 small">
+            <i class="bi bi-lightbulb me-2"></i>
+            {% if counts.possible %}{% trans "Rows marked Possible duplicate look like expenses you already have (same amount, within two days, a word in common). They are unticked: tick any that are really new." %}{% endif %}
+            {% if counts.transfer %}{% trans "Rows marked Transfer move money between your own accounts, so they are recorded as transfers, not spending. Untick any that are wrong." %}{% endif %}
+        </div>
+        {% endif %}
 
         <details class="mb-3">
             <summary class="small fw-semibold text-primary" style="cursor: pointer;">{% trans "Check how the file was read" %}</summary>
@@ -71,6 +85,7 @@
             <select class="form-select form-select-sm w-auto" id="import-filter" onchange="importPreviewFilter(this.value)">
                 <option value="">{% trans "All rows" %}</option>
                 <option value="new">{% trans "New" %}</option>
+                <option value="review">{% trans "Needs a look" %}</option>
                 <option value="skipped">{% trans "Skipped" %}</option>
                 <option value="error">{% trans "Errors" %}</option>
             </select>
@@ -97,8 +112,8 @@
                     {% for d in rows %}
                     <tr class="import-row" data-status="{{ d.status }}">
                         <td>
-                            {% if d.status == 'new' or d.status == 'excluded' %}
-                            <input type="checkbox" class="form-check-input import-include" name="include" value="{{ d.row_id }}" {% if d.status == 'new' %}checked{% endif %}
+                            {% if d.status == 'new' or d.status == 'excluded' or d.status == 'possible' or d.status == 'transfer' %}
+                            <input type="checkbox" class="form-check-input import-include" name="include" value="{{ d.row_id }}" {% if d.status == 'new' or d.status == 'transfer' %}checked{% endif %}
                                    aria-label="{% trans 'Import this row' %}">
                             {% endif %}
                         </td>
@@ -106,12 +121,14 @@
                         <td class="text-nowrap">{{ d.row.date|date:"d M Y" }}</td>
                         <td>{{ d.row.description|truncatechars:60 }}</td>
                         <td class="text-end text-nowrap">{{ d.row.amount|money_exact:upload.currency }}</td>
-                        <td>{% if d.status == 'new' or d.status == 'excluded' %}{{ d.category }}{% endif %}</td>
+                        <td>{% if d.status == 'new' or d.status == 'excluded' or d.status == 'possible' %}{{ d.category }}{% endif %}</td>
                         <td>
                             {% if d.status == 'new' %}<span class="badge badge-soft badge-soft-success">{% trans "New" %}</span>
                             {% elif d.status == 'duplicate' %}<span class="badge badge-soft badge-soft-warning">{% trans "Duplicate" %}</span>
                             {% elif d.status == 'credit' %}<span class="badge badge-soft badge-soft-info">{% trans "Money in" %}</span>
                             {% elif d.status == 'error' %}<span class="badge badge-soft badge-soft-danger">{% trans "Error" %}</span> <span class="text-danger">{{ d.reason }}</span>
+                            {% elif d.status == 'possible' %}<span class="badge badge-soft badge-soft-warning">{% trans "Possible duplicate" %}</span> <span class="text-muted">{{ d.match }}</span>
+                            {% elif d.status == 'transfer' %}<span class="badge badge-soft badge-soft-info">{% trans "Transfer" %}</span> <span class="text-muted">→ {{ d.target.name }}</span>
                             {% elif d.status == 'limit' %}<span class="badge badge-soft badge-soft-secondary">{% trans "Over plan limit" %}</span>
                             {% else %}<span class="badge badge-soft badge-soft-secondary">{% trans "Left out" %}</span>{% endif %}
                         </td>
@@ -130,8 +147,8 @@
         <input type="hidden" name="shown" value="{{ shown_ids }}">
 
         <div class="d-flex flex-wrap gap-2 mt-3">
-            <button type="submit" class="btn btn-primary px-4" id="import-submit" {% if not counts.new %}disabled{% endif %}>
-                <i class="bi bi-check2-circle me-2"></i><span>{% blocktrans with count=counts.new %}Import <span id="import-count">{{ count }}</span> expenses{% endblocktrans %}</span>
+            <button type="submit" class="btn btn-primary px-4" id="import-submit" {% if not counts.new and not counts.transfer %}disabled{% endif %}>
+                <i class="bi bi-check2-circle me-2"></i><span>{% blocktrans with count=ticked %}Import <span id="import-count">{{ count }}</span> rows{% endblocktrans %}</span>
             </button>
         </div>
     </div>
@@ -141,7 +158,8 @@
         document.querySelectorAll('.import-row').forEach(function (row) {
             var s = row.dataset.status, show = true;
             if (value === 'new') show = s === 'new';
-            else if (value === 'skipped') show = s !== 'new';
+            else if (value === 'review') show = s === 'possible' || s === 'transfer';
+            else if (value === 'skipped') show = s !== 'new' && s !== 'transfer';
             else if (value === 'error') show = s === 'error';
             row.style.display = show ? '' : 'none';
         });

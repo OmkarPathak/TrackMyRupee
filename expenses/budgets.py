@@ -55,8 +55,16 @@ def budget_status(spent, limit) -> str:
 
 
 def _subtype_names() -> dict:
+    """{subtype: the name a capital event without a category is reported under}.
+
+    Always the English label, never the active language's: this is a name matched against the person's category
+    names, so it must be the same on the Budget page for a Hindi or Marathi user, in the notification job (which
+    runs with no language), and in a worker that an earlier request left in another language."""
+    from django.utils import translation
+
     from .models import CapitalEvent
-    return {value: str(label) for value, label in CapitalEvent.SUBTYPE_CHOICES}
+    with translation.override('en'):
+        return {value: str(label) for value, label in CapitalEvent.SUBTYPE_CHOICES}
 
 
 def capital_report_name(category, subtype, names: dict) -> str:

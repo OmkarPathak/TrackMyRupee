@@ -20,8 +20,13 @@ class UndoBusy(Exception):
     """Another request is already undoing this import."""
 
 
-def remaining_expenses(batch):
-    return batch.expenses.filter(is_deleted=False).count()
+def remaining_items(batch):
+    """What an undo still has to remove: the import's expenses and the transfers it recorded."""
+    return (batch.expenses.filter(is_deleted=False).count()
+            + batch.transfers.filter(is_deleted=False).count())
+
+
+remaining_expenses = remaining_items        # the name the history page used before transfers were imported
 
 
 def undo_batch(batch, budget_seconds=UNDO_BUDGET_SECONDS):
@@ -37,13 +42,19 @@ def undo_batch(batch, budget_seconds=UNDO_BUDGET_SECONDS):
             batch.status = ImportBatch.UNDOING
             batch.save(update_fields=['status'])
         deadline = time.monotonic() + budget_seconds
-        queryset = batch.expenses.filter(is_deleted=False).select_related('account', 'user').order_by('id')
-        for expense in queryset.iterator(chunk_size=100):
-            expense.delete()
-            deleted += 1
-            if time.monotonic() >= deadline:        # always at least one, so a call can never stall
+        transfers = batch.transfers.filter(is_deleted=False).select_related('from_account', 'to_account', 'user')
+        expenses = batch.expenses.filter(is_deleted=False).select_related('account', 'user').order_by('id')
+        done = False
+        for queryset in (transfers.order_by('id'), expenses):
+            for item in queryset.iterator(chunk_size=100):
+                item.delete()
+                deleted += 1
+                if time.monotonic() >= deadline:    # always at least one, so a call can never stall
+                    done = True
+                    break
+            if done:
                 break
-        left = remaining_expenses(batch)
+        left = remaining_items(batch)
         if left == 0:
             batch.status = ImportBatch.UNDONE
             batch.undone_at = timezone.now()

@@ -214,7 +214,7 @@ def upload_view(request):
         from . import predict_category_ai
         from .imports import options_from_post
 
-        options, excluded = options_from_post(request.POST)
+        options, excluded, included, reviewed = options_from_post(request.POST)
         try:
             analysis = analyse(
                 user=request.user,
@@ -227,6 +227,8 @@ def upload_view(request):
                 max_rows=MAX_IMPORT_ROWS,
                 options=options,
                 excluded=excluded,
+                included=included,
+                reviewed=reviewed,
             )
             posted_hash = request.POST.get('file_hash', '')
             if analysis is None:

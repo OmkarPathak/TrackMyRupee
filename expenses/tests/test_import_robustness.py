@@ -108,11 +108,11 @@ class ExistingExpensesTests(Base):
         res = self.results(csv_file([['Date', 'Description', 'Amount'], ['2026-09-01', 'swiggy dinner', 300]]))
         self.assertEqual((res['created_count'], res['duplicate_count']), (0, 1))
 
-    def test_the_same_amount_on_another_day_or_with_another_description_is_new(self):
+    def test_the_same_amount_well_apart_or_with_another_description_is_new(self):
         Expense.objects.create(user=self.user, date=date(2026, 9, 1), amount=D('300'), description='Swiggy',
                                category='Food', currency='₹', base_amount=D('300'), exchange_rate=1)
         res = self.results(csv_file([['Date', 'Description', 'Amount'],
-                                     ['2026-09-02', 'Swiggy', 300], ['2026-09-01', 'Zomato', 300]]))
+                                     ['2026-09-05', 'Swiggy', 300], ['2026-09-01', 'Zomato', 300]]))
         self.assertEqual(res['created_count'], 2)
 
     def test_a_soft_deleted_expense_does_not_block_the_import(self):

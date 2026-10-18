@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, no_translations
 from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django.templatetags.static import static
@@ -39,6 +39,7 @@ class Command(BaseCommand):
         self.expense_sums = {}
         self.today = timezone.localdate()
 
+    @no_translations     # a job has no person's language: what it writes must not depend on what ran before it
     def handle(self, *args, **kwargs):
         self.today = timezone.localdate()
         self.stdout.write(f"Starting notification run for {self.today}...")

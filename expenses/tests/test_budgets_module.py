@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.core.cache import cache
 from django.core.management import call_command
+from django.utils import translation
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -750,6 +751,29 @@ class TestBudgetAlerts(BudgetBase):
         self.cat('Large Purchase', 1000)
         self.event(1200, budget=False)
         self.assertEqual(self.run_alerts(), [])
+
+    def test_a_capital_event_is_attributed_the_same_whatever_language_is_active(self):
+        # A request for a Hindi or Marathi user leaves its language active on the thread, and a later test (or
+        # the next request) must not see a different category name because of it: the event's subtype label is
+        # translated, so "Large Purchase" would become a Hindi label that no category matches.
+        self.cat('Large Purchase', 1000)
+        self.event(1200, budget=True)
+        for language in ('hi', 'mr'):
+            Notification.objects.filter(user=self.user).delete()
+            with translation.override(language):
+                titles = [a.title for a in self.run_alerts()]
+            self.assertEqual(titles, ['Budget Exceeded: Large Purchase'], language)
+
+    def test_the_budget_page_attributes_a_capital_event_the_same_in_every_language(self):
+        self.event(1200, budget=True)
+        results = {}
+        for language in ('en', 'hi', 'mr'):
+            with translation.override(language):
+                spend, _total = monthly_spend_by_category(self.user, today().year, today().month)
+            results[language] = spend
+        self.assertEqual(results['hi'], results['en'])
+        self.assertEqual(results['mr'], results['en'])
+        self.assertIn('large purchase', results['en'])
 
     def test_categories_without_a_limit_never_alert(self):
         self.cat('Food')

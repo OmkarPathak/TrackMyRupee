@@ -93,7 +93,8 @@ class PreviewViewTests(Base):
         html = response.content.decode()
         for text in ('Tea', 'Bus', 'Lunch', 'id="import-count">3<', 'name="file_hash"', 'name="shown"'):
             self.assertIn(text, html)
-        self.assertEqual(response.context['counts'], {'new': 3, 'duplicate': 0, 'credit': 1, 'error': 0, 'limit': 0, 'excluded': 0})
+        self.assertEqual(response.context['counts'], {'new': 3, 'duplicate': 0, 'credit': 1, 'error': 0, 'limit': 0, 'excluded': 0,
+                                                      'possible': 0, 'transfer': 0})
         self.assertEqual(Expense.objects.count(), 0)
         self.assertEqual(ImportBatch.objects.count(), 0)
 

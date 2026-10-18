@@ -88,6 +88,22 @@
                 </div>
                 {% endif %}
 
+                {% if results.transfer_count %}
+                <div class="mt-3 alert alert-success border-0 small mb-0">
+                    <i class="bi bi-arrow-left-right me-2"></i>{% blocktrans with count=results.transfer_count %}{{ count }} rows were recorded as transfers between your own accounts, not as spending.{% endblocktrans %}
+                </div>
+                {% endif %}
+                {% if results.possible_skipped %}
+                <div class="mt-3 alert alert-warning border-0 small mb-0">
+                    <i class="bi bi-copy me-2"></i>{% blocktrans with count=results.possible_skipped %}{{ count }} rows look like expenses you already have (same amount, within two days, a word in common), so they were not imported. Use Preview to check them and import any that are new.{% endblocktrans %}
+                </div>
+                {% endif %}
+                {% if results.transfer_skipped %}
+                <div class="mt-3 alert alert-warning border-0 small mb-0">
+                    <i class="bi bi-arrow-left-right me-2"></i>{% blocktrans with count=results.transfer_skipped %}{{ count }} rows look like transfers between your own accounts, so they were not imported as spending. Use Preview to record them as transfers.{% endblocktrans %}
+                </div>
+                {% endif %}
+
                 {% if results.batch_uuid %}
                 <div class="mt-3 d-flex flex-wrap gap-3 small">
                     <a href="{% url 'import-history' %}"><i class="bi bi-clock-history me-1"></i>{% trans "See this import in your history, where you can undo it" %}</a>

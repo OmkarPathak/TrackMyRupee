@@ -32,9 +32,9 @@
                         <td class="text-nowrap">{{ batch.created_at|date:"d M Y, H:i" }}</td>
                         <td class="text-break">{{ batch.file_name }}</td>
                         <td>{{ batch.account.name|default:"-" }}</td>
-                        <td class="text-end fw-semibold">{{ batch.created_count }}</td>
+                        <td class="text-end fw-semibold">{{ batch.created_count }}{% if batch.transfer_count %}<div class="small fw-normal text-muted">+{{ batch.transfer_count }} {% trans "transfers" %}</div>{% endif %}</td>
                         <td class="text-end">
-                            {{ batch.duplicate_count|add:batch.credit_count|add:batch.error_count|add:batch.limit_count }}
+                            {{ batch.duplicate_count|add:batch.credit_count|add:batch.error_count|add:batch.limit_count|add:batch.possible_count }}
                             {% if batch.report %}<a href="{% url 'import-report' batch.uuid %}" class="ms-1" title="{% trans 'Download the skipped rows' %}"><i class="bi bi-download"></i></a>{% endif %}
                         </td>
                         <td class="text-end text-nowrap">{{ batch.total_amount|money_exact:batch.currency }}</td>

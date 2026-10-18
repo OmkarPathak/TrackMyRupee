@@ -1250,6 +1250,7 @@ class Transfer(models.Model):
     
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
     converted_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
+    import_batch = models.ForeignKey('ImportBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers', verbose_name=_('Import'))
 
     @property
     def base_amount(self):
@@ -3295,6 +3296,8 @@ class ImportBatch(models.Model):
     error_count = models.PositiveIntegerField(default=0)
     limit_count = models.PositiveIntegerField(default=0)
     excluded_count = models.PositiveIntegerField(default=0)
+    possible_count = models.PositiveIntegerField(default=0)     # rows that looked like an expense already there
+    transfer_count = models.PositiveIntegerField(default=0)     # transfers between own accounts recorded
     total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     report = models.JSONField(default=list, blank=True)     # the rows that were not imported, and why
 
