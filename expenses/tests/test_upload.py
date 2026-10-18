@@ -392,8 +392,11 @@ class UploadViewTest(TestCase):
         # the matching expenses already stored. +2 more for the import record that makes it listable and undoable:
         # created, then updated with the counts. +2 for the lookups that spot a possible duplicate or a transfer
         # between the person's own accounts: their other accounts, their transfers out (the stored expenses nearby
-        # are one query that also yields the exact-match counts). Still constant however many rows the file has.)
-        with self.assertNumQueries(26):
+        # are one query that also yields the exact-match counts). +13 for the database-held import lock (clear a stale
+        # one, take it, release it), looking for an unfinished import of the same file, and reading back what the
+        # import has written so the counts are right however many attempts it took. Still constant however many
+        # rows the file has.)
+        with self.assertNumQueries(39):
             response = self.client.post(reverse('upload'), {
                 'account': self.account.id,
                 'currency': '₹',

@@ -10,9 +10,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from ..importing import ImportFileError, ImportOptions, TooManyRows, analyse
+from ..importing import ImportFileError, ImportOptions, TooManyRows, analyse, file_digest
 from ..importing.layout import ROLES, column_label
-from ..importing.service import CREDIT_ROW, DUPLICATE, ERROR, EXCLUDED, INCOME, LIMIT, NEW, POSSIBLE, TRANSFER
+from ..importing.service import CREDIT_ROW, DONE, DUPLICATE, ERROR, EXCLUDED, INCOME, LIMIT, NEW, POSSIBLE, TRANSFER
+from ..importing.locks import is_locked
 from ..importing.undo import UndoBusy, remaining_expenses, undo_batch
 from ..models import Account, ImportBatch, Income
 
@@ -79,15 +80,17 @@ def upload_preview_view(request):
         return panel(error=upload.error)
 
     options, excluded, included, _reviewed = options_from_post(request.POST)
-    lock = f'expense_import_lock_{request.user.id}'
-    if cache.get(lock):
+    if is_locked(request.user):
         return panel(error=_("An import is already running. Wait for it to finish, then upload again."))
+    resume = ImportBatch.objects.filter(user=request.user, account=upload.account, status=ImportBatch.IMPORTING,
+                                        file_hash=file_digest(upload.file)).first()
     try:
         analysis = analyse(
             user=request.user, uploaded_file=upload.file, file_name=upload.file_name, account=upload.account,
             currency=upload.currency, predict_category=predict_category_ai,
             plan_cap=_plan_limit(request.user.profile.active_tier, 'expenses_per_month'),
-            max_rows=MAX_IMPORT_ROWS, options=options, excluded=excluded, included=included, reviewed=True)
+            max_rows=MAX_IMPORT_ROWS, options=options, excluded=excluded, included=included, reviewed=True,
+            resume=resume)
     except ImportFileError as error:
         return panel(error=str(error))
     except Exception:
@@ -107,6 +110,7 @@ def upload_preview_view(request):
         ticked=analysis.count(NEW) + analysis.count(TRANSFER) + analysis.count(INCOME),
         income_choices=Income.SOURCE_TYPE_CHOICES,
         has_money_in=any(d.row.direction == 'credit' for d in decisions),
+        resuming=analysis.resume, done_count=analysis.count(DONE),
         # Only rows that had a tick box are decided by it: a row that gains one on a re-check (money in, once the
         # income switch is on) must not look unticked just because the earlier preview had nothing to tick.
         shown_ids=','.join(d.row_id for d in shown if d.status in _TICKABLE),

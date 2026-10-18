@@ -17,7 +17,7 @@ from django.utils import timezone
 
 from expenses.ledger_read_service import LedgerReadService
 from expenses.ledger_service import LedgerPostingService
-from expenses.models import Account, Expense, FXRate, JournalEntry, UserProfile
+from expenses.models import Account, Expense, FXRate, ImportLock, JournalEntry, UserProfile
 
 D = Decimal
 
@@ -136,21 +136,20 @@ class RefusalTests(Base):
 
 class OneImportAtATimeTests(Base):
     def test_a_second_import_while_one_runs_is_refused(self):
-        cache.set(f'expense_import_lock_{self.user.id}', 1, 300)
+        ImportLock.objects.create(user=self.user)
         r = self.upload(csv_file([['Date', 'Amount', 'Description'], [today().isoformat(), 50, 'Tea']]))
         self.assertTrue(any('already running' in m for m in self.messages(r)))
         self.assertEqual(Expense.objects.count(), 0)
 
     def test_the_lock_is_released_after_a_normal_import_and_after_a_failure(self):
-        key = f'expense_import_lock_{self.user.id}'
         self.results(csv_file([['Date', 'Amount', 'Description'], [today().isoformat(), 50, 'Tea']]))
-        self.assertIsNone(cache.get(key))
+        self.assertFalse(ImportLock.objects.exists())
         self.upload(SimpleUploadedFile('broken.xlsx', b'PK\x03\x04 nope'))
-        self.assertIsNone(cache.get(key))
+        self.assertFalse(ImportLock.objects.exists())
         rows = [['Date', 'Amount', 'Description']] + [[today().isoformat(), 1, f'i{i}'] for i in range(60)]
         with patch('expenses.views.misc.MAX_IMPORT_ROWS', 50):
             self.upload(csv_file(rows))
-        self.assertIsNone(cache.get(key))
+        self.assertFalse(ImportLock.objects.exists())
 
 
 class WhatARealStatementHoldsTests(Base):

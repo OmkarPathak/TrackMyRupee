@@ -2,6 +2,7 @@
 (that is the preview), and `commit` writes it and records the import so it can be listed and undone.
 `run_import` is the two together, for a direct import with no preview."""
 import hashlib
+import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import timedelta
@@ -9,7 +10,7 @@ from decimal import Decimal
 from typing import Dict, List, Optional
 
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -27,6 +28,7 @@ BATCH_SIZE = 200
 NEW, DUPLICATE, CREDIT_ROW, ERROR, LIMIT, EXCLUDED = 'new', 'duplicate', 'credit', 'error', 'limit', 'excluded'
 POSSIBLE, TRANSFER = 'possible', 'transfer'     # need a person's say-so: shown unticked / shown with its account
 INCOME = 'income'                               # money in, imported as income because the person asked for that
+DONE = 'done'                                   # already written by the unfinished import this one is carrying on
 
 
 class TooManyRows(ImportFileError):
@@ -76,6 +78,7 @@ class Analysis:
     sheets: List[SheetInfo]
     day_first: Optional[bool]
     file_hash: str
+    resume: Optional[ImportBatch] = None
 
     def count(self, status):
         return sum(1 for d in self.decisions if d.status == status)
@@ -125,14 +128,17 @@ class _Stored:
     compared with: how many identical rows exist (a manual entry or an earlier import counts the same, so a
     re-imported file adds nothing however it was first entered), and the rest as candidates for a fuzzy match."""
 
-    def __init__(self, model, *, user, account, currency, rows, first, last, prefix=''):
+    def __init__(self, model, *, user, account, currency, rows, first, last, prefix='', resume=None):
         window = timedelta(days=DATE_WINDOW_DAYS)
         self.prefix = (prefix,) if prefix else ()
-        self.keys = set(model.objects.filter(user=user, client_dedup_key__isnull=False, date__range=(first, last))
+        # The rows an unfinished import of this same file already wrote are left out of the comparison, so that
+        # carrying it on sees the file exactly as the first attempt did and works out the same keys.
+        mine = model.objects.exclude(import_batch=resume) if resume else model.objects
+        self.keys = set(mine.filter(user=user, client_dedup_key__isnull=False, date__range=(first, last))
                         .values_list('client_dedup_key', flat=True))
         stored = list(
-            model.objects.filter(user=user, is_deleted=False, currency=currency,
-                                 date__range=(first - window, last + window))
+            mine.filter(user=user, is_deleted=False, currency=currency,
+                        date__range=(first - window, last + window))
             .filter(Q(account=account) | Q(account__isnull=True))
             .values_list('id', 'date', 'amount', 'description'))
         self.identity = Counter((d, a, normalise_description(desc)) for _pk, d, a, desc in stored if first <= d <= last)
@@ -173,12 +179,13 @@ class _TransferPool:
     """The transfers already recorded out of (or into) the imported account, so a row that is one of them is not
     recorded again, or counted as spending (or income)."""
 
-    def __init__(self, user, account, *, incoming, first, last):
+    def __init__(self, user, account, *, incoming, first, last, resume=None):
         window = timedelta(days=DATE_WINDOW_DAYS)
         mine, other = ('to_account', 'from_account_id') if incoming else ('from_account', 'to_account_id')
+        transfers = Transfer.objects.exclude(import_batch=resume) if resume else Transfer.objects
         self.items = [
             {'amount': amount, 'date': date, 'other': other_id, 'used': False}
-            for amount, date, other_id in Transfer.objects.filter(
+            for amount, date, other_id in transfers.filter(
                 user=user, is_deleted=False, date__range=(first - window, last + window), **{mine: account}
             ).values_list('amount', 'date', other)]
 
@@ -192,15 +199,28 @@ class _TransferPool:
         return False
 
 
+def _written_keys(resume):
+    """The dedup keys of everything an unfinished import has already written (empty for a fresh import)."""
+    if resume is None:
+        return frozenset()
+    keys = set()
+    for related in (resume.expenses, resume.incomes, resume.transfers):
+        keys.update(related.filter(client_dedup_key__isnull=False).values_list('client_dedup_key', flat=True))
+    return keys
+
+
 def analyse(*, user, uploaded_file, file_name, account, currency, predict_category, plan_cap=None,
             max_rows=MAX_IMPORT_ROWS, options=None, excluded=frozenset(), included=frozenset(),
-            reviewed=True) -> Optional[Analysis]:
+            reviewed=True, resume=None) -> Optional[Analysis]:
     """Decide what would happen to every row of the file. Writes nothing. Returns None when no columns could be
     recognised; raises ImportFileError (or TooManyRows) for a file that cannot be used at all.
 
     `excluded` are rows the person unticked; `included` are the ones they ticked, which is what turns a possible
     duplicate into an import. `reviewed` is False for an import with no preview: nobody has looked at the
-    possible duplicates and the detected transfers, so those are left alone (and reported) rather than guessed."""
+    possible duplicates and the detected transfers, so those are left alone (and reported) rather than guessed.
+
+    `resume` is an unfinished import of this same file: its rows are not counted as "already there", and the rows
+    it has already written come back as DONE."""
     options = options or ImportOptions()
     digest = file_digest(uploaded_file)
     sheets = read_sheets(uploaded_file, file_name, max_rows)
@@ -239,7 +259,8 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
     today = timezone.localdate()
     remaining_this_month = None
     if plan_cap is not None and plan_cap != -1:
-        used = Expense.objects.filter(user=user, date__year=today.year, date__month=today.month).count()
+        counted = Expense.objects.exclude(import_batch=resume) if resume else Expense.objects
+        used = counted.filter(user=user, date__year=today.year, date__month=today.month).count()
         remaining_this_month = max(0, plan_cap - used)
 
     readable = [r for r in parsed if not r.error]
@@ -251,17 +272,18 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
     if dated:
         first, last = min(dated), max(dated)
         expenses = _Stored(Expense, user=user, account=account, currency=currency, rows=spending_rows,
-                           first=first, last=last)
+                           first=first, last=last, resume=resume)
         if options.import_income and money_in_rows:
             incomes = _Stored(Income, user=user, account=account, currency=currency, rows=money_in_rows,
-                              first=first, last=last, prefix='income')
+                              first=first, last=last, prefix='income', resume=resume)
         if account.currency == currency:
             own_accounts = account_names(
                 Account.objects.filter(user=user, is_active=True, currency=currency).exclude(pk=account.pk))
-            transfers_out = _TransferPool(user, account, incoming=False, first=first, last=last)
+            transfers_out = _TransferPool(user, account, incoming=False, first=first, last=last, resume=resume)
             if incomes is not None:
-                transfers_in = _TransferPool(user, account, incoming=True, first=first, last=last)
+                transfers_in = _TransferPool(user, account, incoming=True, first=first, last=last, resume=resume)
     own_by_id = {a.id: a for a in Account.objects.filter(user=user, pk__in=[a.id for a in own_accounts])}
+    written = _written_keys(resume)
 
     history_map = _history_map(user)
     category_names = list(Category.objects.filter(user=user).values_list('name', flat=True))
@@ -276,6 +298,8 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
         """A credit the person asked to have imported as income."""
         source_type = options.income_types.get(row_id) or guess_income_type(row.description)
         key, duplicate = incomes.judge(row, currency)
+        if key in written:
+            return RowDecision(row, DONE, _("Already imported by the unfinished import"), income_type=source_type)
         if duplicate:
             return RowDecision(row, DUPLICATE, _("Already imported or entered"), income_type=source_type)
         target_id = find_transfer_target(row.description, own_accounts) if own_accounts else None
@@ -283,12 +307,15 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
             return RowDecision(row, DUPLICATE, _("Already recorded as a transfer"), income_type=source_type)
         if target_id:
             target = own_by_id[target_id]
+            transfer_key = _key('transfer', row.date, row.amount, currency, target_id, account.pk, key)
+            if transfer_key in written:
+                return RowDecision(row, DONE, _("Already imported by the unfinished import"), income_type=source_type,
+                                   target=target, incoming=True)
             if row_id in excluded:
                 return RowDecision(row, EXCLUDED, _("Left out by you"), income_type=source_type, target=target, incoming=True)
             return RowDecision(
                 row, TRANSFER, _("Looks like a transfer from %(account)s") % {'account': target.name},
-                income_type=source_type, target=target, incoming=True, apply=reviewed,
-                key=_key('transfer', row.date, row.amount, currency, target_id, account.pk, key))
+                income_type=source_type, target=target, incoming=True, apply=reviewed, key=transfer_key)
         resembles = incomes.resembles(row)
         if resembles:
             resembles.used = True
@@ -322,6 +349,9 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
             row.description, user=user, history_map=history_map, categories=category_names) or 'Other')[:255]
 
         key, duplicate = expenses.judge(row, currency)
+        if key in written:
+            decisions.append(RowDecision(row, DONE, _("Already imported by the unfinished import"), category))
+            continue
         if duplicate:
             decisions.append(RowDecision(row, DUPLICATE, _("Already imported or entered"), category))
             continue
@@ -333,13 +363,16 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
             continue
         if target_id:
             target = own_by_id[target_id]
-            if row_id in excluded:
+            transfer_key = _key('transfer', row.date, row.amount, currency, account.pk, target_id, key)
+            if transfer_key in written:
+                decisions.append(RowDecision(row, DONE, _("Already imported by the unfinished import"), category,
+                                             target=target))
+            elif row_id in excluded:
                 decisions.append(RowDecision(row, EXCLUDED, _("Left out by you"), category, target=target))
             else:
                 reason = _("Looks like a transfer to %(account)s") % {'account': target.name}
                 decisions.append(RowDecision(row, TRANSFER, reason, category, target=target, apply=reviewed,
-                                             key=_key('transfer', row.date, row.amount, currency, account.pk,
-                                                      target_id, key)))
+                                             key=transfer_key))
             continue
 
         # Probably an expense that is already there, typed in by hand with other words
@@ -373,7 +406,8 @@ def analyse(*, user, uploaded_file, file_name, account, currency, predict_catego
         expense._row_idx = row.number
         decisions.append(RowDecision(row, NEW, '', category, expense))
 
-    return Analysis(decisions=decisions, notes=notes, sheets=infos, day_first=day_first, file_hash=digest)
+    return Analysis(decisions=decisions, notes=notes, sheets=infos, day_first=day_first, file_hash=digest,
+                    resume=resume)
 
 
 def new_summary(currency):
@@ -395,6 +429,7 @@ def new_summary(currency):
         'currency_symbol': currency,
         'notes': [],                        # codes the view turns into messages
         'batch_uuid': None,
+        'remaining': 0,                     # rows still to write when the import ran out of time
     }
 
 
@@ -420,8 +455,13 @@ def _record_transfers(decisions, *, user, account, batch, summary):
             _add_error(summary, row.number, str(getattr(error, 'message', None) or error))
 
 
-def commit(analysis: Analysis, *, user, account, currency, file_name):
-    """Write what `analyse` decided, and record the import. Returns the summary dict."""
+def commit(analysis: Analysis, *, user, account, currency, file_name, resume=None, budget_seconds=None):
+    """Write what `analyse` decided, and record the import. Returns the summary dict.
+
+    With `budget_seconds` it stops starting new work once that much time has passed, leaves the import marked
+    "not finished" and says how many rows are left in summary['remaining']. Importing the same file again carries
+    on from there (pass the unfinished batch as `resume`): the rows already written come back from `analyse` as
+    DONE, so nothing is written twice."""
     summary = new_summary(currency)
     summary['notes'] = list(analysis.notes)
     summary['total_rows'] = len(analysis.decisions)
@@ -457,25 +497,65 @@ def commit(analysis: Analysis, *, user, account, currency, file_name):
     to_write = [d.expense for d in analysis.decisions if d.status == NEW]
     incomes = [d.income for d in analysis.decisions if d.status == INCOME]
     transfers = [d for d in analysis.decisions if d.status == TRANSFER and d.apply]
-    batch = None
-    if to_write or incomes or transfers:
+    pending = len(to_write) + len(incomes) + len(transfers)
+
+    batch = resume
+    started_here = False
+    if batch is None and pending:
         batch = ImportBatch.objects.create(user=user, account=account, file_name=file_name[:255],
-                                           file_hash=analysis.file_hash, currency=currency)
+                                           file_hash=analysis.file_hash, currency=currency,
+                                           status=ImportBatch.IMPORTING)
+        started_here = True
+
+    attempted = 0
+    if batch and pending:
+        deadline = None if budget_seconds is None else time.monotonic() + budget_seconds
+        # Always finish one unit of work before looking at the clock, so every call makes progress and an import
+        # that keeps getting cut short still gets there.
+        out_of_time = lambda: attempted > 0 and deadline is not None and time.monotonic() >= deadline
         account_rate = Decimal('1.0')
         if account and currency != account.currency:
             account_rate = get_exchange_rate(currency, account.currency)
         for expense in to_write:
             expense.import_batch = batch
-        for start in range(0, len(to_write), BATCH_SIZE):
-            save_batch(to_write[start:start + BATCH_SIZE], account=account, account_rate=account_rate, summary=summary)
         for income in incomes:
             income.import_batch = batch
+        for start in range(0, len(to_write), BATCH_SIZE):
+            if out_of_time():
+                break
+            chunk = to_write[start:start + BATCH_SIZE]
+            save_batch(chunk, account=account, account_rate=account_rate, summary=summary)
+            attempted += len(chunk)
         for start in range(0, len(incomes), BATCH_SIZE):
-            save_income_batch(incomes[start:start + BATCH_SIZE], account=account, account_rate=account_rate,
-                              summary=summary)
-        _record_transfers(transfers, user=user, account=account, batch=batch, summary=summary)
+            if out_of_time():
+                break
+            chunk = incomes[start:start + BATCH_SIZE]
+            save_income_batch(chunk, account=account, account_rate=account_rate, summary=summary)
+            attempted += len(chunk)
+        for decision in transfers:
+            if out_of_time():
+                break
+            _record_transfers([decision], user=user, account=account, batch=batch, summary=summary)
+            attempted += 1
+        if attempted:
+            clear_caches_after_import(user.id)
+    remaining = pending - attempted
 
-    if batch and (summary['created_count'] or summary['income_count'] or summary['transfer_count']):
+    if batch is not None:
+        # What the import has written so far, across every attempt, is what the database holds for it
+        expense_rows = batch.expenses.filter(is_deleted=False)
+        income_rows = batch.incomes.filter(is_deleted=False)
+        summary['created_count'] = expense_rows.count()
+        summary['income_count'] = income_rows.count()
+        summary['transfer_count'] = batch.transfers.filter(is_deleted=False).count()
+        summary['total_amount'] = float(expense_rows.aggregate(t=Sum('amount'))['t'] or 0)
+        summary['income_total'] = float(income_rows.aggregate(t=Sum('amount'))['t'] or 0)
+        written_anything = summary['created_count'] or summary['income_count'] or summary['transfer_count']
+        if started_here and not written_anything and remaining == 0:
+            batch.delete()                   # nothing was written: there is nothing to list or undo
+            batch = None
+
+    if batch is not None:
         batch.total_rows = summary['total_rows']
         batch.created_count = summary['created_count']
         batch.income_count = summary['income_count']
@@ -488,20 +568,22 @@ def commit(analysis: Analysis, *, user, account, currency, file_name):
         batch.possible_count = summary['possible_skipped']
         batch.total_amount = Decimal(str(round(summary['total_amount'], 2)))
         batch.report = skipped
+        batch.status = ImportBatch.IMPORTING if remaining else ImportBatch.ACTIVE
         batch.save()
         summary['batch_uuid'] = str(batch.uuid)
-        clear_caches_after_import(user.id)
-    elif batch:
-        batch.delete()                       # nothing was written: there is nothing to list or undo
+    summary['remaining'] = remaining
     return summary
 
 
 def run_import(*, user, uploaded_file, file_name, account, currency, predict_category, plan_cap=None,
-               max_rows=MAX_IMPORT_ROWS, options=None, excluded=frozenset(), included=frozenset(), reviewed=False):
+               max_rows=MAX_IMPORT_ROWS, options=None, excluded=frozenset(), included=frozenset(), reviewed=False,
+               resume=None, budget_seconds=None):
     """Import one file in one go. Returns the summary dict, or None when no columns could be recognised."""
     analysis = analyse(user=user, uploaded_file=uploaded_file, file_name=file_name, account=account,
                        currency=currency, predict_category=predict_category, plan_cap=plan_cap,
-                       max_rows=max_rows, options=options, excluded=excluded, included=included, reviewed=reviewed)
+                       max_rows=max_rows, options=options, excluded=excluded, included=included, reviewed=reviewed,
+                       resume=resume)
     if analysis is None:
         return None
-    return commit(analysis, user=user, account=account, currency=currency, file_name=file_name)
+    return commit(analysis, user=user, account=account, currency=currency, file_name=file_name, resume=resume,
+                  budget_seconds=budget_seconds)

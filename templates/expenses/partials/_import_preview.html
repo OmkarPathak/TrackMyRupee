@@ -9,6 +9,10 @@
             {% blocktrans with name=upload.account.name %}Nothing has been saved yet. Check what will happen, then import into {{ name }}.{% endblocktrans %}
         </p>
 
+        {% if resuming %}
+        <div class="alert alert-info border-0 small"><i class="bi bi-arrow-repeat me-2"></i>{% blocktrans with count=done_count %}An earlier import of this file did not finish. {{ count }} rows are already in; importing now carries on with the rest.{% endblocktrans %}</div>
+        {% endif %}
+
         {% for note in notes %}
         <div class="alert alert-warning border-0 small"><i class="bi bi-info-circle me-2"></i>{{ note }}</div>
         {% endfor %}
@@ -147,6 +151,7 @@
                             </select>
                             {% elif d.status == 'possible' %}<span class="badge badge-soft badge-soft-warning">{% trans "Possible duplicate" %}</span> <span class="text-muted">{{ d.match }}</span>
                             {% elif d.status == 'transfer' %}<span class="badge badge-soft badge-soft-info">{% trans "Transfer" %}</span> <span class="text-muted">→ {{ d.target.name }}</span>
+                            {% elif d.status == 'done' %}<span class="badge badge-soft badge-soft-success">{% trans "Already imported" %}</span>
                             {% elif d.status == 'limit' %}<span class="badge badge-soft badge-soft-secondary">{% trans "Over plan limit" %}</span>
                             {% else %}<span class="badge badge-soft badge-soft-secondary">{% trans "Left out" %}</span>{% endif %}
                         </td>

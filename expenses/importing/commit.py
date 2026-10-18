@@ -4,6 +4,7 @@ Imports use bulk_create for speed, which skips everything `Expense.save()` and i
 the same work in bulk so an imported expense leaves exactly the traces a typed one does: the account balance, the
 ledger entry, the audit-log row and the cleared caches. `test_import_parity` pins that down.
 """
+import logging
 from decimal import Decimal
 
 from django.conf import settings
@@ -11,6 +12,9 @@ from django.core.cache import cache
 from django.db import IntegrityError, transaction
 
 from ..models import Account, Expense, FinancialAuditLog, Income
+
+
+logger = logging.getLogger(__name__)
 
 
 def save_batch(batch_items, *, account, account_rate, summary):
@@ -110,6 +114,13 @@ def _post_income_ledger_entries(created):
     from ..ledger_service import LedgerPostingService
     from ..models import _build_ledger_version, _run_ledger_shadow
 
+    try:
+        with transaction.atomic():
+            LedgerPostingService.bulk_post(created, kind='INCOME')
+        return
+    except Exception:
+        logger.exception('Bulk ledger posting of imported income failed; posting it one by one.')
+
     for income in created:
         def post(i=income):
             LedgerPostingService.shadow_post_income_create(income=i, version_token=_build_ledger_version(i, 'CREATE'))
@@ -145,6 +156,15 @@ def _record_error(summary, row, reason):
 def _post_ledger_entries(created):
     from ..ledger_service import LedgerPostingService
     from ..models import _build_ledger_version, _run_ledger_shadow
+
+    # One bulk posting for the whole batch (about 9 queries a row became a handful per batch). If it fails for any
+    # reason, fall back to posting row by row, where a failure is recorded per row for the retry job as before.
+    try:
+        with transaction.atomic():
+            LedgerPostingService.bulk_post(created, kind='EXPENSE')
+        return
+    except Exception:
+        logger.exception('Bulk ledger posting of imported expenses failed; posting them one by one.')
 
     for expense in created:
         def post(e=expense):

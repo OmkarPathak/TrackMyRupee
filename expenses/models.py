@@ -3278,8 +3278,9 @@ class LoanScheduleInstallment(models.Model):
 class ImportBatch(models.Model):
     """One file imported into one account. Every expense it created points back here, so an import can be listed,
     its skipped rows downloaded, and the whole import undone."""
-    ACTIVE, UNDOING, UNDONE = 'ACTIVE', 'UNDOING', 'UNDONE'
-    STATUS_CHOICES = [(ACTIVE, _('Imported')), (UNDOING, _('Being undone')), (UNDONE, _('Undone'))]
+    IMPORTING, ACTIVE, UNDOING, UNDONE = 'IMPORTING', 'ACTIVE', 'UNDOING', 'UNDONE'
+    STATUS_CHOICES = [(IMPORTING, _('Not finished')), (ACTIVE, _('Imported')), (UNDOING, _('Being undone')),
+                      (UNDONE, _('Undone'))]
 
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='import_batches')
@@ -3309,6 +3310,17 @@ class ImportBatch(models.Model):
 
     def __str__(self):
         return f"{self.file_name} ({self.created_at:%Y-%m-%d})"
+
+
+class ImportLock(models.Model):
+    """One row per person while an import runs, so a double click, a second tab or a second worker cannot import
+    the same file twice at once. It lives in the database (not in a worker's memory), so it holds across workers
+    and restarts, and a stale one expires by itself."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='import_lock')
+    acquired_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"import lock for user {self.user_id} since {self.acquired_at:%H:%M:%S}"
 
 
 class FinancialAuditLog(models.Model):

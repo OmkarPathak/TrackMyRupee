@@ -292,6 +292,82 @@ class LedgerPostingService:
             return entry, True
 
     @classmethod
+    def bulk_post(cls, items, *, kind):
+        """Post many expenses (kind="EXPENSE") or many income rows (kind="INCOME") at once.
+
+        The entries are exactly the ones post_expense/post_income write one at a time (same idempotency keys, same
+        metadata, same lines, same cached-balance changes), in a handful of queries instead of about nine per row:
+        ledger accounts are looked up once each, the entries and their lines are inserted in bulk, and each ledger
+        account's cached balance is updated once with the sum of the changes. A row already posted under the same
+        key is skipped, so running it twice is safe. Returns how many entries were written."""
+        from .models import _build_ledger_version
+
+        if not items:
+            return 0
+        asset_ledgers, other_ledgers = {}, {}
+        prepared = []           # (entry, lines)
+        for item in items:
+            if item.account is None:
+                raise ValidationError(f"{kind.title()} must be linked to an account for ledger posting.")
+            user = item.user
+            if item.account_id not in asset_ledgers:
+                asset_ledgers[item.account_id] = cls._get_or_create_account_ledger(user, item.account)
+            asset_ledger = asset_ledgers[item.account_id]
+            if kind == "EXPENSE":
+                memo_key = (item.category, item.currency)
+                if memo_key not in other_ledgers:
+                    other_ledgers[memo_key] = cls._get_or_create_expense_ledger(user, item.category, item.currency)
+                lines = [
+                    cls._build_line(entry=None, ledger_account=other_ledgers[memo_key], direction="DEBIT",
+                                    amount=item.amount, currency=item.currency, user=user),
+                    cls._build_line(entry=None, ledger_account=asset_ledger, direction="CREDIT", amount=item.amount,
+                                    currency=item.currency, user=user, account_ref=item.account),
+                ]
+            else:
+                memo_key = (item.source, item.currency)
+                if memo_key not in other_ledgers:
+                    other_ledgers[memo_key] = cls._get_or_create_income_ledger(user, item.source, item.currency)
+                lines = [
+                    cls._build_line(entry=None, ledger_account=asset_ledger, direction="DEBIT", amount=item.amount,
+                                    currency=item.currency, user=user, account_ref=item.account),
+                    cls._build_line(entry=None, ledger_account=other_ledgers[memo_key], direction="CREDIT",
+                                    amount=item.amount, currency=item.currency, user=user),
+                ]
+            cls._validate_balanced(lines)
+            version_token = _build_ledger_version(item, "CREATE")
+            entry = JournalEntry(
+                user=user, source_type=kind, source_id=item.id,
+                idempotency_key=cls._idempotency_key(kind, item.id, f"{version_token}-POST"),
+                description=item.description, metadata={"shadow_action": "CREATE", "version": version_token},
+                status="POSTED",
+            )
+            prepared.append((entry, lines))
+
+        with transaction.atomic():
+            taken = set(JournalEntry.objects.filter(idempotency_key__in=[e.idempotency_key for e, _ in prepared])
+                        .values_list("idempotency_key", flat=True))
+            fresh = [(entry, lines) for entry, lines in prepared if entry.idempotency_key not in taken]
+            if not fresh:
+                return 0
+            JournalEntry.objects.bulk_create([entry for entry, _ in fresh])
+            all_lines = []
+            deltas: dict[int, Decimal] = {}
+            for entry, lines in fresh:
+                for line in lines:
+                    line.journal_entry = entry
+                    all_lines.append(line)
+                    delta = line.amount if line.direction == "DEBIT" else -line.amount
+                    deltas[line.ledger_account_id] = deltas.get(line.ledger_account_id, Decimal("0.00")) + delta
+            JournalLine.objects.bulk_create(all_lines)
+
+            from django.db.models import F
+            for ledger_account_id, total_delta in deltas.items():
+                if total_delta != Decimal("0.00"):
+                    LedgerAccount.objects.filter(pk=ledger_account_id).update(
+                        cached_balance=F('cached_balance') + total_delta)
+            return len(fresh)
+
+    @classmethod
     def post_expense(cls, *, expense, idempotency_key, metadata=None):
         user = expense.user
         if expense.account is None:

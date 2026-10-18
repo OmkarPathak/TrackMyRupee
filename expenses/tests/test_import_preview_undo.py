@@ -15,7 +15,7 @@ from expenses.importing import analyse, ImportOptions
 from expenses.importing.undo import UndoBusy, undo_batch
 from expenses.ledger_read_service import LedgerReadService
 from expenses.ledger_service import LedgerPostingService
-from expenses.models import Account, Expense, FinancialAuditLog, ImportBatch
+from expenses.models import Account, Expense, FinancialAuditLog, ImportBatch, ImportLock
 
 D = Decimal
 
@@ -134,7 +134,7 @@ class PreviewViewTests(Base):
         self.assertEqual(self.client.post(reverse('upload-preview'), self.data()).status_code, 302)
 
     def test_a_running_import_blocks_the_preview(self):
-        cache.set(f'expense_import_lock_{self.user.id}', 1, 60)
+        ImportLock.objects.create(user=self.user)
         response = self.client.post(reverse('upload-preview'), self.data())
         self.assertIn('already running', response.content.decode())
 

@@ -40,6 +40,7 @@
                         <td class="text-end text-nowrap">{{ batch.total_amount|money_exact:batch.currency }}</td>
                         <td>
                             {% if batch.status == 'ACTIVE' %}<span class="badge badge-soft badge-soft-success">{% trans "Imported" %}</span>
+                            {% elif batch.status == 'IMPORTING' %}<span class="badge badge-soft badge-soft-warning" title="{% trans 'Import the same file again to carry on from where it stopped.' %}">{% trans "Not finished" %}</span>
                             {% elif batch.status == 'UNDOING' %}<span class="badge badge-soft badge-soft-warning">{% trans "Being undone" %}: {{ r.live }}</span>
                             {% else %}<span class="badge badge-soft badge-soft-secondary">{% trans "Undone" %}</span>{% endif %}
                         </td>

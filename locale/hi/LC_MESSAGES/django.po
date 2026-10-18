@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TrackMyRupee\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 15:54+0530\n"
+"POT-Creation-Date: 2026-10-18 16:14+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: TrackMyRupee\n"
 "Language-Team: hi\n"
@@ -679,7 +679,7 @@ msgstr "खरीद मूल्य"
 msgid "investment"
 msgstr "निवेश"
 
-#: expenses/flows/base.py:598 expenses/views/imports.py:55
+#: expenses/flows/base.py:598 expenses/views/imports.py:56
 #: templates/expenses/account_detail.html:101
 #: templates/expenses/loan_detail.html:696
 #: templates/expenses/partials/_account_list.html:408
@@ -870,7 +870,7 @@ msgid "Salary, pay day and the salary cycle for your month view."
 msgstr "आपके महीने के व्यू के लिए वेतन, वेतन-दिवस और वेतन चक्र।"
 
 #: expenses/flows/income.py:68
-#: templates/expenses/partials/_import_preview.html:145
+#: templates/expenses/partials/_import_preview.html:149
 msgid "Income source"
 msgstr "आय का स्रोत"
 
@@ -1781,7 +1781,7 @@ msgstr "स्रोत का प्रकार"
 
 #: expenses/forms.py:256 expenses/models.py:598 expenses/models.py:1027
 #: expenses/models.py:1247 expenses/models.py:1494
-#: expenses/views/imports.py:54 expenses/views/imports.py:166
+#: expenses/views/imports.py:55 expenses/views/imports.py:170
 #: templates/components/expense_composer_card.html:50
 #: templates/components/expense_composer_card.html:143
 #: templates/expenses/expense_form.html:47
@@ -1789,7 +1789,7 @@ msgstr "स्रोत का प्रकार"
 #: templates/expenses/income_list.html:208
 #: templates/expenses/partials/_account_detail.html:358
 #: templates/expenses/partials/_expense_list.html:410
-#: templates/expenses/partials/_import_preview.html:119
+#: templates/expenses/partials/_import_preview.html:123
 #: templates/expenses/partials/_income_list.html:140
 #: templates/expenses/partials/_recurring_transaction_list.html:554
 #: templates/expenses/partials/_transaction_list.html:204
@@ -1829,8 +1829,8 @@ msgstr "खर्च"
 #: templates/components/sidebar.html:352 templates/expenses/analytics.html:694
 #: templates/expenses/partials/_account_list.html:266
 #: templates/expenses/partials/_calendar_content.html:50
-#: templates/expenses/partials/_import_preview.html:33
-#: templates/expenses/partials/_import_preview.html:144
+#: templates/expenses/partials/_import_preview.html:37
+#: templates/expenses/partials/_import_preview.html:148
 #: templates/expenses/partials/_income_list.html:8
 #: templates/expenses/partials/_income_list.html:29
 #: templates/expenses/partials/_recurring_transaction_list.html:189
@@ -1845,9 +1845,9 @@ msgstr "आय"
 
 #: expenses/forms.py:355 expenses/models.py:434 expenses/models.py:1485
 #: expenses/views/accounts.py:1640 expenses/views/accounts.py:1641
-#: expenses/views/dashboard.py:2157 expenses/views/imports.py:161
+#: expenses/views/dashboard.py:2157 expenses/views/imports.py:165
 #: templates/expenses/partials/_account_detail.html:126
-#: templates/expenses/partials/_import_preview.html:149
+#: templates/expenses/partials/_import_preview.html:153
 #: templates/expenses/partials/_recurring_transaction_list.html:191
 #: templates/expenses/partials/_recurring_transaction_list.html:399
 #: templates/expenses/partials/_recurring_transaction_list.html:579
@@ -2015,7 +2015,7 @@ msgstr "सूची में दिए गए रंगों में से
 #: expenses/holdings_service.py:281 expenses/holdings_service.py:560
 #: expenses/models.py:597 expenses/models.py:1026 expenses/models.py:1245
 #: expenses/models.py:1493 expenses/models.py:2688
-#: expenses/views/imports.py:54 expenses/views/imports.py:166
+#: expenses/views/imports.py:55 expenses/views/imports.py:170
 #: templates/components/expense_composer_card.html:48
 #: templates/components/expense_composer_card.html:115
 #: templates/expenses/expense_form.html:34
@@ -2030,7 +2030,7 @@ msgstr "सूची में दिए गए रंगों में से
 #: templates/expenses/partials/_expense_list.html:416
 #: templates/expenses/partials/_expense_list.html:418
 #: templates/expenses/partials/_expense_list.html:420
-#: templates/expenses/partials/_import_preview.html:120
+#: templates/expenses/partials/_import_preview.html:124
 #: templates/expenses/partials/_income_list.html:144
 #: templates/expenses/partials/_income_list.html:146
 #: templates/expenses/partials/_income_list.html:148
@@ -2427,7 +2427,7 @@ msgid "Please select a recurring frequency."
 msgstr "कृपया दोहराव की आवृत्ति चुनें।"
 
 #: expenses/forms.py:1872 expenses/models.py:599 expenses/models.py:1495
-#: expenses/models.py:2699 expenses/views/imports.py:56
+#: expenses/models.py:2699 expenses/views/imports.py:57
 #: templates/components/expense_composer_card.html:51
 #: templates/components/expense_composer_card.html:151
 #: templates/expenses/budget_dashboard.html:78
@@ -2436,7 +2436,7 @@ msgstr "कृपया दोहराव की आवृत्ति चु�
 #: templates/expenses/partials/_category_list.html:138
 #: templates/expenses/partials/_expense_list.html:160
 #: templates/expenses/partials/_expense_list.html:411
-#: templates/expenses/partials/_import_preview.html:121
+#: templates/expenses/partials/_import_preview.html:125
 #: templates/expenses/partials/_recurring_transaction_list.html:153
 #: templates/expenses/partials/_recurring_transaction_list.html:361
 #: templates/expenses/recurring_transaction_form.html:360
@@ -2715,7 +2715,7 @@ msgstr "राशि बहुत बड़ी है: "
 msgid "Missing description"
 msgstr "विवरण नहीं है"
 
-#: expenses/importing/service.py:216
+#: expenses/importing/service.py:236
 msgid ""
 "This file has more than 5,000 rows. Split it into smaller files and import "
 "them one at a time."
@@ -2723,48 +2723,54 @@ msgstr ""
 "इस फ़ाइल में 5,000 से ज़्यादा पंक्तियाँ हैं। इसे छोटी फ़ाइलों में बाँटें और "
 "एक-एक करके इम्पोर्ट करें।"
 
-#: expenses/importing/service.py:280 expenses/importing/service.py:326
+#: expenses/importing/service.py:302 expenses/importing/service.py:312
+#: expenses/importing/service.py:353 expenses/importing/service.py:368
+#| msgid "Already imported or entered"
+msgid "Already imported by the unfinished import"
+msgstr "अधूरे इम्पोर्ट में पहले ही इम्पोर्ट हो चुका है"
+
+#: expenses/importing/service.py:304 expenses/importing/service.py:356
 msgid "Already imported or entered"
 msgstr "पहले से इम्पोर्ट या दर्ज किया हुआ"
 
-#: expenses/importing/service.py:283 expenses/importing/service.py:332
+#: expenses/importing/service.py:307 expenses/importing/service.py:362
 msgid "Already recorded as a transfer"
 msgstr "पहले से ट्रांसफर के रूप में दर्ज है"
 
-#: expenses/importing/service.py:287 expenses/importing/service.py:300
-#: expenses/importing/service.py:337 expenses/importing/service.py:357
+#: expenses/importing/service.py:315 expenses/importing/service.py:327
+#: expenses/importing/service.py:371 expenses/importing/service.py:390
 msgid "Left out by you"
 msgstr "आपने छोड़ा"
 
-#: expenses/importing/service.py:289
+#: expenses/importing/service.py:317
 #, python-format
 msgid "Looks like a transfer from %(account)s"
 msgstr "%(account)s से ट्रांसफर जैसा लगता है"
 
-#: expenses/importing/service.py:297
+#: expenses/importing/service.py:324
 #, python-format
 msgid "Looks like income you already have: %(what)s"
 msgstr "ऐसा लगता है कि यह आय आपके पास पहले से है: %(what)s"
 
-#: expenses/importing/service.py:318
+#: expenses/importing/service.py:345
 msgid "Money coming in, not spending"
 msgstr "आने वाला पैसा, खर्च नहीं"
 
-#: expenses/importing/service.py:339
+#: expenses/importing/service.py:373
 #, python-format
 msgid "Looks like a transfer to %(account)s"
 msgstr "%(account)s में ट्रांसफर जैसा लगता है"
 
-#: expenses/importing/service.py:352
+#: expenses/importing/service.py:385
 #, python-format
 msgid "Looks like an expense you already have: %(what)s"
 msgstr "ऐसा लगता है कि यह खर्च आपके पास पहले से है: %(what)s"
 
-#: expenses/importing/service.py:363
+#: expenses/importing/service.py:396
 msgid "Over your plan's monthly expense limit"
 msgstr "आपके प्लान की मासिक खर्च सीमा से ज़्यादा"
 
-#: expenses/importing/service.py:449
+#: expenses/importing/service.py:489
 #, python-format
 msgid ""
 "%(reason)s. It was not imported: preview the file to record it as a "
@@ -3030,7 +3036,7 @@ msgstr "ऐप में रखा गया बैलेंस"
 
 #: expenses/models.py:596 expenses/models.py:1025 expenses/models.py:1246
 #: expenses/models.py:2112 expenses/models.py:2689
-#: expenses/views/imports.py:54 expenses/views/imports.py:166
+#: expenses/views/imports.py:55 expenses/views/imports.py:170
 #: templates/components/expense_composer_card.html:49
 #: templates/components/expense_composer_card.html:127
 #: templates/expenses/expense_form.html:61
@@ -3042,7 +3048,7 @@ msgstr "ऐप में रखा गया बैलेंस"
 #: templates/expenses/partials/_account_detail.html:356
 #: templates/expenses/partials/_capital_event_list.html:60
 #: templates/expenses/partials/_expense_list.html:409
-#: templates/expenses/partials/_import_preview.html:118
+#: templates/expenses/partials/_import_preview.html:122
 #: templates/expenses/partials/_income_list.html:138
 #: templates/expenses/partials/_loan_history_tab.html:17
 #: templates/expenses/partials/_transaction_list.html:202
@@ -3470,15 +3476,20 @@ msgstr ""
 msgid "Sum Assured"
 msgstr "बीमा राशि"
 
+#: expenses/models.py:3282 templates/expenses/import_history.html:43
+#| msgid "Not used"
+msgid "Not finished"
+msgstr "पूरा नहीं हुआ"
+
 #: expenses/models.py:3282 templates/expenses/import_history.html:42
 msgid "Imported"
 msgstr "इम्पोर्ट हुआ"
 
-#: expenses/models.py:3282 templates/expenses/import_history.html:43
+#: expenses/models.py:3282 templates/expenses/import_history.html:44
 msgid "Being undone"
 msgstr "पूर्ववत हो रहा है"
 
-#: expenses/models.py:3282 templates/expenses/import_history.html:44
+#: expenses/models.py:3283 templates/expenses/import_history.html:45
 msgid "Undone"
 msgstr "पूर्ववत किया गया"
 
@@ -5729,7 +5740,7 @@ msgid "Investments"
 msgstr "निवेश"
 
 #: expenses/views/dashboard.py:2128 templates/expenses/export_data.html:54
-#: templates/expenses/partials/_import_preview.html:39
+#: templates/expenses/partials/_import_preview.html:43
 #: templates/expenses/partials/_transaction_list.html:124
 #: templates/home.html:2526 templates/partials/savings_modal.html:29
 #: templates/partials/savings_modal.html:243
@@ -6140,30 +6151,30 @@ msgstr "योगदान सफलतापूर्वक अपडेट ह
 msgid "Contribution deleted successfully!"
 msgstr "योगदान सफलतापूर्वक हटा दिया गया!"
 
-#: expenses/views/imports.py:55
+#: expenses/views/imports.py:56
 msgid "Debit (money out)"
 msgstr "डेबिट (जाने वाला पैसा)"
 
-#: expenses/views/imports.py:55
+#: expenses/views/imports.py:56
 msgid "Credit (money in)"
 msgstr "क्रेडिट (आने वाला पैसा)"
 
-#: expenses/views/imports.py:56
+#: expenses/views/imports.py:57
 msgid "Reference"
 msgstr "संदर्भ"
 
-#: expenses/views/imports.py:62
+#: expenses/views/imports.py:63
 msgid "none"
 msgstr "कोई नहीं"
 
-#: expenses/views/imports.py:84 expenses/views/misc.py:209
+#: expenses/views/imports.py:84 expenses/views/misc.py:268
 msgid ""
 "An import is already running. Wait for it to finish, then upload again."
 msgstr ""
 "एक इम्पोर्ट पहले से चल रहा है। उसके पूरा होने तक इंतज़ार करें, फिर दोबारा "
 "अपलोड करें।"
 
-#: expenses/views/imports.py:96 expenses/views/misc.py:260
+#: expenses/views/imports.py:99 expenses/views/misc.py:275
 msgid ""
 "We could not read this file. Check that it is a valid Excel or CSV file with"
 " Date, Amount and Description columns, then try again."
@@ -6171,22 +6182,22 @@ msgstr ""
 "हम इस फ़ाइल को पढ़ नहीं सके। जाँचें कि यह Date, Amount और Description कॉलम "
 "वाली मान्य Excel या CSV फ़ाइल है, फिर दोबारा कोशिश करें।"
 
-#: expenses/views/imports.py:99 expenses/views/misc.py:235
+#: expenses/views/imports.py:102 expenses/views/misc.py:241
 msgid ""
 "Could not detect required columns (Date, Amount, Description). Please check "
 "your file."
 msgstr ""
 "ज़रूरी कॉलम (Date, Amount, Description) नहीं मिले। कृपया अपनी फ़ाइल जाँचें।"
 
-#: expenses/views/imports.py:140
+#: expenses/views/imports.py:144
 msgid "This import has already been undone."
 msgstr "यह इम्पोर्ट पहले ही पूर्ववत किया जा चुका है।"
 
-#: expenses/views/imports.py:145
+#: expenses/views/imports.py:149
 msgid "This import is already being undone. Give it a moment."
 msgstr "यह इम्पोर्ट पहले से पूर्ववत हो रहा है। थोड़ा इंतज़ार करें।"
 
-#: expenses/views/imports.py:148
+#: expenses/views/imports.py:152
 #, python-format
 msgid ""
 "Undoing this import: %(left)s expenses to go. This page continues by itself."
@@ -6194,46 +6205,46 @@ msgstr ""
 "इम्पोर्ट पूर्ववत हो रहा है: %(left)s खर्च बाकी हैं। यह पेज अपने आप आगे "
 "बढ़ेगा।"
 
-#: expenses/views/imports.py:150
+#: expenses/views/imports.py:154
 msgid ""
 "The import was undone: its expenses were removed and your balances restored."
 msgstr ""
 "इम्पोर्ट पूर्ववत हो गया: उसके खर्च हटा दिए गए और आपका शेष पहले जैसा कर दिया "
 "गया।"
 
-#: expenses/views/imports.py:160
-#: templates/expenses/partials/_import_preview.html:143
+#: expenses/views/imports.py:164
+#: templates/expenses/partials/_import_preview.html:147
 msgid "Error"
 msgstr "त्रुटि"
 
-#: expenses/views/imports.py:160
-#: templates/expenses/partials/_import_preview.html:141
+#: expenses/views/imports.py:164
+#: templates/expenses/partials/_import_preview.html:145
 msgid "Duplicate"
 msgstr "डुप्लिकेट"
 
-#: expenses/views/imports.py:160
-#: templates/expenses/partials/_import_preview.html:30
-#: templates/expenses/partials/_import_preview.html:142
+#: expenses/views/imports.py:164
+#: templates/expenses/partials/_import_preview.html:34
+#: templates/expenses/partials/_import_preview.html:146
 msgid "Money in"
 msgstr "आने वाला पैसा"
 
-#: expenses/views/imports.py:160
-#: templates/expenses/partials/_import_preview.html:150
+#: expenses/views/imports.py:164
+#: templates/expenses/partials/_import_preview.html:155
 msgid "Over plan limit"
 msgstr "प्लान की सीमा से ज़्यादा"
 
-#: expenses/views/imports.py:161
-#: templates/expenses/partials/_import_preview.html:148
+#: expenses/views/imports.py:165
+#: templates/expenses/partials/_import_preview.html:152
 msgid "Possible duplicate"
 msgstr "संभावित डुप्लिकेट"
 
-#: expenses/views/imports.py:166
-#: templates/expenses/partials/_import_preview.html:117
+#: expenses/views/imports.py:170
+#: templates/expenses/partials/_import_preview.html:121
 #: templates/upload.html:131
 msgid "Row"
 msgstr "पंक्ति"
 
-#: expenses/views/imports.py:166
+#: expenses/views/imports.py:170
 #: templates/expenses/account_reconciliation_history.html:38
 #: templates/expenses/import_history.html:24
 #: templates/expenses/partials/_recurring_transaction_list.html:557
@@ -6241,7 +6252,7 @@ msgstr "पंक्ति"
 msgid "Status"
 msgstr "स्थिति"
 
-#: expenses/views/imports.py:166 templates/upload.html:132
+#: expenses/views/imports.py:170 templates/upload.html:132
 msgid "Reason"
 msgstr "कारण"
 
@@ -6404,7 +6415,7 @@ msgstr "ब्याज दर अपडेट करने में त्र�
 msgid "Repayment deleted successfully."
 msgstr "भुगतान सफलतापूर्वक हटा दिया गया।"
 
-#: expenses/views/misc.py:129
+#: expenses/views/misc.py:130
 msgid ""
 "This file has a single amount column with both positive and negative values,"
 " so positive amounts were treated as expenses and negative ones were skipped"
@@ -6416,7 +6427,7 @@ msgstr ""
 "छोड़ दिया गया। अगर यह उल्टा है, तो ये खर्च हटाएँ और डेबिट/क्रेडिट या शेष "
 "कॉलम के साथ दोबारा इम्पोर्ट करें।"
 
-#: expenses/views/misc.py:133
+#: expenses/views/misc.py:134
 msgid ""
 "This file has a single amount column with both positive and negative values,"
 " so negative amounts were treated as expenses and positive ones were skipped"
@@ -6428,15 +6439,15 @@ msgstr ""
 "छोड़ दिया गया। अगर यह उल्टा है, तो ये खर्च हटाएँ और डेबिट/क्रेडिट या शेष "
 "कॉलम के साथ दोबारा इम्पोर्ट करें।"
 
-#: expenses/views/misc.py:155
+#: expenses/views/misc.py:156
 msgid "Please choose a file to upload."
 msgstr "कृपया अपलोड करने के लिए एक फ़ाइल चुनें।"
 
-#: expenses/views/misc.py:159
+#: expenses/views/misc.py:160
 msgid "Please upload an Excel (.xlsx) or CSV (.csv) file."
 msgstr "कृपया Excel (.xlsx) या CSV (.csv) फ़ाइल अपलोड करें।"
 
-#: expenses/views/misc.py:161
+#: expenses/views/misc.py:162
 msgid ""
 "This file is too large to import (the limit is 5 MB). Split it into smaller "
 "files."
@@ -6444,22 +6455,22 @@ msgstr ""
 "यह फ़ाइल इम्पोर्ट करने के लिए बहुत बड़ी है (सीमा 5 MB है)। इसे छोटी फ़ाइलों "
 "में बाँटें।"
 
-#: expenses/views/misc.py:163
+#: expenses/views/misc.py:164
 msgid "This spreadsheet is too large to import. Split it into smaller files."
 msgstr ""
 "यह स्प्रेडशीट इम्पोर्ट करने के लिए बहुत बड़ी है। इसे छोटी फ़ाइलों में "
 "बाँटें।"
 
-#: expenses/views/misc.py:171
+#: expenses/views/misc.py:172
 msgid "Please create an account before importing expenses."
 msgstr "खर्च इम्पोर्ट करने से पहले कृपया एक खाता बनाएँ।"
 
-#: expenses/views/misc.py:177
+#: expenses/views/misc.py:178
 msgid ""
 "Selected account is invalid. Please choose one of your active accounts."
 msgstr "चुना गया खाता अमान्य है। कृपया अपने सक्रिय खातों में से कोई एक चुनें।"
 
-#: expenses/views/misc.py:237
+#: expenses/views/misc.py:243
 msgid ""
 "The file you chose is not the one you previewed. Preview it again before "
 "importing."
@@ -6467,35 +6478,46 @@ msgstr ""
 "आपने जो फ़ाइल चुनी है, वह वह नहीं है जिसका आपने पूर्वावलोकन देखा था। "
 "इम्पोर्ट करने से पहले उसका फिर से पूर्वावलोकन देखें।"
 
-#: expenses/views/misc.py:245
+#: expenses/views/misc.py:253
+#, python-format
+msgid ""
+"This import was cut short to stay within the time allowed: %(count)s rows "
+"are still to be imported. Import the same file again and it carries on from "
+"here."
+msgstr ""
+"यह इम्पोर्ट अनुमत समय के भीतर रखने के लिए बीच में रोक दिया गया: %(count)s "
+"पंक्तियाँ अभी इम्पोर्ट होनी बाकी हैं। वही फ़ाइल फिर से इम्पोर्ट करें, यह "
+"यहीं से आगे बढ़ेगा।"
+
+#: expenses/views/misc.py:257
 msgid "Processing complete! See summary below."
 msgstr "प्रोसेसिंग पूरी हुई! नीचे सारांश देखें।"
 
-#: expenses/views/misc.py:253
+#: expenses/views/misc.py:259
 msgid "Processing complete. No new expenses were added."
 msgstr "प्रोसेसिंग पूरी हुई। कोई नया खर्च नहीं जोड़ा गया।"
 
-#: expenses/views/misc.py:277
+#: expenses/views/misc.py:290
 msgid "AI Insights is a paid feature."
 msgstr "AI इनसाइट्स एक सशुल्क सुविधा है।"
 
-#: expenses/views/misc.py:305
+#: expenses/views/misc.py:318
 msgid "Your message has been sent!"
 msgstr "आपका संदेश भेज दिया गया है!"
 
-#: expenses/views/misc.py:311
+#: expenses/views/misc.py:324
 msgid "Submission limit reached."
 msgstr "सबमिशन की सीमा पूरी हो गई है।"
 
-#: expenses/views/misc.py:316
+#: expenses/views/misc.py:329
 msgid "Your message was flagged as potential spam."
 msgstr "आपके संदेश को संभावित स्पैम के रूप में चिह्नित किया गया।"
 
-#: expenses/views/misc.py:320
+#: expenses/views/misc.py:333
 msgid "Please use a permanent email address."
 msgstr "कृपया स्थायी ईमेल पता इस्तेमाल करें।"
 
-#: expenses/views/misc.py:324
+#: expenses/views/misc.py:337
 msgid ""
 "We couldn't send your message right now. Please email us directly or try "
 "again later."
@@ -6503,28 +6525,28 @@ msgstr ""
 "हम अभी आपका संदेश नहीं भेज सके। कृपया हमें सीधे ईमेल करें या बाद में फिर "
 "कोशिश करें।"
 
-#: expenses/views/misc.py:327
+#: expenses/views/misc.py:340
 msgid "Your message has been sent! We'll get back to you shortly."
 msgstr "आपका संदेश भेज दिया गया है! हम जल्द ही आपसे संपर्क करेंगे।"
 
-#: expenses/views/misc.py:441
+#: expenses/views/misc.py:454
 msgid "Thank you for your consent. You can now use TrackMyRupee."
 msgstr "आपकी सहमति के लिए धन्यवाद। अब आप TrackMyRupee इस्तेमाल कर सकते हैं।"
 
-#: expenses/views/misc.py:445
+#: expenses/views/misc.py:458
 msgid ""
 "You must confirm that you are 18 years of age or older to use TrackMyRupee."
 msgstr ""
 "TrackMyRupee इस्तेमाल करने के लिए कृपया पुष्टि करें कि आपकी उम्र 18 वर्ष या "
 "उससे अधिक है।"
 
-#: expenses/views/misc.py:447
+#: expenses/views/misc.py:460
 msgid "You must agree to all data collection terms to use TrackMyRupee."
 msgstr ""
 "TrackMyRupee इस्तेमाल करने के लिए आपको डेटा संग्रह की सभी शर्तों से सहमत "
 "होना होगा।"
 
-#: expenses/views/misc.py:450 templates/expenses/dpdp_consent.html:4
+#: expenses/views/misc.py:463 templates/expenses/dpdp_consent.html:4
 #: templates/expenses/dpdp_consent.html:11
 msgid "Data Consent Required"
 msgstr "डेटा सहमति आवश्यक है"
@@ -7191,7 +7213,7 @@ msgstr "आज ही साइन अप करें।"
 
 #: templates/account/login.html:64 templates/account/login.html:121
 #: templates/account/signup.html:257
-#: templates/expenses/partials/_import_preview.html:98
+#: templates/expenses/partials/_import_preview.html:102
 msgid "Show"
 msgstr "दिखाएँ"
 
@@ -8159,7 +8181,7 @@ msgid "Added {summary}"
 msgstr "जोड़ा गया {summary}"
 
 #: templates/components/expense_composer.html:13
-#: templates/expenses/import_history.html:54
+#: templates/expenses/import_history.html:55
 msgid "Undo"
 msgstr "पूर्ववत करें"
 
@@ -9066,9 +9088,9 @@ msgstr "अवलोकन"
 
 #: templates/components/sidebar.html:44
 #: templates/expenses/partials/_budget_dashboard_content.html:24
-#: templates/expenses/partials/_import_preview.html:28
-#: templates/expenses/partials/_import_preview.html:101
-#: templates/expenses/partials/_import_preview.html:140
+#: templates/expenses/partials/_import_preview.html:32
+#: templates/expenses/partials/_import_preview.html:105
+#: templates/expenses/partials/_import_preview.html:144
 #: templates/expenses/partials/_notification_list.html:54
 #: templates/expenses/partials/_notification_list.html:112
 msgid "New"
@@ -9811,7 +9833,7 @@ msgid "Compare"
 msgstr "तुलना करें"
 
 #: templates/expenses/account_reconcile.html:62
-#: templates/expenses/partials/_import_preview.html:122
+#: templates/expenses/partials/_import_preview.html:126
 msgid "Result"
 msgstr "नतीजा"
 
@@ -11727,7 +11749,7 @@ msgid "Added"
 msgstr "जोड़ा गया"
 
 #: templates/expenses/import_history.html:22
-#: templates/expenses/partials/_import_preview.html:103
+#: templates/expenses/partials/_import_preview.html:107
 msgid "Skipped"
 msgstr "छोड़ी गई"
 
@@ -11744,15 +11766,20 @@ msgstr "स्थानांतरण"
 msgid "Download the skipped rows"
 msgstr "छोड़ी गई पंक्तियाँ डाउनलोड करें"
 
-#: templates/expenses/import_history.html:51
+#: templates/expenses/import_history.html:43
+msgid "Import the same file again to carry on from where it stopped."
+msgstr ""
+"जहाँ रुका था वहीं से आगे बढ़ाने के लिए वही फ़ाइल फिर से इम्पोर्ट करें।"
+
+#: templates/expenses/import_history.html:52
 msgid "Undo this import?"
 msgstr "यह इम्पोर्ट पूर्ववत करें?"
 
-#: templates/expenses/import_history.html:52
+#: templates/expenses/import_history.html:53
 msgid "Undo import"
 msgstr "इम्पोर्ट पूर्ववत करें"
 
-#: templates/expenses/import_history.html:53
+#: templates/expenses/import_history.html:54
 #, python-format
 msgid ""
 "This removes the %(count)s expenses imported from %(name)s, including any "
@@ -11761,11 +11788,11 @@ msgstr ""
 "इससे %(name)s से इम्पोर्ट किए गए %(count)s खर्च हट जाएँगे, बाद में आपके बदले"
 " हुए खर्च भी, और आपके खाते का शेष पहले जैसा हो जाएगा।"
 
-#: templates/expenses/import_history.html:68
+#: templates/expenses/import_history.html:69
 msgid "You have not imported any files yet."
 msgstr "आपने अभी तक कोई फ़ाइल इम्पोर्ट नहीं की है।"
 
-#: templates/expenses/import_history.html:69
+#: templates/expenses/import_history.html:70
 msgid "Import a file"
 msgstr "फ़ाइल इम्पोर्ट करें"
 
@@ -13477,11 +13504,20 @@ msgstr ""
 "अभी कुछ भी सेव नहीं हुआ है। देख लें कि क्या होगा, फिर %(name)s में इम्पोर्ट "
 "करें।"
 
-#: templates/expenses/partials/_import_preview.html:22
+#: templates/expenses/partials/_import_preview.html:13
+#, python-format
+msgid ""
+"An earlier import of this file did not finish. %(count)s rows are already "
+"in; importing now carries on with the rest."
+msgstr ""
+"इस फ़ाइल का पिछला इम्पोर्ट पूरा नहीं हुआ था। %(count)s पंक्तियाँ पहले से आ "
+"चुकी हैं; अभी इम्पोर्ट करने पर बाकी पंक्तियाँ आगे जोड़ी जाएँगी।"
+
+#: templates/expenses/partials/_import_preview.html:26
 msgid "Also import money coming in as income"
 msgstr "आने वाला पैसा भी आय के रूप में इम्पोर्ट करें"
 
-#: templates/expenses/partials/_import_preview.html:23
+#: templates/expenses/partials/_import_preview.html:27
 msgid ""
 "Salary, interest, refunds and the like. Each row gets a source you can "
 "change. Money moved from your own accounts is recorded as a transfer "
@@ -13491,27 +13527,27 @@ msgstr ""
 "बदल सकते हैं। आपके अपने खातों से आया पैसा इसके बजाय ट्रांसफर के रूप में दर्ज"
 " होता है।"
 
-#: templates/expenses/partials/_import_preview.html:29
+#: templates/expenses/partials/_import_preview.html:33
 #: templates/upload.html:54
 msgid "Duplicates"
 msgstr "डुप्लिकेट"
 
-#: templates/expenses/partials/_import_preview.html:31
-#: templates/expenses/partials/_import_preview.html:104
+#: templates/expenses/partials/_import_preview.html:35
+#: templates/expenses/partials/_import_preview.html:108
 #: templates/upload.html:79
 msgid "Errors"
 msgstr "त्रुटियाँ"
 
-#: templates/expenses/partials/_import_preview.html:36
+#: templates/expenses/partials/_import_preview.html:40
 msgid "Possible duplicates"
 msgstr "संभावित डुप्लिकेट"
 
-#: templates/expenses/partials/_import_preview.html:42
-#: templates/expenses/partials/_import_preview.html:151
+#: templates/expenses/partials/_import_preview.html:46
+#: templates/expenses/partials/_import_preview.html:156
 msgid "Left out"
 msgstr "छोड़ा गया"
 
-#: templates/expenses/partials/_import_preview.html:49
+#: templates/expenses/partials/_import_preview.html:53
 msgid ""
 "Rows marked Possible duplicate look like expenses you already have (same "
 "amount, within two days, a word in common). They are unticked: tick any that"
@@ -13521,7 +13557,7 @@ msgstr ""
 "पहले से हैं (वही राशि, दो दिन के भीतर, कोई एक शब्द समान)। इन पर टिक नहीं है:"
 " जो सच में नई हैं उन पर टिक करें।"
 
-#: templates/expenses/partials/_import_preview.html:50
+#: templates/expenses/partials/_import_preview.html:54
 msgid ""
 "Rows marked Transfer move money between your own accounts, so they are "
 "recorded as transfers, not spending. Untick any that are wrong."
@@ -13530,72 +13566,77 @@ msgstr ""
 "उन्हें खर्च नहीं, ट्रांसफर के रूप में दर्ज किया जाता है। जो गलत हों उनका टिक"
 " हटा दें।"
 
-#: templates/expenses/partials/_import_preview.html:55
+#: templates/expenses/partials/_import_preview.html:59
 msgid "Check how the file was read"
 msgstr "देखें कि फ़ाइल कैसे पढ़ी गई"
 
-#: templates/expenses/partials/_import_preview.html:57
+#: templates/expenses/partials/_import_preview.html:61
 msgid "If a column was picked wrongly, choose the right one and check again."
 msgstr "अगर कोई कॉलम गलत चुना गया है, तो सही कॉलम चुनें और फिर से जाँचें।"
 
-#: templates/expenses/partials/_import_preview.html:63
+#: templates/expenses/partials/_import_preview.html:67
 msgid "As detected"
 msgstr "जैसा पहचाना गया"
 
-#: templates/expenses/partials/_import_preview.html:64
+#: templates/expenses/partials/_import_preview.html:68
 msgid "Not used"
 msgstr "इस्तेमाल नहीं हुआ"
 
-#: templates/expenses/partials/_import_preview.html:73
+#: templates/expenses/partials/_import_preview.html:77
 msgid "Which amounts are spending?"
 msgstr "कौन सी राशि खर्च है?"
 
-#: templates/expenses/partials/_import_preview.html:75
-#: templates/expenses/partials/_import_preview.html:84
+#: templates/expenses/partials/_import_preview.html:79
+#: templates/expenses/partials/_import_preview.html:88
 msgid "Work it out"
 msgstr "अपने आप तय करें"
 
-#: templates/expenses/partials/_import_preview.html:76
+#: templates/expenses/partials/_import_preview.html:80
 msgid "Positive amounts are spending"
 msgstr "धनात्मक राशि खर्च है"
 
-#: templates/expenses/partials/_import_preview.html:77
+#: templates/expenses/partials/_import_preview.html:81
 msgid "Negative amounts are spending"
 msgstr "ऋणात्मक राशि खर्च है"
 
-#: templates/expenses/partials/_import_preview.html:82
+#: templates/expenses/partials/_import_preview.html:86
 msgid "Dates are written"
 msgstr "तारीख इस तरह लिखी है"
 
-#: templates/expenses/partials/_import_preview.html:85
+#: templates/expenses/partials/_import_preview.html:89
 msgid "Day first (03/04 is 3 April)"
 msgstr "पहले दिन (03/04 यानी 3 अप्रैल)"
 
-#: templates/expenses/partials/_import_preview.html:86
+#: templates/expenses/partials/_import_preview.html:90
 msgid "Month first (03/04 is March 4)"
 msgstr "पहले महीना (03/04 यानी 4 मार्च)"
 
-#: templates/expenses/partials/_import_preview.html:92
+#: templates/expenses/partials/_import_preview.html:96
 msgid "Check again"
 msgstr "फिर से जाँचें"
 
-#: templates/expenses/partials/_import_preview.html:100
+#: templates/expenses/partials/_import_preview.html:104
 msgid "All rows"
 msgstr "सभी पंक्तियाँ"
 
-#: templates/expenses/partials/_import_preview.html:102
+#: templates/expenses/partials/_import_preview.html:106
 msgid "Needs a look"
 msgstr "देखने लायक"
 
-#: templates/expenses/partials/_import_preview.html:108
+#: templates/expenses/partials/_import_preview.html:112
 msgid "Select all new rows"
 msgstr "सभी नई पंक्तियाँ चुनें"
 
-#: templates/expenses/partials/_import_preview.html:131
+#: templates/expenses/partials/_import_preview.html:135
 msgid "Import this row"
 msgstr "यह पंक्ति इम्पोर्ट करें"
 
-#: templates/expenses/partials/_import_preview.html:160
+#: templates/expenses/partials/_import_preview.html:154
+#| msgid "Already imported or entered"
+msgid "Already imported"
+msgstr "पहले से इम्पोर्ट हो चुका"
+
+#: templates/expenses/partials/_import_preview.html:165
 #, python-format
 msgid ""
 "Showing the first 1,000 rows. The other %(count)s are imported as the counts"
@@ -13604,7 +13645,7 @@ msgstr ""
 "पहली 1,000 पंक्तियाँ दिखाई जा रही हैं। बाकी %(count)s पंक्तियाँ ऊपर दी गई "
 "गिनती के अनुसार इम्पोर्ट होंगी।"
 
-#: templates/expenses/partials/_import_preview.html:169
+#: templates/expenses/partials/_import_preview.html:174
 #, python-format
 msgid "Import <span id=\"import-count\">%(count)s</span> rows"
 msgstr "<span id=\"import-count\">%(count)s</span> पंक्तियाँ इम्पोर्ट करें"
@@ -19490,8 +19531,6 @@ msgstr "इम्पोर्ट की गई कुल राशि"
 
 #: templates/upload.html:93
 #, python-format
-#| msgid ""
-#| "%(count)s rows were recorded as income, %(symbol)s%(total)s in all."
 msgid "%(count)s rows were recorded as income, %(total)s in all."
 msgstr "%(count)s पंक्तियाँ आय के रूप में दर्ज की गईं, कुल %(total)s।"
 

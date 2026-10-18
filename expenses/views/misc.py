@@ -109,6 +109,7 @@ class CalendarDayView(LoginRequiredMixin, TemplateView):
 # Limits on one import. A file is read whole into memory, so it must be small; the row cap is far above what
 # a month or a year of personal statements holds.
 MAX_XLSX_UNCOMPRESSED_BYTES = 30 * 1024 * 1024   # a spreadsheet is a zip: refuse one that expands enormously
+IMPORT_BUDGET_SECONDS = 25                         # an import stops starting new work after this, well inside the 60 s a request gets
 
 
 def _xlsx_expands_too_much(uploaded_file):
@@ -203,54 +204,68 @@ def upload_view(request):
             messages.error(request, upload.error)
             return page(upload.selected_account_id)
 
-        # One import at a time per user: a double click would otherwise run twice and import every row twice.
-        upload_lock = f'expense_import_lock_{request.user.id}'
-        if not cache.add(upload_lock, 1, timeout=300):
-            messages.error(request, _("An import is already running. Wait for it to finish, then upload again."))
-            return page(upload.selected_account_id)
-
         from finance_tracker.plans import get_limit as _plan_limit
-        from ..importing import ImportFileError, analyse, commit
+        from ..importing import ImportFileError, analyse, commit, file_digest
+        from ..importing.locks import ImportBusy, import_lock
+        from ..models import ImportBatch
         from . import predict_category_ai
         from .imports import options_from_post
 
         options, excluded, included, reviewed = options_from_post(request.POST)
         try:
-            analysis = analyse(
-                user=request.user,
-                uploaded_file=upload.file,
-                file_name=upload.file_name,
-                account=upload.account,
-                currency=upload.currency,
-                predict_category=predict_category_ai,
-                plan_cap=_plan_limit(request.user.profile.active_tier, 'expenses_per_month'),
-                max_rows=MAX_IMPORT_ROWS,
-                options=options,
-                excluded=excluded,
-                included=included,
-                reviewed=reviewed,
-            )
-            posted_hash = request.POST.get('file_hash', '')
-            if analysis is None:
-                messages.warning(request, _("Could not detect required columns (Date, Amount, Description). Please check your file."))
-            elif posted_hash and posted_hash != analysis.file_hash:
-                messages.error(request, _("The file you chose is not the one you previewed. Preview it again before importing."))
-            else:
-                summary = commit(analysis, user=request.user, account=upload.account,
-                                 currency=upload.currency, file_name=upload.file_name)
-                results = summary
-                for note in summary['notes']:
-                    messages.warning(request, _IMPORT_NOTES[note])
-                if summary['created_count'] > 0:
-                    messages.success(request, _("Processing complete! See summary below."))
-                    ph_capture(request.user, 'expenses_imported', {
-                        'created_count': summary['created_count'],
-                        'duplicate_count': summary['duplicate_count'],
-                        'error_count': summary['error_count'],
-                        'total_rows': summary['total_rows'],
-                    })
+            # One import at a time per person (held in the database): a double click, a second tab or a second
+            # worker would otherwise run the same file twice at once.
+            with import_lock(request.user):
+                # The same file imported before and not finished (it ran out of time, or the connection dropped):
+                # carry on with that import instead of starting another.
+                resume = ImportBatch.objects.filter(
+                    user=request.user, account=upload.account, status=ImportBatch.IMPORTING,
+                    file_hash=file_digest(upload.file)).first()
+                analysis = analyse(
+                    user=request.user,
+                    uploaded_file=upload.file,
+                    file_name=upload.file_name,
+                    account=upload.account,
+                    currency=upload.currency,
+                    predict_category=predict_category_ai,
+                    plan_cap=_plan_limit(request.user.profile.active_tier, 'expenses_per_month'),
+                    max_rows=MAX_IMPORT_ROWS,
+                    options=options,
+                    excluded=excluded,
+                    included=included,
+                    reviewed=reviewed,
+                    resume=resume,
+                )
+                posted_hash = request.POST.get('file_hash', '')
+                if analysis is None:
+                    messages.warning(request, _("Could not detect required columns (Date, Amount, Description). Please check your file."))
+                elif posted_hash and posted_hash != analysis.file_hash:
+                    messages.error(request, _("The file you chose is not the one you previewed. Preview it again before importing."))
                 else:
-                    messages.info(request, _("Processing complete. No new expenses were added."))
+                    summary = commit(analysis, user=request.user, account=upload.account,
+                                     currency=upload.currency, file_name=upload.file_name, resume=resume,
+                                     budget_seconds=IMPORT_BUDGET_SECONDS)
+                    results = summary
+                    for note in summary['notes']:
+                        messages.warning(request, _IMPORT_NOTES[note])
+                    if summary['remaining']:
+                        messages.warning(request, _(
+                            "This import was cut short to stay within the time allowed: %(count)s rows are still to "
+                            "be imported. Import the same file again and it carries on from here.")
+                            % {'count': summary['remaining']})
+                    elif summary['created_count'] + summary['income_count'] + summary['transfer_count'] > 0:
+                        messages.success(request, _("Processing complete! See summary below."))
+                    else:
+                        messages.info(request, _("Processing complete. No new expenses were added."))
+                    if summary['created_count'] > 0:
+                        ph_capture(request.user, 'expenses_imported', {
+                            'created_count': summary['created_count'],
+                            'duplicate_count': summary['duplicate_count'],
+                            'error_count': summary['error_count'],
+                            'total_rows': summary['total_rows'],
+                        })
+        except ImportBusy:
+            messages.error(request, _("An import is already running. Wait for it to finish, then upload again."))
         except TooManyRows as error:
             messages.error(request, str(error))
         except ImportFileError as error:
@@ -259,8 +274,6 @@ def upload_view(request):
             logging.getLogger(__name__).exception("Expense import failed for user %s", request.user.id)
             messages.error(request, _("We could not read this file. Check that it is a valid Excel or CSV file with Date, "
                                       "Amount and Description columns, then try again."))
-        finally:
-            cache.delete(upload_lock)
 
     return page(request.POST.get('account') if request.method == 'POST' else None)
 
